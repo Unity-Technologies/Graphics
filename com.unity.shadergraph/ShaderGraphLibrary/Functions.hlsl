@@ -31,7 +31,7 @@ struct Gradient
     float4 colors[8];
     float2 alphas[8];
 };
-
+   
 Gradient NewGradient(int type, int colorsLength, int alphasLength,
     float4 colors0, float4 colors1, float4 colors2, float4 colors3, float4 colors4, float4 colors5, float4 colors6, float4 colors7,
     float2 alphas0, float2 alphas1, float2 alphas2, float2 alphas3, float2 alphas4, float2 alphas5, float2 alphas6, float2 alphas7)
@@ -49,8 +49,48 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_SampleSceneDepth(uv)
 #endif
 
+#ifndef SHADERGRAPH_LOAD_SCENE_COLOR
+    #define SHADERGRAPH_LOAD_SCENE_COLOR(uv, lod) shadergraph_LoadSceneColor(uv, lod)
+#endif
+
 #ifndef SHADERGRAPH_SAMPLE_SCENE_COLOR
-    #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_SampleSceneColor(uv)
+    #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv, s, lod) shadergraph_SampleSceneColor(uv, s, lod)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR
+    #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_LoadCustomSceneColor(uv)
+#endif
+
+#ifndef SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR
+    #define SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR(uv, s) shadergraph_SampleCustomSceneColor(uv, s)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH
+    #define SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH(uv) shadergraph_LoadCustomSceneColor(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_NORMAL
+    #define SHADERGRAPH_LOAD_SCENE_NORMAL(uv) shadergraph_LoadSceneNormal(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_ROUGHNESS
+    #define SHADERGRAPH_LOAD_SCENE_ROUGHNESS(uv) shadergraph_LoadSceneRoughness(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR
+    #define SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR(uv) shadergraph_LoadSceneMotionVector(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_SSAO
+    #define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_LoadSceneSSAO(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_SSR
+    #define SHADERGRAPH_LOAD_SCENE_SSR(uv) shadergraph_LoadSceneSSR(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_VOLUMETRIC
+    #define SHADERGRAPH_LOAD_SCENE_VOLUMETRIC(uv) shadergraph_LoadSceneVolumetric(uv)
 #endif
 
 #ifndef SHADERGRAPH_BAKED_GI
@@ -86,7 +126,57 @@ float shadergraph_SampleSceneDepth(float2 uv)
     return 1;
 }
 
-float3 shadergraph_SampleSceneColor(float2 uv)
+float3 shadergraph_LoadSceneColor(float2 uv, float lod)
+{
+    return 0;
+}
+
+float3 shadergraph_SampleSceneColor(float2 uv, SAMPLER(s), float lod)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadCustomSceneColor(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_SampleCustomSceneColor(float2 uv, SAMPLER(s))
+{
+    return 0;
+}
+
+float4 shadergraph_LoadCustomSceneDepth(float2 uv)
+{
+    return 0;
+}
+
+float3 shadergraph_LoadSceneNormal(float2 uv)
+{
+    return 0;
+}
+
+float3 shadergraph_LoadSceneRoughness(float2 uv)
+{
+    return 0;
+}
+
+float2 shadergraph_LoadSceneMotionVector(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadSceneSSAO(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadSceneSSR(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadSceneVolumetric(float2 uv)
 {
     return 0;
 }

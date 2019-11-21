@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!enabled)
                 return false;
+       
 
             if (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView)
                 return false;

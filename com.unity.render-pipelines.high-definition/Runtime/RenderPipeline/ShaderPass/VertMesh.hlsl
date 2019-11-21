@@ -98,6 +98,18 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #define PackVaryingsType PackVaryingsToPS
 #endif
 
+// transform for fullscreen blit
+VaryingsMeshType TransformBlit(AttributesMesh input)
+{
+    VaryingsMeshType output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+#if defined(ATTRIBUTES_NEED_VERTEX_ID)
+    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+#endif
+    return output;
+}
+
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that MotionVectorPass can get the modified input values later.
 VaryingsMeshType VertMesh(AttributesMesh input)

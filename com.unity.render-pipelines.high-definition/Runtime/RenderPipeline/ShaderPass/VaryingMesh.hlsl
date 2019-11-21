@@ -22,7 +22,9 @@ struct AttributesMesh
 #ifdef ATTRIBUTES_NEED_COLOR
     float4 color        : COLOR;
 #endif
-
+#ifdef ATTRIBUTES_NEED_VERTEX_ID
+    uint vertexID       : VERTEXID_SEMANTIC;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
