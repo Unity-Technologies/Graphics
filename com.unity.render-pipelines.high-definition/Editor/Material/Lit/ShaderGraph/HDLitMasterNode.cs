@@ -30,8 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
         public const string ThicknessSlotName = "Thickness";
         public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const string DiffusionProfileHashSlotDisplayName = "Diffusion Profile";
         public const string IridescenceMaskSlotName = "IridescenceMask";
         public const string IridescenceThicknessSlotName = "IridescenceThickness";
+        public const string IridescenceThicknessSlotDisplayName = "Iridescence Layer Thickness";
         public const string SpecularColorSlotName = "Specular";
         public const string SpecularColorDisplaySlotName = "SpecularColor";
         public const string CoatMaskSlotName = "CoatMask";
@@ -53,8 +55,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string SpecularAAThresholdSlotName = "SpecularAAThreshold";
         public const string RefractionIndexSlotName = "RefractionIndex";
         public const string RefractionColorSlotName = "RefractionColor";
+        public const string RefractionColorSlotDisplayName = "Transmittance Color";
         public const string RefractionDistanceSlotName = "RefractionDistance";
+        public const string RefractionDistanceSlotDisplayName = "Transmittance Absorption Distance";
         public const string DistortionSlotName = "Distortion";
+        public const string DistortionSlotDisplayName = "Distortion Vector";
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string SpecularOcclusionSlotName = "SpecularOcclusion";
         public const string AlphaClipThresholdShadowSlotName = "AlphaClipThresholdShadow";
@@ -461,7 +466,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_DoubleSidedMode = value;
-                Dirty(ModificationScope.Graph);
+                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -822,7 +827,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotDisplayName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileHashSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.IridescenceMask))
@@ -832,7 +837,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.IridescenceLayerThickness))
             {
-                AddSlot(new Vector1MaterialSlot(IridescenceThicknessSlotId, IridescenceThicknessSlotName, IridescenceThicknessSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(IridescenceThicknessSlotId, IridescenceThicknessSlotDisplayName, IridescenceThicknessSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(IridescenceThicknessSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Specular))
@@ -908,15 +913,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new Vector1MaterialSlot(RefractionIndexSlotId, RefractionIndexSlotName, RefractionIndexSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(RefractionIndexSlotId);
 
-                AddSlot(new ColorRGBMaterialSlot(RefractionColorSlotId, RefractionColorSlotName, RefractionColorSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(RefractionColorSlotId, RefractionColorSlotDisplayName, RefractionColorSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
                 validSlots.Add(RefractionColorSlotId);
 
-                AddSlot(new Vector1MaterialSlot(RefractionDistanceSlotId, RefractionDistanceSlotName, RefractionDistanceSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(RefractionDistanceSlotId, RefractionDistanceSlotDisplayName, RefractionDistanceSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(RefractionDistanceSlotId);
             }
             if (HasDistortion())
             {
-                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(2.0f, -1.0f), ShaderStageCapability.Fragment));
+                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotDisplayName, DistortionSlotName, SlotType.Input, new Vector2(2.0f, -1.0f), ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionSlotId);
 
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
@@ -1001,6 +1006,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Fixup the material settings:
             previewMaterial.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
             previewMaterial.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
+            previewMaterial.SetFloat(kUseSplitLighting, RequiresSplitLighting() ? 1.0f : 0.0f);
             previewMaterial.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
             previewMaterial.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
             previewMaterial.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);

@@ -81,10 +81,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(evt.target is GraphView)
             {
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); });
+
+                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+                {
+                    if (node.hasPreview && node.previewExpanded == true)
+                        evt.menu.InsertAction(2, "Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
+                    if (node.hasPreview && node.previewExpanded == false)
+                        evt.menu.InsertAction(2, "Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                }
+                evt.menu.AppendSeparator();
             }
 
             if (evt.target is GraphView || evt.target is Node)
             {
+                if (evt.target is Node node)
+                {
+                    if (!selection.Contains(node))
+                    {
+                        selection.Clear();
+                        selection.Add(node);
+                    }
+                }
+
                 InitializeViewSubMenu(evt);
                 InitializePrecisionSubMenu(evt);
 
@@ -92,54 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To/Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To/Property", ConvertToProperty, ConvertToPropertyStatus);
                 evt.menu.AppendSeparator();
-
-                evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
-                {
-                    List<ISelectable> filteredSelection = new List<ISelectable>();
-
-                    foreach (ISelectable selectedObject in selection)
-                    {
-                        if (selectedObject is Group)
-                            return DropdownMenuAction.Status.Disabled;
-                        VisualElement ve = selectedObject as VisualElement;
-                        if (ve.userData is AbstractMaterialNode)
-                        {
-                            var selectedNode = selectedObject as Node;
-                            if (selectedNode.GetContainingScope() is Group)
-                                return DropdownMenuAction.Status.Disabled;
-
-                            filteredSelection.Add(selectedObject);
-                        }
-                    }
-
-                    if (filteredSelection.Count > 0)
-                        return DropdownMenuAction.Status.Normal;
-                    else
-                        return DropdownMenuAction.Status.Disabled;
-                });
-
-                evt.menu.AppendAction("Ungroup Selection", RemoveFromGroupNode, (a) =>
-                {
-                    List<ISelectable> filteredSelection = new List<ISelectable>();
-
-                    foreach (ISelectable selectedObject in selection)
-                    {
-                        if (selectedObject is Group)
-                            return DropdownMenuAction.Status.Disabled;
-                        VisualElement ve = selectedObject as VisualElement;
-                        if (ve.userData is AbstractMaterialNode)
-                        {
-                            var selectedNode = selectedObject as Node;
-                            if (selectedNode.GetContainingScope() is Group)
-                                filteredSelection.Add(selectedObject);
-                        }
-                    }
-
-                    if (filteredSelection.Count > 0)
-                        return DropdownMenuAction.Status.Normal;
-                    else
-                        return DropdownMenuAction.Status.Disabled;
-                });
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -165,31 +135,98 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selection.OfType<IShaderNodeView>().Count() == 1)
                 {
                     evt.menu.AppendSeparator();
-                    evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
+                    evt.menu.AppendAction("Open Documentation _F1", SeeDocumentation, SeeDocumentationStatus);
                 }
                 if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is SubGraphNode)
                 {
                     evt.menu.AppendSeparator();
-
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
+            }
+            evt.menu.AppendSeparator();
+            // This needs to work on nodes, groups and properties
+            if ((evt.target is Node) || (evt.target is StickyNote))
+            {
+                evt.menu.AppendAction("Group Selection %g", _ => GroupSelection(), (a) =>
+                {
+                    List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                    foreach (ISelectable selectedObject in selection)
+                    {
+                        if (selectedObject is Group)
+                            return DropdownMenuAction.Status.Disabled;
+                        GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is IGroupItem)
+                        {
+                            filteredSelection.Add(ge);
+                        }
+                    }
+
+                    if (filteredSelection.Count > 0)
+                        return DropdownMenuAction.Status.Normal;
+
+                    return DropdownMenuAction.Status.Disabled;
+                });
+
+                evt.menu.AppendAction("Ungroup Selection %u", _ => RemoveFromGroupNode(), (a) =>
+                {
+                    List<ISelectable> filteredSelection = new List<ISelectable>();
+
+                    foreach (ISelectable selectedObject in selection)
+                    {
+                        if (selectedObject is Group)
+                            return DropdownMenuAction.Status.Disabled;
+                        GraphElement ge = selectedObject as GraphElement;
+                        if (ge.userData is IGroupItem)
+                        {
+                            if (ge.GetContainingScope() is Group)
+                                filteredSelection.Add(ge);
+                        }
+                    }
+
+                    if (filteredSelection.Count > 0)
+                        return DropdownMenuAction.Status.Normal;
+<<<<<<< HEAD
+                    else
+                        return DropdownMenuAction.Status.Disabled;
+                });
+
+                var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
+                {
+                    evt.menu.AppendSeparator();
+                    evt.menu.AppendAction("Color/Change...", ChangeCustomNodeColor,
+                        eventBase => DropdownMenuAction.Status.Normal);
+=======
+>>>>>>> refs/heads/master
+
+                    return DropdownMenuAction.Status.Disabled;
+                });
+            }
+
+            if (evt.target is ShaderGroup shaderGroup)
+            {
+                if (!selection.Contains(shaderGroup))
+                {
+                    selection.Add(shaderGroup);
+                }
+
+                var data = shaderGroup.userData;
+                int count = evt.menu.MenuItems().Count;
+                evt.menu.InsertAction(count, "Delete Group and Contents", (e) => RemoveNodesInsideGroup(e, data), DropdownMenuAction.AlwaysEnabled);
             }
 
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
-            if (evt.target is MaterialGraphView)
-            {
-                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
-                {
-                    if (node.hasPreview && node.previewExpanded == true)
-                        evt.menu.AppendAction("Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
-                    if (node.hasPreview && node.previewExpanded == false)
-                        evt.menu.AppendAction("Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
-                }
-                evt.menu.AppendSeparator();
-            }
+        }
+
+        void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
+            var groupItems = graph.GetItemsInGroup(data);
+            graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
         }
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
@@ -315,9 +352,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Create Group Node");
             graph.CreateGroup(groupData);
 
-            foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
+            foreach (var element in selection.OfType<GraphElement>())
             {
-                graph.SetGroup(shaderNodeView.node, groupData);
+                if (element.userData is IGroupItem groupItem)
+                {
+                    graph.SetGroup(groupItem, groupData);
+                }
             }
         }
 
@@ -331,20 +371,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.AddStickyNote(stickyNoteData);
         }
 
-
-        void RemoveFromGroupNode(DropdownMenuAction action)
+        public void RemoveFromGroupNode()
         {
             graph.owner.RegisterCompleteObjectUndo("Ungroup Node(s)");
-            foreach (ISelectable selectable in selection)
+            foreach (var element in selection.OfType<GraphElement>())
             {
-                var node = selectable as Node;
-                if(node == null)
-                    continue;
-
-                Group group = node.GetContainingScope() as Group;
-                if (group != null)
+                if (element.userData is IGroupItem)
                 {
-                    group.RemoveElement(node);
+                    Group group = element.GetContainingScope() as Group;
+                    if (group != null)
+                    {
+                        group.RemoveElement(element);
+                    }
                 }
             }
         }
