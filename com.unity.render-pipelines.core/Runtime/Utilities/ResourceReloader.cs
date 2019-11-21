@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering
             // Check if asset exist.
             // Direct loading can be prevented by AssetDatabase being reloading.
             var guid = AssetDatabase.AssetPathToGUID(path);
-            if (String.IsNullOrEmpty(guid))
+            if (!builtin && String.IsNullOrEmpty(guid))
                 throw new Exception($"Cannot load. Incorrect path: {path}");
 
             // Else the path is good. Attempt loading resource if AssetDatabase available.
