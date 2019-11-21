@@ -2181,9 +2181,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDeferredLighting(hdCamera, cmd);
 
-                //cmd.SetVariableRateShading(m_VariableRateShadingBuffer);
+                cmd.SetShadingRateTexture(m_ShadingRateBuffer);
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
-                //cmd.SetVariableRateShading(new RenderTargetIdentifier(-1));
+                cmd.SetShadingRateTexture(new RenderTargetIdentifier(-1));
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, GetSSSBufferMSAA(), GetSSSBuffer());
