@@ -762,7 +762,7 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if(newContextController.model is VFXPlanarPrimitiveOutput && setting.field.Name == "primitiveType")
+                if((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
                     continue;
                 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
