@@ -90,7 +90,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
 }
 
 #ifdef GBUFFER
-FragmentOutput SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
+FragmentOutput SpeedTree7Frag(SpeedTreeVertexOutput input)
 #else
 half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 #endif
