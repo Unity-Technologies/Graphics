@@ -379,6 +379,16 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
         return brdfData.diffuse;
 }
 
+half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+{
+#ifdef _SPECULARHIGHLIGHTS_OFF
+    bool specularHighlightsOff = true;
+#else
+    bool specularHighlightsOff = false;
+#endif
+    return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS, specularHighlightsOff);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                      Global Illumination                                  //
 ///////////////////////////////////////////////////////////////////////////////
