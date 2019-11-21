@@ -101,8 +101,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
 
                     ref CameraData cameraData = ref renderingData.cameraData;
+                    bool isRenderToCameraTarget = colorAttachment == RenderTargetHandle.CameraTarget.id;
                     bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                    bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                    bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                     projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture);
                     RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projectionMatrix);
                     
@@ -137,8 +138,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
                         {
                             ref CameraData cameraData = ref renderingData.cameraData;
+                            bool isRenderToCameraTarget = colorAttachment == RenderTargetHandle.CameraTarget.id;
                             bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                            bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                            bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                             RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture));
                         }
                     }

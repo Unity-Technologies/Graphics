@@ -70,8 +70,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
                 Camera camera = cameraData.camera;
 
+                bool isRenderToCameraTarget = true;
                 bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                bool isRenderToTexture = isCameraTargetIntermediateTexture;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.SetViewport(cameraData.camera.pixelRect);

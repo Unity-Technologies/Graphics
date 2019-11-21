@@ -47,8 +47,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (URPCameraMode.isPureURP)
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
+                bool isRenderToCameraTarget = colorAttachment == RenderTargetHandle.CameraTarget.id;
                 bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, isRenderToTexture);
                 Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
                 RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);

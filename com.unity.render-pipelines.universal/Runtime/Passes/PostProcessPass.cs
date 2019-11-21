@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
-                RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
             }
             // XRTODO: remove _FullscreenProjMat once we are in pure URP
             cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
@@ -364,11 +364,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (URPCameraMode.isPureURP)
                 {
+                    bool isRenderToCameraTarget = m_Destination == RenderTargetHandle.CameraTarget;
                     bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                    bool isRenderToTexture = m_Destination != RenderTargetHandle.CameraTarget || isCameraTargetIntermediateTexture;
-                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
-                    RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
-                    if (m_Destination == RenderTargetHandle.CameraTarget)
+                    bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+                    if (!isRenderToTexture)
+                    {
+
+                        Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
+                        RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
+                    }
+
+                    if(m_Destination == RenderTargetHandle.CameraTarget)
                         cmd.SetViewport(cameraData.camera.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
@@ -1228,8 +1234,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
+                bool isRenderToCameraTarget = m_Destination == RenderTargetHandle.CameraTarget;
                 bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                bool isRenderToTexture = m_Destination != RenderTargetHandle.CameraTarget || isCameraTargetIntermediateTexture;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, viewMatrix, projMatrix);
