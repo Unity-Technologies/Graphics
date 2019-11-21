@@ -1115,5 +1115,15 @@ void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 
 #endif
 
+// The resource that is bound when binding a stencil buffer from the depth buffer is two channel. On D3D11 the stencil value is in the green channel,
+// while on other APIs is in the red channel. Note that on some platform, always using the green channel might work, but is not guaranteed.
+uint GetStencilValue(uint2 stencilBufferVal)
+{
+#if defined(SHADER_API_D3D11)
+    return stencilBufferVal.y;
+#else
+    return stencilBufferVal.x;
+#endif
+}
 
 #endif // UNITY_COMMON_INCLUDED

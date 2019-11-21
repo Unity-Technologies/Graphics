@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GradientSkyMaterial.SetColor(_GradientMiddle, gradientSky.middle.value);
             m_GradientSkyMaterial.SetColor(_GradientTop, gradientSky.top.value);
             m_GradientSkyMaterial.SetFloat(_GradientDiffusion, gradientSky.gradientDiffusion.value);
-            m_GradientSkyMaterial.SetVector(HDShaderIDs._SkyParam, new Vector2(GetExposure(gradientSky, builtinParams.debugSettings), gradientSky.multiplier.value));
+            m_GradientSkyMaterial.SetFloat(HDShaderIDs._SkyIntensity, GetSkyIntensity(gradientSky, builtinParams.debugSettings));
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

@@ -94,9 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
         }
 
-        public override void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        public override void SetGlobalSkyData(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
         {
-            UpdateGlobalConstantBuffer(cmd, sky);
+            UpdateGlobalConstantBuffer(cmd, builtinParams);
 
             // TODO: ground irradiance table? Volume SH? Something else?
             if (m_LastPrecomputedBounce > 0)
@@ -135,15 +135,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // For both precomputation and runtime lighting passes.
-        void UpdateGlobalConstantBuffer(CommandBuffer cmd, SkySettings sky)
+        void UpdateGlobalConstantBuffer(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
         {
-            var pbrSky = sky as PhysicallyBasedSky;
+            var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             float R    = pbrSky.planetaryRadius.value;
             float D    = Mathf.Max(pbrSky.airMaximumAltitude.value, pbrSky.aerosolMaximumAltitude.value);
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
-            float iMul = Mathf.Pow(2.0f, pbrSky.exposure.value) * pbrSky.multiplier.value;
+            float iMul = GetSkyIntensity(pbrSky, builtinParams.debugSettings);
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected override bool Update(BuiltinSkyParameters builtinParams)
         {
-            UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams.skySettings);
+            UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams);
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             int currPrecomputationParamHash = pbrSky.GetPrecomputationHashCode();

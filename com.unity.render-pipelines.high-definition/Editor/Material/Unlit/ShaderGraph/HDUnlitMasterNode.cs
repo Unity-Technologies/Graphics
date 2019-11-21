@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string EmissionSlotName = "Emission";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";
+        public const string ShadowTintSlotName = "Shadow Tint";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int EmissionSlotId = 12;
         public const int VertexNormalSlotId = 13;
         public const int VertexTangentSlotId = 14;
+        public const int ShadowTintSlotId = 15;
 
         // Don't support Multiply
         public enum AlphaModeLit
@@ -294,6 +296,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_EnableShadowMatte = false;
+
+        public ToggleData enableShadowMatte
+        {
+            get { return new ToggleData(m_EnableShadowMatte); }
+            set
+            {
+                if (m_EnableShadowMatte == value.isOn)
+                    return;
+                m_EnableShadowMatte = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         public HDUnlitMasterNode()
         {
@@ -338,6 +355,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionBlurSlotId);
+            }
+
+            if (enableShadowMatte.isOn)
+            {
+                AddSlot(new ColorRGBAMaterialSlot(ShadowTintSlotId, ShadowTintSlotName, ShadowTintSlotName, SlotType.Input, Color.black, ShaderStageCapability.Fragment));
+                validSlots.Add(ShadowTintSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -443,6 +466,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     value  = true,
                     hidden = true,
                     overrideReferenceName = kAddPrecomputedVelocity,
+                });
+            }
+
+            if (enableShadowMatte.isOn)
+            {
+                uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
+                uint exponent = 0b10000000u; // 0 as exponent
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    hidden = true,
+                    value = HDShadowUtils.Asfloat((exponent << 23) | mantissa),
+                    overrideReferenceName = HDMaterialProperties.kShadowMatteFilter
                 });
             }
 
