@@ -186,6 +186,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed local config package workflow in Wizard
 - Fixed issue with contact shadows shifting when MSAA is enabled.
 - Fixed EV100 in the PBR sky
+- Fixed an issue In URP where sometime the camera is not passed to the volume system and causes a null ref exception (case 1199388)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
