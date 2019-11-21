@@ -65,7 +65,7 @@ For more information, see [HDRP Lighting features](HDRP-Features.html#Lighting).
 
 ### Light Explorer
 
-HDRP adds settings to the [Light Explorer](https://docs.unity3d.com/Manual/LightingExplorer.html) (menu: **Window > Rendering > Light Explorer**) so that you can adjust the HDRP features and lighting units. ![](Images/GettingStarted4.png)
+HDRP adds settings to the [Light Explorer](https://docs.unity3d.com/Manual/LightingExplorer.html) (menu: **Window > Rendering > Light Explorer**) so that you can adjust HDRP features and lighting units. ![](Images/GettingStarted4.png)
 
 Use the Light Explorer to change the settings of any type of Light within your Project without the need to locate the Lights in the Scene. You can also manage Reflection Probes and Light Probes in this window.
 
