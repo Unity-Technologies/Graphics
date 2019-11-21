@@ -75,9 +75,9 @@ CBUFFER_END
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
 
-#define _AccumulationSampleCount            _MotionBlurParams3.x
-#define _AccumulationSampleIndex            uint(_MotionBlurParams3.y)
-#define _AccumulationEnabled                _MotionBlurParams3.w
+#define AccumulationSampleCount _MotionBlurParams3.x
+#define AccumulationSampleIndex uint(_MotionBlurParams3.y)
+#define AccumulationEnabled     _MotionBlurParams3.w
 
 #define OutputLogEnabled        _DebugFlags.x
 
@@ -173,10 +173,11 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
+    // Frame Accumulation Normalization
     UNITY_BRANCH
-    if (true)
+    if (AccumulationEnabled)
     {
-        color *= rcp(_AccumulationSampleIndex / _AccumulationSampleCount);
+        color *= rcp(AccumulationSampleIndex / AccumulationSampleCount);
     }
 
     // Vignette

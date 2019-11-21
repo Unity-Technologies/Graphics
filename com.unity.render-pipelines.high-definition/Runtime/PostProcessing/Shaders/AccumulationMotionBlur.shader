@@ -34,7 +34,7 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
         }
 
@@ -43,19 +43,11 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             
             float2 uv = input.texcoord;
-            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
-            float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
-
-            //Pass-thru history blend.
-            if(_AccumulationSampleIndex == 2)
-            {
-                color = color / (float)_AccumulationSampleCount;
-            }
-            else
-            {
-                color = (color / (float)_AccumulationSampleCount) + history;
-            }
             
+            //TODO: Remove Fetch
+            float3 color   = Fetch(_InputTexture,        uv, 0.0, _RTHandleScale.xy);
+            float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
+            color = (color * rcp(asfloat(_AccumulationSampleCount))) + (history * step(2, _AccumulationSampleIndex));
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;

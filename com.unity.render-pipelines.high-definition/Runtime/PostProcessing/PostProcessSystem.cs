@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             (float)m_MotionBlur.accumulationSampleCount,
                             (float)m_MotionBlur.accumulationSampleIndex,
                             0,
-                            0 //TODO: Enabled, 
+                            1f // Always enable for dev 
                         );
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams3, accumulationMotionBlurParams);
 
@@ -1455,14 +1455,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_ResetHistory)
             {
-                //TODO
+                // TODO
+                // NOTE: Might require similar solution as what we do on 'shutter close'
             }
 
             Vector4 accumulationMotionBlurParams = new Vector4(
                 (float)m_MotionBlur.accumulationSampleCount,
                 (float)m_MotionBlur.accumulationSampleIndex,
                 0,
-                0 //TODO: Enabled, 
+                1f // Always enabled for dev
             );
 
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
