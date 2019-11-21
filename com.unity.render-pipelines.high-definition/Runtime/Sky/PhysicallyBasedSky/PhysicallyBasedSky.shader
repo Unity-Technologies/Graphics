@@ -31,6 +31,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // Just don't use them. Ever.
     float3   _WorldSpaceCameraPos1;
     float4x4 _ViewMatrix1;
+    #define UNITY_MATRIX_V _ViewMatrix1
 
     // 3x3, but Unity can only set 4x4...
     float4x4 _PlanetRotation;
