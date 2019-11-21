@@ -265,7 +265,6 @@ namespace UnityEditor.VFX.UI
                     return;
 
                 m_SourceControllers.RemoveAll(t => t is VFXContextController); // Don't copy contexts
-                CopyPasteNodes();
 
                 m_SourceBlockControllers = m_SourceControllers.OfType<VFXBlockController>().OrderBy(t=>t.index).ToList();
 
