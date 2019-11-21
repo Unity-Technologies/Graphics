@@ -80,10 +80,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string _SPOT = "_SPOT";
             public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
             public static readonly string _POINT = "_POINT";
-            public static readonly string _FOG = "_FOG";
-            public static readonly string FOG_LINEAR = "FOG_LINEAR";
-            public static readonly string FOG_EXP = "FOG_EXP";
-            public static readonly string FOG_EXP2 = "FOG_EXP2";
             public static readonly string _ADDITIONAL_LIGHT_SHADOWS = "_ADDITIONAL_LIGHT_SHADOWS";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
@@ -1195,23 +1191,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            string fogModeVariant = null;
-            switch (RenderSettings.fogMode)
-            {
-                case FogMode.Linear:                fogModeVariant = ShaderConstants.FOG_LINEAR; break;
-                case FogMode.Exponential:           fogModeVariant = ShaderConstants.FOG_EXP; break;
-                case FogMode.ExponentialSquared:    fogModeVariant = ShaderConstants.FOG_EXP2; break;
-            }
-
             using (new ProfilingSample(cmd, k_DeferredFogPass))
             {
-                cmd.EnableShaderKeyword(ShaderConstants._FOG);
-                cmd.EnableShaderKeyword(fogModeVariant);
-
+                // Fog parameters and shader variant keywords are already set externally.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 5);
-
-                cmd.DisableShaderKeyword(ShaderConstants._FOG);
-                cmd.DisableShaderKeyword(fogModeVariant);
             }
         }
 
