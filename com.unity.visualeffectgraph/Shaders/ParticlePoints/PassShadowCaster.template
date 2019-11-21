@@ -15,8 +15,8 @@ Pass
 		#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
 		nointerpolation float2 builtInInterpolants : TEXCOORD0;
 		#endif
-        
-        float pointSize : PSIZE;
+
+		float pointSize : PSIZE;
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -31,10 +31,8 @@ float3 posWS = TransformPositionVFXToWorld(vPos);
 VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS);
 ${VFXEnd}
 
-// Needed for HDRP
-#define SHADERPASS SHADERPASS_SHADOWS
-
-	${VFXInclude("Shaders/ParticlePoints/Pass.template")}	
+	${VFXPassShadowDefine}
+	${VFXInclude("Shaders/ParticlePoints/Pass.template")}
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

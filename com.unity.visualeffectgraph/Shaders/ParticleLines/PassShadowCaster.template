@@ -29,10 +29,8 @@ float3 posWS = TransformPositionVFXToWorld(vPos);
 VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS);
 ${VFXEnd}
 
-// Needed for HDRP
-#define SHADERPASS SHADERPASS_SHADOWS
-		
-	${VFXInclude("Shaders/ParticleLines/Pass.template")}	
+	${VFXPassShadowDefine}
+	${VFXInclude("Shaders/ParticleLines/Pass.template")}
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
