@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
-using UnityEngine.XR;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
@@ -21,8 +20,7 @@ namespace UnityEditor.Rendering.Universal
             VertexLighting = (1 << 4),
             SoftShadows = (1 << 5),
             MixedLighting = (1 << 6),
-            TerrainHoles = (1 << 7),
-            XRSupport = (1 << 8)
+            TerrainHoles = (1 << 7)
         }
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -264,12 +262,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
-
-            //XRTODO: Move XR Graphics Settings to SRP pipeline asset
-            List<XRDisplaySubsystemDescriptor> displaySubsystemDescriptors = new List<XRDisplaySubsystemDescriptor>();
-            SubsystemManager.GetSubsystemDescriptors(displaySubsystemDescriptors);
-            if (PlayerSettings.virtualRealitySupported || displaySubsystemDescriptors.Count > 0)
-                shaderFeatures |= ShaderFeatures.XRSupport;
 
             return shaderFeatures;
         }

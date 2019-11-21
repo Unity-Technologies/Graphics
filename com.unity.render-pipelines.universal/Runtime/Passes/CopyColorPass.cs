@@ -75,7 +75,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            // Render the lut
             if (URPCameraMode.isPureURP)
             {
                 cmd.SetGlobalTexture("_BlitTex", source);

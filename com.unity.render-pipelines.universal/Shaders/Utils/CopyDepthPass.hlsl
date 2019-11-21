@@ -26,7 +26,6 @@ Varyings vert(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     output.uv = input.uv;
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-
     return output;
 }
 

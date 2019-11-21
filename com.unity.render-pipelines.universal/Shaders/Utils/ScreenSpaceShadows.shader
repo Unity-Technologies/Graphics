@@ -12,7 +12,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
-
         //Keep compiler quiet about Shadows.hlsl.
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
@@ -46,6 +45,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             Varyings output;
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
             float4 projPos = output.positionCS * 0.5;

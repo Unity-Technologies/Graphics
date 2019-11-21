@@ -165,11 +165,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Render the lut
             if(URPCameraMode.isPureURP)
             {
+                Camera camera = renderingData.cameraData.camera;
                 CoreUtils.SetRenderTarget(cmd, m_InternalLut.id);
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                Camera camera = renderingData.cameraData.camera;
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix,true));
             }
             else

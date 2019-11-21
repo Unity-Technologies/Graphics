@@ -6,7 +6,6 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
     }
 
     HLSLINCLUDE
-
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
     struct Attributes
@@ -28,6 +27,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
         Varyings output;
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_TRANSFER_INSTANCE_ID(input, output);
+
         output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
         output.uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
         return output;

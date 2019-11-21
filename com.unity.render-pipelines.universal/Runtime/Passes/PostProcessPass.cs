@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingSample(cmd, markerName))
                 {
-                    DoDepthOfField(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Motion Blur"))
                 {
-                    DoMotionBlur(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Panini Projection"))
                 {
-                    DoPaniniProjection(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bloomActive)
                 {
                     using (new ProfilingSample(cmd, "Bloom"))
-                        SetupBloom(cmd, GetSource(), m_Materials.uber, ref cameraData);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber);
                 }
 
                 // Setup other effects constants
@@ -529,12 +529,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // TODO: CoC reprojection once TAA gets in LW
         // TODO: Proper LDR/gamma support
-        void DoDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        void DoDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                DoGaussianDepthOfField( cameraData.camera, cmd, source, destination);
+                DoGaussianDepthOfField( camera, cmd, source, destination);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(ref cameraData, cmd, source, destination);
+                DoBokehDepthOfField(cmd, source, destination);
         }
 
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.bokehDepthOfField;
             int wh = m_Descriptor.width / 2;
@@ -772,15 +772,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Motion Blur
 
-        void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.cameraMotionBlur;
 
             // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
             // relies on SetupCameraProperties instead of handling its own matrices.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-            var proj = cameraData.camera.nonJitteredProjectionMatrix;
-            var view = cameraData.camera.worldToCameraMatrix;
+            var proj = camera.nonJitteredProjectionMatrix;
+            var view = camera.worldToCameraMatrix;
             var viewProj = proj * view;
 
             material.SetMatrix("_ViewProjM", viewProj);
@@ -812,11 +812,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
-        void DoPaniniProjection(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        void DoPaniniProjection(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             float distance = m_PaniniProjection.distance.value;
-            var viewExtents = CalcViewExtents(cameraData.camera);
-            var cropExtents = CalcCropExtents(cameraData.camera, distance);
+            var viewExtents = CalcViewExtents(camera);
+            var cropExtents = CalcCropExtents(camera, distance);
 
             float scaleX = cropExtents.x / viewExtents.x;
             float scaleY = cropExtents.y / viewExtents.y;
@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Bloom
 
-        void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial, ref CameraData cameraData)
+        void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial)
         {
             // Start at half-res
             int tw = m_Descriptor.width >> 1;
