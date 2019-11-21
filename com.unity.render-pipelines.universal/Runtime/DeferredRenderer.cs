@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_CopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
-        DrawObjectsPass m_RenderOpaqueForwardPass;
         DeferredPass m_DeferredPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyColorPass m_CopyColorPass;
@@ -81,7 +80,6 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
-            m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 3, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
