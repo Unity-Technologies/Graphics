@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volume.isGlobal = true;
             volume.priority = float.MaxValue;
 
+#if UNITY_EDITOR
             HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
             volume.sharedProfile = profile;
@@ -70,6 +71,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 sky = sky,
                 volume = volume
             };
+#else
+            //remove unasigned warnings when building
+            SRI.SRPData = new LookDevDataForHDRP()
+            {
+                additionalCameraData = null,
+                additionalLightData = null,
+                visualEnvironment = null,
+                sky = null,
+                volume = null
+            };
+#endif
         }
 
         void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
