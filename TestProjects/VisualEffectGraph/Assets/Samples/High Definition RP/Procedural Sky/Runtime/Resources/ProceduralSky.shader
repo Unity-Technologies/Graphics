@@ -9,6 +9,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
 
     #pragma vertex Vert
 
+    #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -20,8 +21,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-    float4   _SkyParam; // x exposure, y multiplier
-
+    float _SkyIntensity;
     float _SunSize;
     float _SunSizeConvergence;
     float _AtmosphereThickness;
@@ -199,7 +199,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
             cIn = frontColor * (kInvWavelength * kKrESun);
             cOut = frontColor * kKmESun;
 
-            skyColor = _SkyParam.y * (cIn * getRayleighPhase(_SunDirection.xyz, -eyeRay));
+            skyColor = (cIn * getRayleighPhase(_SunDirection.xyz, -eyeRay));
         }
         else
         {
@@ -240,7 +240,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
             cIn = frontColor * (kInvWavelength * kKrESun + kKmESun);
             cOut = clamp(attenuate, 0.0, 1.0);
 
-            groundColor = _SkyParam.y * (cIn + _GroundColor.rgb * _GroundColor.rgb * cOut);
+            groundColor = (cIn + _GroundColor.rgb * _GroundColor.rgb * cOut);
         }
 
         float3 sunColor = float3(0.0, 0.0, 0.0);
@@ -271,7 +271,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         }
     #endif
 
-        return float4(col * _SkyParam.x, 1.0);
+        return float4(col * _SkyIntensity, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

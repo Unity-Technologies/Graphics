@@ -260,6 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
                             break;
                         case HDLightType.Point:
+                        case HDLightType.Spot:
                             m_RayTracingLights.hdPointLightArray.Add(hdLight);
                             break;
                         case HDLightType.Area:
