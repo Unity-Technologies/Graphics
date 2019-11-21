@@ -469,8 +469,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We need to reset luxAtDistance to neutral when changing to (local) directional light, otherwise first display value ins't correct
                 serialized.luxAtDistance.floatValue = 1.0f;
             }
-            else
-                serialized.lightUnit.SetEnumValue(LightUnit.Lumen);
         }
 
         static void DrawLightIntensityUnitPopup(Rect rect, SerializedHDLight serialized, Editor owner)
