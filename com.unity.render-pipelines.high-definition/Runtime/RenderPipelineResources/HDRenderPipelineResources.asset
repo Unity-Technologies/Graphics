@@ -68,6 +68,7 @@ MonoBehaviour:
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3,
       type: 3}
+    resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
     blitCubemapPS: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
     buildProbabilityTablesCS: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
       type: 3}
@@ -98,8 +99,6 @@ MonoBehaviour:
       type: 3}
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
       type: 3}
-    defaultRendererCustomPass: {fileID: 4800000, guid: 18cb4caffc5f88c44bf4d8f1a7841e73,
-      type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
@@ -121,7 +120,6 @@ MonoBehaviour:
       type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAODenoiseCS: {fileID: 7200000, guid: 414b49640e3c719488fae81080e089c5, type: 3}
-    GTAOUpsampleCS: {fileID: 7200000, guid: 61b3fcbcdc928ef4e94363cb25b7cca7, type: 3}
     GTAOBlurAndUpsample: {fileID: 7200000, guid: 9eb1abde882538a4ea46fa23e49ab9fa,
       type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
