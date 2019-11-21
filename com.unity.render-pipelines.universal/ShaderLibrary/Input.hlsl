@@ -4,11 +4,6 @@
 #define MAX_VISIBLE_LIGHTS_SSBO 256
 #define MAX_VISIBLE_LIGHTS_UBO  32
 
-// Experimental Code Path: Pure URP
-#if UNITY_PURE_URP_ON 
-#define UNITY_PURE_URP_ENABLED
-#endif
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
 // There are some performance issues by using SSBO in mobile.
@@ -65,29 +60,6 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
-#if defined(UNITY_PURE_URP_ENABLED)
-// Define Getters
-// Note: In order to be able to define our macro/getter to forbid usage of unity_* build-in shader vars
-// We need to declare inline function.
-float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
-// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
-#define unity_ObjectToWorld        Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
-#define unity_WorldToObject        Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
-
-#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
-#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
-#define UNITY_MATRIX_V     _ViewMatrix
-#define UNITY_MATRIX_I_V   _InvViewMatrix
-#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
-#define UNITY_MATRIX_I_P   _InvProjMatrix
-#define UNITY_MATRIX_VP    _ViewProjMatrix
-#define UNITY_MATRIX_I_VP  _InvViewProjMatrix
-#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-#else
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     unity_MatrixV
@@ -100,7 +72,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-#endif
+
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
