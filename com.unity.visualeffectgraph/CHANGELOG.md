@@ -16,6 +16,7 @@ The version number for this package has increased due to a version update of a r
 
 ## [7.1.3] - 2019-09-19
 ### Added
+- Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
 - Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
 - Octagon & Triangle support for planar distortion output
