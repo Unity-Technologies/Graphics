@@ -439,6 +439,8 @@ namespace UnityEditor.VFX
         protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
+            if (effect == null)
+                return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
