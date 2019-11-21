@@ -2375,6 +2375,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
             }
+
+            // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.
+            // Otherwise command would not be rendered in order.
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         struct BlitFinalCameraTextureParameters
