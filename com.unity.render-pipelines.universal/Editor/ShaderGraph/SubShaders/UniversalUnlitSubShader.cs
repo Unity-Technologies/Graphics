@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Universal
             },
         };
 #endregion
-    
+        
 #region Keywords
         static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
         {

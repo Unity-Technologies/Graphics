@@ -155,7 +155,6 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment Frag
-
             ENDHLSL
         }
     }

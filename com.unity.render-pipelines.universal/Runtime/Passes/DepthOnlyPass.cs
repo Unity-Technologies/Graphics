@@ -70,8 +70,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     context.StartMultiEye(camera);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-            }
 
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
