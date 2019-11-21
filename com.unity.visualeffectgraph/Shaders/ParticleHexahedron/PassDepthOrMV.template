@@ -27,6 +27,11 @@ struct ps_input
 
 #undef VFX_USE_RIM_LIGHT
 
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
