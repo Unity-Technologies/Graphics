@@ -28,12 +28,12 @@ Pass
 		// y: motion vectors scale Y
 		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
-        
-        #if VFX_NEEDS_POSWS_INTERPOLATOR
+
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD4;
 		#endif
-        
-        ${VFXAdditionalInterpolantsDeclaration}
+
+		${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -51,28 +51,26 @@ float3 posWS = TransformPositionVFXToWorld(vPos);
 VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS, normalWS);
 ${VFXEnd}
 
-// Needed for HDRP
-#define SHADERPASS SHADERPASS_SHADOWS
-		
+	${VFXPassShadowDefine}	
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
-    
-    ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+
+	${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
-        #ifdef VFX_SHADERGRAPH
-            ${VFXAdditionalInterpolantsPreparation}
-            
-            ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-            
-            float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-        #else
-            float alpha = VFXGetFragmentColor(i).a;
-            alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
-        #endif
+		#ifdef VFX_SHADERGRAPH
+			${VFXAdditionalInterpolantsPreparation}
+
+			${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+
+			float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+		#else
+			float alpha = VFXGetFragmentColor(i).a;
+			alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+		#endif
 		VFXClipFragmentColor(alpha,i);
 
 #ifndef USE_ALPHA_TEST

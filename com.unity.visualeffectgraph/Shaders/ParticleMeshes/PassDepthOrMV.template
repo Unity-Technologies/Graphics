@@ -62,7 +62,12 @@ struct ps_input
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
-			
+
+#if IS_MOTION_VECTORS_PASS
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
 
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
