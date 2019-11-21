@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Forward,
         RenderSSAO,
         ResolveSSAO,
-        RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
         ContactShadows,
@@ -54,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSsrBuffers,
         HDRenderPipelineRender,
         CullResultsCull,
+        CustomPassCullResultsCull,
         CopyDepth,
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
@@ -71,8 +71,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingFilterIndirectDiffuse,
         RaytracingDebug,
 
+        // Profile sampler for prepare light for GPU
+        PrepareLightsForGPU,
+        PushLightDataGlobalParameters,
+
+        // Profile sampler for shadow
+        RenderShadowMaps,
+        PushShadowGlobalParameters,
+
         // Profile sampler for tile pass
-        TPPrepareLightsForGPU,
         TPPushGlobalParameters,
         TPTiledLightingDebug,
         TPScreenSpaceShadows,
@@ -119,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalPost,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
-        CustomPostProcessBeforeTransparent,
+        CustomPostProcessAfterOpaqueAndSky,
 
         Max
     }

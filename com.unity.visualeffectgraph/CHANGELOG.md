@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-XX-XX
+## [7.2.0] - 2019-11-20
 ### Added
 - Custom Inspector for Spawn context, delay settings are more user friendly.
 - Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 - Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
 - Fix shader interpolants with shader graph and particle strips
 - SpawnIndex attribute is now working correctly in Initialize context

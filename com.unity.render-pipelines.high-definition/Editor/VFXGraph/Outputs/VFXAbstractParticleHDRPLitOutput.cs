@@ -442,7 +442,6 @@ namespace UnityEditor.VFX
                 }
                 if (!isBlendModeOpaque)
                 {
-                    forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
                     if (preserveSpecularLighting)
                         forwardDefines.WriteLine("#define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 }

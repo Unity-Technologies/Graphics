@@ -23,8 +23,8 @@ Shader "FullScreen/#SCRIPTNAME#"
     // To sample custom buffers, you have access to these functions:
     // But be careful, on most platforms you can't sample to the bound color buffer. It means that you
     // can't use the SampleCustomColor when the pass color buffer is set to custom (and same for camera the buffer).
-    // float3 SampleCustomColor(float2 uv);
-    // float3 LoadCustomColor(uint2 pixelCoords);
+    // float4 SampleCustomColor(float2 uv);
+    // float4 LoadCustomColor(uint2 pixelCoords);
     // float LoadCustomDepth(uint2 pixelCoords);
     // float SampleCustomDepth(float2 uv);
 
@@ -33,6 +33,7 @@ Shader "FullScreen/#SCRIPTNAME#"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float3 viewDirection = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
