@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added debug setting to Render Pipeline Window to list the active XR views
 - Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
 - Added the code to support Barn Doors for Area Lights based on a shaderconfig option.
+- Added HDRPCameraBinder property binder for Visual Effect Graph
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -195,6 +196,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed documentation link on CustomPassVolume.
 - Fixed player build when HDRP is in the project but not assigned in the graphic settings.
 - Fixed an issue where ambient probe would be black for the first face of a baked reflection probe
+- VFX: Fixed Missing Reference to Visual Effect Graph Runtime Assembly
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
