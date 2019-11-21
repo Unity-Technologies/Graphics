@@ -189,6 +189,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue In URP where sometime the camera is not passed to the volume system and causes a null ref exception (case 1199388)
 - Fixed the scene id map warning happening in the template
 - Fixed nullref when releasing HDRP with custom pass disabled
+- Fixed performance issue derived from copying stencil buffer.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

@@ -42,7 +42,7 @@
 #endif
 
 #ifdef SSR_TRACE
-       TEXTURE2D_X(         _StencilTexture);
+    TEXTURE2D_X_UINT2(         _StencilTexture);
     RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
 #else
        TEXTURE2D_X(        _SsrHitPointTexture);
@@ -100,8 +100,8 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint2 positionSS = dispatchThreadId.xy;
 
 #ifdef SSR_USE_STENCIL
-    uint stencilVal = UnpackByte(LOAD_TEXTURE2D_X(_StencilTexture, positionSS).r);
-    bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, dispatchThreadId.xy));
+    bool doesntReceiveSSR = (stencilValue & _SsrStencilExclusionValue) != 0;
     if (doesntReceiveSSR)
     {
         WriteDebugInfo(positionSS, -1);
