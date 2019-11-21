@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         static readonly GUIContent manipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.");
+
         static readonly string[] displayedManipulationOptions = new[] { "Simplified", "Advanced" };
 
         static readonly GUIContent shapeContent = EditorGUIUtility.TrTextContent("Shape", "Specifies the shape of the Influence Volume.");

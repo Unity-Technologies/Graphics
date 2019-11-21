@@ -204,6 +204,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Alignement issue in ReflectionProbe and PlanarReflectionProbe.
 - Fixed Prefab override workflow issue in ReflectionProbe and PlanarReflectionProbe.
 - Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in ReflectionProbe and PlanarReflectionProbe.
+- Fixed Prefab override workflow issue in DensityVolume.
+- Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in DensityVolume.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
