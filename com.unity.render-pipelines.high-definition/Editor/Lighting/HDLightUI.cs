@@ -435,9 +435,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
-                    EditorGUILayout.PropertyField(serialized.flareIntensity, s_Styles.flareIntensity);
                     EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.flareTint,      s_Styles.flareTint);
                     EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
+                    EditorGUILayout.PropertyField(serialized.surfaceTint,    s_Styles.surfaceTint);
                     EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
                     EditorGUI.indentLevel--;
                 }
@@ -449,7 +450,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.angularDiameter.floatValue               = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
                 serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue;
                 serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
-                serialized.flareIntensity.floatValue                = Mathf.Clamp(serialized.flareIntensity.floatValue, 0, 1);
                 serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
                 serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
             }

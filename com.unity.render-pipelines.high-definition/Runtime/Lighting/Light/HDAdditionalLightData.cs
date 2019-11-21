@@ -613,20 +613,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [SerializeField, FormerlySerializedAs("flareIntensity")]
-        float m_FlareIntensity = 1.0f;
+        [SerializeField, FormerlySerializedAs("flareTint")]
+        Color m_FlareTint = Color.white;
         /// <summary>
-        /// Intensity of the flare around the celestial body relative to the brightness of the celestial body itself.
+        /// Tints the flare of the celestial body.
         /// </summary>
-        public float flareIntensity
+        public Color flareTint
         {
-            get => m_FlareIntensity;
+            get => m_FlareTint;
             set
             {
-                if (m_FlareIntensity == value)
+                if (m_FlareTint == value)
                     return;
 
-                m_FlareIntensity = value; // Serialization code clamps
+                m_FlareTint = value;
             }
         }
 
@@ -661,6 +661,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_SurfaceTexture = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTint")]
+        Color m_SurfaceTint = Color.white;
+        /// <summary>
+        /// Tints the surface of the celestial body.
+        /// </summary>
+        public Color surfaceTint
+        {
+            get => m_SurfaceTint;
+            set
+            {
+                if (m_SurfaceTint == value)
+                    return;
+
+                m_SurfaceTint = value;
             }
         }
 
@@ -1984,7 +2001,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.interactsWithSky = interactsWithSky;
             data.angularDiameter = angularDiameter;
             data.flareSize = flareSize;
-            data.flareIntensity = flareIntensity;
+            data.flareTint = flareTint;
+            data.surfaceTexture = surfaceTexture;
+            data.surfaceTint = surfaceTint;
             data.distance = distance;
 
             shadowResolution.CopyTo(data.shadowResolution);

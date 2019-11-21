@@ -75,12 +75,14 @@ struct DirectionalLightData
     float specularDimmer;
     float penumbraTint;
     float isRayTracedContactShadow;
-    float angularDiameter;
-    float flareSize;
-    float flareIntensity;
-    float flareFalloff;
-    int surfaceTextureIndex;
     float distanceFromCamera;
+    float angularDiameter;
+    float flareFalloff;
+    float __unused__;
+    float3 flareTint;
+    float flareSize;
+    float3 surfaceTint;
+    int surfaceTextureIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData

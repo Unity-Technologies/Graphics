@@ -84,13 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   penumbraTint;
         public float   isRayTracedContactShadow;
 
-        public float   angularDiameter;         // Units: radians
-        public float   flareSize;               // Units: radians
-        public float   flareIntensity;
-        public float   flareFalloff;
-
-        public int     surfaceTextureIndex;     // -1 if unused (TODO: 16 bit)
         public float   distanceFromCamera;      // -1 -> no sky interaction
+        public float   angularDiameter;         // Units: radians
+        public float   flareFalloff;
+        public float   __unused__;
+
+        public Vector3 flareTint;
+        public float   flareSize;               // Units: radians
+
+        public Vector3 surfaceTint;
+        public int     surfaceTextureIndex;     // -1 if unused (TODO: 16 bit)
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
