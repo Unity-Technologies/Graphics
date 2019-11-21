@@ -207,19 +207,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateCurrentSkySettings(HDCamera hdCamera)
         {
             hdCamera.UpdateCurrentSky(this);
-            }
+        }
 
         public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
-            {
+        {
             if (IsCachedContextValid(hdCamera.lightingSky))
-                {
+            {
                 var renderer = m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId].renderer;
                 if (renderer != null)
-            {
+                {
                     m_BuiltinParameters.skySettings = hdCamera.lightingSky.skySettings;
                     renderer.SetGlobalSkyData(cmd, m_BuiltinParameters);
+                }
             }
-        }
         }
 
 #if UNITY_EDITOR
@@ -757,6 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
             }
         }
+
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
                     m_BuiltinParameters.hdCamera = hdCamera;
@@ -833,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If the luxmeter is enabled, we don't render the sky
                     if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
-        {
+                    {
                         // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                         cachedContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
                     }

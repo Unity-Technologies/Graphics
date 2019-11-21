@@ -33,10 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + backplateType.GetHashCode();
                 hash = hash * 23 + groundLevel.GetHashCode();
                 hash = hash * 23 + scale.GetHashCode();
+                hash = hash * 23 + projectionDistance.GetHashCode();
                 hash = hash * 23 + plateRotation.GetHashCode();
                 hash = hash * 23 + plateTexRotation.GetHashCode();
                 hash = hash * 23 + plateTexOffset.GetHashCode();
-                hash = hash * 23 + projectionDistance.GetHashCode();
                 hash = hash * 23 + blendAmount.GetHashCode();
                 hash = hash * 23 + shadowTint.GetHashCode();
                 hash = hash * 23 + pointLightShadow.GetHashCode();
