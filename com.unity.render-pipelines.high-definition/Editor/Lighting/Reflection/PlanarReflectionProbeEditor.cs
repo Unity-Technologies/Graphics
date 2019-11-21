@@ -293,17 +293,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.proxyMirrorPositionProxySpace
-                    | ProbeSettingsFields.proxyMirrorRotationProxySpace,
+                | ProbeSettingsFields.proxyMirrorRotationProxySpace
+                | ProbeSettingsFields.lightingRangeCompression,
             camera = new CameraSettingsOverride()
         };
-
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride
-        {
-            probe = ProbeSettingsFields.none,
-            camera = new CameraSettingsOverride()
-        };
-
-        public ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
 
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings => new ProbeSettingsOverride
         {
@@ -316,23 +309,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 camera = CameraSettingsFields.none
             }
         };
-        public ProbeSettingsOverride displayedAdvancedCustomSettings => new ProbeSettingsOverride()
-        {
-            probe = ProbeSettingsFields.lightingRangeCompression,
-            camera = new CameraSettingsOverride
-            {
-                camera = CameraSettingsFields.none
-            }
-        };
-
-        public ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
-
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCustomSettings => new ProbeSettingsOverride();
+        
         Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
         static readonly HDProbeUI.ToolBar[] k_Toolbars =
         {
             HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.Blend,
-            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation
+            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation,
+            HDProbeUI.ToolBar.ShowChromeGizmo
         };
         HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_Toolbars;
 
