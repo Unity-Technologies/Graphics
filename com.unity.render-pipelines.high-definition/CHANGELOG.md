@@ -184,6 +184,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard button fix all that was not automatically grab all required fixes
 - Fixed VR tab for MacOS in Wizard
 - Fixed local config package workflow in Wizard
+- Fixed issue with contact shadows shifting when MSAA is enabled.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
