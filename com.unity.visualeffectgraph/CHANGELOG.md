@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
 - Subgraph operators appear on drag edge on graph.
 - Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 
 ## [7.1.5] - 2019-11-15
 

@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Copy settings
             cameraSettings = settings.cameraSettings;
-            cameraPositionSettings = CameraPositionSettings.@default;
+            cameraPositionSettings = CameraPositionSettings.NewDefault();
 
             // Update settings
             ProbeSettingsUtilities.ApplySettings(

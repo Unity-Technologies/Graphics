@@ -20,7 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static ScreenSpaceRefraction s_Default = null;
 
-        public static ScreenSpaceRefraction @default
+        [Obsolete("Since 2019.3, use ScreenSpaceRefraction.DefaultInstance instead.")]
+        public static readonly ScreenSpaceRefraction @default = default;
+        public static ScreenSpaceRefraction defaultInstance
         {
             get
             {

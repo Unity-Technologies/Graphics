@@ -121,41 +121,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return true;
         }
-
-        internal static void PropertyFieldWithOptionalFlagToggle<TEnum>(
-            TEnum v, SerializedProperty property, GUIContent label,
-            SerializedProperty @override, bool showOverrideButton,
+        
+        internal static void PropertyFieldWithoutToggle<TEnum>(
+            TEnum v, SerializedProperty property, GUIContent label, TEnum displayed,
             Action<SerializedProperty, GUIContent> drawer = null, int indent = 0
-        )
-            where TEnum : struct, IConvertible // restrict to ~enum
-        {
-            EditorGUILayout.BeginHorizontal();
-
-            var i = EditorGUI.indentLevel;
-            var l = EditorGUIUtility.labelWidth;
-            EditorGUI.indentLevel = 0;
-            EditorGUIUtility.labelWidth = 0;
-
-            if (showOverrideButton)
-                GUI.enabled = GUI.enabled && FlagToggle(v, @override);
-            else
-                ReserveAndGetFlagToggleRect();
-            EditorGUI.indentLevel = indent;
-            (drawer ?? k_DefaultDrawer)(property, label);
-
-            GUI.enabled = true;
-            EditorGUI.indentLevel = i;
-            EditorGUIUtility.labelWidth = l;
-
-            EditorGUILayout.EndHorizontal();
-        }
-
-        internal static void PropertyFieldWithFlagToggleIfDisplayed<TEnum>(
-            TEnum v, SerializedProperty property, GUIContent label,
-            SerializedProperty @override,
-            TEnum displayed, TEnum overrideable,
-            Action<SerializedProperty, GUIContent> drawer = null,
-            int indent = 0
         )
             where TEnum : struct, IConvertible // restrict to ~enum
         {
@@ -163,16 +132,15 @@ namespace UnityEditor.Rendering.HighDefinition
             var intV = (int)(object)v;
             if ((intDisplayed & intV) == intV)
             {
-                var intOverridable = (int)(object)overrideable;
-                var isOverrideable = (intOverridable & intV) == intV;
-                PropertyFieldWithOptionalFlagToggle(v, property, label, @override, isOverrideable, drawer, indent);
-            }
-        }
+                EditorGUILayout.BeginHorizontal();
 
-        internal static bool DrawSectionFoldout(string title, bool isExpanded)
-        {
-            CoreEditorUtils.DrawSplitter(false);
-            return CoreEditorUtils.DrawHeaderFoldout(title, isExpanded, false);
+                var i = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = i + indent;
+                (drawer ?? k_DefaultDrawer)(property, label);
+                EditorGUI.indentLevel = i;
+
+                EditorGUILayout.EndHorizontal();
+            }
         }
 
         internal static void DrawToolBarButton<TEnum>(
