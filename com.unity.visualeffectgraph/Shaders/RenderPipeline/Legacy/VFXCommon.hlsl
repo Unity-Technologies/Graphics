@@ -2,6 +2,16 @@
 
 Texture2D _CameraDepthTexture;
 
+//Additionnal empty wrapper (equivalent to expected functions in com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)
+float3 GetAbsolutePositionWS(float3 positionRWS)
+{
+    return positionRWS;
+}
+float3 GetCameraRelativePositionWS(float3 positionWS)
+{
+    return positionWS;
+}
+
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)

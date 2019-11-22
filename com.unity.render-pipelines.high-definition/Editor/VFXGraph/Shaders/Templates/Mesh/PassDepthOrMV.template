@@ -31,14 +31,14 @@ struct ps_input
 	// y: motion vector scale v
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
 	#endif
-	#ifdef WRITE_NORMAL_BUFFER
-	float4 normal : TEXCOORD4; // normal scale is stored in w
-	#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
+	#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+	float3 normal : TEXCOORD4;
+	#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
 	float4 tangent : TEXCOORD5;
 	#endif
 	#endif
 	
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
@@ -55,18 +55,19 @@ struct ps_input
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
-#ifdef WRITE_NORMAL_BUFFER
-#define VFX_VARYING_NORMAL normal.xyz
-#define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
-#define VFX_VARYING_TANGENT tangent
-#define VFX_VARYING_NORMALSCALE normal.w
+#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#define VFX_VARYING_NORMAL normal
 #endif
+#ifdef WRITE_NORMAL_BUFFER
+#define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+#define VFX_VARYING_TANGENT tangent
 #endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
@@ -74,18 +75,27 @@ ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 		
 ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
-#define SHADERPASS SHADERPASS_DEPTH_ONLY
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXIncludeRP("VFXLit.template")}
 			
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 	
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	, out float4 outMotionVector : SV_Target0
 	#ifdef WRITE_NORMAL_BUFFER
 		, out float4 outNormalBuffer : SV_Target1
@@ -93,7 +103,7 @@ void frag(ps_input i
 #else
 	#ifdef WRITE_NORMAL_BUFFER
 		, out float4 outNormalBuffer : SV_Target0
-	#elif SCENESELECTIONPASS
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		, out float4 outColor : SV_Target0
 	#endif
 #endif
@@ -101,6 +111,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+	
 	#ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
@@ -115,13 +127,11 @@ void frag(ps_input i
 	VFXClipFragmentColor(alpha,i);
 	
 	#ifdef WRITE_NORMAL_BUFFER
-		${VFXComputeNormalWS}
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
         #else
            #if HAS_SHADERGRAPH_PARAM_NORMAL
                float3 n =  OUTSG.Normal_8;
-               float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;
@@ -132,13 +142,15 @@ void frag(ps_input i
         #endif
 	#endif
 
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		outMotionVector = encodedMotionVector;
-	#endif
-
-	#if SCENESELECTIONPASS
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
 		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+		//void
+	#else
+		#error VFX_PASSDEPTH undefined
 	#endif
 }

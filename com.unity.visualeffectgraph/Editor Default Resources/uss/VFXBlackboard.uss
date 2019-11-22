@@ -110,9 +110,17 @@ VFXBlackboardCategory > .mainContainer > #rowsContainer
     overflow:hidden
 }
 
-VFXBlackboardCategory.expanded  > .mainContainer > #rowsContainer
+VFXBlackboardCategory > #dragIndicator
 {
-    display:flex;
+    position:absolute;
+    left:2px;
+    right:2px;
+    height:2px;
+}
+
+VFXBlackboardCategory.expanded > .mainContainer > #rowsContainer
+{
+    display: flex;
 }
 
 VFXBlackboardCategory > .mainContainer > #sectionHeader

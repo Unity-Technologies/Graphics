@@ -23,25 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => OnValidate();
 
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
-        {
-            // safe: When we return a null render pipline it will do nothing in the rendering
-            HDRenderPipeline pipeline = null;
-
-            // We need to do catch every errors that happend during the HDRP build, when we upgrade the
-            // HDRP package, some required assets are not yet imported by the package manager when the
-            // pipeline is created so in that case, we just return a null pipeline. Some error may appear
-            // when we upgrade the pipeline but it's better than breaking HDRP resources an causing more
-            // errors.
-            try
-            {
-                pipeline = new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
-            } catch (Exception e) {
-                UnityEngine.Debug.LogError(e);
-            }
-
-            return pipeline;
-        }
+        protected override RenderPipeline CreatePipeline()
+            => new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
 
         protected override void OnValidate()
         {
@@ -159,30 +142,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+        [FormerlySerializedAs("materialQualityLevels")]
+        public MaterialQuality availableMaterialQualityLevels = (MaterialQuality)(-1);
 
-        [SerializeField]
-        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+        [SerializeField, FormerlySerializedAs("m_CurrentMaterialQualityLevel")]
+        private MaterialQuality m_DefaultMaterialQualityLevel = MaterialQuality.High;
 
-        public MaterialQuality currentMaterialQualityLevel
-        {
-            get
-            {
-                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
-                {
-                    // Current quality level is not supported,
-                    // Pick the highest one
-                    var highest = materialQualityLevels.GetHighestQuality();
-                    if (highest == 0)
-                        // If none are available, still pick the lowest one
-                        highest = MaterialQuality.Low;
-
-                    return highest;
-                }
-
-                return m_CurrentMaterialQualityLevel;
-            }
-        }
+        public MaterialQuality defaultMaterialQualityLevel { get => m_DefaultMaterialQualityLevel; }
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
@@ -202,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RenderingLayerNames == null)
                 {
                     m_RenderingLayerNames = new string[32];
-                    
+
                     m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
                     m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
                     m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
@@ -225,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override string[] renderingLayerMaskNames
             => renderingLayerNames;
-        
+
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
         public string[] lightLayerNames

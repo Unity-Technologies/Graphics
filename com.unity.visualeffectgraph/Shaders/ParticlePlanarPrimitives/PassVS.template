@@ -86,9 +86,15 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
 	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
 	
+#if VFX_STRIPS_SWAP_UV
+	o.VFX_VARYING_UV.xy = float2(1.0f - o.VFX_VARYING_UV.y, o.VFX_VARYING_UV.x);
+#endif
+	
 	// Orient strips along their tangents
 	attributes.axisX = GetStripTangent(attributes.position, currentIndex, stripData);
+#if !VFX_STRIPS_ORIENT_CUSTOM
 	attributes.axisZ = attributes.position - GetViewVFXPosition();
+#endif
 	attributes.axisY = normalize(cross(attributes.axisZ, attributes.axisX));
 	attributes.axisZ = normalize(cross(attributes.axisX, attributes.axisY));
 	
@@ -133,6 +139,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #endif
 	
 	${VFXLoadSize}
+#if HAS_STRIPS
+	size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+#endif
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(
 		attributes.axisX,
@@ -163,13 +172,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
 	#endif
 	#ifdef VFX_VARYING_BENTFACTORS
-	${VFXLoadParameter:{bentNormalFactor}}
+	${VFXLoadParameter:{normalBendingFactor}}
 	#if HAS_STRIPS
 	#define BENT_FACTOR_MULTIPLIER 2.0f
 	#else
 	#define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
 	#endif
-	o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor * BENT_FACTOR_MULTIPLIER;
+	o.VFX_VARYING_BENTFACTORS = vOffsets * normalBendingFactor * BENT_FACTOR_MULTIPLIER;
 	#endif
 	
 	${VFXVertexComputeCurrentAndPreviousClipPos}

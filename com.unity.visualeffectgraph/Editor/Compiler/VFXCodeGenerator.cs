@@ -407,6 +407,10 @@ namespace UnityEditor.VFX
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
             globalIncludeContent.WriteLine("#define HAS_ATTRIBUTES 1");
+            globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
+            globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
+            globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
+
             foreach (var attribute in allCurrentAttributes)
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
             foreach (var attribute in allSourceAttributes)
