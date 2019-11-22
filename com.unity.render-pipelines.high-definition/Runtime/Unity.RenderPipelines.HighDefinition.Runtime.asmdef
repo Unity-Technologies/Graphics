@@ -3,7 +3,8 @@
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.ugui",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

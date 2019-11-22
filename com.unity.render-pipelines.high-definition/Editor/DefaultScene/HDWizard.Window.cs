@@ -43,6 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
 
+            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
+            public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
+            public const string hdrpVersionWithLocalPackage = "You are using High-Definition Render Pipeline local {0} version. Last packaged version available is {1}."; //{0} and {1} will be replaced when displayed by the version number.
+            public const string hdrpVersionChecking = "Checking last version available for High-Definition Render Pipeline.";
+
             //configuration debugger
             public const string resolve = "Fix";
             public const string resolveAll = "Fix All";
@@ -235,6 +240,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var scrollView = new ScrollView(ScrollViewMode.Vertical);
             rootVisualElement.Add(scrollView);
             var container = scrollView.contentContainer;
+
+            container.Add(CreateHdrpVersionChecker());
 
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
@@ -489,6 +496,35 @@ namespace UnityEditor.Rendering.HighDefinition
             var label = new Label(title);
             label.AddToClassList("h1");
             return label;
+        }
+
+        HelpBox CreateHdrpVersionChecker()
+        {
+            var helpBox = new HelpBox(HelpBox.Kind.Info, Style.hdrpVersionChecking);
+
+            m_LastAvailablePackageRetriever.ProcessAsync(k_HdrpPackageName, version =>
+            {
+                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, packageInfo =>
+                {
+                    if (packageInfo.source == PackageManager.PackageSource.Local)
+                    {
+                        helpBox.kind = HelpBox.Kind.Info;
+                        helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
+                    }
+                    else if(new Version(packageInfo.version) < new Version(version))
+                    {
+                        helpBox.kind = HelpBox.Kind.Warning;
+                        helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
+                    }
+                    else if (new Version(packageInfo.version) == new Version(version))
+                    {
+                        helpBox.kind = HelpBox.Kind.Info;
+                        helpBox.text = String.Format(Style.hdrpVersionLast, version);
+                    }
+                });
+            });
+
+            return helpBox;
         }
 
         #endregion

@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
 - Subgraph operators appear on drag edge on graph.
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 
 ## [7.1.1] - 2019-09-05
 ### Added

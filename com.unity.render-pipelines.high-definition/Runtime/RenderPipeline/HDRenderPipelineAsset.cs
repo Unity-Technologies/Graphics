@@ -60,9 +60,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
+
+        internal VolumeProfile defaultLookDevProfile
+        {
+            get
+            {
+                if (m_DefaultLookDevProfile == null)
+                    m_DefaultLookDevProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                return m_DefaultLookDevProfile;
+            }
+            set => m_DefaultLookDevProfile = value;
+        }
+
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
-
-
+        
         internal HDRenderPipelineEditorResources renderPipelineEditorResources
         {
             get
@@ -83,13 +95,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.defaultCamera;
+        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
 
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.defaultCustomOrBakeReflectionProbe;
+        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
 
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.defaultRealtimeReflectionProbe;
+        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.NewDefaultRealtimeReflectionProbe();
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
@@ -130,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
         [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
-        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
+        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
         public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;

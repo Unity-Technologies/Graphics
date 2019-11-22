@@ -72,9 +72,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUI.indentLevel++;
                 if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
-                PropertyField(m_SkyExposure);
+                    PropertyField(m_SkyExposure);
                 else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
-                PropertyField(m_SkyMultiplier);
+                    PropertyField(m_SkyMultiplier);
                 else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
                 {
                     PropertyField(m_DesiredLuxValue);

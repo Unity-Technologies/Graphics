@@ -121,7 +121,7 @@ float3 _EmissiveColor;
 float _AlbedoAffectEmissive;
 float _EmissiveExposureWeight;
 
-float _EnableSpecularOcclusion;
+int  _SpecularOcclusionMode;
 
 // Transparency
 float3 _TransmittanceColor;

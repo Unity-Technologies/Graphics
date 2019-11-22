@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         // This one is protected only to have access during migration of children classes.
         // In children classes, it must be used only during the migration.
-        protected ProbeSettings m_ProbeSettings = ProbeSettings.@default;
+        protected ProbeSettings m_ProbeSettings = ProbeSettings.NewDefault();
 #pragma warning disable 649
         [SerializeField]
         ProbeSettingsOverride m_ProbeSettingsOverride;
