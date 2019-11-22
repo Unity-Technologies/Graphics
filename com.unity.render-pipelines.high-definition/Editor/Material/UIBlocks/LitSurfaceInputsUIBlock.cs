@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface Mask Map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "Controls the strength of the Thickness Map, low values allow some light to transmit through the object.");
             public static GUIContent thicknessMapText = new GUIContent("Thickness Map", "Specifies the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
-            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Controls a remap for the Thickness Map from [0, 1] to the specified range.");
+            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remapping", "Controls a remap for the Thickness Map from [0, 1] to the specified range.");
 
             // Iridescence
             public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Specifies the Iridescence Mask (R) for this Material - This map controls the intensity of the iridescence.");
@@ -569,9 +569,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((int)materialID.floatValue == (int)MaterialId.LitTranslucent ||
                 ((int)materialID.floatValue == (int)MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
             {
-                materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                 if (thicknessMap[m_LayerIndex].textureValue != null)
                 {
+                    materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                     // Display the remap of texture values.
                     Vector2 remap = thicknessRemap[m_LayerIndex].vectorValue;
                     EditorGUI.BeginChangeCheck();
@@ -584,7 +584,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     // Allow the user to set the constant value of thickness if no thickness map is provided.
-                    materialEditor.ShaderProperty(thickness[m_LayerIndex], Styles.thicknessText);
+                    materialEditor.TexturePropertySingleLine(Styles.thicknessText, thicknessMap[m_LayerIndex], thickness[m_LayerIndex]);
                 }
             }
         }

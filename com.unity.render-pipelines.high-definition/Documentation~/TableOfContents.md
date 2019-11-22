@@ -55,7 +55,6 @@
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
-    * [ShadowMatte Shader](ShadowMatte-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
@@ -131,5 +130,6 @@
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Post-Process Effect](Custom-Post-Process)
 * [HDRP Glossary](Glossary)
 

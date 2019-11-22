@@ -422,7 +422,8 @@ namespace UnityEngine.Rendering
         static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
         {
 #if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
-            return UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
+            // IsGameObjectRenderedByCamera does not behave correctly when camera is null so we have to catch it here.
+            return camera == null ? true : UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
 #else
             return true;
 #endif

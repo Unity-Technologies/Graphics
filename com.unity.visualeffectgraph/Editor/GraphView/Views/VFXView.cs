@@ -238,6 +238,8 @@ namespace UnityEditor.VFX.UI
                             controller.AddVFXModel(mPos, newModel);
 
                             newModel.SetSettingValue("m_Subgraph", subGraph);
+
+                            return controller.GetNewNodeController(newModel);
                         }
                     }
                 }
@@ -1770,7 +1772,19 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "Convert to Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
+                if (selection.OfType<VFXOperatorUI>().Any(t => !t.superCollapsed))
+                    evt.menu.AppendAction("Collapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, true);
+                if (selection.OfType<VFXOperatorUI>().Any(t => t.superCollapsed))
+                    evt.menu.AppendAction("Uncollapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, false);
 
+        }
+
+        void CollapseOperator(DropdownMenuAction a)
+        {
+            bool collapse = (bool)a.userData;
+
+            foreach (var ope in selection.OfType<VFXOperatorUI>())
+                ope.controller.superCollapsed = collapse;
         }
 
 

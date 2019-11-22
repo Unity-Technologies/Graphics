@@ -85,13 +85,11 @@ namespace UnityEditor.Rendering.Universal
             uint instanceID;
             [Semantic("FRONT_FACE_SEMANTIC")][SystemGenerated][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")]
             bool cullFace;
-            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
-            uint stereoTargetEyeIndexSV;
-            [Semantic("BLENDINDICES0")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
-            uint stereoTargetEyeIndexGL;
-            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_MULTIVIEW_ENABLED)) || " +
-                                                                    "(defined(UNITY_STEREO_INSTANCING_ENABLED) && !(defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
-            uint stereoTargetEyeIndex;
+            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED))")]
+            uint stereoTargetEyeIndexAsRTArrayIdx;
+            [Semantic("BLENDINDICES0")] [PreprocessorIf("(defined(UNITY_STEREO_MULTIVIEW_ENABLED)) || " +
+                                                        "(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
+            uint stereoTargetEyeIndexAsBlendIdx0;
         };
 
         internal struct VertexDescriptionInputs

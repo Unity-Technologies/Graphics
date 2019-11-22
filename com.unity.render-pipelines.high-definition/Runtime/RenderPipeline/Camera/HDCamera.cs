@@ -553,7 +553,9 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize);
+
+            var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
 
             if (updatePreviousFrameConstants)
             {
@@ -656,18 +658,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 volumeAnchor = camera.transform;
         }
 
-        public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        public void GetPixelCoordToViewDirWS(Vector4 resolution, float aspect, ref Matrix4x4[] transforms)
         {
             if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
-                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution);
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution, aspect);
                 }
             }
             else
             {
-                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution);
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution, aspect);
             }
         }
 
@@ -729,7 +738,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return proj;
         }
 
-        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution)
+        /// <summary>
+        /// Compute the matrix from screen space (pixel) to world space direction (RHS).
+        ///
+        /// You can use this matrix on the GPU to compute the direction to look in a cubemap for a specific
+        /// screen pixel.
+        /// </summary>
+        /// <param name="viewConstants"></param>
+        /// <param name="resolution">The target texture resolution.</param>
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        /// <returns></returns>
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
@@ -745,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
         }
 
         // Warning: different views can use the same camera!

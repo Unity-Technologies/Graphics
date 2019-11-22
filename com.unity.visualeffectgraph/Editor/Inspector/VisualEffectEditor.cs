@@ -115,10 +115,12 @@ namespace UnityEditor.VFX
             m_RendererEditor = new RendererEditor(renderers);
 
             s_FakeObjectSerializedCache = new SerializedObject(targets[0]);
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         protected void OnDisable()
         {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
@@ -437,6 +439,8 @@ namespace UnityEditor.VFX
         protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
+            if (effect == null)
+                return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
@@ -515,7 +519,7 @@ namespace UnityEditor.VFX
             effect.playRate = rate;
         }
 
-        protected virtual void OnSceneGUI()
+        protected virtual void OnSceneViewGUI(SceneView sv)
         {
             SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
@@ -761,10 +765,10 @@ namespace UnityEditor.VFX
             {
                 m_asset = component.visualEffectAsset;
                 if (m_asset != null)
-                {
                     m_graph = m_asset.GetResource().GetOrCreateGraph();
-                }
             }
+            if (m_asset == null)
+                m_graph = null;
 
             GUI.enabled = true;
             if (m_graph != null)
