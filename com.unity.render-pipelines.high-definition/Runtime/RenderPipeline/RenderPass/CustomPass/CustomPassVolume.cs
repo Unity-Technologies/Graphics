@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// It provides 
     /// </summary>
     [ExecuteAlways]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
     public class CustomPassVolume : MonoBehaviour
     {
         /// <summary>
@@ -225,9 +226,9 @@ namespace UnityEngine.Rendering.HighDefinition
         
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
-            foreach (var passVolume in m_OverlappingPassVolumes)
-                if (passVolume.injectionPoint == injectionPoint)
-                    return passVolume;
+            foreach (var volume in m_OverlappingPassVolumes)
+                if (volume.injectionPoint == injectionPoint)
+                    return volume;
             return null;
         }
 

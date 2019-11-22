@@ -46,3 +46,6 @@ MonoBehaviour:
       type: 3}
     autodeskInteractiveTransparent: {fileID: 4800000, guid: ee2ce0be66f45d9449d71ba9b49c2acd,
       type: 3}
+  lookDev:
+    defaultLookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+      type: 2}
