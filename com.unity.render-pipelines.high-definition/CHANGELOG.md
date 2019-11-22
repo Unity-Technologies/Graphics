@@ -207,6 +207,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in ReflectionProbe and PlanarReflectionProbe.
 - Fixed Prefab override workflow issue in DensityVolume.
 - Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in DensityVolume.
+- Fix light limit counts specified on the HDRP asset
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
