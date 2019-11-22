@@ -45,12 +45,12 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
 
-    float4   _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
-    float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
-    float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
-    float4  _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
-    float3  _BackplateShadowTint;  // xyz: ShadowTint
-    uint    _BackplateShadowFilter;
+    float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+    float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
+    float4 _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
+    float4 _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
+    float3 _BackplateShadowTint;  // xyz: ShadowTint
+    uint   _BackplateShadowFilter;
 
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
@@ -178,7 +178,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     {
         dir = RotationUp(dir, cos_sin);
 
-        float3 skyColor = GetSkyColor(dir) * _Intensity * exposure;
+        float3 skyColor = GetSkyColor(dir)*_Intensity*exposure;
         skyColor = ClampToFloat16Max(skyColor);
 
         return float4(skyColor, 1.0);
