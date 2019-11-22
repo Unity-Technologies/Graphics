@@ -25,20 +25,21 @@ uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
     return baseAddress + offset;
 }
 
-// TODO: types that are not float/int/uint
 #define DEFINE_DOTS_LOAD_INSTANCE_SCALAR(type, conv) \
-type LoadDOTSInstancedData(type dummy, uint metadata) \
+type LoadDOTSInstancedData_##type(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4); \
     return conv(unity_DOTSInstanceData.Load(address)); \
-}
+} \
+type LoadDOTSInstancedData(type dummy, uint metadata) { return LoadDOTSInstancedData_##type(metadata); }
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv) \
-type##width LoadDOTSInstancedData(type##width dummy, uint metadata) \
+type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * width); \
     return conv(unity_DOTSInstanceData.Load##width(address)); \
-}
+} \
+type LoadDOTSInstancedData(type##width dummy, uint metadata) { return LoadDOTSInstancedData_##type##width(metadata); }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(int,   int)
@@ -54,6 +55,7 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  2, uint2)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  3, uint3)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  4, uint4)
 
+// TODO: Other matrix sizes
 float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
@@ -68,7 +70,6 @@ float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata)
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
 
 #endif // UNITY_DOTS_INSTANCING_ENABLED
-
 
 #endif // UNITY_DOTS_INSTANCING_INCLUDED
 

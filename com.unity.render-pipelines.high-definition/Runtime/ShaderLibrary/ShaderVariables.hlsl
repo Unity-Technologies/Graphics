@@ -451,9 +451,10 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
-#ifdef UNITY_DOTS_INSTANCING_ENABLED
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+// TODO: This might not work correctly in all cases, double check!
 UNITY_DOTS_INSTANCING_START(UnityPerDraw)
     UNITY_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(unity_WorldToObject)

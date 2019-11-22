@@ -43,25 +43,47 @@ namespace UnityEditor.ShaderGraph
 
             if (instancedCount > 0)
             {
-                builder.AppendLine("#ifdef UNITY_DOTS_INSTANCING_ENABLED");
-                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
-                {
-                    if (prop.gpuInstanced)
-                        builder.AppendLine(prop.GetPropertyDeclarationString("_dummy;"));
-                }
-                builder.AppendLine("#else");
+                builder.AppendLine("// Hybrid instanced properties");
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
                 {
                     if (prop.gpuInstanced)
                         builder.AppendLine(prop.GetPropertyDeclarationString());
                 }
-                builder.AppendLine("#endif");
             }
             builder.AppendLine("CBUFFER_END");
 
+            if (instancedCount > 0)
+            {
+                builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
+
+                builder.AppendLine("// DOTS instancing definitions");
+                builder.AppendLine("UNITY_DOTS_INSTANCING_START(HybridPerMaterial)");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({prop.referenceName})");
+                    }
+                }
+                builder.AppendLine("UNITY_DOTS_INSTANCING_END");
+
+                builder.AppendLine("// DOTS instancing usage macros");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        var n = prop.referenceName;
+                        string type = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
+                        builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
+                    }
+                }
+
+                builder.AppendLine("#endif");
+            }
+
             if (batchAll)
                 return;
-            
+
             foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
@@ -70,48 +92,15 @@ namespace UnityEditor.ShaderGraph
 
         public int GetDotsInstancingPropertiesCount(GenerationMode mode)
         {
+            // TODO: Refactor how DOTS instancing properties work
             var batchAll = mode == GenerationMode.Preview;
             return properties.Where(n => (batchAll || (n.generatePropertyBlock && n.isBatchable)) && n.gpuInstanced).Count();
         }
 
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
         {
-            var builder = new ShaderStringBuilder();
-            var batchAll = mode == GenerationMode.Preview;
-
-            int instancedCount = GetDotsInstancingPropertiesCount(mode);
-
-            if (instancedCount > 0)
-            {
-                builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
-                builder.AppendLine("#define SHADER_GRAPH_GENERATED");
-                builder.Append("#define DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
-
-                int count = 0;
-                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
-                {
-                    if (prop.gpuInstanced)
-                    {
-                        string varName = $"{prop.referenceName}_Array";
-                        string sType = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
-                        builder.Append("UNITY_DEFINE_INSTANCED_PROP({0}, {1})", sType, varName);
-                        if (count < instancedCount - 1)
-                            builder.Append("\\");
-                        builder.AppendLine("");
-                        count++;
-                    }
-                }
-                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
-                {
-                    if (prop.gpuInstanced)
-                    {
-                        string varName = $"{prop.referenceName}_Array";
-                        builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.referenceName, varName);
-                    }
-                }
-            }
-            builder.AppendLine("#endif");
-            return builder.ToString();
+            // TODO: Refactor how DOTS instancing properties work
+            return "";
         }
 
         public List<TextureInfo> GetConfiguredTexutres()

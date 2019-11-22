@@ -34,11 +34,14 @@
 #if defined(UNITY_SUPPORT_INSTANCING) && defined(PROCEDURAL_INSTANCING_ON)
     #define UNITY_PROCEDURAL_INSTANCING_ENABLED
 #endif
+#if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
+    #define UNITY_DOTS_INSTANCING_ENABLED
+#endif
 #if defined(UNITY_SUPPORT_STEREO_INSTANCING) && defined(STEREO_INSTANCING_ON)
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
     #define UNITY_ANY_INSTANCING_ENABLED 1
 #else
     #define UNITY_ANY_INSTANCING_ENABLED 0
@@ -57,7 +60,7 @@
 // basic instancing setups
 // - UNITY_VERTEX_INPUT_INSTANCE_ID     Declare instance ID field in vertex shader input / output struct.
 // - UNITY_GET_INSTANCE_ID              (Internal) Get the instance ID from input struct.
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if UNITY_ANY_INSTANCING_ENABLED
 
     // A global instance ID variable that functions can directly access.
     static uint unity_InstanceID;
@@ -141,7 +144,7 @@
 //                                  Also procedural function is called to setup instance data.
 // - UNITY_TRANSFER_INSTANCE_ID     Copy instance ID from input struct to output struct. Used in vertex shader.
 
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if UNITY_ANY_INSTANCING_ENABLED
     void UnitySetupInstanceID(uint inputInstanceID)
     {
         #ifdef UNITY_STEREO_INSTANCING_ENABLED
@@ -192,7 +195,7 @@
 
 ////////////////////////////////////////////////////////
 // instanced property arrays
-#if defined(UNITY_INSTANCING_ENABLED)
+#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED)
 
     #ifdef UNITY_FORCE_MAX_INSTANCE_COUNT
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_FORCE_MAX_INSTANCE_COUNT
@@ -219,9 +222,11 @@
     #define UNITY_DOTS_INSTANCING_END         }
     #define UNITY_DOTS_INSTANCED_PROP(name) uint unity_DOTSInstancingMetadata_##name;
 
-
     #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) LoadDOTSInstancedData_##type(unity_DOTSInstancing##metadata_underscore_var)
     #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
@@ -234,11 +239,8 @@
     #define UNITY_DOTS_INSTANCED_PROP(name)
 
     #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) var
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) This_macro_cannot_be_called_without_UNITY_DOTS_INSTANCING_ENABLED
     #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
-#endif
-
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 #endif
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.

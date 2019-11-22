@@ -746,21 +746,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var zClipCode = new ShaderStringBuilder();
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
-            var dotsInstancingCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
+
+            // TODO: Is this still necessary?
             int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
-
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
-
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
-            }
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -796,9 +787,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
-                    instancingOptions.AddShaderChunk("#endif");
-                    instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AddShaderChunk("#endif");
                     instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
                     instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
@@ -931,7 +919,7 @@ namespace UnityEditor.Rendering.HighDefinition
             namedFragments.Add("ZClip", zClipCode.ToString());
             namedFragments.Add("Stencil", stencilCode.ToString());
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
-            namedFragments.Add("DotsInstancedVars", dotsInstancingCode.ToString());
+            namedFragments.Add("DotsInstancedVars", "// TODO: Remove the \"DotsInstancedVars\" fragment");
 
             string sharedTemplatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             // process the template to generate the shader code for this pass
