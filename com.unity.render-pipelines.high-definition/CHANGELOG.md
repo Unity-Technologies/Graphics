@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a number of issues with Material Quality setting
 - Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
 - Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
+- Fixed editing a scalable settings will edit all loaded asset in memory instead of targetted asset.
 - Fixed Planar reflection default viewer FOV
 - Fixed flickering issues when moving the mouse in the editor with ray tracing on.
 - Fixed the ShaderGraph main preview being black after switching to SSS in the master node settings

@@ -133,7 +133,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default HDShadowInitParameters</summary>
-        public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
+        [Obsolete("Since 2019.3, use HDShadowInitParameters.NewDefault() instead.")]
+        public static readonly HDShadowInitParameters @default = default;
+        /// <summary>Default HDShadowInitParameters</summary>
+        public static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
         {
             maxShadowRequests                   = k_DefaultMaxShadowRequests,
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
