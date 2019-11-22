@@ -31,7 +31,7 @@ struct Gradient
     float4 colors[8];
     float2 alphas[8];
 };
-
+   
 Gradient NewGradient(int type, int colorsLength, int alphasLength,
     float4 colors0, float4 colors1, float4 colors2, float4 colors3, float4 colors4, float4 colors5, float4 colors6, float4 colors7,
     float2 alphas0, float2 alphas1, float2 alphas2, float2 alphas3, float2 alphas4, float2 alphas5, float2 alphas6, float2 alphas7)

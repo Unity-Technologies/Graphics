@@ -56,8 +56,7 @@
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              input.positionSS;
 #else
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
-#endif
-        $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+#endif        
         $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
         $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
         $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;

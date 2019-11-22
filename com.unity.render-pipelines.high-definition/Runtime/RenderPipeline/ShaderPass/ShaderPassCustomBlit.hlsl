@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_POSTPROCESS) && (SHADERPASS != SHADERPASS_POSTPROCESS_PREVIEW)
+#if (SHADERPASS != SHADERPASS_CUSTOMBLIT) && (SHADERPASS != SHADERPASS_CUSTOMBLIT_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -7,6 +7,8 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
+    // initialize to 0 because shader graph code ads extra attributes when screen position is selected as input to custom blit sample node
+    ZERO_INITIALIZE(VaryingsType, varyingsType);
     varyingsType.vmesh = TransformBlit(inputMesh);
     return PackVaryingsType(varyingsType);
 }

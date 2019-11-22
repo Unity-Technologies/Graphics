@@ -5,6 +5,7 @@
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
+#define SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(uv) shadergraph_HDLoadCustomBlitInput(uv)
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
