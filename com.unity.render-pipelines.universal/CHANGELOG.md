@@ -4,8 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.6] - 2019-11-22
+
+### Fixed
+- Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
+
 ## [7.1.5] - 2019-11-15
 
+### Fixed
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
 - Fixed conflicting meta with HDRP
 
