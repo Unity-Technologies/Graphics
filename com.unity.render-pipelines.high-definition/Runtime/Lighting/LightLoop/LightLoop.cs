@@ -989,7 +989,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
-            float R = skySettings.planetaryRadius.value;
+            float R = skySettings.GetPlanetaryRadius();
 
             Vector2 H    = new Vector2(skySettings.GetAirScaleHeight(), skySettings.GetAerosolScaleHeight());
             Vector2 rcpH = new Vector2(Rcp(H.x), Rcp(H.y));
@@ -1040,16 +1040,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Computes transmittance along the light path segment.
-        static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 positionWS)
+        static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 X)
         {
             var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
-            Vector3 X = positionWS * 0.001f; // Convert m to km
-            Vector3 C = skySettings.planetCenterPosition.value;
+            Vector3 C = skySettings.GetPlanetCenterPosition(X); // X = camPosWS
 
             float r        = Vector3.Distance(X, C);
-            float R        = skySettings.planetaryRadius.value;
+            float R        = skySettings.GetPlanetaryRadius();
             float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
             float cosTheta = Vector3.Dot(X - C, L) * Rcp(r);
 
@@ -1119,11 +1118,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
             }
 
+            if (additionalLightData.surfaceTexture == null)
+            {
+                lightData.surfaceTextureIndex = -1;
+            }
+            else
+            {
+                lightData.surfaceTextureIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, additionalLightData.surfaceTexture);
+            }
+
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
-            
-            // We want to have a colored penumbra if the flag is on and the color is not gray            
+
+            // We want to have a colored penumbra if the flag is on and the color is not gray
             bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
             lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
             if (penumbraTint)
@@ -1185,6 +1193,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             lightData.angularDiameter = additionalLightData.angularDiameter * Mathf.Deg2Rad;
+            lightData.flareSize       = Mathf.Max(additionalLightData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
+            lightData.flareFalloff    = additionalLightData.flareFalloff;
+            lightData.flareTint       = (Vector3)(Vector4)additionalLightData.flareTint;
+            lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
@@ -1398,7 +1410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
-            // We want to have a colored penumbra if the flag is on and the color is not gray            
+            // We want to have a colored penumbra if the flag is on and the color is not gray
             bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
             lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
             if (penumbraTint)

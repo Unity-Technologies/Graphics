@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
 - Added the code to support Barn Doors for Area Lights based on a shaderconfig option.
 - Added HDRPCameraBinder property binder for Visual Effect Graph
+- Added "Celestial Body" controls to the Directional Light
+- Added new parameters to the Physically Based Sky
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.

@@ -59,6 +59,7 @@ Material:
     - _Color: {r: 0, g: 1, b: 0.004989147, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
 --- !u!114 &3684812764804891190
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -71,4 +72,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 1

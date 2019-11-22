@@ -204,11 +204,11 @@ bool SampleGGX(MaterialData mtlData,
     float Vg = V_SmithJointGGX(-NdotL, NdotV, mtlData.bsdfData.roughnessT);
 
     // Compute the Jacobian
-    float jacobian = VdotH + mtlData.bsdfData.ior * LdotH;
+    float jacobian = max(abs(VdotH + mtlData.bsdfData.ior * LdotH), 0.001);
     jacobian = Sq(mtlData.bsdfData.ior) * abs(LdotH) / Sq(jacobian);
 
     pdf = D * NdotH * jacobian;
-    value = abs(4.0 * (1.0 - F) * D * Vg * NdotL * VdotH * jacobian);
+    value = abs(4.0 * (1.0 - F) * D * Vg * NdotL * VdotH * jacobian * mtlData.bsdfData.transmittanceMask);
 
     return (pdf > 0.001);
 }
