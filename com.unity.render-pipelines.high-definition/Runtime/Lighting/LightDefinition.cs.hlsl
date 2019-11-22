@@ -73,10 +73,16 @@ struct DirectionalLightData
     real4 shadowMaskSelector;
     float diffuseDimmer;
     float specularDimmer;
-    float angularDiameter;
-    float distanceFromCamera;
-    float isRayTracedContactShadow;
     float penumbraTint;
+    float isRayTracedContactShadow;
+    float distanceFromCamera;
+    float angularDiameter;
+    float flareFalloff;
+    float __unused__;
+    float3 flareTint;
+    float flareSize;
+    float3 surfaceTint;
+    int surfaceTextureIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
