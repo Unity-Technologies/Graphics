@@ -1,4 +1,4 @@
-set version=7.0.0
+set version=7.1.6
 call CreateOneLocalPackage.bat com.unity.render-pipelines.core %version%
 call CreateOneLocalPackage.bat com.unity.render-pipelines.high-definition %version%
 call CreateOneLocalPackage.bat com.unity.render-pipelines.lightweight %version%
