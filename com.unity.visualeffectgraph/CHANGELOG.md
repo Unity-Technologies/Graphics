@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.6] - 2019-11-22
+
+### Added
+- New quad distortion output for particle strips
+- New attribute for strips: particleCountInStrip
+- New options for quad strips texture mapping: swap UV and custom mapping
+
+### Fixed
+- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
+- Fix shader interpolants with shader graph and particle strips
+- SpawnIndex attribute is now working correctly in Initialize context
+- Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
+- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
+- Subgraph operators appear on drag edge on graph.
+- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+
 ## [7.1.5] - 2019-11-15
 
 Version Updated
@@ -24,9 +40,6 @@ The version number for this package has increased due to a version update of a r
 - Custom Inspector for Update context, display update position/rotation instead of integration
 - Tooltips to blocks, nodes, contexts, and various menus and options
 - New operators: Exp, Log and LoadTexture
-- New quad distortion output for particle strips
-- New attribute for strips: particleCountInStrip
-- New options for quad strips texture mapping: swap UV and custom mapping
 
 ### Fixed
 - Infinite recompilation using subgraph [Case 1186191] (https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
@@ -45,13 +58,6 @@ The version number for this package has increased due to a version update of a r
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
-- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
-- Fix shader interpolants with shader graph and particle strips
-- SpawnIndex attribute is now working correctly in Initialize context
-- Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
-- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
-- Subgraph operators appear on drag edge on graph.
-- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
 
 ## [7.1.2] - 2019-09-19
 ### Fixed
