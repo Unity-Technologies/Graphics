@@ -538,4 +538,15 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     weight = Smoothstep01(weight);
     weight *= light.weight;
 }
+
+void InversePreExposeSsrLighting(inout float4 ssrLighting)
+{
+    float prevExposureInvMultiplier = GetInversePreviousExposureMultiplier();
+
+#if SHADEROPTIONS_RAYTRACING
+    if (!_UseRayTracedReflections)
+#endif
+    ssrLighting.rgb *= prevExposureInvMultiplier;
+}
+
 #endif
