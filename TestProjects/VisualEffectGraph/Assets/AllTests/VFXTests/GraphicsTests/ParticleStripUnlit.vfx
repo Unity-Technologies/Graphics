@@ -2856,6 +2856,7 @@ MonoBehaviour:
   shaderGraph: {fileID: 0}
   shadergraphGUID: 
   tilingMode: 0
+  swapUV: 0
   UseCustomZAxis: 0
 --- !u!114 &8926484042661615178
 MonoBehaviour:

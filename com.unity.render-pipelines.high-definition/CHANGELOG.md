@@ -204,8 +204,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue preventing to allow setting decal material to none (case 1196129)
 - Fixed XR multi-pass decals rendering
 - Fixed several fields on Light Inspector that not supported Prefab overrides
-- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 
+- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
+- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
