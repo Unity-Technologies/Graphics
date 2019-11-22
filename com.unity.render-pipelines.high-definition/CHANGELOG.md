@@ -135,7 +135,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue preventing to allow setting decal material to none (case 1196129)
 - Fixed XR multi-pass decals rendering
 - Fixed several fields on Light Inspector that not supported Prefab overrides
-- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 - Fixed EOL for some files
 - Fixed scene view rendering with volumetrics and XR enabled
 - Fixed decals to work with multiple cameras
@@ -169,6 +168,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings multi-edition.
 - Fixed a bug happening when denoising multiple ray traced light shadows
 - Fixed minor naming issues in ShaderGraph settings
+- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
+- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
 - Fixed an issue with Metal Shader Compiler and GTAO shader for metal
 - Fixed resources load issue while upgrading HDRP package.
 - Fix LOD fade mask by accounting for field of view

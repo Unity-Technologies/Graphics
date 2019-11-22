@@ -116,7 +116,23 @@ namespace UnityEditor.VFX
         }
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
-        public override bool exposeAlphaThreshold => base.exposeAlphaThreshold && shaderGraph == null;
+        public override bool exposeAlphaThreshold
+        {
+            get
+            {
+                if (shaderGraph == null)
+                {
+                    if (base.exposeAlphaThreshold)
+                        return true;
+                }
+                else
+                {
+                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
+                        return true;
+                }
+                return false;
+            }
+        }
         public override bool supportSoftParticles => base.supportSoftParticles && shaderGraph == null;
         public override bool hasAlphaClipping
         {
@@ -527,7 +543,7 @@ namespace UnityEditor.VFX
                         if (pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
                         {
                             callSG.builder.AppendLine(
-@"#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+@"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
 i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaThreshold_7;
 #endif");
                         }
