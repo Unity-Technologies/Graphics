@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.LookDev
         /// </param>
         /// <seealso cref="InstantiateIntoStage"/>
         public void MoveIntoStage(GameObject gameObject, bool persistent = false)
-            => MoveIntoStage(gameObject, Vector3.zero, Quaternion.identity, persistent);
+            => MoveIntoStage(gameObject, Vector3.zero, gameObject.transform.rotation, persistent);
 
         /// <summary>
         /// Move a GameObject into the stage's scene at specific position and
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <returns>The instance</returns>
         /// <seealso cref="MoveIntoStage"/>
         public GameObject InstantiateIntoStage(GameObject prefabOrSceneObject, bool persistent = false)
-            => InstantiateIntoStage(prefabOrSceneObject, Vector3.zero, Quaternion.identity, persistent);
+            => InstantiateIntoStage(prefabOrSceneObject, Vector3.zero, prefabOrSceneObject.transform.rotation, persistent);
 
         /// <summary>
         /// Instantiate a scene GameObject or a prefab into the stage's scene
