@@ -38,8 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_FrameAllAfterLayout;
 
         bool m_ProTheme;
-
-        GraphEditorView m_GraphEditorView;
+        string m_PrevPath;
 
         MessageManager m_MessageManager;
         MessageManager messageManager
@@ -47,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MessageManager ?? (m_MessageManager = new MessageManager()); }
         }
 
+        GraphEditorView m_GraphEditorView;
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -396,7 +396,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var graphView = graphEditorView.graphView;
 
-            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
+            if (m_PrevPath == null || m_PrevPath.Length == 0) m_PrevPath = Application.dataPath;
+
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -672,6 +674,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
                 AssetDatabase.ImportAsset(path);
+
+            // Store path for next time
+            m_PrevPath = path;
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
