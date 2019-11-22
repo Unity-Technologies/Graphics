@@ -20,27 +20,36 @@ Firstly, create a new class that inherits from **SkySettings**. This new class c
 
 You must include the following in this class:
 
-- **SkyUniqueID** attribute: This must be an integer unique to this particular sky; it must not clash with any other SkySettings. The use the SkyType enum to see what values HDRP already uses.
+- **SkyUniqueID** attribute: This must be an integer unique to this particular sky; it must not clash with any other SkySettings. Use the SkyType enum to see what values HDRP already uses.
 - **GetHashCode**: The sky system uses this function to determine when to re-render the sky reflection cubemap.
-- **CreateRenderer**: The sky system uses this function to instantiate the proper renderer.
+- **GetSkyRendererType**: The sky system uses this function to instantiate the proper renderer.
 
 For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of SkySettings:
 
 
-```
-[VolumeComponentMenu("Sky/HDRI Sky")]
+```c#
+using System;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
+[VolumeComponentMenu("Sky/New Sky")]
 // SkyUniqueID does not need to be part of built-in HDRP SkyType enumeration.
-// This is only provided to track IDs used by HDRP natively. 
+// This is only provided to track IDs used by HDRP natively.
 // You can use any integer value.
-[SkyUniqueID((int)SkyType.HDRISky)]
-public class HDRISky : SkySettings
+[SkyUniqueID(NEW_SKY_UNIQUE_ID)]
+public class NewSky : SkySettings
 {
+    const int NEW_SKY_UNIQUE_ID = 20382390;
+
     [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
     public CubemapParameter hdriSky = new CubemapParameter(null);
-    public override SkyRenderer CreateRenderer()
+
+    public override Type GetSkyRendererType()
     {
-        return new HDRISkyRenderer(this);
+        return typeof(NewSkyRenderer);
     }
+
     public override int GetHashCode()
     {
         int hash = base.GetHashCode();
@@ -51,6 +60,7 @@ public class HDRISky : SkySettings
         return hash;
     }
 }
+
 ```
 
 <a name="SkyRenderer"></a>
@@ -60,78 +70,94 @@ public class HDRISky : SkySettings
 Now you must create the class that actually renders the sky, either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
 
 Your SkyRenderer must implement the SkyRenderer interface:
-```
-public abstract class SkyRenderer
-{
-    // Method to initialize any resources for the sky rendering (shaders, …)
-    public abstract void Build();
-
-    // Method to clean up any previously allocated resources
-    public abstract void Cleanup();
-
-    // SkyRenderer is responsible for setting up render targets provided in builtinParams
-    public abstract void SetRenderTargets(BuiltinSkyParameters builtinParams);
-
-    // renderForCubemap: When rendering into a cube map, no depth buffer is available so you must make sure not to use depth testing or the depth texture.
-    // renderSunDisk: The sky renderer should not render the sun disk when this value is false (this provides consistent baking)
-    public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
-
-    // Returns true if the SkySettings you provide are valid.
-    public abstract bool IsValid();
-}
-```
-For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of the SkyRenderer:
-```
-public class HDRISkyRenderer : SkyRenderer
-{
-    Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be a 3D cube or 2D)
-    MaterialPropertyBlock m_PropertyBlock;
-    HDRISky m_HdriSkyParams;
-    public HDRISkyRenderer(HDRISky hdriSkyParams)
+```c#
+    public abstract class SkyRenderer
     {
-        m_HdriSkyParams = hdriSkyParams;
-        m_PropertyBlock = new MaterialPropertyBlock();
-    }
-    
+        int m_LastFrameUpdate = -1;
+
+        /// <summary>
+        /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
+        /// </summary>
+        public abstract void Build();
+
+        /// <summary>
+        /// Called on cleanup. Release resources used by the renderer.
+        /// </summary>
+        public abstract void Cleanup();
+
+        /// <summary>
+        /// HDRP calls this function once every frame. Implement it if your SkyRenderer needs to iterate independently of the user defined update frequency (see SkySettings UpdateMode).
+        /// </summary>
+        /// <returns>True if the update determines that sky lighting needs to be re-rendered. False otherwise.</returns>
+        protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
+
+        /// <summary>
+        /// Implements actual rendering of the sky. HDRP calls this when rendering the sky into a cubemap (for lighting) and also during main frame rendering.
+        /// </summary>
+        /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
+        /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
+        /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
+        public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
+```
+For example, here’s the a simple implementation of the SkyRenderer:
+```C#
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
+class NewSkyRenderer : SkyRenderer
+{
+    public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
+    public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
+    public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
+
+    Material m_NewSkyMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
+    MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
+
+    private static int m_RenderCubemapID = 0; // FragBaking
+    private static int m_RenderFullscreenSkyID = 1; // FragRender
+
     public override void Build()
     {
-        var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-        m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.hdriSky);
+        m_NewSkyMaterial = CoreUtils.CreateEngineMaterial(GetNewSkyShader());
     }
-    
+
+    // Project dependent way to retrieve a shader.
+    Shader GetNewSkyShader()
+    {
+        // Implement me
+        return null;
+    }
+
     public override void Cleanup()
     {
-        CoreUtils.Destroy(m_SkyHDRIMaterial);
+        CoreUtils.Destroy(m_NewSkyMaterial);
     }
-    
-    public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
+
+    protected override bool Update(BuiltinSkyParameters builtinParams)
     {
-        if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-        {
-            HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.hdCamera, builtinParams.colorBuffer);
-        }
-        else
-        {
-            HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.hdCamera, builtinParams.colorBuffer, builtinParams.depthBuffer);
-        }
+        return false;
     }
-    
+
     public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
     {
-        m_PropertyBlock.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);
-        m_PropertyBlock.SetVector(HDShaderIDs._SkyParam, new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, -m_HdriSkyParams.rotation, 0.0f)); // -rotation to match Legacy...
-    
-        // This matrix needs to be updated at the draw call frequency.
-        m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-    
-        CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
-    }
-    
-    public override bool IsValid()
-    {
-        return m_HdriSkyParams != null && m_SkyHDRIMaterial != null;
+        using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
+        {
+            var newSky = builtinParams.skySettings as NewSky;
+
+            int passID = renderForCubemap ? m_RenderCubemapID : m_RenderFullscreenSkyID;
+
+            float intensity = GetSkyIntensity(newSky, builtinParams.debugSettings);
+            float phi = -Mathf.Deg2Rad * newSky.rotation.value; // -rotation to match Legacy
+            m_PropertyBlock.SetTexture(_Cubemap, newSky.hdriSky.value);
+            m_PropertyBlock.SetVector(_SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
+            m_PropertyBlock.SetMatrix(_PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
+
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_NewSkyMaterial, m_PropertyBlock, passID);
+        }
     }
 }
+
 ```
 <a name="RenderingShader"></a>
 
@@ -141,90 +167,123 @@ Finally, you need to actually create the Shader for your sky. The content of thi
 
 For example, here’s the [HDRI sky](Override-HDRI-Sky.html) implementation of the SkyRenderer.
 ```
-Shader "Hidden/HDRenderPipeline/Sky/HDRISky"    
+Shader "Hidden/HDRP/Sky/NewSky"
 {
     HLSLINCLUDE
-    \#pragma vertex Vert
-    \#pragma fragment Frag
-    
-    \#pragma target 4.5
-    \#pragma only_renderers d3d11 ps4 xboxone vulkan metal
-    
-    \#include "CoreRP/ShaderLibrary/Common.hlsl"
-    \#include "CoreRP/ShaderLibrary/Color.hlsl"
-    \#include "CoreRP/ShaderLibrary/CommonLighting.hlsl"
-    
+
+    #pragma vertex Vert
+
+    #pragma editor_sync_compilation
+    #pragma target 4.5
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
-    
-    float4   _SkyParam; // x exposure, y multiplier, z rotation
-    float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-    
+
+    float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+
+    #define _Intensity          _SkyParam.x
+    #define _CosPhi             _SkyParam.z
+    #define _SinPhi             _SkyParam.w
+    #define _CosSinPhi          _SkyParam.zw
+
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
-    
+
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
-    
+
     Varyings Vert(Attributes input)
     {
         Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
         return output;
     }
-    
-    float4 Frag(Varyings input) : SV_Target
+
+    float3 RotationUp(float3 p, float2 cos_sin)
     {
-        // Points towards the Camera
-        float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
-        // Reverse it to point into the Scene
-        float3 dir = -viewDirWS;
-    
-        // Rotate direction
-        float phi = DegToRad(_SkyParam.z);
-        float cosPhi, sinPhi;
-        sincos(phi, sinPhi, cosPhi);
-        float3 rotDirX = float3(cosPhi, 0, -sinPhi);
-        float3 rotDirY = float3(sinPhi, 0, cosPhi);
-        dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
-    
-        float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
+        float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
+        float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
+
+        return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
+    }
+
+    float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
+    {
+        dir = RotationUp(dir, cos_sin);
+        float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * _Intensity * exposure;
+        skyColor = ClampToFloat16Max(skyColor);
+
         return float4(skyColor, 1.0);
     }
-    
+
+    float4 RenderSky(Varyings input, float exposure)
+    {
+        float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy);
+
+        // Reverse it to point into the scene
+        float3 dir = -viewDirWS;
+
+        return GetColorWithRotation(dir, exposure, _CosSinPhi);
+    }
+
+    float4 FragBaking(Varyings input) : SV_Target
+    {
+        return RenderSky(input, 1.0);
+    }
+
+    float4 FragRender(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        return RenderSky(input, GetCurrentExposureMultiplier());
+    }
+
     ENDHLSL
-    
+
     SubShader
     {
+        // Regular New Sky
+        // For cubemap
         Pass
         {
             ZWrite Off
             ZTest Always
             Blend Off
             Cull Off
-    
+
             HLSLPROGRAM
+                #pragma fragment FragBaking
             ENDHLSL
-    
         }
-    
+
+        // For fullscreen Sky
         Pass
         {
             ZWrite Off
             ZTest LEqual
             Blend Off
             Cull Off
-    
+
             HLSLPROGRAM
+                #pragma fragment FragRender
             ENDHLSL
         }
-    
     }
     Fallback Off
 }
+
 ```
-**Note**: The HDRI Sky uses two passes, one that uses a Depth Test for rendering the sky in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the sky into the reflection cubemap.
+**Note**: The NewSky example uses two passes, one that uses a Depth Test for rendering the sky in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the sky into the reflection cubemap.
