@@ -192,6 +192,11 @@ namespace UnityEngine.Rendering.Universal
 
             SortStable(m_ActiveRenderPassQueue);
 
+#if ENABLE_VR
+            if (renderingData.cameraData.isStereoEnabled)
+                XR.XRDevice.UpdateEyeTextureMSAASetting();
+#endif
+
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
             // Setting the time per frame would take API changes to pass the variable to each camera render.
