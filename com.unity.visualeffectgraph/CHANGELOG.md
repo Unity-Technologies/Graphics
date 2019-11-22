@@ -38,14 +38,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
-- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 - Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
 - Fix shader interpolants with shader graph and particle strips
 - SpawnIndex attribute is now working correctly in Initialize context
 - Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
 - Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
 - Subgraph operators appear on drag edge on graph.
-- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 
 ## [7.1.1] - 2019-09-05
 ### Added
