@@ -611,8 +611,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ContactShadowIndex;
 
         // shadow related stuff
-        HDShadowManager m_ShadowManager;
-        HDShadowInitParameters m_ShadowInitParameters;
+        HDShadowManager                     m_ShadowManager;
+        HDShadowInitParameters              m_ShadowInitParameters;
 
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
@@ -1129,7 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (penumbraTint)
                 lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r * additionalLightData.shadowTint.r, additionalLightData.shadowTint.g * additionalLightData.shadowTint.g, additionalLightData.shadowTint.b * additionalLightData.shadowTint.b);
             else
-                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
@@ -1391,7 +1391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
             {
                 lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
-            } 
+            }
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
@@ -1404,7 +1404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (penumbraTint)
                 lightData.shadowTint = new Vector3(Mathf.Pow(additionalLightData.shadowTint.r, 2.2f), Mathf.Pow(additionalLightData.shadowTint.g, 2.2f), Mathf.Pow(additionalLightData.shadowTint.b, 2.2f));
             else
-                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
@@ -2965,10 +2965,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct LightDataGlobalParameters
         {
-            public HDCamera hdCamera;
-            public LightList lightList;
-            public LightLoopTextureCaches textureCaches;
-            public LightLoopLightData lightData;
+            public HDCamera                 hdCamera;
+            public LightList                lightList;
+            public LightLoopTextureCaches   textureCaches;
+            public LightLoopLightData       lightData;
         }
 
         LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCamera hdCamera)
@@ -3197,7 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
             parameters.params1 = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
             parameters.params2 = new Vector4(firstMipOffsetY, 0.0f, 0.0f, 0.0f);
-            parameters.sampleCount = m_ContactShadows.sampleCount.value;
+            parameters.sampleCount = m_ContactShadows.sampleCount;
 
             int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
             parameters.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;

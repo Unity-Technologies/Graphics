@@ -940,7 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AmbientOcclusionSystem.PushGlobalParameters(hdCamera, cmd);
 
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
-                    ?? ScreenSpaceRefraction.@default;
+                    ?? ScreenSpaceRefraction.defaultInstance;
                 ssRefraction.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
@@ -1722,7 +1722,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                             UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.@default);
+                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.NewDefault());
                             cmd.SetInvertCulling(false);
                             UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                         }
@@ -3639,9 +3639,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
         RenderSSRParameters PrepareSSRParameters(HDCamera hdCamera)
-                {
-                    var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-
+        {
+            var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
             var parameters = new RenderSSRParameters();
 
             parameters.ssrCS = m_ScreenSpaceReflectionsCS;
@@ -3652,13 +3651,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.height = hdCamera.actualHeight;
             parameters.viewCount = hdCamera.viewCount;
 
-                    float n = hdCamera.camera.nearClipPlane;
-                    float f = hdCamera.camera.farClipPlane;
+            float n = hdCamera.camera.nearClipPlane;
+            float f = hdCamera.camera.farClipPlane;
 
-            parameters.maxIteration = volumeSettings.rayMaxIterations.value;
+            parameters.maxIteration = volumeSettings.rayMaxIterations;
             parameters.reflectSky = volumeSettings.reflectSky.value;
 
-                    float thickness      = volumeSettings.depthBufferThickness.value;
+            float thickness      = volumeSettings.depthBufferThickness.value;
             parameters.thicknessScale = 1.0f / (1.0f + thickness);
             parameters.thicknessBias = -n / (f - n) * (thickness * parameters.thicknessScale);
 
@@ -3666,7 +3665,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMipCount = info.mipLevelCount;
             parameters.offsetBufferData = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-                    float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart.value;
+            float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart.value;
             parameters.roughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
             float roughnessFadeLength = parameters.roughnessFadeEnd - roughnessFadeStart;
             parameters.roughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (parameters.roughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;

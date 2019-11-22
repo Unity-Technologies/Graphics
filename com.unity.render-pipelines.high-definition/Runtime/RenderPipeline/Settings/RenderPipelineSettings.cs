@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
             supportTerrainHole = false,
+
             lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
             hdShadowInitParams = HDShadowInitParameters.NewDefault(),
             decalSettings = GlobalDecalSettings.NewDefault(),
@@ -77,6 +78,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
             xrSettings = GlobalXRSettings.NewDefault(),
             postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
+            lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
@@ -150,5 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightSettings lightSettings;
         public IntScalableSetting maximumLODLevel;
         public FloatScalableSetting lodBias;
+
+        public GlobalLightingQualitySettings lightingQualitySettings;
     }
 }

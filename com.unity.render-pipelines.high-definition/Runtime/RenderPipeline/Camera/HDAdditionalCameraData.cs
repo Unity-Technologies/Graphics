@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnEnable()
         ///     {
-        ///         var aovRequest = new AOVRequest(AOVRequest.@default)
+        ///         var aovRequest = new AOVRequest(AOVRequest.NewDefault())
         ///             .SetLightFilter(m_DebugLightFilter);
         ///         if (m_DebugFullScreen != DebugFullScreen.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_DebugFullScreen);
