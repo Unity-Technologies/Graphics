@@ -53,6 +53,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
     bool lookAboveHorizon = (cosChi >= cosHor);
+    bool viewAboveHorizon = (NdotV >= cosHor);
 
     float3 N = float3(0, 0, 1);
     float3 V = SphericalToCartesian(0, NdotV);
@@ -148,7 +149,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // It's easy enough to use a simple quadratic remap.
 
     float  t0          = tMin;
-    float3 viewODepthX = ComputeAtmosphericOpticalDepth1(r, NdotV); // Back to start
+    float3 viewODepthX = ComputeAtmosphericOpticalDepth(r, NdotV, viewAboveHorizon); // Back to start
     float3 viewODepth  = 0;                                         // Sample to start
 
     if (tMin > 0) // Start changed?
@@ -161,25 +162,28 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
+        viewODepth = ComputeAtmosphericOpticalDepth(r, NdotV, viewAboveHorizon) - viewODepthX;
     }
 
     float3 lightODepth = ComputeAtmosphericOpticalDepth1(r, NdotL);
 
     // Apply the phase function at runtime.
-    float3 airInScatterTerm0     = TransmittanceFromOpticalDepth(viewODepth + lightODepth) * AirScatter(height);
-    float3 aerosolInScatterTerm0 = TransmittanceFromOpticalDepth(viewODepth + lightODepth) * AerosolScatter(height);
+    float3 transm0               = TransmittanceFromOpticalDepth(viewODepth + lightODepth);
+    float3 airInScatterTerm0     = transm0 * AirScatter(height);
+    float3 aerosolInScatterTerm0 = transm0 * AerosolScatter(height);
 
     // Eye-balled number of samples.
     const int numSamples = 256;
     // const int numSamples = 4096;
+
+    const float startNdotV = NdotV;
 
     for (int i = 0; i < numSamples; i++)
     {
         // Use (n = 0.5) when looking down, (n = 1) when looking horizontally,
         // and (n = 2) when looking up.
         // TODO: use exponential media importance sampling...
-        float n  = pow(2, -NdotV);
+        float n  = pow(2, -startNdotV);
         float x  = pow(abs((i + 1) * rcp(numSamples)), n); // TODO: Cranley-Patterson Rotation
         float t1 = tMin + (tMax - tMin) * x;
         float dt = t1 - t0;
@@ -192,7 +196,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth  = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
+        viewODepth  = ComputeAtmosphericOpticalDepth(r, NdotV, viewAboveHorizon) - viewODepthX;
         lightODepth = ComputeAtmosphericOpticalDepth1(r, NdotL);
 
         // Compute the amount of in-scattered radiance.
@@ -201,8 +205,9 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         // (Transmittance(0, a) + Transmittance(0, b)) * (b - a) / 2 =
         // (Transmittance(0, a) + Transmittance(0, tMax) / Transmittance(b, tMax)) * (b - a) / 2.
         // We handle other terms in a similar way (by pre-multiplying transmittance).
-        float3 airInScatterTerm1     = TransmittanceFromOpticalDepth(viewODepth + lightODepth) * AirScatter(height);
-        float3 aerosolInScatterTerm1 = TransmittanceFromOpticalDepth(viewODepth + lightODepth) * AerosolScatter(height);
+        float3 transm1               = TransmittanceFromOpticalDepth(viewODepth + lightODepth);
+        float3 airInScatterTerm1     = transm1 * AirScatter(height);
+        float3 aerosolInScatterTerm1 = transm1 * AerosolScatter(height);
 
         // Apply the phase function at runtime.
         airTableEntry.rgb     += (airInScatterTerm0     + airInScatterTerm1    ) * (0.5 * dt);
@@ -341,7 +346,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Integrate in-scattered radiance along -V.
 
     float  t0          = 0;
-    float3 viewODepthX = ComputeAtmosphericOpticalDepth1(r, NdotV); // Back to start
+    float3 viewODepthX = ComputeAtmosphericOpticalDepth(r, NdotV, viewAboveHorizon); // Back to start
     float3 viewODepth  = 0;                                         // Sample to start
 
     float3 inScatteredRadiance = LOAD_TEXTURE3D(_MultipleScatteringTexture, tableCoord).rgb;
@@ -352,12 +357,14 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     const int numSamples = 256;
     // const int numSamples = 4096;
 
+    const float startNdotV = NdotV;
+
     for (int i = 0; i < numSamples; i++)
     {
         // Use (n = 0.5) when looking down, (n = 1) when looking horizontally,
         // and (n = 2) when looking up.
         // TODO: use exponential media importance sampling...
-        float n  = pow(2, -NdotV);
+        float n  = pow(2, -startNdotV);
         float x  = pow(abs((i + 1) * rcp(numSamples)), n); // TODO: Cranley-Patterson Rotation
         float t1 = tMax * x;
         float dt = t1 - t0;
@@ -370,7 +377,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         NdotV  = dot(normalize(P), V);
         NdotL  = dot(normalize(P), L);
 
-        viewODepth = ComputeAtmosphericOpticalDepth1(r, NdotV) - viewODepthX;
+        viewODepth = ComputeAtmosphericOpticalDepth(r, NdotV, viewAboveHorizon) - viewODepthX;
 
         // 'phiL' is unchanged, so quadrilinear interpolation is actually unnecessary.
         TexCoord4D tc = ConvertPositionAndOrientationToTexCoords(height, NdotV, NdotL, phiL);
