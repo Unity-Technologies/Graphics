@@ -46,7 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default RenderPipelineSettings</summary>
-        public static readonly RenderPipelineSettings @default = new RenderPipelineSettings()
+        [Obsolete("Since 2019.3, use RenderPipelineSettings.NewDefault() instead.")]
+        public static readonly RenderPipelineSettings @default = default;
+        /// <summary>Default RenderPipelineSettings</summary>
+        public static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
         {
             supportShadowMask = true,
             supportSSAO = true,
@@ -66,14 +69,17 @@ namespace UnityEngine.Rendering.HighDefinition
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
             supportTerrainHole = false,
-            lightLoopSettings = GlobalLightLoopSettings.@default,
-            hdShadowInitParams = HDShadowInitParameters.@default,
-            decalSettings = GlobalDecalSettings.@default,
-            postProcessSettings = GlobalPostProcessSettings.@default,
-            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
-            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
-            xrSettings = GlobalXRSettings.@default,
-            postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
+
+            lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
+            hdShadowInitParams = HDShadowInitParameters.NewDefault(),
+            decalSettings = GlobalDecalSettings.NewDefault(),
+            postProcessSettings = GlobalPostProcessSettings.NewDefault(),
+            dynamicResolutionSettings = GlobalDynamicResolutionSettings.NewDefault(),
+            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
+            xrSettings = GlobalXRSettings.NewDefault(),
+            postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
+            lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
@@ -147,5 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightSettings lightSettings;
         public IntScalableSetting maximumLODLevel;
         public FloatScalableSetting lodBias;
+
+        public GlobalLightingQualitySettings lightingQualitySettings;
     }
 }

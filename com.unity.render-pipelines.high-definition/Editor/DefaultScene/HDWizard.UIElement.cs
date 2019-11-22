@@ -445,37 +445,64 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public enum Kind
             {
+                None,
                 Info,
                 Warning,
                 Error
             }
+            
+            readonly Label label;
+            readonly Image icon;
+
+            public string text
+            {
+                get => label.text;
+                set => label.text = value;
+            }
+
+            Kind m_Kind = Kind.None;
+            public Kind kind
+            {
+                get => m_Kind;
+                set
+                {
+                    if (m_Kind != value)
+                    {
+                        m_Kind = value;
+
+                        string iconName;
+                        switch (kind)
+                        {
+                            default:
+                            case Kind.None:
+                                icon.style.display = DisplayStyle.None;
+                                return;
+                            case Kind.Info:
+                                iconName = "console.infoicon";
+                                break;
+                            case Kind.Warning:
+                                iconName = "console.warnicon";
+                                break;
+                            case Kind.Error:
+                                iconName = "console.erroricon";
+                                break;
+                        }
+                        icon.image = EditorGUIUtility.IconContent(iconName).image;
+                        icon.style.display = DisplayStyle.Flex;
+                    }
+                }
+            }
 
             public HelpBox(Kind kind, string message)
             {
-                var messageLabel = new Label(message);
-
-                string iconName;
-                switch (kind)
-                {
-                    case Kind.Info:
-                        iconName = "console.infoicon";
-                        break;
-                    case Kind.Warning:
-                        iconName = "console.warnicon";
-                        break;
-                    default:
-                    case Kind.Error:
-                        iconName = "console.erroricon";
-                        break;
-                }
-                var icon = new Image()
-                {
-                    image = EditorGUIUtility.IconContent(iconName).image
-                };
+                this.label = new Label(message);
+                icon = new Image();
 
                 name = "HelpBox";
                 Add(icon);
-                Add(messageLabel);
+                Add(this.label);
+
+                this.kind = kind;
             }
         }
 

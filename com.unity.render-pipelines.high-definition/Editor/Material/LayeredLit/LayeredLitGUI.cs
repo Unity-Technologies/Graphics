@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEmissiveColorMap = "_EmissiveColorMap";
         const string kUVEmissive = "_UVEmissive";
 
-        const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
 
@@ -207,8 +207,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", specOcclusionMode == 1);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);

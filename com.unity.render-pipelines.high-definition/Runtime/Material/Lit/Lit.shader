@@ -78,7 +78,7 @@ Shader "HDRP/Lit"
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
-        [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
+        [Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
@@ -253,7 +253,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _MASKMAP
     #pragma shader_feature_local _BENTNORMALMAP
     #pragma shader_feature_local _EMISSIVE_COLOR_MAP
-    #pragma shader_feature_local _ENABLESPECULAROCCLUSION
+    #pragma shader_feature_local _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #pragma shader_feature_local _SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local _TANGENTMAP
     #pragma shader_feature_local _ANISOTROPYMAP
@@ -923,14 +924,10 @@ Shader "HDRP/Lit"
             #pragma raytracing test
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
-            #define SKIP_RASTERIZED_SHADOWS
 
-            // We use the low shadow maps for raytracing
+            // This is just because it need to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"

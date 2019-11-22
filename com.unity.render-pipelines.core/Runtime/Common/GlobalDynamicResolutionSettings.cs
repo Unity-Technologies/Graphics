@@ -22,7 +22,10 @@ namespace UnityEngine.Rendering
     public struct GlobalDynamicResolutionSettings
     {
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
-        public static readonly GlobalDynamicResolutionSettings @default = new GlobalDynamicResolutionSettings()
+        [Obsolete("Since 2019.3, use GlobalDynamicResolutionSettings.NewDefault() instead.")]
+        public static readonly GlobalDynamicResolutionSettings @default = default;
+        /// <summary>Default GlobalDynamicResolutionSettings</summary>
+        public static GlobalDynamicResolutionSettings NewDefault() => new GlobalDynamicResolutionSettings()
         {
             maxPercentage = 100.0f,
             minPercentage = 100.0f,

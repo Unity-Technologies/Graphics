@@ -940,7 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AmbientOcclusionSystem.PushGlobalParameters(hdCamera, cmd);
 
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
-                    ?? ScreenSpaceRefraction.@default;
+                    ?? ScreenSpaceRefraction.defaultInstance;
                 ssRefraction.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
@@ -1722,7 +1722,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                             UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.@default);
+                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.NewDefault());
                             cmd.SetInvertCulling(false);
                             UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                         }
@@ -2375,6 +2375,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
             }
+
+            // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.
+            // Otherwise command would not be rendered in order.
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         struct BlitFinalCameraTextureParameters
@@ -3634,9 +3639,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
         RenderSSRParameters PrepareSSRParameters(HDCamera hdCamera)
-                {
-                    var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-
+        {
+            var volumeSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
             var parameters = new RenderSSRParameters();
 
             parameters.ssrCS = m_ScreenSpaceReflectionsCS;
@@ -3647,13 +3651,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.height = hdCamera.actualHeight;
             parameters.viewCount = hdCamera.viewCount;
 
-                    float n = hdCamera.camera.nearClipPlane;
-                    float f = hdCamera.camera.farClipPlane;
+            float n = hdCamera.camera.nearClipPlane;
+            float f = hdCamera.camera.farClipPlane;
 
-            parameters.maxIteration = volumeSettings.rayMaxIterations.value;
+            parameters.maxIteration = volumeSettings.rayMaxIterations;
             parameters.reflectSky = volumeSettings.reflectSky.value;
 
-                    float thickness      = volumeSettings.depthBufferThickness.value;
+            float thickness      = volumeSettings.depthBufferThickness.value;
             parameters.thicknessScale = 1.0f / (1.0f + thickness);
             parameters.thicknessBias = -n / (f - n) * (thickness * parameters.thicknessScale);
 
@@ -3661,7 +3665,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMipCount = info.mipLevelCount;
             parameters.offsetBufferData = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-                    float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart.value;
+            float roughnessFadeStart             = 1 - volumeSettings.smoothnessFadeStart.value;
             parameters.roughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
             float roughnessFadeLength = parameters.roughnessFadeEnd - roughnessFadeStart;
             parameters.roughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (parameters.roughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
@@ -4317,11 +4321,18 @@ namespace UnityEngine.Rendering.HighDefinition
             bool needDepthBuffer = false;
             Texture depthBuffer = null;
 
+            HDAdditionalCameraData acd = null;
+            hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd);
+
+            HDAdditionalCameraData.BufferAccessType externalAccess = new HDAdditionalCameraData.BufferAccessType();
+            if (acd != null)
+                externalAccess = acd.GetBufferAccess();
+
             // Figure out which client systems need which buffers
             // Only VFX systems for now
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-            needNormalBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0;
-            needDepthBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0;
+            needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
+            needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
