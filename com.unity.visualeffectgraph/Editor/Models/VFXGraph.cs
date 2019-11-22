@@ -42,10 +42,12 @@ namespace UnityEditor.VFX
             UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
             SerializedObject serializedVFXManager = new SerializedObject(vfxmanager);
             var compiledVersionProperty = serializedVFXManager.FindProperty("m_CompiledVersion");
+            var runtimeVersionProperty = serializedVFXManager.FindProperty("m_RuntimeVersion");
 
-            if (compiledVersionProperty.intValue != VFXGraphCompiledData.compiledVersion)
+            if (compiledVersionProperty.intValue != VFXGraphCompiledData.compiledVersion || runtimeVersionProperty.intValue != VisualEffectAsset.currentRuntimeDataVersion)
             {
                 compiledVersionProperty.intValue = (int)VFXGraphCompiledData.compiledVersion;
+                runtimeVersionProperty.intValue = (int)VisualEffectAsset.currentRuntimeDataVersion;
                 serializedVFXManager.ApplyModifiedProperties();
 
                 AssetDatabase.StartAssetEditing();
