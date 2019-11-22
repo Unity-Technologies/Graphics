@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.shadergraph";
-        const string k_EventName = "analytics.uShaderGraphUsage";
+        const string k_EventName = "uShaderGraphUsage";
 
         static bool EnableAnalytics()
         {
