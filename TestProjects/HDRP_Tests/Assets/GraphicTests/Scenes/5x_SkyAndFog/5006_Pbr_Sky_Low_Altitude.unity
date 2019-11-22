@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.047896896, g: 0.04638395, b: 0.034503248, a: 1}
+  m_IndirectSpecularColor: {r: 0.05824558, g: 0.05502669, b: 0.039919168, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 6
+  m_Version: 7
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -211,6 +211,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
+  taaSharpenStrength: 0.6
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
@@ -227,14 +228,18 @@ MonoBehaviour:
   probeLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  hasPersistentHistory: 0
   m_RenderingPathCustomFrameSettings:
     bitDatas:
-      data1: 69456063627037
+      data1: 70005819440989
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
+    lodBiasQualityLevel: 0
     maximumLODLevel: 0
     maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
     mask:
       data1: 0
@@ -323,11 +328,13 @@ MonoBehaviour:
     TargetHeight: 1024
     PerPixelCorrectnessThreshold: 0.0001
     AverageCorrectnessThreshold: 0.0001
+    UseHDR: 0
   doBeforeTest:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 0
   waitFrames: 10
+  xrLayout: 2
   renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
 --- !u!1 &569810649
@@ -408,7 +415,7 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
-  m_ShadowAngle: 0
+  m_ShadowAngle: 0.5
 --- !u!4 &569810651
 Transform:
   m_ObjectHideFlags: 0
@@ -436,11 +443,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 5
-  directionalIntensity: 3.1415927
-  punctualIntensity: 600
-  areaIntensity: 200
-  lightLayers: 1
+  m_Version: 9
+  m_ObsoleteShadowResolutionTier: 1
+  m_ObsoleteUseShadowQualitySettings: 0
+  m_ObsoleteCustomShadowResolution: 512
+  m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 3.1415927
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -452,8 +462,6 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_LightTypeExtent: 0
-  m_SpotLightShape: 0
   m_ShapeWidth: 0.5
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
@@ -467,8 +475,17 @@ MonoBehaviour:
   m_AreaLightShadowCone: 120
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
-  m_AngularDiameter: 0
-  m_Distance: 150000000
+  m_AngularDiameter: 0.5
+  m_FlareSize: 2
+  m_FlareIntensity: 0.001
+  m_FlareFalloff: 8
+  m_Distance: 1.5e+11
+  m_UseRayTracedShadows: 0
+  m_NumRayTracingSamples: 4
+  m_FilterTracedShadow: 1
+  m_FilterSizeTraced: 16
+  m_SunLightConeAngle: 0.5
+  m_LightShadowRadius: 0.5
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0
   m_EvsmVarianceBias: 0.00001
@@ -476,23 +493,28 @@ MonoBehaviour:
   m_LightlayersMask: 1
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.1
-  m_ShadowSoftness: 0.5
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
-  m_MinFilterSize: 0.00001
+  m_MinFilterSize: 0.01
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
-  m_ShadowResolutionTier: 1
-  m_UseShadowQualitySettings: 0
-  m_CustomShadowResolution: 512
+  m_ShadowResolution:
+    m_Override: 512
+    m_UseOverride: 1
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
-  m_ContactShadows: 0
+  m_UseContactShadow:
+    m_Override: 0
+    m_UseOverride: 1
+    m_Level: 0
+  m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
+  m_PenumbraTint: 0
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -542,7 +564,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 87713e11fb7272c428e39170ebbf32c9, type: 2}
   m_StaticLightingSkyUniqueID: 4
-  m_SkySettings: {fileID: 1866153991}
+  m_SkySettings: {fileID: 1544073699}
   m_SkySettingsFromProfile: {fileID: 5021176665141955927, guid: 87713e11fb7272c428e39170ebbf32c9,
     type: 2}
 --- !u!114 &840375758
@@ -669,7 +691,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 867600822}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1866153991
+--- !u!114 &1544073699
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -715,41 +737,61 @@ MonoBehaviour:
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
+  earthPreset:
+    m_OverrideState: 0
+    m_Value: 0
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
   planetaryRadius:
     m_OverrideState: 0
-    m_Value: 6378.759
+    m_Value: 6378100
     min: 0
   planetCenterPosition:
     m_OverrideState: 0
-    m_Value: {x: 0, y: -6378.759, z: 0}
-  airAttenuationDistance:
+    m_Value: {x: 0, y: -6378100, z: 0}
+  airDensityR:
     m_OverrideState: 0
-    m_Value: {r: 0.17241378, g: 0.074074075, b: 0.030211482, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 0
-  airAlbedo:
+    m_Value: 0.04534
+    min: 0
+    max: 1
+  airDensityG:
+    m_OverrideState: 0
+    m_Value: 0.10237241
+    min: 0
+    max: 1
+  airDensityB:
+    m_OverrideState: 0
+    m_Value: 0.23264056
+    min: 0
+    max: 1
+  airTint:
     m_OverrideState: 0
     m_Value: {r: 0.9, g: 0.9, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
-    showEyeDropper: 0
+    showEyeDropper: 1
   airMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 58.3
+    m_Value: 55261.973
     min: 0
-  aerosolAttenuationDistance:
+  aerosolDensity:
     m_OverrideState: 0
-    m_Value: 0.5
-    min: 0
-  aerosolAlbedo:
-    m_OverrideState: 0
-    m_Value: 0.9
+    m_Value: 0.01192826
     min: 0
     max: 1
+  aerosolTint:
+    m_OverrideState: 0
+    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 1
   aerosolMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 8.3
+    m_Value: 8289.296
     min: 0
   aerosolAnisotropy:
     m_OverrideState: 0
@@ -761,27 +803,67 @@ MonoBehaviour:
     m_Value: 8
     min: 1
     max: 10
-  groundColor:
+  groundTint:
     m_OverrideState: 0
-    m_Value: {r: 0.17254902, g: 0.227451, b: 0.3137255, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
-  groundAlbedoTexture:
+  groundColorTexture:
     m_OverrideState: 0
     m_Value: {fileID: 8900000, guid: 703a4570dfe8b8e41aff24d2320bd405, type: 3}
   groundEmissionTexture:
     m_OverrideState: 0
     m_Value: {fileID: 8900000, guid: ec98521838f4e7f4a839280309cb08ab, type: 3}
+  groundEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   planetRotation:
     m_OverrideState: 0
     m_Value: {x: 180, y: -50, z: 170}
   spaceEmissionTexture:
     m_OverrideState: 0
     m_Value: {fileID: 8900000, guid: b0c5cbf24c773cd449436a2060083b10, type: 3}
+  spaceEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   spaceRotation:
     m_OverrideState: 0
     m_Value: {x: 15, y: 30, z: 45}
+  colorSaturation:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  alphaSaturation:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  alphaMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  horizonTint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 0
+  zenithTint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 0
+  horizonZenithShift:
+    m_OverrideState: 0
+    m_Value: 0
+    min: -1
+    max: 1
 --- !u!1 &2144845820
 GameObject:
   m_ObjectHideFlags: 0
@@ -826,11 +908,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 5
-  directionalIntensity: 3.1415927
-  punctualIntensity: 600
-  areaIntensity: 200
-  lightLayers: 1
+  m_Version: 9
+  m_ObsoleteShadowResolutionTier: 1
+  m_ObsoleteUseShadowQualitySettings: 0
+  m_ObsoleteCustomShadowResolution: 512
+  m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 0.3141593
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -842,8 +927,6 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_LightTypeExtent: 0
-  m_SpotLightShape: 0
   m_ShapeWidth: 0.5
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
@@ -858,7 +941,16 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0
+  m_FlareSize: 2
+  m_FlareIntensity: 0.001
+  m_FlareFalloff: 8
   m_Distance: 150000000
+  m_UseRayTracedShadows: 0
+  m_NumRayTracingSamples: 4
+  m_FilterTracedShadow: 1
+  m_FilterSizeTraced: 16
+  m_SunLightConeAngle: 0.5
+  m_LightShadowRadius: 0.5
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0
   m_EvsmVarianceBias: 0.00001
@@ -866,23 +958,28 @@ MonoBehaviour:
   m_LightlayersMask: 1
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.1
-  m_ShadowSoftness: 0.5
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
-  m_MinFilterSize: 0.00001
+  m_MinFilterSize: 0.01
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
-  m_ShadowResolutionTier: 1
-  m_UseShadowQualitySettings: 0
-  m_CustomShadowResolution: 512
+  m_ShadowResolution:
+    m_Override: 512
+    m_UseOverride: 1
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
-  m_ContactShadows: 0
+  m_UseContactShadow:
+    m_Override: 0
+    m_UseOverride: 1
+    m_Level: 0
+  m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
+  m_PenumbraTint: 0
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05

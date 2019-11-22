@@ -43,7 +43,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ShadowMap = 1 << 5,
             ContactShadow = 1 << 6,
             BakedShadow = 1 << 7,
-            ShadowQuality = 1 << 8
+            ShadowQuality = 1 << 8,
+            CelestialBody = 1 << 9,
         }
 
         enum AdvancedMode
@@ -100,17 +101,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
-                    CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                        (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
-                        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
-                        DrawShapeContent,
-                        DrawShapeAdvancedContent
-                        ),
-                    CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                        DrawShapeContent
-                        )
-                    ),
+                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
+                CED.Conditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
+                    CED.FoldoutGroup(s_Styles.celestialBodyHeader, Expandable.CelestialBody, k_ExpandedState, DrawCelestialBodyContent)),
+                //CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
+                //    CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                //        (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
+                //        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
+                //        DrawShapeContent,
+                //        DrawShapeAdvancedContent
+                //        ),
+                //    CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                //        DrawShapeContent
+                //        )
+                //),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(AdvancedMode.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(AdvancedMode.Emission, serialized, owner),
@@ -217,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                 }
-                
+
                 UpdateLightIntensityUnit(serialized, owner);
 
                 // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
@@ -269,13 +273,6 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (serialized.type)
             {
                 case HDLightType.Directional:
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.angularDiameter, s_Styles.angularDiameter);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        //Clamp the value and also affect baked shadows
-                        serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 360);
-                    }
                     break;
 
                 case HDLightType.Point:
@@ -351,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
                     Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
                     AreaLightShape updatedAreaLightShape;
-                    
+
                     //Partial support for prefab. There is no way to fully support it at the moment.
                     //Missing support on the Apply and Revert contextual menu on Label for Prefab overrides. They need to be done two times.
                     //(This will continue unless we have our own handling for Disc or remove AdditionalDatas)
@@ -437,24 +434,34 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void DrawShapeAdvancedContent(SerializedHDLight serialized, Editor owner)
+        static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
-            if (serialized.type == HDLightType.Directional)
+            EditorGUI.BeginChangeCheck();
             {
+                EditorGUILayout.PropertyField(serialized.angularDiameter,  s_Styles.angularDiameter);
                 EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
 
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        serialized.angularDiameter.floatValue = Mathf.Max(0, serialized.angularDiameter.floatValue);
-                        serialized.distance.floatValue = Mathf.Max(0, serialized.distance.floatValue);
-                    }
+                    EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
+                    EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.flareTint,      s_Styles.flareTint);
+                    EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
+                    EditorGUILayout.PropertyField(serialized.surfaceTint,    s_Styles.surfaceTint);
+                    EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Clamp the value and also affect baked shadows.
+                serialized.angularDiameter.floatValue               = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
+                serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue;
+                serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
+                serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
+                serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
             }
         }
 
@@ -574,7 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 case (HDLightType)(-1): // multiple different values
                     break;  // do nothing
             }
-            
+
             serialized.intensity.floatValue = intensity;
         }
 
@@ -823,7 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return newShadowsEnabled;
         }
-        
+
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
             var hdrp = HDRenderPipeline.currentAsset;
@@ -902,7 +909,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUI.indentLevel--;
                         }
                     }
-                
+
                     // For the moment, we only support screen space rasterized shadows for directional lights
                     if (lightType == HDLightType.Directional)
                     {
@@ -1014,7 +1021,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported 
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported
                 && serialized.contactShadows.@override.boolValue)
             {
                 EditorGUI.indentLevel++;
