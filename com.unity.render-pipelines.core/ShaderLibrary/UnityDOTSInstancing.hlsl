@@ -6,7 +6,7 @@
 // TODO: Shader feature level to compute only
 ByteAddressBuffer unity_DOTSInstanceData;
 
-CBUFFER_START(UnityDOTSInstancingPerDraw)
+CBUFFER_START(UnityInstanceVisibility)
     uint4 unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
 
