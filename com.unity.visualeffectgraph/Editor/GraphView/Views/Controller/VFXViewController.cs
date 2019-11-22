@@ -1165,6 +1165,22 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
+
+        public VFXNodeController GetNewNodeController(VFXModel model)
+        {
+            List<VFXNodeController> nodeControllers = null;
+            if ( m_SyncedModels.TryGetValue(model, out nodeControllers))
+            {
+                return nodeControllers.FirstOrDefault();
+            }
+            bool groupNodeChanged = false;
+            SyncControllerFromModel(ref groupNodeChanged);
+
+            m_SyncedModels.TryGetValue(model, out nodeControllers);
+
+            return nodeControllers.FirstOrDefault();
+        }
+
         public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor, VFXGroupNodeController groupNode)
         {
             VFXModel newNode = null;
