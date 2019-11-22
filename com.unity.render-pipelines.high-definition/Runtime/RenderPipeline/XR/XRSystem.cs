@@ -247,9 +247,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
         void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
             {
                 if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
@@ -300,8 +300,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
-        }
 #endif
+        }
 
         internal void Cleanup()
         {
