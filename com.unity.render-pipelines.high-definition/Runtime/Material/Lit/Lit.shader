@@ -923,14 +923,10 @@ Shader "HDRP/Lit"
             #pragma raytracing test
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
-            #define SKIP_RASTERIZED_SHADOWS
 
-            // We use the low shadow maps for raytracing
+            // This is just because it need to be defined, shadow maps are not used.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
