@@ -122,7 +122,23 @@ namespace UnityEditor.VFX
         }
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
-        public override bool exposeAlphaThreshold => base.exposeAlphaThreshold && shaderGraph == null;
+        public override bool exposeAlphaThreshold
+        {
+            get
+            {
+                if (shaderGraph == null)
+                {
+                    if (base.exposeAlphaThreshold)
+                        return true;
+                }
+                else
+                {
+                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
+                        return true;
+                }
+                return false;
+            }
+        }
         public override bool supportSoftParticles => base.supportSoftParticles && shaderGraph == null;
         public override bool hasAlphaClipping
         {
@@ -410,7 +426,13 @@ namespace UnityEditor.VFX
                     {
                         GraphCode graphCode = kvPass.Value;
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"\n" + graphCode.code));
+                        var preProcess = new VFXShaderWriter();
+                        if (graphCode.requirements.requiresCameraOpaqueTexture)
+                            preProcess.WriteLine("#define REQUIRE_OPAQUE_TEXTURE");
+                        if (graphCode.requirements.requiresDepthTexture)
+                            preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
+                        preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
@@ -527,7 +549,7 @@ namespace UnityEditor.VFX
                         if (pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
                         {
                             callSG.builder.AppendLine(
-@"#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+@"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
 i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaThreshold_7;
 #endif");
                         }

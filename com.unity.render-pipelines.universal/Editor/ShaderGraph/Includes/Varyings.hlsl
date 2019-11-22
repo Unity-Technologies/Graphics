@@ -1,4 +1,4 @@
-﻿#if defined(SHADERPASS_SHADOWCASTER)
+#if defined(SHADERPASS_SHADOWCASTER)
     float3 _LightDirection;
 #endif
 
@@ -8,6 +8,7 @@ Varyings BuildVaryings(Attributes input)
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if defined(FEATURES_GRAPH_VERTEX)
     // Evaluate Vertex Graph

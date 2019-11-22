@@ -108,6 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows.");
             public readonly GUIContent minFilterSize = new GUIContent("Minimum Blur Intensity", "Controls the minimum blur intensity regardless of the distance between the pixel and the shadow caster. The range [0..1] maps to [0..0.001] in UV space.");
+            public readonly GUIContent radiusScaleForSoftness = new GUIContent("Radius Scale for Softness", "Scale the shape radius for the sake of softness calculation. Higher scales will result in higher softness.");
+            public readonly GUIContent diameterScaleForSoftness = new GUIContent("Angular Diameter Scale for Softness", "Scale the angular diameter for the sake of softness calculation. Higher scales will result in higher softness.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
             public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");

@@ -6,6 +6,8 @@ Pass
 	ZWrite Off
 	
 	HLSLPROGRAM
+	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
+	
 	ENDHLSL
 }

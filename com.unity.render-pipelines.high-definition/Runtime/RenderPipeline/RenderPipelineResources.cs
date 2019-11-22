@@ -131,8 +131,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/CustomPass/DefaultRenderer.shader")]
-            public Shader defaultRendererCustomPass;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]

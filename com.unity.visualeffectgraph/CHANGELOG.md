@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
 ### Added
 - Custom Inspector for Spawn context, delay settings are more user friendly.
 - Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New operators: Exp, Log and LoadTexture
 - Duplicate with edges.
 - Right click on edge to create a interstitial node.
+- New quad distortion output for particle strips
+- New attribute for strips: particleCountInStrip
+- New options for quad strips texture mapping: swap UV and custom mapping
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
@@ -37,6 +40,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
+- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
+- Fix shader interpolants with shader graph and particle strips
+- SpawnIndex attribute is now working correctly in Initialize context
+- Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
+- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
+- Subgraph operators appear on drag edge on graph.
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
+- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
 
 ## [7.1.1] - 2019-09-05
 ### Added

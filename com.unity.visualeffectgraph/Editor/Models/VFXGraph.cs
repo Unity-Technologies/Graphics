@@ -550,8 +550,8 @@ namespace UnityEditor.VFX
                 }
                 else if( child is VFXSubgraphOperator operatorChild)
                 {
-                    operatorChild.UpdateOutputExpressions();
                     operatorChild.ResyncSlots(false);
+                    operatorChild.UpdateOutputExpressions();
                 }
             }
         }

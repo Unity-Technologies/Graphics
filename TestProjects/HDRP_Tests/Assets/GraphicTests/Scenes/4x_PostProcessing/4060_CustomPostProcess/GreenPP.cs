@@ -13,7 +13,7 @@ public sealed class GreenPP : CustomPostProcessVolumeComponent, IPostProcessComp
 
     public bool IsActive() => m_Material != null && intensity.value > 0f;
 
-    public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.BeforeTransparent;
+    public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterOpaqueAndSky;
 
     public override void Setup()
     {
