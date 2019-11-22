@@ -1,28 +1,24 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
-    public sealed class AmbientOcclusion : VolumeComponent
+    public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
         public BoolParameter rayTracing = new BoolParameter(false);
 
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
-        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
-        public BoolParameter fullResolution = new BoolParameter(false);
-        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
         public BoolParameter temporalAccumulation = new BoolParameter(true);
 
         // Temporal only parameters
         public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-        public BoolParameter bilateralUpsample = new BoolParameter(true);
 
         // Non-temporal only parameters
-        public ClampedIntParameter directionCount = new ClampedIntParameter(2, 1, 6);
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters
@@ -31,6 +27,83 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
         public BoolParameter denoise = new BoolParameter(false);
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
+
+        public int stepCount
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_StepCount.value;
+                else
+                    return GetLightingQualitySettings().AOStepCount[(int)quality.value];
+            }
+            set { m_StepCount.value = value; }
+        }
+
+        public bool fullResolution
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_FullResolution.value;
+                else
+                    return GetLightingQualitySettings().AOFullRes[(int)quality.value];
+            }
+            set { m_FullResolution.value = value; }
+        }
+
+        public int maximumRadiusInPixels
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_MaximumRadiusInPixels.value;
+                else
+                    return GetLightingQualitySettings().AOMaximumRadiusPixels[(int)quality.value];
+            }
+            set { m_MaximumRadiusInPixels.value = value; }
+        }
+
+        public bool bilateralUpsample
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_BilateralUpsample.value;
+                else
+                    return GetLightingQualitySettings().AOBilateralUpsample[(int)quality.value];
+            }
+            set { m_BilateralUpsample.value = value; }
+        }
+
+        public int directionCount
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_DirectionCount.value;
+                else
+                    return GetLightingQualitySettings().AODirectionCount[(int)quality.value];
+            }
+            set { m_DirectionCount.value = value; }
+        }
+
+        [SerializeField, FormerlySerializedAs("stepCount")]
+        private ClampedIntParameter m_StepCount = new ClampedIntParameter(6, 2, 32);
+
+        [SerializeField, FormerlySerializedAs("fullResolution")]
+        private BoolParameter m_FullResolution = new BoolParameter(false);
+
+        [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
+        private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
+
+        // Temporal only parameter
+        [SerializeField, FormerlySerializedAs("bilateralUpsample")]
+        private BoolParameter m_BilateralUpsample = new BoolParameter(true);
+
+        // Non-temporal only parameters
+        [SerializeField, FormerlySerializedAs("directionCount")]
+        private ClampedIntParameter m_DirectionCount = new ClampedIntParameter(2, 1, 6);
     }
 
     partial class AmbientOcclusionSystem
@@ -72,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseRT();
 
-                m_RunningFullRes = settings.fullResolution.value;
+                m_RunningFullRes = settings.fullResolution;
                 scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
                 AllocRT(scaleFactor);
             }
@@ -110,7 +183,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
-
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
             if (!IsActive(camera, settings))
@@ -169,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            parameters.fullResolution = settings.fullResolution.value;
+            parameters.fullResolution = settings.fullResolution;
 
             if (parameters.fullResolution)
             {
@@ -189,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.fullResolution ? 0.0f : 1.0f,
                 parameters.runningRes.y * invHalfTanFOV * 0.25f,
                 settings.radius.value,
-                settings.stepCount.value
+                settings.stepCount
                 );
 
             float[] rotations = { 60.0f, 300.0f, 180.0f, 240.0f, 120.0f, 0.0f };
@@ -211,13 +283,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / invHalfTanFOV
                 );
 
-            float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels.value * ((parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f)));
+            float scaleFactor = (parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f);
+            float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels * Mathf.Sqrt(scaleFactor));
 
             parameters.aoParams2 = new Vector4(
                 rtHandleProperties.currentRenderTargetSize.x,
                 rtHandleProperties.currentRenderTargetSize.y,
-                1.0f / (settings.stepCount.value + 1.0f),
-                radInPixels
+                1.0f / (settings.stepCount + 1.0f),
+                 radInPixels
             );
 
             float stepSize = m_RunningFullRes ? 1 : 0.5f;
@@ -245,17 +318,17 @@ namespace UnityEngine.Rendering.HighDefinition
             const float minUpperNudgeLimit = 0.25f;
             upperNudgeFactor = minUpperNudgeLimit + (upperNudgeFactor * (maxUpperNudgeLimit - minUpperNudgeLimit));
             parameters.aoParams4 = new Vector4(
-                settings.directionCount.value,
+                settings.directionCount,
                 upperNudgeFactor,
                 minUpperNudgeLimit,
                 0
             );
 
-            parameters.bilateralUpsample = settings.bilateralUpsample.value;
+            parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
             parameters.temporalAccumulation = settings.temporalAccumulation.value;
 
-            if(parameters.temporalAccumulation)
+            if (parameters.temporalAccumulation)
             {
                 if (parameters.fullResolution)
                 {
@@ -287,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.denoiseKernelCopyHistory = parameters.denoiseAOCS.FindKernel("GTAODenoise_CopyHistory");
 
             parameters.upsampleAndBlurKernel = parameters.upsampleAndBlurAOCS.FindKernel("BlurUpsample");
-            parameters.upsampleAOKernel = parameters.upsampleAndBlurAOCS.FindKernel(settings.bilateralUpsample.value ? "BilateralUpsampling" : "BoxUpsampling");
+            parameters.upsampleAOKernel = parameters.upsampleAndBlurAOCS.FindKernel(settings.bilateralUpsample ? "BilateralUpsampling" : "BoxUpsampling");
 
             parameters.outputWidth = camera.actualWidth;
             parameters.outputHeight = camera.actualHeight;
@@ -302,10 +375,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderAO(in RenderAOParameters  parameters,
-                                RTHandle            packedDataTexture,
+        static void RenderAO(   in RenderAOParameters   parameters,
+                                RTHandle                packedDataTexture,
                                 RenderPipelineResources resources,
-                                CommandBuffer       cmd)
+                                CommandBuffer           cmd)
         {
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AODepthToViewParams, parameters.toViewSpaceProj);
@@ -332,9 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RTHandle                aoOutputTex,
                                 CommandBuffer           cmd)
         {
-            if(parameters.temporalAccumulation || parameters.fullResolution)
+            if (parameters.temporalAccumulation || parameters.fullResolution)
             {
-
                 var blurCS = parameters.denoiseAOCS;
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
@@ -391,7 +463,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.DispatchCompute(parameters.denoiseAOCS, parameters.denoiseKernelTemporal, threadGroupX, threadGroupY, parameters.viewCount);
                 }
             }
-
         }
 
         static void UpsampleAO( in RenderAOParameters   parameters,
@@ -467,7 +538,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
-
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));

@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct BufferClearing
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2020.1, use BufferClearing.NewDefault() instead.")]
+            [Obsolete("Since 2019.3, use BufferClearing.NewDefault() instead.")]
             public static readonly BufferClearing @default = default;
             /// <summary>Default value.</summary>
             public static BufferClearing NewDefault() => new BufferClearing
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Volumes
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2020.1, use Volumes.NewDefault() instead.")]
+            [Obsolete("Since 2019.3, use Volumes.NewDefault() instead.")]
             public static readonly Volumes @default = default;
             /// <summary>Default value.</summary>
             public static Volumes NewDefault() => new Volumes
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Frustum
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2020.1, use Frustum.NewDefault() instead.")]
+            [Obsolete("Since 2019.3, use Frustum.NewDefault() instead.")]
             public static readonly Frustum @default = default;
             /// <summary>Default value.</summary>
             public static Frustum NewDefault() => new Frustum
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Culling
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2020.1, use Culling.NewDefault() instead.")]
+            [Obsolete("Since 2019.3, use Culling.NewDefault() instead.")]
             public static readonly Culling @default = default;
             /// <summary>Default value.</summary>
             public static Culling NewDefault() => new Culling
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default value.</summary>
-        [Obsolete("Since 2020.1, use CameraSettings.NewDefault() instead.")]
+        [Obsolete("Since 2019.3, use CameraSettings.NewDefault() instead.")]
         public static readonly CameraSettings @default = default;
         /// <summary>Default value.</summary>
         public static CameraSettings NewDefault() => new CameraSettings
