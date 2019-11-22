@@ -526,8 +526,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
-                BlackboardField field = selectable as BlackboardField;
-                ShaderInput shaderProp = (ShaderInput)field.userData;
+                ShaderInput shaderProp = (ShaderInput)((BlackboardField)selectable).userData;
                 if (shaderProp != null)
                 {
                     selectedProperties.Add(shaderProp);
@@ -685,11 +684,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (ISelectable selection in blackboard.selection)
             {
-                if (selection is BlackboardField)
+                BlackboardField selectedBlackboardField = selection as BlackboardField;
+                if (selectedBlackboardField != null)
                 {
-                    BlackboardRow row = (selection as VisualElement).GetFirstAncestorOfType<BlackboardRow>();
-                    BlackboardSection section = (selection as VisualElement).GetFirstAncestorOfType<BlackboardSection>();
-                    if (row == null || section == null) continue;
+                    BlackboardRow row = selectedBlackboardField.GetFirstAncestorOfType<BlackboardRow>();
+                    BlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<BlackboardSection>();
+                    if (row == null || section == null)
+                        continue;
                     VisualElement sectionContainer = section.parent;
 
                     int index;
