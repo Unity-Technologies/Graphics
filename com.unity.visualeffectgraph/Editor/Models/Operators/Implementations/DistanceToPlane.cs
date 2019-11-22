@@ -18,9 +18,18 @@ namespace UnityEditor.VFX.Operator
         public class OutputProperties
         {
             [Tooltip("Outputs the closest point on the plane to the supplied position.")]
-            public Vector3 closestPosition;
+            public Position closestPosition;
             [Tooltip("Outputs the signed distance from the plane.")]
             public float distance;
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
         }
 
         override public string name { get { return "Distance (Plane)"; } }

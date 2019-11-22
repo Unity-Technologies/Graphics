@@ -38,6 +38,14 @@ Pass
 		float4 cPosPrevious : TEXCOORD4;
 		float4 cPosNonJiterred : TEXCOORD5;
 		#endif
+		
+		#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+		float3 normal : TEXCOORD6;
+		#endif
+		#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+		float3 tangent : TEXCOORD7;
+		#endif
+		
         ${VFXAdditionalInterpolantsDeclaration}
 		
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -70,10 +78,19 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
+
+${VFXPassForwardDefine}
+	
+#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+#define VFX_VARYING_NORMAL normal
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+#define VFX_VARYING_TANGENT tangent
+#endif
 		
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
-#if VFX_SHADERGRAPH            
-    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+#if VFX_SHADERGRAPH
+	${SHADERGRAPH_PIXEL_CODE_FORWARD}
 #endif
 		
 	#pragma fragment frag
@@ -82,8 +99,9 @@ Pass
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
-    #if VFX_SHADERGRAPH
-
+		${VFXComputeNormalWS}
+		
+#if VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         
         ${SHADERGRAPH_PIXEL_CALL_FORWARD}
@@ -95,7 +113,7 @@ Pass
         #if HAS_SHADERGRAPH_PARAM_ALPHA 
             o.color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
         #endif
-    #else
+#else
 	
 		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
 		${VFXApplyColor}
@@ -105,7 +123,7 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
-        o.color = VFXTransformFinalColor(o.color);
+		o.color = VFXTransformFinalColor(o.color);
 		
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}

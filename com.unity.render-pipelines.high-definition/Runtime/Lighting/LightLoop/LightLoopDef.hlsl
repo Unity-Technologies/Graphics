@@ -71,7 +71,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = _EnableSkyLighting.x != 0 ? 1.0 : 0.0;
+    output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -363,6 +363,12 @@ void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
     // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
     uint packedContactShadow = LOAD_TEXTURE2D_X(_ContactShadowTexture, posInput.positionSS).x;
     UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
+}
+
+void InvalidateConctactShadow(PositionInputs posInput, inout LightLoopContext context)
+{
+    context.contactShadowFade = 0.0;
+    context.contactShadow = 0;
 }
 
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask, float rayTracedShadow)

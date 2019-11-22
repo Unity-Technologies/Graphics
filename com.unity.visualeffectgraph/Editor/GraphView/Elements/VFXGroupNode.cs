@@ -43,6 +43,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(DragPerform);
             RegisterCallback<DragUpdatedEvent>(DragUpdated);
             RegisterCallback<DragLeaveEvent>(DragLeave);
+
+            capabilities |= Capabilities.Ascendable;
         }
 
         public bool CanAcceptDrop()

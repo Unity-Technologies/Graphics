@@ -37,6 +37,7 @@
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
   * [Default Settings](Default-Settings-Window)
+  * [HDRP Config Package](HDRP-Config-Package)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
@@ -54,11 +55,11 @@
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
-    * [ShadowMatte Shader](ShadowMatte-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
     * [Hair](Master-Node-Hair)
+    * [Unlit](Master-Node-Unlit)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -129,5 +130,6 @@
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Post-Process Effect](Custom-Post-Process)
 * [HDRP Glossary](Glossary)
 

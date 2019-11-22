@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public class Styles
         {
             public const string header = "Advanced Options";
-            public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
+            public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
             public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
 
         }
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty enableSpecularOcclusion = null;
         protected MaterialProperty addPrecomputedVelocity = null;
 
-        protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
+        protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
         protected const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
         Expandable  m_ExpandableBit;
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadMaterialProperties()
         {
-            enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
+            enableSpecularOcclusion = FindProperty(kSpecularOcclusionMode);
             addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
 
         }

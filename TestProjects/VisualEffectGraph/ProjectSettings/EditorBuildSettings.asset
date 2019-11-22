@@ -20,6 +20,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/004_Bounds.unity
     guid: fc042ee6987609a4b895d96dffef8dff
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/005_PlanarPrimitives.unity
+    guid: fd7efe8ee4dbe754084c1edb14955dc7
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/006_StripAttributes.unity
+    guid: 6cf5bcccabd797d4db3c44a0d4ac7389
   - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/05_MotionVectors.unity
     guid: 24824e132e4c94b43818ee0460ae321c
@@ -129,9 +135,6 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/FlipbookMotionBlend.unity
     guid: 775caa2bff1db474385c8c3f31dd68be
   - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Scenes/005_PlanarPrimitives.unity
-    guid: fd7efe8ee4dbe754084c1edb14955dc7
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/GradientMapped.unity
     guid: 56d69bce6c4697147823f3b5b3acd8ea
   - enabled: 1
@@ -161,4 +164,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphShadowLit.unity
     guid: 2dbb17953af83c24bacf6b650bd0e432
+  - enabled: 0
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/SampleScene/ShadergraphSampleScene.unity
+    guid: c728f3824d066e24a8eba25cde029b41
   m_configObjects: {}

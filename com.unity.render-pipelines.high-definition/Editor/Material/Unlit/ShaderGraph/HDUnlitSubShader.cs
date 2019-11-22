@@ -278,7 +278,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDUnlitMasterNode.ColorSlotId,
                 HDUnlitMasterNode.AlphaSlotId,
                 HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId
+                HDUnlitMasterNode.EmissionSlotId,
+                HDUnlitMasterNode.ShadowTintSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -412,6 +413,36 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = false
         };
 
+        Pass m_PassPathTracing = new Pass()
+        {
+            Name = "PathTracingDXR",
+            LightMode = "PathTracingDXR",
+            TemplateName = "HDUnlitRaytracingPass.template",
+            MaterialName = "Unlit",
+            ShaderPassName = "SHADERPASS_PATH_TRACING",
+            ExtraDefines = new List<string>()
+            {
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDUnlitMasterNode.ColorSlotId,
+                HDUnlitMasterNode.AlphaSlotId,
+                HDUnlitMasterNode.AlphaThresholdSlotId,
+                HDUnlitMasterNode.EmissionSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
+            },
+            UseInPreview = false
+        };
+
         public int GetPreviewPassIndex() { return 0; }
 
         private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
@@ -441,6 +472,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.addPrecomputedVelocity.isOn)
             {
                 baseActiveFields.Add("AddPrecomputedVelocity");
+            }
+
+            if (masterNode.enableShadowMatte.isOn)
+            {
+                baseActiveFields.Add("EnableShadowMatte");
             }
 
             return activeFields;
@@ -525,6 +561,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GenerateShaderPassUnlit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassUnlit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassUnlit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassUnlit(masterNode, m_PassPathTracing, mode, subShader, sourceAssetDependencyPaths);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);

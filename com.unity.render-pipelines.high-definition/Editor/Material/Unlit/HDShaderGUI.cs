@@ -32,6 +32,20 @@ namespace UnityEditor.Rendering.HighDefinition
             SetupMaterialKeywordsAndPassInternal(material);
         }
 
+        public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        {
+            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
+            {
+                EditorGUILayout.HelpBox("Editing HDRP materials is only supported when an HDRP asset assigned in the graphic settings", MessageType.Warning);
+            }
+            else
+            {
+                OnMaterialGUI(materialEditor, props);
+            }
+        }
+
+        protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
+
         protected static void ResetMaterialCustomRenderQueue(Material material)
         {
             HDRenderQueue.RenderQueueType targetQueueType;

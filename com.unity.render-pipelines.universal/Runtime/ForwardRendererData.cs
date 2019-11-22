@@ -90,12 +90,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

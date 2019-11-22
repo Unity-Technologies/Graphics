@@ -7,10 +7,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void ApplyObliqueNearClipPlane()
         {
-            var probeSettings = ProbeSettings.@default;
-            var probePosition = ProbeCapturePositionSettings.@default;
-            var cameraSettings = CameraSettings.@default;
-            var cameraPosition = CameraPositionSettings.@default;
+            var probeSettings = ProbeSettings.NewDefault();
+            var probePosition = ProbeCapturePositionSettings.NewDefault();
+            var cameraSettings = CameraSettings.NewDefault();
+            var cameraPosition = CameraPositionSettings.NewDefault();
 
             probeSettings.proxySettings.capturePositionProxySpace = new Vector3(0, 1, -1);
 
@@ -31,10 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void ApplyMirroredReferenceTransform()
         {
-            var probeSettings = ProbeSettings.@default;
-            var probePosition = ProbeCapturePositionSettings.@default;
-            var cameraSettings = CameraSettings.@default;
-            var cameraPosition = CameraPositionSettings.@default;
+            var probeSettings = ProbeSettings.NewDefault();
+            var probePosition = ProbeCapturePositionSettings.NewDefault();
+            var cameraSettings = CameraSettings.NewDefault();
+            var cameraPosition = CameraPositionSettings.NewDefault();
 
             ProbeSettingsUtilities.ApplyMirroredReferenceTransform(
                 ref probeSettings, ref probePosition,

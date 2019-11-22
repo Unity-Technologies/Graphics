@@ -19,50 +19,86 @@ namespace UnityEditor.VFX
     struct VFXAttribute
     {
         public static readonly float kDefaultSize = 0.1f;
-
+        [Tooltip("Outputs a unique, constant, per-particle random value.")]
         public static readonly VFXAttribute Seed                    = new VFXAttribute("seed", VFXValueType.Uint32);
+        [Tooltip("No special function at the moment, can be used as a custom Vector3 to store additional per-particle data.")]
         public static readonly VFXAttribute OldPosition             = new VFXAttribute("oldPosition", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
+        [Tooltip("The current position of the particle.")]
         public static readonly VFXAttribute Position                = new VFXAttribute("position", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
+        [Tooltip("The velocity of the particle.")]
         public static readonly VFXAttribute Velocity                = new VFXAttribute("velocity", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Vector);
+        [Tooltip("The direction the particle is moving in.")]
         public static readonly VFXAttribute Direction               = new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f)), VFXVariadic.False, SpaceableType.Vector);
+        [Tooltip("The color of the particle.")]
         public static readonly VFXAttribute Color                   = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
+        [Tooltip("The transparency value of the particle. Transparent particles with a value of 0 or less are invisible.")]
         public static readonly VFXAttribute Alpha                   = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
+        [Tooltip("The uniform size of the particle.")]
         public static readonly VFXAttribute Size                    = new VFXAttribute("size", VFXValue.Constant(kDefaultSize));
+        [Tooltip("The scale of the particle along the X axis, as a multiplier to its size.")]
         public static readonly VFXAttribute ScaleX                  = new VFXAttribute("scaleX", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("The per-axis scale of the particle along the Y axis, as a multiplier to its size.")]
         public static readonly VFXAttribute ScaleY                  = new VFXAttribute("scaleY", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("The per-axis scale of the particle along the Z axis, as a multiplier to its size.")]
         public static readonly VFXAttribute ScaleZ                  = new VFXAttribute("scaleZ", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("Indicates how long the particle can stay alive. If the particle’s age exceeds its lifetime, the particle is destroyed.")]
         public static readonly VFXAttribute Lifetime                = new VFXAttribute("lifetime", VFXValue.Constant(1.0f));
+        [Tooltip("The age of the particle. If a particle’s age exceeds its lifetime, it gets destroyed.")]
         public static readonly VFXAttribute Age                     = new VFXAttribute("age", VFXValueType.Float);
+        [Tooltip("The particle angle per axis. For Camera-facing billboard particles, the Z axis is most likely the desired axis of rotation.")]
         public static readonly VFXAttribute AngleX                  = new VFXAttribute("angleX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The particle angle per axis. For Camera-facing billboard particles, the Z axis is most likely the desired axis of rotation.")]
         public static readonly VFXAttribute AngleY                  = new VFXAttribute("angleY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The particle angle per axis. For Camera-facing billboard particles, the Z axis is most likely the desired axis of rotation.")]
         public static readonly VFXAttribute AngleZ                  = new VFXAttribute("angleZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The angular rotation of the particle, in degrees per second.")]
         public static readonly VFXAttribute AngularVelocityX        = new VFXAttribute("angularVelocityX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The angular rotation of the particle, in degrees per second.")]
         public static readonly VFXAttribute AngularVelocityY        = new VFXAttribute("angularVelocityY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The angular rotation of the particle, in degrees per second.")]
         public static readonly VFXAttribute AngularVelocityZ        = new VFXAttribute("angularVelocityZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        [Tooltip("The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.")]
         public static readonly VFXAttribute TexIndex                = new VFXAttribute("texIndex", VFXValueType.Float);
+        [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotX                  = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotY                  = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotZ                  = new VFXAttribute("pivotZ", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
+        [Tooltip("Outputs the ID of the particle. Each particle gets assigned an incremental unique ID value when it is created.")]
         public static readonly VFXAttribute ParticleId              = new VFXAttribute("particleId", VFXValueType.Uint32);
+        [Tooltip("Determines which is the X (right-left) axis of the particle.")]
         public static readonly VFXAttribute AxisX                   = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right), VFXVariadic.False, SpaceableType.Vector);
+        [Tooltip("Determines which is the Y (up-down) axis of the particle.")]
         public static readonly VFXAttribute AxisY                   = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up), VFXVariadic.False, SpaceableType.Vector);
+        [Tooltip("Determines which is the Z (forward-back) axis of the particle.")]
         public static readonly VFXAttribute AxisZ                   = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward), VFXVariadic.False, SpaceableType.Vector);
+        [Tooltip("Indicates whether a particle is alive or should be destroyed. Can also be used within an output to toggle the rendering of that particle, without destroying it.")]
         public static readonly VFXAttribute Alive                   = new VFXAttribute("alive", VFXValue.Constant(true));
+        [Tooltip("The mass of the particle, which is used in many physics calculations.")]
         public static readonly VFXAttribute Mass                    = new VFXAttribute("mass", VFXValue.Constant(1.0f));
+        [Tooltip("The position where the particle is aiming to go. This value is used by the line output, but it can also be used to store any desired value for a custom simulation.")]
         public static readonly VFXAttribute TargetPosition          = new VFXAttribute("targetPosition", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
+        [Tooltip("")]
         public static readonly VFXAttribute EventCount              = new VFXAttribute("eventCount", VFXValueType.Uint32);
+        [Tooltip("Outputs the time since the Spawn context was triggered. To use, add a 'Set Spawn Time' block to the desired Spawn Context.")]
         public static readonly VFXAttribute SpawnTime               = new VFXAttribute("spawnTime", VFXValueType.Float);
+        [Tooltip("Outputs the index of the particle within its particle strip. Each particle gets assigned an incremental index value for the strip within which it is created. This attribute is available in systems using the 'Particle Strip' data type.")]
         public static readonly VFXAttribute ParticleIndexInStrip    = new VFXAttribute("particleIndexInStrip", VFXValueType.Uint32);
+        [Tooltip("Outputs the index of the particle within all the particles spawned in the current frame.")]
         public static readonly VFXAttribute SpawnIndex              = new VFXAttribute("spawnIndex", VFXValueType.Uint32);
+        [Tooltip("Outputs the index of the current strip. Each strip gets assigned an incremental value when it is created. This attribute is available in systems using the 'Particle Strip' data type.")]
         public static readonly VFXAttribute StripIndex              = new VFXAttribute("stripIndex", VFXValueType.Uint32);
+        [Tooltip("Outputs the total particle count within the current strip. This attribute is available in systems using the 'Particle Strip' data type.")]
+        public static readonly VFXAttribute ParticleCountInStrip    = new VFXAttribute("particleCountInStrip", VFXValueType.Uint32);
 
         // Internal as we dont want it to appear in the graph
         internal static readonly VFXAttribute StripAlive                     = new VFXAttribute("stripAlive", VFXValue.Constant(true)); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex };
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex, ParticleCountInStrip };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
-        public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex };
+        public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex, ParticleCountInStrip };
 
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();

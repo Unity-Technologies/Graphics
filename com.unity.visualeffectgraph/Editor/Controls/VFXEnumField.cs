@@ -8,14 +8,23 @@ namespace UnityEditor.VFX.UIElements
     class VFXEnumField : ValueControl<int>
     {
         Label m_DropDownButton;
+        TextElement m_ValueText;
         System.Type m_EnumType;
 
-        void CreateButton()
+        void CreateHierarchy()
         {
             AddToClassList("unity-enum-field");
             m_DropDownButton = new Label();
             m_DropDownButton.AddToClassList("unity-enum-field__input");
             m_DropDownButton.AddManipulator(new DownClickable(OnClick));
+
+            m_ValueText = new TextElement();
+            m_ValueText.AddToClassList("unity-enum-field__text");
+
+            var icon = new VisualElement() { name = "icon" };
+            icon.AddToClassList("unity-enum-field__arrow");
+            m_DropDownButton.Add(m_ValueText);
+            m_DropDownButton.Add(icon);
         }
 
         void OnClick()
@@ -42,7 +51,7 @@ namespace UnityEditor.VFX.UIElements
 
         public VFXEnumField(string label, System.Type enumType) : base(label)
         {
-            CreateButton();
+            CreateHierarchy();
 
             if (!enumType.IsEnum)
             {
@@ -52,22 +61,28 @@ namespace UnityEditor.VFX.UIElements
 
             style.flexDirection = FlexDirection.Row;
             Add(m_DropDownButton);
+
+            var icon = new VisualElement() { name = "icon" };
+            icon.AddToClassList("unity-enum-field__arrow");
+
+            m_DropDownButton.Add(icon);
         }
 
         public VFXEnumField(Label existingLabel, System.Type enumType) : base(existingLabel)
         {
-            CreateButton();
+            CreateHierarchy();
             if (!enumType.IsEnum)
             {
                 Debug.LogError("The type passed To enum field must be an enumType");
             }
             m_EnumType = enumType;
             Add(m_DropDownButton);
+
         }
 
         protected override void ValueToGUI(bool force)
         {
-            m_DropDownButton.text = ObjectNames.NicifyVariableName(System.Enum.GetName(m_EnumType, m_Value));
+            m_ValueText.text = ObjectNames.NicifyVariableName(System.Enum.GetName(m_EnumType, m_Value));
         }
     }
 }
