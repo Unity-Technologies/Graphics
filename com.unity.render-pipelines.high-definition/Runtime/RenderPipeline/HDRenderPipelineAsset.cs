@@ -60,9 +60,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
+
+        internal VolumeProfile defaultLookDevProfile
+        {
+            get
+            {
+                if (m_DefaultLookDevProfile == null)
+                    m_DefaultLookDevProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                return m_DefaultLookDevProfile;
+            }
+            set => m_DefaultLookDevProfile = value;
+        }
+
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
-
-
+        
         internal HDRenderPipelineEditorResources renderPipelineEditorResources
         {
             get

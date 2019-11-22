@@ -183,6 +183,19 @@ namespace UnityEditor.Rendering.LookDev
         {
             go.hideFlags = HideFlags.HideAndDontSave;
             go.layer = k_PreviewCullingLayerIndex;
+
+            var meshRenderer = go.GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+                meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+
+            var skinnedMeshRenderer = go.GetComponent<SkinnedMeshRenderer>();
+            if (skinnedMeshRenderer != null)
+                skinnedMeshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+
+            var lineRenderer = go.GetComponent<LineRenderer>();
+            if (lineRenderer != null)
+                lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+
             foreach (Transform child in go.transform)
                 InitAddedObjectsRecursively(child.gameObject);
         }
