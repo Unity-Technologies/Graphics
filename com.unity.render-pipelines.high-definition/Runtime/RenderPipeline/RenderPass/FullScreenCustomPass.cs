@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,13 +13,20 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;
-        public int              materialPassIndex;
+        [SerializeField]
+        int                     materialPassIndex = 0;
+        public string           materialPassName = "Custom Pass 0";
+        public bool             fetchColorBuffer;
 
         int fadeValueId;
 
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
+
+            // In case there was a pass index assigned, we retrieve the name of this pass
+            if (String.IsNullOrEmpty(materialPassName) && fullscreenPassMaterial != null)
+                materialPassName = fullscreenPassMaterial.GetPassName(materialPassIndex);
         }
 
         /// <summary>
@@ -29,8 +37,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (fullscreenPassMaterial != null)
             {
+                if (fetchColorBuffer)
+                {
+                    ResolveMSAAColorBuffer(cmd, hdCamera);
+                    // reset the render target to the UI 
+                    SetRenderTargetAuto(cmd);
+                }
+
                 fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
-                CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: materialPassIndex);
+                CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
     }

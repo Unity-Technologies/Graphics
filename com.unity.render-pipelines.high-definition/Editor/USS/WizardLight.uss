@@ -17,7 +17,7 @@
 
 .Radio
 {
-    background-color: #A5A5A5
+    background-color: #A5A5A5;
     border-color: #949494;
 }
 

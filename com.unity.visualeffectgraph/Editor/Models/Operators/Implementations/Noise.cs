@@ -25,31 +25,31 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputPropertiesRange
         {
-            [Tooltip("The noise will be calculated within the specified range.")]
+            [Tooltip("Sets the range within which the noise is calculated.")]
             public Vector2 range = new Vector2(-1.0f, 1.0f);
         }
 
         public class OutputPropertiesCommon
         {
-            [Tooltip("The calculated noise.")]
+            [Tooltip("Outputs the calculated noise value.")]
             public float Noise = 0.0f;
         }
 
         public class OutputProperties1D
         {
-            [Tooltip("The rate of change of the noise.")]
+            [Tooltip("Outputs the rate of change of the noise.")]
             public float Derivatives = 0.0f;
         }
 
         public class OutputProperties2D
         {
-            [Tooltip("The rate of change of the noise.")]
+            [Tooltip("Outputs the rate of change of the noise.")]
             public Vector2 Derivatives = Vector2.zero;
         }
 
         public class OutputProperties3D
         {
-            [Tooltip("The rate of change of the noise.")]
+            [Tooltip("Outputs the rate of change of the noise.")]
             public Vector3 Derivatives = Vector3.zero;
         }
 
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.Operator
             Three
         }
 
-        [VFXSetting, Tooltip("Output noise in 1, 2 or 3 dimensions.")]
+        [VFXSetting, Tooltip("Specifies whether the noise is output in one, two, or three dimensions.")]
         public DimensionCount dimensions = DimensionCount.Two;
 
         override public string name

@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
+
+            [Reload("Shaders/Utils/FallbackError.shader")]
+            public Shader fallbackErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
@@ -87,12 +90,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

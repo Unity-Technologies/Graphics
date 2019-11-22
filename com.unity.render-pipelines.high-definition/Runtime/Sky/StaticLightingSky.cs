@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Static-Lighting-Sky" + Documentation.endURL)]
     [ExecuteAlways]
+    [AddComponentMenu("")] // Hide this object from the Add Component menu
     class StaticLightingSky : MonoBehaviour
     {
         [SerializeField]

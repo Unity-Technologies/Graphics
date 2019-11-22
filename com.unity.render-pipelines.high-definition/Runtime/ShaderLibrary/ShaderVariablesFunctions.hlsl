@@ -115,7 +115,7 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 
     // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
     float3 unnormalizedNormalWS = normalWS;
-    float renormFactor = 1.0 / length(unnormalizedNormalWS);
+    float renormFactor = 1.0 / max(FLT_MIN, length(unnormalizedNormalWS));
 
     // bitangent on the fly option in xnormal to reduce vertex shader outputs.
     // this is the mikktspace transformation (must use unnormalized attributes)

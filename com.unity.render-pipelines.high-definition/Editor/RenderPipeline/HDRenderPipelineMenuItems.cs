@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            var result = renderpipeline.ExportSkyToTexture();
+            var result = renderpipeline.ExportSkyToTexture(Camera.main);
             if (result == null)
                 return;
 
@@ -143,45 +143,46 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (profile.TryGet<VisualEnvironment>(out var visualEnv))
                 {
-                    if (visualEnv.fogType.value == FogType.Exponential)
+                    if (visualEnv.fogType.value == FogType.Exponential || visualEnv.fogType.value == FogType.Volumetric)
                     {
-                        if (profile.TryGet<ExponentialFog>(out var expFog))
-                        {
-                            var fog = CreateFogComponentIfNeeded(profile);
-                            fog.enabled.Override(true);
-                            // We only migrate distance because the height parameters are not compatible.
-                            if (expFog.fogDistance.overrideState)
-                                fog.meanFreePath.Override(expFog.fogDistance.value);
-
-                            OverrideCommonParameters(expFog, fog);
-                            EditorUtility.SetDirty(profile);
-                        }
+                        var fog = CreateFogComponentIfNeeded(profile);
+                        fog.enabled.Override(true);
                     }
+                }
 
-                    if (visualEnv.fogType.value == FogType.Volumetric)
-                    {
-                        if (profile.TryGet<VolumetricFog>(out var volFog))
-                        {
-                            var fog = CreateFogComponentIfNeeded(profile);
-                            fog.enabled.Override(true);
-                            fog.enableVolumetricFog.Override(true);
-                            if (volFog.meanFreePath.overrideState)
-                                fog.meanFreePath.Override(volFog.meanFreePath.value);
-                            if (volFog.albedo.overrideState)
-                                fog.albedo.Override(volFog.albedo.value);
-                            if (volFog.baseHeight.overrideState)
-                                fog.baseHeight.Override(volFog.baseHeight.value);
-                            if (volFog.maximumHeight.overrideState)
-                                fog.maximumHeight.Override(volFog.maximumHeight.value);
-                            if (volFog.anisotropy.overrideState)
-                                fog.anisotropy.Override(volFog.anisotropy.value);
-                            if (volFog.globalLightProbeDimmer.overrideState)
-                                fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
 
-                            OverrideCommonParameters(volFog, fog);
-                            EditorUtility.SetDirty(profile);
-                        }
-                    }
+                if (profile.TryGet<ExponentialFog>(out var expFog))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+
+                    // We only migrate distance because the height parameters are not compatible.
+                    if (expFog.fogDistance.overrideState)
+                        fog.meanFreePath.Override(expFog.fogDistance.value);
+
+                    OverrideCommonParameters(expFog, fog);
+                    EditorUtility.SetDirty(profile);
+                }
+
+                if (profile.TryGet<VolumetricFog>(out var volFog))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+
+                    fog.enableVolumetricFog.Override(true);
+                    if (volFog.meanFreePath.overrideState)
+                        fog.meanFreePath.Override(volFog.meanFreePath.value);
+                    if (volFog.albedo.overrideState)
+                        fog.albedo.Override(volFog.albedo.value);
+                    if (volFog.baseHeight.overrideState)
+                        fog.baseHeight.Override(volFog.baseHeight.value);
+                    if (volFog.maximumHeight.overrideState)
+                        fog.maximumHeight.Override(volFog.maximumHeight.value);
+                    if (volFog.anisotropy.overrideState)
+                        fog.anisotropy.Override(volFog.anisotropy.value);
+                    if (volFog.globalLightProbeDimmer.overrideState)
+                        fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
+
+                    OverrideCommonParameters(volFog, fog);
+                    EditorUtility.SetDirty(profile);
                 }
 
                 if (profile.TryGet<VolumetricLightingController>(out var volController))
@@ -201,6 +202,53 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.ClearProgressBar();
         }
 
+        [MenuItem("Edit/Render Pipeline/Upgrade Sky Intensity Mode", priority = CoreUtils.editMenuPriority2)]
+        static void UpgradeSkyIntensityMode(MenuCommand menuCommand)
+        {
+            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Sky components with the new intensity mode paradigm. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                return;
+
+            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[] { "Assets" });
+
+            int profileCount = profilePathList.Length;
+            int profileIndex = 0;
+            foreach (string guid in profilePathList)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                profileIndex++;
+                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Sky Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
+                    break;
+
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
+
+                List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
+                if (profile.TryGetAllSubclassOf<SkySettings>(typeof(SkySettings), m_VolumeSkyList))
+                {
+                    foreach (var sky in m_VolumeSkyList)
+                    {
+                        // Trivial case where multiplier is not used we ignore, otherwise we end up with a multiplier of 0.833 for a 0.0 EV100 exposure
+                        if (sky.multiplier.value == 1.0f)
+                            continue;
+                        else if (sky.skyIntensityMode.value == SkyIntensityMode.Exposure) // Not Lux
+                        {
+                            // Any component using Exposure and Multiplier at the same time must switch to multiplier as we will convert exposure*multiplier into a multiplier.
+                            sky.skyIntensityMode.Override(SkyIntensityMode.Multiplier);
+                        }
+
+                        // Convert exposure * multiplier to multiplier and reset exposure for all non trivial cases.
+                        sky.multiplier.Override(sky.multiplier.value * ColorUtils.ConvertEV100ToExposure(-sky.exposure.value));
+                        sky.exposure.Override(0.0f);
+
+                        EditorUtility.SetDirty(profile);
+                    }
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
+        }
+
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
@@ -209,10 +257,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
+                PostCreateAssetWork(newAsset);
             }
+
+            protected virtual void PostCreateAssetWork(TAssetType asset) {}
         }
 
-        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
+        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings>
+        {
+            protected override void PostCreateAssetWork(DiffusionProfileSettings asset)
+            {
+                // Update the hash after that the asset was saved on the disk (hash requires the GUID of the asset)
+                DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(asset);
+            }
+        }
 
         [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
@@ -427,6 +485,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return anyMaterialDirty;
+        }
+
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateGlobalVolume(MenuCommand menuCommand)
+        {
+            var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
+            var volume = go.AddComponent<CustomPassVolume>();
+            volume.isGlobal = true;
         }
 
         class UnityContextualLogHandler : ILogHandler

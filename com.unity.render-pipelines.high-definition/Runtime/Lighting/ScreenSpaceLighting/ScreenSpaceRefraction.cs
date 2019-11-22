@@ -10,7 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             None = 0,
             Box = 1,
-            Sphere = 2
+            Sphere = 2,
+            Thin = 3
         };
 
         int m_InvScreenFadeDistanceID;

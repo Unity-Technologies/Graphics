@@ -14,6 +14,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+            #pragma editor_sync_compilation
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
@@ -52,22 +53,23 @@ Shader "Hidden/HDRP/IntegrateHDRI"
             // compute the lux value without multiple importance sampling.
             // We instead use a brute force Uniforme Spherical integration of the upper hemisphere
             // with a large number of sample. This is fine as this happen in the editor.
-            real GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N)
+            real3 GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N)
             {
-                float sum = 0.0;
-                float dphi = 0.005;
-                float dtheta = 0.005;
+                float3 sum = 0.0;
+                const float dphi    = 0.005;
+                const float dtheta  = 0.005;
+                const float coef    = dphi*dtheta;
                 for (float phi = 0; phi < 2.0 * PI; phi += dphi)
                 {
                     for (float theta = 0; theta < PI / 2.0; theta += dtheta)
                     {
                         // SphericalToCartesian function is for Z up, lets move to Y up with TransformGLtoDX
                         float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos(theta)));
-                        real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
-                        sum += cos(theta) * sin(theta) * val;
+                        real3 val = SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb;
+                        sum += (cos(theta)*sin(theta)*coef)*val;
                     }
                 }
-                sum *= dphi * dtheta;
+
                 return sum;
             }
 
@@ -76,9 +78,9 @@ Shader "Hidden/HDRP/IntegrateHDRI"
                 // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
-                float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
+                float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
 
-                return float4(intensity, 1.0, 1.0, 1.0);
+                return float4(intensity.rgb, Luminance(intensity));
             }
 
             ENDHLSL

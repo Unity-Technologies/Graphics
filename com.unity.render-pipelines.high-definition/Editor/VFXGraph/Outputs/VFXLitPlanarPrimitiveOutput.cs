@@ -14,16 +14,16 @@ namespace UnityEditor.VFX
         public override bool supportsUV { get { return shaderGraph == null; } }
         public sealed override bool implementsMotionVector { get { return true; } }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]
         protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;
 
         public class NormalBendingProperties
         {
-            [Range(0, 1)]
-            public float bentNormalFactor = 0.1f;
+            [Range(0, 1), Tooltip("Controls the amount by which the normals will be bent, creating a rounder look.")]
+            public float normalBendingFactor = 0.1f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 yield return exp;
 
             if (normalBending)
-                yield return slotExpressions.First(o => o.name == "bentNormalFactor");
+                yield return slotExpressions.First(o => o.name == "normalBendingFactor");
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }
@@ -88,6 +88,8 @@ namespace UnityEditor.VFX
 
                 if (normalBending)
                     yield return "USE_NORMAL_BENDING";
+
+                yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
             }

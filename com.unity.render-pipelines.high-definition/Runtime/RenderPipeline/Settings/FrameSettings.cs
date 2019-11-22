@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
         LowResTransparent = 18,
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.")]
         RayTracing = 92,
-        [FrameSettingsField(0, autoName: RealtimePlanarReflection, customOrderInGroup: 11, tooltip: "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings.")]
-        RealtimePlanarReflection = 4,
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
 
@@ -195,8 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
         PlanarProbe = 35,
         [FrameSettingsField(1, displayedName: "Metallic Indirect Fallback", tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
         ReplaceDiffuseForIndirect = 36,
-        [FrameSettingsField(1, autoName: SkyLighting, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
-        SkyLighting = 37,
+        [FrameSettingsField(1, autoName: SkyReflection, tooltip: "When enabled, the Sky affects specular lighting for Cameras that use these Frame Settings.")]
+        SkyReflection = 37,
         [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
         DirectSpecularLighting = 38,
 
@@ -291,7 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -308,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.PlanarProbe,
-                (uint)FrameSettingsField.SkyLighting,
+                (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
             }),
@@ -344,7 +341,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -360,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
-                // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
@@ -395,7 +391,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 //(uint)FrameSettingsField.SSRAsync,
@@ -409,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
-                // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
@@ -554,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipelineAsset.AggreateRayTracingSupport(renderPipelineSettings);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
@@ -598,6 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster

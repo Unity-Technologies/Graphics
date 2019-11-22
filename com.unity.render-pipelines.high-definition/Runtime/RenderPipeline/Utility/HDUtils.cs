@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -121,15 +124,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap)
+        /// <summary>Get the aspect ratio of a projection matrix.</summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
+        public static float ProjectionMatrixAspect(in Matrix4x4 matrix)
+            => -matrix.m11 / matrix.m00;
+
+        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
+            aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+
             // Compose the view space version first.
             // V = -(X, Y, Z), s.t. Z = 1,
             // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
             // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
 
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-            float aspectRatio = screenSize.x * screenSize.w;
 
             // Compose the matrix.
             float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
@@ -690,5 +700,42 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
+
+        internal static UInt64 GetSceneCullingMaskFromCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (camera.overrideSceneCullingMask != 0)
+                return camera.overrideSceneCullingMask;
+
+            if (camera.scene.IsValid())
+                return EditorSceneManager.GetSceneCullingMask(camera.scene);
+
+            #if UNITY_2020_1_OR_NEWER
+            switch (camera.cameraType)
+            {
+                case CameraType.SceneView:
+                    return SceneCullingMasks.MainStageSceneViewObjects;
+                default:
+                    return SceneCullingMasks.GameViewObjects;
+            }
+            #else
+            return 0;
+            #endif
+#else
+            return 0;
+#endif
+
+        }
+
+        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        {
+            if (camera == null || camera.Equals(null))
+                return s_DefaultHDAdditionalCameraData;
+
+            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+                return hdCamera;
+
+            return s_DefaultHDAdditionalCameraData;
+        }
     }
 }

@@ -207,7 +207,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return pixelRect;
         }
 
-#if CM_2_3_4_OR_NEWER
         // Find a pixel-perfect orthographic size as close to targetOrthoSize as possible.
         internal float CorrectCinemachineOrthoSize(float targetOrthoSize)
         {
@@ -230,6 +229,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return correctedOrthoSize;
         }
-#endif
     }
 }

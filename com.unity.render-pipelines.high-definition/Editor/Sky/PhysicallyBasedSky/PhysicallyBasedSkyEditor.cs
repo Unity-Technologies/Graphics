@@ -29,18 +29,17 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
 
             m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
-                                   | (uint)SkySettingsUIElement.Exposure
-                                   | (uint)SkySettingsUIElement.Multiplier
+                                   | (uint)SkySettingsUIElement.SkyIntensity
                                    | (uint)SkySettingsUIElement.IncludeSunInBaking;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
 			m_PlanetaryRadius            = Unpack(o.Find(x => x.planetaryRadius));
 			m_PlanetCenterPosition       = Unpack(o.Find(x => x.planetCenterPosition));
-			m_AirAttenuationDistance     = Unpack(o.Find(x => x.airAttenuationDistance));
+			m_AirAttenuationDistance     = Unpack(o.Find(x => x.airOpacity));
 			m_AirAlbedo                  = Unpack(o.Find(x => x.airAlbedo));
 			m_AirMaximumAltitude         = Unpack(o.Find(x => x.airMaximumAltitude));
-			m_AerosolAttenuationDistance = Unpack(o.Find(x => x.aerosolAttenuationDistance));
+			m_AerosolAttenuationDistance = Unpack(o.Find(x => x.aerosolOpacity));
 			m_AerosolAlbedo              = Unpack(o.Find(x => x.aerosolAlbedo));
 			m_AerosolMaximumAltitude     = Unpack(o.Find(x => x.aerosolMaximumAltitude));
 			m_AerosolAnisotropy          = Unpack(o.Find(x => x.aerosolAnisotropy));

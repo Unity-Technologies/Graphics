@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System.Collections.Generic;
 using UnityEditor;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,7 +17,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static uint GetDiffusionProfileHash(DiffusionProfileSettings asset)
         {
-            uint hash32 = (uint)AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset)).GetHashCode();
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+
+            // In case the diffusion profile is not yet saved on the disk, we don't generate the hash
+            if (String.IsNullOrEmpty(assetPath))
+                return 0;
+
+            uint hash32 = (uint)AssetDatabase.AssetPathToGUID(assetPath).GetHashCode();
             uint mantissa = hash32 & 0x7FFFFF;
             uint exponent = 0b10000000; // 0 as exponent
 
@@ -29,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             uint hash = GetDiffusionProfileHash(asset);
 
-            while (diffusionProfileHashes.ContainsValue(hash) || hash == DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID)
+            while (diffusionProfileHashes.ContainsValue(hash))
             {
                 Debug.LogWarning("Collision found in asset: " + asset + ", generating a new hash, previous hash: " + hash);
                 hash++;

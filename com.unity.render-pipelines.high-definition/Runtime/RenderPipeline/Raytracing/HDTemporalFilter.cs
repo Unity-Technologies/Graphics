@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDTemporalFilter
     {
-#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
 
@@ -39,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
             RTHandle noisySignal, RTHandle historySignal,
             RTHandle outputSignal, 
-            bool singleChannel = true, int slotIndex = -1)
+            bool singleChannel = true, int slotIndex = -1, float historyValidity = 1.0f)
         {
             // If we do not have a depth and normal history buffers, we can skip right away
             var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
@@ -69,6 +68,8 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryNormalBufferTexture, historyNormalBuffer);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBufferRW, m_ValidationBuffer);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._HistoryValidity, historyValidity);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Now that we have validated our history, let's accumulate
@@ -87,6 +88,5 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
-#endif
     }
 }

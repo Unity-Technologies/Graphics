@@ -21,13 +21,13 @@ struct ps_input
 	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 	#endif
 	
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD3;
 	float4 cPosNonJiterred : TEXCOORD4;
 	#endif
     
     #if VFX_NEEDS_POSWS_INTERPOLATOR
-        float3 posWS : TEXCOORD5;
+    float3 posWS : TEXCOORD5;
     #endif
     ${VFXAdditionalInterpolantsDeclaration}
 	
@@ -42,12 +42,26 @@ struct ps_input
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
+#endif
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
 
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 
@@ -68,11 +82,15 @@ float4 frag(ps_input i) : SV_TARGET
     #endif
 	VFXClipFragmentColor(alpha,i);
 	
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		return encodedMotionVector;
-	#else
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+		return float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		return (float4)0;
+	#else
+		#error VFX_PASSDEPTH undefined 
 	#endif
 }
 
