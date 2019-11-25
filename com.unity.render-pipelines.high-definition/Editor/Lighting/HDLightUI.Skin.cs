@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = new GUIContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
-            public readonly GUIContent flareSize = new GUIContent("Flare Size", "Size the flare around the celestial body (in degrees).");
+            public readonly GUIContent flareSize = new GUIContent("Flare Size", "Size of the flare around the celestial body (in degrees).");
             public readonly GUIContent flareTint = new GUIContent("Flare Tint", "Tints the flare of the celestial body");
             public readonly GUIContent flareFalloff = new GUIContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");
             public readonly GUIContent surfaceTexture = new GUIContent("Surface Texture", "2D (disk) texture of the surface of the celestial body. Acts like a multiplier.");
