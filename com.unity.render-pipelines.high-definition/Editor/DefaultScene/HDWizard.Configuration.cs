@@ -162,6 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
                         new Entry(InclusiveScope.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
                         new Entry(InclusiveScope.DXR, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow),
+                        new Entry(InclusiveScope.DXR, Style.dxrReflections, IsDXRReflectionsCorrect, FixDXRReflections),
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
                         new Entry(InclusiveScope.DXR, Style.dxrShaderConfig, IsDXRShaderConfigCorrect, FixDXRShaderConfig),
@@ -547,6 +548,20 @@ namespace UnityEditor.Rendering.HighDefinition
             var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
             var propertySupportScreenSpaceShadow = serializedObject.FindProperty("m_RenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows");
             propertySupportScreenSpaceShadow.boolValue = true;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        bool IsDXRReflectionsCorrect()
+            => HDRenderPipeline.currentAsset != null
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSR;
+        void FixDXRReflections(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+            //as property returning struct make copy, use serializedproperty to modify it
+            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
+            var propertySSR = serializedObject.FindProperty("m_RenderPipelineSettings.supportSSR");
+            propertySSR.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
