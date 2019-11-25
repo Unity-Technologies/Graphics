@@ -40,6 +40,10 @@ To do this:
 
 You can now use the **Light Layers** drop-down in the **Shadows** section to set the Light Layers that the Light uses for shadowing. You can also still use the **Light Layers** drop-down in the **General** section to set the Light Layers that the Light uses for lighting.
 
+## Renaming Light Layers
+
+Light Layers need humane readable names in order to be easily used by artists. By default they are all named **Light Layer 1-7** in the UI for lights and mesh renderers. At the project level, users can override each layer name individually. To do so, they must change them in the [HDRenderPipeline Asset](HDRP-Asset.html) in the **Lighting** section.
+
 ## Example scenario for Light Layers
 
 Using [cookies](https://docs.unity3d.com/Manual/Cookies.html) for light fixtures can sometimes have a negative visual effect on a bulb, such as self-shadowing or transmission contribution. You can use Light Layers to make a bulb Mesh not receive any light from the Light’s cookie, and instead receive light from a separate small Point Light.

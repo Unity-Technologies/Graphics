@@ -124,7 +124,7 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 
 ![](Images/HDRPFeatures-LightTypes.png)
 
-The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. The HDRP light types are:
+The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
 
 - **Directional**
   - Color temperature
