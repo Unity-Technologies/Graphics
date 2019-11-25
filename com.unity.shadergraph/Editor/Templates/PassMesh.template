@@ -12,6 +12,7 @@ Pass
     $splice(ZTest)
     $splice(ZWrite)
     $splice(ColorMask)
+    $splice(Stencil)
 
     HLSLPROGRAM
     #pragma vertex vert
