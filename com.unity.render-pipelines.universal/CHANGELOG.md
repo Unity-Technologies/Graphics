@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
 - Fixed conflicting meta with HDRP
 - Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
+- Fixed lazy initialization with last version of ResourceReloader
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
