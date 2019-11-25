@@ -110,6 +110,7 @@
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
     * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows)
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
