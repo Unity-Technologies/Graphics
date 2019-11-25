@@ -760,21 +760,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
-                    m_BuiltinParameters.hdCamera = hdCamera;
-                    m_BuiltinParameters.commandBuffer = cmd;
-                    m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                    m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                    m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
-                    m_BuiltinParameters.screenSize = hdCamera.screenSize;
-                    m_BuiltinParameters.colorBuffer = colorBuffer;
-                    m_BuiltinParameters.depthBuffer = depthBuffer;
-                    m_BuiltinParameters.debugSettings = debugSettings;
-                    m_BuiltinParameters.frameIndex = frameIndex;
-                    m_BuiltinParameters.skySettings = skyContext.skySettings;
+            m_BuiltinParameters.hdCamera = hdCamera;
+            m_BuiltinParameters.commandBuffer = cmd;
+            m_BuiltinParameters.sunLight = sunLight;
+            m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+            m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+            m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
+            m_BuiltinParameters.screenSize = hdCamera.screenSize;
+            m_BuiltinParameters.colorBuffer = colorBuffer;
+            m_BuiltinParameters.depthBuffer = depthBuffer;
+            m_BuiltinParameters.debugSettings = debugSettings;
+            m_BuiltinParameters.frameIndex = frameIndex;
+            m_BuiltinParameters.skySettings = skyContext.skySettings;
         }
 
-        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
@@ -792,7 +792,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 cachedContext.renderer.DoUpdate(m_BuiltinParameters);
-                if (depthBuffer == BuiltinSkyParameters.nullRT)
+                if (depthBuffer != BuiltinSkyParameters.nullRT && normalBuffer != BuiltinSkyParameters.nullRT)
+                {
+                    CoreUtils.SetRenderTarget(cmd, normalBuffer, depthBuffer);
+                }
+                else if (depthBuffer != BuiltinSkyParameters.nullRT)
                 {
                     CoreUtils.SetRenderTarget(cmd, depthBuffer);
                 }

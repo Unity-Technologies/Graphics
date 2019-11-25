@@ -17,14 +17,14 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 
 ## Properties
 
-![](Images/Override-HDRISky1.png)
+<img src="Images/Override-HDRISky1.png" style="zoom:150%;" />
 
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
 | **HDRI Sky**                     | Assign a HDRI Texture that HDRP uses to render the sky.      |
-| **Sky Intensity Mode**           | Use the drop-down to select the mode that HDRP uses to calculate the intensity of the environment light it applies to the Scene.<br />&#8226; **Exposure**: Defines the sky intensity using the **Exposure** and **Multiplier** properties.<br />&#8226; **Lux**: Define the sky intensity in terms of Lux values. |
-| - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Sky Intensity Mode** drop-down. |
-| - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Exposure** from the **Sky Intensity Mode** drop-down. |
+| **Intensity Mode**        | Use the drop-down to set the way the sky intensity is computed.<br />&#8226; **Exposure**: Intensity is computed from an exposure in EV100.<br />&#8226; **Multiplier**: Intensity is a flat multiplier. <br />&#8226; **Lux**: Define the sky intensity in terms of Lux values.|
+| - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |
+| - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Multiplier** from the **Intensity Mode** drop-down. |
 | - **Desired Lux Value**          | Set an absolute intensity for the HDR Texture you set in **HDRI Sky**, in Lux, for lighting received in a direction perpendicular to the ground. This is similar to the Lux unit you use to represent the Sun and thus is complimentary.<br />This property only appears when you select **Lux** from the **Sky Intensity Mode** drop-down. |
 | - **Upper Hemisphere Lux Value** | Displays the relative intensity, in Lux, for the current HDR texture set in **HDRI Sky**. The final multiplier HDRP applies for intensity is **Desired Lux Value** / **Upper Hemisphere Lux Value**. This field is an informative helper.<br />This property only appears when you select **Lux** from the **Sky Intensity Mode** drop-down. |
 | **Rotation**                     | Use the slider to set the angle to rotate the cubemap, in degrees. |
@@ -33,7 +33,7 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 
 ## Avanced Properties
 
-![](Images/Override-HDRISky2.png)
+<img src="Images/Override-HDRISky2.png" style="zoom:150%;" />
 
 
 | Property                         | Description                                                  |
