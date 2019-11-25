@@ -130,32 +130,6 @@ namespace UnityEditor.VFX.UI
 
             m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos),null, GetAcceptedTypeNodes());
 
-            m_RootSearcherItems = new List<SearcherItem>();
-
-            foreach (var desc in m_NodeProvider.descriptors)
-            {
-                string[] categories = desc.category.Split('/');
-                List<SearcherItem> currentList = m_RootSearcherItems;
-                Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
-                
-                for (int i = 0; i < categories.Length; ++i)
-                {
-                    if (!string.IsNullOrEmpty(categories[i]))
-                    {
-                        SearcherItem item = currentList.Find(t => t.Name == categories[i]);
-                        if (item == null)
-                        {
-                            item = new SearcherItem(categories[i], categories[i]);
-                            addItemAction(item);
-                        }
-                        currentList = item.Children;
-                        addItemAction = t => item.AddChild(t);
-                    }
-                }
-
-                addItemAction(new VFXSearcherItem(desc, desc.name));
-            }
-
             //Make sure a subgraph block as a block subgraph  context
             if (controller.model.isSubgraph && controller.model.subgraph is VisualEffectSubgraphBlock)
             {
@@ -175,6 +149,35 @@ namespace UnityEditor.VFX.UI
             }
             VFXNodeProvider.Descriptor m_Descriptor;
             public VFXNodeProvider.Descriptor descriptor { get => m_Descriptor; }
+        }
+
+        void InitilializeNewNodeSearcher()
+        {
+            m_RootSearcherItems = new List<SearcherItem>();
+
+            foreach (var desc in m_NodeProvider.descriptors)
+            {
+                string[] categories = desc.category.Split('/');
+                List<SearcherItem> currentList = m_RootSearcherItems;
+                Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
+
+                for (int i = 0; i < categories.Length; ++i)
+                {
+                    if (!string.IsNullOrEmpty(categories[i]))
+                    {
+                        SearcherItem item = currentList.Find(t => t.Name == categories[i]);
+                        if (item == null)
+                        {
+                            item = new SearcherItem(categories[i], categories[i]);
+                            addItemAction(item);
+                        }
+                        currentList = item.Children;
+                        addItemAction = t => item.AddChild(t);
+                    }
+                }
+
+                addItemAction(new VFXSearcherItem(desc, desc.name));
+            }
         }
 
         List<SearcherItem> m_RootSearcherItems;
@@ -1157,12 +1160,17 @@ namespace UnityEditor.VFX.UI
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
                 {
-                    SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "OnMouseDown", item => {
-                        if( item is VFXSearcherItem vfxItem)
-                            AddNode(vfxItem.descriptor, point);
-                        return true;
-                    }, point);
-                    //VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                    if( VFXViewPreference.newNodeSearcher)
+                    {
+                        InitilializeNewNodeSearcher();
+                        SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "OnMouseDown", item => {
+                            if (item is VFXSearcherItem vfxItem)
+                                AddNode(vfxItem.descriptor, point);
+                            return true;
+                        }, point);
+                    }
+                    else
+                        VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
                 }
             }
         }

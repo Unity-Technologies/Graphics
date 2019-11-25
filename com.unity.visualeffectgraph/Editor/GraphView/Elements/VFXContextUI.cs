@@ -4,12 +4,9 @@ using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX;
 using UnityEngine.UIElements;
 using UnityEngine.Profiling;
-using System.Reflection;
-
-using PositionType = UnityEngine.UIElements.Position;
+using UnityEditor.Searcher;
 
 namespace UnityEditor.VFX.UI
 {
@@ -84,9 +81,8 @@ namespace UnityEditor.VFX.UI
                         int blockIndex = GetDragBlockIndex(mPos);
                         VFXBlock newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
 
-                        newModel.SetSettingValue("m_Subgraph", subgraphBlock);
-
                         controller.AddBlock(blockIndex, newModel);
+                        newModel.SetSettingValue("m_Subgraph", subgraphBlock);
                     }
 
                 });
@@ -672,13 +668,75 @@ namespace UnityEditor.VFX.UI
             OnCreateBlock(referencePosition);
         }
 
+        List<SearcherItem> m_RootSearcherItems;
+        class VFXSearcherItem : SearcherItem
+        {
+            public VFXSearcherItem(VFXBlockProvider.Descriptor descriptor, string name, string help = "", List<SearcherItem> children = null)
+            : base(name, help, children)
+            {
+                m_Descriptor = descriptor;
+            }
+            VFXBlockProvider.Descriptor m_Descriptor;
+            public VFXBlockProvider.Descriptor descriptor { get => m_Descriptor; }
+        }
+
+        void InitilializeNewNodeSearcher()
+        {
+            m_RootSearcherItems = new List<SearcherItem>();
+
+            foreach (var desc in m_BlockProvider.descriptors)
+            {
+                string[] categories = desc.category.Split('/');
+                List<SearcherItem> currentList = m_RootSearcherItems;
+                Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
+
+                for (int i = 0; i < categories.Length; ++i)
+                {
+                    if (!string.IsNullOrEmpty(categories[i]))
+                    {
+                        SearcherItem item = currentList.Find(t => t.Name == categories[i]);
+                        if (item == null)
+                        {
+                            item = new SearcherItem(categories[i], categories[i]);
+                            addItemAction(item);
+                        }
+                        currentList = item.Children;
+                        addItemAction = t => item.AddChild(t);
+                    }
+                }
+
+                addItemAction(new VFXSearcherItem(desc, desc.name));
+            }
+        }
+
         public void OnCreateBlock(Vector2 referencePosition)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
+            if (VFXViewPreference.newNodeSearcher)
+            {
+                InitilializeNewNodeSearcher();
+                SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "OnMouseDown", item => {
+                    if (item is VFXSearcherItem vfxItem)
+                        if (vfxItem.descriptor is VFXBlockProvider.NewBlockDescriptor newBlockDesc)
+                            AddBlock(referencePosition, newBlockDesc.newBlock);
+                        else
+                        {
+                            var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>((vfxItem.descriptor as VFXBlockProvider.SubgraphBlockDescriptor).item.path);
+
+                            int blockIndex = GetDragBlockIndex(referencePosition);
+                            VFXBlock newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
+
+                            controller.AddBlock(blockIndex, newModel);
+                            newModel.SetSettingValue("m_Subgraph", subgraphBlock);
+                        }
+                    return true;
+                }, referencePosition);
+            }
+            else
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;

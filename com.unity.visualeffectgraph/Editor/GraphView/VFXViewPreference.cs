@@ -12,6 +12,7 @@ namespace UnityEditor.VFX
         private static bool m_AllowShaderExternalization = false;
         private static bool m_DisplayExtraDebugInfo = false;
         private static bool m_ForceEditionCompilation = false;
+        private static bool m_UseNewNodeSearcher = false;
         private static bool m_AdvancedLogs = false;
 
         public static bool displayExperimentalOperator
@@ -50,10 +51,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static bool newNodeSearcher
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_UseNewNodeSearcher;
+            }
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
         public const string allowShaderExternalizationKey = "VFX.allowShaderExternalization";
+        public const string newNodeSearcherKey = "VFX.newnodeSearcher";
         public const string advancedLogsKey = "VFX.AdvancedLogs";
 
         private static void LoadIfNeeded()
@@ -64,6 +75,7 @@ namespace UnityEditor.VFX
                 m_DisplayExtraDebugInfo = EditorPrefs.GetBool(extraDebugInfoKey, false);
                 m_ForceEditionCompilation = EditorPrefs.GetBool(forceEditionCompilationKey, false);
                 m_AllowShaderExternalization = EditorPrefs.GetBool(allowShaderExternalizationKey, false);
+                m_UseNewNodeSearcher = EditorPrefs.GetBool(newNodeSearcherKey, false);
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
                 m_Loaded = true;
             }
@@ -90,6 +102,7 @@ namespace UnityEditor.VFX
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
                     m_AllowShaderExternalization = EditorGUILayout.Toggle(new GUIContent("Experimental shader externalization", "When enabled, the generated shaders are stored alongside the Visual Effect asset, enabling their direct modification."), m_AllowShaderExternalization);
+                    m_UseNewNodeSearcher = EditorGUILayout.Toggle(new GUIContent("Experimental new node searcher"), m_UseNewNodeSearcher);
 
                     bool oldForceEditionCompilation = m_ForceEditionCompilation;
                     m_ForceEditionCompilation = EditorGUILayout.Toggle(new GUIContent("Force Compilation in Edition Mode", "When enabled, the unoptimized edit version of the Visual Effect is compiled even when the effect is not being edited. Otherwise, an optimized runtime version is compiled."), m_ForceEditionCompilation);
@@ -117,6 +130,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
                         EditorPrefs.SetBool(advancedLogsKey, m_AdvancedLogs);
                         EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
+                        EditorPrefs.SetBool(newNodeSearcherKey, m_UseNewNodeSearcher);
                     }
                 }
 

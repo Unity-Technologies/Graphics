@@ -125,7 +125,8 @@ namespace UnityEditor.VFX.UI
             public override string category { get { return "Subgraph Block/"+item.category; } }
             public override string name { get { return item.name; } }
         }
-
+        
+        public IEnumerable<Descriptor> descriptors { get => GetDescriptors(); }
 
         VFXContextController m_ContextController;
         public VFXBlockProvider(VFXContextController context, Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
