@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             if (m_ToClean != null)
                 CoreUtils.Destroy(m_ToClean);
-            FrameSettingsHistory.containers.Clear();
+            FrameSettingsHistory.containers?.Clear();
         }
 
         [Test]
