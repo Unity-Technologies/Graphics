@@ -166,6 +166,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public IEnumerable<Descriptor> descriptors { get => GetDescriptors(); }
+
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
             IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
