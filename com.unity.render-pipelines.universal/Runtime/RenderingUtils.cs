@@ -136,6 +136,22 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the last colorBuffer index actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static int GetLastValidColorBufferIndex(RenderTargetIdentifier[] colorBuffers)
+        {
+            int i = colorBuffers.Length - 1;
+            for(; i>=0; --i)
+            {
+                if (colorBuffers[i] != 0)
+                    break;
+            }
+            return i;
+        }
+
+        /// <summary>
         /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
         /// </summary>
         /// <param name="colorBuffers"></param>
@@ -191,6 +207,38 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < source.Length; ++i)
             {
                 if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static uint CountDistinct(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            uint count = 0;
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] != value && source[i] != 0)
+                    ++count;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Return the index of last valid (i.e different from 0) RenderTargetIdentifiers in "source" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        internal static int LastValid(RenderTargetIdentifier[] source)
+        {
+            for (int i = source.Length-1; i >= 0; --i)
+            {
+                if (source[i] != 0)
                     return i;
             }
             return -1;

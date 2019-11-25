@@ -105,6 +105,23 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 
+        // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
+        // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
+        // To avoid that warning assert we trim the RenderTargetIdentifier[] arrays we pass to CoreUtils.SetRenderTarget.
+        // To avoid re-allocating a new array every time we do that, we re-use one of these arrays:
+        static RenderTargetIdentifier[][] m_TrimmedColorAttachmentCopies = new RenderTargetIdentifier[][]
+        {
+            new RenderTargetIdentifier[0],                          // m_TrimmedColorAttachmentCopies[0] is an array of 0 RenderTargetIdentifier - only used to make indexing code easier to read
+            new RenderTargetIdentifier[]{0},                        // m_TrimmedColorAttachmentCopies[1] is an array of 1 RenderTargetIdentifier
+            new RenderTargetIdentifier[]{0, 0},                     // m_TrimmedColorAttachmentCopies[2] is an array of 2 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0},                  // m_TrimmedColorAttachmentCopies[3] is an array of 3 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0, 0},               // m_TrimmedColorAttachmentCopies[4] is an array of 4 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0, 0, 0},            // m_TrimmedColorAttachmentCopies[5] is an array of 5 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0},         // m_TrimmedColorAttachmentCopies[6] is an array of 6 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
+            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
+        };
+
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
@@ -385,7 +402,7 @@ namespace UnityEngine.Rendering.Universal
             ClearFlag cameraClearFlag = GetCameraClearFlag(camera.clearFlags);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
-            if(RenderingUtils.IsMRT(renderPass.colorAttachments))
+            if( RenderingUtils.IsMRT(renderPass.colorAttachments) )
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
                 // and that the depth attachment is a REAL depth attachment too.
@@ -441,15 +458,20 @@ namespace UnityEngine.Rendering.Universal
 
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
                     {
-                        RenderTargetIdentifier[] nonCameraAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
-
-                        for (int index = 0; index < cameraColorTargetIndex; ++index)
-                            nonCameraAttachments[index] = renderPass.colorAttachments[index];
-
-                        for (int index = cameraColorTargetIndex + 1; index < renderPass.colorAttachments.Length; ++index)
-                            nonCameraAttachments[index - 1] = renderPass.colorAttachments[index];
-
-                        SetRenderTarget(cmd, nonCameraAttachments, 0, ClearFlag.Color, renderPass.clearColor);
+                        uint otherTargetsCount = RenderingUtils.CountDistinct(renderPass.colorAttachments, m_CameraColorTarget);
+                        var nonCameraAttachments = m_TrimmedColorAttachmentCopies[otherTargetsCount];
+                        int writeIndex = 0;
+                        for (int readIndex = 0; readIndex < renderPass.colorAttachments.Length; ++readIndex)
+                        {
+                            if(renderPass.colorAttachments[readIndex]!=m_CameraColorTarget && renderPass.colorAttachments[readIndex]!=0)
+                            {
+                                nonCameraAttachments[writeIndex] = renderPass.colorAttachments[readIndex];
+                                ++writeIndex;
+                            }
+                        }
+                        if (writeIndex != otherTargetsCount)
+                            Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex  + " otherTargetsCount:" + otherTargetsCount);
+                        SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
                 }
 
@@ -460,7 +482,17 @@ namespace UnityEngine.Rendering.Universal
 
                 // Only setup render target if current render pass attachments are different from the active ones.
                 if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                {
+                    int lastValidRTindex = RenderingUtils.LastValid(renderPass.colorAttachments);
+                    if(lastValidRTindex>=0)
+                    {
+                        int rtCount = lastValidRTindex + 1;
+                        var trimmedAttachments = m_TrimmedColorAttachmentCopies[rtCount];
+                        for (int i = 0; i < rtCount; ++i)
+                            trimmedAttachments[i] = renderPass.colorAttachments[i];
+                        SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                    }
+                }
             }
             else
             {
