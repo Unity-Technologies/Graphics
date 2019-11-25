@@ -59,7 +59,7 @@ HDRP provides Shaders that allow you to create a wide variety of different Mater
 
 ## Lighting
 
-To apply realistic lighting to your Scenes, HDRP uses Physical Light Units (PLU), which are based on real-life measurable values, just like you would see when looking for light bulbs at a store or measuring light with a photographic light meter. For more information, see [Physical Light Units](Physical-Light-Units.html).
+To apply realistic lighting to your Scenes, HDRP uses Physical Light Units (PLU), which are based on real-life measurable values, just like you would see when looking for light bulbs at a store or measuring light with a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). For more information, see [Physical Light Units](Physical-Light-Units.html).
 
 For more information, see [HDRP Lighting features](HDRP-Features.html#Lighting). For advice on adding lights to your Scene, see [Light](Light-Component.html).
 
