@@ -633,7 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         CopyFolder(info.resolvedPath, k_LocalHdrpConfigPackagePath);
                     }
                     
-                    PackageManager.Client.Add($"file:..{k_LocalHdrpConfigPackagePath}");
+                    PackageManager.Client.Add($"file:../{k_LocalHdrpConfigPackagePath}");
                     lastPackageConfigInstalledCheck = true;
                     onCompletion?.Invoke();
                 });
