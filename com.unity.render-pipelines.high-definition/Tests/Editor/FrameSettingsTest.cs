@@ -14,9 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [TearDown]
         public void TearDown()
         {
-            if (m_ToClean != null)
-                CoreUtils.Destroy(m_ToClean);
-            FrameSettingsHistory.containers?.Clear();
+            try
+            {
+                if (m_ToClean != null)
+                    CoreUtils.Destroy(m_ToClean);
+                FrameSettingsHistory.containers?.Clear();
+            }
+            catch { }
         }
 
         [Test]
