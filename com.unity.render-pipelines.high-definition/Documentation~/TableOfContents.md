@@ -38,6 +38,7 @@
   * [Frame Settings](Frame-Settings)
   * [Default Settings](Default-Settings-Window)
   * [HDRP Config Package](HDRP-Config-Package)
+  * [Scalability](Scalability-Manual)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
