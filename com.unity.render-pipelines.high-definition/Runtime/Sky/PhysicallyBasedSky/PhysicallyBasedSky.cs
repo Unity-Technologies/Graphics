@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Sky/Physically Based Sky (Experimental)")]
+    [VolumeComponentMenu("Sky/Physically Based Sky (Preview)")]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     public class PhysicallyBasedSky : SkySettings
     {
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Number of scattering events.")]
         public ClampedIntParameter numberOfBounces = new ClampedIntParameter(8, 1, 10);
         [Tooltip("Albedo of the planetary surface.")]
-        public ColorParameter groundTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
+        public ColorParameter groundTint = new ColorParameter(new Color(0.4f, 0.25f, 0.15f), hdr: false, showAlpha: false, showEyeDropper: false);
         // Hack. Does not affect the precomputation.
         public CubemapParameter groundColorTexture = new CubemapParameter(null);
         // Hack. Does not affect the precomputation.
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PhysicallyBasedSky()
         {
-            displayName = "Physically Based Sky (Experimental)";
+            displayName = "Physically Based Sky (Preview)";
         }
 
         public int GetPrecomputationHashCode()
