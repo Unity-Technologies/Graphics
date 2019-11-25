@@ -214,6 +214,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix light limit counts specified on the HDRP asset
 - Fixed Quality Settings for SSR, Contact Shadows and Ambient Occlusion volume components
 - Fixed decalui deriving from hdshaderui instead of just shaderui
+- Use DelayedIntField instead of IntField for scalable settings
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
