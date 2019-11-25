@@ -60,6 +60,13 @@
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
+  * Shader Graph Nodes
+    * [Emission](Emission-Node)
+    * [Baked GI](Baked-GI-Node)
+    * [Diffusion Profile](Diffusion-Profile-Node)
+    * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node)
+    * [Exposure](Exposure-Node)
+    * [HD Scene Color](HD-Scene-Color-Node)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -106,6 +113,7 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Authoring Custom Effects](Custom-Post-Process)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
@@ -130,7 +138,7 @@
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
-  * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
+  * [Creating a Custom Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
-
