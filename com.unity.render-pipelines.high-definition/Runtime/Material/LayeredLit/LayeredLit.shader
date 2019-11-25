@@ -408,8 +408,16 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature _BENTNORMALMAP2                              // Non-local
     #pragma shader_feature _BENTNORMALMAP3                              // Non-local
     #pragma shader_feature _EMISSIVE_COLOR_MAP                          // Non-local
-    #pragma shader_feature _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP     // Non-local
-    #pragma shader_feature _SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION   // Non-local
+
+    // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
+    // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
+    // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
+    #ifdef _ENABLESPECULAROCCLUSION
+    #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #endif
+
     #pragma shader_feature _DETAIL_MAP0                                 // Non-local
     #pragma shader_feature _DETAIL_MAP1                                 // Non-local
     #pragma shader_feature _DETAIL_MAP2                                 // Non-local

@@ -148,8 +148,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kSpecularOcclusionMode))
             {
+                // For migration of specular occlusion to specular mode we remove previous keyword
+                // _ENABLESPECULAROCCLUSION is deprecated
+                CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", false);
+
                 int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION", specOcclusionMode == 1);
+                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
                 CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             }
             if (material.HasProperty(kHeightMap))

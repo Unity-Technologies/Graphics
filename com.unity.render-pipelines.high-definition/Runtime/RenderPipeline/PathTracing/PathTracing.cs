@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Path Tracing")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
     public sealed class PathTracing : VolumeComponent
     {
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
