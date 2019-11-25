@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New options for quad strips texture mapping: swap UV and custom mapping
 
 ### Fixed
-- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
 - Fix shader interpolants with shader graph and particle strips
 - SpawnIndex attribute is now working correctly in Initialize context
 - Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
