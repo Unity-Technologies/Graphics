@@ -100,15 +100,16 @@ namespace UnityEditor.VFX.UI
         {
             RecreateResources();
             VFXView view = GetFirstAncestorOfType<VFXView>();
-            if (view != null && m_Mat != null)
+            if (m_Mat != null)
             {
                 float radius = resolvedStyle.borderTopLeftRadius;
+                float viewScale = view != null ? view.scale : 1;
 
-                float realBorder = style.borderLeftWidth.value * view.scale;
+                float realBorder = style.borderLeftWidth.value * viewScale;
 
                 Vector4 size = new Vector4(layout.width * .5f, layout.height * 0.5f, 0, 0);
                 m_Mat.SetVector("_Size", size);
-                m_Mat.SetFloat("_Border", realBorder < 1.75f ?  1.75f / view.scale : style.borderLeftWidth.value);
+                m_Mat.SetFloat("_Border", realBorder < 1.75f ?  1.75f / viewScale : style.borderLeftWidth.value);
                 m_Mat.SetFloat("_Radius", radius);
 
                 m_Mat.SetColor("_ColorStart", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor);

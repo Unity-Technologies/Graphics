@@ -684,28 +684,40 @@ namespace UnityEditor.VFX.UI
         {
             m_RootSearcherItems = new List<SearcherItem>();
 
+            var dict = new Dictionary<string, SearcherItem>();
+
             foreach (var desc in m_BlockProvider.descriptors)
             {
-                string[] categories = desc.category.Split('/');
-                List<SearcherItem> currentList = m_RootSearcherItems;
-                Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
+                SearcherItem categorySearchItem;
 
-                for (int i = 0; i < categories.Length; ++i)
+                if (dict.TryGetValue(desc.category, out categorySearchItem))
                 {
-                    if (!string.IsNullOrEmpty(categories[i]))
-                    {
-                        SearcherItem item = currentList.Find(t => t.Name == categories[i]);
-                        if (item == null)
-                        {
-                            item = new SearcherItem(categories[i], categories[i]);
-                            addItemAction(item);
-                        }
-                        currentList = item.Children;
-                        addItemAction = t => item.AddChild(t);
-                    }
+                    categorySearchItem.AddChild(new VFXSearcherItem(desc, desc.name));
                 }
+                else
+                {
+                    string[] categories = desc.category.Split('/');
+                    List<SearcherItem> currentList = m_RootSearcherItems;
+                    Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
 
-                addItemAction(new VFXSearcherItem(desc, desc.name));
+                    for (int i = 0; i < categories.Length; ++i)
+                    {
+                        if (!string.IsNullOrEmpty(categories[i]))
+                        {
+                            SearcherItem item = currentList.Find(t => t.Name == categories[i]);
+                            if (item == null)
+                            {
+                                item = new SearcherItem(categories[i], categories[i]);
+                                addItemAction(item);
+                                dict[desc.category] = item;
+                            }
+                            currentList = item.Children;
+                            addItemAction = t => item.AddChild(t);
+                        }
+                    }
+
+                    addItemAction(new VFXSearcherItem(desc, desc.name));
+                }
             }
         }
 
@@ -718,7 +730,7 @@ namespace UnityEditor.VFX.UI
             if (VFXViewPreference.newNodeSearcher)
             {
                 InitilializeNewNodeSearcher();
-                SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "OnMouseDown", item => {
+                SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "Create Block", item => {
                     if (item is VFXSearcherItem vfxItem)
                         if (vfxItem.descriptor is VFXBlockProvider.NewBlockDescriptor newBlockDesc)
                             AddBlock(referencePosition, newBlockDesc.newBlock);

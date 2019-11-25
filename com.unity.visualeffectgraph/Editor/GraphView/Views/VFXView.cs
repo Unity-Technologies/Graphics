@@ -1137,6 +1137,72 @@ namespace UnityEditor.VFX.UI
             return position + guiView.screenPosition.position;
         }
 
+
+        class VFXSearcherAdapter : SearcherAdapter
+        {
+            VFXView m_View;
+            VisualElement m_NodeShape;
+
+            Controller m_Controller;
+
+            VFXNodeUI m_Node;
+
+            public VFXSearcherAdapter(string title, VFXView view) : base(title) { m_View = view; }
+
+            public override void InitDetailsPanel(VisualElement detailsPanel)
+            {
+                m_NodeShape = new VisualElement();
+                m_NodeShape.style.alignItems = Align.Center;
+                m_NodeShape.style.justifyContent = Justify.Center;
+                m_NodeShape.style.overflow = Overflow.Hidden;
+                detailsPanel.Add(m_NodeShape);
+                base.InitDetailsPanel(detailsPanel);
+            }
+
+            public override void OnSelectionChanged(IEnumerable<SearcherItem> items)
+            {
+                base.OnSelectionChanged(items);
+                if (m_Node != null)
+                {
+                    m_Node.RemoveFromHierarchy();
+                    m_Controller.OnDisable();
+
+                    m_Node = null;
+                    m_Controller = null;
+                }
+                if ( items.OfType<VFXSearcherItem>().Any())
+                {
+                    var searcherItem = items.OfType<VFXSearcherItem>().First();
+
+
+                    if(searcherItem.descriptor.modelDescriptor is VFXModelDescriptor<VFXContext> contextDesc)
+                    {
+                        var newContext = contextDesc.CreateInstance();
+
+                        VFXContextController newContextController = new VFXContextController(newContext, m_View.controller);
+                        m_Controller = newContextController;
+                        newContextController.ForceUpdate();
+                        m_Node = new VFXContextUI();
+                        m_Node.controller = newContextController;
+                        m_Node.style.position = PositionType.Relative;
+                        m_NodeShape.Add(m_Node);
+                    }
+                    else if(searcherItem.descriptor.modelDescriptor is VFXModelDescriptor<VFXOperator> operatorDesc)
+                    {
+                        var newOperator = operatorDesc.CreateInstance();
+                        newOperator.ResyncSlots(false);
+                        VFXOperatorController newOperatorController = new VFXOperatorController(newOperator, m_View.controller);
+                        m_Controller = newOperatorController;
+                        newOperatorController.ForceUpdate();
+                        m_Node = new VFXOperatorUI();
+                        m_Node.controller = newOperatorController;
+                        m_Node.style.position = PositionType.Relative;
+                        m_NodeShape.Add(m_Node);
+                    }
+                }
+            }
+        }
+
         void OnCreateNode(NodeCreationContext ctx)
         {
             GUIView guiView = panel.InternalGetGUIView();
@@ -1163,11 +1229,11 @@ namespace UnityEditor.VFX.UI
                     if( VFXViewPreference.newNodeSearcher)
                     {
                         InitilializeNewNodeSearcher();
-                        SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems, "OnMouseDown", item => {
+                        SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems,new VFXSearcherAdapter("Create Node",this), item => {
                             if (item is VFXSearcherItem vfxItem)
                                 AddNode(vfxItem.descriptor, point);
                             return true;
-                        }, point);
+                        }, point, null);
                     }
                     else
                         VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
