@@ -83,6 +83,8 @@ namespace UnityEditor.VFX
         public static void Build()
         {
             var vfxAssets = GetAllVisualEffectAssets();
+
+            AssetDatabase.StartAssetEditing();
             foreach (var vfxAsset in vfxAssets)
             {
                 if (VFXViewPreference.advancedLogs)
@@ -90,11 +92,8 @@ namespace UnityEditor.VFX
 
                 VFXExpression.ClearCache();
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
-
-                var resource = vfxAsset.GetResource();
-
-                EditorUtility.SetDirty(resource);
             }
+            AssetDatabase.StopAssetEditing();
             AssetDatabase.SaveAssets();
         }
     }
