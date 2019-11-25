@@ -83,3 +83,8 @@ When you upgrade your **High Definition RP** package, Unity now upgrades each of
 
 To do this, Unity opens a prompt when you begin the upgrade, asking if you want to save your Project. It keeps attempting to upgrade old files until you agree to save your Project.
 
+## Missing Script for GameObject SceneIDMap
+
+For scene with baked probes authored prior to 2019.3, you may ran into a warning concerning a missing script for a GameObject named SceneIDMap when entering play mode.
+To fix it, you can load the scene in the editor and click on "Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes".
+
