@@ -37,7 +37,7 @@ BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Nor
 AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
 
 You can see here on this diagram where the custom passes are injected inside an HDRP frame.
-![](Images/HDRP-frame-graph-diagram.jpg)
+![](Images/HDRP-frame-graph-diagram.png)
 
 ## Custom Pass List
 
