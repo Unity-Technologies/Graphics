@@ -82,7 +82,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Inner Angle (%)** | Determines where the attenuation between the inner cone and the outer cone starts. Higher values cause the light at the edges of the Spot Light to fade out. Lower values stop the light from fading at the edges. This property is only for Lights with a **Cone Shape**. |
 | **Spot Angle**      | The angle in degrees used to determine the size of a Spot Light using a **Pyramid** shape. |
 | **Aspect Ratio**    | Adjusts the shape of a Pyramid Spot Light to create rectangular Spot Lights. Set this to 1 for a square projection. Values lower than 1 make the Light wider, from the point of origin. Values higher than 1 make the Light longer. This property is only for Lights with a **Pyramid Shape**. |
-| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the softness of baked shadows and ray-traced shadows. |
+| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the softness of baked shadows, ray-traced and PCSS shadows. |
 | **Size X**          | For **Box**. Adjusts the horizontal size of the Box Light. No light shines outside of the dimensions you set. |
 | **Size Y**          | For **Box**. Adjusts the vertical size of the Box Light. No light shines outside of the dimensions you set. |
 
