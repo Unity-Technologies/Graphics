@@ -133,12 +133,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             /* EmissiveIntensityToColor,
              * SecondMigrationStep,
-             * ... */
-             SpecularOcclusionMode
+             * ...
+             SpecularOcclusionMode  */
         };
 
         #region Migrations
 
+        // Not used currently:
+        // TODO: Script liek this must also work with embed material in scene (i.e we need to catch
+        // .unity scene and load material and patch in memory. And it must work with perforce
+        // i.e automatically checkout all those files).
         static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
         {
             switch (id)
