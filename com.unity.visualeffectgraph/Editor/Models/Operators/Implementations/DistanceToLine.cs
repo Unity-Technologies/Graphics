@@ -18,12 +18,21 @@ namespace UnityEditor.VFX.Operator
         public class OutputProperties
         {
             [Tooltip("Outputs the closest point on the line to the supplied position.")]
-            public Vector3 closestPosition;
+            public Position closestPosition;
             [Tooltip("Outputs the unsigned distance from the line.")]
             public float distance;
         }
 
         override public string name { get { return "Distance (Line)"; } }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

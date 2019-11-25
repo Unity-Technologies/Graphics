@@ -21,6 +21,14 @@ namespace UnityEngine.Rendering.HighDefinition
         protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
 
         /// <summary>
+        /// Preprocess for rendering the sky. Called before the DepthPrePass operations
+        /// </summary>
+        /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
+        /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
+        /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
+        public virtual void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk) { }
+
+        /// <summary>
         /// Implements actual rendering of the sky. HDRP calls this when rendering the sky into a cubemap (for lighting) and also during main frame rendering.
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
@@ -34,22 +42,36 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="skySettings">SkySettings for which exposure is required.</param>
         /// <param name="debugSettings">Current debug display settings</param>
         /// <returns>Returns SkySetting exposure.</returns>
-        protected static float GetExposure(SkySettings skySettings, DebugDisplaySettings debugSettings)
+        protected static float GetSkyIntensity(SkySettings skySettings, DebugDisplaySettings debugSettings)
         {
-            float debugExposure = 0.0f;
+            float skyIntensity = 1.0f;
             if (debugSettings != null && debugSettings.DebugNeedsExposure())
             {
-                debugExposure = debugSettings.data.lightingDebugSettings.debugExposure;
+                skyIntensity *= ColorUtils.ConvertEV100ToExposure(-debugSettings.data.lightingDebugSettings.debugExposure);
             }
-            return ColorUtils.ConvertEV100ToExposure(-(skySettings.exposure.value + debugExposure));
+
+            switch(skySettings.skyIntensityMode.value)
+            {
+                case SkyIntensityMode.Exposure:
+                    skyIntensity *= ColorUtils.ConvertEV100ToExposure(-skySettings.exposure.value);
+                    break;
+                case SkyIntensityMode.Multiplier:
+                    skyIntensity *= skySettings.multiplier.value;
+                    break;
+                case SkyIntensityMode.Lux:
+                    skyIntensity *= skySettings.desiredLuxValue.value / skySettings.upperHemisphereLuxValue.value;
+                    break;
+            }
+
+            return skyIntensity;
         }
 
         /// <summary>
         /// Setup global parameters for the sky renderer.
         /// </summary>
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
-        /// <param name="sky">Settings for the sky.</param>
-        public virtual void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        /// <param name="builtinParams">Sky system builtin parameters.</param>
+        public virtual void SetGlobalSkyData(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
         {
 
         }

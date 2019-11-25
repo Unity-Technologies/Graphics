@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Decal materials (does not include ShaderGraphs)
     /// </summary>
-    class DecalUI : HDShaderGUI
+    class DecalUI : ShaderGUI
     {
         [Flags]
         enum Expandable : uint
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
 
-        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             LoadMaterialProperties(props);
 
@@ -210,7 +210,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
+        //protected override void SetupMaterialKeywordsAndPassInternal(Material material)
+        void SetupMaterialKeywordsAndPassInternal(Material material)
         {
             SetupMaterialKeywordsAndPass(material);
         }

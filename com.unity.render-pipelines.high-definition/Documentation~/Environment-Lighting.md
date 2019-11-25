@@ -69,7 +69,7 @@ HDRP has three built-in [sky types](HDRP-Features.html#SkyOverview):
 
 HDRP also allows you to implement your own sky types that display a background and handle environment lighting. See the [Customizing HDRP](Creating-a-Custom-Sky.html) documentation for instructions on how to implement your own sky.
 
-**Note**: The [Procedural Sky](Override-Procedural-Sky.html) is deprecated and no longer built into HDRP. For information on how to add Procedural Sky to your HDRP Project, see the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
+**Note**: The **Procedural Sky** is deprecated and no longer built into HDRP. For information on how to add Procedural Sky to your HDRP Project, see the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
 
 ## Reflection
 
