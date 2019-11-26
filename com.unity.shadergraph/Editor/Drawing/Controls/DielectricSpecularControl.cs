@@ -34,8 +34,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         Slider m_IORSlider;
         FloatField m_IORField;
 
-        int m_UndoGroup = -1;
-
         public DielectricSpecularControlView(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
@@ -135,53 +133,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
                 {
-                    var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
                     var fieldValue = (float)evt.newValue;
                     if (index == 1)
-                    {
-                        value.indexOfRefraction = fieldValue;
-                        RedrawIORControls(fieldValue);
-                    }
+                        m_DielectricMaterial.indexOfRefraction = fieldValue;
                     else
-                    {
-                        value.range = fieldValue;
-                        RedrawRangeControls(fieldValue);
-                    }
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                    m_UndoGroup = -1;
+                        m_DielectricMaterial.range = fieldValue;
+                    
+                    m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
                     this.MarkDirtyRepaint();
                 });
-            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                 {
-                    if (m_UndoGroup == -1)
-                    {
-                        m_UndoGroup = Undo.GetCurrentGroup();
-                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    }
-                    float newValue;
-                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                        newValue = 0f;
-                    var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
                     if (index == 1)
-                        value.indexOfRefraction = newValue;
+                        RedrawIORControls(m_DielectricMaterial.indexOfRefraction);
                     else
-                        value.range = newValue;
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                    this.MarkDirtyRepaint();
-                });
-            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
-                {
-                    if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                    {
-                        Undo.RevertAllDownToGroup(m_UndoGroup);
-                        m_UndoGroup = -1;
-                        var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
-                        if (index == 1)
-                            RedrawIORControls(value.indexOfRefraction);
-                        else
-                            RedrawRangeControls(value.range);
-                        evt.StopPropagation();
-                    }
+                        RedrawRangeControls(m_DielectricMaterial.range);
+
                     this.MarkDirtyRepaint();
                 });
             panel.Add(field);
