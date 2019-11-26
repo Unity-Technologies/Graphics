@@ -149,7 +149,6 @@ namespace UnityEditor.VFX.UI
         }
         class VFXViewSearcherAdapter : VFXSearcherAdapter
         {
-
             public VFXViewSearcherAdapter(string title, VFXView view) : base(title, view) { }
 
 
@@ -159,7 +158,6 @@ namespace UnityEditor.VFX.UI
                 if (items.OfType<VFXViewSearcherItem>().Any())
                 {
                     var searcherItem = items.OfType<VFXViewSearcherItem>().First();
-
 
                     if (searcherItem.descriptor.modelDescriptor is VFXModelDescriptor<VFXContext> contextDesc)
                     {
@@ -171,19 +169,24 @@ namespace UnityEditor.VFX.UI
                         m_Node = new VFXContextUI();
                         m_Node.controller = newContextController;
                         m_Node.style.position = PositionType.Relative;
+                        m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
                         m_NodeShape.Add(m_Node);
+                        m_DragObject = searcherItem.descriptor.modelDescriptor;
+                        m_DragType = nameof(VFXModelDescriptor<VFXContext>);
                     }
                     else if (searcherItem.descriptor.modelDescriptor is VFXModelDescriptor<VFXOperator> operatorDesc)
                     {
                         var newOperator = operatorDesc.CreateInstance();
-                        newOperator.ResyncSlots(false);
                         VFXOperatorController newOperatorController = new VFXOperatorController(newOperator, m_View.controller);
                         m_Controller = newOperatorController;
                         newOperatorController.ForceUpdate();
                         m_Node = new VFXOperatorUI();
                         m_Node.controller = newOperatorController;
                         m_Node.style.position = PositionType.Relative;
+                        m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
                         m_NodeShape.Add(m_Node);
+                        m_DragObject = searcherItem.descriptor.modelDescriptor;
+                        m_DragType = nameof(VFXModelDescriptor<VFXOperator>);
                     }
                 }
             }
@@ -2092,6 +2095,11 @@ namespace UnityEditor.VFX.UI
                 DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                 e.StopPropagation();
             }
+            else if(DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>)) != null || DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>)) != null)
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                e.StopPropagation();
+            }
             else
             {
                 var references = DragAndDrop.objectReferences.OfType<VisualEffectAsset>().Cast<VisualEffectObject>().Concat(DragAndDrop.objectReferences.OfType<VisualEffectSubgraphOperator>());
@@ -2141,6 +2149,26 @@ namespace UnityEditor.VFX.UI
                     }
                     e.StopPropagation();
                 }
+            }
+            else if (DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>)) != null)
+            {
+                DragAndDrop.AcceptDrag();
+
+                VFXModelDescriptor<VFXOperator> desc = (VFXModelDescriptor<VFXOperator>)DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>));
+                Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                controller.AddVFXOperator(mousePosition, desc);
+
+                e.StopPropagation();
+            }
+            else if (DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>)) != null)
+            {
+                DragAndDrop.AcceptDrag();
+
+                VFXModelDescriptor<VFXContext> desc = (VFXModelDescriptor<VFXContext>)DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>));
+                Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                controller.AddVFXContext(mousePosition, desc);
+
+                e.StopPropagation();
             }
             else
             {
