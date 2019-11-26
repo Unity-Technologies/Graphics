@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditorInternal;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
@@ -311,7 +310,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     case ProbeSettings.Mode.Custom:
                         {
-                            if (ButtonWithDropdownList(
+                            if (EditorGUI.ButtonWithDropdownList(
                                 EditorGUIUtility.TrTextContent(
                                     "Bake", "Bakes Probe's texture, overwriting the existing texture asset (if any)."
                                 ),
@@ -343,7 +342,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             GUI.enabled = serialized.target.enabled;
 
                             // Bake button in non-continous mode
-                            if (ButtonWithDropdownList(
+                            if (EditorGUI.ButtonWithDropdownList(
                                     EditorGUIUtility.TrTextContent("Bake"),
                                     k_BakeButtonsText,
                                     data =>
@@ -368,13 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     default: throw new ArgumentOutOfRangeException();
                 }
             }
-
-            static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
-            static bool ButtonWithDropdownList(GUIContent content, string[] buttonNames, GenericMenu.MenuFunction2 callback, params GUILayoutOption[] options)
-            {
-                return (bool)k_EditorGUI_ButtonWithDropdownList.Invoke(null, new object[] { content, buttonNames, callback, options });
-            }
-
+            
             static void RenderInCustomAsset(HDProbe probe, bool useExistingCustomAsset)
             {
                 var provider = new TProvider();

@@ -1,9 +1,5 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,21 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
         HDAdditionalLightData[] m_AdditionalLightDatas;
 
         HDAdditionalLightData targetAdditionalData
-            => m_AdditionalLightDatas[ReferenceTargetIndex(this)];
-
-        static Func<Editor, int> ReferenceTargetIndex;
-
-        static HDLightEditor()
-        {
-            var type = typeof(UnityEditor.Editor);
-            var propertyInfo = type.GetProperty("referenceTargetIndex", BindingFlags.NonPublic | BindingFlags.Instance);
-            var getterMethodInfo = propertyInfo.GetGetMethod(true);
-            var instance = Expression.Parameter(typeof(Editor), "instance");
-            var getterCall = Expression.Call(instance, getterMethodInfo);
-            var lambda = Expression.Lambda<Func<Editor, int>>(getterCall, instance);
-            ReferenceTargetIndex = lambda.Compile();
-        }
-
+            => m_AdditionalLightDatas[referenceTargetIndex];
+        
         protected override void OnEnable()
         {
             base.OnEnable();

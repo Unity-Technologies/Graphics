@@ -1,7 +1,4 @@
-using System;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Object = UnityEngine.Object;
 
@@ -13,17 +10,22 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var c = (Camera)target;
 
-            if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
+            if (!CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
-
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
-
+            
+            SceneViewOverlay.Window(
+                EditorGUIUtility.TrTextContent("Camera Preview"),
+                OnOverlayGUI,
+                -100,
+                target,
+                SceneViewOverlay.WindowDisplayOption.OneWindowPerTarget);
+            
             UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetInstanceID());
         }
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
-            UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
+            CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
         }
 
         Camera InitializePreviewCamera(Camera c, Vector2 previewSize)
@@ -41,28 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewCamera.pixelRect = new Rect(0, 0, previewSize.x, previewSize.y);
 
             return m_PreviewCamera;
-        }
-
-        static Type k_SceneViewOverlay_WindowFunction = Type.GetType("UnityEditor.SceneViewOverlay+WindowFunction,UnityEditor");
-        static Type k_SceneViewOverlay_WindowDisplayOption = Type.GetType("UnityEditor.SceneViewOverlay+WindowDisplayOption,UnityEditor");
-        static MethodInfo k_SceneViewOverlay_Window = Type.GetType("UnityEditor.SceneViewOverlay,UnityEditor")
-            .GetMethod(
-                "Window",
-                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
-                null);
-        static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
-        {
-            k_SceneViewOverlay_Window.Invoke(null, new[]
-            {
-                title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
-                order,
-                target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
-                null
-            });
         }
     }
 }

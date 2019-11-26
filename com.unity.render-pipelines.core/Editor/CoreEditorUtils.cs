@@ -783,17 +783,12 @@ namespace UnityEditor.Rendering
             Professional,
         }
         
-        static Func<int> GetInternalSkinIndex;
         static Func<float> GetGUIStatePixelsPerPoint;
         static Func<Texture2D, float> GetTexturePixelPerPoint;
         static Action<Texture2D, float> SetTexturePixelPerPoint;
 
         static void LoadSkinAndIconMethods()
         {
-            var internalSkinIndexInfo = typeof(EditorGUIUtility).GetProperty("skinIndex", BindingFlags.NonPublic | BindingFlags.Static);
-            var internalSkinIndexLambda = Expression.Lambda<Func<int>>(Expression.Property(null, internalSkinIndexInfo));
-            GetInternalSkinIndex = internalSkinIndexLambda.Compile();
-
             var guiStatePixelsPerPointInfo = typeof(GUIUtility).GetProperty("pixelsPerPoint", BindingFlags.NonPublic | BindingFlags.Static);
             var guiStatePixelsPerPointLambda = Expression.Lambda<Func<float>>(Expression.Property(null, guiStatePixelsPerPointInfo));
             GetGUIStatePixelsPerPoint = guiStatePixelsPerPointLambda.Compile();
@@ -810,9 +805,8 @@ namespace UnityEditor.Rendering
 
         /// <summary>Get the skin currently in use</summary>
         static Skin currentSkin
-            => GetInternalSkinIndex() == 0 ? Skin.Personnal : Skin.Professional;
-
-
+            => EditorGUIUtility.skinIndex == 0 ? Skin.Personnal : Skin.Professional;
+        
         // /!\ UIElement do not support well pixel per point at the moment. For this, use the hack forceLowRes
         /// <summary>
         /// Load an icon regarding skin and editor resolution.
@@ -826,40 +820,38 @@ namespace UnityEditor.Rendering
         /// <param name="skin">[Optional] Load icon for this skin (Auto per default take current skin)</param>
         public static Texture2D LoadIcon(string path, string name, string extention = ".png", bool forceLowRes = false)
         {
-            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
-                return null;
-
-            string prefix = "";
-
-            var skin = currentSkin;
-            if (skin == Skin.Professional)
-                prefix = "d_";
-            
-            Texture2D icon = null;
-            float pixelsPerPoint = GetGUIStatePixelsPerPoint();
-            if (pixelsPerPoint > 1.0f && !forceLowRes)
+            //workarround for UIElement, to be removed as soon as fixed
+            if (forceLowRes)
             {
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
+                if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+                    return null;
+
+                string prefix = "";
+
+                var skin = currentSkin;
+                if (skin == Skin.Professional)
+                    prefix = "d_";
+
+                float pixelsPerPoint = GetGUIStatePixelsPerPoint();
+
+                //load for skin
+                Texture2D icon = EditorGUIUtility.Load($"{path}/{prefix}{name}{extention}") as Texture2D;
+
+                //back up on personnal skin
                 if (icon == null && !string.IsNullOrEmpty(prefix))
-                    icon = EditorGUIUtility.Load(String.Format("{0}/{1}@2x{2}", path, name, extention)) as Texture2D;
-                if (icon != null)
-                    SetTexturePixelPerPoint(icon, 2.0f);
+                    icon = EditorGUIUtility.Load($"{path}/{name}{extention}") as Texture2D;
+
+                if (icon != null &&
+                    !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
+                    !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
+                {
+                    icon.filterMode = FilterMode.Bilinear;
+                }
+
+                return icon;
             }
 
-            if (icon == null)
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}{3}", path, prefix, name, extention)) as Texture2D;
-
-            if (icon == null && !string.IsNullOrEmpty(prefix))
-                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}", path, name, extention)) as Texture2D;
-
-            if (icon != null &&
-                !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
-                !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
-            {
-                icon.filterMode = FilterMode.Bilinear;
-            }
-
-            return icon;
+            return EditorGUIUtility.LoadIconRequired($"{path}/{name}");
         }
 
         /// <summary>

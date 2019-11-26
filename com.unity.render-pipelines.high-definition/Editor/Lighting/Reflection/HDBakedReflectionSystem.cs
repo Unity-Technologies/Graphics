@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor.VersionControl;
 using UnityEngine;
@@ -648,10 +646,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return true;
         }
-
+        
         static string GetGICacheFolderFor(Hash128 hash)
         {
-            var cacheFolder = GetGICachePath();
+            var cacheFolder = Lightmapping.diskCachePath;
             var hashFolder = Path.Combine(cacheFolder, hash.ToString().Substring(0, 2));
             return hashFolder;
         }
@@ -698,13 +696,5 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetDatabase.ImportAsset(bakedTexturePath);
             ImportAssetAt(probe, bakedTexturePath);
         }
-
-        static Func<string> GetGICachePath = Expression.Lambda<Func<string>>(
-            Expression.Call(
-                typeof(Lightmapping)
-                .GetProperty("diskCachePath", BindingFlags.Static | BindingFlags.NonPublic)
-                .GetGetMethod(true)
-            )
-        ).Compile();
     }
 }

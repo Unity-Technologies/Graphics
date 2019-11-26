@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -74,7 +73,7 @@ namespace UnityEditor.Rendering
 
         class Styles
         {
-            public GUIStyle header = (GUIStyle)typeof(EditorStyles).GetProperty("inspectorBig", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null, null);
+            public GUIStyle header = EditorStyles.inspectorBig;
             public GUIStyle componentButton = new GUIStyle("PR Label");
             public GUIStyle groupButton;
             public GUIStyle background = "grey_border";
@@ -193,13 +192,6 @@ namespace UnityEditor.Rendering
             return false;
         }
 
-        static object Invoke(Type t, object inst, string method, params object[] args)
-        {
-            var flags = (inst == null ? BindingFlags.Static : BindingFlags.Instance) | BindingFlags.NonPublic;
-            var mi = t.GetMethod(method, flags);
-            return mi.Invoke(inst, args);
-        }
-
         void Init(Vector2 position, IProvider provider)
         {
             m_Provider = provider;
@@ -303,7 +295,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(m_ActiveParent.ShouldDisable))
             {
-                string newSearch = (string)Invoke(typeof(EditorGUI), null, "SearchField", searchRect, m_DelayedSearch ?? m_Search);
+                string newSearch = EditorGUI.SearchField(searchRect, m_DelayedSearch ?? m_Search);
 
                 if (newSearch != m_Search || m_DelayedSearch != null)
                 {

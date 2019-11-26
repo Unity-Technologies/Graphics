@@ -1,7 +1,5 @@
 using UnityEngine.Rendering;
 using System;
-using System.Reflection;
-using System.Linq.Expressions;
 
 namespace UnityEditor.Rendering
 {
@@ -124,25 +122,6 @@ namespace UnityEditor.Rendering
 
     public abstract class SerializedBitArray : ISerializedBitArray
     {
-        // Note: this should be exposed at the same time as issue with type other than Int32 is fixed on C++ side
-        protected static Action<SerializedProperty, int, bool> SetBitAtIndexForAllTargetsImmediate;
-        protected static Func<SerializedProperty, int> HasMultipleDifferentValuesBitwise;
-        static SerializedBitArray()
-        {
-            var type = typeof(SerializedProperty);
-            var setBitAtIndexForAllTargetsImmediateMethodInfo = type.GetMethod("SetBitAtIndexForAllTargetsImmediate", BindingFlags.Instance | BindingFlags.NonPublic);
-            var hasMultipleDifferentValuesBitwisePropertyInfo = type.GetProperty("hasMultipleDifferentValuesBitwise", BindingFlags.Instance | BindingFlags.NonPublic);
-            var serializedPropertyParameter = Expression.Parameter(typeof(SerializedProperty), "property");
-            var indexParameter = Expression.Parameter(typeof(int), "index");
-            var valueParameter = Expression.Parameter(typeof(bool), "value");
-            var hasMultipleDifferentValuesBitwiseProperty = Expression.Property(serializedPropertyParameter, hasMultipleDifferentValuesBitwisePropertyInfo);
-            var setBitAtIndexForAllTargetsImmediateCall = Expression.Call(serializedPropertyParameter, setBitAtIndexForAllTargetsImmediateMethodInfo, indexParameter, valueParameter);
-            var setBitAtIndexForAllTargetsImmediateLambda = Expression.Lambda<Action<SerializedProperty, int, bool>>(setBitAtIndexForAllTargetsImmediateCall, serializedPropertyParameter, indexParameter, valueParameter);
-            var hasMultipleDifferentValuesBitwiseLambda = Expression.Lambda<Func<SerializedProperty, int>>(hasMultipleDifferentValuesBitwiseProperty, serializedPropertyParameter);
-            SetBitAtIndexForAllTargetsImmediate = setBitAtIndexForAllTargetsImmediateLambda.Compile();
-            HasMultipleDifferentValuesBitwise = hasMultipleDifferentValuesBitwiseLambda.Compile();
-        }
-
         protected SerializedProperty m_SerializedProperty;
         SerializedProperty[] m_SerializedProperties;
 
@@ -250,7 +229,7 @@ namespace UnityEditor.Rendering
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
-            => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
+            => (m_Data.hasMultipleDifferentValuesBitwise & (1 << (int)bitIndex)) != 0;
 
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get8(bitIndex, (byte)m_Data.intValue);
@@ -275,7 +254,7 @@ namespace UnityEditor.Rendering
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
-            => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
+            => (m_Data.hasMultipleDifferentValuesBitwise & (1 << (int)bitIndex)) != 0;
 
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get16(bitIndex, (ushort)m_Data.intValue);
@@ -300,7 +279,7 @@ namespace UnityEditor.Rendering
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
-            => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
+            => (m_Data.hasMultipleDifferentValuesBitwise & (1 << (int)bitIndex)) != 0;
 
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get32(bitIndex, (uint)m_Data.intValue);

@@ -1,11 +1,8 @@
 using UnityEngine;
-using UnityEditor;
 using System.Collections.Generic;
 using UnityEditorInternal;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System;
-using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

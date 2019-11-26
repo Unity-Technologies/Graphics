@@ -536,10 +536,10 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_MULTIPLE_DISPLAYS
         static void Drawer_SectionMultiDisplay(SerializedHDCamera p, Editor owner)
         {
-            if (ModuleManager_ShouldShowMultiDisplayOption())
+            if (Modules.ModuleManager.ShouldShowMultiDisplayOption())
             {
                 var prevDisplay = p.baseCameraSettings.targetDisplay.intValue;
-                EditorGUILayout.IntPopup(p.baseCameraSettings.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), targetDisplayContent);
+                EditorGUILayout.IntPopup(p.baseCameraSettings.targetDisplay, DisplayUtility.GetDisplayNames(), DisplayUtility.GetDisplayIndices(), targetDisplayContent);
                 if (prevDisplay != p.baseCameraSettings.targetDisplay.intValue)
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
@@ -553,28 +553,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.IntPopup(p.baseCameraSettings.targetEye, k_TargetEyes, k_TargetEyeValues, targetEyeContent);
         }
-
-        static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
-            .GetMethod("GetDisplayIndices");
-        static int[] DisplayUtility_GetDisplayIndices()
-        {
-            return (int[])k_DisplayUtility_GetDisplayIndices.Invoke(null, null);
-        }
-
-        static MethodInfo k_DisplayUtility_GetDisplayNames = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
-            .GetMethod("GetDisplayNames");
-        static GUIContent[] DisplayUtility_GetDisplayNames()
-        {
-            return (GUIContent[])k_DisplayUtility_GetDisplayNames.Invoke(null, null);
-        }
-
-        static MethodInfo k_ModuleManager_ShouldShowMultiDisplayOption = Type.GetType("UnityEditor.Modules.ModuleManager,UnityEditor")
-            .GetMethod("ShouldShowMultiDisplayOption", BindingFlags.Static | BindingFlags.NonPublic);
-        static bool ModuleManager_ShouldShowMultiDisplayOption()
-        {
-            return (bool)k_ModuleManager_ShouldShowMultiDisplayOption.Invoke(null, null);
-        }
-
+        
         static readonly MethodInfo k_Camera_GetCameraBufferWarnings = typeof(Camera).GetMethod("GetCameraBufferWarnings", BindingFlags.Instance | BindingFlags.NonPublic);
         static string[] GetCameraBufferWarnings(Camera camera)
         {

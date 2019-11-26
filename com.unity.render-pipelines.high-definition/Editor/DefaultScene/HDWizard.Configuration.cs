@@ -30,81 +30,14 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         #region REFLECTION
 
-        //reflect internal legacy enum
-        enum LightmapEncodingQualityCopy
-        {
-            Low = 0,
-            Normal = 1,
-            High = 2
-        }
-
-        static Func<BuildTargetGroup, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatformGroup;
-        static Action<BuildTargetGroup, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatformGroup;
-        static Func<BuildTarget> CalculateSelectedBuildTarget;
-        static Func<BuildTarget, GraphicsDeviceType[]> GetSupportedGraphicsAPIs;
         static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
-        static Action RequestCloseAndRelaunchWithCurrentArguments;
-        static Func<BuildTarget, bool> GetStaticBatching;
-        static Action<BuildTarget, bool> SetStaticBatching;
 
         static void LoadReflectionMethods()
         {
-            Type playerSettingsType = typeof(PlayerSettings);
-            Type playerSettingsEditorType = playerSettingsType.Assembly.GetType("UnityEditor.PlayerSettingsEditor");
-            Type lightEncodingQualityType = playerSettingsType.Assembly.GetType("UnityEditor.LightmapEncodingQuality");
-            Type editorUserBuildSettingsUtilsType = playerSettingsType.Assembly.GetType("UnityEditor.EditorUserBuildSettingsUtils");
-            var qualityVariable = Expression.Variable(lightEncodingQualityType, "quality_internal");
-            var buildTargetVariable = Expression.Variable(typeof(BuildTarget), "platform");
-            var staticBatchingVariable = Expression.Variable(typeof(int), "staticBatching");
-            var dynamicBatchingVariable = Expression.Variable(typeof(int), "DynamicBatching");
-            var staticBatchingParameter = Expression.Parameter(typeof(bool), "staticBatching");
-            var buildTargetGroupParameter = Expression.Parameter(typeof(BuildTargetGroup), "platformGroup");
             var buildTargetParameter = Expression.Parameter(typeof(BuildTarget), "platform");
-            var qualityParameter = Expression.Parameter(typeof(LightmapEncodingQualityCopy), "quality");
-            var getLightmapEncodingQualityForPlatformGroupInfo = playerSettingsType.GetMethod("GetLightmapEncodingQualityForPlatformGroup", BindingFlags.Static | BindingFlags.NonPublic);
-            var setLightmapEncodingQualityForPlatformGroupInfo = playerSettingsType.GetMethod("SetLightmapEncodingQualityForPlatformGroup", BindingFlags.Static | BindingFlags.NonPublic);
-            var calculateSelectedBuildTargetInfo = editorUserBuildSettingsUtilsType.GetMethod("CalculateSelectedBuildTarget", BindingFlags.Static | BindingFlags.Public);
-            var getSupportedGraphicsAPIsInfo = playerSettingsType.GetMethod("GetSupportedGraphicsAPIs", BindingFlags.Static | BindingFlags.NonPublic);
-            var getStaticBatchingInfo = playerSettingsType.GetMethod("GetBatchingForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
-            var setStaticBatchingInfo = playerSettingsType.GetMethod("SetBatchingForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
-            var willEditorUseFirstGraphicsAPIInfo = playerSettingsEditorType.GetMethod("WillEditorUseFirstGraphicsAPI", BindingFlags.Static | BindingFlags.NonPublic);
-            var requestCloseAndRelaunchWithCurrentArgumentsInfo = typeof(EditorApplication).GetMethod("RequestCloseAndRelaunchWithCurrentArguments", BindingFlags.Static | BindingFlags.NonPublic);
-            var getLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
-                new[] { qualityVariable },
-                Expression.Assign(qualityVariable, Expression.Call(getLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter)),
-                Expression.Convert(qualityVariable, typeof(LightmapEncodingQualityCopy))
-                );
-            var setLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
-                new[] { qualityVariable },
-                Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, lightEncodingQualityType)),
-                Expression.Call(setLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter, qualityVariable)
-                );
-            var getStaticBatchingBlock = Expression.Block(
-                new[] { staticBatchingVariable, dynamicBatchingVariable },
-                Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
-                Expression.Equal(staticBatchingVariable, Expression.Constant(1))
-                );
-            var setStaticBatchingBlock = Expression.Block(
-                new[] { staticBatchingVariable, dynamicBatchingVariable },
-                Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
-                Expression.Call(setStaticBatchingInfo, buildTargetParameter, Expression.Convert(staticBatchingParameter, typeof(int)), dynamicBatchingVariable)
-                );
-            var getLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Func<BuildTargetGroup, LightmapEncodingQualityCopy>>(getLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter);
-            var setLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Action<BuildTargetGroup, LightmapEncodingQualityCopy>>(setLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter, qualityParameter);
-            var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
-            var getSupportedGraphicsAPIsLambda = Expression.Lambda<Func<BuildTarget, GraphicsDeviceType[]>>(Expression.Call(null, getSupportedGraphicsAPIsInfo, buildTargetParameter), buildTargetParameter);
-            var getStaticBatchingLambda = Expression.Lambda<Func<BuildTarget, bool>>(getStaticBatchingBlock, buildTargetParameter);
-            var setStaticBatchingLambda = Expression.Lambda<Action<BuildTarget, bool>>(setStaticBatchingBlock, buildTargetParameter, staticBatchingParameter);
+            var willEditorUseFirstGraphicsAPIInfo = typeof(PlayerSettingsEditor).GetMethod("WillEditorUseFirstGraphicsAPI", BindingFlags.Static | BindingFlags.NonPublic);
             var willEditorUseFirstGraphicsAPILambda = Expression.Lambda<Func<BuildTarget, bool>>(Expression.Call(null, willEditorUseFirstGraphicsAPIInfo, buildTargetParameter), buildTargetParameter);
-            var requestCloseAndRelaunchWithCurrentArgumentsLambda = Expression.Lambda<Action>(Expression.Call(null, requestCloseAndRelaunchWithCurrentArgumentsInfo));
-            GetLightmapEncodingQualityForPlatformGroup = getLightmapEncodingQualityForPlatformGroupLambda.Compile();
-            SetLightmapEncodingQualityForPlatformGroup = setLightmapEncodingQualityForPlatformGroupLambda.Compile();
-            CalculateSelectedBuildTarget = calculateSelectedBuildTargetLambda.Compile();
-            GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
-            GetStaticBatching = getStaticBatchingLambda.Compile();
-            SetStaticBatching = setStaticBatchingLambda.Compile();
             WillEditorUseFirstGraphicsAPI = willEditorUseFirstGraphicsAPILambda.Compile();
-            RequestCloseAndRelaunchWithCurrentArguments = requestCloseAndRelaunchWithCurrentArgumentsLambda.Compile();
         }
 
         #endregion
@@ -278,17 +211,17 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Shame alert: plateform supporting Encodement are partly hardcoded
             // in editor (Standalone) and for the other part, it is all in internal code.
-            return GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA) == LightmapEncodingQualityCopy.High;
+            return PlayerSettings.GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone) == LightmapEncodingQuality.High
+                && PlayerSettings.GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android) == LightmapEncodingQuality.High
+                && PlayerSettings.GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin) == LightmapEncodingQuality.High
+                && PlayerSettings.GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA) == LightmapEncodingQuality.High;
         }
         void FixLightmap(bool fromAsyncUnused)
         {
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQualityCopy.High);
+            PlayerSettings.SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone, LightmapEncodingQuality.High);
+            PlayerSettings.SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQuality.High);
+            PlayerSettings.SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin, LightmapEncodingQuality.High);
+            PlayerSettings.SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQuality.High);
         }
 
         bool IsShadowmaskCorrect()
@@ -309,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
         void FixHdrpAssetUsed(bool fromAsync)
         {
-            if (ObjectSelector.opened)
+            if (ObjectSelectorUtility.opened)
                 return;
             CreateOrLoad<HDRenderPipelineAsset>(fromAsync
                 ? () => m_Fixer.Stop()
@@ -399,7 +332,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDProjectSettings.defaultScenePrefab != null;
         void FixDefaultScene(bool fromAsync)
         {
-            if (ObjectSelector.opened)
+            if (ObjectSelectorUtility.opened)
                 return;
             CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultScenePrefab = scene, forDXR: false);
             m_DefaultScene.SetValueWithoutNotify(HDProjectSettings.defaultScenePrefab);
@@ -451,17 +384,17 @@ namespace UnityEditor.Rendering.HighDefinition
             => FixAllEntryInScope(InclusiveScope.DXR);
 
         bool IsDXRAutoGraphicsAPICorrect()
-            => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
+            => !PlayerSettings.GetUseDefaultGraphicsAPIs(EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget());
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
-            => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
+            => PlayerSettings.SetUseDefaultGraphicsAPIs(EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget(), false);
 
         bool IsDXRDirect3D12Correct()
-            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12;
+            => PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12;
         void FixDXRDirect3D12(bool fromAsync)
         {
-            if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
+            if (PlayerSettings.GetSupportedGraphicsAPIs(EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
             {
-                var buidTarget = CalculateSelectedBuildTarget();
+                var buidTarget = EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget();
                 if (PlayerSettings.GetGraphicsAPIs(buidTarget).Contains(GraphicsDeviceType.Direct3D12))
                 {
                     PlayerSettings.SetGraphicsAPIs(
@@ -501,7 +434,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
-                        RequestCloseAndRelaunchWithCurrentArguments();
+                        EditorApplication.RequestCloseAndRelaunchWithCurrentArguments();
                         GUIUtility.ExitGUI();
                     }
                 }
@@ -585,9 +518,18 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRStaticBatchingCorrect()
-            => !GetStaticBatching(CalculateSelectedBuildTarget());
+        {
+            int staticBatching, dynamicBatching;
+            PlayerSettings.GetBatchingForPlatform(EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget(), out staticBatching, out dynamicBatching);
+            return staticBatching != 1;
+        }
         void FixDXRStaticBatching(bool fromAsyncUnused)
-            => SetStaticBatching(CalculateSelectedBuildTarget(), false);
+        {
+            int staticBatching, dynamicBatching;
+            BuildTarget target = EditorUserBuildSettingsUtils.CalculateSelectedBuildTarget();
+            PlayerSettings.GetBatchingForPlatform(target, out staticBatching, out dynamicBatching);
+            PlayerSettings.SetBatchingForPlatform(target, 0, dynamicBatching);
+        }
 
         bool IsDXRActivationCorrect()
             => HDRenderPipeline.currentAsset != null
@@ -607,7 +549,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDProjectSettings.defaultDXRScenePrefab != null;
         void FixDXRDefaultScene(bool fromAsync)
         {
-            if (ObjectSelector.opened)
+            if (ObjectSelectorUtility.opened)
                 return;
             CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultDXRScenePrefab = scene, forDXR: true);
             m_DefaultDXRScene.SetValueWithoutNotify(HDProjectSettings.defaultDXRScenePrefab);

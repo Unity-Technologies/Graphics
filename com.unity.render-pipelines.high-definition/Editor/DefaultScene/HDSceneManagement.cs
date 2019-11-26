@@ -3,9 +3,6 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System;
-using System.Reflection;
-using System.Linq.Expressions;
 
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -14,29 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDSceneManagement : UnityEditor.AssetPostprocessor
     {
         const string defaultSceneNotSetWarning = "Default Scene not set! Set up it in Window > Render Pipeline > HD Render Pipeline Wizard\nStandard default unity scene used instead...";
-
-        static Func<string, bool> s_CreateEmptySceneAsset;
-
+        
         static HDSceneManagement()
         {
             EditorSceneManager.newSceneCreated += NewSceneCreated;
-
-            var scenePathProperty = Expression.Parameter(typeof(string), "scenePath");
-            var createSceneAssetInfo = typeof(EditorSceneManager)
-                .GetMethod(
-                    "CreateSceneAsset",
-                    BindingFlags.NonPublic | BindingFlags.Static,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(string), typeof(bool) },
-                    null);
-            var createSceneAssetCall = Expression.Call(
-                createSceneAssetInfo,
-                scenePathProperty,
-                Expression.Constant(false)
-                );
-            var lambda = Expression.Lambda<Func<string, bool>>(createSceneAssetCall, scenePathProperty);
-            s_CreateEmptySceneAsset = lambda.Compile();
         }
 
         static void NewSceneCreated(Scene scene, NewSceneSetup setup, NewSceneMode mode)
@@ -115,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                if (s_CreateEmptySceneAsset(pathName))
+                if (EditorSceneManager.CreateSceneAsset(pathName, createDefaultGameObjects: false))
                 {
                     UnityEngine.Object sceneAsset = AssetDatabase.LoadAssetAtPath(pathName, typeof(SceneAsset));
                     ProjectWindowUtil.ShowCreatedAsset(sceneAsset);
@@ -133,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
                 }
 
-                if (s_CreateEmptySceneAsset(pathName))
+                if (EditorSceneManager.CreateSceneAsset(pathName, createDefaultGameObjects: false))
                 {
                     UnityEngine.Object sceneAsset = AssetDatabase.LoadAssetAtPath(pathName, typeof(SceneAsset));
                     ProjectWindowUtil.ShowCreatedAsset(sceneAsset);

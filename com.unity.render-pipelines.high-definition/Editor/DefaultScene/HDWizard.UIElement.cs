@@ -1,13 +1,10 @@
 using UnityEngine;
 using System;
-using System.Linq.Expressions;
-using System.Reflection;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using UnityEditor.Experimental;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -16,79 +13,10 @@ namespace UnityEditor.Rendering.HighDefinition
         #region OBJECT_SELECTOR
 
         //utility class to show only non scene object selection
-        static class ObjectSelector
+        static class ObjectSelectorUtility
         {
-            static Action<UnityEngine.Object, Type, Action<UnityEngine.Object>> ShowObjectSelector;
-            static Func<UnityEngine.Object> GetCurrentObject;
-            static Func<int> GetSelectorID;
-            static Action<int> SetSelectorID;
-
-            const string ObjectSelectorUpdatedCommand = "ObjectSelectorUpdated";
-
-            static int id;
-
-            static int selectorID { get => GetSelectorID(); set => SetSelectorID(value); }
-
             public static bool opened
-                => Resources.FindObjectsOfTypeAll(typeof(PlayerSettings).Assembly.GetType("UnityEditor.ObjectSelector")).Length > 0;
-
-            static ObjectSelector()
-            {
-                Type playerSettingsType = typeof(PlayerSettings);
-                Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
-                var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
-                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
-                var objectSelectorVariable = Expression.Variable(objectSelectorType, "objectSelector");
-                var objectParameter = Expression.Parameter(typeof(UnityEngine.Object), "unityObject");
-                var typeParameter = Expression.Parameter(typeof(Type), "type");
-                var onClosedParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onClosed");
-                var onChangedObjectParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onChangedObject");
-                var showObjectSelectorBlock = Expression.Block(
-                    new[] { objectSelectorVariable },
-                    Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
-                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
-                    );
-                var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type, Action<UnityEngine.Object>>>(showObjectSelectorBlock, objectParameter, typeParameter, onChangedObjectParameter);
-                ShowObjectSelector = showObjectSelectorLambda.Compile();
-
-                var instanceCall = Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod());
-                var objectSelectorIDField = Expression.Field(instanceCall, "objectSelectorID");
-                var getSelectorIDLambda = Expression.Lambda<Func<int>>(objectSelectorIDField);
-                GetSelectorID = getSelectorIDLambda.Compile();
-
-                var inSelectorIDParam = Expression.Parameter(typeof(int), "value");
-                var setSelectorIDLambda = Expression.Lambda<Action<int>>(Expression.Assign(objectSelectorIDField, inSelectorIDParam), inSelectorIDParam);
-                SetSelectorID = setSelectorIDLambda.Compile();
-
-                var getCurrentObjectInfo = objectSelectorType.GetMethod("GetCurrentObject");
-                var getCurrentObjectLambda = Expression.Lambda<Func<UnityEngine.Object>>(Expression.Call(null, getCurrentObjectInfo));
-                GetCurrentObject = getCurrentObjectLambda.Compile();
-            }
-
-            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onChangedObject)
-            {
-                id = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard);
-                GUIUtility.keyboardControl = id;
-                ShowObjectSelector(obj, type, onChangedObject);
-                selectorID = id;
-            }
-
-            public static void CheckAssignationEvent<T>(Action<T> assignator)
-                where T : UnityEngine.Object
-            {
-                Event evt = Event.current;
-                if (evt.type != EventType.ExecuteCommand)
-                    return;
-                string commandName = evt.commandName;
-                if (commandName != ObjectSelectorUpdatedCommand || selectorID != id)
-                    return;
-                T current = GetCurrentObject() as T;
-                if (current == null)
-                    return;
-                assignator(current);
-                GUI.changed = true;
-                evt.Use();
-            }
+                => Resources.FindObjectsOfTypeAll(typeof(UnityEditor.ObjectSelector)).Length > 0;
         }
 
         void CreateDefaultSceneFromPackageAnsAssignIt(bool forDXR)
@@ -168,7 +96,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(target, typeof(T), o => onObjectChanged?.Invoke((T)o));
+                    ObjectSelector.get.Show(
+                        obj: target,
+                        requiredType: typeof(T),
+                        objectBeingEdited: null,
+                        allowSceneObjects: false,
+                        allowedInstanceIDs: null,
+                        onObjectSelectorClosed: null,
+                        onObjectSelectedUpdated: o => onObjectChanged?.Invoke((T)o));
                     break;
                 default:
                     throw new ArgumentException("Unrecognized option");
@@ -191,7 +126,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(forDXR ? HDProjectSettings.defaultDXRScenePrefab : HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
+                    ObjectSelector.get.Show(
+                        obj: forDXR ? HDProjectSettings.defaultDXRScenePrefab : HDProjectSettings.defaultScenePrefab,
+                        requiredType: typeof(GameObject),
+                        objectBeingEdited: null,
+                        allowSceneObjects: false,
+                        allowedInstanceIDs: null,
+                        onObjectSelectorClosed: null,
+                        onObjectSelectedUpdated: o => onObjectChanged?.Invoke((GameObject)o));
                     break;
                 default:
                     throw new ArgumentException("Unrecognized option");

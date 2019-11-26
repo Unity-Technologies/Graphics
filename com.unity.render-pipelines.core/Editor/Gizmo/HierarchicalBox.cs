@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using System.Reflection;
 
 namespace UnityEditor.Rendering
 {
@@ -126,30 +125,17 @@ namespace UnityEditor.Rendering
             }
         }
 
-        //Note: Handles.Slider not allow to use a specific ControlID.
-        //Thus Slider1D is used (with reflection)
-        static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
-        static MethodInfo k_Slider1D_Do = k_Slider1D
-                .GetMethod(
-                    "Do",
-                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-                    null);
         static void Slider1D(int controlID, ref Vector3 handlePosition, Vector3 handleOrientation, float snapScale, Color color)
         {
             using (new Handles.DrawingScope(color))
             {
-                handlePosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                    {
-                        controlID,
-                        handlePosition,
-                        handleOrientation,
-                        HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
-                        new Handles.CapFunction(Handles.DotHandleCap),
-                        snapScale
-                    });
+                UnityEditorInternal.Slider1D.Do(
+                    controlID,
+                    handlePosition,
+                    handleOrientation,
+                    HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
+                    snapScale);
             }
         }
 

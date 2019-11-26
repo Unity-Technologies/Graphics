@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using UnityEngine;
-using System.Reflection;
 using UnityEngine.Rendering.HighDefinition;
 using Object = UnityEngine.Object;
-using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -126,21 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
                 soo.Apply();
         }
-
-        static Func<float> s_CapturePointPreviewSizeGetter = ComputeCapturePointPreviewSizeGetter();
-        static Func<float> ComputeCapturePointPreviewSizeGetter()
-        {
-            var type = Type.GetType("UnityEditor.AnnotationUtility,UnityEditor");
-            var property = type.GetProperty("iconSize", BindingFlags.Static | BindingFlags.NonPublic);
-            var lambda = Expression.Lambda<Func<float>>(
-                Expression.Multiply(
-                    Expression.Property(null, property),
-                    Expression.Constant(30.0f)
-                )
-            );
-            return lambda.Compile();
-        }
+        
         internal static float capturePointPreviewSize
-        { get { return s_CapturePointPreviewSizeGetter(); } }
+            => AnnotationUtility.iconSize * 30f;
     }
 }
