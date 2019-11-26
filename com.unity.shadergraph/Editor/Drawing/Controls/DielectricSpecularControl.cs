@@ -34,8 +34,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         Slider m_IORSlider;
         FloatField m_IORField;
 
-        int m_UndoGroup = -1;
-
         public DielectricSpecularControlView(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
