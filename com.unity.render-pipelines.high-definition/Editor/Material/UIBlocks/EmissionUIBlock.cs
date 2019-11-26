@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
 
-                        if (unit == EmissiveIntensityUnit.Luminance)
+                        if (unit == EmissiveIntensityUnit.Nits)
                         {
                             using (var change = new EditorGUI.ChangeCheckScope())
                             {
@@ -161,20 +161,23 @@ namespace UnityEditor.Rendering.HighDefinition
             if (materials[0].GetTexture(kEmissiveColorMap))
             {
                 EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(UVEmissive, Styles.UVEmissiveMappingText);
-                UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
-
-                float X, Y, Z, W;
-                X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-                Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-                W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-                UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
-
-                if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                if (UVEmissive != null) // Unlit does not have UVEmissive
                 {
-                    materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                    materialEditor.ShaderProperty(UVEmissive, Styles.UVEmissiveMappingText);
+                    UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+                    float X, Y, Z, W;
+                    X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+                    W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+                    UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+                    if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                    {
+                        materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+                    }
                 }
 
                 materialEditor.TextureScaleOffsetProperty(emissiveColorMap);

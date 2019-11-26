@@ -461,6 +461,8 @@ namespace UnityEditor.VFX
             }
             else if (type == typeof(string))
             {
+                if (string.IsNullOrEmpty(text))
+                    return "";
                 return text.Substring(1, text.Length - 2).Replace("\\\"", "\"");
             }
             else if (type == typeof(SerializableType))

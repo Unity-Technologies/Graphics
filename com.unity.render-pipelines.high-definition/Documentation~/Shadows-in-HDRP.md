@@ -38,15 +38,10 @@ Shadow maps are essentially textures projected from the point of view of the Lig
 In HDRP, each individual Light component controls its own shadow biasing using the following parameters:
 
 - **Near Plane**
-- **ShadowMask Mode**
-- **View Bias Scale**
-- **View Bias**
+- **Slope-Scale Depth Bias**
 - **Normal Bias**
-- **Edge Leak Fixup**
-- **Edge Tolerance Normal**
-- **Edge Tolerance**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the **Advanced Properties** button to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
+Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.html) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
 
 ![](Images/Shadows1.png)
 
@@ -58,7 +53,9 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
-To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). There are currently four filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities). 
+To change which filter HDRP uses, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). There are currently four filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
+
+Currently, if you want to use **High** quality (PCSS) filtering in [deferred](Forward-And-Deferred-Rendering.html) mode, you need to enable it in the [HDRP Config package](HDRP-Config-Package.html). For information on how to do this, see the [Example section](HDRP-Config-Package.html#Example) of the Config package documentation.
 
 ## Shadowmasks
 
@@ -71,8 +68,8 @@ HDRP supports two [Mixed Lighting Modes](https://docs.unity3d.com/Manual/LightMo
 
 To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Project’s HDRP Asset and then make your Cameras use shadowmasks in their [Frame Settings](Frame-Settings.html) :
 
-1. Under **Render Pipeline Supported Features**, tick the **Shadow Mask** checkbox. This enables support for shadowmasks in your Unity Project.
-2. Next, you must make your Cameras use shadowmasks. In your HDRP Asset, navigate to **Default Frame Settings > Lighting** and tick the **Shadow Mask** checkbox to make Cameras use shadowmasks by default.
+1. Under **Render Pipeline Supported Features**, enable the **Shadowmask** checkbox. This enables support for shadowmasks in your Unity Project.
+2. Next, you must make your Cameras use shadowmasks. In your HDRP Asset, navigate to **Default Frame Settings > Lighting** and enable the **Shadowmask** checkbox to make Cameras use shadowmasks by default.
 
 ### Specific settings in HDRP
 

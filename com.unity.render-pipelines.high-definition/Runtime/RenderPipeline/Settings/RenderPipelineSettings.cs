@@ -38,8 +38,18 @@ namespace UnityEngine.Rendering.HighDefinition
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat
         }
 
+        public enum CustomBufferFormat
+        {
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+            R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        }
+
         /// <summary>Default RenderPipelineSettings</summary>
-        public static readonly RenderPipelineSettings @default = new RenderPipelineSettings()
+        [Obsolete("Since 2019.3, use RenderPipelineSettings.NewDefault() instead.")]
+        public static readonly RenderPipelineSettings @default = default;
+        /// <summary>Default RenderPipelineSettings</summary>
+        public static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
         {
             supportShadowMask = true,
             supportSSAO = true,
@@ -50,6 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
             supportTransparentDepthPrepass = true,
             supportTransparentDepthPostpass = true,
             colorBufferFormat = ColorBufferFormat.R11G11B10,
+            supportCustomPass = true,
+            customBufferFormat = CustomBufferFormat.R8G8B8A8,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
             msaaSampleCount = MSAASamples.None,
@@ -57,18 +69,29 @@ namespace UnityEngine.Rendering.HighDefinition
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
             supportTerrainHole = false,
-            lightLoopSettings = GlobalLightLoopSettings.@default,
-            hdShadowInitParams = HDShadowInitParameters.@default,
-            decalSettings = GlobalDecalSettings.@default,
-            postProcessSettings = GlobalPostProcessSettings.@default,
-            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
-            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
-            xrSettings = GlobalXRSettings.@default,
-            postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
+
+            lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
+            hdShadowInitParams = HDShadowInitParameters.NewDefault(),
+            decalSettings = GlobalDecalSettings.NewDefault(),
+            postProcessSettings = GlobalPostProcessSettings.NewDefault(),
+            dynamicResolutionSettings = GlobalDynamicResolutionSettings.NewDefault(),
+            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
+            xrSettings = GlobalXRSettings.NewDefault(),
+            postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
+            lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
-            lodBias = new FloatScalableSetting { low = 1, medium = 1, high = 1 },
-            maximumLODLevel = new IntScalableSetting(),
+            lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
+            maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+            lightLayerName0 = "Light Layer default",
+            lightLayerName1 = "Light Layer 1",
+            lightLayerName2 = "Light Layer 2",
+            lightLayerName3 = "Light Layer 3",
+            lightLayerName4 = "Light Layer 4",
+            lightLayerName5 = "Light Layer 5",
+            lightLayerName6 = "Light Layer 6",
+            lightLayerName7 = "Light Layer 7",
         };
 
         [Serializable]
@@ -86,24 +109,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportVolumetrics;
         public bool increaseResolutionOfVolumetrics;
         public bool supportLightLayers;
+        public string lightLayerName0;
+        public string lightLayerName1;
+        public string lightLayerName2;
+        public string lightLayerName3;
+        public string lightLayerName4;
+        public string lightLayerName5;
+        public string lightLayerName6;
+        public string lightLayerName7;
         public bool supportDistortion;
         public bool supportTransparentBackface;
         public bool supportTransparentDepthPrepass;
         public bool supportTransparentDepthPostpass;
         public ColorBufferFormat colorBufferFormat;
+        public bool supportCustomPass;
+        public CustomBufferFormat customBufferFormat;
         public SupportedLitShaderMode supportedLitShaderMode;
 
         // Engine
         public bool supportDecals;
 
         public MSAASamples msaaSampleCount;
-        public bool supportMSAA
-        {
-            get
-            {
-                return msaaSampleCount != MSAASamples.None;
-            }
-        }
+        public bool supportMSAA => msaaSampleCount != MSAASamples.None;
+
+        public bool keepAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
 
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;
@@ -124,5 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightSettings lightSettings;
         public IntScalableSetting maximumLODLevel;
         public FloatScalableSetting lodBias;
+
+        public GlobalLightingQualitySettings lightingQualitySettings;
     }
 }

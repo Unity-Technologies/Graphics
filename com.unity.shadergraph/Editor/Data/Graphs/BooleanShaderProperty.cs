@@ -4,33 +4,34 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class BooleanShaderProperty : AbstractShaderProperty<bool>
+    [FormerName("UnityEditor.ShaderGraph.BooleanShaderProperty")]
+    public sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
-        public BooleanShaderProperty()
+        internal BooleanShaderProperty()
         {
             displayName = "Boolean";
         }
 
         public override PropertyType propertyType => PropertyType.Boolean;
-        
-        public override bool isBatchable => true;
-        public override bool isExposable => true;
-        public override bool isRenamable => true;
-        
-        public override string GetPropertyBlockString()
+
+        internal override bool isBatchable => true;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+
+        internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
         }
-        
-        public override AbstractMaterialNode ToConcreteNode()
+
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new BooleanNode { value = new ToggleData(value) };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -39,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new BooleanShaderProperty()
             {

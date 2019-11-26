@@ -91,19 +91,28 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void CreateDefaultSceneFromPackageAnsAssignIt()
+        void CreateDefaultSceneFromPackageAnsAssignIt(bool forDXR)
         {
+            string subPath = forDXR ? "/DXR/" : "/";
+
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
                 AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+            if (forDXR && !AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath))
+                AssetDatabase.CreateFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath, "DXR");
 
             var hdrpAssetEditorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
+            
+            GameObject originalDefaultSceneAsset = forDXR ? hdrpAssetEditorResources.defaultDXRScene : hdrpAssetEditorResources.defaultScene;
+            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSceneAsset.name + ".prefab";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSceneAsset), defaultScenePath);
 
-            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultScene.name + ".prefab";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultScene), defaultScenePath);
-            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultSkyAndFogProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultSkyAndFogProfile), defaultSkyAndFogProfilePath);
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAssetEditorResources.defaultPostProcessingProfile.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAssetEditorResources.defaultPostProcessingProfile), defaultPostProcessingProfilePath);
+            VolumeProfile originalDefaultSkyAndFogProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRSkyAndFogProfile : hdrpAssetEditorResources.defaultSkyAndFogProfile;
+            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSkyAndFogProfileAsset.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSkyAndFogProfileAsset), defaultSkyAndFogProfilePath);
+
+            VolumeProfile originalDefaultPostProcessingProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRPostProcessingProfile : hdrpAssetEditorResources.defaultPostProcessingProfile;
+            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultPostProcessingProfileAsset.name + ".asset";
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultPostProcessingProfileAsset), defaultPostProcessingProfilePath);
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
             VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
@@ -111,13 +120,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
-                if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultSkyAndFogProfile.name))
+                if (volume.sharedProfile.name.StartsWith(originalDefaultSkyAndFogProfileAsset.name))
                     volume.sharedProfile = defaultSkyAndFogProfile;
-                else if (volume.sharedProfile.name.StartsWith(hdrpAssetEditorResources.defaultPostProcessingProfile.name))
+                else if (volume.sharedProfile.name.StartsWith(originalDefaultPostProcessingProfileAsset.name))
                     volume.sharedProfile = defaultPostProcessingProfile;
             }
 
-            HDProjectSettings.defaultScenePrefab = defaultScene;
+            if (forDXR)
+                HDProjectSettings.defaultDXRScenePrefab = defaultScene;
+            else
+                HDProjectSettings.defaultScenePrefab = defaultScene;
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
@@ -162,18 +175,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void CreateOrLoadDefaultScene(Action onCancel, Action<GameObject> onObjectChanged)
+        void CreateOrLoadDefaultScene(Action onCancel, Action<GameObject> onObjectChanged, bool forDXR)
         {
-            switch (EditorUtility.DisplayDialogComplex(Style.scenePrefabTitle, Style.scenePrefabContent, Style.displayDialogCreate, "Cancel", Style.displayDialogLoad))
+            switch (EditorUtility.DisplayDialogComplex(
+                forDXR ? Style.dxrScenePrefabTitle : Style.scenePrefabTitle,
+                forDXR ? Style.dxrScenePrefabContent : Style.scenePrefabContent,
+                Style.displayDialogCreate,
+                Style.displayDialogCancel,
+                Style.displayDialogLoad))
             {
                 case 0: //create
-                    CreateDefaultSceneFromPackageAnsAssignIt();
+                    CreateDefaultSceneFromPackageAnsAssignIt(forDXR);
                     break;
                 case 1: //cancel
                     onCancel?.Invoke();
                     break;
                 case 2: //Load
-                    ObjectSelector.Show(HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
+                    ObjectSelector.Show(forDXR ? HDProjectSettings.defaultDXRScenePrefab : HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
                     break;
                 default:
                     throw new ArgumentException("Unrecognized option");
@@ -188,27 +206,15 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrpAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
             hdrpAsset.name = "HDRenderPipelineAsset";
 
-            int index = 0;
-            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList.Length];
-            foreach (var defaultProfile in hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList)
-            {
-                string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + defaultProfile.name + ".asset";
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultProfile), defaultDiffusionProfileSettingsPath);
-
-                DiffusionProfileSettings defaultDiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-
-                hdrpAsset.diffusionProfileSettingsList[index++] = defaultDiffusionProfile;
-            }
-
             AssetDatabase.CreateAsset(hdrpAsset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.name + ".asset");
 
             GraphicsSettings.renderPipelineAsset = hdrpAsset;
             if (!IsHdrpAssetRuntimeResourcesCorrect())
-                FixHdrpAssetRuntimeResources();
+                FixHdrpAssetRuntimeResources(true);
             if (!IsHdrpAssetEditorResourcesCorrect())
-                FixHdrpAssetEditorResources();
+                FixHdrpAssetEditorResources(true);
 
-            CreateDefaultSceneFromPackageAnsAssignIt();
+            CreateDefaultSceneFromPackageAnsAssignIt(forDXR: false);
         }
 
         #endregion
@@ -377,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly Texture ok = CoreEditorUtils.LoadIcon(k_IconFolder, "OK");
                 public static readonly Texture error = CoreEditorUtils.LoadIcon(k_IconFolder, "Error");
 
-                public const int k_IndentStepSize = 13;
+                public const int k_IndentStepSize = 15;
             }
 
             public ConfigInfoLine(string label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
@@ -407,18 +413,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 testRow.Add(statusOK);
                 testRow.Add(statusKO);
                 testRow.Add(fixer);
-
-                var errorLabel = new Label(error);
-                var icon = new Image()
-                {
-                    image = EditorGUIUtility.IconContent("console.erroricon").image
-                };
-                var helpBox = new VisualElement() { name = "HelpBox" };
-                helpBox.Add(icon);
-                helpBox.Add(errorLabel);
-
+                
                 Add(testRow);
-                Add(helpBox);
+                Add(new HelpBox(HelpBox.Kind.Error, error));
 
                 testLabel.style.paddingLeft = style.paddingLeft.value.value + indent * Style.k_IndentStepSize;
 
@@ -441,6 +438,71 @@ namespace UnityEditor.Rendering.HighDefinition
                     this.Q(name: "Resolver").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                     this.Q(name: "HelpBox").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                 }
+            }
+        }
+
+        class HelpBox : VisualElement
+        {
+            public enum Kind
+            {
+                None,
+                Info,
+                Warning,
+                Error
+            }
+            
+            readonly Label label;
+            readonly Image icon;
+
+            public string text
+            {
+                get => label.text;
+                set => label.text = value;
+            }
+
+            Kind m_Kind = Kind.None;
+            public Kind kind
+            {
+                get => m_Kind;
+                set
+                {
+                    if (m_Kind != value)
+                    {
+                        m_Kind = value;
+
+                        string iconName;
+                        switch (kind)
+                        {
+                            default:
+                            case Kind.None:
+                                icon.style.display = DisplayStyle.None;
+                                return;
+                            case Kind.Info:
+                                iconName = "console.infoicon";
+                                break;
+                            case Kind.Warning:
+                                iconName = "console.warnicon";
+                                break;
+                            case Kind.Error:
+                                iconName = "console.erroricon";
+                                break;
+                        }
+                        icon.image = EditorGUIUtility.IconContent(iconName).image;
+                        icon.style.display = DisplayStyle.Flex;
+                    }
+                }
+            }
+
+            public HelpBox(Kind kind, string message)
+            {
+                this.label = new Label(message);
+                icon = new Image();
+
+                name = "HelpBox";
+                Add(icon);
+                Add(this.label);
+
+                this.kind = kind;
             }
         }
 

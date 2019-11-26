@@ -30,8 +30,8 @@
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-// Workaround for lack of multi compile in compute shaders
-#if defined(SHADER_STAGE_COMPUTE) && defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
+// Workaround for lack of multi compile in compute/ray shaders
+#if defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED) && (defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAYTRACING))
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
@@ -52,16 +52,20 @@
         #define SLICE_ARRAY_INDEX  0
     #endif
 
+    #define COORD_TEXTURE2D_X(pixelCoord)                                    uint3(pixelCoord, SLICE_ARRAY_INDEX)
+    #define INDEX_TEXTURE2D_ARRAY_X(slot)                                    (slot * _XRViewCount + SLICE_ARRAY_INDEX)
+
     #define TEXTURE2D_X                                                      TEXTURE2D_ARRAY
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_ARRAY_PARAM
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARRAY_ARGS
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_ARRAY_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_ARRAY_FLOAT
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2DArray<uint> textureName
+    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2DArray<uint2> textureName
+    #define TEXTURE2D_X_UINT4(textureName)                                   Texture2DArray<uint4> textureName
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type> textureName
 
     #define RW_TEXTURE2D_X(type, textureName)                                RW_TEXTURE2D_ARRAY(type, textureName)
-    #define COORD_TEXTURE2D_X(pixelCoord)                                    uint3(pixelCoord, SLICE_ARRAY_INDEX)
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                          LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, SLICE_ARRAY_INDEX)
     #define LOAD_TEXTURE2D_X_MSAA(textureName, unCoord2, sampleIndex)        LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, SLICE_ARRAY_INDEX, sampleIndex)
     #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                 LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, SLICE_ARRAY_INDEX, lod)
@@ -75,16 +79,20 @@
 #else
     #define SLICE_ARRAY_INDEX                                                0
 
+    #define COORD_TEXTURE2D_X(pixelCoord)                                    pixelCoord
+    #define INDEX_TEXTURE2D_ARRAY_X(slot)                                    slot
+
     #define TEXTURE2D_X                                                      TEXTURE2D
     #define TEXTURE2D_X_PARAM                                                TEXTURE2D_PARAM
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARGS
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_FLOAT
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2D<uint> textureName
+    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2D<uint2> textureName
+    #define TEXTURE2D_X_UINT4(textureName)                                   Texture2D<uint4> textureName
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type> textureName
 
     #define RW_TEXTURE2D_X                                                   RW_TEXTURE2D
-    #define COORD_TEXTURE2D_X(pixelCoord)                                    pixelCoord
     #define LOAD_TEXTURE2D_X                                                 LOAD_TEXTURE2D
     #define LOAD_TEXTURE2D_X_MSAA                                            LOAD_TEXTURE2D_MSAA
     #define LOAD_TEXTURE2D_X_LOD                                             LOAD_TEXTURE2D_LOD
@@ -104,12 +112,12 @@
     #define unity_StereoEyeIndex 0
 #endif
 
-// Helper macro to assign eye index during compute pass (usually from SV_DispatchThreadID)
-#if defined(SHADER_STAGE_COMPUTE)
+// Helper macro to assign view index during compute/ray pass (usually from SV_DispatchThreadID or DispatchRaysIndex())
+#if defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAYTRACING)
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex) unity_StereoEyeIndex = eyeIndex;
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(viewIndex) unity_StereoEyeIndex = viewIndex;
     #else
-        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex)
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(viewIndex)
     #endif
 
     // Backward compatibility

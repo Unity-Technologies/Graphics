@@ -1,6 +1,9 @@
 using System;
 using UnityEditor;
+
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -20,7 +23,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureResolutionScale;
 #endif
@@ -32,7 +35,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.renderViewportScale;
 #endif
@@ -44,7 +47,14 @@ namespace UnityEngine.Rendering
         // TryEnable gets updated before "play" is pressed- we use this for updating GUI only.
         public static bool tryEnable
         {
-            get { return PlayerSettings.virtualRealitySupported; }
+            get
+            {
+            #if UNITY_2020_1_OR_NEWER
+                return false;
+            #else
+                return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
+            #endif
+            }
         }
 #endif
 
@@ -53,7 +63,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 return XRSettings.enabled;
 #else
                 return false;
@@ -65,7 +75,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.isDeviceActive;
 #endif
@@ -77,7 +87,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.loadedDeviceName;
 #endif
@@ -89,7 +99,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.supportedDevices;
 #endif
@@ -101,7 +111,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return (StereoRenderingMode)XRSettings.stereoRenderingMode;
 #endif
@@ -114,7 +124,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureDesc;
 #endif
@@ -126,7 +136,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureWidth;
 #endif
@@ -137,7 +147,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 if (enabled)
                     return XRSettings.eyeTextureHeight;
 #endif

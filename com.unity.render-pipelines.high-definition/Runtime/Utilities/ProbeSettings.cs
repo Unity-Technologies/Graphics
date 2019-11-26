@@ -11,15 +11,17 @@ namespace UnityEngine.Rendering.HighDefinition
         lightingMultiplier = 1 << 2,
         lightingWeight = 1 << 3,
         lightingLightLayer = 1 << 4,
-        proxyUseInfluenceVolumeAsProxyVolume = 1 << 5,
-        proxyCapturePositionProxySpace = 1 << 6,
-        proxyCaptureRotationProxySpace = 1 << 7,
-        proxyMirrorPositionProxySpace = 1 << 8,
-        proxyMirrorRotationProxySpace = 1 << 9,
-        frustumFieldOfViewMode = 1 << 10,
-        frustumFixedValue = 1 << 11,
-        frustumAutomaticScale = 1 << 12,
-        frustumViewerScale = 1 << 13
+        lightingRangeCompression = 1 << 5,
+        proxyUseInfluenceVolumeAsProxyVolume = 1 << 6,
+        proxyCapturePositionProxySpace = 1 << 7,
+        proxyCaptureRotationProxySpace = 1 << 8,
+        proxyMirrorPositionProxySpace = 1 << 9,
+        proxyMirrorRotationProxySpace = 1 << 10,
+        frustumFieldOfViewMode = 1 << 11,
+        frustumFixedValue = 1 << 12,
+        frustumAutomaticScale = 1 << 13,
+        frustumViewerScale = 1 << 14,
+        lightingFadeDistance = 1 << 15,
     }
 
     [Serializable]
@@ -83,18 +85,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Lighting
         {
             /// <summary>Default value.</summary>
-            public static readonly Lighting @default = new Lighting
+            [Obsolete("Since 2019.3, use Lighting.NewDefault() instead.")]
+            public static readonly Lighting @default = default;
+            /// <summary>Default value.</summary>
+            public static Lighting NewDefault() => new Lighting
             {
                 multiplier = 1.0f,
                 weight = 1.0f,
-                lightLayer = LightLayerEnum.LightLayerDefault
+                lightLayer = LightLayerEnum.LightLayerDefault,
+                fadeDistance = 10000f,
+                rangeCompressionFactor = 1.0f
             };
 
-            /// <summary>A multiplier applied to the radiance of the probe.</summary>
+            /// <summary>A multiplier applied to the radiance of the Probe.</summary>
             public float multiplier;
-            /// <summary>A weight applied to the influence of the probe.</summary>
+            /// <summary>A weight applied to the influence of the Probe.</summary>
+            [Range(0,1)]
             public float weight;
+            /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
             public LightLayerEnum lightLayer;
+            /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
+            public float fadeDistance;
+            /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read.
+            /// This is to simply avoid issues with values clamping due to precision of the storing format.</summary>
+            public float rangeCompressionFactor;
         }
 
         /// <summary>Settings of this probe in the current proxy.</summary>
@@ -102,7 +116,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct ProxySettings
         {
             /// <summary>Default value.</summary>
-            public static readonly ProxySettings @default = new ProxySettings
+            [Obsolete("Since 2019.3, use ProxySettings.NewDefault() instead.")]
+            public static readonly ProxySettings @default = default;
+            /// <summary>Default value.</summary>
+            public static ProxySettings NewDefault() => new ProxySettings
             {
                 capturePositionProxySpace = Vector3.zero,
                 captureRotationProxySpace = Quaternion.identity,
@@ -128,7 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable]
         public struct Frustum
         {
-            public static readonly Frustum @default = new Frustum
+            [Obsolete("Since 2019.3, use Frustum.NewDefault() instead.")]
+            public static readonly Frustum @default = default;
+            public static Frustum NewDefault() => new Frustum
             {
                 fieldOfViewMode = FOVMode.Viewer,
                 fixedValue = 90,
@@ -154,26 +173,31 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             public FOVMode fieldOfViewMode;
             /// <summary>Value to use when FOV is fixed.</summary>
-            [Range(0, 180)]
+            [Range(0, 179f)]
             public float fixedValue;
             /// <summary>The automatic value of the FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float automaticScale;
             /// <summary>The viewer's FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float viewerScale;
         }
 
         /// <summary>Default value.</summary>
-        public static ProbeSettings @default = new ProbeSettings
+        [Obsolete("Since 2019.3, use ProbeSettings.NewDefault() instead.")]
+        public static ProbeSettings @default = default;
+        /// <summary>Default value.</summary>
+        public static ProbeSettings NewDefault() => new ProbeSettings
         {
             type = ProbeType.ReflectionProbe,
             realtimeMode = RealtimeMode.EveryFrame,
             mode = Mode.Baked,
-            camera = CameraSettings.@default,
+            cameraSettings = CameraSettings.NewDefault(),
             influence = null,
-            lighting = Lighting.@default,
+            lighting = Lighting.NewDefault(),
             proxy = null,
-            proxySettings = ProxySettings.@default,
-            frustum = Frustum.@default
+            proxySettings = ProxySettings.NewDefault(),
+            frustum = Frustum.NewDefault()
         };
 
         /// <summary>The way the frustum is handled by the probe.</summary>
@@ -193,7 +217,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
         /// <summary>Camera settings to use when capturing data.</summary>
-        public CameraSettings camera;
+        [Serialization.FormerlySerializedAs("camera")]
+        public CameraSettings cameraSettings;
 
         public Hash128 ComputeHash()
         {
@@ -206,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref proxySettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
-            HashUtilities.ComputeHash128(ref camera, ref h2);
+            HashUtilities.ComputeHash128(ref cameraSettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             if (influence != null)
             {

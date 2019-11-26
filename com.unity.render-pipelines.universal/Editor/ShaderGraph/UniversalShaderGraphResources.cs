@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +16,10 @@ namespace UnityEditor.Rendering.Universal
         public static string s_ResourceClassName => typeof(UniversalShaderGraphResources).FullName;
 
         public static string s_AssemblyName => typeof(UniversalShaderGraphResources).Assembly.FullName.ToString();
-        
+
+        struct UInt32_4
+        { }
+
         internal struct Attributes
         {
             [Semantic("POSITION")]
@@ -35,6 +38,10 @@ namespace UnityEditor.Rendering.Universal
             Vector4 uv3;
             [Semantic("COLOR")][Optional]
             Vector4 color;
+            [Semantic("BLENDWEIGHTS")][Optional]
+            Vector4 weights;
+            [Semantic("BLENDINDICES")][Optional]
+            UInt32_4 indices;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]
             uint instanceID;
         };
@@ -78,6 +85,11 @@ namespace UnityEditor.Rendering.Universal
             uint instanceID;
             [Semantic("FRONT_FACE_SEMANTIC")][SystemGenerated][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")]
             bool cullFace;
+            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED))")]
+            uint stereoTargetEyeIndexAsRTArrayIdx;
+            [Semantic("BLENDINDICES0")] [PreprocessorIf("(defined(UNITY_STEREO_MULTIVIEW_ENABLED)) || " +
+                                                        "(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
+            uint stereoTargetEyeIndexAsBlendIdx0;
         };
 
         internal struct VertexDescriptionInputs
@@ -115,6 +127,8 @@ namespace UnityEditor.Rendering.Universal
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
+            [Optional] Vector4 BoneWeights;
+            [Optional] UInt32_4 BoneIndices;
         };
         
         internal struct SurfaceDescriptionInputs
@@ -160,17 +174,19 @@ namespace UnityEditor.Rendering.Universal
             // Varyings
             new Dependency[]
             {
-                new Dependency("Varyings.positionWS",       "Attributes.positionOS"),
-                new Dependency("Varyings.normalWS",         "Attributes.normalOS"),
-                new Dependency("Varyings.tangentWS",        "Attributes.tangentOS"),
-                new Dependency("Varyings.bitangentWS",      "Attributes.normalOS"),
-                new Dependency("Varyings.bitangentWS",      "Attributes.tangentOS"),
-                new Dependency("Varyings.texCoord0",        "Attributes.uv0"),
-                new Dependency("Varyings.texCoord1",        "Attributes.uv1"),
-                new Dependency("Varyings.texCoord2",        "Attributes.uv2"),
-                new Dependency("Varyings.texCoord3",        "Attributes.uv3"),
-                new Dependency("Varyings.color",            "Attributes.color"),
-                new Dependency("Varyings.instanceID",       "Attributes.instanceID"),
+                new Dependency("Varyings.positionWS",                 "Attributes.positionOS"),
+                new Dependency("Varyings.normalWS",                   "Attributes.normalOS"),
+                new Dependency("Varyings.tangentWS",                  "Attributes.tangentOS"),
+                new Dependency("Varyings.bitangentWS",                "Attributes.normalOS"),
+                new Dependency("Varyings.bitangentWS",                "Attributes.tangentOS"),
+                new Dependency("Varyings.texCoord0",                  "Attributes.uv0"),
+                new Dependency("Varyings.texCoord1",                  "Attributes.uv1"),
+                new Dependency("Varyings.texCoord2",                  "Attributes.uv2"),
+                new Dependency("Varyings.texCoord3",                  "Attributes.uv3"),
+                new Dependency("Varyings.color",                      "Attributes.color"),
+                new Dependency("Varyings.instanceID",                 "Attributes.instanceID"),
+                new Dependency("Varyings.stereoTargetEyeIndex",       "Attributes.instanceID"),
+                new Dependency("Varyings.stereoTargetEyeIndexSV",     "Attributes.instanceID"),
             },
             // Vertex DescriptionInputs
             new Dependency[]
@@ -207,6 +223,8 @@ namespace UnityEditor.Rendering.Universal
                 new Dependency("VertexDescriptionInputs.uv2",                       "Attributes.uv2"),
                 new Dependency("VertexDescriptionInputs.uv3",                       "Attributes.uv3"),
                 new Dependency("VertexDescriptionInputs.VertexColor",               "Attributes.color"),
+                new Dependency("VertexDescriptionInputs.BoneWeights",               "Attributes.weights"),
+                new Dependency("VertexDescriptionInputs.BoneIndices",               "Attributes.indices")
             },
             // SurfaceDescriptionInputs
             new Dependency[]

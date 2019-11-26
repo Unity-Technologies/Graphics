@@ -4,6 +4,7 @@ Shader "HDRP/TerrainLit"
     {
         [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
+        [Enum(Off, 0, From Ambient Occlusion, 1)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         // TODO: support tri-planar?
         // TODO: support more maps?
@@ -60,6 +61,7 @@ Shader "HDRP/TerrainLit"
     #pragma shader_feature_local _TERRAIN_8_LAYERS
     #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _MASKMAP
+    #pragma shader_feature_local _SPECULAR_OCCLUSION_NONE
 
     #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
     // Sample normal in pixel shader when doing instancing
@@ -261,8 +263,23 @@ Shader "HDRP/TerrainLit"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "SceneSelectionPass"
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
+
+            ENDHLSL
+        }
+
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
-        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
 
     Dependency "BaseMapShader" = "Hidden/HDRP/TerrainLit_Basemap"

@@ -1,7 +1,6 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXPerPassInclude}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -31,32 +30,28 @@ ByteAddressBuffer inputAdditional;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripData;
+RWBuffer<uint> stripDataBuffer;
 #endif
+
+${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
-bool GetParticleIndex(inout uint particleIndex, bool alive, uint stripIndex)
-{
-	if (!alive)
-		return false;
-	
 #if HAS_STRIPS
+bool GetParticleIndex(inout uint particleIndex, uint stripIndex)
+{
 	uint relativeIndex;
-	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX), 1, relativeIndex);
+	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex), 1, relativeIndex);
 	if (relativeIndex >= PARTICLE_PER_STRIP_COUNT) // strip is full
 	{
-		InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX), -1); // Remove previous increment
+		InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex), -1); // Remove previous increment
 		return false;
 	}
 
-	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
-#elif USE_DEAD_LIST
-	uint deadIndex = deadListIn.DecrementCounter();
-    particleIndex = deadListIn[deadIndex];
-#endif
-	return true;
+	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
+    return true;
 }
+#endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
@@ -91,29 +86,48 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if !VFX_USE_SPAWNER_FROM_GPU
         ${VFXComputeSourceIndex}
 #endif
+
+		Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
-         particleId = particleIndex;
+         attributes.particleId = particleIndex;
 #endif
 #if VFX_USE_SEED_CURRENT
-        seed = WangHash(particleIndex ^ systemSeed);
+        attributes.seed = WangHash(particleIndex ^ systemSeed);
+#endif
+#if VFX_USE_SPAWNINDEX_CURRENT
+        attributes.spawnIndex = id;
 #endif
 #if HAS_STRIPS
+#if !VFX_USE_SPAWNER_FROM_GPU
 		${VFXLoadParameter:{stripIndex}}
-		stripIndex = min(stripIndex, STRIP_COUNT);
-		// TODO Change seed to be sure we're deterministic on random with strip
 #else
-		uint stripIndex = 0;
+        uint stripIndex = sourceIndex;
+#endif
+		stripIndex = min(stripIndex, STRIP_COUNT);
+
+        if (!GetParticleIndex(particleIndex, stripIndex))
+            return;
+
+        const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);
+		InitStripAttributes(particleIndex, attributes, stripData);
+		// TODO Change seed to be sure we're deterministic on random with strip
 #endif
         
         ${VFXProcessBlocks}
-
-		uint index = particleIndex;
-#if !VFX_USE_ALIVE_CURRENT
-		bool alive = true;
-#endif
-        if (GetParticleIndex(index, alive, stripIndex))
+		
+#if VFX_USE_ALIVE_CURRENT
+        if (attributes.alive)
+#endif       
         {
+#if USE_DEAD_LIST
+	        uint deadIndex = deadListIn.DecrementCounter();
+            uint index = deadListIn[deadIndex];
+#else
+            uint index = particleIndex;
+#endif
             ${VFXStoreAttributes}
         }
     }

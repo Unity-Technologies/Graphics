@@ -40,12 +40,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
             if (colorDot != default(Color))
             {
-                Color previousColor = GUI.contentColor;
-                GUI.contentColor = colorDot;
-                Rect headerRect = GUILayoutUtility.GetLastRect();
-                headerRect.xMin += 16f;
-                EditorGUI.LabelField(headerRect, "■");
-                GUI.contentColor = previousColor;
+                Rect dotRect = GUILayoutUtility.GetLastRect();
+                dotRect.width = 5;
+                dotRect.height = 5;
+                dotRect.y += 7;
+                dotRect.x += 17;
+                EditorGUI.DrawRect(dotRect, colorDot);
             }
             if (expanded ^ beforeExpended)
             {

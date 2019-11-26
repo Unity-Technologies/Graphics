@@ -9,6 +9,8 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractDistortionOutput : VFXAbstractParticleOutput
     {
+        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) { }
+
         public enum DistortionMode
         {
             ScreenSpace,
@@ -54,7 +56,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "colorMappingMode";
+                yield return "colorMapping";
                 yield return "blendMode";
                 yield return "castShadows";
                 yield return "sort";

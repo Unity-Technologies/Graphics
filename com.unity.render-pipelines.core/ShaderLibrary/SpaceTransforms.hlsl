@@ -89,7 +89,7 @@ float4 TransformWViewToHClip(float3 positionVS)
 real3 TransformObjectToWorldDir(real3 dirOS)
 {
     // Normalize to support uniform scaling
-    return normalize(mul((real3x3)GetObjectToWorldMatrix(), dirOS));
+    return SafeNormalize(mul((real3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
 real3 TransformWorldToObjectDir(real3 dirWS)
@@ -116,7 +116,7 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
     return TransformObjectToWorldDir(normalOS);
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
+    return SafeNormalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
 #endif
 }
 

@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class DensityVolumeUI
     {
+        // also used for AdvancedModes
         [System.Flags]
         enum Expandable
         {
@@ -23,10 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_PrimarySettings
                 ),
             CED.space,
-            CED.FoldoutGroup(
-                Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
-                Drawer_AdvancedSwitch,
-                Drawer_VolumeContent
+            CED.FoldoutGroup(Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
+                Drawer_VolumeContent 
                 ),
             CED.FoldoutGroup(
                 Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
@@ -57,23 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }
-
-        static void Drawer_AdvancedSwitch(SerializedDensityVolume serialized, Editor owner)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-
-                bool advanced = serialized.editorAdvancedFade.boolValue;
-                advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                DensityVolumeEditor.s_BlendBox.monoHandle = !advanced;
-                if (serialized.editorAdvancedFade.boolValue ^ advanced)
-                {
-                    serialized.editorAdvancedFade.boolValue = advanced;
-                }
-            }
-        }
-
+        
         static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
         {
             //keep previous data as value are stored in percent
@@ -130,6 +113,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 float max = Mathf.Min(newSize.x, newSize.y, newSize.z) * 0.5f;
                 serialized.editorUniformFade.floatValue = Mathf.Clamp(serialized.editorUniformFade.floatValue, 0f, max);
             }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serialized.editorAdvancedFade, Styles.s_ManipulatonTypeContent);
 
             Vector3 serializedSize = serialized.size.vector3Value;
             EditorGUI.BeginChangeCheck();
@@ -191,19 +177,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.editorNegativeFade.vector3Value = negFade;
             }
 
+            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serialized.invertFade, Styles.s_InvertFadeLabel);
 
             // Distance fade.
             {
                 EditorGUI.BeginChangeCheck();
 
-                float distanceFadeStart = EditorGUILayout.FloatField(Styles.s_DistanceFadeStartLabel, serialized.distanceFadeStart.floatValue);
-                float distanceFadeEnd   = EditorGUILayout.FloatField(Styles.s_DistanceFadeEndLabel,   serialized.distanceFadeEnd.floatValue);
+                EditorGUILayout.PropertyField(serialized.distanceFadeStart, Styles.s_DistanceFadeStartLabel);
+                EditorGUILayout.PropertyField(serialized.distanceFadeEnd, Styles.s_DistanceFadeEndLabel);
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    distanceFadeStart = Mathf.Max(0, distanceFadeStart);
-                    distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
+                    float distanceFadeStart = Mathf.Max(0, serialized.distanceFadeStart.floatValue);
+                    float distanceFadeEnd   = Mathf.Max(distanceFadeStart, serialized.distanceFadeEnd.floatValue);
 
                     serialized.distanceFadeStart.floatValue = distanceFadeStart;
                     serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;

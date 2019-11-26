@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (asset == null || hasError)
             {
@@ -198,8 +199,8 @@ namespace UnityEditor.ShaderGraph
 
                 switch(prop)
                 {
-                    case TextureShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                    case Texture2DShaderProperty texture2DProp:
+                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                         break;
                     case Texture2DArrayShaderProperty texture2DArrayProp:
                         arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
@@ -232,10 +233,21 @@ namespace UnityEditor.ShaderGraph
         
         public void Reload(HashSet<string> changedFileDependencies)
         {
+            if (asset == null)
+            {
+                return;
+            }
+
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
+
+                if (hasError)
+                {
+                    return;
+                }
+
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
@@ -295,7 +307,7 @@ namespace UnityEditor.ShaderGraph
                     case ConcreteSlotValueType.Texture2D:
                         {
                             var tSlot = slot as Texture2DInputMaterialSlot;
-                            var tProp = prop as TextureShaderProperty;
+                            var tProp = prop as Texture2DShaderProperty;
                             if (tSlot != null && tProp != null)
                                 tSlot.texture = tProp.value.texture;
                         }
@@ -479,7 +491,7 @@ namespace UnityEditor.ShaderGraph
         }
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if (asset == null || hasError)
                 return;

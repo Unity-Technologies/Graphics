@@ -27,8 +27,18 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportVolumetrics;
         public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
+        public SerializedProperty lightLayerName0;
+        public SerializedProperty lightLayerName1;
+        public SerializedProperty lightLayerName2;
+        public SerializedProperty lightLayerName3;
+        public SerializedProperty lightLayerName4;
+        public SerializedProperty lightLayerName5;
+        public SerializedProperty lightLayerName6;
+        public SerializedProperty lightLayerName7;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
+        public SerializedProperty supportCustomPass;
+        public SerializedProperty customBufferFormat;
 
         public SerializedProperty supportDecals;
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
@@ -53,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLowResTransparencySettings lowresTransparentSettings;
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
+        public SerializedLightingQualitySettings lightingQualitySettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -70,15 +81,25 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
+            lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
+            lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
+            lightLayerName2                 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
+            lightLayerName3                 = root.Find((RenderPipelineSettings s) => s.lightLayerName3);
+            lightLayerName4                 = root.Find((RenderPipelineSettings s) => s.lightLayerName4);
+            lightLayerName5                 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
+            lightLayerName6                 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
+            lightLayerName7                 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
+            customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
+            supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-
+            
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
+            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
@@ -99,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
+            lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
         }
     }
 }

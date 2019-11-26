@@ -336,6 +336,43 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+
+            var burst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
+            burst.inputSlots.First(o => o.name.ToLowerInvariant().Contains("count")).value = 147.0f;
+            graph.children.OfType<VFXBasicSpawner>().First().AddChild(burst);
+
+            var operatorSample3D = ScriptableObject.CreateInstance<Operator.SampleTexture3D>();
+            operatorSample3D.inputSlots.First(o => o.valueType == VFXValueType.Texture3D).value = null;
+            graph.AddChild(operatorSample3D);
+
+            var initialize = graph.children.First(o => o is VFXBasicInitialize);
+            bool r = operatorSample3D.outputSlots.First().Link(initialize.children.OfType<VFXBlock>().First().inputSlots.First());
+            Assert.IsTrue(r);
+            graph.SetExpressionGraphDirty();
+            graph.RecompileIfNeeded();
+
+            GameObject currentObject = new GameObject("TemporaryGameObject_NoneTexture", typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            var asset = graph.visualEffectResource.asset;
+            vfx.visualEffectAsset = asset;
+
+            int maxFrame = 512;
+            while ((vfx.culled || vfx.aliveParticleCount == 0) && --maxFrame > 0)
+                yield return null;
+
+            //Wait for a few frame to be sure the rendering has been triggered
+            for (int i = 0; i < 3; ++i)
+                yield return null;
+
+            UnityEngine.Object.DestroyImmediate(currentObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_CheckDimension_Constraint()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
