@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
                     bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                     projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture);
-                    RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projectionMatrix);
+                    RenderingUtils.SetViewProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
                     
                     context.ExecuteCommandBuffer(cmd);
                 }
@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             bool isRenderToCameraTarget = colorAttachment == RenderTargetHandle.CameraTarget.id;
                             bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
                             bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
-                            RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture));
+                            RenderingUtils.SetViewProjectionMatrices(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture), false);
                         }
                     }
                 }

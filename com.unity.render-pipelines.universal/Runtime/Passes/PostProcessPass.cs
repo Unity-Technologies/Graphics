@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
-                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
+                RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
             }
             // XRTODO: remove _FullscreenProjMat once we are in pure URP
             cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
@@ -372,14 +372,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
 
                         Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
-                        RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
+                        RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
                     }
 
                     if(m_Destination == RenderTargetHandle.CameraTarget)
                         cmd.SetViewport(cameraData.camera.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
-                    RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture));
+                    RenderingUtils.SetViewProjectionMatrices(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture), true);
                 }
                 else
                 {
@@ -1242,10 +1242,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
-                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, viewMatrix, projMatrix);
+                RenderingUtils.SetViewProjectionMatrices(cmd, viewMatrix, projMatrix, true);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture));
+                RenderingUtils.SetViewProjectionMatrices(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture), true);
             }
             else
             {

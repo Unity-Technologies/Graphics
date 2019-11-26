@@ -76,9 +76,9 @@ namespace UnityEngine.Rendering.Universal
             if (URPCameraMode.isPureURP)
             {
                 // XRTODO: decouple SpeedTreeV7 billboard system updates with SetViewProjectionMatrices and replace
-                // cmd.SetViewProjectionMatrices with RenderingUtils.SetViewProjectionRelatedMatricesAll
+                // cmd.SetViewProjectionMatrices with RenderingUtils.SetViewProjectionMatrices
                 // Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(proj, true);
-                // RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, view, projMatrix);
+                // RenderingUtils.SetViewProjectionMatrices(cmd, view, projMatrix, false);
                 cmd.SetViewProjectionMatrices(view, proj);
 
                 context.ExecuteCommandBuffer(cmd);

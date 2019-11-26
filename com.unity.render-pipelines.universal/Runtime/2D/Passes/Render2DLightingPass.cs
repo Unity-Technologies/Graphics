@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, isRenderToTexture);
                 Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
-                RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);
+                RenderingUtils.SetViewProjectionMatrices(cmd, viewMatrix, projMatrix, false);
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");

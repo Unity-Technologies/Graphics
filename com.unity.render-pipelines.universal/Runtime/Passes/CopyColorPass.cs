@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture("_BlitTex", source);
                 ref Camera camera = ref renderingData.cameraData.camera;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
+                RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                 }
-                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
+                RenderingUtils.SetViewProjectionMatrices(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true), true);
             }
             else
             {
