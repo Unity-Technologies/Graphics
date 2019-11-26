@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
                 }
                 else if (VFXExpression.IsTextureOrMesh(exp.valueType))
                 {
-                    prefix = "texture_";
+                    prefix = VFXExpression.IsMesh(exp.valueType) ? "mesh_" : "texture_";
                     expressions = m_TextureToName;
                 }
                 else

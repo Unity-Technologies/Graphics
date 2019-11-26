@@ -221,8 +221,11 @@ namespace UnityEditor.VFX
             {
                 string name = mapper.GetName(texture);
                 WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
-                WriteLineFormat("SamplerState sampler{0};", name);
-                WriteLineFormat("float4 {0}_TexelSize;", name);
+                if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
+                {
+                    WriteLineFormat("SamplerState sampler{0};", name);
+                    WriteLineFormat("float4 {0}_TexelSize;", name);
+                }
             }
         }
 
