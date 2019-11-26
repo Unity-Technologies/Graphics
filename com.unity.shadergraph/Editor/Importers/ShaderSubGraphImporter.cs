@@ -22,7 +22,18 @@ namespace UnityEditor.ShaderGraph
         {
             try
             {
+// TODO: When the fix for circular dependencies in ADBv2 lands, replace `true` with appropriate Unity version.
+#if false
                 return MinimalGraphData.GetDependencyPaths(assetPath);
+#else
+                var dependencyMap = new Dictionary<string, string[]>();
+                using (var tempList = ListPool<string>.GetDisposable())
+                {
+                    GatherDependencies(assetPath, dependencyMap, tempList.value);
+                    var containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
+                    return containsCircularDependency ? new string[0] : dependencyMap[assetPath];
+                }
+#endif
             }
             catch (Exception e)
             {
@@ -34,10 +45,26 @@ namespace UnityEditor.ShaderGraph
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var graphAsset = ScriptableObject.CreateInstance<SubGraphAsset>();
-            var subGraphPath = ctx.assetPath;
-            var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
+
+            var texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
+            ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
+            ctx.SetMainObject(graphAsset);
+
+            GatherFromGraph(assetPath, out var containsCircularDependency, out var descendentGuids);
+
+            if (containsCircularDependency)
+            {
+                ctx.LogImportError($"Error in Graph at {ctx.assetPath}: Sub Graph contains a circular dependency.", graphAsset);
+                foreach (var guid in descendentGuids)
+                {
+                    ctx.DependsOnSourceAsset(AssetDatabase.GUIDToAssetPath(guid));
+                }
+                return;
+            }
+
+            var subGraphGuid = AssetDatabase.AssetPathToGUID(ctx.assetPath);
             graphAsset.assetGuid = subGraphGuid;
-            var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
+            var textGraph = File.ReadAllText(ctx.assetPath, Encoding.UTF8);
             var graphData = new GraphData { isSubGraph = true, assetGuid = subGraphGuid };
             var messageManager = new MessageManager();
             graphData.messageManager = messageManager;
@@ -45,7 +72,7 @@ namespace UnityEditor.ShaderGraph
 
             try
             {
-                ProcessSubGraph(graphAsset, graphData);
+                ProcessSubGraph(graphAsset, graphData, descendentGuids);
             }
             catch (Exception e)
             {
@@ -62,19 +89,15 @@ namespace UnityEditor.ShaderGraph
                         var node = graphData.GetNodeFromTempId(pair.Key);
                         foreach (var message in pair.Value)
                         {
-                            MessageManager.Log(node, subGraphPath, message, graphAsset);
+                            MessageManager.Log(node, ctx.assetPath, message, graphAsset);
                         }
                     }
                 }
                 messageManager.ClearAll();
             }
-
-            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
-            ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
-            ctx.SetMainObject(graphAsset);
         }
 
-        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
+        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, HashSet<string> descendents)
         {
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
@@ -116,10 +139,9 @@ namespace UnityEditor.ShaderGraph
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
-            
-            GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
+
             asset.descendents.AddRange(descendents);
-            
+
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
             foreach (var node in nodes)
@@ -132,17 +154,11 @@ namespace UnityEditor.ShaderGraph
                         asset.children.Add(subGraphGuid);
                     }
                 }
-                
+
                 if (node.hasError)
                 {
                     anyErrors = true;
                 }
-            }
-
-            if (!anyErrors && containsCircularDependency)
-            {
-                Debug.LogError($"Error in Graph at {assetPath}: Sub Graph contains a circular dependency.", asset);
-                anyErrors = true;
             }
 
             if (anyErrors)
@@ -219,27 +235,27 @@ namespace UnityEditor.ShaderGraph
 
             asset.OnBeforeSerialize();
         }
-        
+
         static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)
         {
             var dependencyMap = new Dictionary<string, string[]>();
             using (var tempList = ListPool<string>.GetDisposable())
             {
                 GatherDependencies(assetPath, dependencyMap, tempList.value);
-                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);    
+                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
             }
-            
+
             descendentGuids = new HashSet<string>();
             GatherDescendents(assetPath, descendentGuids, dependencyMap);
         }
-        
+
         static void GatherDependencies(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> dependencies)
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
                 if(assetPath.EndsWith(Extension))
                     MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
-                
+
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)
@@ -267,7 +283,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return true;
             }
-            
+
             ancestors.Add(assetPath);
             foreach (var dependencyPath in dependencyMap[assetPath])
             {
