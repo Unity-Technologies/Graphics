@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
 
                 builder.AppendLine("// DOTS instancing definitions");
-                builder.AppendLine("UNITY_DOTS_INSTANCING_START(HybridPerMaterial)");
+                builder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
                 {
                     if (prop.gpuInstanced)

@@ -276,6 +276,7 @@
         #endif
     #endif
 
+    #if !defined(UNITY_DOTS_INSTANCING_ENABLED)
     UNITY_INSTANCING_BUFFER_START(PerDraw0)
         #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_ObjectToWorldArray)
@@ -290,9 +291,6 @@
         #if defined(UNITY_USE_RENDERINGLAYER_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
-        #endif
-        #if defined(SHADER_GRAPH_GENERATED)
-                DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -340,6 +338,7 @@
             #define unity_ProbesOcclusion UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_ProbesOcclusionArray)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
+    #endif
 
     // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
     #if defined(UNITY_DOTS_INSTANCING_ENABLED)

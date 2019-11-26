@@ -455,7 +455,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #undef unity_WorldToObject
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // TODO: This might not work correctly in all cases, double check!
-UNITY_DOTS_INSTANCING_START(UnityPerDraw)
+UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(unity_WorldToObject)
 UNITY_DOTS_INSTANCING_END
