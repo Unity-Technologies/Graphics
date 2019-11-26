@@ -224,14 +224,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.msaaEnabled)
                         mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
 
+                    bool useRayTracing = passData.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
                                     , mrt
                                     , context.resources.GetTexture(data.depthBuffer)
                                     , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
-                                    , context.resources.GetRendererList(data.renderListRayTracingOpaque)
-                                    , context.resources.GetRendererList(data.renderListRayTracingTransparent)
+                                    , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingOpaque) : new RendererList()
+                                    , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingTransparent) : new RendererList()
                                     );
                 });
             }
@@ -559,7 +561,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
-             
+
                 builder.SetRenderFunc(
                 (RenderDBufferPassData data, RenderGraphContext context) =>
                 {
