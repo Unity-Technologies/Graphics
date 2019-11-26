@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.7] - 2019-12-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- You can now smoothly edit controls on the `Dielectric Specular` node.
 
 ## [7.1.6] - 2019-11-22
 ### Fixed
