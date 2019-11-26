@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New quad distortion output for particle strips
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
+- Naming for particles system and spawn context
 - Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
 
 ### Fixed
