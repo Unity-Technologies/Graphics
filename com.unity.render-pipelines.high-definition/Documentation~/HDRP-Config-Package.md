@@ -10,23 +10,9 @@ For example, you can use it to:
 
 ## Using the HDRP Config package
 
-To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. To do this:
+To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. To do this, in the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) we use the **Install Configuration Editable Package**. After pressing the button you should find the **LocalPackage** at the root of your project containing the HDRP config package.  
+One important node on **upgrade**: When upgrading the HDRP package, the local package will not be automatically updated and should be upgraded by hand. The recommended way of doing so would be to save a copy of your current local package with the modification, re-install it using the wizard and then re-apply your changes.
 
-1. In the **Project** window, create a new folder, inside the **Assets** folder, called **LocalPackages**.
-
-2. Download the Config package from GitHub. To do this:
-
-	1. Go to https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master
-	2. Click on the **Branch** drop-down and select Release/ the Unity version that you are using. For example, if you are using Unity 2019.3, select **Release/2019.3**.
-	3. Select **Clone or download > Download ZIP**.
-
-4. When the download finishes, open the zipped folder and find the **com.unity.render-pipelines.high-definition-config** folder. Move this into the **LocalPackages** folder that you created in step 1.
-
-5. In the **Project** window, right-click the Packages folder and select **Show in Explorer**. Go to **Packages** and open the **manifest.json**.
-
-6. Change the target for **"com.unity.render-pipelines.high-definition-config"** : from the version number to **"file:../LocalPackages/com.unity.render-pipelines.high-definition-config"**.
-
- 
 
 ## Configuring HDRP using the config package
 

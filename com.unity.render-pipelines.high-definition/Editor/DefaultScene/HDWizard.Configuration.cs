@@ -324,7 +324,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
-            HDRenderPipeline.defaultAsset.renderPipelineResources
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.renderPipelineResources
                 = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
         }
@@ -336,7 +341,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
-            HDRenderPipeline.defaultAsset.renderPipelineEditorResources
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
         }
@@ -348,9 +358,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            hdAsset.enableSRPBatcher = true;
-            EditorUtility.SetDirty(hdAsset);
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.enableSRPBatcher = true;
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
@@ -363,9 +376,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            var defaultAssetList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            hdAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
+            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
             foreach (var diffusionProfileAsset in defaultAssetList)
             {
@@ -373,10 +389,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
 
                 var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                hdAsset.AddDiffusionProfile(userAsset);
+                hdrpAsset.AddDiffusionProfile(userAsset);
             }
 
-            EditorUtility.SetDirty(hdAsset);
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         bool IsDefaultSceneCorrect()
@@ -402,9 +418,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
-            EditorUtility.SetDirty(hdAsset);
+            var hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset == null)
+                return;
+
+            EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdrpAsset);
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         #endregion
@@ -633,7 +652,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         CopyFolder(info.resolvedPath, k_LocalHdrpConfigPackagePath);
                     }
                     
-                    PackageManager.Client.Add($"file:..{k_LocalHdrpConfigPackagePath}");
+                    PackageManager.Client.Add($"file:../{k_LocalHdrpConfigPackagePath}");
                     lastPackageConfigInstalledCheck = true;
                     onCompletion?.Invoke();
                 });
