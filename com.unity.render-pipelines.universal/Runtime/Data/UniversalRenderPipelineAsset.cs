@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        public override int antiAliasingSampleCount => msaaSampleCount;
+        public override int antiAliasing => msaaSampleCount;
 
         public void OnBeforeSerialize()
         {
