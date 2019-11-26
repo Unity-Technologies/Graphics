@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region UIELEMENT
 
-        class ToolbarRadio : Toolbar, INotifyValueChanged<int>
+        class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
         {
             public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
             public new class UxmlTraits : Button.UxmlTraits { }

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.LookDev
         VisualElement m_EnvironmentContainer;
         ListView m_EnvironmentList;
         EnvironmentElement m_EnvironmentInspector;
-        Toolbar m_EnvironmentListToolbar;
+        UIElements.Toolbar m_EnvironmentListToolbar;
         
         //event Action<UnityEngine.Object> OnAddingEnvironmentInternal;
         //event Action<UnityEngine.Object> IEnvironmentDisplayer.OnAddingEnvironment
@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.LookDev
             m_NoEnvironmentList.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_EnvironmentContainer.Add(m_EnvironmentInspector);
 
-            m_EnvironmentListToolbar = new Toolbar();
+            m_EnvironmentListToolbar = new UIElements.Toolbar();
             ToolbarButton addEnvironment = new ToolbarButton(() =>
             {
                 LookDev.currentContext.environmentLibrary.Add();
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.LookDev
                 RefreshLibraryDisplay();
             });
 
-            var environmentListCreationToolbar = new Toolbar()
+            var environmentListCreationToolbar = new UIElements.Toolbar()
             {
                 name = "environmentListCreationToolbar"
             };
