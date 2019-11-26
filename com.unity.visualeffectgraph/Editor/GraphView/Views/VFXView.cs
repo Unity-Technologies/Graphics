@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.UI
                         m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
                         m_NodeShape.Add(m_Node);
                         m_DragObject = searcherItem.descriptor.modelDescriptor;
-                        m_DragType = nameof(VFXModelDescriptor<VFXContext>);
+                        m_DragType = contextDragData;
                     }
                     else if (searcherItem.descriptor.modelDescriptor is VFXModelDescriptor<VFXOperator> operatorDesc)
                     {
@@ -186,7 +186,7 @@ namespace UnityEditor.VFX.UI
                         m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
                         m_NodeShape.Add(m_Node);
                         m_DragObject = searcherItem.descriptor.modelDescriptor;
-                        m_DragType = nameof(VFXModelDescriptor<VFXOperator>);
+                        m_DragType = operatorDragData;
                     }
                 }
             }
@@ -2095,7 +2095,7 @@ namespace UnityEditor.VFX.UI
                 DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                 e.StopPropagation();
             }
-            else if(DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>)) != null || DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>)) != null)
+            else if(DragAndDrop.GetGenericData(contextDragData) != null || DragAndDrop.GetGenericData(operatorDragData) != null)
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
                 e.StopPropagation();
@@ -2129,6 +2129,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        const string operatorDragData = "VFXModelDescriptor<VFXOperator>";
+        const string contextDragData = "VFXModelDescriptor<VFXContext>";
+
 
         void OnDragPerform(DragPerformEvent e)
         {
@@ -2150,21 +2153,21 @@ namespace UnityEditor.VFX.UI
                     e.StopPropagation();
                 }
             }
-            else if (DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>)) != null)
+            else if (DragAndDrop.GetGenericData(operatorDragData) != null)
             {
                 DragAndDrop.AcceptDrag();
 
-                VFXModelDescriptor<VFXOperator> desc = (VFXModelDescriptor<VFXOperator>)DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXOperator>));
+                VFXModelDescriptor<VFXOperator> desc = (VFXModelDescriptor<VFXOperator>)DragAndDrop.GetGenericData(operatorDragData);
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 controller.AddVFXOperator(mousePosition, desc);
 
                 e.StopPropagation();
             }
-            else if (DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>)) != null)
+            else if (DragAndDrop.GetGenericData(contextDragData) != null)
             {
                 DragAndDrop.AcceptDrag();
 
-                VFXModelDescriptor<VFXContext> desc = (VFXModelDescriptor<VFXContext>)DragAndDrop.GetGenericData(nameof(VFXModelDescriptor<VFXContext>));
+                VFXModelDescriptor<VFXContext> desc = (VFXModelDescriptor<VFXContext>)DragAndDrop.GetGenericData(contextDragData);
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 controller.AddVFXContext(mousePosition, desc);
 
