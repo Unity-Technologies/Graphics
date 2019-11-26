@@ -28,6 +28,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+        public VFXBlockController(VFXBlock model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
