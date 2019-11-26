@@ -196,37 +196,41 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             for (int i = 0; i < shadowCasters.Count; i++)
                             {
                                 ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (LightUtility.IsShadowCasterInsideLight(light, shadowCaster))
                                 {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
+                                    if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                    {
+                                        if (shadowCaster.castsShadows)
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
+                                    }
                                 }
                             }
 
                             for (int i = 0; i < shadowCasters.Count; i++)
                             {
                                 ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (LightUtility.IsShadowCasterInsideLight(light, shadowCaster))
                                 {
-                                    if (shadowCaster.useRendererSilhouette) 
+                                    if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                     {
-                                        Renderer renderer = shadowCaster.GetComponent<Renderer>();
-                                        if (renderer != null)
+                                        if (shadowCaster.useRendererSilhouette)
+                                        {
+                                            Renderer renderer = shadowCaster.GetComponent<Renderer>();
+                                            if (renderer != null)
+                                            {
+                                                if (!shadowCaster.selfShadows)
+                                                    cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
+                                                else
+                                                    cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
+                                            }
+                                        }
+                                        else
                                         {
                                             if (!shadowCaster.selfShadows)
-                                                cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                            else
-                                                cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!shadowCaster.selfShadows)
-                                        {
-                                            Matrix4x4 meshMat = shadowCaster.transform.localToWorldMatrix;
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
+                                            {
+                                                Matrix4x4 meshMat = shadowCaster.transform.localToWorldMatrix;
+                                                cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
+                                            }
                                         }
                                     }
                                 }

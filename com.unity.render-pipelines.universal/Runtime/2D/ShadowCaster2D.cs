@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int m_ShapePathHash = 0;
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
+        [SerializeField] Bounds m_LocalBounds;
 
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
@@ -121,6 +122,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 m_Mesh = new Mesh();
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_LocalBounds = LightUtility.CalculateBounds(ref m_ShapePath);
+
                 m_InstanceId = GetInstanceID();
             }
 
@@ -132,6 +135,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             LightUtility.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
         }
 
+        internal BoundingSphere GetBoundingSphere()
+        {
+            BoundingSphere boundingSphere;
+
+            Vector3 maxBound = Vector3.Max(m_LocalBounds.max, m_LocalBounds.max);
+            Vector3 minBound = Vector3.Min(m_LocalBounds.min, m_LocalBounds.min);
+            Vector3 maximum = transform.TransformPoint(maxBound);
+            Vector3 minimum = transform.TransformPoint(minBound);
+            Vector3 center = 0.5f * (maximum + minimum);
+            float radius = Vector3.Magnitude(maximum - center);
+
+            boundingSphere.radius = radius;
+            boundingSphere.position = center;
+
+            return boundingSphere;
+        }
+
         public void Update()
         {
             Renderer renderer = GetComponent<Renderer>();
@@ -139,7 +159,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
+            {
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_LocalBounds = LightUtility.CalculateBounds(ref m_ShapePath);
+            }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
             bool addedToNewGroup = LightUtility.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);

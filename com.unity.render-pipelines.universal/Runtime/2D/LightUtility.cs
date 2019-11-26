@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return changed;
         }
 
-        public static Bounds CalculateBoundingSphere(ref Vector3[] vertices, ref Color[] colors, float falloffDistance)
+        public static Bounds CalculateBounds(ref Vector3[] vertices, ref Color[] colors, float falloffDistance)
         {
             Bounds localBounds = new Bounds();
 
@@ -64,6 +64,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return localBounds;
         }
+
+        public static Bounds CalculateBounds(ref Vector3[] vertices)
+        {
+            Bounds localBounds = new Bounds();
+
+            Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
+            Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 vertex = vertices[i];
+
+                minimum.x = vertex.x < minimum.x ? vertex.x : minimum.x;
+                minimum.y = vertex.y < minimum.y ? vertex.y : minimum.y;
+                maximum.x = vertex.x > maximum.x ? vertex.x : maximum.x;
+                maximum.y = vertex.y > maximum.y ? vertex.y : maximum.y;
+            }
+
+            localBounds.max = maximum;
+            localBounds.min = minimum;
+
+            return localBounds;
+        }
+
+
 
         // Takes in a mesh that
         public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, float falloffDistance, float angle, int sides)
@@ -138,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.colors = colors;
             mesh.triangles = triangles;
 
-            return CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
+            return CalculateBounds(ref vertices, ref colors, falloffDistance);
         }
 
         public static Bounds GenerateSpriteMesh(ref Mesh mesh, Sprite sprite, float scale)
@@ -176,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 mesh.triangles = triangles3d;
                 mesh.colors = colors;
 
-                return CalculateBoundingSphere(ref vertices3d, ref colors, 0);
+                return CalculateBounds(ref vertices3d, ref colors, 0);
             }
 
             return new Bounds(Vector3.zero, Vector3.zero);
@@ -300,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.colors = colors;
             mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
 
-            localBounds = CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
+            localBounds = CalculateBounds(ref vertices, ref colors, falloffDistance);
 
             return localBounds;
         }
@@ -364,6 +388,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if(shadowCasterGroup != null)
                 shadowCasterGroup.UnregisterShadowCaster2D(shadowCaster);
+        }
+
+        public static bool IsShadowCasterInsideLight(Light2D light, ShadowCaster2D shadowCaster)
+        {
+            BoundingSphere lightBounds = light.GetBoundingSphere();
+            BoundingSphere shadowCasterBounds = shadowCaster.GetBoundingSphere();
+
+            float distanceMagSq = Vector3.SqrMagnitude(shadowCasterBounds.position - lightBounds.position);
+            float radii = (shadowCasterBounds.radius + lightBounds.radius);
+            float radiiSq = radii * radii;
+
+            return radiiSq >= distanceMagSq;
         }
 
 #if UNITY_EDITOR
