@@ -74,13 +74,14 @@ namespace UnityEditor.VFX
         [Flags]
         public enum Flags
         {
-            None =          0,
-            Value =         1 << 0, // Expression is a value, get/set can be called on it
-            Foldable =      1 << 1, // Expression is not a constant but can be folded anyway
-            Constant =      1 << 2, // Expression is a constant, it can be folded
-            InvalidOnGPU =  1 << 3, // Expression can be evaluated on GPU
-            InvalidOnCPU =  1 << 4, // Expression can be evaluated on CPU
-            PerElement =    1 << 5, // Expression is per element
+            None =            0,
+            Value =           1 << 0, // Expression is a value, get/set can be called on it
+            Foldable =        1 << 1, // Expression is not a constant but can be folded anyway
+            Constant =        1 << 2, // Expression is a constant, it can be folded
+            InvalidOnGPU =    1 << 3, // Expression can be evaluated on GPU
+            InvalidOnCPU =    1 << 4, // Expression can be evaluated on CPU
+            InvalidConstant = 1 << 5, // Expression can be folded (for UI) but constant folding is forbidden
+            PerElement =      1 << 6, // Expression is per element
             NotCompilableOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 

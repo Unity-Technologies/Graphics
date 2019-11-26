@@ -6,13 +6,21 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    static class MeshFlags
+    {
+        //Mesh API can modify the vertex count & layout.
+        //Thus, all mesh related expression should never been constant folded while generating code.
+        //If you still want to allow constant compilation, replace this following line with "Flags.None"
+        public static readonly VFXExpression.Flags kCommonFlag = VFXExpression.Flags.InvalidConstant;
+    }
+
     class VFXExpressionSampleMeshFloat : VFXExpression
     {
         public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
+        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
         {
         }
 
@@ -45,7 +53,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
+        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
         {
         }
 
@@ -73,7 +81,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
+        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
         {
         }
 
@@ -101,7 +109,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
+        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
         {
         }
 
@@ -129,7 +137,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
+        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexIndex, VFXExpression channelOffset, VFXExpression vertexStride) : base(MeshFlags.kCommonFlag | Flags.None, new VFXExpression[4] { mesh, vertexIndex, channelOffset, vertexStride })
         {
         }
 
@@ -157,7 +165,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMeshVertexCount(VFXExpression mesh) : base(Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
+        public VFXExpressionMeshVertexCount(VFXExpression mesh) : base(MeshFlags.kCommonFlag | Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
         {
         }
 
@@ -177,7 +185,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMeshChannelOffset(VFXExpression mesh, VFXExpression channelIndex) : base(Flags.InvalidOnGPU, new VFXExpression[2] { mesh, channelIndex })
+        public VFXExpressionMeshChannelOffset(VFXExpression mesh, VFXExpression channelIndex) : base(MeshFlags.kCommonFlag | Flags.InvalidOnGPU, new VFXExpression[2] { mesh, channelIndex })
         {
         }
 
@@ -201,7 +209,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMeshVertexStride(VFXExpression mesh) : base(Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
+        public VFXExpressionMeshVertexStride(VFXExpression mesh) : base(MeshFlags.kCommonFlag | Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
         {
         }
 
