@@ -25,6 +25,8 @@ There are properties on the master node as well as properties on the Materials t
 
 ![](Images/MasterNodeHair1.png)
 
+The following table describes the input ports on an Hair Master node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html).
+
 | **Property**                              | **Type** | **Stage** | **Description**                                              |
 | ----------------------------------------- | -------- | --------- | ------------------------------------------------------------ |
 | **Position**                              | Vector 3 | Vertex    | The vertex position of the hair card or spline.              |
@@ -85,7 +87,7 @@ These properties are in the **Exposed Properties** section of the Inspector and 
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Emission**                           | Enable this setting to make the emission color affect global illumination. |
 | **- Global Illumination**              | Use the drop-down to choose how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 | **Motion Vector For Vertex Animation** | Enable this setting to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |

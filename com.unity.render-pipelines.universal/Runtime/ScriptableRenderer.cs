@@ -174,6 +174,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Called when the render pipeline gets destroyed on quit or domain reload.
+        /// </summary>
+        public virtual void Cleanup()
+        {
+        }
+
+        /// <summary>
         /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>

@@ -133,10 +133,38 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             /* EmissiveIntensityToColor,
              * SecondMigrationStep,
-             * ... */ 
+             * ... */
+             SpecularOcclusionMode
         };
 
         #region Migrations
+
+        static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
+        {
+            switch (id)
+            {
+                case HDShaderUtils.ShaderID.Lit:
+                case HDShaderUtils.ShaderID.LayeredLit:
+                case HDShaderUtils.ShaderID.LitTesselation:
+                case HDShaderUtils.ShaderID.LayeredLitTesselation:
+                    var serializedObject = new SerializedObject(material);
+                    var specOcclusionMode = 1;
+                    if (FindProperty(serializedObject, "_EnableSpecularOcclusion", SerializedType.Boolean).property != null)
+                    {
+                        var enableSpecOcclusion = GetSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
+                        if (enableSpecOcclusion)
+                        {
+                            specOcclusionMode = 2;
+                        }
+                        RemoveSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
+                        serializedObject.ApplyModifiedProperties();
+                    }
+                    material.SetInt("_SpecularOcclusionMode", specOcclusionMode);
+
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                    break;
+            }
+        }
 
         //exemple migration method, remove it after first real migration
         //static void EmissiveIntensityToColor(Material material, ShaderID id)

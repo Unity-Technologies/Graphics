@@ -77,6 +77,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the normals of the particle are inverted when seen from behind, allowing quads with culling set to off to receive correct lighting information.")]
         protected bool doubleSided = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
+        protected bool preserveSpecularLighting = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features"), Tooltip("When enabled, the particle will receive shadows.")]
         protected bool enableShadows = true;
 
@@ -401,7 +404,10 @@ namespace UnityEditor.VFX
                     yield return "useEmissive";
 
                 if (isBlendModeOpaque)
+                {
                     yield return "onlyAmbientLighting";
+                    yield return "preserveSpecularLighting";
+                }
             }
         }
 
@@ -435,7 +441,10 @@ namespace UnityEditor.VFX
                         break;
                 }
                 if (!isBlendModeOpaque)
-                    forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
+                {
+                    if (preserveSpecularLighting)
+                        forwardDefines.WriteLine("#define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+                }
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
                 var forwardPassName = new VFXShaderWriter();

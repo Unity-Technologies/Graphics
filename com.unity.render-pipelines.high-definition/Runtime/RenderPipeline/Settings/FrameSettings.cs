@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
         LowResTransparent = 18,
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.")]
         RayTracing = 92,
-        [FrameSettingsField(0, autoName: RealtimePlanarReflection, customOrderInGroup: 11, tooltip: "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings.")]
-        RealtimePlanarReflection = 4,
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
 
@@ -195,8 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
         PlanarProbe = 35,
         [FrameSettingsField(1, displayedName: "Metallic Indirect Fallback", tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
         ReplaceDiffuseForIndirect = 36,
-        [FrameSettingsField(1, autoName: SkyLighting, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
-        SkyLighting = 37,
+        [FrameSettingsField(1, autoName: SkyReflection, tooltip: "When enabled, the Sky affects specular lighting for Cameras that use these Frame Settings.")]
+        SkyReflection = 37,
         [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
         DirectSpecularLighting = 38,
 
@@ -248,7 +246,10 @@ namespace UnityEngine.Rendering.HighDefinition
     partial struct FrameSettings
     {
         /// <summary>Default FrameSettings for Camera renderer.</summary>
-        internal static readonly FrameSettings defaultCamera = new FrameSettings()
+        [Obsolete("Since 2019.3, use FrameSettings.NewDefaultCamera() instead.")]
+        internal static readonly FrameSettings defaultCamera = default;
+        /// <summary>Default FrameSettings for Camera renderer.</summary>
+        internal static FrameSettings NewDefaultCamera() => new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.ShadowMaps,
@@ -291,7 +292,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -308,14 +308,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.PlanarProbe,
-                (uint)FrameSettingsField.SkyLighting,
+                (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
         };
         /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
-        internal static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
+        [Obsolete("Since 2019.3, use FrameSettings.NewDefaultRealtimeReflectionProbe() instead.")]
+        internal static readonly FrameSettings defaultRealtimeReflectionProbe = default;
+        /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
+        internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.ShadowMaps,
@@ -344,7 +347,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -360,13 +362,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
-                // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
         };
         /// <summary>Default FrameSettings for baked or custom ReflectionProbe renderer.</summary>
-        internal static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
+        [Obsolete("Since 2019.3, use FrameSettings.NewDefaultCustomOrBakeReflectionProbe() instead.")]
+        internal static readonly FrameSettings defaultCustomOrBakeReflectionProbe = default;
+        /// <summary>Default FrameSettings for baked or custom ReflectionProbe renderer.</summary>
+        internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
             bitDatas = new BitArray128(new uint[] {
                 (uint)FrameSettingsField.ShadowMaps,
@@ -395,7 +400,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 //(uint)FrameSettingsField.SSRAsync,
@@ -409,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
-                // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
@@ -554,17 +558,17 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipelineAsset.AggreateRayTracingSupport(renderPipelineSettings);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
             bool msaa = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitizedFrameSettings.litShaderMode == LitShaderMode.Forward;
 
             // No recursive reflections
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughRefraction] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
@@ -581,13 +585,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview;
 
-            bool motionVector = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= !reflection && renderPipelineSettings.supportMotionVectors && !preview;
+            bool motionVector = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= renderPipelineSettings.supportMotionVectors && !preview;
 
             // Object motion vector are disabled if motion vector are disabled
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
 
             bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
@@ -598,6 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster

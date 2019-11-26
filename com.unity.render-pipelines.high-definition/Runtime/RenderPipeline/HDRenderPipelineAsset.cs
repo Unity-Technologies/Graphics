@@ -23,25 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => OnValidate();
 
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
-        {
-            // safe: When we return a null render pipline it will do nothing in the rendering
-            HDRenderPipeline pipeline = null;
-
-            // We need to do catch every errors that happend during the HDRP build, when we upgrade the
-            // HDRP package, some required assets are not yet imported by the package manager when the
-            // pipeline is created so in that case, we just return a null pipeline. Some error may appear
-            // when we upgrade the pipeline but it's better than breaking HDRP resources an causing more
-            // errors.
-            try
-            {
-                pipeline = new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
-            } catch (Exception e) {
-                UnityEngine.Debug.LogError(e);
-            }
-
-            return pipeline;
-        }
+        protected override RenderPipeline CreatePipeline()
+            => new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
 
         protected override void OnValidate()
         {
@@ -77,9 +60,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
+
+        internal VolumeProfile defaultLookDevProfile
+        {
+            get
+            {
+                if (m_DefaultLookDevProfile == null)
+                    m_DefaultLookDevProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                return m_DefaultLookDevProfile;
+            }
+            set => m_DefaultLookDevProfile = value;
+        }
+
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
-
-
+        
         internal HDRenderPipelineEditorResources renderPipelineEditorResources
         {
             get
@@ -100,13 +95,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.defaultCamera;
+        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
 
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.defaultCustomOrBakeReflectionProbe;
+        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
 
         [SerializeField]
-        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.defaultRealtimeReflectionProbe;
+        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.NewDefaultRealtimeReflectionProbe();
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
@@ -147,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
         [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
-        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
+        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
         public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
@@ -159,30 +154,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
-        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+        [FormerlySerializedAs("materialQualityLevels")]
+        public MaterialQuality availableMaterialQualityLevels = (MaterialQuality)(-1);
 
-        [SerializeField]
-        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+        [SerializeField, FormerlySerializedAs("m_CurrentMaterialQualityLevel")]
+        private MaterialQuality m_DefaultMaterialQualityLevel = MaterialQuality.High;
 
-        public MaterialQuality currentMaterialQualityLevel
-        {
-            get
-            {
-                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
-                {
-                    // Current quality level is not supported,
-                    // Pick the highest one
-                    var highest = materialQualityLevels.GetHighestQuality();
-                    if (highest == 0)
-                        // If none are available, still pick the lowest one
-                        highest = MaterialQuality.Low;
-
-                    return highest;
-                }
-
-                return m_CurrentMaterialQualityLevel;
-            }
-        }
+        public MaterialQuality defaultMaterialQualityLevel { get => m_DefaultMaterialQualityLevel; }
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
@@ -202,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RenderingLayerNames == null)
                 {
                     m_RenderingLayerNames = new string[32];
-                    
+
                     m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
                     m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
                     m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
@@ -225,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override string[] renderingLayerMaskNames
             => renderingLayerNames;
-        
+
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
         public string[] lightLayerNames
@@ -248,11 +226,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
-
-        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
-        {
-            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
-        }
 
         // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
         [SerializeField]
@@ -329,12 +302,9 @@ namespace UnityEngine.Rendering.HighDefinition
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
-            // Is ray tracing supported for this project and this platform?
-            bool raytracingSupport = AggreateRayTracingSupport(currentPlatformRenderPipelineSettings);
-            
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(raytracingSupport, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(HDRenderPipeline.AggreateRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)

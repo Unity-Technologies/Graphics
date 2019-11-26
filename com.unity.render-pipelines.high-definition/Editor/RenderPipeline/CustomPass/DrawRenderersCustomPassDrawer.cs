@@ -39,6 +39,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Name", "The pass for the override material to use.");
             public static GUIContent sortingCriteria = new GUIContent("Sorting", "Sorting settings used to render objects in a certain order.");
+            public static GUIContent shaderPass = new GUIContent("Shader Pass", "Sets which pass will be used to render the materials. If the pass does not exists, the material will not be rendered.");
+
+		    //Depth Settings
+		    public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth state of the objects rendered.");
+		    public static GUIContent depthWrite = new GUIContent("Write Depth", "Chose to write depth to the screen.");
+		    public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
 
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
@@ -58,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_FilterFoldout;
         SerializedProperty      m_RendererFoldout;
         SerializedProperty      m_PassFoldout;
+		SerializedProperty      m_TargetDepthBuffer;
 
         // Filter
         SerializedProperty      m_RenderQueue;
@@ -66,10 +73,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Render
         SerializedProperty      m_OverrideMaterial;
-        SerializedProperty      m_OverrideMaterialPass;
+        SerializedProperty      m_OverrideMaterialPassName;
         SerializedProperty      m_SortingCriteria;
+        SerializedProperty      m_ShaderPass;
+        
+        // Override depth state
+        SerializedProperty      m_OverrideDepthState;
+        SerializedProperty      m_DepthCompareFunction;
+        SerializedProperty      m_DepthWrite;
 
         ReorderableList         m_ShaderPassesList;
+
+        bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
         protected override void Initialize(SerializedProperty customPass)
         {
@@ -77,16 +92,23 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FilterFoldout = customPass.FindPropertyRelative("filterFoldout");
             m_RendererFoldout = customPass.FindPropertyRelative("rendererFoldout");
             m_PassFoldout = customPass.FindPropertyRelative("passFoldout");
+			m_TargetDepthBuffer = customPass.FindPropertyRelative("targetDepthBuffer");
 
             // Filter props
             m_RenderQueue = customPass.FindPropertyRelative("renderQueueType");
             m_LayerMask = customPass.FindPropertyRelative("layerMask");
             m_ShaderPasses = customPass.FindPropertyRelative("passNames");
+            m_ShaderPass = customPass.FindPropertyRelative("shaderPass");
 
             // Render options
             m_OverrideMaterial = customPass.FindPropertyRelative("overrideMaterial");
-            m_OverrideMaterialPass = customPass.FindPropertyRelative("overrideMaterialPassIndex");
+            m_OverrideMaterialPassName = customPass.FindPropertyRelative("overrideMaterialPassName");
             m_SortingCriteria = customPass.FindPropertyRelative("sortingCriteria");
+
+            // Depth options
+            m_OverrideDepthState = customPass.FindPropertyRelative("overrideDepthState");
+            m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
+            m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
 
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
@@ -152,19 +174,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        GUIContent[] GetMaterialPassNames(Material mat)
-        {
-            GUIContent[] passNames = new GUIContent[mat.passCount];
-
-            for (int i = 0; i < mat.passCount; i++)
-            {
-                string passName = mat.GetPassName(i);
-                passNames[i] = new GUIContent(string.IsNullOrEmpty(passName) ? i.ToString() : passName);
-            }
-            
-            return passNames;
-        }
-
         void DoMaterialOverride(ref Rect rect)
         {
             //Override material
@@ -175,19 +184,46 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                if (mat != null && m_OverrideMaterialPass.intValue >= mat.passCount)
-                    m_OverrideMaterialPass.intValue = mat.passCount - 1;
+                // Fixup pass name in case the shader/material changes
+                if (mat != null && mat.FindPass(m_OverrideMaterialPassName.stringValue) == -1)
+                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(0);
             }
 
+            rect.y += Styles.defaultLineSpace;
+            EditorGUI.indentLevel++;
             if (m_OverrideMaterial.objectReferenceValue)
             {
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                rect.y += Styles.defaultLineSpace;
-                EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
-                m_OverrideMaterialPass.intValue = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, m_OverrideMaterialPass.intValue, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
+                index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
                 if (EditorGUI.EndChangeCheck())
-                    m_OverrideMaterialPass.intValue = Mathf.Max(0, m_OverrideMaterialPass.intValue);
+                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+            }
+            else
+            {
+                m_ShaderPass.intValue = (int)(DrawRenderersCustomPass.ShaderPass)EditorGUI.EnumPopup(rect, Styles.shaderPass, (DrawRenderersCustomPass.ShaderPass)m_ShaderPass.intValue);
+            }
+            EditorGUI.indentLevel--;
+
+            rect.y += Styles.defaultLineSpace;
+            if (customDepthIsNone)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUI.Toggle(rect, Styles.overrideDepth, false);
+            }
+            else
+            {
+                m_OverrideDepthState.boolValue = EditorGUI.Toggle(rect, Styles.overrideDepth, m_OverrideDepthState.boolValue);
+            }
+
+            if (m_OverrideDepthState.boolValue && !customDepthIsNone)
+            {
+                EditorGUI.indentLevel++;
+                rect.y += Styles.defaultLineSpace;
+                m_DepthCompareFunction.intValue = (int)(CompareFunction)EditorGUI.EnumPopup(rect, Styles.depthCompareFunction, (CompareFunction)m_DepthCompareFunction.intValue);
+                rect.y += Styles.defaultLineSpace;
+                m_DepthWrite.boolValue = EditorGUI.Toggle(rect, Styles.depthWrite, m_DepthWrite.boolValue);
                 EditorGUI.indentLevel--;
             }
         }
@@ -237,7 +273,8 @@ namespace UnityEditor.Rendering.HighDefinition
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RendererFoldout.boolValue)
             {
-                height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
+                height += Styles.defaultLineSpace * m_MaterialLines;
+                height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES
