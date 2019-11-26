@@ -23,16 +23,6 @@ namespace UnityEditor.VFX.Block
             public uint vertex = 0;
         }
 
-        public enum PlacementMode
-        {
-            Vertex,
-            Edge,
-            Surface
-        };
-
-        //[VFXSetting] // TODO - support surface sampling
-        //public PlacementMode Placement = PlacementMode.Vertex;
-
         protected override bool needDirectionWrite { get { return true; } }
         protected override bool supportsVolumeSpawning { get { return false; } }
 

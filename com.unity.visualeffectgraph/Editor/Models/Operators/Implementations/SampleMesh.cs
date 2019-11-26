@@ -43,9 +43,6 @@ namespace UnityEditor.VFX.Operator
             Custom
         };
 
-        //[VFXSetting, SerializeField] // TODO - support surface sampling
-        //private PlacementMode Placement = PlacementMode.Vertex;
-
         // TODO: support flags/mask UI, for outputting multiple attributes from one operator
         [VFXSetting, SerializeField, Tooltip("Specifies read output during mesh sampling")]
         private VertexAttribute output = VertexAttribute.Position;
@@ -128,43 +125,36 @@ namespace UnityEditor.VFX.Operator
             VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)output));
             VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
 
-            //if (Placement == PlacementMode.Vertex)
+            VFXExpression vertexIndex;
+            switch (selection)
             {
-                VFXExpression vertexIndex;
-                switch (selection)
-                {
-                    case SelectionMode.Random:
-                        {
-                            var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression[1]);
-                            vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
-                            vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
-                        }
-                        break;
-                    case SelectionMode.Custom:
-                        {
-                            vertexIndex = VFXOperatorUtility.Modulo(inputExpression[1], meshVertexCount);
-                        }
-                        break;
-                    default:
-                        throw new NotImplementedException("Unhandled Selection Mode");
-                }
-
-                var outputType = GetOutputType();
-                if (output == VertexAttribute.Color)
-                    return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
-                if (outputType == typeof(float))
-                    return new[] { new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
-                else if (outputType == typeof(Vector2))
-                    return new[] { new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
-                else if (outputType == typeof(Vector3))
-                    return new[] { new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
-                else
-                    return new[] { new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+                case SelectionMode.Random:
+                    {
+                        var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression[1]);
+                        vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
+                        vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
+                    }
+                    break;
+                case SelectionMode.Custom:
+                    {
+                        vertexIndex = VFXOperatorUtility.Modulo(inputExpression[1], meshVertexCount);
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException("Unhandled Selection Mode");
             }
-            /*else
-            {
-                // todo: Triangle
-            }*/
+
+            var outputType = GetOutputType();
+            if (output == VertexAttribute.Color)
+                return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+            if (outputType == typeof(float))
+                return new[] { new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+            else if (outputType == typeof(Vector2))
+                return new[] { new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+            else if (outputType == typeof(Vector3))
+                return new[] { new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+            else
+                return new[] { new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
         }
     }
 }
