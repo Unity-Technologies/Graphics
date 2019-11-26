@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Block
         public class CustomPropertiesVertex
         {
             [Tooltip("The vertex index to read from.")]
-            public int vertex = 0;
+            public uint vertex = 0;
         }
 
         public enum PlacementMode
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Block
         };
 
         //[VFXSetting] // TODO - support surface sampling
-        public PlacementMode Placement = PlacementMode.Vertex;
+        //public PlacementMode Placement = PlacementMode.Vertex;
 
         protected override bool needDirectionWrite { get { return true; } }
         protected override bool supportsVolumeSpawning { get { return false; } }
@@ -48,7 +48,18 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(new VFXExpressionMeshVertexStride(mesh), "meshVertexStride");
                 yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position)), "meshPositionOffset");
                 yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal)), "meshNormalOffset");
-                yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionMeshVertexCount(mesh)), "meshVertexCount");
+                var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
+                VFXExpression vertexIndex;
+                if (spawnMode == SpawnMode.Custom)
+                {
+                    vertexIndex = VFXOperatorUtility.Modulo(base.parameters.First(o => o.name == "vertex").exp, meshVertexCount);
+                }
+                else //if(spawnMode == SpawnMode.Random)
+                {
+                    var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                    vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
+                }
+                yield return new VFXNamedExpression(vertexIndex, "vertexIndex");
             }
         }
 
@@ -60,7 +71,7 @@ namespace UnityEditor.VFX.Block
 
                 properties = properties.Concat(PropertiesFromType("CustomPropertiesMesh"));
 
-                if (Placement == PlacementMode.Vertex && spawnMode == SpawnMode.Custom)
+                if (/*Placement == PlacementMode.Vertex &&*/ spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
 
                 return properties;
@@ -73,33 +84,9 @@ namespace UnityEditor.VFX.Block
             {
                 string source = "";
 
-                if (Placement == PlacementMode.Vertex)
-                {
-
-                    switch (spawnMode)
-                    {
-                        case SpawnMode.Random:
-                            {
-                                source += @"uint vertexIndex = (uint)(RAND * meshVertexCount);"; //TODOPAUL : Share the Behavior with SampleMesh operator
-                            }
-                            break;
-                        case SpawnMode.Custom:
-                            {
-                                source += @"uint vertexIndex = (vertex % meshVertexCount);";
-                            }
-                            break;
-                        default:
-                            throw new NotImplementedException("Unhandled Selection Mode");
-                    }
-
-                    source += @"
+                source += @"
 position = SampleMeshFloat3(mesh, vertexIndex, meshPositionOffset, meshVertexStride);
 direction = SampleMeshFloat3(mesh, vertexIndex, meshNormalOffset, meshVertexStride);";
-                }
-                else
-                {
-                    // TODO
-                }
 
                 return source;
             }
