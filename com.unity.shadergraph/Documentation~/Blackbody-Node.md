@@ -4,6 +4,7 @@
 
 Samples a **Gradient** that simulates the effect of black body radiation. 
 The calculations in this node are based on data gathered by Mitchell Charity.
+This node outputs color in linear RGB space and preforms the conversion using a D65 whitepoint and a CIE 1964 10 degree color space. 
 For more information, see [What color is a blackbody?](http://www.vendian.org/mncharity/dir3/blackbody/)
 
 ## Ports
