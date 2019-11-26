@@ -15,12 +15,12 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 114873264888500148}
-  m_UIPosition: {x: 707.8936, y: -190.26595}
+  m_UIPosition: {x: 709, y: -234}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Label: 
+  m_Label: Spawn system
   m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []
@@ -116,14 +116,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
-  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
     x: 559
-    y: -190
-    width: 525
-    height: 1853
+    y: -234
+    width: 526
+    height: 1897
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -202,7 +201,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  title: 
+  title: Ribbon
   m_Owners:
   - {fileID: 114946465509916290}
   - {fileID: 114780028408030698}

@@ -244,7 +244,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  title: 
+  title: Swarm
   m_Owners:
   - {fileID: 114934354838218696}
   - {fileID: 114039168733702296}
@@ -476,14 +476,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
-  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
     x: 605
-    y: -694
+    y: -766
     width: 376
-    height: 1775
+    height: 1848
 --- !u!114 &114346108377335688
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -882,12 +881,12 @@ MonoBehaviour:
   m_Parent: {fileID: 114416844323893406}
   m_Children:
   - {fileID: 114778333935603568}
-  m_UIPosition: {x: 605, y: -694}
+  m_UIPosition: {x: 605, y: -767}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Label: 
+  m_Label: Spawn system
   m_Data: {fileID: 0}
   m_InputFlowSlot:
   - link: []

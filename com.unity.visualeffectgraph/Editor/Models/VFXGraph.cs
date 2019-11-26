@@ -216,6 +216,10 @@ namespace UnityEditor.VFX
 
         public VFXParameterInfo[] m_ParameterInfo;
 
+        private VFXSystemNames m_SystemNames = new VFXSystemNames();
+
+        public VFXSystemNames systemNames { get { return m_SystemNames; } }
+
         public void BuildParameterInfo()
         {
             m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
@@ -254,6 +258,7 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
+            m_SystemNames.Sync(this);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;
@@ -317,6 +322,8 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
+            systemNames.Sync(this);
+
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
@@ -356,6 +363,10 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             m_saved = false;
+
+            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+                m_SystemNames.Sync(this);
+
             base.OnInvalidate(model, cause);
 
             if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
@@ -363,14 +374,15 @@ namespace UnityEditor.VFX
                 BuildParameterInfo();
             }
 
+
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 UpdateSubAssets();
-                if( model == this)
+                if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
             }
 
-            if( cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
+            if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
             }
@@ -644,6 +656,9 @@ namespace UnityEditor.VFX
         private VFXGraphCompiledData m_CompiledData;
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderValidation = false;
+
+        [NonSerialized]
+        public Action<VFXGraph> onRuntimeDataChanged;
 
         [SerializeField]
         protected bool m_saved = false;
