@@ -23,4 +23,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 
+float _CustomPassInjectionPoint;
+float _FadeValue;
+
 #endif // CUSTOM_PASS_RENDERERS

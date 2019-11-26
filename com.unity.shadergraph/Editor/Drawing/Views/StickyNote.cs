@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Reflection;
-using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -457,7 +455,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendAction("Light Theme", OnChangeTheme, e => DropdownMenuAction.Status.Normal, Theme.Classic);
                 else
                     evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => DropdownMenuAction.Status.Normal, Theme.Black);
-
+                evt.menu.AppendSeparator();
                 foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
                 {
                     evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => DropdownMenuAction.Status.Normal, value);
@@ -466,7 +464,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 evt.menu.AppendAction("Fit To Text", OnFitToText, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
+
+                evt.menu.AppendAction("Delete",  OnDelete, e => DropdownMenuAction.Status.Normal);
+                evt.menu.AppendSeparator();
             }
+        }
+
+        void OnDelete(DropdownMenuAction menuAction)
+        {
+            m_Graph.owner.RegisterCompleteObjectUndo("Delete Sticky Note");
+            m_Graph.RemoveStickyNote(userData);
         }
 
         void OnTitleChange(EventBase e)

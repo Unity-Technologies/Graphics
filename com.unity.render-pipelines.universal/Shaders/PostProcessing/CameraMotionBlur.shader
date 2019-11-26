@@ -86,8 +86,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 velocity = GetCameraVelocity(input.uv) * _Intensity;
-            float randomVal = InterleavedGradientNoise(input.uv.xy * _MainTex_TexelSize.zw, 0);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
+            float2 velocity = GetCameraVelocity(float4(uv, input.uv.zw)) * _Intensity;
+            float randomVal = InterleavedGradientNoise(uv * _MainTex_TexelSize.zw, 0);
             float invSampleCount = rcp(iterations * 2.0);
 
             half3 color = 0.0;
@@ -95,8 +96,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_UNROLL
             for (int i = 0; i < iterations; i++)
             {
-                color += GatherSample(i, velocity, invSampleCount, input.uv.xy, randomVal, -1.0);
-                color += GatherSample(i, velocity, invSampleCount, input.uv.xy, randomVal,  1.0);
+                color += GatherSample(i, velocity, invSampleCount, uv, randomVal, -1.0);
+                color += GatherSample(i, velocity, invSampleCount, uv, randomVal,  1.0);
             }
 
             return half4(color * invSampleCount, 1.0);

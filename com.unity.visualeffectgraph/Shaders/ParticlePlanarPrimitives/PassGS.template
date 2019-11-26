@@ -23,12 +23,19 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive)
+	if (!attributes.alive)
 		return;
 		
 	${VFXLoadSize}
 	
-	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+	const float4x4 elementToVFX = GetElementToVFXMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
 	
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	
@@ -88,8 +95,8 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 		o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 		
 		#ifdef VFX_VARYING_BENTFACTORS
-		${VFXLoadParameter:{bentNormalFactor}}
-		o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+		${VFXLoadParameter:{normalBendingFactor}}
+		o.VFX_VARYING_BENTFACTORS = vOffsets * normalBendingFactor;
 		#endif
 
 		${VFXVertexCommonProcess}

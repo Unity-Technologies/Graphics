@@ -257,7 +257,7 @@ real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
 }
 
 // A better approximation of the Mie phase function.
-// Ref: Henyey–Greenstein and Mie phase functions in Monte Carlo radiative transfer computations
+// Ref: Henyey-Greenstein and Mie phase functions in Monte Carlo radiative transfer computations
 real CornetteShanksPhaseFunction(real anisotropy, real cosTheta)
 {
     return CornetteShanksPhasePartConstant(anisotropy) *

@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9084914055496759993
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 0
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -35,3 +48,4 @@ Material:
     - Vector2_80775A9: {r: 0.6, g: 0.7, b: 0, a: 0}
     - Vector2_99DCC162: {r: 1.91, g: 0, b: 0, a: 0}
     - Vector3_B5054D22: {r: 0, g: 1, b: 0.7, a: 0}
+  m_BuildTextureStacks: []

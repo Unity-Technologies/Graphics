@@ -9,21 +9,30 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The line used for the distance calculation.")]
+            [Tooltip("Sets the line used for the distance calculation.")]
             public Line line = new Line();
-            [Tooltip("The position used for the distance calculation.")]
+            [Tooltip("Sets the position used for the distance calculation.")]
             public Position position = new Position();
         }
 
         public class OutputProperties
         {
-            [Tooltip("The closest point on the line to the supplied position.")]
-            public Vector3 closestPosition;
-            [Tooltip("The unsigned distance from the line.")]
+            [Tooltip("Outputs the closest point on the line to the supplied position.")]
+            public Position closestPosition;
+            [Tooltip("Outputs the unsigned distance from the line.")]
             public float distance;
         }
 
         override public string name { get { return "Distance (Line)"; } }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

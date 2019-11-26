@@ -19,21 +19,50 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
         /// that are missing or broken.
+        /// This version will still return null value without throwing error if the issue is due to
+        /// AssetDatabase being not ready. But in this case the assetDatabaseNotReady result will be true.
         /// </summary>
         /// <param name="container">The object containing reload-able resources</param>
         /// <param name="basePath">The base path for the package</param>
-        public static void ReloadAllNullIn(System.Object container, string basePath)
+        /// <returns>
+        ///   - 1 hasChange: True if something have been reloaded.
+        ///   - 2 assetDatabaseNotReady: True if the issue preventing loading is due to state of AssetDatabase
+        /// </returns>
+        public static (bool hasChange, bool assetDatabaseNotReady) TryReloadAllNullIn(System.Object container, string basePath)
+        {
+            try
+            {
+                return (ReloadAllNullIn(container, basePath), false);
+            }
+            catch (Exception e)
+            {
+                if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int && (int)e.Data["InvalidImport"] == 1))
+                    throw e;
+                return (false, true);
+            }
+        }
+
+
+        /// <summary>
+        /// Looks for resources in the given <paramref name="container"/> object and reload the ones
+        /// that are missing or broken.
+        /// </summary>
+        /// <param name="container">The object containing reload-able resources</param>
+        /// <param name="basePath">The base path for the package</param>
+        /// <returns>True if something have been reloaded.</returns>
+        public static bool ReloadAllNullIn(System.Object container, string basePath)
         {
             if (IsNull(container))
-                return;
+                return false;
 
+            var changed = false;
             foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
                 //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))
                 {
-                    FixGroupIfNeeded(container, fieldInfo);
-                    ReloadAllNullIn(fieldInfo.GetValue(container), basePath);
+                    changed |= FixGroupIfNeeded(container, fieldInfo);
+                    changed |= ReloadAllNullIn(fieldInfo.GetValue(container), basePath);
                 }
 
                 //Find null field and reload them
@@ -42,12 +71,12 @@ namespace UnityEngine.Rendering
                 {
                     if (attribute.paths.Length == 1)
                     {
-                        SetAndLoadIfNull(container, fieldInfo, GetFullPath(basePath, attribute),
+                        changed |= SetAndLoadIfNull(container, fieldInfo, GetFullPath(basePath, attribute),
                             attribute.package == ReloadAttribute.Package.Builtin);
                     }
                     else if (attribute.paths.Length > 1)
                     {
-                        FixArrayIfNeeded(container, fieldInfo, attribute.paths.Length);
+                        changed |= FixArrayIfNeeded(container, fieldInfo, attribute.paths.Length);
 
                         var array = (Array)fieldInfo.GetValue(container);
                         if (IsReloadGroup(array))
@@ -55,8 +84,8 @@ namespace UnityEngine.Rendering
                             //Recurse on each sub-containers
                             for (int index = 0; index < attribute.paths.Length; ++index)
                             {
-                                FixGroupIfNeeded(array, index);
-                                ReloadAllNullIn(array.GetValue(index), basePath);
+                                changed |= FixGroupIfNeeded(array, index);
+                                changed |= ReloadAllNullIn(array.GetValue(index), basePath);
                             }
                         }
                         else
@@ -64,17 +93,18 @@ namespace UnityEngine.Rendering
                             bool builtin = attribute.package == ReloadAttribute.Package.Builtin;
                             //Find each null element and reload them
                             for (int index = 0; index < attribute.paths.Length; ++index)
-                                SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index), builtin);
+                                changed |= SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index), builtin);
                         }
                     }
                 }
             }
 
-            if (container is UnityEngine.Object c)
+            if (changed && container is UnityEngine.Object c)
                 EditorUtility.SetDirty(c);
+            return changed;
         }
 
-        static void FixGroupIfNeeded(System.Object container, FieldInfo info)
+        static bool FixGroupIfNeeded(System.Object container, FieldInfo info)
         {
             if (IsNull(container, info))
             {
@@ -87,10 +117,13 @@ namespace UnityEngine.Rendering
                     container,
                     value
                 );
+                return true;
             }
+
+            return false;
         }
 
-        static void FixGroupIfNeeded(Array array, int index)
+        static bool FixGroupIfNeeded(Array array, int index)
         {
             Assert.IsNotNull(array);
 
@@ -105,10 +138,13 @@ namespace UnityEngine.Rendering
                     value,
                     index
                 );
+                return true;
             }
+
+            return false;
         }
 
-        static void FixArrayIfNeeded(System.Object container, FieldInfo info, int length)
+        static bool FixArrayIfNeeded(System.Object container, FieldInfo info, int length)
         {
             if (IsNull(container, info) || ((Array)info.GetValue(container)).Length < length)
             {
@@ -116,7 +152,10 @@ namespace UnityEngine.Rendering
                     container,
                     Activator.CreateInstance(info.FieldType, length)
                 );
+                return true;
             }
+
+            return false;
         }
 
         static ReloadAttribute GetReloadAttribute(FieldInfo fieldInfo)
@@ -144,29 +183,50 @@ namespace UnityEngine.Rendering
 
         static UnityEngine.Object Load(string path, Type type, bool builtin)
         {
+            // Check if asset exist.
+            // Direct loading can be prevented by AssetDatabase being reloading.
+            var guid = AssetDatabase.AssetPathToGUID(path);
+            if (!builtin && String.IsNullOrEmpty(guid))
+                throw new Exception($"Cannot load. Incorrect path: {path}");
+
+            // Else the path is good. Attempt loading resource if AssetDatabase available.
             UnityEngine.Object result;
             if (builtin && type == typeof(Shader))
                 result = Shader.Find(path);
             else
                 result = AssetDatabase.LoadAssetAtPath(path, type);
             if (IsNull(result))
-                throw new Exception($"Cannot load. Incorrect path: {path} Null returned.");
+            {
+                var e = new Exception($"Cannot load. Path {path} is correct but AssetDatabase cannot load now.");
+                e.Data["InvalidImport"] = 1;
+                throw e;
+            }
             return result;
         }
 
 
-        static void SetAndLoadIfNull(System.Object container, FieldInfo info,
+        static bool SetAndLoadIfNull(System.Object container, FieldInfo info,
             string path, bool builtin)
         {
             if (IsNull(container, info))
+            {
                 info.SetValue(container, Load(path, info.FieldType, builtin));
+                return true;
+            }
+
+            return false;
         }
 
-        static void SetAndLoadIfNull(Array array, int index, string path, bool builtin)
+        static bool SetAndLoadIfNull(Array array, int index, string path, bool builtin)
         {
             var element = array.GetValue(index);
             if (IsNull(element))
+            {
                 array.SetValue(Load(path, array.GetType().GetElementType(), builtin), index);
+                return true;
+            }
+
+            return false;
         }
 
         static string GetFullPath(string basePath, ReloadAttribute attribute, int index = 0)

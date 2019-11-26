@@ -20,7 +20,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
         half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, input.uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;
 
             if (AnyIsNaN(color) || AnyIsInf(color))
                 color = NAN_COLOR;

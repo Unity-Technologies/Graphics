@@ -1,0 +1,35 @@
+SurfaceData surface;
+BuiltinData builtin;
+surface = (SurfaceData)0;
+builtin = (BuiltinData)0;
+
+surface.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+surface.specularOcclusion = 1.0f;
+surface.ambientOcclusion = 1.0f;
+surface.subsurfaceMask = 1.0f;
+
+#if HAS_SHADERGRAPH_PARAM_ALPHA
+    builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    VFXClipFragmentColor(builtin.opacity,i);
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
+    surface.perceptualSmoothness = OUTSG.${SHADERGRAPH_PARAM_SMOOTHNESS};
+#endif
+#if HAS_SHADERGRAPH_PARAM_METALLIC
+    surface.metallic = OUTSG.${SHADERGRAPH_PARAM_METALLIC};
+#endif
+#if HAS_SHADERGRAPH_PARAM_BASECOLOR
+    surface.baseColor = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
+#endif
+
+#if HAS_SHADERGRAPH_PARAM_NORMAL
+    float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMAL};
+    normalWS = mul(n,tbn);
+#endif
+
+surface.normalWS = normalWS;
+
+#if HAS_SHADERGRAPH_PARAM_EMISSIVE
+    builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSIVE};
+#endif

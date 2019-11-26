@@ -45,17 +45,14 @@
 
 float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 {
-    float3 posRWS = (float3)0;
+    float3 posWS = (float3)0;
     #ifdef VFX_VARYING_POSWS
-    posRWS = i.VFX_VARYING_POSWS;
+    posWS = i.VFX_VARYING_POSWS;
     #endif
-    #if VFX_WORLD_SPACE
-    posRWS = GetCameraRelativePositionWS(posRWS);
-    #endif
-    return posRWS;
+    return VFXGetPositionRWS(posWS);
 }
 
-BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
+BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const VFXUVData uvData, float opacity = 1.0f)
 {
     BuiltinData builtinData = (BuiltinData)0;
 
@@ -83,6 +80,9 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
 
     return builtinData;
 }
+
+
+#ifndef VFX_SHADERGRAPH
 
 SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, out float opacity)
 {
@@ -153,3 +153,6 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
 
     return surfaceData;
 }
+
+
+#endif

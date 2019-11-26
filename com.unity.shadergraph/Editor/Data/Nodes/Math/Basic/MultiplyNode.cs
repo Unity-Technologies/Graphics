@@ -40,7 +40,9 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionHeader()
         {
-            return "Unity_Multiply_$precision";
+            return "Unity_Multiply" + "_" + concretePrecision.ToShaderString()
+                + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
+                + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -51,7 +53,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { Input1SlotId, Input2SlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var input1Value = GetSlotValue(Input1SlotId, generationMode);
             var input2Value = GetSlotValue(Input2SlotId, generationMode);
@@ -66,11 +68,11 @@ namespace UnityEditor.ShaderGraph
             return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    s.AppendLine("void {0} ({1} A, {2} B, out {3} Out)",
+                    s.AppendLine("void {0}({1} A, {2} B, out {3} Out)",
                         GetFunctionHeader(),
                         FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(),
                         FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(),

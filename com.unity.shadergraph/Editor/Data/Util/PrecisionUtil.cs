@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.ShaderGraph
+﻿using UnityEditor.ShaderGraph.Internal;
+
+namespace UnityEditor.ShaderGraph
 {
     internal static class PrecisionUtil
     {

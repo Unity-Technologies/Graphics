@@ -132,6 +132,17 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
     #else
     normalTS = float3(0.0, 0.0, 1.0);
     #endif
+
+    // This can happen with object space normal map not being set, but we still want detail map.
+    // If we are tangent space, _NORMALMAP_IDX is always defined if we have _DETAIL_MAP_IDX.
+    #if defined(_DETAIL_MAP_IDX)   
+        #ifdef SURFACE_GRADIENT
+            normalTS += detailNormalTS * detailMask;
+        #else
+            normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+        #endif
+    #endif
+
 #endif
 
     return normalTS;
@@ -341,8 +352,6 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
         surfaceData.atDistance = _ATDistance;
-        // Thickness already defined with SSS (from both thickness and thicknessMap)
-        surfaceData.thickness *= _ThicknessMultiplier;
         // Rough refraction don't use opacity. Instead we use opacity as a transmittance mask.
         surfaceData.transmittanceMask = (1.0 - alpha);
         alpha = 1.0;
