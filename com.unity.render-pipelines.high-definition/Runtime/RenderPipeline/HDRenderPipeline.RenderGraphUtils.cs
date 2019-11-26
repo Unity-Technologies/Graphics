@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
         {
-            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
+            if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {

@@ -70,7 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphMutableResource   resolvedDepthBuffer;
             public RenderGraphMutableResource   resolvedNormalBuffer;
             public RenderGraphMutableResource   resolvedMotionVectorsBuffer;
-            public RenderGraphMutableResource   resolvedStencilBuffer;
 
             // Copy of the resolved depth buffer with mip chain
             public RenderGraphMutableResource   depthPyramidTexture;
@@ -119,6 +118,17 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderOcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
             StartSinglePass(renderGraph, hdCamera);
 
+            // TODO RENDERGRAPH
+            //// Bind the custom color/depth before the first custom pass
+            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+            //{
+            //    if (m_CustomPassColorBuffer.IsValueCreated)
+            //        cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, m_CustomPassColorBuffer.Value);
+            //    if (m_CustomPassDepthBuffer.IsValueCreated)
+            //        cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, m_CustomPassDepthBuffer.Value);
+            //}
+            //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
+
             bool renderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
 
             if (!renderMotionVectorAfterGBuffer)
@@ -128,7 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
             }
 
-            ResolveStencilBufferIfNeeded(renderGraph, hdCamera, ref result);
+            // TODO RENDERGRAPH
+            //PreRenderSky(hdCamera, cmd);
 
             // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
             ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
@@ -137,8 +148,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
 
+            // TODO RENDERGRAPH
+            //// After Depth and Normals/roughness including decals
+            //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+
             // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
             GenerateDepthPyramid(renderGraph, hdCamera, ref result);
+
+            // TODO RENDERGRAPH
+            //// Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
+            //SendGeometryGraphicsBuffers(cmd, hdCamera);
 
             if (renderMotionVectorAfterGBuffer)
             {
@@ -148,7 +167,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
 
-            result.stencilBuffer = msaa ? result.resolvedStencilBuffer : result.depthBuffer;
+            // TODO RENDERGRAPH
+            //RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
+
+            ResolveStencilBufferIfNeeded(renderGraph, hdCamera, ref result);
 
             StopSinglePass(renderGraph, hdCamera);
 
@@ -485,11 +507,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                context.cmd);
                        }
                     );
-
-                    output.resolvedStencilBuffer = passData.outputStencil;
+                    output.stencilBuffer = passData.outputStencil;
                 }
             }
+            else
+            {
+                output.stencilBuffer = output.depthBuffer;
+            }
         }
+
         class RenderDBufferPassData
         {
             public RenderGraphMutableResource[] mrt = new RenderGraphMutableResource[Decal.GetMaterialDBufferCount()];
