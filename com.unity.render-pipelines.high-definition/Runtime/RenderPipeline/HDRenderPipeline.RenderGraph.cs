@@ -165,7 +165,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            //RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+            RenderPostProcess(m_RenderGraph, cullingResults, hdCamera, target.id);
+
+            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
+
+            // TODO RENDERGRAPH
+            //// Copy and rescale depth buffer for XR devices
+            //if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
+            //{
+            //    using (new ProfilingSample(cmd, "XR depth copy"))
+            //    {
+            //        var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
+            //        var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
+
+            //        m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
+            //        m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
+            //        m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
+
+            //        cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
+            //        cmd.SetViewport(hdCamera.finalViewport);
+            //        CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
+            //    }
+            //}
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
