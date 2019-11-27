@@ -18,7 +18,16 @@ namespace UnityEditor.VFX.Operator
         public class OutputProperties
         {
             [Tooltip("Outputs the transformed normalized vector.")]
-            public Vector3 tDir = Vector3.zero;
+            public DirectionType tDir;
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "DirectionType");
+            }
+            base.Sanitize(version);
         }
 
         override public string name { get { return "Transform (Direction)"; } }

@@ -13,14 +13,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         public enum Features
         {
-            None                    = 0,
-            MotionVector            = 1 << 0,
-            EmissionGI              = 1 << 1,
-            DiffusionProfileAsset   = 1 << 2,
-            EnableInstancing        = 1 << 3,
-            DoubleSidedGI           = 1 << 4,
-            Unlit                   = MotionVector | EmissionGI,
-            All                     = ~0,
+            None = 0,
+            MotionVector = 1 << 0,
+            EmissionGI = 1 << 1,
+            DiffusionProfileAsset = 1 << 2,
+            EnableInstancing = 1 << 3,
+            DoubleSidedGI = 1 << 4,
+            ShadowMatte = 1 << 5,
+            Unlit = MotionVector | EmissionGI | ShadowMatte,
+            All = ~0,
         }
 
         protected static class Styles
@@ -48,47 +49,47 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        MaterialProperty[]      oldProperties;
+        MaterialProperty[] oldProperties;
 
-		bool CheckPropertyChanged(MaterialProperty[] properties)
-		{
-			bool propertyChanged = false;
+        bool CheckPropertyChanged(MaterialProperty[] properties)
+        {
+            bool propertyChanged = false;
 
-			if (oldProperties != null)
-			{
-				// Check if shader was changed (new/deleted properties)
-				if (properties.Length != oldProperties.Length)
-				{
-					propertyChanged = true;
-				}
-				else
-				{
-					for (int i = 0; i < properties.Length; i++)
-					{
-						if (properties[i].type != oldProperties[i].type)
-							propertyChanged = true;
-						if (properties[i].displayName != oldProperties[i].displayName)
-							propertyChanged = true;
-						if (properties[i].flags != oldProperties[i].flags)
-							propertyChanged = true;
-						if (properties[i].name != oldProperties[i].name)
-							propertyChanged = true;
-						if (properties[i].floatValue != oldProperties[i].floatValue)
-							propertyChanged = true;
-						if (properties[i].vectorValue != oldProperties[i].vectorValue)
-							propertyChanged = true;
-						if (properties[i].colorValue != oldProperties[i].colorValue)
-							propertyChanged = true;
-						if (properties[i].textureValue != oldProperties[i].textureValue)
-							propertyChanged = true;
-					}
-				}
-			}
+            if (oldProperties != null)
+            {
+                // Check if shader was changed (new/deleted properties)
+                if (properties.Length != oldProperties.Length)
+                {
+                    propertyChanged = true;
+                }
+                else
+                {
+                    for (int i = 0; i < properties.Length; i++)
+                    {
+                        if (properties[i].type != oldProperties[i].type)
+                            propertyChanged = true;
+                        if (properties[i].displayName != oldProperties[i].displayName)
+                            propertyChanged = true;
+                        if (properties[i].flags != oldProperties[i].flags)
+                            propertyChanged = true;
+                        if (properties[i].name != oldProperties[i].name)
+                            propertyChanged = true;
+                        if (properties[i].floatValue != oldProperties[i].floatValue)
+                            propertyChanged = true;
+                        if (properties[i].vectorValue != oldProperties[i].vectorValue)
+                            propertyChanged = true;
+                        if (properties[i].colorValue != oldProperties[i].colorValue)
+                            propertyChanged = true;
+                        if (properties[i].textureValue != oldProperties[i].textureValue)
+                            propertyChanged = true;
+                    }
+                }
+            }
 
-			oldProperties = properties;
+            oldProperties = properties;
 
-			return propertyChanged;
-		}
+            return propertyChanged;
+        }
 
         void DrawShaderGraphGUI()
         {
@@ -124,6 +125,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
+
+            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
+                DrawShadowMatteToggle();
         }
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
@@ -190,6 +194,28 @@ namespace UnityEditor.Rendering.HighDefinition
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
                 }
             }
+        }
+
+        void DrawShadowMatteToggle()
+        {
+            uint exponent = 0b10000000; // 0 as exponent
+            uint mantissa = 0x007FFFFF;
+
+            float value = materials[0].GetFloat(HDMaterialProperties.kShadowMatteFilter);
+            uint uValue = HDShadowUtils.Asuint(value);
+            uint filter = uValue & mantissa;
+
+            bool shadowFilterPoint  = (filter & (uint)LightFeatureFlags.Punctual)       != 0;
+            bool shadowFilterDir    = (filter & (uint)LightFeatureFlags.Directional)    != 0;
+            bool shadowFilterRect   = (filter & (uint)LightFeatureFlags.Area)           != 0;
+            uint finalFlag = 0x00000000;
+            finalFlag |= EditorGUILayout.Toggle("Point/Spot Shadow",    shadowFilterPoint) ? (uint)LightFeatureFlags.Punctual    : 0x00000000u;
+            finalFlag |= EditorGUILayout.Toggle("Directional Shadow",   shadowFilterDir)   ? (uint)LightFeatureFlags.Directional : 0x00000000u;
+            finalFlag |= EditorGUILayout.Toggle("Area Shadow",          shadowFilterRect)  ? (uint)LightFeatureFlags.Area        : 0x00000000u;
+            finalFlag &= mantissa;
+            finalFlag |= exponent;
+
+            materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
         }
 
         void DrawDiffusionProfileUI()

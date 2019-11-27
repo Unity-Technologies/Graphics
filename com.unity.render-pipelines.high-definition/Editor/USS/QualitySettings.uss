@@ -6,21 +6,21 @@ HDRPAssetHeaderEntry {
 }
 
 .unity-quality-entry-tag {
-    border-bottom: 1;
-    border-top: 1;
-    border-right: 1;
-    border-left: 1;
-    border-top-left-radius: 2;
-    border-top-right-radius: 2;
-    border-bottom-left-radius: 2;
-    border-bottom-right-radius: 2;
-    margin: 0 2;
-    padding: 0 2;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-left-width: 1px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    margin: 0px 2px;
+    padding: 0px 2px;
 }
 
 .unity-quality-header-list {
-    margin: 5;
-    border-bottom: 1;
+    margin: 5px;
+    border-bottom-width: 1px;
     border-color: #1F1F1F;
     flex: 1 0 0;
 }
