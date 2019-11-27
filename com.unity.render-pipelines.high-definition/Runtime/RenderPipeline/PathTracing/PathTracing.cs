@@ -1,6 +1,10 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif // UNITY_EDITOR
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
@@ -19,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
 
         [Tooltip("Defines the maximum number of bounces for each path.")]
-        public ClampedIntParameter maximumDepth = new ClampedIntParameter(3, 1, 10);
+        public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
         [Tooltip("Defines the maximum intensity value computed for a path.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
@@ -28,13 +32,40 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // String values
         const string m_PathTracingRayGenShaderName = "RayGen";
+        int iteration = 0;
 
         public void InitPathTracing()
         {
+#if UNITY_EDITOR
+            Undo.postprocessModifications += UndoRecordedCallback;
+            Undo.undoRedoPerformed += UndoPerformedCallback;
+#endif // UNITY_EDITOR
         }
 
         public void ReleasePathTracing()
         {
+        }
+
+#if UNITY_EDITOR
+
+        private UndoPropertyModification[] UndoRecordedCallback(UndoPropertyModification[] modifications)
+        {
+            iteration = 0;
+
+            return modifications;
+        }
+
+        private void UndoPerformedCallback()
+        {
+            iteration = 0;
+        }
+
+#endif // UNITY_EDITOR
+
+        private void CheckCameraChange(HDCamera hdCamera)
+        {
+            if (hdCamera.mainViewConstants.viewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+                iteration = 0;
         }
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -46,13 +77,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
-            // First thing to check is: Do we have a valid ray-tracing environment?
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
             PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
 
-            // Check the validity of the state before computing the effect
+            // Check the validity of the state before moving on with the computation
             if (!pathTracingShader || !pathTracingSettings.enable.value)
                 return;
+
+            CheckCameraChange(hdCamera);
 
             // Inject the ray-tracing sampling data
             BlueNoise blueNoiseManager = GetBlueNoiseManager();
@@ -87,9 +119,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation
-            //cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameCount);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, iteration++);
 
             // Compute an approximate pixel spread angle value (in radians)
             cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));

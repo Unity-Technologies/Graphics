@@ -93,9 +93,9 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Generate the new sample (following values of the sequence)
     float3 inputSample = 0.0;
-    inputSample.x = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth);
-    inputSample.y = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 1);
-    inputSample.z = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 2);
+    inputSample.x = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth);
+    inputSample.y = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 1);
+    inputSample.z = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 2);
 
     // Get current path throughput
     float3 pathThroughput = rayIntersection.color;
@@ -160,7 +160,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         float russianRouletteValue = Luminance(pathThroughput);
         float russianRouletteFactor = 1.0;
 
-        float rand = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 3);
+        float rand = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 3);
         if (RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor, !currentDepth))
         {
             rayDescriptor.Origin = position + GetPositionBias(bsdfData.geomNormalWS, rayDescriptor.Direction, _RaytracingRayBias);
@@ -168,7 +168,6 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
             // Copy path constants across
             nextRayIntersection.pixelCoord = rayIntersection.pixelCoord;
-            nextRayIntersection.rayCount =   rayIntersection.rayCount;
             nextRayIntersection.cone.width = rayIntersection.cone.width;
 
             // Complete RayIntersection structure for this sample
