@@ -56,7 +56,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     struct Varyings
     {
         noperspective float4 positionCS : SV_POSITION;
-        nointerpolation int2 relLightOffsets : TEXCOORD0;
+        noperspective float4 posCS : TEXCOORD0;
+        nointerpolation int2 relLightOffsets : TEXCOORD1;
     };
 
     #if USE_CBUFFER_FOR_LIGHTLIST
@@ -86,6 +87,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         [branch] if (shouldDiscard)
         {
             output.positionCS = float4(-2, -2, -2, 1);
+            output.posCS = output.positionCS;
             output.relLightOffsets = 0;
             return output;
         }
@@ -98,10 +100,11 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
 
         output.positionCS = float4(clipCoord, 0, 1);
-//              Screen is already y flipped (different from HDRP)?
-//                // Tiles coordinates always start at upper-left corner of the screen (y axis down).
-//                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
-//                output.positionCS.y *= -1.0;
+        // Screen is already y flipped (different from HDRP)?
+        // Tiles coordinates always start at upper-left corner of the screen (y axis down).
+        // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
+        // output.positionCS.y *= -1.0;
+        output.posCS = output.positionCS;
 
         // "nointerpolation" interpolators are calculated by the provoking vertex of the triangles or quad.
         // Provoking vertex convention is different per platform.
@@ -185,13 +188,25 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     half4 PunctualLightShading(Varyings input) : SV_Target
     {
-        float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        float d        = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
         half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
         half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-        posWS.xyz *= 1.0 / posWS.w;
+        #if !defined(USING_STEREO_MATRICES) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            posWS.xyz *= rcp(posWS.w);
+        #else
+            #if UNITY_REVERSED_Z
+            d = 1.0 - d;
+            #endif
+            d = d * 2.0 - 1.0;
+            float4 posCS = float4(input.posCS.xy, d, 1.0);
+            #if UNITY_UV_STARTS_AT_TOP
+            posCS.y = -posCS.y;
+            #endif
+            float3 posWS = ComputeWorldSpacePosition(posCS, unity_MatrixInvVP);
+        #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);

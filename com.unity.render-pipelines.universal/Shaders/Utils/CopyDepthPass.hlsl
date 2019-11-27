@@ -82,7 +82,8 @@ float frag(Varyings input) : SV_Depth
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     UNITY_SETUP_INSTANCE_ID(input);
-    return SampleDepth(input.uv);
+    float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    return SampleDepth(uv);
 }
 
 #endif

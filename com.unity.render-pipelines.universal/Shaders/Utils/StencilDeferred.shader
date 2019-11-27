@@ -15,6 +15,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        float4 posCS : TEXCOORD0;
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
@@ -57,6 +58,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.positionCS = vertexInput.positionCS;
         #endif
 
+        output.posCS = output.positionCS;
 
         return output;
     }
@@ -83,13 +85,25 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        float d        = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
         half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
         half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-        posWS.xyz *= 1.0 / posWS.w;
+        #if !defined(USING_STEREO_MATRICES) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+            posWS.xyz *= rcp(posWS.w);
+        #else
+            #if UNITY_REVERSED_Z
+            d = 1.0 - d;
+            #endif
+            d = d * 2.0 - 1.0;
+            float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
+            #if UNITY_UV_STARTS_AT_TOP
+            posCS.y = -posCS.y;
+            #endif
+            float3 posWS = ComputeWorldSpacePosition(posCS, unity_MatrixInvVP);
+        #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
