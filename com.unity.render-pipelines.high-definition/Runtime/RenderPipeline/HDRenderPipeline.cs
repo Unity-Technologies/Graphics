@@ -2285,7 +2285,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
 
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
-            RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+
+            RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass() ? target.id : m_IntermediateAfterPostProcessBuffer;
+            RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
 
             bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
 
@@ -2921,14 +2923,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        static void RenderDepthPrepass( ScriptableRenderContext renderContext,
-                                        CommandBuffer cmd,
-                                        FrameSettings frameSettings,
-                                        RenderTargetIdentifier[] mrt,
-                                        RTHandle depthBuffer,
-                                        in RendererList depthOnlyRendererList,
-                                        in RendererList mrtRendererList,
-                                        bool hasDepthOnlyPass,
+        static void RenderDepthPrepass( ScriptableRenderContext     renderContext,
+                                        CommandBuffer               cmd,
+                                        FrameSettings               frameSettings,
+                                        RenderTargetIdentifier[]    mrt,
+                                        RTHandle                    depthBuffer,
+                                        in RendererList             depthOnlyRendererList,
+                                        in RendererList             mrtRendererList,
+                                        bool                        hasDepthOnlyPass,
                                         in RendererList             rayTracingOpaqueRL,
                                         in RendererList             rayTracingTransparentRL
                                         )
@@ -4244,15 +4246,49 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier finalRT, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        struct PostProcessParameters
         {
+            public HDCamera         hdCamera;
+            public bool             flipYInPostProcess;
+            public BlueNoise        blueNoise;
+
+            // After Postprocess
+            public float            time;
+            public float            lastTime;
+            public int              frameCount;
+            public RendererListDesc opaqueAfterPPDesc;
+            public RendererListDesc transparentAfterPPDesc;
+        }
+
+        PostProcessParameters PreparePostProcess(CullingResults cullResults, HDCamera hdCamera)
+        {
+            PostProcessParameters result = new PostProcessParameters();
+            result.hdCamera = hdCamera;
             // Y-Flip needs to happen during the post process pass only if it's the final pass and is the regular game view
             // SceneView flip is handled by the editor internal code and GameView rendering into render textures should not be flipped in order to respect Unity texture coordinates convention
-            bool flipInPostProcesses = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
-            RenderTargetIdentifier destination = HDUtils.PostProcessIsFinalPass() ? finalRT : m_IntermediateAfterPostProcessBuffer;
+            result.flipYInPostProcess = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            result.blueNoise = m_BlueNoise;
+
+            result.time = m_Time;
+            result.lastTime = m_LastTime;
+            result.frameCount = m_FrameCount;
+            result.opaqueAfterPPDesc = CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque);
+            result.transparentAfterPPDesc = CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent);
+
+            return result;
+        }
+
+        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier destination, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-            RenderAfterPostProcess(cullResults, hdCamera, renderContext, cmd);
+            RenderAfterPostProcess( parameters
+                                    , GetAfterPostProcessOffScreenBuffer()
+                                    , m_SharedRTManager.GetDepthStencilBuffer()
+                                    , RendererList.Create(parameters.opaqueAfterPPDesc)
+                                    , RendererList.Create(parameters.transparentAfterPPDesc)
+                                    , renderContext, cmd);
 
             // Set the depth buffer to the main one to avoid missing out on transparent depth for post process.
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -4261,19 +4297,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.Render(
                 cmd: cmd,
                 camera: hdCamera,
-                blueNoise: m_BlueNoise,
+                blueNoise: parameters.blueNoise,
                 colorBuffer: m_CameraColorBuffer,
                 afterPostProcessTexture: GetAfterPostProcessOffScreenBuffer(),
                 lightingBuffer: null,
                 finalRT: destination,
                 depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
-                flipY: flipInPostProcesses
+                flipY: parameters.flipYInPostProcess
             );
         }
 
 
         RTHandle GetAfterPostProcessOffScreenBuffer()
         {
+            // Here we share GBuffer albedo buffer since it's not needed anymore else we
             if (currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
                 return GetSSSBuffer();
             else
@@ -4281,8 +4318,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void RenderAfterPostProcess(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        static void RenderAfterPostProcess( PostProcessParameters   parameters,
+                                            RTHandle                destination,
+                                            RTHandle                depthStencilBuffer,
+                                            in RendererList         opaqueAfterPostProcessRendererList,
+                                            in RendererList         transparentAfterPostProcessRendererList,
+                                            ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
+            var hdCamera = parameters.hdCamera;
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                 return;
 
@@ -4295,22 +4338,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
                 bool taaEnabled = hdCamera.IsTAAEnabled();
                 hdCamera.UpdateAllViewConstants(false);
-                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
+                hdCamera.SetupGlobalParams(cmd, parameters.time, parameters.lastTime, parameters.frameCount);
+                bool useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
 
-                // Here we share GBuffer albedo buffer since it's not needed anymore
                 // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
                 // default so we're consistent in the behavior: no ZTest for After Post Process materials).
-                if (taaEnabled || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA))
-                    CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                if (!useDepthBuffer)
+                    CoreUtils.SetRenderTarget(cmd, destination, clearFlag: ClearFlag.Color, clearColor: Color.black);
                 else
-                    CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                    CoreUtils.SetRenderTarget(cmd, destination, depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
 
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
-                var opaqueRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque));
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueRendererList);
-                // Setup off-screen transparency here
-                var transparentRendererList = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent));
-                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentRendererList);
+                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueAfterPostProcessRendererList);
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentAfterPostProcessRendererList);
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
             }
         }
