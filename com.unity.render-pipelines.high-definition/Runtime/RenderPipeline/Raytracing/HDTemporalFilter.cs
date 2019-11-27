@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         {
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
+        public void DenoiseIntegrationBuffer(CommandBuffer cmd, HDCamera hdCamera,
             RTHandle noisySignal, RTHandle historySignal,
             RTHandle outputSignal, 
             bool singleChannel = true, int slotIndex = -1, float historyValidity = 1.0f)
@@ -83,6 +83,77 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "CopyHistorySingle" : "CopyHistorySingleArray") : "CopyHistoryColor");
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputSignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historySignal);
+            cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+        }
+
+        public void DenoiseIntegrationDistanceBuffers(CommandBuffer cmd, HDCamera hdCamera,
+                                                        RTHandle noisyIntegrationBuffer, RTHandle historyIntegrationBuffer,
+                                                        RTHandle noisyDistanceBuffer, RTHandle historyDistanceBuffer,
+                                                        RTHandle outputIntegrationBuffer, RTHandle outputDistanceBuffer,
+                                                        bool singleChannel = true, int slotIndex = -1, float historyValidity = 1.0f)
+        {
+            // If we do not have a depth and normal history buffers, we can skip right away
+            var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
+            var historyNormalBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
+            if (historyDepthBuffer == null || historyNormalBuffer == null)
+            {
+                HDUtils.BlitCameraTexture(cmd, noisyIntegrationBuffer, historyIntegrationBuffer);
+                HDUtils.BlitCameraTexture(cmd, noisyIntegrationBuffer, outputIntegrationBuffer);
+                HDUtils.BlitCameraTexture(cmd, noisyDistanceBuffer, outputDistanceBuffer);
+                return;
+            }
+
+            // Fetch texture dimensions
+            int texWidth = hdCamera.actualWidth;
+            int texHeight = hdCamera.actualHeight;
+
+            // Evaluate the dispatch parameters
+            int areaTileSize = 8;
+            int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+            int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+            // First of all we need to validate the history to know where we can or cannot use the history signal
+            int m_KernelFilter = m_TemporalFilterCS.FindKernel("ValidateHistory");
+            var historyScale = new Vector2(hdCamera.actualWidth / (float)historyIntegrationBuffer.rt.width, hdCamera.actualHeight / (float)historyIntegrationBuffer.rt.height);
+            cmd.SetComputeVectorParam(m_TemporalFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryNormalBufferTexture, historyNormalBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBufferRW, m_ValidationBuffer);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._HistoryValidity, historyValidity);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            // Now that we have validated our history, let's accumulate
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "TemporalAccumulationSingle" : "TemporalAccumulationSingleArray") : "TemporalAccumulationColor");
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisyIntegrationBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, historyIntegrationBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputIntegrationBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, m_ValidationBuffer);
+            cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "CopyHistorySingle" : "CopyHistorySingleArray") : "CopyHistoryColor");
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputIntegrationBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historyIntegrationBuffer);
+            cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(slotIndex == -1 ? "TemporalAccumulationSingle" : "TemporalAccumulationSingleArray");
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisyDistanceBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, historyDistanceBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputDistanceBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, m_ValidationBuffer);
+            cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(slotIndex == -1 ? "CopyHistorySingle" : "CopyHistorySingleArray");
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputDistanceBuffer);
+            cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historyDistanceBuffer);
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }

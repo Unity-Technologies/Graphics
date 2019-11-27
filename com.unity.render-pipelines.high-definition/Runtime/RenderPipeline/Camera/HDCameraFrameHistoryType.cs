@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         AmbientOcclusion,
         RaytracedAmbientOcclusion,
         RaytracedShadow,
+        RaytracedShadowDistance,
         RaytracedAreaAnalytic,
         RaytracedReflection,
         RaytracedIndirectDiffuseHF,

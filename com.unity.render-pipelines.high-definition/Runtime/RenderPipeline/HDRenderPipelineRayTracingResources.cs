@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeShader diffuseDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute")]
         public ComputeShader reflectionDenoiserCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseShadowDenoiser.compute")]
+        public ComputeShader diffuseShadowDenoiserCS;
 
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
@@ -76,6 +78,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
+
+        // Filtering for screen space shadows
+        [Reload("Runtime/RenderPipelineResources/Texture/ShadowFilterMapping.asset")]
+        public Texture3D shadowFilterMapping;
 
 #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

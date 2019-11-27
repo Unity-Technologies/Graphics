@@ -4,6 +4,7 @@
 #pragma kernel RaytracingPointShadowSample
 #pragma kernel RaytracingSpotShadowSample
 #pragma kernel ClearShadowTexture
+#pragma kernel ClearShadowIntegrationDistanceTextures
 #pragma kernel OutputShadowTexture
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
@@ -364,7 +365,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }
 
-RW_TEXTURE2D_X(float, _RaytracedDirectionalShadowIntegration);
+RW_TEXTURE2D_X(float, _RayTracedShadowIntegration);
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -373,7 +374,19 @@ void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
-    _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+    _RayTracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+}
+
+RW_TEXTURE2D_X(float, _RayTracedShadowDistance);
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void ClearShadowIntegrationDistanceTextures(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+    _RayTracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+    _RayTracedShadowDistance[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 }
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -418,7 +431,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     float3 wsDir = mul(localDir, localToWorld); 
 
     // Output the direction to the target uav
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, dot(normalData.normalWS, -lightData.forward) > 0 ? 1.0 : 0.0);
 }
 
 // Radius of the sphere used to case a soft shadow
@@ -582,5 +595,5 @@ void OutputShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Offset shadow slot based on XR setup
     uint shadowSlot = INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot);
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = _RayTracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
 }

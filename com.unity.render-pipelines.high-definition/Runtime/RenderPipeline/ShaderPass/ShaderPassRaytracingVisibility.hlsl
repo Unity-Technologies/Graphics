@@ -2,6 +2,22 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 
 // Generic function that handles the reflection code
+[shader("closesthit")]
+void ClosestHitGBuffer(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+    // The first thing that we should do is grab the intersection vertice
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
+
+    // Build the Frag inputs from the intersection vertice
+    FragInputs fragInput;
+    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+
+    // Make sure to add the additional travel distance
+    rayIntersection.t = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+}
+
+// Generic function that handles the reflection code
 [shader("anyhit")]
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {

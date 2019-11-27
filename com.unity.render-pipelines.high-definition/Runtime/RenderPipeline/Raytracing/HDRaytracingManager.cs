@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Distance,
         Direction,
+        Velocity,
         R0,
         RG0,
         RGBA0,
@@ -69,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
         HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
         HDReflectionDenoiser m_ReflectionDenoiser = new HDReflectionDenoiser();
+        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -84,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ray Direction/Distance buffers
         RTHandle m_RayTracingDirectionBuffer;
         RTHandle m_RayTracingDistanceBuffer;
+        RTHandle m_RayTracingVelocityBuffer;
 
         // Set of intermediate textures that will be used by ray tracing effects
         RTHandle m_RayTracingIntermediateBufferR0;
@@ -98,6 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
             m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
             m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+            m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+
 
             // Init the ray count manager
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
@@ -108,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the direction and instance buffers
             m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
             m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
+            m_RayTracingVelocityBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingVelocityBuffer");
         
             // Allocate the intermediate buffers
             m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
@@ -120,12 +126,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(m_RayTracingDistanceBuffer);
             RTHandles.Release(m_RayTracingDirectionBuffer);
+            RTHandles.Release(m_RayTracingVelocityBuffer);
 
+            RTHandles.Release(m_RayTracingIntermediateBufferR0);
             RTHandles.Release(m_RayTracingIntermediateBufferRG0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
 
             m_RayTracingLightCluster.ReleaseResources();
+            m_DiffuseShadowDenoiser.Release();
             m_ReflectionDenoiser.Release();
             m_TemporalFilter.Release();
             m_SimpleDenoiser.Release();
@@ -513,6 +522,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
             return m_ReflectionDenoiser;
+        }
+        internal HDDiffuseShadowDenoiser GetDiffuseShadowDenoiser()
+        {
+            return m_DiffuseShadowDenoiser;
         }
 
         internal bool GetRayTracingState()

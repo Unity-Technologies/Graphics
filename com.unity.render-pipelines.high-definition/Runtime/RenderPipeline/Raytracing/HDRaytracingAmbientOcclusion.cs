@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer0, ambientOcclusionHistory, m_AOIntermediateBuffer1);
+                    temporalFilter.DenoiseIntegrationBuffer(cmd, hdCamera, m_AOIntermediateBuffer0, ambientOcclusionHistory, m_AOIntermediateBuffer1);
 
                     // Apply the diffuse denoiser
                     HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
