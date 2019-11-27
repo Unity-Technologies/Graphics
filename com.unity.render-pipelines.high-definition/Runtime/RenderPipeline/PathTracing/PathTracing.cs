@@ -55,7 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private void ResetIteration()
         {
             // If we just changed the sample count, we don't want to reset the iteration
-            if (maxIteration != VolumeManager.instance.stack.GetComponent<PathTracing>().maximumSamples.value)
+            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            if (maxIteration != pathTracingSettings.maximumSamples.value)
                 maxIteration = (uint) pathTracingSettings.maximumSamples.value;
             else
                 currentIteration = 0;
