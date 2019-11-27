@@ -2152,6 +2152,7 @@ namespace UnityEditor.VFX.UI
                     }
                     e.StopPropagation();
                 }
+                DragAndDrop.SetGenericData("DragSelection", null);
             }
             else if (DragAndDrop.GetGenericData(operatorDragData) != null)
             {
@@ -2160,6 +2161,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptor<VFXOperator> desc = (VFXModelDescriptor<VFXOperator>)DragAndDrop.GetGenericData(operatorDragData);
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 controller.AddVFXOperator(mousePosition, desc);
+                DragAndDrop.SetGenericData(operatorDragData, null);
 
                 e.StopPropagation();
             }
@@ -2170,6 +2172,7 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptor<VFXContext> desc = (VFXModelDescriptor<VFXContext>)DragAndDrop.GetGenericData(contextDragData);
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 controller.AddVFXContext(mousePosition, desc);
+                DragAndDrop.SetGenericData(contextDragData, null);
 
                 e.StopPropagation();
             }
