@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -14,6 +15,7 @@ SAMPLER(sampler_LinearClamp);
 
 CBUFFER_START(cb0)
     float4 _TexelSize;
+    float4 _BloomThreshold;
 CBUFFER_END
 
 #define GROUP_SIZE 8
@@ -40,6 +42,12 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 color2 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[2] + uv, _TexelSize.zw), 0.0).xyz;
     float3 color3 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[3] + uv, _TexelSize.zw), 0.0).xyz;
     float3 color4 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[4] + uv, _TexelSize.zw), 0.0).xyz;
+
+    color0 = QuadraticThreshold(color0, _BloomThreshold.x, _BloomThreshold.yzw);
+    color1 = QuadraticThreshold(color1, _BloomThreshold.x, _BloomThreshold.yzw);
+    color2 = QuadraticThreshold(color2, _BloomThreshold.x, _BloomThreshold.yzw);
+    color3 = QuadraticThreshold(color3, _BloomThreshold.x, _BloomThreshold.yzw);
+    color4 = QuadraticThreshold(color4, _BloomThreshold.x, _BloomThreshold.yzw);
 
     // Luma weighted average [Karis13]
     float w0 = 1.0 / (Luminance(color0) + 1.0);
