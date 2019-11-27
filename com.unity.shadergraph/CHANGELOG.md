@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sticky Notes can now be grouped properly.
 - Fixed an issue where nodes couldn't be copied from a group.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
-- Self-referencing Sub Graphs no longer causes importing to go into an infinite loop.
+- Self-referencing Sub Graphs no longer cause an infinite loop during importing.
 
 ## [7.1.1] - 2019-09-05
 ### Added
