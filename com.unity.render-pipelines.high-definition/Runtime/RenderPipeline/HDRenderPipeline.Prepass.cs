@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
 
-            using (new XRPassScope(renderGraph, hdCamera))
+            using (new XRSinglePassScope(renderGraph, hdCamera))
             {
                 // TODO RENDERGRAPH
                 //// Bind the custom color/depth before the first custom pass

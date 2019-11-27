@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public XRPass xr;
         }
 
-        internal static void StartSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StartXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StopXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -153,20 +153,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public struct XRPassScope : System.IDisposable
+    public struct XRSinglePassScope : System.IDisposable
     {
         readonly RenderGraph m_RenderGraph;
         readonly HDCamera m_HDCamera;
 
         bool m_Disposed;
 
-        public XRPassScope(RenderGraph renderGraph, HDCamera hdCamera)
+        public XRSinglePassScope(RenderGraph renderGraph, HDCamera hdCamera)
         {
             m_RenderGraph = renderGraph;
             m_HDCamera = hdCamera;
             m_Disposed = false;
 
-            HDRenderPipeline.StartSinglePass(renderGraph, hdCamera);
+            HDRenderPipeline.StartXRSinglePass(renderGraph, hdCamera);
         }
 
         public void Dispose()
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // this but will generate garbage on every frame (and this struct is used quite a lot).
             if (disposing)
             {
-                HDRenderPipeline.StopSinglePass(m_RenderGraph, m_HDCamera);
+                HDRenderPipeline.StopXRSinglePass(m_RenderGraph, m_HDCamera);
             }
 
             m_Disposed = true;

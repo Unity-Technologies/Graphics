@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
-                using (new XRPassScope(m_RenderGraph, hdCamera))
+                using (new XRSinglePassScope(m_RenderGraph, hdCamera))
                 {
                     RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
 
-                StartSinglePass(m_RenderGraph, hdCamera);
+                StartXRSinglePass(m_RenderGraph, hdCamera);
 
                 var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult);
 
