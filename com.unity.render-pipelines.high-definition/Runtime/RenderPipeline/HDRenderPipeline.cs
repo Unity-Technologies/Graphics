@@ -302,8 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DefaultAsset = defaultAsset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
-            DebugManager.instance.RefreshEditor();
-
             m_ValidAPI = true;
 
             if (!SetRenderingFeatures())

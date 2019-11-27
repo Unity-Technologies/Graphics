@@ -160,6 +160,7 @@ namespace UnityEditor.Rendering
             // First init
             m_DebugTreeState = DebugManager.instance.GetState();
             UpdateWidgetStates();
+            ApplyStates();
 
             EditorApplication.update -= Repaint;
             var panels = DebugManager.instance.panels;
@@ -288,6 +289,11 @@ namespace UnityEditor.Rendering
             if (widget == null)
                 return;
 
+            // The value within the debug state can be null if it's not serializable
+            // Currently, it's the case for Light Hierarchy Debug Mode
+            if (state.GetValue() == null)
+                return;
+
             widget.SetValue(state.GetValue());
         }
 
@@ -312,7 +318,12 @@ namespace UnityEditor.Rendering
                 int hash = 13;
 
                 foreach (var state in m_WidgetStates)
-                    hash = hash * 23 + state.Value.GetHashCode();
+                {
+                    // The value within the debug state can be null if it's not serializable
+                    // Currently, it's the case for Light Hierarchy Debug Mode
+                    if (state.Value.GetValue() != null)
+                        hash = hash * 23 + state.Value.GetHashCode();
+                }
 
                 return hash;
             }
