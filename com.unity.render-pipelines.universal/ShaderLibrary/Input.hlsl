@@ -67,7 +67,7 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   unity_CameraInvProjection
 #define UNITY_MATRIX_VP    unity_MatrixVP
-#if defined(USING_STEREO_MATRICES)
+#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define UNITY_MATRIX_I_VP  unity_MatrixInvVP
 #else
 #define UNITY_MATRIX_I_VP  _InvCameraViewProj
