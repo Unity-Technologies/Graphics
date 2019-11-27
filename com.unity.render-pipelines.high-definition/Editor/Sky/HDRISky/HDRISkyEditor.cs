@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (isInAdvancedMode)
             {
-                PropertyField(m_EnableBackplate, new GUIContent("Backplate"));
+                PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
                 EditorGUILayout.Space();
                 if (m_EnableBackplate.value.boolValue)
                 {
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_BlendAmount);
                     PropertyField(m_PointLightShadow, new GUIContent("Point/Spot Shadow"));
                     PropertyField(m_DirLightShadow, new GUIContent("Directional Shadow"));
-                    PropertyField(m_RectLightShadow, new GUIContent("Rectangular Shadow"));
+                    PropertyField(m_RectLightShadow, new GUIContent("Area Shadow"));
                     PropertyField(m_ShadowTint);
                     if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
                     {

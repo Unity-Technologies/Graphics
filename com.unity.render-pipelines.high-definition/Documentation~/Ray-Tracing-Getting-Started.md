@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
 
-While film production uses ray tracing extensively, its resource intensity has limited its use to real time rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
+While film production uses ray tracing extensively, its resource intensity has limited its use to offline rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
 
 This document covers:
 
@@ -64,13 +64,13 @@ To set up ray tracing manually, you need to:
 3. [Enable and configure ray tracing in your HDRP Asset](#ManualSetup-EnablingRayTracing).
 4. [Ensure ray tracing resources are properly assigned](#ManualSetup-RayTracingResources).
 5. [Make sure you have a local HDRP-config package that enables ray tracing](#ManualSetup-LocalHDRPConfig).
-6. [Enable Screen Space Shadows and Screen Space Reflections in your hdrp asset](#ManualSetup-EnableSSRandShadows).
+6. [Enable Screen Space Shadows and Screen Space Reflections in your HDRP Asset](#ManualSetup-EnableSSRandShadows).
 
 <a name="ManualSetup-EnablingDX12"></a>
 
 #### Upgrading to DirectX 12
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the Player tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the Player tab.
 2. Select the Other Settings fold-out, and in the Rendering section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
 3. In the Graphics APIs for Windows section, click the plus (+) button and select Direct3d12.
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move Direct3d12 (Experimental) to the top of the list.
@@ -82,10 +82,10 @@ The Unity Editor window should now include the <DX12> tag in the title bar like 
 
 #### Disabling static batching
 
-Next, you need to disable static batching, because HDRP does not support this feature with ray tracing in Play mode. To do this:
+Next, you need to disable static batching, because HDRP does not support this feature with ray tracing in **Play Mode**. To do this:
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the **Player** tab.
-2. Select the Other Settings fold-out, then in the **Rendering** section, disable **Static Batching**.
+1. Open the Project Settings window (menu:  **Edit > Project Settings**), then select the **Player** tab.
+2. Select the **Other Settings** fold-out, then in the **Rendering** section, disable **Static Batching**.
 
 <a name="ManualSetup-EnablingRayTracing"></a>
 
@@ -110,27 +110,27 @@ Now that Unity is running in DirectX 12, and you have disabled [static batching]
 
 To verify that HDRP has properly assigned ray tracing resources:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Make sure there is a Render Pipeline Resources Asset assigned to the Render Pipeline Resources field.
 
 <a name="ManualSetup-LocalHDRPConfig"></a>
 
 #### Local HDRP config and ShaderConfig macro validation
 
-HDRP has the package com.unity.render-pipelines.high-definition-config as a dependency. You can use it to configure certain settings in HDRP without changing the HDRP package itself. First, we recommend you make a local copy of this package in your project and change the manifest.json file to point to it. Then, to enable ray tracing in HDRP, you need to change the value of a macro in the ShaderConfig.cs.hlsl file.
+The High Definition Render Pipeline (HDRP) uses a separate [package](https://docs.unity3d.com/Manual/Packages.html) to control the availability of some of its features. You can use it to configure certain settings in HDRP without changing the HDRP package itself.  First, create a local copy of this package in your Project and change the manifest.json file to point to it. For information on how to do this, see the [HDRP Config documentation](HDRP-Config-Package.html). Then, to enable ray tracing in HDRP, change the value of a macro in the ShaderConfig.cs.hlsl file.
 
 Open **Packages > High Definition RP Config > Runtime > ShaderConfig.cs.hlsl** and set the **SHADEROPTIONS_RAYTRACING** macro to **1**.
 
 <a name="ManualSetup-EnableSSRandShadows"></a>
 
-#### Enable Screen Space Shadows and Screen Space Reflections in your hdrp asset
+#### Enable Screen Space Shadows and Screen Space Reflections in your HDRP Asset
 
-Ray Tracing effets are a replacement for rasterization techniques. In order to have ray tracing effects available in your project you must go through the steps of enabling the rasterization alternative in your asset. The two effects that require modifications of your asset are Screen Space Shadows and Screen space reflections. The following step enables them in your HDRP Unity Project.
+HDRP uses ray tracing to replace certain rasterized effects. In order to use a ray tracing effect in your Project, you must first enable the rasterized version of the effect. The two effects that require you to modify your HDRP Asset  **Screen Space Shadows** and **Screen Space Reflections**. The following step enables them in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Lighting section and in the Reflections sub-section, enable Screen Space Reflection.
-3. In the Lighting section and in the Shadows sub-section, enable Screen Space Shadows.
-3. Set the value for Maximum to be the maximum number of screen space shadows you want to evaluate each frame. If there are more than this number of Lights in your Scene then HDRP only ray casts the shadows for this number of them, then uses a shadow map for the rest.
+2. Go to **Lighting > Reflections** and enable **Screen Space Reflection**.
+3. Go to **Lighting > Reflections** and enable **Screen Space Shadows**.
+3. Set the value for **Maximum** to be the maximum number of screen space shadows you want to evaluate each frame. If there are more than this number of Lights in your Scene, HDRP only ray casts shadows for this number of them, then uses a shadow map for the rest.
 
 Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -150,7 +150,7 @@ To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in y
 
 To enable ray tracing by default:
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu:  **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
 3. In the **Rendering** section, enable **Ray Tracing**.
 
@@ -167,7 +167,7 @@ To enable ray tracing for a specific Camera:
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
 - [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Tracing-Contact-Shadows.html) is a replacement for [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Tracing-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
 - [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP. It includes a different set of properties for [Tier 1](#TierTable) and [Tier 2](#TierTable) ray tracing.
 - [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
@@ -190,5 +190,5 @@ There is no support for ray tracing on other platform than DX12 for now.
 HDRP ray tracing in Unity 2019.3 has the following limitations:
 - Does not support deformers (skin, vertex animation).
 - Does not support VFX and Terrain.
-- Does not support several of HDRP's Materials. This includes Hair, StackLit, Eye and AxF Materials.
+- Does not support several of HDRP's Materials. This includes Hair, StackLit, Eye, and AxF Materials.
 - Does not have correct culling for shadows. It uses frustum culling instead.
