@@ -9,8 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.IO;
-using UnityEngine.TestTools;
 using UnityEditor.VFX.Block.Test;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.Test
 {
@@ -20,6 +20,8 @@ namespace UnityEditor.VFX.Test
         VFXViewController m_ViewController;
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
+        const string testSubgraphAssetName = "Assets/TmpTests/VFXGraphSub.vfx";
+        const string testSubgraphSubAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfx";
 
         private int m_StartUndoGroupId;
 
@@ -50,6 +52,7 @@ namespace UnityEditor.VFX.Test
         {
             m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
+            AssetDatabase.DeleteAsset(testAssetName);
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
@@ -898,6 +901,21 @@ namespace UnityEditor.VFX.Test
 
             var compatiblePorts = m_ViewController.GetCompatiblePorts(outputControllers[0], null);
             Assert.AreEqual(0, compatiblePorts.Count);
+        }
+
+        [Test]
+        public void ConvertToSubgraph()
+        {
+            //Create a new vfx based on the usual template
+            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/Simple Particle System.vfx");
+            System.IO.File.WriteAllText(testSubgraphAssetName, templateString);
+
+            VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName), null);
+
+            VFXConvertSubgraph.ConvertToSubgraphContext(window.graphView, window.graphView.Query<VFXContextUI>().ToList().Where(t => !(t.controller.model is VFXBasicSpawner)).Select(t => t.controller).Cast<Controller>(), Rect.zero, testSubgraphSubAssetName);
+
+            window.graphView.controller = null;
         }
     }
 }

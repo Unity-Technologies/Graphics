@@ -80,6 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int fullScreenContactShadowLightIndex = 0;
             public bool showSSSampledColor = false;
             public bool showContactShadowFade = false;
+            public bool xrSinglePassTestMode = false;
 
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
             public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -815,6 +816,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
             });
+
+            if (XRSystem.testModeEnabled)
+            {
+                widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
+            }
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

@@ -87,6 +87,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         {
             // Transmission through thick objects does not support shadowing
             // from directional lights. It will use the 'baked' transmittance value.
+            lightColor *= _DirectionalTransmissionMultiplier;
         }
         else
 #endif

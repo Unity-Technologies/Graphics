@@ -4,15 +4,18 @@ The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wiz
 
 To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
 
+At the top of the window, there is an information box that shows you the currently installed version of HDRP, as well as the latest version of HDRP that is compatible with your current Unity version.
+
 ![](Images/RenderPipelineWizard1.png)
 
 ## Default Path Settings
 
-| **Property**                 | **Description**                                              |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Default Resources Folder** | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
-| **Default Scene Prefab**     | Set the default Prefab that Unity instantiates in a new Scene when you select **File > New Scene**. To instantly create a Scene Asset with this template, go to **Assets > Create** and click **HD Template Scene**. |
-| **Default DXR Scene Prefab** | Set the default Prefab that Unity instantiates in a new Scene that uses ray tracing. |
+| **Property**                               | **Description**                                              |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
+| **Default Scene Prefab**                   | Set the default Prefab that Unity instantiates in a new Scene when you select **File > New Scene**. To instantly create a Scene Asset with this template, go to **Assets > Create** and click **HD Template Scene**. |
+| **Default DXR Scene Prefab**               | Set the default Prefab that Unity instantiates in a new Scene that uses ray tracing. |
+| **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.html) in the **LocalPackage** folder of your HDRP Project. |
 
 ### Populating the default resources folder
 
@@ -56,7 +59,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 
 ### HDRP + VR
 
-This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above.
+This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS.
 
 | **Configuration Option**     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -65,7 +68,7 @@ This tab provides all of the configuration options from the [HDRP tab](#HDRPTab)
 <a name="DXRTab"></a>
 ### HDRP + DXR
 
-This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support ray tracing. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above.
+This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support ray tracing. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS.
 
 | **Configuration Option**          | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |

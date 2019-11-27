@@ -15,18 +15,18 @@ Pass
 		#else
 		float2 uv : TEXCOORD0;	
 		#endif
-        #if VFX_SHADERGRAPH_HAS_UV1
-        float4 uv1 : TEXCOORD1;
-        #endif
-        #if VFX_SHADERGRAPH_HAS_UV2
-        float4 uv2 : TEXCOORD2;
-        #endif
-        #if VFX_SHADERGRAPH_HAS_UV3
-        float4 uv3 : TEXCOORD3;
-        #endif
-        #if VFX_SHADERGRAPH_HAS_COLOR
-        float4 vertexColor : COLOR1;
-        #endif
+		#if VFX_SHADERGRAPH_HAS_UV1
+		float4 uv1 : TEXCOORD1;
+		#endif
+		#if VFX_SHADERGRAPH_HAS_UV2
+		float4 uv2 : TEXCOORD2;
+		#endif
+		#if VFX_SHADERGRAPH_HAS_UV3
+		float4 uv3 : TEXCOORD3;
+		#endif
+		#if VFX_SHADERGRAPH_HAS_COLOR
+		float4 vertexColor : COLOR1;
+		#endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
@@ -50,6 +50,14 @@ Pass
 		float4 cPosPrevious : TEXCOORD5;
 		float4 cPosNonJiterred : TEXCOORD6;
 		#endif
+		
+		#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+		float3 normal : TEXCOORD7;
+		#endif
+		#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+		float4 tangent : TEXCOORD8;
+		#endif
+		
         ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -82,17 +90,28 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
+
+${VFXPassForwardDefine}
+
+#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+#define VFX_VARYING_NORMAL normal
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+#define VFX_VARYING_TANGENT tangent
+#endif
 		
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
 	
-    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
-    
+	${SHADERGRAPH_PIXEL_CODE_FORWARD}
+
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
+		${VFXComputeNormalWS}
+		
         #if VFX_SHADERGRAPH        
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}
@@ -113,7 +132,7 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
-        o.color = VFXTransformFinalColor(o.color);
+		o.color = VFXTransformFinalColor(o.color);
 		
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}

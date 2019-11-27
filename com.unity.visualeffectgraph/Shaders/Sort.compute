@@ -30,7 +30,12 @@
 // 1 to use the alternative representation of the bitonic network:
 // No comparison flipping but dedicated first sub pass.
 // see https://en.wikipedia.org/wiki/Bitonic_sorter
+#if defined(SHADER_API_METAL)
+//Workaround BitonicSort128 doesn't behave as expected, actual cause isn't identified yet.
+#define USE_ALTERNATE_BITONIC_NETWORK 1
+#else
 #define USE_ALTERNATE_BITONIC_NETWORK 0
+#endif
 
 #define BITONIC_THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT

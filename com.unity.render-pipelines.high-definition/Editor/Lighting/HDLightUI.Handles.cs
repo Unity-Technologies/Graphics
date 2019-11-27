@@ -186,6 +186,43 @@ namespace UnityEditor.Rendering.HighDefinition
                         Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
                     }
                 }
+
+                if ((ShaderConfig.s_BarnDoor == 1) && (src.type == HDLightType.Area && src.barnDoorAngle < 89.0f))
+                {
+                    // Convert the angle to randians
+                    float angle = src.barnDoorAngle * Mathf.PI / 180.0f;
+
+                    // Compute the depth of the pyramid
+                    float depth = src.barnDoorLength * Mathf.Cos(angle);
+
+                    // Evaluate the half dimensions of the rectangular area light
+                    float halfWidth = src.shapeWidth * 0.5f;
+                    float halfHeight = src.shapeHeight * 0.5f;
+                    
+                    // Evaluate the dimensions of the extended area light
+                    float extendedWidth = Mathf.Tan(angle) * depth + halfWidth;
+                    float extendedHeight = Mathf.Tan(angle) * depth + halfHeight;
+
+                    // Compute all the points of the pyramid
+                    Vector3 pos00 = src.transform.position + halfWidth * src.transform.right + halfHeight * src.transform.up;
+                    Vector3 pos10 = src.transform.position - halfWidth * src.transform.right + halfHeight * src.transform.up;
+                    Vector3 pos20 = src.transform.position - halfWidth * src.transform.right - halfHeight * src.transform.up;
+                    Vector3 pos30 = src.transform.position + halfWidth * src.transform.right - halfHeight * src.transform.up;
+                    Vector3 pos01 = src.transform.position + src.transform.forward * depth + src.transform.right * extendedWidth + src.transform.up * extendedHeight;
+                    Vector3 pos11 = src.transform.position + src.transform.forward * depth - src.transform.right * extendedWidth + src.transform.up * extendedHeight;
+                    Vector3 pos21 = src.transform.position + src.transform.forward * depth - src.transform.right * extendedWidth - src.transform.up * extendedHeight;
+                    Vector3 pos31 = src.transform.position + src.transform.forward * depth + src.transform.right * extendedWidth - src.transform.up * extendedHeight;
+
+                    // Draw the pyramid
+                    Debug.DrawLine(pos00, pos01, Color.yellow);
+                    Debug.DrawLine(pos10, pos11, Color.yellow);
+                    Debug.DrawLine(pos20, pos21, Color.yellow);
+                    Debug.DrawLine(pos30, pos31, Color.yellow);
+                    Debug.DrawLine(pos01, pos11, Color.yellow);
+                    Debug.DrawLine(pos11, pos21, Color.yellow);
+                    Debug.DrawLine(pos21, pos31, Color.yellow);
+                    Debug.DrawLine(pos31, pos01, Color.yellow);
+                }
             }
         }
     }
