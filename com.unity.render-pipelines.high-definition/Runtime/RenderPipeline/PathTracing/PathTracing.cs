@@ -30,9 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
     public partial class HDRenderPipeline
     {
-        // String values
         const string m_PathTracingRayGenShaderName = "RayGen";
-        int iteration = 0;
+        uint currentIteration = 0;
+        uint maxIteration = 0;
 
         public void InitPathTracing()
         {
@@ -44,20 +44,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleasePathTracing()
         {
+#if UNITY_EDITOR
+            Undo.postprocessModifications -= UndoRecordedCallback;
+            Undo.undoRedoPerformed -= UndoPerformedCallback;
+#endif // UNITY_EDITOR
         }
 
 #if UNITY_EDITOR
 
+        private void ResetIteration()
+        {
+            // If we just changed the sample count, we don't want to reset the iteration
+            if (maxIteration != VolumeManager.instance.stack.GetComponent<PathTracing>().maximumSamples.value)
+                maxIteration = (uint) pathTracingSettings.maximumSamples.value;
+            else
+                currentIteration = 0;
+        }
+
         private UndoPropertyModification[] UndoRecordedCallback(UndoPropertyModification[] modifications)
         {
-            iteration = 0;
+            ResetIteration();
 
             return modifications;
         }
 
         private void UndoPerformedCallback()
         {
-            iteration = 0;
+            ResetIteration();
         }
 
 #endif // UNITY_EDITOR
@@ -65,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void CheckCameraChange(HDCamera hdCamera)
         {
             if (hdCamera.mainViewConstants.viewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
-                iteration = 0;
+                currentIteration = 0;
         }
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -120,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, iteration++);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, (int)currentIteration++);
 
             // Compute an approximate pixel spread angle value (in radians)
             cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
