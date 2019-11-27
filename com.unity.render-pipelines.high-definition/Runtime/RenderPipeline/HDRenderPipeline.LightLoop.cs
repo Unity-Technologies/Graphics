@@ -285,6 +285,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ssrBlackTexture;
 
             RenderGraphResource result;
+
+            // TODO RENDERGRAPH
+            //var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
+            //{
+            //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
+            //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
+            //    hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
+            //}
+            //else
             {
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
@@ -480,13 +490,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (VolumetricLightingPassData data, RenderGraphContext ctx) =>
                     {
+                        RTHandle densityBufferRT = ctx.resources.GetTexture(data.densityBuffer);
+                        RTHandle lightinBufferRT = ctx.resources.GetTexture(data.lightingBuffer);
                         VolumetricLightingPass( data.parameters,
-                                                ctx.resources.GetTexture(data.densityBuffer),
-                                                ctx.resources.GetTexture(data.lightingBuffer),
+                                                densityBufferRT,
+                                                lightinBufferRT,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
+
+                        if (data.parameters.filterVolume)
+                            FilterVolumetricLighting(data.parameters, densityBufferRT, lightinBufferRT, ctx.cmd);
                     });
 
                     if (parameters.enableReprojection)
