@@ -13,7 +13,8 @@
         "particles"
   ],
   "dependencies": {
-    "com.unity.shadergraph": "8.0.0"
+    "com.unity.shadergraph": "8.0.0",
+    "com.unity.searcher": "4.0.9"
   },    
   "samples" : [
      {

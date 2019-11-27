@@ -4,7 +4,8 @@
         "Unity.VisualEffectGraph.Runtime",
         "Unity.Timeline",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.ShaderGraph.Editor"
+        "Unity.ShaderGraph.Editor",
+        "Unity.Searcher.Editor"
     ],
     "includePlatforms": [
         "Editor"
