@@ -102,7 +102,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #if UNITY_UV_STARTS_AT_TOP
             posCS.y = -posCS.y;
             #endif
-            float3 posWS = ComputeWorldSpacePosition(posCS, unity_MatrixInvVP);
+            float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
         #endif
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
