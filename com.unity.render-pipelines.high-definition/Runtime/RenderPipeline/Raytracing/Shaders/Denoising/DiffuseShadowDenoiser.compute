@@ -67,9 +67,9 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     float2 radiusScale = SAMPLE_TEXTURE3D_LOD(_ShadowFilterMapping, s_trilinear_clamp_sampler, mappingUV, 0.0f).xy;
 
     #if FINAL_PASS
-    const float radius = _DenoiserFilterRadius;
+    const float radius = _DenoiserFilterRadius * radiusScale.x;
     #else
-    const float radius = _DenoiserFilterRadius;
+    const float radius = _DenoiserFilterRadius * radiusScale.y;
     #endif
     const float sigma = 0.5 * radius;
     const int effectiveRadius = min(sigma * 2.0, radius);
