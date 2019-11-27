@@ -84,7 +84,7 @@ validate_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     - .yamato/upm-ci-packages.yml#pack
 
 test_updated_dependencies_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
-  name: z_(do not use) Test {{ package.name }} {{ platform.name }} {{ editor.version }}
+  name: z_(do not use) Test {{ package.name }} with updated dependencies {{ platform.name }} {{ editor.version }}
   agent:
     type: {{ platform.agent.type }}
     image: {{ platform.agent.image }}
