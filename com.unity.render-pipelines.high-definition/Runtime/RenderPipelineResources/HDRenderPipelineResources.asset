@@ -81,7 +81,6 @@ MonoBehaviour:
     hdriSkyPS: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
     integrateHdriSkyPS: {fileID: 4800000, guid: 48db2705cf2856d4e893eb30a6892d1b,
       type: 3}
-    cubeToOctahedral: {fileID: 4800000, guid: ebb234139c7edca4789f32bac9a3719f, type: 3}
     skyboxCubemapPS: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
     gradientSkyPS: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
     ambientProbeConvolutionCS: {fileID: 7200000, guid: 6d048f7b1bd45e840b4e79ec92639fa8,
@@ -108,16 +107,6 @@ MonoBehaviour:
       type: 3}
     clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
       type: 3}
-    cubeToOctahedralCS: {fileID: 7200000, guid: 66cebaedf53bf0d4bb3ac96a3fe73336,
-      type: 3}
-    ParallelOperationCS: {fileID: 7200000, guid: f204d64ed719ecb40bd70cd8b059d0e6,
-      type: 3}
-    CDF1DCS: {fileID: 7200000, guid: 304e596f3451e0649b69681a848c2def, type: 3}
-    InverseCDF1DCS: {fileID: 7200000, guid: 5951bcf5da78623409e06b3b4e7d3a31, type: 3}
-    Rescale01CS: {fileID: 7200000, guid: 4b31ebc66d70d784c90fe5695a2421a4, type: 3}
-    ImportanceSample2DCS: {fileID: 7200000, guid: 6a1d4639486a09941aa4a50492c150ca,
-      type: 3}
-    OutputDebugCS: {fileID: 7200000, guid: 806284a356269b5418cb750608d6ed56, type: 3}
     xrMirrorViewPS: {fileID: 4800000, guid: e6255f98cf405eb45ab6f9006cf11e1f, type: 3}
     xrOcclusionMeshPS: {fileID: 4800000, guid: 46a45b32bb110604fb36216b63bcdb81, type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}

@@ -542,11 +542,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AerosolDensityFalloff             = Shader.PropertyToID("_AerosolDensityFalloff");
         public static readonly int _AerosolScaleHeight                = Shader.PropertyToID("_AerosolScaleHeight");
 
-        public static readonly int _AirSeaLevelExtinction             = Shader.PropertyToID("_AirSeaLevelExtinction");
-        public static readonly int _AerosolSeaLevelExtinction         = Shader.PropertyToID("_AerosolSeaLevelExtinction");
-
         public static readonly int _AirSeaLevelScattering             = Shader.PropertyToID("_AirSeaLevelScattering");
         public static readonly int _AerosolSeaLevelScattering         = Shader.PropertyToID("_AerosolSeaLevelScattering");
+
+        public static readonly int _AirSeaLevelExtinction             = Shader.PropertyToID("_AirSeaLevelExtinction");
+        public static readonly int _AerosolSeaLevelExtinction         = Shader.PropertyToID("_AerosolSeaLevelExtinction");
 
         public static readonly int _GroundAlbedo                      = Shader.PropertyToID("_GroundAlbedo");
         public static readonly int _IntensityMultiplier               = Shader.PropertyToID("_IntensityMultiplier");
