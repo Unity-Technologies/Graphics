@@ -175,14 +175,14 @@ bool SampleLights(LightList lightList,
             if (lightData.size.x > 0.0) // Stores the square radius
             {
                 float3x3 localFrame = GetLocalFrame(outgoingDir);
-                SampleCone(inputSample, sqrt(1.0 - lightData.size.x / sqDist), outgoingDir, pdf); // computes rcpPdf
+                SampleCone(inputSample, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
 
                 outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
 
                 if (dot(normal, outgoingDir) < 0.001)
                     return false;
 
-                dist = sqrt(sqDist + lightData.size.x);
+                dist = max(sqrt((sqDist - lightData.size.x)), 0.001);
                 value = GetPunctualEmission(lightData, outgoingDir, dist) / pdf;
                 pdf = GetLocalLightWeight(lightList) / pdf;
             }
@@ -241,7 +241,7 @@ void EvaluateLights(LightList lightList,
     {
         LightData lightData = GetLocalLightData(lightList, i);
 
-        // Punctual/directional lights have a quasi-null probability of being hit here
+        // Punctual lights have a quasi-null probability of being hit here
         if (lightData.lightType != GPULIGHTTYPE_RECTANGLE)
             continue;
 
