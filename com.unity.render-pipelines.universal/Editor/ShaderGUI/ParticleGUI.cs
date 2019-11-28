@@ -329,8 +329,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Z write doesn't work with distortion/fading
             bool hasZWrite = (material.GetInt("_ZWrite") != 0);
 
-            material.EnableKeyword("_RECEIVE_SHADOWS_OFF");
-
             // Flipbook blending
             if (material.HasProperty("_FlipbookBlending"))
             {
