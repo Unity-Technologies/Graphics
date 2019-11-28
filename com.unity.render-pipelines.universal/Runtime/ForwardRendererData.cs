@@ -57,8 +57,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] bool m_ShadowTransparentReceive = true;
 
         protected override ScriptableRenderer Create()
         {
@@ -77,6 +77,8 @@ namespace UnityEngine.Rendering.Universal
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        public bool shadowTransparentReceive => m_ShadowTransparentReceive;
 
         protected override void OnEnable()
         {
