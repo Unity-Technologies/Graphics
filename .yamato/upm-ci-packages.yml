@@ -42,7 +42,7 @@ pack:
     flavor: b1.small
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - upm-ci project pack --project-path ./TestProjects/
+    - upm-ci project pack --project-path ./TestProjects/SRP_SmokeTest
   artifacts:
     packages:
       paths:
