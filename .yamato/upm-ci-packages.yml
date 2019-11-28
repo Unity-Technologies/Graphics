@@ -48,6 +48,27 @@ pack:
       paths:
         - "upm-ci~/packages/**/*"
 
+{% assign validation_editor = editors | first -%}
+{% assign validation_platform = platforms | first -%}
+{% for package in packages -%}
+validate_{{ package.id }}_{{ validation_platform.name }}_{{ validation_editor.version }}:
+  name: z_(do not use) Validate {{ package.name }} {{ validation_platform.name }} {{ validation_editor.version }}
+  agent:
+    type: {{ validation_platform.agent.type }}
+    image: {{ validation_platform.agent.image }}
+    flavor: {{ validation_platform.agent.flavor }}
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci project test -u {{ validation_editor.version }} --project-path TestProjects/SRP_SmokeTest --package-filter {{ package.packagename }} --type vetting-tests
+  artifacts:
+    logs:
+      paths:
+        - "**/upm-ci~/test-results/**/*"
+  dependencies:
+    - .yamato/upm-ci-packages.yml#pack
+
+{% endfor -%}
+
 {% for editor in editors -%}
 {% for platform in platforms -%}
 {% for package in packages -%}
@@ -60,22 +81,6 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - upm-ci project test -u {{ editor.version }} --project-path TestProjects/SRP_SmokeTest --package-filter {{ package.packagename }} --type package-tests
-  artifacts:
-    logs:
-      paths:
-        - "**/upm-ci~/test-results/**/*"
-  dependencies:
-    - .yamato/upm-ci-packages.yml#pack
-
-validate_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
-  name: z_(do not use) Validate {{ package.name }} {{ platform.name }} {{ editor.version }}
-  agent:
-    type: {{ platform.agent.type }}
-    image: {{ platform.agent.image }}
-    flavor: {{ platform.agent.flavor }}
-  commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - upm-ci project test -u {{ editor.version }} --project-path TestProjects/SRP_SmokeTest --package-filter {{ package.packagename }} --type vetting-tests
   artifacts:
     logs:
       paths:
@@ -114,11 +119,11 @@ all_package_tests:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - upm-ci package izon -t
   dependencies:
+{% for package in packages -%}
+    - .yamato/upm-ci-packages.yml#validate_{{ package.id}}_{{ validation_platform.name }}_{{ validation_editor.version }}
 {% for editor in editors -%}
 {% for platform in platforms -%}
-{% for package in packages -%}
     - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
-    - .yamato/upm-ci-packages.yml#validate_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
 {% endfor -%}
 {% endfor -%}
 {% endfor -%}
@@ -163,10 +168,10 @@ publish_{{ package.id }}:
         - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-packages.yml#pack
+    - .yamato/upm-ci-packages.yml#validate_{{ package.id}}_{{ validation_platform.name }}_{{ validation_editor.version }}
 {% for editor in editors -%}
 {% for platform in platforms -%}
     - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
-    - .yamato/upm-ci-packages.yml#validate_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
 {% endfor -%}
 {% endfor -%}
 {% endfor -%}
