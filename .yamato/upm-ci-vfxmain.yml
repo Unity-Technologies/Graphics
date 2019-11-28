@@ -1,6 +1,6 @@
 editors:
-  - version: graphics/vfx/fix/mesh-sampling
-    cmd: -u graphics/vfx/fix/mesh-sampling
+  - version: trunk
+    cmd: -u trunk
   - version: fast-trunk
     cmd: -u trunk --fast
 platforms:
