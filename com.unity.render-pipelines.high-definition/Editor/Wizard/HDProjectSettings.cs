@@ -36,26 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal const string k_PackageFirstTimeVersionForMaterials = "NeverSaved";
 
-        public static GameObject defaultScenePrefab
-        {
-            get => instance.m_DefaultScenePrefabSaved;
-            set
-            {
-                instance.m_DefaultScenePrefabSaved = value;
-                Save();
-            }
-        }
-
-        public static GameObject defaultDXRScenePrefab
-        {
-            get => instance.m_DefaultDXRScenePrefabSaved;
-            set
-            {
-                instance.m_DefaultDXRScenePrefabSaved = value;
-                Save();
-            }
-        }
-
         public static string projectSettingsFolderPath
         {
             get => instance.m_ProjectSettingFolderPath;

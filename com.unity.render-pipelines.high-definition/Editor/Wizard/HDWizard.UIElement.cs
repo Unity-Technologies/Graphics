@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental;
+using System.Linq;
+using UnityEditor.SceneTemplate;
+using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -90,51 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 evt.Use();
             }
         }
-
-        void CreateDefaultSceneFromPackageAnsAssignIt(bool forDXR)
-        {
-            string subPath = forDXR ? "/DXR/" : "/";
-
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-            if (forDXR && !AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath))
-                AssetDatabase.CreateFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath, "DXR");
-
-            var hdrpAssetEditorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
-            
-            GameObject originalDefaultSceneAsset = forDXR ? hdrpAssetEditorResources.defaultDXRScene : hdrpAssetEditorResources.defaultScene;
-            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSceneAsset.name + ".prefab";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSceneAsset), defaultScenePath);
-
-            VolumeProfile originalDefaultSkyAndFogProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRSkyAndFogProfile : hdrpAssetEditorResources.defaultSkyAndFogProfile;
-            string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSkyAndFogProfileAsset.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSkyAndFogProfileAsset), defaultSkyAndFogProfilePath);
-
-            VolumeProfile originalDefaultPostProcessingProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRPostProcessingProfile : hdrpAssetEditorResources.defaultPostProcessingProfile;
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultPostProcessingProfileAsset.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultPostProcessingProfileAsset), defaultPostProcessingProfilePath);
-
-            GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
-            VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
-            VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
-
-            foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
-            {
-                if (volume.sharedProfile.name.StartsWith(originalDefaultSkyAndFogProfileAsset.name))
-                    volume.sharedProfile = defaultSkyAndFogProfile;
-                else if (volume.sharedProfile.name.StartsWith(originalDefaultPostProcessingProfileAsset.name))
-                    volume.sharedProfile = defaultPostProcessingProfile;
-            }
-
-            if (forDXR)
-                HDProjectSettings.defaultDXRScenePrefab = defaultScene;
-            else
-                HDProjectSettings.defaultScenePrefab = defaultScene;
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-        }
-
+        
         void CreateOrLoad<T>(Action onCancel, Action<T> onObjectChanged)
             where T : ScriptableObject
         {
@@ -175,29 +134,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void CreateOrLoadDefaultScene(Action onCancel, Action<GameObject> onObjectChanged, bool forDXR)
-        {
-            switch (EditorUtility.DisplayDialogComplex(
-                forDXR ? Style.dxrScenePrefabTitle : Style.scenePrefabTitle,
-                forDXR ? Style.dxrScenePrefabContent : Style.scenePrefabContent,
-                Style.displayDialogCreate,
-                Style.displayDialogCancel,
-                Style.displayDialogLoad))
-            {
-                case 0: //create
-                    CreateDefaultSceneFromPackageAnsAssignIt(forDXR);
-                    break;
-                case 1: //cancel
-                    onCancel?.Invoke();
-                    break;
-                case 2: //Load
-                    ObjectSelector.Show(forDXR ? HDProjectSettings.defaultDXRScenePrefab : HDProjectSettings.defaultScenePrefab, typeof(GameObject), o => onObjectChanged?.Invoke((GameObject)o));
-                    break;
-                default:
-                    throw new ArgumentException("Unrecognized option");
-            }
-        }
-
         void Repopulate()
         {
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
@@ -214,7 +150,20 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetEditorResourcesCorrect())
                 FixHdrpAssetEditorResources(true);
 
-            CreateDefaultSceneFromPackageAnsAssignIt(forDXR: false);
+            if (AssetDatabase
+                .FindAssets("t:SceneTemplateAsset")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(assetPath => !assetPath.StartsWith("Packages/com.unity.scene-template"))
+                .Select(templateAssetPath => AssetDatabase.LoadAssetAtPath<SceneTemplateAsset>(templateAssetPath))
+                .Where(templateData => templateData != null && templateData.IsValid && templateData.addToDefaults)
+                .Count() == 0)
+            {
+                CreateSceneTemplate(
+                    Style.dxrDefaultSceneName,
+                    Style.dxrDefaultSceneDescription,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrDefaultScene,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot)));
+            }
         }
 
         #endregion

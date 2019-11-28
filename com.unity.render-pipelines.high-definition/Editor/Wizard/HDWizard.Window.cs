@@ -4,6 +4,8 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Linq;
 using System;
+using UnityEditor.SceneTemplate;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -33,6 +35,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string defaultSettingsTitle = "Default Path Settings";
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
+
+            public const string installDefaultSceneTemplate = "Install Hdrp Default Scene Template";
+            public const string defaultSceneName = "HDRP-DefaultScene-template";
+            public const string defaultSceneDescription = "A scene with a basic configuration for High-Definition Render Pipeline.";
+            public const string installDxrDefaultSceneTemplate = "Install Hdrp Default DXR Scene Template";
+            public const string dxrDefaultSceneName = "HDRP-DXR-DefaultScene-template";
+            public const string dxrDefaultSceneDescription = "A scene with a basic configuration for High-Definition Render Pipeline using DXR.";
 
             public const string installConfigPackageLabel = "Install Configuration Editable Package";
             public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
@@ -248,8 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
-            container.Add(m_DefaultScene = CreateDefaultScene());
-            container.Add(m_DefaultDXRScene = CreateDXRDefaultScene());
+
+            container.Add(CreateInstallHdrpDefaultSceneTemplate());
+            container.Add(CreateInstallHdrpDxrDefaultSceneTemplate());
 
             container.Add(CreateInstallConfigPackageArea());
 
@@ -346,38 +356,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return row;
         }
 
-        ObjectField CreateDefaultScene()
-        {
-            var newScene = new ObjectField(Style.newSceneLabel)
-            {
-                tooltip = Style.newSceneTooltip,
-                name = "NewScene",
-                objectType = typeof(GameObject),
-                value = HDProjectSettings.defaultScenePrefab
-            };
-            newScene.Q<Label>().AddToClassList("normal");
-            newScene.RegisterValueChangedCallback(evt
-                => HDProjectSettings.defaultScenePrefab = evt.newValue as GameObject);
-
-            return newScene;
-        }
-
-        ObjectField CreateDXRDefaultScene()
-        {
-            var newDXRScene = new ObjectField(Style.newDXRSceneLabel)
-            {
-                tooltip = Style.newSceneTooltip,
-                name = "NewDXRScene",
-                objectType = typeof(GameObject),
-                value = HDProjectSettings.defaultDXRScenePrefab
-            };
-            newDXRScene.Q<Label>().AddToClassList("normal");
-            newDXRScene.RegisterValueChangedCallback(evt
-                => HDProjectSettings.defaultDXRScenePrefab = evt.newValue as GameObject);
-
-            return newDXRScene;
-        }
-
         VisualElement CreateTabbedBox((string label, string tooltip)[] tabs, out VisualElement innerBox)
         {
             var toolbar = new ToolbarRadio();
@@ -442,6 +420,58 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
+        VisualElement CreateInstallHdrpDefaultSceneTemplate()
+        {
+            VisualElement area = new VisualElement()
+            {
+                name = "InstallHdrpDefaultSceneTemplateArea"
+            };
+            area.Add(CreateLargeButton(Style.installDefaultSceneTemplate, () =>
+                CreateSceneTemplate(
+                    Style.defaultSceneName,
+                    Style.defaultSceneDescription,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.defaultScene,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.snapshot)));
+            return area;
+        }
+
+        VisualElement CreateInstallHdrpDxrDefaultSceneTemplate()
+        {
+            VisualElement area = new VisualElement()
+            {
+                name = "InstallHdrpDefaultSceneTemplateArea"
+            };
+            area.Add(CreateLargeButton(Style.installDxrDefaultSceneTemplate, () =>
+                CreateSceneTemplate(
+                    Style.dxrDefaultSceneName,
+                    Style.dxrDefaultSceneDescription,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrDefaultScene,
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot)));
+            return area;
+        }
+
+        void CreateSceneTemplate(string name, string description, SceneAsset sceneBinded, Texture2D snapshot)
+        {
+            var newAsset = ScriptableObject.CreateInstance<SceneTemplateAsset>();
+            newAsset.name = name;
+
+            newAsset.BindScene(sceneBinded);
+            foreach (var dependency in newAsset.dependencies)
+            {
+                dependency.instantiationMode =
+                    dependency.dependency is UnityEngine.Rendering.VolumeProfile
+                    ? TemplateInstantiationMode.Clone
+                    : TemplateInstantiationMode.Reference;
+            }
+            newAsset.templateName = name;
+            newAsset.description = description;
+            newAsset.addToDefaults = true;
+            newAsset.preview = snapshot;
+
+            AssetDatabase.CreateAsset(newAsset, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{name}.asset");
+            ProjectWindowUtil.ShowCreatedAsset(newAsset);
+        }
+        
         void UpdateDisplayOfConfigPackageArea(ConfigPackageState state)
         {
             switch (state)

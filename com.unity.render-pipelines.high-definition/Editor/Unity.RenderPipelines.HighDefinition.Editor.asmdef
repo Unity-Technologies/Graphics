@@ -9,7 +9,8 @@
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
         "Unity.PackageManagerDocTools.Editor",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "Unity.SceneTemplate.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -26,5 +27,6 @@
             "expression": "0.0.0",
             "define": "HDRP_1_OR_NEWER"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }
