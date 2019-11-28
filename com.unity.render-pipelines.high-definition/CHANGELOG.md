@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
+- Added the support of skinned mesh renderers for ray tracing effects
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -259,6 +260,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
+- Changed the ownership of temporary ray tracing buffers to reduce the memory footprint.
 
 ## [7.1.1] - 2019-09-05
 

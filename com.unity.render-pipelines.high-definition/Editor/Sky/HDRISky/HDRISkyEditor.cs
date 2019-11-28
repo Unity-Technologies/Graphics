@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -12,11 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
         : SkySettingsEditor
     {
         SerializedDataParameter m_hdriSky;
-        SerializedDataParameter m_DesiredLuxValue;
-        SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
-
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -31,26 +27,22 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
-        SerializedDataParameter m_RebuildMarginal;
-        SerializedProperty      m_OctahedralMap;
-
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
-        Material m_CubeToOctahedral;
         public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
+            m_EnableLuxIntensityMode = true;
+
             // HDRI sky does not have control over sun display.
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
             m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
-            m_DesiredLuxValue           = Unpack(o.Find(x => x.desiredLuxValue));
-            m_IntensityMode             = Unpack(o.Find(x => x.skyIntensityMode));
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
@@ -68,14 +60,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
             m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
-            m_RebuildMarginal           = Unpack(o.Find(x => x.rebuildMarginal));
-            //m_OctahedralMap             = Unpack(o.Find(x => x.octahedralMap));
-            m_OctahedralMap             = serializedObject.FindProperty("octahedralMap");
-
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
             m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
-            m_CubeToOctahedral = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
 
@@ -114,92 +101,23 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
-        public void RebuildMaginalTexture()
-        {
-            int size = 1024;
-            //RTHandle octahedralMap = RTHandles.Alloc(size, size, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
-            var hdrp = HDRenderPipeline.defaultAsset;
-            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
-
-            if (hdri == null)
-                return;
-
-            m_CubeToOctahedral.SetTexture(HDShaderIDs._Cubemap, hdri);
-
-            //RenderTexture octahedralMap = m_OctahedralMap.value.objectReferenceValue as RenderTexture;
-            //octahedralMap
-            if (m_OctahedralMap.value.objectReferenceValue)
-                CoreUtils.Destroy(octBack);
-            m_OctahedralMap.value.objectReferenceValue = new RenderTexture(size, size, 1, GraphicsFormat.R32G32B32A32_SFloat);
-            RenderTexture octahedralMap = m_OctahedralMap.value.objectReferenceValue as RenderTexture;
-            Graphics.Blit(Texture2D.whiteTexture, octahedralMap, m_CubeToOctahedral);
-
-            RenderTexture.active = octahedralMap;
-            octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
-            octBack.Apply();
-            RenderTexture.active = null;
-
-            byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-            System.IO.File.WriteAllBytes(@"C:\UProjects\OctSkyExport.exr", bytes);
-
-            UnityEngine.Graphics.SetRenderTarget(null);
-            CoreUtils.Destroy(octBack);
-            //CoreUtils.Destroy(octahedralMap);
-        }
-
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
             {
                 PropertyField(m_hdriSky);
-
-                EditorGUILayout.Space();
-
-                PropertyField(m_IntensityMode);
+                base.CommonSkySettingsGUI();
             }
-
             bool updateDefaultShadowTint = false;
-
-            if (m_RebuildMarginal.value.boolValue == true)
-                m_RebuildMarginal.value.boolValue = false;
-
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
-                RebuildMaginalTexture();
-                if (m_RebuildMarginal.value.boolValue == false)
-                    m_RebuildMarginal.value.boolValue = true;
-
                 updateDefaultShadowTint = true;
             }
 
-            if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
-            {
-                EditorGUI.indentLevel++;
-                PropertyField(m_DesiredLuxValue);
-                // Hide exposure and multiplier
-                m_CommonUIElementsMask &= ~(uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
-                m_CommonUIElementsMask |=  (uint)SkySettingsUIElement.IndentExposureAndMultiplier;
-
-                // Show the multiplier
-                EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
-                    m_UpperHemisphereLuxValue.value.floatValue,
-                    (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
-                ), MessageType.Info);
-                EditorGUI.indentLevel--;
-            }
-            else
-            {
-                m_CommonUIElementsMask |= (uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
-            }
-            PropertyField(m_RebuildMarginal);
-
-            base.CommonSkySettingsGUI();
-
             if (isInAdvancedMode)
             {
-                PropertyField(m_EnableBackplate, new GUIContent("Backplate"));
+                PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
                 EditorGUILayout.Space();
                 if (m_EnableBackplate.value.boolValue)
                 {
@@ -240,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_BlendAmount);
                     PropertyField(m_PointLightShadow, new GUIContent("Point/Spot Shadow"));
                     PropertyField(m_DirLightShadow, new GUIContent("Directional Shadow"));
-                    PropertyField(m_RectLightShadow, new GUIContent("Rectangular Shadow"));
+                    PropertyField(m_RectLightShadow, new GUIContent("Area Shadow"));
                     PropertyField(m_ShadowTint);
                     if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
                     {

@@ -173,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateRenderingLayerNames()
         {
+            m_RenderingLayerNames = new string[32];
+
             m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
             m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
             m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
@@ -192,15 +194,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // HDRP use GetRenderingLayerMaskNames to create its light linking system
         // Mean here we define our name for light linking.
         [System.NonSerialized]
-        string[] m_RenderingLayerNames = null;
+        string[] m_RenderingLayerNames;
         string[] renderingLayerNames
         {
             get
             {
                 if (m_RenderingLayerNames == null)
                 {
-                    m_RenderingLayerNames = new string[32];
-
                     UpdateRenderingLayerNames();
                 }
 

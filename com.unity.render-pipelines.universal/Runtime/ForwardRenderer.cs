@@ -146,8 +146,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
                 requiresDepthPrepass = true;
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || rendererFeatures.Count != 0;
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
@@ -220,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingData.cameraData.requiresOpaqueTexture)
             {
-                // TODO: Downsampling method should be store in the renderer isntead of in the asset.
+                // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
@@ -259,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (requiresFinalPostProcessPass)
                     {
-                        m_FinalPostProcessPass.SetupFinalPass(m_ActiveCameraColorAttachment);
+                        m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
