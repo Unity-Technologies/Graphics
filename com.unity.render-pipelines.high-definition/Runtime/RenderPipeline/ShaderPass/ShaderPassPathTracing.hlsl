@@ -137,7 +137,8 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
                 nextRayIntersection.remainingDepth = _RaytracingMaxRecursion + 1;
                 rayDescriptor.TMax -= _RaytracingRayBias;
                 nextRayIntersection.t = rayDescriptor.TMax;
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, nextRayIntersection);
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, nextRayIntersection);
 
                 if (nextRayIntersection.t >= rayDescriptor.TMax)
                 {
@@ -210,35 +211,9 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         rayIntersection.color *= _RaytracingIntensityClamp / intensity;
 }
 
-// Handles fully transparent objects (not called if RAY_FLAG_FORCE_OPAQUE is set)
 [shader("anyhit")]
 void AnyHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // The first thing that we should do is grab the intersection vertex
-    IntersectionVertex currentVertex;
-    GetCurrentIntersectionVertex(attributeData, currentVertex);
-
-    // Build the Frag inputs from the intersection vertex
-    FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
-
-    // Compute the distance of the ray
     rayIntersection.t = RayTCurrent();
-
-    PositionInputs posInput;
-    posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = 0;
-
-    // Build the surfacedata and builtindata
-    SurfaceData surfaceData;
-    BuiltinData builtinData;
-    bool isVisible = GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentVertex, rayIntersection.cone, surfaceData, builtinData);
-
-    // If this fella should be culled, then we cull it
-    if (!isVisible)
-        IgnoreHit();
-
-    // If the depth information is marked as invalid, we are shooting a transmission ray
-    if (rayIntersection.remainingDepth > _RaytracingMaxRecursion)
-        AcceptHitAndEndSearch();
+    AcceptHitAndEndSearch();
 }

@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         singleSided |= !doubleSided;
                     }
                 }
-                
+
                 // If the mesh was not valid, exclude it
                 if (!validMesh)
                 {
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Propagate the right mask
             instanceFlag |= materialIsOnlyTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
 
-            if (rayTracedShadow)
+            if (rayTracedShadow || pathTracingEnabled)
             {
                 // Raise the shadow casting flag if needed
                 instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             ;
         }
-        
+
 
         internal BlueNoise GetBlueNoiseManager()
         {
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_DiffuseDenoiser;
         }
-        
+
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
             return m_ReflectionDenoiser;

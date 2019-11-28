@@ -144,20 +144,20 @@ bool SampleLights(LightList lightList,
         // Pick a local light from the list
         LightData lightData = GetLocalLightData(lightList, inputSample.z);
 
-        // Generate a point on the surface of the light
-        float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
-        float3 samplePos = lightCenter + (inputSample.x - 0.5) * lightData.size.x * lightData.right + (inputSample.y - 0.5) * lightData.size.y * lightData.up;
-
-        // And the corresponding direction
-        outgoingDir = samplePos - position;
-        dist = length(outgoingDir);
-        outgoingDir /= dist;
-
-        if (dot(normal, outgoingDir) < 0.001)
-            return false;
-
         if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
         {
+            // Generate a point on the surface of the light
+            float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+            float3 samplePos = lightCenter + (inputSample.x - 0.5) * lightData.size.x * lightData.right + (inputSample.y - 0.5) * lightData.size.y * lightData.up;
+
+            // And the corresponding direction
+            outgoingDir = samplePos - position;
+            dist = length(outgoingDir);
+            outgoingDir /= dist;
+
+            if (dot(normal, outgoingDir) < 0.001)
+                return false;
+
             float cosTheta = -dot(outgoingDir, lightData.forward);
             if (cosTheta < 0.001)
                 return false;
@@ -168,9 +168,36 @@ bool SampleLights(LightList lightList,
         }
         else // Punctual light
         {
-            // DELTA_PDF represents 1 / area, where the area is infinitesimal
-            value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
-            pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+            // Direction from shading point to light position
+            outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
+            float sqDist = Length2(outgoingDir);
+
+            if (lightData.size.x > 0.0) // Stores the square radius
+            {
+                float3x3 localFrame = GetLocalFrame(outgoingDir);
+                SampleCone(inputSample, sqrt(1.0 - lightData.size.x / sqDist), outgoingDir, pdf); // computes rcpPdf
+
+                outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
+
+                if (dot(normal, outgoingDir) < 0.001)
+                    return false;
+
+                dist = sqrt(sqDist + lightData.size.x);
+                value = GetPunctualEmission(lightData, outgoingDir, dist) / pdf;
+                pdf = GetLocalLightWeight(lightList) / pdf;
+            }
+            else
+            {
+                dist = sqrt(sqDist);
+                outgoingDir /= dist;
+
+                if (dot(normal, outgoingDir) < 0.001)
+                    return false;
+
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal
+                value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
+                pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+            }
         }
     }
     else // Distant lights

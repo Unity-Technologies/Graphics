@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the layers that path tracing should include.")]
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
-        [Tooltip("Defines the maximum number of paths cast within each pixel.")]
-        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 1024);
+        [Tooltip("Defines the maximum number of paths cast within each pixel, over time (one per frame).")]
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
 
         [Tooltip("Defines the minimum number of bounces for each path.")]
         public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CheckCameraChange(HDCamera hdCamera)
         {
-            if (hdCamera.mainViewConstants.viewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
                 currentIteration = 0;
         }
 
