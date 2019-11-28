@@ -216,7 +216,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderer = m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId].renderer;
                 if (renderer != null)
                 {
-                    renderer.SetGlobalSkyData(cmd, hdCamera.lightingSky.skySettings);
+                    m_BuiltinParameters.skySettings = hdCamera.lightingSky.skySettings;
+                    renderer.SetGlobalSkyData(cmd, m_BuiltinParameters);
                 }
             }
         }
@@ -377,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetupAmbientProbe(HDCamera hdCamera)
         {
             // If a camera just returns from being disabled, sky is not setup yet for it.
-            if (hdCamera.lightingSky == null)
+            if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
                 RenderSettings.ambientMode = AmbientMode.Custom;
                 RenderSettings.ambientProbe = m_BlackAmbientProbe;
@@ -597,10 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ref var cachedContext = ref m_CachedSkyContexts[id];
             cachedContext.refCount--;
-            if (cachedContext.refCount == 0)
-            {
-                cachedContext.Reset();
-            }
+            Debug.Assert(cachedContext.refCount >= 0);
         }
 
         bool IsCachedContextValid(SkyUpdateContext skyContext)
@@ -730,7 +728,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateEnvironment(hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, ambientMode, frameIndex, cmd);
 
-            if (ambientMode == SkyAmbientMode.Static)
+            // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
+            // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
+            // and we use the one from the main camera.
+            if (ambientMode == SkyAmbientMode.Static && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 StaticLightingSky staticLightingSky = GetStaticLightingSky();
                 if (staticLightingSky != null)
@@ -756,30 +757,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
             }
         }
-        internal void GetBuiltinParameters(out BuiltinSkyParameters skyParams, SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+
+        internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
-            skyParams = new BuiltinSkyParameters();
-            skyParams.hdCamera                  = hdCamera;
-            skyParams.commandBuffer             = cmd;
-            skyParams.sunLight                  = sunLight;
-            skyParams.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-            skyParams.worldSpaceCameraPos       = hdCamera.mainViewConstants.worldSpaceCameraPos;
-            skyParams.viewMatrix                = hdCamera.mainViewConstants.viewMatrix;
-            skyParams.screenSize                = hdCamera.screenSize;
-            skyParams.colorBuffer               = colorBuffer;
-            skyParams.depthBuffer               = depthBuffer;
-            skyParams.debugSettings             = debugSettings;
-            skyParams.frameIndex                = frameIndex;
-            skyParams.skySettings               = skyContext.skySettings;
+            m_BuiltinParameters.hdCamera = hdCamera;
+            m_BuiltinParameters.commandBuffer = cmd;
+            m_BuiltinParameters.sunLight = sunLight;
+            m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+            m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+            m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
+            m_BuiltinParameters.screenSize = hdCamera.screenSize;
+            m_BuiltinParameters.colorBuffer = colorBuffer;
+            m_BuiltinParameters.depthBuffer = depthBuffer;
+            m_BuiltinParameters.debugSettings = debugSettings;
+            m_BuiltinParameters.frameIndex = frameIndex;
+            m_BuiltinParameters.skySettings = skyContext.skySettings;
         }
 
-        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
             {
-                GetBuiltinParameters(out m_BuiltinParameters,
-                                        skyContext,
+                UpdateBuiltinParameters(skyContext,
                                         hdCamera,
                                         sunLight,
                                         colorBuffer,
@@ -792,7 +792,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 cachedContext.renderer.DoUpdate(m_BuiltinParameters);
-                if (depthBuffer == BuiltinSkyParameters.nullRT)
+                if (depthBuffer != BuiltinSkyParameters.nullRT && normalBuffer != BuiltinSkyParameters.nullRT)
+                {
+                    CoreUtils.SetRenderTarget(cmd, normalBuffer, depthBuffer);
+                }
+                else if (depthBuffer != BuiltinSkyParameters.nullRT)
                 {
                     CoreUtils.SetRenderTarget(cmd, depthBuffer);
                 }
@@ -807,8 +811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {
-                    GetBuiltinParameters(out m_BuiltinParameters,
-                                         skyContext,
+                    UpdateBuiltinParameters(skyContext,
                                          hdCamera,
                                          sunLight,
                                          colorBuffer,

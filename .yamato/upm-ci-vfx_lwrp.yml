@@ -4,7 +4,7 @@ editors:
   - version: fast-trunk
     cmd: -u trunk --fast
 platforms:
-  - name: Windows64
+  - name: Win
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
@@ -45,12 +45,12 @@ linux_apis:
 {% for editor in editors %}
 {% for platform in platforms %}
 
-{% if platform.name == "Windows64" %}
+{% if platform.name == "Win" %}
 
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
-{{ project.name }}_Windows64_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
-  name : {{ project.name }} on Windows64_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
+{{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
+  name : {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
@@ -204,7 +204,7 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "Linux" %}
   #skip
   
-  {% elsif platform.name == "Windows64" %}
+  {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
   {% if win_api.name == "Vulkan" %}
   #skip

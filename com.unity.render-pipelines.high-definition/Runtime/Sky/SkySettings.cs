@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Exposure,
         Lux,
+        Multiplier,
     }
 
     [System.Flags]
@@ -99,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
                 hash = hash * 23 + desiredLuxValue.GetHashCode();
-                hash = hash * 23 + skyIntensityMode.value.GetHashCode();
+                hash = hash * 23 + skyIntensityMode.GetHashCode();
                 hash = hash * 23 + includeSunInBaking.GetHashCode();
 
                 return hash;

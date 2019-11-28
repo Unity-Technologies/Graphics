@@ -12,13 +12,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
-        //private RenderTexture m_OctahedralMap;
-        //private RenderTexture m_PDFHorizontal;
-        private RTHandle m_OctahedralMap;
-        private RTHandle m_PDFHorizontal;
-
-        private bool m_HDRISkyHash = false;
-
         public HDRISkyRenderer()
         {
         }
@@ -34,11 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_SkyHDRIMaterial);
         }
 
-        private void GetParameters(out float multiplier, out float exposure, out float phi, out float backplatePhi, BuiltinSkyParameters builtinParams, HDRISky hdriSky)
+        private void GetParameters(out float intensity, out float phi, out float backplatePhi, BuiltinSkyParameters builtinParams, HDRISky hdriSky)
         {
-            float luxMultiplier = hdriSky.desiredLuxValue.value/hdriSky.upperHemisphereLuxValue.value;
-            multiplier      = (hdriSky.skyIntensityMode.value == SkyIntensityMode.Exposure) ? hdriSky.multiplier.value : luxMultiplier;
-            exposure        = (hdriSky.skyIntensityMode.value == SkyIntensityMode.Exposure) ? GetExposure(hdriSky, builtinParams.debugSettings) : 1;
+            intensity       = GetSkyIntensity(hdriSky, builtinParams.debugSettings);
             phi             = -Mathf.Deg2Rad*hdriSky.rotation.value; // -rotation to match Legacy...
             backplatePhi    = phi - Mathf.Deg2Rad*hdriSky.plateRotation.value;
         }
@@ -48,14 +39,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // xy: scale, z: groundLevel, w: projectionDistance
             float scaleX = Mathf.Abs(hdriSky.scale.value.x);
             float scaleY = Mathf.Abs(hdriSky.scale.value.y);
-            if (hdriSky.backplateType.value == BackplateType.Ellipse && Mathf.Abs(scaleX - scaleY) < 1e-4f)
-            {
-                scaleY += 1e-4f;
-            }
+
             if (hdriSky.backplateType.value == BackplateType.Disc)
             {
                 scaleY = scaleX;
             }
+
             return new Vector4(scaleX, scaleY, hdriSky.groundLevel.value, hdriSky.projectionDistance.value);
         }
 
@@ -90,57 +79,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
-        public void SaveOcta(AsyncGPUReadbackRequest request)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\OctSkyExport.exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-            }
-        }
-
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
-
-            bool currentHash = hdriSky.rectLightShadow.value;
-            if (m_HDRISkyHash != currentHash)
-            {
-                m_HDRISkyHash = currentHash;
-
-                const int size = 1024;
-
-                RenderTextureDescriptor desc0 = new RenderTextureDescriptor(size, size, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, 0);
-                desc0.enableRandomWrite = true;
-                RenderTextureDescriptor desc1 = new RenderTextureDescriptor(size, 32,   Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, 0);
-                desc1.enableRandomWrite = true;
-                m_OctahedralMap = RTHandles.Alloc(size, size, colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: "OctahedralMap");
-
-                Cubemap cubemap = hdriSky.hdriSky.value;
-
-                var hdrp = HDRenderPipeline.defaultAsset;
-                Material cubeToOctahedral = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
-
-                cubeToOctahedral.SetTexture(HDShaderIDs._Cubemap, cubemap);
-                builtinParams.commandBuffer.SetRenderTarget(m_OctahedralMap);
-                builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, (float)size, (float)size));
-                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToOctahedral);
-                builtinParams.commandBuffer.RequestAsyncReadback(m_OctahedralMap, SaveOcta);
-
-                ImportantSampler2D is2d = new ImportantSampler2D();
-
-                is2d.Init(m_OctahedralMap, builtinParams.commandBuffer);
-            }
-
             if (hdriSky.enableBackplate.value == false)
             {
                 return;
@@ -152,13 +93,13 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 passID = m_RenderDepthOnlyFullscreenSkyWithBackplateID;
 
-            float multiplier, exposure, phi, backplatePhi;
-            GetParameters(out multiplier, out exposure, out phi, out backplatePhi, builtinParams, hdriSky);
+            float intensity, phi, backplatePhi;
+            GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
 
             using (new ProfilingSample(builtinParams.commandBuffer, "Draw PreSky"))
             {
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
+                m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
 
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
@@ -170,10 +111,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
-            float multiplier, exposure, phi, backplatePhi;
-            GetParameters(out multiplier, out exposure, out phi, out backplatePhi, builtinParams, hdriSky);
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
+            float intensity, phi, backplatePhi;
+            GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
             int passID;
             if (hdriSky.enableBackplate.value == false)
             {
@@ -189,13 +128,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
 
             using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
             {
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
+                m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2(hdriSky));

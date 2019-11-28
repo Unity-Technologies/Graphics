@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering
                 numTilesY = (temp0.rt.height + (8 - 1))/8;
             }
             cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
-            cmd.RequestAsyncReadback(temp0, SaveTempImg);
+            //cmd.RequestAsyncReadback(temp0, SaveTempImg);
 
             // Loop
             kernel = cdfStep.FindKernel("CSMain" + addon);
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering
                     numTilesY = (pong.rt.height + (8 - 1))/8;
                 }
                 cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
-                cmd.RequestAsyncReadback(pong, SaveTempImg);
+                //cmd.RequestAsyncReadback(pong, SaveTempImg);
                 if (i == iteration - 1)
                 {
                     cdf = pong;
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
             int numTilesX = (invCDF.rt.width  + (8 - 1))/8;
             int numTilesY = (invCDF.rt.height + (8 - 1))/8;
             cmd.DispatchCompute     (invCDFCS, kernel, numTilesX, numTilesY, 1);
-            cmd.RequestAsyncReadback(invCDF, SaveInvCDF);
+            //cmd.RequestAsyncReadback(invCDF, SaveInvCDF);
 
             return cdf;
         }

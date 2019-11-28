@@ -30,7 +30,7 @@ CBUFFER_END
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 
-TEXTURE2D_X(_StencilTexture);               // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D_X_UINT2(_StencilTexture);
 
 [numthreads(NR_THREADS, 1, 1)]
 void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
@@ -64,7 +64,7 @@ void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
         // StencilTexture here contain the result of testing if we are not equal to stencil usage NoLighting. i.e (stencil value != NoLighting). A value > 0 means true.
         // This test if we are the sky/background or a forward opaque (which tag the stencil as NoLighting)
-        uint stencilVal = UnpackByte(LOAD_TEXTURE2D_X(_StencilTexture, uCrd).r);
+        uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uCrd));
         if (stencilVal > 0)
         {
             PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);

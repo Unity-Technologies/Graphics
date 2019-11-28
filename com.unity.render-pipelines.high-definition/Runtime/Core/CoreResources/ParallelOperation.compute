@@ -9,28 +9,6 @@
 #pragma kernel CSMainSumH           SUM HORIZONTAL          KerName=CSMainSumH
 #pragma kernel CSMainSumV           SUM VERTICAL            KerName=CSMainSumV
 
-//#pragma multi_compile  
-//#pragma multi_compile OP_PER_THREAD_1 OP_PER_THREAD_2 OP_PER_THREAD_4 OP_PER_THREAD_8 OP_PER_THREAD_16 OP_PER_THREAD_32 OP_PER_THREAD_64
-//#pragma multi_compile SUM MAX MIN MINMAX
-
-//#ifdef OP_PER_THREAD_1
-//    #define OpPerThread 1
-//#elif defined(OP_PER_THREAD_2)
-//    #define OpPerThread 2
-//#elif defined(OP_PER_THREAD_4)
-//    #define OpPerThread 4
-//#elif defined(OP_PER_THREAD_8)
-//    #define OpPerThread 8
-//#elif defined(OP_PER_THREAD_16)
-//    #define OpPerThread 16
-//#elif defined(OP_PER_THREAD_32)
-//    #define OpPerThread 32
-//#elif defined(OP_PER_THREAD_64)
-//    #define OpPerThread 64
-//#else
-//    #error OpPerThread Not defined
-//#endif
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
@@ -115,7 +93,7 @@ void KerName(uint3 id : SV_DispatchThreadID)
         {
 #ifdef SUM
             opVal  += GetSample(id.xy, i);
-            opVal   = min(opVal, HALF_MAX);
+            //opVal   = min(opVal, HALF_MAX);
 #elif defined(MINMAX)
             float2 smpl = GetSample(id.xy, i);
             opVal.x = min(smpl.x, opVal.x);

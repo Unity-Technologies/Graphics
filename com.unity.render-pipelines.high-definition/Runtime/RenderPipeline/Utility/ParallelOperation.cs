@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering
             }
             cmd.SetComputeIntParam  (cs, HDShaderIDs._Iteration, opPerThread);
             cmd.DispatchCompute     (cs, kernel, numTilesX, numTilesY, 1);
-            cmd.RequestAsyncReadback(output, SaveTempImg);
+            //cmd.RequestAsyncReadback(output, SaveTempImg);
         }
 
         static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction opDirection, int opPerThread = 8, GraphicsFormat sumFormat = GraphicsFormat.None)
