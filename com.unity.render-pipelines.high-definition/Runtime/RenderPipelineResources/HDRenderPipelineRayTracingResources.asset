@@ -51,5 +51,5 @@ MonoBehaviour:
   countTracedRays: {fileID: 7200000, guid: e1f3fa867f1dfbd4ab7dd4d39d2b96d8, type: 3}
   reflectionFilterMapping: {fileID: 2800000, guid: 82eec49626a00b047ba86244607816c8,
     type: 3}
-  shadowFilterMapping: {fileID: 11700000, guid: 0bc046e71a7ec0c45997ffcbe27471ec,
+  shadowFilterMapping: {fileID: 11700000, guid: 88c3253d1cfdc9d4d90ddedec19caf0e,
     type: 2}

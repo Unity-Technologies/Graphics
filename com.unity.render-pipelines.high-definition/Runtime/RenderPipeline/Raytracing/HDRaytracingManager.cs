@@ -546,6 +546,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_RayTracingDistanceBuffer;
                 case InternalRayTracingBuffers.Direction:
                     return m_RayTracingDirectionBuffer;
+                case InternalRayTracingBuffers.Velocity:
+                    return m_RayTracingVelocityBuffer;
                 case InternalRayTracingBuffers.R0:
                     return m_RayTracingIntermediateBufferR0;
                 case InternalRayTracingBuffers.RG0:

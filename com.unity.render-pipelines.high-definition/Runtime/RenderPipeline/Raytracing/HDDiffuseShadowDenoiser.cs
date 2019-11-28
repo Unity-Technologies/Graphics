@@ -7,28 +7,22 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ShadowDenoiser;
         Texture3D m_ShadowFilterMapping;
         SharedRTManager m_SharedRTManager;
-
-        RTHandle m_IntermediateBuffer0 = null;
-        RTHandle m_IntermediateBuffer1 = null;
+        HDRenderPipeline m_RenderPipeline;
 
         public HDDiffuseShadowDenoiser()
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderpipeline)
         {
             m_ShadowDenoiser = rpRTResources.diffuseShadowDenoiserCS;
             m_ShadowFilterMapping = rpRTResources.shadowFilterMapping;
             m_SharedRTManager = sharedRTManager;
-
-            m_IntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer0");
-            m_IntermediateBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer1");
+            m_RenderPipeline = renderpipeline;
         }
 
         public void Release()
         {
-            RTHandles.Release(m_IntermediateBuffer1);
-            RTHandles.Release(m_IntermediateBuffer0);
         }
 
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
@@ -44,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
             int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
+            // Request the intermediate buffers that we need
+            RTHandle intermediateBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+
             // Horizontal pass of the bilateral filter
             int m_KernelFilter = m_ShadowDenoiser.FindKernel(singleChannel ? "BilateralFilterHSingle" : "BilateralFilterHColor");
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
@@ -54,14 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._ShadowFilterMapping, m_ShadowFilterMapping);
             cmd.SetComputeVectorParam(m_ShadowDenoiser, "_LightDirection", lightDir);
             cmd.SetComputeFloatParam(m_ShadowDenoiser, "_LightRadius", radius);
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer0);
+            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
             cmd.DispatchCompute(m_ShadowDenoiser, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
 
             // Horizontal pass of the bilateral filter
             m_KernelFilter = m_ShadowDenoiser.FindKernel(singleChannel ? "BilateralFilterVSingle" : "BilateralFilterVColor");
             cmd.SetComputeIntParam(m_ShadowDenoiser, HDShaderIDs._DenoiserFilterRadius, kernelSize);
-            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer0);
+            cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DenoiseInputDistanceTexture, distanceSignal);
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ShadowDenoiser, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());

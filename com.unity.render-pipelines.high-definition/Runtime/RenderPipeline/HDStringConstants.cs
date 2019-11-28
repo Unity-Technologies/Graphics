@@ -618,7 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
         public static readonly int _ReflectionFilterMapping         = Shader.PropertyToID("_ReflectionFilterMapping");
         public static readonly int _ShadowFilterMapping             = Shader.PropertyToID("_ShadowFilterMapping");
-        
+        public static readonly int _VelocityTexture                 = Shader.PropertyToID("_VelocityTexture");
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
@@ -653,8 +654,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingSpotAngle             = Shader.PropertyToID("_RaytracingSpotAngle");
         public static readonly int _RayTracedShadowIntegration      = Shader.PropertyToID("_RayTracedShadowIntegration");
         public static readonly int _RayTracedShadowDistance         = Shader.PropertyToID("_RayTracedShadowDistance");
+        public static readonly int _RayTracedShadowVelocity         = Shader.PropertyToID("_RayTracedShadowVelocity");
         public static readonly int _DirectionalLightAngle           = Shader.PropertyToID("_DirectionalLightAngle");
-
+        
         // Ambient occlusion
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");
 

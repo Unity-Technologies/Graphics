@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
-            temporalFilter.DenoiseIntegrationBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryHF, m_IDIntermediateBuffer1, singleChannel: false);
+            temporalFilter.DenoiseIntegrationBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryHF, intermediateBuffer1, singleChannel: false);
 
             // Apply the first pass of our denoiser
             HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();

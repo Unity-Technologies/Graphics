@@ -31,6 +31,8 @@ TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
 TEXTURE2D_X(_HistoryNormalBufferTexture);
+// Distance buffer
+TEXTURE2D_X(_VelocityTexture);
 // Buffer that stores the result of the validation pass of the history
 RW_TEXTURE2D_X(uint, _ValidationBufferRW);
 
@@ -105,6 +107,15 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     
     // Is its normal too different from the current normal?
     if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.65)
+    {
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        return;
+    }
+
+
+    // If the average velocity is bigger than a threshold, we throw the history
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityTexture, centerCoord).r;
+    if (sampleVelocity > 0.01)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -201,6 +212,13 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         accumulationFactor = sampleCount > 8.0 ? 0.97 : (sampleCount / (sampleCount + 1.0));
         // Update the sample count
         sampleCount = min(sampleCount + 1.0, 8.0);
+    }
+
+    // If the average velocity is bigger than a threshold, we throw the history
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityTexture, centerCoord).r;
+    if (sampleVelocity > 0.001)
+    {
+        accumulationFactor = lerp(accumulationFactor * 0.33f, 0.01, sampleVelocity);
     }
 
     #if SINGLE_CHANNEL

@@ -92,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.SafeRelease(m_RayBinResult);
             CoreUtils.SafeRelease(m_RayBinSizeResult);
-
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 

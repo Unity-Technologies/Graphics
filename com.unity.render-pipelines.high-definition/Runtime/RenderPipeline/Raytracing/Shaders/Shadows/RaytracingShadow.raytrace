@@ -349,6 +349,7 @@ void RayGenAreaShadowSingle()
 
 RW_TEXTURE2D_X(float, _RayTracedShadowIntegration);
 RW_TEXTURE2D_X(float, _RayTracedShadowDistance);
+RW_TEXTURE2D_X(float, _RayTracedShadowVelocity);
 float _DirectionalLightAngle;
 
 [shader("raygeneration")]
@@ -366,6 +367,7 @@ void RayGenDirectionalShadowSingle()
     // Read the previous value of the buffer
     float previousIntegrationValue = _RayTracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RayTracedShadowDistance[COORD_TEXTURE2D_X(currentPixelCoord)].x;
+    float previousVelocity = _RayTracedShadowVelocity[COORD_TEXTURE2D_X(currentPixelCoord)].x;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
@@ -407,6 +409,7 @@ void RayGenDirectionalShadowSingle()
     rayIntersection.origin = rayDescriptor.Origin;
     rayIntersection.t = 50.0f;
     rayIntersection.pixelCoord = currentPixelCoord;
+    rayIntersection.velocity = 0.0;
 
     // Evaluate the ray visibility term and PDF
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -414,6 +417,7 @@ void RayGenDirectionalShadowSingle()
     // Add the contribution of this sample
     _RayTracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousIntegrationValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
     _RayTracedShadowDistance[COORD_TEXTURE2D_X(currentPixelCoord)] = rayIntersection.t > 0.0 ? previousDistanceValue + rayIntersection.t / (float)_RaytracingNumSamples : previousDistanceValue;
+    _RayTracedShadowVelocity[COORD_TEXTURE2D_X(currentPixelCoord)] = rayIntersection.velocity;
 }
 
 [shader("raygeneration")]

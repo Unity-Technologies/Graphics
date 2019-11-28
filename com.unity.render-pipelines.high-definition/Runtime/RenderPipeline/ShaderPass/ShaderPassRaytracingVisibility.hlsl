@@ -15,6 +15,8 @@ void ClosestHitGBuffer(inout RayIntersection rayIntersection : SV_RayPayload, At
 
     // Make sure to add the additional travel distance
     rayIntersection.t = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    float3 previsionPositionWS = TransformPreviousObjectToWorld(currentvertex.positionOS);
+    rayIntersection.velocity = length(previsionPositionWS - fragInput.positionRWS);
 }
 
 // Generic function that handles the reflection code
