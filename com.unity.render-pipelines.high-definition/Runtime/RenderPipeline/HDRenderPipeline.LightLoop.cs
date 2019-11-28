@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource          depthTexture;
 
             public int                          gbufferCount;
+            public int                          lightLayersTextureIndex;
             public RenderGraphResource[]        gbuffer = new RenderGraphResource[8];
         }
 
@@ -216,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ReadLightingBuffers(lightingBuffers, builder);
 
+                passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
                 passData.gbufferCount = gbuffer.gBufferCount;
                 for (int i = 0; i < gbuffer.gBufferCount; ++i)
                     passData.gbuffer[i] = builder.ReadTexture(gbuffer.mrt[i]);
@@ -238,8 +240,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: try to find a better way to bind this.
                     // Issue is that some GBuffers have several names (for example normal buffer is both NormalBuffer and GBuffer1)
                     // So it's not possible to use auto binding via dependency to shaderTagID
+                    // Should probably get rid of auto binding and go explicit all the way (might need to wait for us to remove non rendergraph code path).
                     for (int i = 0; i < data.gbufferCount; ++i)
                         context.cmd.SetGlobalTexture(HDShaderIDs._GBufferTexture[i], context.resources.GetTexture(data.gbuffer[i]));
+
+                    if (data.lightLayersTextureIndex != -1)
+                        context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, context.resources.GetTexture(data.gbuffer[data.lightLayersTextureIndex]));
+                    else
+                        context.cmd.SetGlobalTexture(HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
 
                     if (data.parameters.enableTile)
                     {
