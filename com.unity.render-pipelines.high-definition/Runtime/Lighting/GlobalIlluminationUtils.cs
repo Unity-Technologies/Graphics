@@ -52,7 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             
             lightDataGI.shadow = (byte)(light.shadows != LightShadows.None ? 1 : 0);
-            
+            lightDataGI.lightLayerMask = (byte)add.GetLightLayers();
+            lightDataGI.shadowLayerMask = add.linkShadowLayers ? (byte)add.GetLightLayers() : (byte)light.renderingLayerMask;
+
             HDLightType lightType = add.ComputeLightType(light);
             if (lightType != HDLightType.Area)
             {
@@ -80,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
+
                     break;
 
                 case HDLightType.Spot:
@@ -105,6 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 spot.innerConeAngle = light.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
                                 spot.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                                 spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
+                                spot.lightLayerMask = (byte)add.GetLightLayers();
+                                spot.shadowLayerMask = add.linkShadowLayers ? (byte)add.GetLightLayers() : (byte)light.renderingLayerMask;
                                 lightDataGI.Init(ref spot);
                                 lightDataGI.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
                             }
@@ -124,6 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 pyramid.angle = light.spotAngle * Mathf.Deg2Rad;
                                 pyramid.aspectRatio = add.aspectRatio;
                                 pyramid.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                                pyramid.lightLayerMask = (byte)add.GetLightLayers();
+                                pyramid.shadowLayerMask = add.linkShadowLayers ? (byte)add.GetLightLayers() : (byte)light.renderingLayerMask;
                                 lightDataGI.Init(ref pyramid);
                             }
                             break;
@@ -141,6 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 box.range = light.range;
                                 box.width = add.shapeWidth;
                                 box.height = add.shapeHeight;
+                                box.lightLayerMask = (byte)add.GetLightLayers();
+                                box.shadowLayerMask = add.linkShadowLayers ? (byte)add.GetLightLayers() : (byte)light.renderingLayerMask;
                                 lightDataGI.Init(ref box);
                             }
                             break;

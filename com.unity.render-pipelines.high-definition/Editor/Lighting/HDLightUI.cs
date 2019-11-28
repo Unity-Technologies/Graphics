@@ -986,6 +986,28 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             DrawEnableShadowMap(serialized, owner);
             EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
+
+            // Shadow Layers
+            using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
+            {
+                using (var change = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+
+                    // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                    if (change.changed)
+                        Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                }
+                if (!serialized.linkLightLayers.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledGroupScope(serialized.linkLightLayers.boolValue))
+                    {
+                        HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                    }
+                    if (serialized.linkLightLayers.boolValue)
+                        SyncLightAndShadowLayers(serialized, owner);
+                }
+            }
         }
 
         static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
