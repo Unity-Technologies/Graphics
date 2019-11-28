@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderPostProcess(RenderGraph renderGraph, RenderGraphMutableResource depthBuffer, CullingResults cullResults, HDCamera hdCamera)
         {
-            m_SSSColor = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, useDynamicScale: true, name: "SSSBuffer");
-
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("AfterPostProcess", out var passData, CustomSamplerId.GBuffer.GetSampler()))
             {
