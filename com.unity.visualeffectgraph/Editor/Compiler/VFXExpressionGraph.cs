@@ -46,9 +46,6 @@ namespace UnityEditor.VFX
             var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
             var expressionsToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
 
-            contextsToExpressions.Clear();
-            expressionsToReduced.Clear();
-
             foreach (var context in contexts)
             {
                 var mapper = context.GetExpressionMapper(target);
@@ -93,7 +90,18 @@ namespace UnityEditor.VFX
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
 
-                CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
+                m_ContextsToGPUExpressions.Clear();
+                m_ContextsToCPUExpressions.Clear();
+                m_GPUExpressionsToReduced.Clear();
+                m_CPUExpressionsToReduced.Clear();
+
+                //TODOPAUL
+                var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
+                var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
+
+                //TODOPAUL I changed context order compilation, could break spawner chaining, do it differently
+                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.DoSomeMagicForSpawner, VFXDeviceTarget.CPU);
+                CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>

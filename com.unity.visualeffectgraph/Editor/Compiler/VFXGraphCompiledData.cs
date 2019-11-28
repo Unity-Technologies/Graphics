@@ -421,6 +421,68 @@ namespace UnityEditor.VFX
             return result;
         }
 
+        private static VFXEditorTaskDesc[] BuildEditorTaksDescFromBlock(IEnumerable<VFXBlock> blocks, VFXContextCompiledData contextData, VFXExpressionGraph graph)
+        {
+            var taskDescList = new List<VFXEditorTaskDesc>();
+
+            int index = 0;
+            foreach (var b in blocks)
+            {
+                var spawnerBlock = b as VFXAbstractSpawner;
+                if (spawnerBlock == null)
+                {
+                    throw new InvalidCastException("Unexpected block type in spawnerContext");
+                }
+                if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
+                {
+                    throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
+                }
+                if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
+                {
+                    throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
+                }
+                
+                var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
+                {
+                    return new VFXMapping
+                    {
+                        index = graph.GetFlattenedIndex(o.exp),
+                        name = o.name
+                    };
+                }).ToArray();
+
+                Object processor = null;
+                if (spawnerBlock.customBehavior != null)
+                {
+                    var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
+                    if (assets.Length != 1)
+                    {
+                        // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitly
+                        assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name, new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
+                        if (assets.Length != 1)
+                        {
+                            throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
+                        }
+                    }
+
+                    var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
+                    processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
+                }
+
+                taskDescList.Add(new VFXEditorTaskDesc
+                {
+                    type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
+                    buffers = new VFXMapping[0],
+                    values = cpuExpression.ToArray(),
+                    parameters = contextData.parameters,
+                    externalProcessor = processor
+                });
+                index++;
+            }
+
+            return taskDescList.ToArray();
+        }
+
         private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo,
             List<VFXCPUBufferDesc> outCpuBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -489,58 +551,7 @@ namespace UnityEditor.VFX
                     name = nativeName,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
-                    tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
-                    {
-                        var spawnerBlock = b as VFXAbstractSpawner;
-                        if (spawnerBlock == null)
-                        {
-                            throw new InvalidCastException("Unexpected block type in spawnerContext");
-                        }
-                        if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
-                        {
-                            throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
-                        }
-                        if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
-                        {
-                            throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
-                        }
-
-                        var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
-                        {
-                            return new VFXMapping
-                            {
-                                index = graph.GetFlattenedIndex(o.exp),
-                                name = o.name
-                            };
-                        }).ToArray();
-
-                        Object processor = null;
-                        if (spawnerBlock.customBehavior != null)
-                        {
-                            var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
-                            if (assets.Length != 1)
-                            {
-                                // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitely
-                                assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name, new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
-                                if (assets.Length != 1)
-                                {
-                                    throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
-                                }
-                            }
-
-                            var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
-                            processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
-                        }
-
-                        return new VFXEditorTaskDesc
-                        {
-                            type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
-                            buffers = new VFXMapping[0],
-                            values = cpuExpression.ToArray(),
-                            parameters = contextData.parameters,
-                            externalProcessor = processor
-                        };
-                    }).ToArray()
+                    tasks = BuildEditorTaksDescFromBlock(spawnContext.activeFlattenedChildrenWithImplicit, contextData, graph)
                 });
             }
         }

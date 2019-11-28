@@ -311,5 +311,40 @@ namespace UnityEditor.VFX
         }
     }
 
+
+    sealed class VFXReadEventAttributeExpression : VFXExpression
+    {
+        private VFXAttribute m_attribute;
+
+        public VFXReadEventAttributeExpression(VFXAttribute attribute) : base(/*Flags.PerElement |*/ Flags.InvalidOnGPU) //TODOPAUL : Add a Per Event Instance
+        {
+            m_attribute = attribute;
+        }
+
+        protected override int GetInnerHashCode()
+        {
+            return m_attribute.name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is VFXReadEventAttributeExpression))
+                return false;
+
+            var other = (VFXReadEventAttributeExpression)obj;
+            return valueType == other.valueType && attributeName == other.attributeName;
+        }
+
+        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            yield return new VFXAttributeInfo(m_attribute, VFXAttributeMode.Read);
+        }
+
+        public string attributeName => m_attribute.name;
+        public override VFXValueType valueType => m_attribute.type;
+        public override VFXExpressionOperation operation => VFXExpressionOperation.ReadEventAttribute;
+        protected override int[] additionnalOperands => new int[] { (int)m_attribute.type };
+    }
+
     #pragma warning restore 0659
 }

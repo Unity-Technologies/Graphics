@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
         CPUEvaluation = 1 << 1,
         ConstantFolding = 1 << 2,
         GPUDataTransformation = 1 << 3,
+        DoSomeMagicForSpawner = 1 << 4
     }
 
     abstract partial class VFXExpression
@@ -120,6 +121,14 @@ namespace UnityEditor.VFX
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
+                        if (parent is VFXAttributeExpression && Has(VFXExpressionContextOption.DoSomeMagicForSpawner))
+                        {
+                            var attribute = parent as VFXAttributeExpression;
+                            if (attribute.attributeLocation == VFXAttributeLocation.Current)
+                            {
+                                parent = new VFXReadEventAttributeExpression(attribute.attribute); //TODOPAUL
+                            }
+                        }
 
                         if (Has(VFXExpressionContextOption.GPUDataTransformation)
                             && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)

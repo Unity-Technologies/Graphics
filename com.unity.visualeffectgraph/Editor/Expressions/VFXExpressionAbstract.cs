@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
                 return this;
 
             var reduced = CreateNewInstance();
-            reduced.Initialize(m_Flags, reducedParents);
+            reduced.Initialize(Flags.None /* TODOPAUL why was m_Flags ??? */, reducedParents);
             return reduced;
         }
 
