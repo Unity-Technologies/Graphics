@@ -181,9 +181,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     #endif
 
     TEXTURE2D_X(_DepthTex);
-    TEXTURE2D_X(_GBuffer0);
-    TEXTURE2D_X(_GBuffer1);
-    TEXTURE2D_X(_GBuffer2);
+    TEXTURE2D_X_HALF(_GBuffer0);
+    TEXTURE2D_X_HALF(_GBuffer1);
+    TEXTURE2D_X_HALF(_GBuffer2);
     float4x4 _ScreenToWorld;
 
     half4 PunctualLightShading(Varyings input) : SV_Target
