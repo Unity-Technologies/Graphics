@@ -23,6 +23,7 @@ Bloom includes some [advanced properties](Advanced-Properties.html) that you mus
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
+| **Threshold** | Use the slider to set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value higher than 0 will break the energy conservation rule. |
 | **Intensity** | Use the slider to set the strength of the Bloom filter.      |
 | **Scatter**   | Use the slider to change the extent of the veiling effect.   |
 | **Tint**      | Use the color picker to select a color for the Bloom effect to tint to. |
