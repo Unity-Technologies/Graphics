@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter            pointLightShadow    = new BoolParameter(false);
         public BoolParameter            dirLightShadow      = new BoolParameter(false);
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
+        public BoolParameter            rebuildMarginal     = new BoolParameter(false);
+        [SerializeField]
+        public RenderTexture           octahedralMap;
 
         public override int GetHashCode()
         {
@@ -42,6 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + pointLightShadow.GetHashCode();
                 hash = hash * 23 + dirLightShadow.GetHashCode();
                 hash = hash * 23 + rectLightShadow.GetHashCode();
+                hash = hash * 23 + rebuildMarginal.GetHashCode();
+                //hash = hash * 23 + octahedralMap.GetHashCode();
             }
 
             return hash;

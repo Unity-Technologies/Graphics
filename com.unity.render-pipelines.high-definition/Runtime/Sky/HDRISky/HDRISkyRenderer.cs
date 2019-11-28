@@ -82,6 +82,31 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
+
+            if (hdriSky.rebuildMarginal.value == true)
+            {
+                int size = 1024;
+                ImportantSampler2D sampler = new ImportantSampler2D();
+                Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
+                RenderTexture.active = hdriSky.octahedralMap;
+                octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
+                octBack.Apply();
+                RenderTexture.active = null;
+                sampler.Init(octBack, builtinParams.commandBuffer);
+                CoreUtils.Destroy(octBack);
+
+                //octBack = new Texture2D(sampler.m_Temp0.width, sampler.m_Temp0.height, TextureFormat.RGBAFloat, false);
+                //RenderTexture.active = sampler.m_Temp0;
+                //octBack.ReadPixels(new Rect(0.0f, 0.0f, sampler.m_Temp0.width, sampler.m_Temp0.height), 0, 0);
+                //octBack.Apply();
+                //RenderTexture.active = null;
+                //CoreUtils.Destroy(octBack);
+                //
+                //byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+                //
+                //System.IO.File.WriteAllBytes(@"C:\UProjects\005\Assets\Sum1.exr", bytes);
+            }
+
             if (hdriSky.enableBackplate.value == false)
             {
                 return;

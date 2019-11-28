@@ -43,8 +43,9 @@ Shader "Hidden/HDRP/CubeToOctahedral"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.positionCS   = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texCoord     = GetFullScreenTriangleTexCoord(input.vertexID);
+
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.texCoord   = GetFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
 
