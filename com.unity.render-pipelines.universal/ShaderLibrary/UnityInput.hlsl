@@ -189,7 +189,7 @@ float4x4 glstate_matrix_projection;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixVP;
-#define unity_MatrixInvVP mul(unity_MatrixInvV, unity_CameraInvProjection)
+#define unity_MatrixInvVP _InvCameraViewProj
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif
