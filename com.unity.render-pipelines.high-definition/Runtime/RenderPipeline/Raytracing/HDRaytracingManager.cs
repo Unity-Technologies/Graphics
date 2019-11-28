@@ -147,9 +147,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (materialArray == null) return AccelerationStructureStatus.NullMaterial;
 
             // For every sub-mesh/sub-material let's build the right flags
-            currentRenderer.TryGetComponent(out MeshFilter meshFilter);
-            if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
-            int numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+            int numSubMeshes = 1;
+            if (!(currentRenderer.GetType() == typeof(SkinnedMeshRenderer)))
+            {
+                currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+            }
+            else
+            {
+                SkinnedMeshRenderer skinnedMesh = (SkinnedMeshRenderer)currentRenderer;
+                if (skinnedMesh.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
+            }
 
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
