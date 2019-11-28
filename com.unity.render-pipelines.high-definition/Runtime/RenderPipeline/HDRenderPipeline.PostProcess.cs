@@ -14,29 +14,58 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource transparentAfterPostprocessRL;
         }
 
-        void RenderPostProcess(RenderGraph renderGraph, RenderGraphMutableResource depthBuffer, CullingResults cullResults, HDCamera hdCamera)
+        RenderGraphMutableResource RenderPostProcess(   RenderGraph                 renderGraph,
+                                                        RenderGraphResource         inputColor,
+                                                        RenderGraphMutableResource  depthBuffer,
+                                                        RenderGraphMutableResource  backBuffer,
+                                                        CullingResults              cullResults,
+                                                        HDCamera                    hdCamera)
         {
-            // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-            using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("AfterPostProcess", out var passData, CustomSamplerId.GBuffer.GetSampler()))
+            PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
+
+            RenderGraphResource afterPostProcessBuffer = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+            RenderGraphMutableResource dest = HDUtils.PostProcessIsFinalPass() ? backBuffer : renderGraph.CreateTexture(
+                        new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
             {
-                passData.parameters = PreparePostProcess(cullResults, hdCamera);
-                passData.afterPostProcessBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
-                if (passData.parameters.useDepthBuffer)
-                    passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.opaqueAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.opaqueAfterPPDesc));
-                passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparentAfterPPDesc));
-
-                builder.SetRenderFunc(
-                (AfterPostProcessPassData data, RenderGraphContext ctx) =>
+                // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
+                using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process", out var passData, CustomSamplerId.AfterPostProcessing.GetSampler()))
                 {
-                    RenderAfterPostProcess( data.parameters
-                                            , ctx.resources.GetRendererList(data.opaqueAfterPostprocessRL)
-                                            , ctx.resources.GetRendererList(data.transparentAfterPostprocessRL)
-                                            , ctx.renderContext, ctx.cmd);
+                    passData.parameters = parameters;
+                    passData.afterPostProcessBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
+                        new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
+                    if (passData.parameters.useDepthBuffer)
+                        passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                    passData.opaqueAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.opaqueAfterPPDesc));
+                    passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparentAfterPPDesc));
 
-                });
+                    builder.SetRenderFunc(
+                    (AfterPostProcessPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderAfterPostProcess(data.parameters
+                                                , ctx.resources.GetRendererList(data.opaqueAfterPostprocessRL)
+                                                , ctx.resources.GetRendererList(data.transparentAfterPostprocessRL)
+                                                , ctx.renderContext, ctx.cmd);
+
+                    });
+
+                    afterPostProcessBuffer = passData.afterPostProcessBuffer;
+                }
             }
+
+            m_PostProcessSystem.Render(
+                renderGraph,
+                parameters.hdCamera,
+                parameters.blueNoise,
+                inputColor,
+                afterPostProcessBuffer,
+                depthBuffer,
+                dest,
+                parameters.flipYInPostProcess
+            );
+
+            return dest;
         }
     }
 }

@@ -4285,19 +4285,25 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
-            // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
-            // default so we're consistent in the behavior: no ZTest for After Post Process materials).
-            if (!parameters.useDepthBuffer)
-                CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
-            else
-                CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+            {
+                using (new ProfilingSample(cmd, "After Post-process", CustomSamplerId.AfterPostProcessing.GetSampler()))
+                {
+                    // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
+                    // default so we're consistent in the behavior: no ZTest for After Post Process materials).
+                    if (!parameters.useDepthBuffer)
+                        CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                    else
+                        CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
 
+                    // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
+                    RenderAfterPostProcess(parameters
+                                        , RendererList.Create(parameters.opaqueAfterPPDesc)
+                                        , RendererList.Create(parameters.transparentAfterPPDesc)
+                                        , renderContext, cmd);
 
-            // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-            RenderAfterPostProcess( parameters
-                                    , RendererList.Create(parameters.opaqueAfterPPDesc)
-                                    , RendererList.Create(parameters.transparentAfterPPDesc)
-                                    , renderContext, cmd);
+                }
+            }
 
             // Set the depth buffer to the main one to avoid missing out on transparent depth for post process.
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -4309,7 +4315,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 blueNoise: parameters.blueNoise,
                 colorBuffer: m_CameraColorBuffer,
                 afterPostProcessTexture: GetAfterPostProcessOffScreenBuffer(),
-                lightingBuffer: null,
                 finalRT: destination,
                 depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
                 flipY: parameters.flipYInPostProcess
@@ -4332,26 +4337,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                             in RendererList         transparentAfterPostProcessRendererList,
                                             ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            var hdCamera = parameters.hdCamera;
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
-                return;
+            // Note about AfterPostProcess and TAA:
+            // When TAA is enabled rendering is jittered and then resolved during the post processing pass.
+            // It means that any rendering done after post processing need to disable jittering. This is what we do with hdCamera.UpdateViewConstants(false);
+            // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
+            // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
+            parameters.hdCamera.UpdateAllViewConstants(false);
+            parameters.hdCamera.SetupGlobalParams(cmd, parameters.time, parameters.lastTime, parameters.frameCount);
 
-            using (new ProfilingSample(cmd, "After Post-process", CustomSamplerId.AfterPostProcessing.GetSampler()))
-            {
-                // Note about AfterPostProcess and TAA:
-                // When TAA is enabled rendering is jittered and then resolved during the post processing pass.
-                // It means that any rendering done after post processing need to disable jittering. This is what we do with hdCamera.UpdateViewConstants(false);
-                // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
-                // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
-                bool taaEnabled = hdCamera.IsTAAEnabled();
-                hdCamera.UpdateAllViewConstants(false);
-                hdCamera.SetupGlobalParams(cmd, parameters.time, parameters.lastTime, parameters.frameCount);
-
-                cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueAfterPostProcessRendererList);
-                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentAfterPostProcessRendererList);
-                cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
-            }
+            cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
+            DrawOpaqueRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, opaqueAfterPostProcessRendererList);
+            DrawTransparentRendererList(renderContext, cmd, parameters.hdCamera.frameSettings, transparentAfterPostProcessRendererList);
+            cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
         }
 
         void SendGeometryGraphicsBuffers(CommandBuffer cmd, HDCamera hdCamera)

@@ -65,6 +65,13 @@ namespace UnityEngine.Rendering
             m_NameID = new RenderTargetIdentifier(tex);
         }
 
+        internal void SetTexture(RenderTargetIdentifier tex)
+        {
+            m_RT = null;
+            m_ExternalTexture = null;
+            m_NameID = tex;
+        }
+
         public void Release()
         {
             m_Owner.Remove(this);
