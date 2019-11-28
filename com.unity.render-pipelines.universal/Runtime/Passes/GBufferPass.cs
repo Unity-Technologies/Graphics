@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering.Universal
         {
             for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
             {
+                var graphicsFormat = m_GBufferDescriptors[gbufferIndex].graphicsFormat;
+                m_GBufferDescriptors[gbufferIndex] = renderingData.cameraData.cameraTargetDescriptor;
+                m_GBufferDescriptors[gbufferIndex].graphicsFormat = graphicsFormat;
+
                 m_GBufferDescriptors[gbufferIndex].width = renderingData.cameraData.cameraTargetDescriptor.width;
                 m_GBufferDescriptors[gbufferIndex].height = renderingData.cameraData.cameraTargetDescriptor.height;
             }
