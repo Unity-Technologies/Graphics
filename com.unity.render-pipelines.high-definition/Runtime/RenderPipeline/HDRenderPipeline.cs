@@ -4254,6 +4254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BlueNoise        blueNoise;
 
             // After Postprocess
+            public bool             useDepthBuffer;
             public float            time;
             public float            lastTime;
             public int              frameCount;
@@ -4270,6 +4271,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.flipYInPostProcess = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
             result.blueNoise = m_BlueNoise;
 
+            result.useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
             result.time = m_Time;
             result.lastTime = m_LastTime;
             result.frameCount = m_FrameCount;
@@ -4283,10 +4285,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
+            // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
+            // default so we're consistent in the behavior: no ZTest for After Post Process materials).
+            if (!parameters.useDepthBuffer)
+                CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+            else
+                CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+
+
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             RenderAfterPostProcess( parameters
-                                    , GetAfterPostProcessOffScreenBuffer()
-                                    , m_SharedRTManager.GetDepthStencilBuffer()
                                     , RendererList.Create(parameters.opaqueAfterPPDesc)
                                     , RendererList.Create(parameters.transparentAfterPPDesc)
                                     , renderContext, cmd);
@@ -4320,8 +4328,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         static void RenderAfterPostProcess( PostProcessParameters   parameters,
-                                            RTHandle                destination,
-                                            RTHandle                depthStencilBuffer,
                                             in RendererList         opaqueAfterPostProcessRendererList,
                                             in RendererList         transparentAfterPostProcessRendererList,
                                             ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -4340,14 +4346,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool taaEnabled = hdCamera.IsTAAEnabled();
                 hdCamera.UpdateAllViewConstants(false);
                 hdCamera.SetupGlobalParams(cmd, parameters.time, parameters.lastTime, parameters.frameCount);
-                bool useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
-
-                // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
-                // default so we're consistent in the behavior: no ZTest for After Post Process materials).
-                if (!useDepthBuffer)
-                    CoreUtils.SetRenderTarget(cmd, destination, clearFlag: ClearFlag.Color, clearColor: Color.black);
-                else
-                    CoreUtils.SetRenderTarget(cmd, destination, depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
 
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueAfterPostProcessRendererList);

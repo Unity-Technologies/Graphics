@@ -165,9 +165,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            RenderPostProcess(m_RenderGraph, cullingResults, hdCamera, target.id);
+            RenderPostProcess(m_RenderGraph, prepassOutput.depthBuffer, cullingResults, hdCamera);
 
-            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
+            // TODO RENDERGRAPH
+            //bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
 
             // TODO RENDERGRAPH
             //// Copy and rescale depth buffer for XR devices
@@ -190,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            //if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
+            //if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
             {
                 hdCamera.ExecuteCaptureActions(m_RenderGraph, colorBuffer);
 
