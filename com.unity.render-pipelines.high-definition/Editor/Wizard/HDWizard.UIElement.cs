@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Style.dxrDefaultSceneName,
                     Style.dxrDefaultSceneDescription,
                     HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrDefaultScene,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot)));
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot);
             }
         }
 
