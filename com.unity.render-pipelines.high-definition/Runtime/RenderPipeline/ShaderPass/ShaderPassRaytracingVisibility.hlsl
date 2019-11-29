@@ -1,6 +1,20 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary\CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 
+
+// Calculate motion vector in Clip space [-1..1]
+float2 CalculateMotionVector2(float4 positionCS, float4 previousPositionCS)
+{
+    // Encode motion vector
+    positionCS.xy = positionCS.xy / positionCS.w;
+    previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
+    float2 motionVec = (positionCS.xy - previousPositionCS.xy);
+#if UNITY_UV_STARTS_AT_TOP
+    motionVec.y = -motionVec.y;
+#endif
+    return motionVec;
+}
+
 // Generic function that handles the reflection code
 [shader("closesthit")]
 void ClosestHitGBuffer(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
@@ -17,6 +31,13 @@ void ClosestHitGBuffer(inout RayIntersection rayIntersection : SV_RayPayload, At
     rayIntersection.t = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
     float3 previsionPositionWS = TransformPreviousObjectToWorld(currentvertex.positionOS);
     rayIntersection.velocity = length(previsionPositionWS - fragInput.positionRWS);
+
+
+    float4 positionCS = mul(GetWorldToHClipMatrix(), float4(fragInput.positionRWS, 1.0));
+    positionCS.xy = positionCS.xy * 0.5 + 0.5f;
+    float4 previousPositionCS =  mul(GetWorldToHClipMatrix(), float4(previsionPositionWS, 1.0));
+    previousPositionCS.xy = previousPositionCS.xy * 0.5 + 0.5f;
+    rayIntersection.motionVector = CalculateMotionVector2(positionCS, previousPositionCS);
 }
 
 // Generic function that handles the reflection code

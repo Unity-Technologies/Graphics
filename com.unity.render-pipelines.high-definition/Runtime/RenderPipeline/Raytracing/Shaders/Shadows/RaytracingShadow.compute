@@ -433,7 +433,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     float3 wsDir = mul(localDir, localToWorld); 
 
     // Output the direction to the target uav
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, dot(normalData.normalWS, -lightData.forward) > 0 ? 1.0 : 0.0);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, dot(normalData.normalWS, -lightData.forward) > 0 ? 1.0 : -1.0);
 }
 
 // Radius of the sphere used to case a soft shadow

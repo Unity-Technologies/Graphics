@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Distance,
         Direction,
         Velocity,
+        MotionVectors,
         R0,
         RG0,
         RGBA0,
@@ -87,6 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingDirectionBuffer;
         RTHandle m_RayTracingDistanceBuffer;
         RTHandle m_RayTracingVelocityBuffer;
+        RTHandle m_RayTracingMotionVectorBuffer;
 
         // Set of intermediate textures that will be used by ray tracing effects
         RTHandle m_RayTracingIntermediateBufferR0;
@@ -114,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
             m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
             m_RayTracingVelocityBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingVelocityBuffer");
+            m_RayTracingMotionVectorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingMotionVectorBuffer");
         
             // Allocate the intermediate buffers
             m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
@@ -124,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleaseRayTracingManager()
         {
+            RTHandles.Release(m_RayTracingMotionVectorBuffer);
             RTHandles.Release(m_RayTracingDistanceBuffer);
             RTHandles.Release(m_RayTracingDirectionBuffer);
             RTHandles.Release(m_RayTracingVelocityBuffer);
@@ -548,6 +552,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_RayTracingDirectionBuffer;
                 case InternalRayTracingBuffers.Velocity:
                     return m_RayTracingVelocityBuffer;
+                case InternalRayTracingBuffers.MotionVectors:
+                    return m_RayTracingMotionVectorBuffer;
                 case InternalRayTracingBuffers.R0:
                     return m_RayTracingIntermediateBufferR0;
                 case InternalRayTracingBuffers.RG0:

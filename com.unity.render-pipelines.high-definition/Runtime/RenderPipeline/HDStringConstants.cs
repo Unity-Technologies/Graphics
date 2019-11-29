@@ -656,6 +656,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayTracedShadowDistance         = Shader.PropertyToID("_RayTracedShadowDistance");
         public static readonly int _RayTracedShadowVelocity         = Shader.PropertyToID("_RayTracedShadowVelocity");
         public static readonly int _DirectionalLightAngle           = Shader.PropertyToID("_DirectionalLightAngle");
+        public static readonly int _RaytracedMotionVectors          = Shader.PropertyToID("_RaytracedMotionVectors");
         
         // Ambient occlusion
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");

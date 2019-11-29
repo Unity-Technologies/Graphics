@@ -33,6 +33,8 @@ struct RayIntersection
 	float maxRoughness;
 	// Velocity vector for the intersection Point
 	float velocity;
+	// Motion vector for the intersection Point
+	float2 motionVector;
 };
 
 struct AttributeData

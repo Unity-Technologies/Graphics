@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
                         RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
                         RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Velocity);
+                        RTHandle motionVectorBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.MotionVectors);
 
                         // Texture dimensions
                         int texWidth = hdCamera.actualWidth;
@@ -243,10 +244,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RayTracedShadowIntegration, intermediateBuffer0);
                             cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RayTracedShadowDistance, distanceBuffer);
                             cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RayTracedShadowVelocity, velocityBuffer);
+                            cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracedMotionVectors, motionVectorBuffer);
 
                             // Evaluate the visibility
                             cmd.DispatchRays(m_ScreenSpaceShadowsRT, m_RayGenDirectionalShadowSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
                         }
+
+                        HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        hdrp.PushFullScreenDebugTexture(hdCamera, cmd, motionVectorBuffer, FullScreenDebugMode.RayTracingMotionVectors);
+                        hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.RasterizationMotionVectors);
+
 
                         // Grab the history buffer for shadows
                         RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
