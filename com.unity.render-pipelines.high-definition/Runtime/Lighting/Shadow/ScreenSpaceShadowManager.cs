@@ -102,12 +102,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            int numMaxShadows = Math.Max(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, 1);
             return rtHandleSystem.Alloc(Vector2.one, slices:4 * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16_SFloat,
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("ScreenSpaceShadowHistoryBuffer{0}", frameIndex));
         }
 
         static RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            int numMaxShadows = Math.Max(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, 1);
             return rtHandleSystem.Alloc(Vector2.one, slices:4 * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat,
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaAnalyticHistoryBuffer{0}", frameIndex));
         }
@@ -238,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // We need to set the history as invalid if the directional light has rotated
                             float historyValidity = 1.0f;
-                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation)
+                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation || m_CurrentSunLightAdditionalLightData.screenSpaceShadowIndex != m_CurrentSunLightAdditionalLightData.previousScreenSpaceShadowIndex)
                                 historyValidity = 0.0f;
 
                             // Apply the temporal denoiser
@@ -629,7 +633,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // We need to set the history as invalid if the directional light has rotated
                     float historyValidity = 1.0f;
-                    if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix)
+                    if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix || additionalLightData.screenSpaceShadowIndex != additionalLightData.previousScreenSpaceShadowIndex)
                         historyValidity = 0.0f;
 
                     // Apply the temporal denoiser
