@@ -14,10 +14,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         #region Default Settings
         internal static HDRenderPipelineAsset defaultAsset
-            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
 
         internal static HDRenderPipelineAsset currentAsset
-            => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
 
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
