@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (rayTracedShadow)
             {
                 // Raise the shadow casting flag if needed
-                instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
+                instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
             }
 
             if (aoEnabled && !materialIsOnlyTransparent)

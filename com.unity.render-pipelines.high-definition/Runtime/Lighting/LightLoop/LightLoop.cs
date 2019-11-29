@@ -1146,6 +1146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalLightData.WillRenderScreenSpaceShadow())
                 {
                     lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                    additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                     screenSpaceShadowIndex++;
                 }
@@ -1426,6 +1427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Keep track of the shadow map (for indirect lighting and transparents)
                 lightData.shadowIndex = shadowIndex;
                 additionalLightData.shadowIndex = shadowIndex;
+                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
 
                 // Keep track of the screen space shadow data
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
