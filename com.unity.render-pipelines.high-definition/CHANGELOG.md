@@ -226,6 +226,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only tracing rays for shadow if the point is inside the code for spotlight shadows
 - Only tracing rays if the point is inside the range for point lights
 - Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
+- Fix an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
