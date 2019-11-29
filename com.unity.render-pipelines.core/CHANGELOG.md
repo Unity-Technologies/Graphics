@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
 - ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+- Add api documentation for TextureCombiner.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
