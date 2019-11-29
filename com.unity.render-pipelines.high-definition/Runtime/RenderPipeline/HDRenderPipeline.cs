@@ -154,6 +154,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
+        // TODO_FCC: This is temp, probably need better handling, but I need to test something quickly.
+        RTHandle m_UIBuffer; 
+
         // The current MSAA count
         MSAASamples m_MSAASamples;
 
@@ -545,6 +548,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
             m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, isShadowMap: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
 
+            m_UIBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, useDynamicScale: true, name: "UI Buffer");
+
+
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
@@ -600,6 +606,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
             if (m_CustomPassDepthBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassDepthBuffer.Value);
+
+            RTHandles.Release(m_UIBuffer);
+
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
@@ -646,9 +655,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 rendererPriority = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false
+                editableMaterialRenderQueue = false,
                 // Enlighten is deprecated in 2019.3 and above
-                , enlighten = false
+                enlighten = false,
+                rendersUIOverlay = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1091,6 +1101,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct HDCullingResults
         {
             public CullingResults cullingResults;
+            public CullingResults uiCullingResults;
             public CullingResults? customPassCullingResults;
             public HDProbeCullingResults hdProbeCullingResults;
             public DecalSystem.CullResult decalCullResults;
@@ -1295,7 +1306,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                        {
+                            var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                            // TODO_FCC: Delete the line, here to test
+                            uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
+
+                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask, ref cullingResults);
+                        }
                     }
 
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -1518,6 +1535,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         var _cullingResults = GenericPool<HDCullingResults>.Get();
                         _cullingResults.Reset();
 
+                        var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                        // TODO_FCC: Delete the line, here to test
+                        uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
+
+
                         if (!(TryCalculateFrameParameters(
                                 camera,
                                 m_XRSystem.emptyPass,
@@ -1526,7 +1548,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 out var cullingParameters
                             )
                             && TryCull(
-                                camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset,
+                                camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask,
                                 ref _cullingResults
                             )))
                         {
@@ -1794,6 +1816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdCamera = renderRequest.hdCamera;
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
+            var uiCullingResults = renderRequest.cullingResults.uiCullingResults;
             var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
@@ -2243,6 +2266,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render All forward error
                 RenderForwardError(cullingResults, hdCamera, renderContext, cmd);
 
+                    // TODO_FCC: Renable test, need to check quick for debug
+                if(HDROutputSettings.main.active && SupportedRenderingFeatures.active.rendersUIOverlay)
+                {
+                    RenderTransparentUI(uiCullingResults, hdCamera, renderContext, cmd);
+                }
+
                 DownsampleDepthForLowResTransparency(hdCamera, cmd);
 
                 RenderLowResTransparent(cullingResults, hdCamera, renderContext, cmd);
@@ -2598,6 +2627,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SkyManager skyManager,
             ScriptableCullingParameters cullingParams,
             HDRenderPipelineAsset hdrp,
+            LayerMask uiLayerMask,
             ref HDCullingResults cullingResults
         )
         {
@@ -2635,6 +2665,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to set the ambient probe here because it's passed down to objects during the culling process.
             skyManager.SetupAmbientProbe(hdCamera);
 
+                // TODO_FCC: Better checks for HDR here
+                // TODO_FCC: Renable test, need to check quick for debug
+                //if (HDROutputSettings.main.active)
+                uint castedLayerMask = (uint)(int)uiLayerMask;
+            {
+                cullingParams.cullingMask &= ~castedLayerMask;
+            }
             using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                 cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
 
@@ -2642,6 +2679,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingSample(null, "CustomPass.Cull", CustomSamplerId.CustomPassCullResultsCull.GetSampler()))
                     cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
+            }
+
+            // TODO_FCC: Renable test, need to check quick for debug
+            //if (HDROutputSettings.main.active)
+            {
+                cullingParams.cullingMask = castedLayerMask;
+                using (new ProfilingSample(null, "UI Culling", CustomSamplerId.CullResultsCull.GetSampler()))
+                    cullingResults.uiCullingResults = renderContext.Cull(ref cullingParams);
             }
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
@@ -3486,6 +3531,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 DrawTransparentRendererList(renderContext, cmd, frameSettings, rendererList);
         }
 
+        void RenderScreenSpaceOverlayUI(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            // Render overlays from engine
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            renderContext.DrawUIOverlay(camera);
+        }
+
+        void RenderTransparentUI(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            CoreUtils.SetRenderTarget(cmd, m_UIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+            RenderScreenSpaceOverlayUI(hdCamera.camera, renderContext, cmd);
+
+            // Render whatever was transparent UI marked as such in the editor (TODO_FCC How to handle non transparent UI? In general, how do we handle this? :( Kinda assuming is unlit. ) 
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+            {
+                m_ForwardPassProfileName = "Forward Transparent Debug";
+            }
+            else
+            {
+                m_ForwardPassProfileName = "Forward Transparent";
+            }
+
+            using (new ProfilingSample(cmd, "RenderUI", CustomSamplerId.ForwardPassName.GetSampler()))
+            {
+                CoreUtils.SetRenderTarget(cmd, m_UIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+                var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
+                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+
+            }
+        }
+
         // This is use to Display legacy shader with an error shader
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -4267,8 +4344,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightingBuffer: null,
                 finalRT: destination,
                 depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
+                uiBuffer: m_UIBuffer,
                 flipY: flipInPostProcesses
             );
+
+            if( SupportedRenderingFeatures.active.rendersUIOverlay && !HDROutputSettings.main.active)
+                RenderScreenSpaceOverlayUI(hdCamera.camera, renderContext, cmd);
         }
 
 

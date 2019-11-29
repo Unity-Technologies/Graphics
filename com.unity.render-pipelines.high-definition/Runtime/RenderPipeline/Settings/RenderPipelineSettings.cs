@@ -92,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+
+            uiLayer = 1 << 5, // 5 by default is UI
         };
 
         [Serializable]
@@ -127,6 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SupportedLitShaderMode supportedLitShaderMode;
 
         // Engine
+        public LayerMask uiLayer;
         public bool supportDecals;
 
         public MSAASamples msaaSampleCount;

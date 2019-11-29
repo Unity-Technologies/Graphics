@@ -39,7 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
         public SerializedProperty customBufferFormat;
-
+        public SerializedProperty uiLayer;
+ 
         public SerializedProperty supportDecals;
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
@@ -93,7 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-            
+            uiLayer                         = root.Find((RenderPipelineSettings s) => s.uiLayer);
+
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);

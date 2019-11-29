@@ -106,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_RayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
         static readonly GUIContent k_MaximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
         static readonly GUIContent k_LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
+        static readonly GUIContent k_UILayer = EditorGUIUtility.TrTextContent("UI Layer");
 
         const string k_CacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
         const string k_CacheInfoFormat = "Reserving {0} in memory at runtime.";
