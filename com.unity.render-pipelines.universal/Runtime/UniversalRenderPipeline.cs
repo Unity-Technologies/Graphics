@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalAsset ? universalAsset : GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                return QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalQualityAsset ? universalQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset universalSettingsAsset ? universalSettingsAsset : null);
             }
         }
 

@@ -213,7 +213,7 @@ namespace UnityEditor.Rendering.Universal
                 m_RendererDataList.DoLayoutList();
                 EditorGUI.indentLevel++;
 
-                UniversalRenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalAsset ? universalAsset : target as UniversalRenderPipelineAsset;
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
 
                 if (!asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.Universal
 
                 Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
 
-                UniversalRenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalAsset ? universalAsset : target as UniversalRenderPipelineAsset;
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
 
                 if (asset.ValidateRendererData(index))
                 {

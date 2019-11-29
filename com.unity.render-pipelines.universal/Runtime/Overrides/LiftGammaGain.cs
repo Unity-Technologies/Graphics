@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
+    [Serializable, VolumeComponentMenu("Post-processing/URP/Lift, Gamma, Gain")]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Controls the darkest portions of the render.")]

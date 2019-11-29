@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnEnable()
         {
-            m_UniversalRenderPipeline = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalAsset ? universalAsset : GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            m_UniversalRenderPipeline = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalQualityAsset ? universalQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset universalSettingsAsset ? universalSettingsAsset : null);
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         ACES,    // ACES Filmic reference tonemapper (custom approximation)
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [Serializable, VolumeComponentMenu("Post-processing/URP/Tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Select a tonemapping algorithm to use for the color grading process.")]

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
+    [Serializable, VolumeComponentMenu("Post-processing/URP/Shadows, Midtones, Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Controls the darkest portions of the render.")]
