@@ -5,6 +5,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEngine.Profiling;
 using UnityEditor.Searcher;
 
@@ -817,6 +818,8 @@ namespace UnityEditor.VFX.UI
                         }
                     return true;
                 }, referencePosition,null);
+
+                UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
             }
             else
                 VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);

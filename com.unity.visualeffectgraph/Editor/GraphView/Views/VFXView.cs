@@ -1211,6 +1211,9 @@ namespace UnityEditor.VFX.UI
                                 AddNode(vfxItem.descriptor, point);
                             return true;
                         }, point, null);
+
+
+                        UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
                     }
                     else
                         VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
