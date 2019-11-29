@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added SceneSelection pass for TerrainLit shader.
 - Remove final blit pass to force alpha to 1.0 on mobile platforms.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -46,6 +47,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused shaders containing `HDRP` string in their path to be stripped from the build.
 - Fixed an issue that caused only selected object to render in SceneView when Wireframe drawmode was selected.
 - Fixed Renderer Features UI tooltips. [case 1191901](https://issuetracker.unity3d.com/issues/forward-renderers-render-objects-layer-mask-tooltip-is-incorrect-and-contains-a-typo)
+- Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
+- Fixed inconsistent lighting between the forward renderer and the deferred renderer, that was caused by a missing normalize operation on vertex normals on some speedtree shader variants.
+- Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
+- Fixed lazy initialization with last version of ResourceReloader
+- Fixed an issue where post-processing was not applied for custom renderers set to run on the "After Rendering" event [case 1196219](https://issuetracker.unity3d.com/issues/urp-post-processing-is-not-applied-to-the-scene-when-render-ui-event-is-set-to-after-rendering)
+- Fixed an issue that caused an extra blit when using custom renderers [case 1156741](https://issuetracker.unity3d.com/issues/lwrp-performance-decrease-when-using-a-scriptablerendererfeature)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

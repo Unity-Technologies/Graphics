@@ -555,6 +555,7 @@ namespace UnityEngine.Rendering
             if (isShadowMap || depthBufferBits != DepthBits.None)
             {
                 RenderTextureFormat format = isShadowMap ? RenderTextureFormat.Shadowmap : RenderTextureFormat.Depth;
+                GraphicsFormat stencilFormat = isShadowMap ? GraphicsFormat.None : GraphicsFormat.R8_UInt;
                 rt = new RenderTexture(width, height, (int)depthBufferBits, format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
@@ -571,6 +572,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
+                    stencilFormat = stencilFormat,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
                 };
             }

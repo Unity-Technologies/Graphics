@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Ray Tracing/Light Cluster")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Light Cluster (Preview)")]
     public sealed class LightCluster : VolumeComponent
     {
         [Tooltip("Controls the maximal number lights in a cell.")]

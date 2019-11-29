@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Headers
             public readonly GUIContent generalHeader = new GUIContent("General");
             public readonly GUIContent shapeHeader = new GUIContent("Shape");
+            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body (Preview)");
             public readonly GUIContent emissionHeader = new GUIContent("Emission");
             public readonly GUIContent volumetricHeader = new GUIContent("Volumetrics");
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
@@ -38,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
+            public readonly GUIContent cookieTextureTypeError = new GUIContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
 
 
             // Additional light data
@@ -64,6 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "Sets the height of the Rectangle Light.");
+            public readonly GUIContent barnDoorAngle = new GUIContent("Barn Door Angle", "Sets the angle of the Rectangle Light so that is behaves like a barn door.");
+            public readonly GUIContent barnDoorLength = new GUIContent("Barn Door Length", "Sets the length for the barn door.");
             public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");
             public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "Sets the width of the Box Light.");
             public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "Sets the height of the Box Light.");
@@ -73,7 +77,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = new GUIContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
-            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera to the emissive celestial body represented by the light. Primarily used for sorting.");
+            public readonly GUIContent flareSize = new GUIContent("Flare Size", "Size of the flare around the celestial body (in degrees).");
+            public readonly GUIContent flareTint = new GUIContent("Flare Tint", "Tints the flare of the celestial body");
+            public readonly GUIContent flareFalloff = new GUIContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");
+            public readonly GUIContent surfaceTexture = new GUIContent("Surface Texture", "2D (disk) texture of the surface of the celestial body. Acts like a multiplier.");
+            public readonly GUIContent surfaceTint = new GUIContent("Surface Tint", "Tints the surface of the celestial body");
+            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. Primarily used for sorting.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
@@ -108,6 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows.");
             public readonly GUIContent minFilterSize = new GUIContent("Minimum Blur Intensity", "Controls the minimum blur intensity regardless of the distance between the pixel and the shadow caster. The range [0..1] maps to [0..0.001] in UV space.");
+            public readonly GUIContent radiusScaleForSoftness = new GUIContent("Radius Scale for Softness", "Scale the shape radius for the sake of softness calculation. Higher scales will result in higher softness.");
+            public readonly GUIContent diameterScaleForSoftness = new GUIContent("Angular Diameter Scale for Softness", "Scale the angular diameter for the sake of softness calculation. Higher scales will result in higher softness.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
             public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");

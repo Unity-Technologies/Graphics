@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty spotLightShape;
         public SerializedProperty shapeWidth;
         public SerializedProperty shapeHeight;
+        public SerializedProperty barnDoorAngle;
+        public SerializedProperty barnDoorLength;
         public SerializedProperty aspectRatio;
         public SerializedProperty shapeRadius;
         public SerializedProperty maxSmoothness;
@@ -30,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty blockerSampleCount;
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
+        public SerializedProperty scaleForSoftness;
         public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
@@ -37,6 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useScreenSpaceShadows;
         public SerializedProperty interactsWithSky;
         public SerializedProperty angularDiameter;
+        public SerializedProperty flareSize;
+        public SerializedProperty flareTint;
+        public SerializedProperty flareFalloff;
+        public SerializedProperty surfaceTexture;
+        public SerializedProperty surfaceTint;
         public SerializedProperty distance;
         public SerializedProperty useRayTracedShadows;
         public SerializedProperty numRayTracingSamples;
@@ -120,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // This scope is here mainly to keep pointLightHDType isolated 
+        // This scope is here mainly to keep pointLightHDType isolated
         public struct LightTypeEditionScope : System.IDisposable
         {
             public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
@@ -135,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.EndProperty();
             }
         }
-        
+
         //areaLightShape need to be accessed by its property to always report modification in the right way
         public AreaLightShape areaLightShape
         {
@@ -167,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated 
+        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated
         public struct AreaLightShapeEditionScope : System.IDisposable
         {
             public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
@@ -189,7 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             serializedObject = new SerializedObject(lightDatas);
             this.settings = settings;
-            
+
             using (var o = new PropertyFetcher<HDAdditionalLightData>(serializedObject))
             {
                 intensity = o.Find("m_Intensity");
@@ -207,6 +215,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotLightShape = o.Find("m_SpotLightShape");
                 shapeWidth = o.Find("m_ShapeWidth");
                 shapeHeight = o.Find("m_ShapeHeight");
+                barnDoorAngle = o.Find("m_BarnDoorAngle");
+                barnDoorLength = o.Find("m_BarnDoorLength");
                 aspectRatio = o.Find("m_AspectRatio");
                 shapeRadius = o.Find("m_ShapeRadius");
                 maxSmoothness = o.Find("m_MaxSmoothness");
@@ -215,6 +225,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 blockerSampleCount = o.Find("m_BlockerSampleCount");
                 filterSampleCount = o.Find("m_FilterSampleCount");
                 minFilterSize = o.Find("m_MinFilterSize");
+                scaleForSoftness = o.Find("m_SoftnessScale");
                 areaLightCookie = o.Find("m_AreaLightCookie");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
@@ -222,6 +233,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
                 interactsWithSky = o.Find("m_InteractsWithSky");
                 angularDiameter = o.Find("m_AngularDiameter");
+                flareSize = o.Find("m_FlareSize");
+                flareFalloff = o.Find("m_FlareFalloff");
+                flareTint = o.Find("m_FlareTint");
+                surfaceTexture = o.Find("m_SurfaceTexture");
+                surfaceTint = o.Find("m_SurfaceTint");
                 distance = o.Find("m_Distance");
                 useRayTracedShadows = o.Find("m_UseRayTracedShadows");
                 numRayTracingSamples = o.Find("m_NumRayTracingSamples");

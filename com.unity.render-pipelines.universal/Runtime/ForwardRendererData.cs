@@ -65,8 +65,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new ForwardRenderer(this);
@@ -90,12 +90,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

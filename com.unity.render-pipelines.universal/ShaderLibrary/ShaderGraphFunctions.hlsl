@@ -11,46 +11,29 @@
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    TEXTURE2D_ARRAY(_CameraDepthTexture);
-#else
-    TEXTURE2D(_CameraDepthTexture);
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #endif
-    SAMPLER(sampler_CameraDepthTexture);
-#endif // REQUIRE_DEPTH_TEXTURE
 
 #if defined(REQUIRE_OPAQUE_TEXTURE)
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    TEXTURE2D_ARRAY(_CameraOpaqueTexture);
-#else
-    TEXTURE2D(_CameraOpaqueTexture);
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #endif
-    SAMPLER(sampler_CameraOpaqueTexture);
-#endif // REQUIRE_OPAQUE_TEXTURE
 
 float shadergraph_LWSampleSceneDepth(float2 uv)
 {
 #if defined(REQUIRE_DEPTH_TEXTURE)
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    float rawDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, uv, unity_StereoEyeIndex).r;
+    return SampleSceneDepth(uv);
 #else
-    float rawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uv));
-#endif
-	return rawDepth;
-#endif // REQUIRE_DEPTH_TEXTURE
     return 0;
+#endif
 }
 
 float3 shadergraph_LWSampleSceneColor(float2 uv)
 {
 #if defined(REQUIRE_OPAQUE_TEXTURE)
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    return SAMPLE_TEXTURE2D_ARRAY(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv, unity_StereoEyeIndex);
+    return SampleSceneColor(uv);
 #else
-    return SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UnityStereoTransformScreenSpaceTex(uv));
-#endif
-#endif // REQUIRE_DEPTH_TEXTURE
     return 0;
+#endif
 }
 
 float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)

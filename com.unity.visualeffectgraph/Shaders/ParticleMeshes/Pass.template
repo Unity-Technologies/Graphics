@@ -97,6 +97,7 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 }
 
 ${VFXBegin:VFXComputeNormalWS}
+#ifdef VFX_VARYING_NORMAL
 #if USE_DOUBLE_SIDED
 const float faceMul = frontFace ? 1.0f : -1.0f;
 #else
@@ -106,17 +107,19 @@ const float faceMul = 1.0f;
 float3 normalWS = normalize(i.VFX_VARYING_NORMAL * faceMul);
 const VFXUVData uvData = GetUVData(i);
 
-#if (defined(VFX_VARYING_TANGENT) && USE_NORMAL_MAP) || SHADERGRAPH_HAS_NORMAL
+#ifdef VFX_VARYING_TANGENT
 float3 tangentWS = normalize(i.VFX_VARYING_TANGENT.xyz);
 float3 bitangentWS = cross(normalWS,tangentWS) * (i.VFX_VARYING_TANGENT.w * faceMul);
+float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+
 #if USE_NORMAL_MAP
 float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
 float normalScale = 1.0f;
 #ifdef VFX_VARYING_NORMALSCALE
 normalScale = i.VFX_VARYING_NORMALSCALE;
 #endif
 normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
+#endif
 #endif
 #endif
 ${VFXEnd}

@@ -1455,6 +1455,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     float3 positionWS = posInput.positionWS;
 
+#if SHADEROPTIONS_BARN_DOOR
+    // Apply the barn door modification to the light data
+    RectangularLightApplyBarnDoor(lightData, positionWS);
+#endif
+
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
@@ -1689,6 +1694,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+    InversePreExposeSsrLighting(ssrLighting);
 
     // Note: RGB is already premultiplied by A.
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
