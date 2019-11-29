@@ -250,21 +250,24 @@ void EvaluateLights(LightList lightList,
         float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
-        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t) && t < rayDescriptor.TMax)
+        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))
         {
-            float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
-
-            // Then check if we are within the rectangle bounds
-            if (2.0 * abs(dot(hitVec, lightData.right) / Length2(lightData.right)) < lightData.size.x &&
-                2.0 * abs(dot(hitVec, lightData.up) / Length2(lightData.up)) < lightData.size.y)
+            if (t < rayDescriptor.TMax)
             {
-                value += lightData.color;
+                float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
 
-                float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-                pdf += GetLocalLightWeight(lightList) * Sq(t) / (lightArea * cosTheta);
+                // Then check if we are within the rectangle bounds
+                if (2.0 * abs(dot(hitVec, lightData.right) / Length2(lightData.right)) < lightData.size.x &&
+                    2.0 * abs(dot(hitVec, lightData.up) / Length2(lightData.up)) < lightData.size.y)
+                {
+                    value += lightData.color;
 
-                // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
-                break;
+                    float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+                    pdf += GetLocalLightWeight(lightList) * Sq(t) / (lightArea * cosTheta);
+
+                    // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
+                    break;
+                }
             }
         }
     }
