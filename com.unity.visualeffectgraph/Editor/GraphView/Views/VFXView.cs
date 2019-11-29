@@ -1204,7 +1204,9 @@ namespace UnityEditor.VFX.UI
                     if( VFXViewPreference.newNodeSearcher)
                     {
                         InitilializeNewNodeSearcher();
-                        SearcherWindow.Show(VFXViewWindow.currentWindow, m_RootSearcherItems,new VFXViewSearcherAdapter("Create Node",this), item => {
+
+                        var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXViewSearcherAdapter("Create Node", this));
+                        SearcherWindow.Show(VFXViewWindow.currentWindow, searcher, item => {
                             if (item is VFXViewSearcherItem vfxItem)
                                 AddNode(vfxItem.descriptor, point);
                             return true;
