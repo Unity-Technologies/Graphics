@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.Universal
                     lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                    UniversalRenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is UniversalRenderPipelineAsset universalAsset ? universalAsset : GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
 
