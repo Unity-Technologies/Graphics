@@ -39,14 +39,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // xy: scale, z: groundLevel, w: projectionDistance
             float scaleX = Mathf.Abs(hdriSky.scale.value.x);
             float scaleY = Mathf.Abs(hdriSky.scale.value.y);
-            if (hdriSky.backplateType.value == BackplateType.Ellipse && Mathf.Abs(scaleX - scaleY) < 1e-4f)
-            {
-                scaleY += 1e-4f;
-            }
+
             if (hdriSky.backplateType.value == BackplateType.Disc)
             {
                 scaleY = scaleX;
             }
+
             return new Vector4(scaleX, scaleY, hdriSky.groundLevel.value, hdriSky.projectionDistance.value);
         }
 
@@ -115,8 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdriSky = builtinParams.skySettings as HDRISky;
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
             int passID;
             if (hdriSky.enableBackplate.value == false)
             {
@@ -132,8 +128,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(GetSkyIntensity(hdriSky, builtinParams.debugSettings), 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
 
             using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
             {

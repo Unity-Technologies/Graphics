@@ -10,23 +10,17 @@ For example, you can use it to:
 
 ## Using the HDRP Config package
 
-To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. To do this:
+To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](HDRP-Wizard.html).
 
-1. In the **Project** window, create a new folder, inside the **Assets** folder, called **LocalPackages**.
+* **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
+* **HDRP Wizard**: Open the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package. 
 
-2. Download the Config package from GitHub. To do this:
+**Note**: Using the Package Manger to upgrade your HDRP package does not automatically upgrade the local config package. To manually upgrade the local config package:
 
-	1. Go to https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master
-	2. Click on the **Branch** drop-down and select Release/ the Unity version that you are using. For example, if you are using Unity 2019.3, select **Release/2019.3**.
-	3. Select **Clone or download > Download ZIP**.
+1. Make a copy of your current config package.
+2. Use the HDRP Wizard to create a new, compatible config package.
+3. Apply the settings from the old config package to the new config package.
 
-4. When the download finishes, open the zipped folder and find the **com.unity.render-pipelines.high-definition-config** folder. Move this into the **LocalPackages** folder that you created in step 1.
-
-5. In the **Project** window, right-click the Packages folder and select **Show in Explorer**. Go to **Packages** and open the **manifest.json**.
-
-6. Change the target for **"com.unity.render-pipelines.high-definition-config"** : from the version number to **"file:../LocalPackages/com.unity.render-pipelines.high-definition-config"**.
-
- 
 
 ## Configuring HDRP using the config package
 

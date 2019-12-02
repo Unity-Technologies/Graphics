@@ -14,9 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [TearDown]
         public void TearDown()
         {
-            if (m_ToClean != null)
-                CoreUtils.Destroy(m_ToClean);
-            FrameSettingsHistory.containers.Clear();
+            try
+            {
+                if (m_ToClean != null)
+                    CoreUtils.Destroy(m_ToClean);
+                FrameSettingsHistory.containers?.Clear();
+            }
+            catch { }
         }
 
         [Test]
@@ -74,19 +78,19 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 FrameSettingsOverrideMask fso = default;
                 FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
                 FrameSettings defaultFS;
-                FrameSettings result = FrameSettings.defaultCamera;
+                FrameSettings result = FrameSettings.NewDefaultCamera();
                 FrameSettings tester = default;
                 RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
                 switch (defaultFSType)
                 {
                     case FrameSettingsRenderType.Camera:
-                        defaultFS = FrameSettings.defaultCamera;
+                        defaultFS = FrameSettings.NewDefaultCamera();
                         break;
                     case FrameSettingsRenderType.CustomOrBakedReflection:
-                        defaultFS = FrameSettings.defaultCustomOrBakeReflectionProbe;
+                        defaultFS = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
                         break;
                     case FrameSettingsRenderType.RealtimeReflection:
-                        defaultFS = FrameSettings.defaultRealtimeReflectionProbe;
+                        defaultFS = FrameSettings.NewDefaultRealtimeReflectionProbe();
                         break;
                     default:
                         throw new ArgumentException("Unknown FrameSettingsRenderType");
@@ -144,19 +148,19 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 FrameSettingsOverrideMask fso = default;
                 FrameSettingsRenderType defaultFSType = RandomUtilities.RandomEnumValue<FrameSettingsRenderType>(i);
                 FrameSettings defaultFS;
-                FrameSettings result = FrameSettings.defaultCamera;
+                FrameSettings result = FrameSettings.NewDefaultCamera();
                 FrameSettings tester = default;
                 RenderPipelineSettings supportedFeatures = new RenderPipelineSettings();
                 switch (defaultFSType)
                 {
                     case FrameSettingsRenderType.Camera:
-                        defaultFS = FrameSettings.defaultCamera;
+                        defaultFS = FrameSettings.NewDefaultCamera();
                         break;
                     case FrameSettingsRenderType.CustomOrBakedReflection:
-                        defaultFS = FrameSettings.defaultCustomOrBakeReflectionProbe;
+                        defaultFS = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
                         break;
                     case FrameSettingsRenderType.RealtimeReflection:
-                        defaultFS = FrameSettings.defaultRealtimeReflectionProbe;
+                        defaultFS = FrameSettings.NewDefaultRealtimeReflectionProbe();
                         break;
                     default:
                         throw new ArgumentException("Unknown FrameSettingsRenderType");

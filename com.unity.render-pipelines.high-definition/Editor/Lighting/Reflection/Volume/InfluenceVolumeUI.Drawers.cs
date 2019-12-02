@@ -17,13 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var provider = new TProvider();
 
-            //small piece of init logic previously in the removed Drawer_InfluenceAdvancedSwitch
-            bool advanced = serialized.editorAdvancedModeEnabled.boolValue;
-            s_BoxBaseHandle.monoHandle = false;
-            s_BoxInfluenceHandle.monoHandle = !advanced;
-            s_BoxInfluenceNormalHandle.monoHandle = !advanced;
             
-            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serialized.shape, shapeContent);
             switch ((InfluenceShape)serialized.shape.intValue)
             {
@@ -63,6 +57,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionShapeBox(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal, bool drawFace)
         {
             bool advanced = serialized.editorAdvancedModeEnabled.boolValue;
+            
+            //small piece of init logic previously in the removed Drawer_InfluenceAdvancedSwitch
+            s_BoxBaseHandle.monoHandle = false;
+            s_BoxInfluenceHandle.monoHandle = !advanced;
+            s_BoxInfluenceNormalHandle.monoHandle = !advanced;
+
             var maxFadeDistance = serialized.boxSize.vector3Value * 0.5f;
             var minFadeDistance = Vector3.zero;
 
@@ -112,13 +112,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+            
+            EditorGUILayout.PropertyField(serialized.editorAdvancedModeEnabled, manipulatonTypeContent);
 
             EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(serialized, false, maxFadeDistance, blendDistanceContent);
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.Blend, owner, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
-
-            GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
 
             if (drawNormal)
             {
@@ -126,8 +126,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_AdvancedBlendDistance(serialized, true, maxFadeDistance, blendNormalDistanceContent);
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.NormalBlend, owner, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
                 EditorGUILayout.EndHorizontal();
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
             }
 
             if (advanced && drawFace)
@@ -142,8 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 GUILayout.Space(30f); //add right margin for alignment
                 EditorGUILayout.EndHorizontal();
-
-                GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);
             }
         }
 
@@ -156,26 +152,52 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? serialized.editorSimplifiedModeBlendNormalDistance : serialized.editorSimplifiedModeBlendDistance;
             Vector3 bdp = blendDistancePositive.vector3Value;
             Vector3 bdn = blendDistanceNegative.vector3Value;
-
-            EditorGUILayout.BeginVertical();
-
+            
+            //resync to be sure prefab revert will keep syncs
             if (serialized.editorAdvancedModeEnabled.boolValue)
             {
-                EditorGUI.BeginChangeCheck();
-                blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
-                blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;
-                CoreEditorUtils.DrawVector6(content, blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance, k_HandlesColor);
-                if (EditorGUI.EndChangeCheck())
+                if (!(Mathf.Approximately(Vector3.SqrMagnitude(blendDistancePositive.vector3Value - editorAdvancedModeBlendDistancePositive.vector3Value), 0f)
+                    && Mathf.Approximately(Vector3.SqrMagnitude(blendDistanceNegative.vector3Value - editorAdvancedModeBlendDistanceNegative.vector3Value), 0f)))
                 {
-                    editorAdvancedModeBlendDistancePositive.vector3Value = blendDistancePositive.vector3Value;
-                    editorAdvancedModeBlendDistanceNegative.vector3Value = blendDistanceNegative.vector3Value;
+                    blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
+                    blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;
+                    serialized.Apply();
+                    SceneView.RepaintAll(); //update gizmo
                 }
             }
             else
             {
+                float scalar = editorSimplifiedModeBlendDistance.floatValue;
+                if (!(Mathf.Approximately(blendDistancePositive.vector3Value.x, scalar)
+                    && Mathf.Approximately(blendDistancePositive.vector3Value.y, scalar)
+                    && Mathf.Approximately(blendDistancePositive.vector3Value.z, scalar)
+                    && Mathf.Approximately(blendDistanceNegative.vector3Value.x, scalar)
+                    && Mathf.Approximately(blendDistanceNegative.vector3Value.y, scalar)
+                    && Mathf.Approximately(blendDistanceNegative.vector3Value.z, scalar)))
+                {
+                    blendDistancePositive.vector3Value = blendDistanceNegative.vector3Value = new Vector3(scalar, scalar, scalar);
+                    serialized.Apply();
+                    SceneView.RepaintAll(); //update gizmo
+                }
+            }
+
+            if (serialized.editorAdvancedModeEnabled.boolValue)
+            {
+                EditorGUI.BeginChangeCheck();
+                CoreEditorUtils.DrawVector6(content, editorAdvancedModeBlendDistancePositive, editorAdvancedModeBlendDistanceNegative, Vector3.zero, maxBlendDistance, k_HandlesColor);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
+                    blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;
+                }
+            }
+            else
+            {
+                Rect lineRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(lineRect, content, editorSimplifiedModeBlendDistance);
                 float distance = editorSimplifiedModeBlendDistance.floatValue;
                 EditorGUI.BeginChangeCheck();
-                distance = EditorGUILayout.FloatField(content, distance);
+                distance = EditorGUI.FloatField(lineRect, content, distance);
                 if (EditorGUI.EndChangeCheck())
                 {
                     distance = Mathf.Clamp(distance, 0f, Mathf.Max(maxBlendDistance.x, maxBlendDistance.y, maxBlendDistance.z));
@@ -190,9 +212,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     blendDistanceNegative.vector3Value = bdn;
                     editorSimplifiedModeBlendDistance.floatValue = distance;
                 }
+                EditorGUI.EndProperty();
             }
-
-            GUILayout.EndVertical();
         }
 
         static void Drawer_SectionShapeSphere(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal)

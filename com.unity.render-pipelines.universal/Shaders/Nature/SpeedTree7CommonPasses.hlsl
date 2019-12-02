@@ -67,7 +67,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
         inputData.viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
     #else
-        inputData.normalWS = input.normalWS;
+        inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 

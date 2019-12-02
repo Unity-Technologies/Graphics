@@ -212,8 +212,9 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.thickness = _Thickness;
 #endif
 
-    // Default tangentWS
+    // Default tangent and normal (non-mapped, smooth normal here)
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
 
     // Transparency
 #if HAS_REFRACTION

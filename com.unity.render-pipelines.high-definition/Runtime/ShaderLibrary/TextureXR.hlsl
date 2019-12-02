@@ -61,6 +61,7 @@
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_ARRAY_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_ARRAY_FLOAT
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2DArray<uint> textureName
+    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2DArray<uint2> textureName
     #define TEXTURE2D_X_UINT4(textureName)                                   Texture2DArray<uint4> textureName
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type> textureName
 
@@ -87,6 +88,7 @@
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_FLOAT
     #define TEXTURE2D_X_UINT(textureName)                                    Texture2D<uint> textureName
+    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2D<uint2> textureName
     #define TEXTURE2D_X_UINT4(textureName)                                   Texture2D<uint4> textureName
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type> textureName
 

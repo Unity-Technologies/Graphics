@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
-    class HDScreenSpaceReflectionEditor : VolumeComponentEditor
+    class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_RayTracing;
 
@@ -39,6 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_RayTracing              = Unpack(o.Find(x => x.rayTracing));
 
@@ -131,11 +133,15 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 PropertyField(m_ScreenFadeDistance,   EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen."));
-                PropertyField(m_RayMaxIterations,     EditorGUIUtility.TrTextContent("Max Number of Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance."));
                 PropertyField(m_DepthBufferThickness, EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind."));
 
-                m_RayMaxIterations.value.intValue       = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
+
+                base.OnInspectorGUI();
+                GUI.enabled = useCustomValue;
+                PropertyField(m_RayMaxIterations, EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance."));
+                m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
+                GUI.enabled = true;
             }
         }
     }

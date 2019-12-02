@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Forward,
         RenderSSAO,
         ResolveSSAO,
+        ResolveStencilBuffer,
         ScreenSpaceShadows,
         BuildLightList,
         ContactShadows,
