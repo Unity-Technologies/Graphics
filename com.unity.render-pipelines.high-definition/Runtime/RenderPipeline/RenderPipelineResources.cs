@@ -230,6 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader bloomUpsampleCS;
             [Reload("Runtime/PostProcessing/Shaders/FXAA.compute")]
             public ComputeShader FXAACS;
+            [Reload("Runtime/PostProcessing/Shaders/AccumulationMotionBlur.compute")]
+            public ComputeShader accumulationMotionBlurCS;
             [Reload("Runtime/PostProcessing/Shaders/FinalPass.shader")]
             public Shader finalPassPS;
             [Reload("Runtime/PostProcessing/Shaders/ClearBlack.shader")]
@@ -238,8 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/AccumulationMotionBlur.shader")]
-            public Shader accumulationMotionBlurPS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

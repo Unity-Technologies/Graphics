@@ -31,12 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SMAAMaterial;
         Material m_TemporalAAMaterial;
 
-        //TEMP: Accumulation Motion Blur lives here until disucssion about moving to volume
-        Material m_AccumulationMotionBlurMaterial;
-
         MaterialPropertyBlock m_TAAHistoryBlitPropertyBlock = new MaterialPropertyBlock();
         MaterialPropertyBlock m_TAAPropertyBlock = new MaterialPropertyBlock();
-        MaterialPropertyBlock m_AccumulationMotionBlurPropertyBlock = new MaterialPropertyBlock();
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -137,7 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
-            m_AccumulationMotionBlurMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.accumulationMotionBlurPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -1466,14 +1461,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 1f // Always enabled for dev
             );
 
-            m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
-            m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
-            m_AccumulationMotionBlurPropertyBlock.SetVector(HDShaderIDs._MotionBlurParams3, accumulationMotionBlurParams);
+            var cs = m_Resources.shaders.accumulationMotionBlurCS;
+            int kernel = cs.FindKernel("KMain");
 
-            CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
-            cmd.SetRandomWriteTarget(1, nextHistory);
-            cmd.DrawProcedural(Matrix4x4.identity, m_AccumulationMotionBlurMaterial, 0, MeshTopology.Triangles, 3, 1, m_AccumulationMotionBlurPropertyBlock);
-            cmd.ClearRandomWriteTargets();
+            //TODO: Setup Param
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture,         source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture,  prevHistory);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture,        destination);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
+            
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         static void GrabAccumulationMotionBlurHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
