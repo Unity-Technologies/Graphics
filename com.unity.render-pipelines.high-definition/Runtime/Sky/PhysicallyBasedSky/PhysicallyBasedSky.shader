@@ -2,6 +2,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 {
     HLSLINCLUDE
 
+    #define USE_PATH_SKY 1
+    #define NUM_BOUNCES 2
+    #define NUM_BOUNCES_MINUS_ONE 1
+
     #pragma vertex Vert
 
     // #pragma enable_d3d11_debug_symbols
@@ -60,6 +64,148 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
         return output;
+    }
+
+    // Utilities
+
+    uint permute(uint i, uint l, uint p)
+    {
+        if (p == 0) return i; // identity permutation when p == 0
+        uint w = l - 1;
+        w |= w >> 1;
+        w |= w >> 2;
+        w |= w >> 4;
+        w |= w >> 8;
+        w |= w >> 16;
+        do
+        {
+            i ^= p; i *= 0xe170893d;
+            i ^= p >> 16;
+            i ^= (i & w) >> 4;
+            i ^= p >> 8; i *= 0x0929eb3f;
+            i ^= p >> 23;
+            i ^= (i & w) >> 1; i *= 1 | p >> 27;
+            i *= 0x6935fa69;
+            i ^= (i & w) >> 11; i *= 0x74dcb303;
+            i ^= (i & w) >> 2; i *= 0x9e501cc3;
+            i ^= (i & w) >> 2; i *= 0xc860a3df;
+            i &= w;
+            i ^= i >> 5;
+        } while (i >= l);
+        return (i + p) % l;
+    }
+
+    float randfloat(uint i, uint p)
+    {
+        if (p == 0) return 0.5f; // always 0.5 when p == 0
+        i ^= p;
+        i ^= i >> 17;
+        i ^= i >> 10;
+        i *= 0xb36534e5;
+        i ^= i >> 12;
+        i ^= i >> 21;
+        i *= 0x93fc4795;
+        i ^= 0xdf6e307f;
+        i ^= i >> 17;
+        i *= 1 | p >> 18;
+
+        float f = i * (1.0f / 4294967808.0f);
+
+        return f;
+    }
+
+    // Compute the digits of decimal value ‘v‘ expressed in base ‘s‘
+    void toBaseS(uint v, uint s, uint t, out uint result[NUM_BOUNCES])
+    {
+        for (uint i = 0; i < t; v /= s, ++i)
+        {
+            result[i] = v % s;
+        }
+    }
+    ​
+    // Copy all but the j-th element of vector in
+    void allButJ(uint inData[NUM_BOUNCES], uint inSize, uint omit, out uint result[NUM_BOUNCES_MINUS_ONE])
+    {
+#if 0
+        for (uint i = 0; i < omit; ++i)
+        {
+            result[i] = inData[i];
+        }
+    ​
+        for (uint i = omit + 1; i < inSize; ++i)
+        {
+            result[i - 1] = inData[i];
+        }
+#endif
+    }
+    ​
+    // Evaluate polynomial with coefficients a at location arg
+    uint evalPoly(const uint *in, uint inSize, uint arg)
+    {
+        uint ans  = 0;
+        int      last = inSize - 1;
+    ​
+        for (int i = last; i >= 0; i--)
+        {
+            ans = (ans * arg) + in[i]; // Horner’s rule
+        }
+    ​
+        return ans;
+    }
+    ​
+    float cmjdD(uint i, // Sample index
+                uint j, // Dimension (<= s+1)
+                uint s, // Number of levels/strata
+                uint t, // Strength of OA (t=d)
+                uint p) // Pseudo-random permutation seed (per set)
+    {
+        uint iDigits[NUM_BOUNCES];
+        uint pDigits[NUM_BOUNCES - 1];
+    ​
+        uint p0 = p;
+        uint p1 = p * (j + 1) * 0x51633e2d;
+        uint p2 = p * (j + 1) * 0x68bc21eb;
+        uint p3 = p * (j + 1) * 0x02e5be93;
+    ​
+        uint N   = (uint)round(pow(s, t)); // Total number of samples
+        uint stm = N / s; // pow(s, t-1)
+    ​
+        i = permute(i, N, p0);
+    ​
+        toBaseS(i, s, t, iDigits);
+    ​
+        uint stratum = permute(iDigits[j], s, p1);
+    ​
+        allButJ(iDigits, t, j, pDigits);
+    ​
+        uint sStratum = evalPoly(pDigits, t - 1, s);
+                 sStratum = permute(sStratum, stm, p2);
+    ​
+        float jitter = randfloat(i, p3);
+    ​
+        return (stratum + (sStratum + jitter) / stm) / s;
+    }
+    ​
+    // End Utilities
+
+    float3 SpectralTracking(float3 X, float3 V, float3 N, uint numWavelengths, uint numPaths)
+    {
+        float3 color = 0;
+        for (uint w = 0; w < 3; w++) // iterate across wavelengths
+        {
+            for (uint b = 0; b < 10; b++) // replace literal with constant later
+            {
+                float r = length(X);
+                float NdotV  = dot(N, V);
+                float cosChi = -NdotV;
+                float cosHor = ComputeCosineOfHorizonAngle(r);
+                float2 closestHit = IntersectSphere(_PlanetaryRadius, cosChi, r);
+                bool intersectPlanet = (closestHit.y >= 0);
+                bool lookAboveHorizon = (cosChi >= cosHor);
+                float opticalDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
+                float opacity = OpacityFromOpticalDepth(opticalDepth);
+            }
+        }
     }
 
     float4 RenderSky(Varyings input)
