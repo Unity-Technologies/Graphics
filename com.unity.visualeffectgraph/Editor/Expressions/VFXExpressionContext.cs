@@ -23,21 +23,20 @@ namespace UnityEditor.VFX
     {
         public class Context
         {
-            public VFXExpressionContextOption Options { get { return m_ReductionOptions; } }
-
             private bool Has(VFXExpressionContextOption options)
             {
-                return (Options & options) == options;
+                return (m_ReductionOptions & options) == options;
             }
 
             private bool HasAny(VFXExpressionContextOption options)
             {
-                return (Options & options) != 0;
+                return (m_ReductionOptions & options) != 0;
             }
 
-            public Context(VFXExpressionContextOption reductionOption = VFXExpressionContextOption.Reduction)
+            public Context(VFXExpressionContextOption reductionOption, List<VFXLayoutElementDesc> globalEventAttibutes = null)
             {
                 m_ReductionOptions = reductionOption;
+                m_GlobalEventAttribute = globalEventAttibutes;
 
                 if (Has(VFXExpressionContextOption.CPUEvaluation) && Has(VFXExpressionContextOption.GPUDataTransformation))
                     throw new ArgumentException("Invalid reduction options");
@@ -126,7 +125,14 @@ namespace UnityEditor.VFX
                             var attribute = parent as VFXAttributeExpression;
                             if (attribute.attributeLocation == VFXAttributeLocation.Current)
                             {
-                                parent = new VFXReadEventAttributeExpression(attribute.attribute); //TODOPAUL
+                                if (m_GlobalEventAttribute == null)
+                                    throw new InvalidOperationException("m_GlobalEventAttribute is null");
+
+                                var layoutDesc = m_GlobalEventAttribute.FirstOrDefault(o => o.name == attribute.attributeName);
+                                if (layoutDesc.name != attribute.attributeName)
+                                    throw new InvalidOperationException("Unable to find " + attribute.attributeName + " in globalEventAttribute");
+
+                            parent = new VFXReadEventAttributeExpression(attribute.attribute, layoutDesc.offset.element);
                             }
                         }
 
@@ -197,6 +203,7 @@ namespace UnityEditor.VFX
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
 
+            private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;
         }
     }

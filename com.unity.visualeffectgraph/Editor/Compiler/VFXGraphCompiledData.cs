@@ -168,45 +168,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts)
-        {
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
-            {
-                foreach (var linked in context.outputContexts)
-                {
-                    var data = linked.GetData();
-                    if (data)
-                    {
-                        foreach (var attribute in data.GetAttributes())
-                        {
-                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !eventAttributeDescs.Any(o => o.name == attribute.attrib.name))
-                            {
-                                eventAttributeDescs.Add(new VFXLayoutElementDesc()
-                                {
-                                    name = attribute.attrib.name,
-                                    type = attribute.attrib.type
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            var structureLayoutTotalSize = (uint)eventAttributeDescs.Sum(e => (long)VFXExpression.TypeToSize(e.type));
-            var currentLayoutSize = 0u;
-            var listWithOffset = new List<VFXLayoutElementDesc>();
-            eventAttributeDescs.ForEach(e =>
-            {
-                e.offset.element = currentLayoutSize;
-                e.offset.structure = structureLayoutTotalSize;
-                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
-                listWithOffset.Add(e);
-            });
-
-            eventAttributeDescs.Clear();
-            eventAttributeDescs.AddRange(listWithOffset);
-        }
-
         private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList,ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
@@ -488,7 +449,6 @@ namespace UnityEditor.VFX
             List<VFXEditorSystemDesc> outSystemDescs,
             IEnumerable<VFXContext> contexts,
             VFXExpressionGraph graph,
-            List<VFXLayoutElementDesc> globalEventAttributeDescs,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             ref SubgraphInfos subgraphInfos,
             VFXSystemNames systemNames = null)
@@ -500,9 +460,9 @@ namespace UnityEditor.VFX
                 outCpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
-                    stride = globalEventAttributeDescs.First().offset.structure,
-                    layout = globalEventAttributeDescs.ToArray(),
-                    initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
+                    stride = graph.GlobalEventAttributes.First().offset.structure,
+                    layout = graph.GlobalEventAttributes.ToArray(),
+                    initialData = ComputeArrayOfStructureInitialData(graph.GlobalEventAttributes)
                 });
             }
             foreach (var spawnContext in spawners)
@@ -886,10 +846,6 @@ namespace UnityEditor.VFX
 
                 var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
-                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
-                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
-
-
 
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
@@ -936,15 +892,15 @@ namespace UnityEditor.VFX
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
-                    layout = globalEventAttributeDescs.ToArray(),
-                    stride = globalEventAttributeDescs.First().offset.structure,
-                    initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
+                    layout = m_ExpressionGraph.GlobalEventAttributes.ToArray(),
+                    stride = m_ExpressionGraph.GlobalEventAttributes.First().offset.structure,
+                    initialData = ComputeArrayOfStructureInitialData(m_ExpressionGraph.GlobalEventAttributes)
                 });
 
                 m_Graph.systemNames.Sync(m_Graph);
 
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
+                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts,ref subgraphInfos);

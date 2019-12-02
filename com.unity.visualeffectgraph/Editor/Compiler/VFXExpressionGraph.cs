@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
@@ -41,7 +42,7 @@ namespace UnityEditor.VFX
         private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, VFXDeviceTarget target)
         {
             HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
-            var expressionContext = new VFXExpression.Context(options);
+            var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
             var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
             var expressionsToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
@@ -80,12 +81,55 @@ namespace UnityEditor.VFX
             CompileExpressions(contexts, options);
         }
 
+        private static void ComputeEventAttributeDescs(List<VFXLayoutElementDesc> globalEventAttributes, IEnumerable<VFXContext> contexts)
+        {
+            globalEventAttributes.Clear();
+            globalEventAttributes.Add(new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float });
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
+            {
+                foreach (var linked in context.outputContexts)
+                {
+                    var data = linked.GetData();
+                    if (data)
+                    {
+                        foreach (var attribute in data.GetAttributes())
+                        {
+                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !globalEventAttributes.Any(o => o.name == attribute.attrib.name))
+                            {
+                                globalEventAttributes.Add(new VFXLayoutElementDesc()
+                                {
+                                    name = attribute.attrib.name,
+                                    type = attribute.attrib.type
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            var structureLayoutTotalSize = (uint)globalEventAttributes.Sum(e => (long)VFXExpression.TypeToSize(e.type));
+            var currentLayoutSize = 0u;
+            var listWithOffset = new List<VFXLayoutElementDesc>();
+            globalEventAttributes.ForEach(e =>
+            {
+                e.offset.element = currentLayoutSize;
+                e.offset.structure = structureLayoutTotalSize;
+                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
+                listWithOffset.Add(e);
+            });
+
+            globalEventAttributes.Clear();
+            globalEventAttributes.AddRange(listWithOffset);
+        }
+
         public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
         {
             Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
 
             try
             {
+                ComputeEventAttributeDescs(m_GlobalEventAttributes, contexts);
+
                 m_Expressions.Clear();
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
@@ -99,7 +143,7 @@ namespace UnityEditor.VFX
                 var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
 
-                //TODOPAUL I changed context order compilation, could break spawner chaining, do it differently
+                //TODOPAUL I changed context order compilation, could break spawner chaining, do it differently !
                 CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.DoSomeMagicForSpawner, VFXDeviceTarget.CPU);
                 CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
@@ -222,6 +266,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes
+        {
+            get
+            {
+                return m_GlobalEventAttributes;
+            }
+        }
+
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
@@ -229,5 +281,6 @@ namespace UnityEditor.VFX
         private Dictionary<VFXExpression, ExpressionData> m_ExpressionsData = new Dictionary<VFXExpression, ExpressionData>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToCPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
         private Dictionary<VFXContext, VFXExpressionMapper> m_ContextsToGPUExpressions = new Dictionary<VFXContext, VFXExpressionMapper>();
+        private List<VFXLayoutElementDesc> m_GlobalEventAttributes = new List<VFXLayoutElementDesc>();
     }
 }
