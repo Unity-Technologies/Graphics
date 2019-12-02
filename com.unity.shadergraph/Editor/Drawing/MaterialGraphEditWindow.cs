@@ -358,13 +358,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (selectedGuid != null && graphObject != null)
             {
-                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(path) || graphObject == null)
+                var pathAndFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (string.IsNullOrEmpty(pathAndFile) || graphObject == null)
                     return;
 
+                // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
+                int lastIndex = pathAndFile.LastIndexOf("/");
+                string path;
+                if (lastIndex > 0)
+                    path = pathAndFile.Remove(lastIndex);
+                else
+                    path = pathAndFile;
+
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
-                var newPath = EditorUtility.SaveFilePanel("Save Graph As", path, Path.GetFileNameWithoutExtension(path), extension);
+                var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
+
                 if (newPath != path)
                 {
                     if (!string.IsNullOrEmpty(newPath))
