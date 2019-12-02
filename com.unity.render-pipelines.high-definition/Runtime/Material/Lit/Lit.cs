@@ -108,7 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Scattering Coefficient", precision = FieldPrecision.Real)]
             public Vector3 scatteringCoeff;
             public float phaseCoeff;
-
             public Vector3 transmittanceCoeff;
         };
 
@@ -190,6 +189,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 absorptionCoefficient;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float transmittanceMask;
+
+            // Path traced SSS
+            [SurfaceDataAttributes("Scattering Coefficient", precision = FieldPrecision.Real)]
+            public Vector3 scatteringCoeff;
+            public float phaseCoeff;
+            public Vector3 transmittanceCoeff;
         };
 
         //-----------------------------------------------------------------------------

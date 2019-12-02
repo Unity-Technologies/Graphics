@@ -397,6 +397,11 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.geomNormalWS        = surfaceData.geomNormalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
+    // Path traced SSS
+    bsdfData.scatteringCoeff = surfaceData.scatteringCoeff;
+    bsdfData.phaseCoeff = surfaceData.phaseCoeff;
+    bsdfData.transmittanceCoeff = surfaceData.transmittanceCoeff;
+
     // There is no metallic with SSS and specular color mode
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 

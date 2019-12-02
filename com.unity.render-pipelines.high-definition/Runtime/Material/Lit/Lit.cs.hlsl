@@ -75,6 +75,9 @@
 #define DEBUGVIEW_LIT_BSDFDATA_IOR (1074)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1075)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1076)
+#define DEBUGVIEW_LIT_BSDFDATA_SCATTERING_COEFFICIENT (1077)
+#define DEBUGVIEW_LIT_BSDFDATA_PHASE_COEFF (1078)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_COEFF (1079)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
 // PackingRules = Exact
@@ -135,6 +138,9 @@ struct BSDFData
     real ior;
     real3 absorptionCoefficient;
     real transmittanceMask;
+    real3 scatteringCoeff;
+    float phaseCoeff;
+    float3 transmittanceCoeff;
 };
 
 //
@@ -315,6 +321,15 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
             result = bsdfdata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SCATTERING_COEFFICIENT:
+            result = bsdfdata.scatteringCoeff;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_PHASE_COEFF:
+            result = bsdfdata.phaseCoeff.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_COEFF:
+            result = bsdfdata.transmittanceCoeff;
             break;
     }
 }

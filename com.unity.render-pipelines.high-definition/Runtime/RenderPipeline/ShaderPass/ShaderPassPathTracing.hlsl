@@ -109,6 +109,43 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     if (IsBlack(mtlData))
         return;
 
+
+    // Path traced SSS
+    if (IsVolumetric(mtlData))
+    {
+        int maxWalkSteps = 64;
+        bool hit = false;
+        int internalSegment = 0;
+        int sampleIndex = 4; // We use currentDepth + 3 below, so we start from currentDepth + 4
+        RayDesc internalRayDesc;
+
+        float2 rndSample;
+        rndSample.x = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + sampleIndex++);
+        rndSample.y = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + sampleIndex++);
+
+        // Get a first direction from hemisphere below surface
+        float3 sampleDir = SampleHemisphereCosine(rndSample.x, rndSample.y, -bsdfData.geomNormalWS);
+        float samplePDF = dot(sampleDir, -bsdfData.geomNormalWS);
+
+        while (!hit && internalSegment < maxWalkSteps)
+        {
+            float distW = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + sampleIndex++);
+            float dstRndSample = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + sampleIndex++);
+
+            float dist = log(-)
+
+            if (internalSegment != 0)
+            {
+                // TODO: Warp sampleDir by phase function.
+
+            }
+            rayDescriptor.Origin = position;
+            rayDescriptor.TMin = 0.0;
+            rayDescriptor.TMax =
+
+        }
+    }
+
     // Create the list of active lights
     LightList lightList = CreateLightList(position, builtinData.renderingLayers);
 

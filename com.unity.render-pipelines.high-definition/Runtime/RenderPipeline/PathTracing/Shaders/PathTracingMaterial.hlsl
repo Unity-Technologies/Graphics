@@ -81,3 +81,9 @@ float3x3 GetTangentFrame(MaterialData mtlData)
         float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, mtlData.bsdfData.normalWS) :
         GetLocalFrame(mtlData.bsdfData.normalWS);
 }
+
+// HACK! I am too lazy to add extra param for now!
+bool IsVolumetric(MaterialData mtlData)
+{
+    return mtlData.bsdfData.phaseCoeff != 0.0f;
+}
