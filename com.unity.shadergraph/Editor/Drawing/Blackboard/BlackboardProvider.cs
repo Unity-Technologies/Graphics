@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly Dictionary<Guid, BlackboardRow> m_InputRows;
         readonly BlackboardSection m_PropertySection;
         readonly BlackboardSection m_KeywordSection;
+        readonly BlackboardSection m_DelegatesSection;
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
@@ -69,6 +70,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
+
+            if (graph.isSubGraph)
+            {
+                m_DelegatesSection = new BlackboardSection { title = "Subgraph Delegates" };
+                foreach (var subDelegate in graph.subgraphDelegates)
+                    AddInputRow(subDelegate);
+                blackboard.Add(m_DelegatesSection);
+            }
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -185,6 +194,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                     m_Graph.MoveKeyword(keyword, newIndex);
                     break;
+                case ShaderSubgraphDelegate sgdelegate:
+                    m_Graph.MoveDelegate(sgdelegate, newIndex);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -195,6 +207,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var gm = new GenericMenu();
             AddPropertyItems(gm);
             AddKeywordItems(gm);
+            if (m_Graph.isSubGraph)
+                AddSubgraphItems(gm);
             gm.ShowAsContext();
         }
 
@@ -228,6 +242,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var keyword = ShaderKeyword.Create(builtinKeywordDescriptor);
                 AddBuiltinKeyword(gm, keyword);
             }
+        }
+
+        void AddSubgraphItems(GenericMenu gm)
+        {
+            gm.AddItem(new GUIContent($"Subgraph Delegate"), false, () => AddInputRow(new ShaderSubgraphDelegate(), true));
         }
 
         void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword)
@@ -306,6 +325,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             switch(input)
             {
+                case ShaderSubgraphDelegate sgdelegate:
+                {
+                    var icon = (m_Graph.isSubGraph || (sgdelegate.isExposable && sgdelegate.generatePropertyBlock)) ? exposedIcon : null;
+                    var typeText = sgdelegate.isEditable ? sgdelegate.GetType().ToString() : "Subgraph Delegate";
+                    field = new BlackboardField(icon, sgdelegate.displayName, typeText);
+                    var delegateView = new BlackboardFieldSubgraphDelegateView(field, m_Graph, sgdelegate);
+                    row = new BlackboardRow(field, delegateView);
+                    if (index < 0)
+                        index = m_InputRows.Count;
+                    if (index == m_InputRows.Count)
+                        m_DelegatesSection.Add(row);
+                    else
+                        m_DelegatesSection.Insert(index, row);
+                    break;
+                }
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;

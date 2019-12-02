@@ -40,6 +40,14 @@ namespace UnityEditor.ShaderGraph
             get { return m_Keywords; }
         }
 
+        [NonSerialized]
+        List<ShaderSubgraphDelegate> m_subgraphDelegates = new List<ShaderSubgraphDelegate>();
+
+        public IEnumerable<ShaderSubgraphDelegate> subgraphDelegates
+        {
+            get { return m_subgraphDelegates; }
+        }
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -756,6 +764,11 @@ namespace UnityEditor.ShaderGraph
                         return;
                     m_Keywords.Add(keyword);
                     break;
+                case ShaderSubgraphDelegate sgdelegate:
+                    if (m_subgraphDelegates.Contains(sgdelegate))
+                        return;
+                    m_subgraphDelegates.Add(sgdelegate);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -773,6 +786,9 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case ShaderKeyword keyword:
                     input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    break;
+                case ShaderSubgraphDelegate sgdelegate:
+                    input.displayName = GraphUtil.SanitizeName(subgraphDelegates.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -796,6 +812,9 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case ShaderKeyword keyword:
                     keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
+                    break;
+                case ShaderSubgraphDelegate sgdelegate:
+                    sgdelegate.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -859,6 +878,27 @@ namespace UnityEditor.ShaderGraph
                 m_MovedInputs.Add(keyword);
         }
 
+        public void MoveDelegate(ShaderSubgraphDelegate sgdelegate, int newIndex)
+        {
+            if (newIndex > m_subgraphDelegates.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within subgraph delegates list.");
+            var currentIndex = m_subgraphDelegates.IndexOf(sgdelegate);
+            if (currentIndex == -1)
+                throw new ArgumentException("Subgraph delegate is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_subgraphDelegates.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_subgraphDelegates.Count;
+            if (isLast)
+                m_subgraphDelegates.Add(sgdelegate);
+            else
+                m_subgraphDelegates.Insert(newIndex, sgdelegate);
+            if (!m_MovedInputs.Contains(sgdelegate))
+                m_MovedInputs.Add(sgdelegate);
+        }
+
         public int GetGraphInputIndex(ShaderInput input)
         {
             switch(input)
@@ -867,6 +907,8 @@ namespace UnityEditor.ShaderGraph
                     return m_Properties.IndexOf(property);
                 case ShaderKeyword keyword:
                     return m_Keywords.IndexOf(keyword);
+                case ShaderSubgraphDelegate sgdelegate:
+                    return m_subgraphDelegates.IndexOf(sgdelegate);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
