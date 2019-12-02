@@ -497,6 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 lightinBufferRT,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
+                                                null, // TODO...
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
 
