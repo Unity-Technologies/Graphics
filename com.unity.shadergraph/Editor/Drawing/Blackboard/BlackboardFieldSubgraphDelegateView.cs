@@ -17,11 +17,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldSubgraphDelegateView : BlackboardFieldView
     {
-        private ReorderableList m_ReorderableList;
+        private ReorderableList m_ReorderableList_Input;
+        private ReorderableList m_ReorderableList_Output;
         private IMGUIContainer m_Container;
         private int m_SelectedIndex;
         private ShaderSubgraphDelegate m_Delegate;
-        private ShaderKeyword m_Keyword;
 
         public BlackboardFieldSubgraphDelegateView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
@@ -30,51 +30,48 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void BuildCustomFields(ShaderInput input)
         {
-            m_Keyword = input as ShaderKeyword;
-            if(m_Keyword == null)
+            m_Delegate = input as ShaderSubgraphDelegate;
+            if(m_Delegate == null)
                 return;
 
-            // Clamp value between entry list
-            int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
-
             // Default field
-            var field = new PopupField<string>(m_Keyword.entries.Select(x => x.displayName).ToList(), value);
-            field.RegisterValueChangedCallback(evt =>
-            {
-                graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
-                m_Keyword.value = field.index;
-                DirtyNodes(ModificationScope.Graph);
-            });
-            AddRow("Default", field);
+            var field1 = new PopupField<string>(m_Delegate.input_Entries.Select(x => x.propertyType.ToString()).ToList(), 0);
+            AddRow("Inputs", field1);
+            var field2 = new PopupField<string>(m_Delegate.output_Entries.Select(x => x.propertyType.ToString()).ToList(), 0);
+            AddRow("Outputs", field2);
 
             // Entries
             m_Container = new IMGUIContainer(() => OnGUIHandler()) { name = "ListContainer" };
-            AddRow("Entries", m_Container, m_Keyword.isEditable);
+            AddRow("Entries", m_Container, m_Delegate.isEditable);
         }
 
 
         private void OnGUIHandler()
         {
-            if(m_ReorderableList == null)
+            if(m_ReorderableList_Input == null || m_ReorderableList_Output == null)
             {
                 RecreateList();
-                AddCallbacks();
+                AddCallbacks(m_ReorderableList_Input, m_Delegate.input_Entries);
+                //AddCallbacks(m_ReorderableList_Output, m_Delegate.output_Entries);
             }
 
-            m_ReorderableList.index = m_SelectedIndex;
-            m_ReorderableList.DoLayoutList();
+            m_ReorderableList_Input.index = m_SelectedIndex;
+            m_ReorderableList_Input.DoLayoutList();
+            //m_ReorderableList_Output.index = m_SelectedIndex;
+            //m_ReorderableList_Output.DoLayoutList();
         }
 
         internal void RecreateList()
-        {           
+        {
             // Create reorderable list from entries
-            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntry), true, true, true, true);
+            m_ReorderableList_Input = new ReorderableList(m_Delegate.input_Entries, typeof(SubgraphDelegateEntry), true, true, true, true);
+            m_ReorderableList_Output = new ReorderableList(m_Delegate.input_Entries, typeof(SubgraphDelegateEntry), true, true, true, true);
         }
 
-        private void AddCallbacks() 
+        private void AddCallbacks(ReorderableList reorderableList, List<SubgraphDelegateEntry> entries) 
         {
             // Draw Header      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
+            reorderableList.drawHeaderCallback = (Rect rect) => 
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
@@ -84,49 +81,44 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            reorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
             {
-                KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
+                SubgraphDelegateEntry entry = ((SubgraphDelegateEntry)reorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
-                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
-
-                displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
+                PropertyType enumName = (PropertyType)EditorGUI.EnumPopup( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.propertyType, EditorStyles.label);
                 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
-                    
+                    entries[index] = new SubgraphDelegateEntry(index + 1, enumName);
                     DirtyNodes();
                     Rebuild();
                 }   
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+            reorderableList.elementHeightCallback = (int indexer) => 
             {
-                return m_ReorderableList.elementHeight;
+                return reorderableList.elementHeight;
             };
 
             // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
+            reorderableList.onCanAddCallback = (ReorderableList list) => 
             {  
                 return list.count < 8;
             };
 
             // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
+            reorderableList.onCanRemoveCallback = (ReorderableList list) => 
             {  
                 return list.count > 2;
             };
 
             // Add callback delegates
-            m_ReorderableList.onSelectCallback += SelectEntry;
-            m_ReorderableList.onAddCallback += AddEntry;
-            m_ReorderableList.onRemoveCallback += RemoveEntry;
-            m_ReorderableList.onReorderCallback += ReorderEntries;
+            reorderableList.onSelectCallback += SelectEntry;
+            reorderableList.onAddCallback += AddEntry;
+            reorderableList.onRemoveCallback += RemoveEntry;
+            reorderableList.onReorderCallback += ReorderEntries;
         }
 
         private void SelectEntry(ReorderableList list)
@@ -136,18 +128,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void AddEntry(ReorderableList list)
         {
-            graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
+            graph.owner.RegisterCompleteObjectUndo("Add Subgraph Delegate Entry");
 
             var index = list.list.Count + 1;
-            var displayName = GetDuplicateSafeDisplayName(index, "New");
-            var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
 
             // Add new entry
-            m_Keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
+            m_Delegate.input_Entries.Add(new SubgraphDelegateEntry(index, PropertyType.Vector1));
 
             // Update GUI
             Rebuild();
-            graph.OnKeywordChanged();
+            //graph.OnKeywordChanged();
             m_SelectedIndex = list.list.Count - 1;
         }
 
@@ -157,35 +147,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Remove entry
             m_SelectedIndex = list.index;
-            var selectedEntry = (KeywordEntry)m_ReorderableList.list[list.index];
-            m_Keyword.entries.Remove(selectedEntry);
-
-            // Clamp value within new entry range
-            int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
-            m_Keyword.value = value;
+            var selectedEntry = (SubgraphDelegateEntry)m_ReorderableList_Input.list[list.index];
+            m_Delegate.input_Entries.Remove(selectedEntry);
 
             Rebuild();
-            graph.OnKeywordChanged();
+            //graph.OnKeywordChanged();
         }
 
         private void ReorderEntries(ReorderableList list)
         {
             DirtyNodes();
-        }
-
-        public string GetDuplicateSafeDisplayName(int id, string name)
-        {
-            name = name.Trim();
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
-        }
-
-        public string GetDuplicateSafeReferenceName(int id, string name)
-        {
-            name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
