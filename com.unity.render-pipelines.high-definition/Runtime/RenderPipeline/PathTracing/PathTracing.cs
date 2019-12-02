@@ -34,12 +34,19 @@ namespace UnityEngine.Rendering.HighDefinition
         uint currentIteration = 0;
         uint maxIteration = 0;
 
+        RTHandle m_VarianceTexture = null;
+        RTHandle m_MaxVariance = null;
+        RTHandle m_ScratchBuffer = null;
         public void InitPathTracing()
         {
 #if UNITY_EDITOR
             Undo.postprocessModifications += UndoRecordedCallback;
             Undo.undoRedoPerformed += UndoPerformedCallback;
 #endif // UNITY_EDITOR
+
+            m_VarianceTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "VarianceTexture");
+            m_MaxVariance = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "MaxVarianceTexture");
+            m_ScratchBuffer = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "ScratchBuffer");
         }
 
         public void ReleasePathTracing()
@@ -48,6 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Undo.postprocessModifications -= UndoRecordedCallback;
             Undo.undoRedoPerformed -= UndoPerformedCallback;
 #endif // UNITY_EDITOR
+
+            RTHandles.Release(m_VarianceTexture);
+            RTHandles.Release(m_MaxVariance);
+            RTHandles.Release(m_ScratchBuffer);
         }
 
 #if UNITY_EDITOR
@@ -91,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
+
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
             PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
 
@@ -154,6 +166,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Additional data for path tracing
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._AccumulatedFrameTexture, history);
             cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
+
+            // Adaptive sampling resources 
+            cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._VarianceTexture, m_VarianceTexture);
+            cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._MaxVariance, m_MaxVariance);
+            cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._ScratchBuffer, m_ScratchBuffer);
 
             // Run the computation
             cmd.DispatchRays(pathTracingShader, m_PathTracingRayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);

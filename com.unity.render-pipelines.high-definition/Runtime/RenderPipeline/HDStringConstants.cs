@@ -858,6 +858,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        // Adaptive sampling
+        public static readonly int _VarianceTexture                = Shader.PropertyToID("_VarianceTexture");
+        public static readonly int _MaxVariance                    = Shader.PropertyToID("_MaxVariance");
+        public static readonly int _ScratchBuffer                  = Shader.PropertyToID("_ScratchBuffer");
     }
 
     // Shared material property names
