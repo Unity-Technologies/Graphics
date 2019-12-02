@@ -185,6 +185,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ZonalHarmonicsL2 m_PhaseZH;
         Vector2[] m_xySeq;
 
+        static Texture2DArray[] s_CmjPointSets = new Texture2DArray[CmjPointSet.k_NumFrames];
+
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
         // They've been rearranged in a sequence of pairs {small, large}, s.t. (small + large) = 1.
@@ -202,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4[] m_PixelCoordToViewDirWS;
 
+        // The destructor is called CleanupVolumetricLighting.
         void InitializeVolumetricLighting()
         {
             m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
@@ -223,6 +226,30 @@ namespace UnityEngine.Rendering.HighDefinition
             m_xySeq = new Vector2[7];
 
             m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+
+            Color[] points = new Color[CmjPointSet.k_Width * CmjPointSet.k_Height];
+
+            for (int t = 0; t < CmjPointSet.k_NumFrames; t++) // Loop over frames
+            {
+                // Creating a GraphicsFormat.A2B10G10R10_UNormPack32 texture fails... :-(
+                s_CmjPointSets[t] = new Texture2DArray(CmjPointSet.k_Width, CmjPointSet.k_Height, CmjPointSet.k_Depth, TextureFormat.RGBA32, false, true)
+                {
+                    hideFlags = HideFlags.HideAndDontSave,
+                    name = "CMJ Point Set " + t + "/16"
+                };
+
+                for (int z = 0; z < CmjPointSet.k_Depth; z++) // Loop over slices
+                {
+                    for (int i = 0; i < CmjPointSet.k_Width * CmjPointSet.k_Height; i++)
+                    {
+                        points[i] = new Color(CmjPointSet.s_Data[t, z, i, 0], CmjPointSet.s_Data[t, z, i, 1], CmjPointSet.s_Data[t, z, i, 2]);
+                    }
+
+                    s_CmjPointSets[t].SetPixels(points, z);
+                }
+
+                s_CmjPointSets[t].Apply(false, true);
+            }
 
             CreateVolumetricLightingBuffers();
         }
@@ -363,6 +390,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Note: No need to test for support volumetric here, we do saferelease and null assignation
             DestroyVolumetricLightingBuffers();
+
+            for (int t = 0; t < CmjPointSet.k_NumFrames; t++)
+            {
+                s_CmjPointSets[t] = null;
+            }
 
             m_VolumeVoxelizationCS = null;
             m_VolumetricLightingCS = null;
@@ -766,6 +798,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RTHandle                        lightingBuffer,
                                             RTHandle                        historyRT,
                                             RTHandle                        feedbackRT,
+                                            Texture2DArray                  cmjPointSet,
                                             ComputeBuffer                   bigTileLightList,
                                             CommandBuffer                   cmd)
         {
@@ -788,6 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeIntParam(parameters.volumetricLightingCS, HDShaderIDs._VBufferLightingHistoryIsValid, parameters.historyIsValid ? 1 : 0);
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingHistory, historyRT);  // Read
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingFeedback, feedbackRT); // Write
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, "_CmjPointSet", cmjPointSet);
             }
 
             // The shader defines GROUP_SIZE_1D = 8.
@@ -821,7 +855,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
                 RTHandle feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
-                VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
+                Texture2DArray cmjPointSet = s_CmjPointSets[frameIndex & 15]; // TODO: shuffle
+
+                VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, cmjPointSet, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
