@@ -191,6 +191,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 {
     float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a * ADD_IDX(_BaseColor).a;
 
+    // Path tracing SSS
+    surfaceData.scatteringCoeff = _ScatteringCoeff;
+    surfaceData.phaseCoeff = _PhaseCoefficient;
+    surfaceData.transmittanceCoeff = _TransmittanceCoeff;
+
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
 #if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
     float alphaCutoff = _AlphaCutoff;
@@ -414,6 +419,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
+
+
 
 #endif // #if !defined(LAYERED_LIT_SHADER)
 

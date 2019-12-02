@@ -41,6 +41,9 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1020)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1021)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1022)
+#define DEBUGVIEW_LIT_SURFACEDATA_SCATTERING_COEFFICIENT (1023)
+#define DEBUGVIEW_LIT_SURFACEDATA_PHASE_COEFF (1024)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COEFF (1025)
 
 //
 // UnityEngine.Rendering.HighDefinition.Lit+BSDFData:  static fields
@@ -98,6 +101,9 @@ struct SurfaceData
     real3 transmittanceColor;
     real atDistance;
     real transmittanceMask;
+    real3 scatteringCoeff;
+    float phaseCoeff;
+    float3 transmittanceCoeff;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
@@ -208,6 +214,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
             result = surfacedata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SCATTERING_COEFFICIENT:
+            result = surfacedata.scatteringCoeff;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_PHASE_COEFF:
+            result = surfacedata.phaseCoeff.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COEFF:
+            result = surfacedata.transmittanceCoeff;
             break;
     }
 }

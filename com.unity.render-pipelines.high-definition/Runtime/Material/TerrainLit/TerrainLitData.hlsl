@@ -216,6 +216,11 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
+    // Path tracing SSS. Nope terrain, not you.
+    surfaceData.scatteringCoeff = 0;
+    surfaceData.phaseCoeff = 0;
+    surfaceData.transmittanceCoeff = 0;
+
 #if HAVE_DECALS
     if (_EnableDecals)
     {

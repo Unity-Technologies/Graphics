@@ -238,6 +238,12 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.transmittanceMask = 0.0;
 #endif
 
+    // Path tracing SSS
+    surfaceData.scatteringCoeff = _ScatteringCoeff;
+    surfaceData.phaseCoeff = _PhaseCoefficient;
+    surfaceData.transmittanceCoeff = _TransmittanceCoeff;
+
+
 #if defined(DEBUG_DISPLAY)
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
@@ -253,6 +259,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, uvBase , 0.0).rgb;
 #endif
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
 
     return true;
 }

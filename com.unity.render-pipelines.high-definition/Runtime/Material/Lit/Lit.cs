@@ -103,6 +103,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
+
+            // Path traced SSS
+            [SurfaceDataAttributes("Scattering Coefficient", precision = FieldPrecision.Real)]
+            public Vector3 scatteringCoeff;
+            public float phaseCoeff;
+
+            public Vector3 transmittanceCoeff;
         };
 
         //-----------------------------------------------------------------------------
