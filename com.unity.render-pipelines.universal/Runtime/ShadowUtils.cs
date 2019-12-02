@@ -73,27 +73,12 @@ namespace UnityEngine.Rendering.Universal
         {
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
-            if (URPCameraMode.isPureURP)
-            {
-                // XRTODO: decouple SpeedTreeV7 billboard system updates with SetViewProjectionMatrices and replace
-                // cmd.SetViewProjectionMatrices with RenderingUtils.SetViewProjectionMatrices
-                // Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(proj, true);
-                // RenderingUtils.SetViewProjectionMatrices(cmd, view, projMatrix, false);
-                cmd.SetViewProjectionMatrices(view, proj);
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                context.DrawShadows(ref settings);
-                cmd.DisableScissorRect();
-            }
-            else
-            {
-                cmd.SetViewProjectionMatrices(view, proj);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                context.DrawShadows(ref settings);
-                cmd.DisableScissorRect();
-            }
+            cmd.SetViewProjectionMatrices(view, proj);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            context.DrawShadows(ref settings);
+            cmd.DisableScissorRect();
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
