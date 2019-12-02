@@ -54,6 +54,11 @@ void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
         SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0) : 0.0;
 }
 
+[shader("miss")]
+void VoluemtricMiss(inout RayIntersection rayIntersection : SV_RayPayload)
+{
+}
+
 [shader("raygeneration")]
 void RayGen()
 {
@@ -99,6 +104,7 @@ void RayGen()
     rayIntersection.pixelCoord = currentPixelCoord;
     rayIntersection.maxRoughness = 0.001;
     rayIntersection.rayCount = sampleCount;
+    rayIntersection.volFlag = 0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;

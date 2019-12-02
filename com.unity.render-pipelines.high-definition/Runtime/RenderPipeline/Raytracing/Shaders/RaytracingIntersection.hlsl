@@ -31,6 +31,8 @@ struct RayIntersection
 	uint2 pixelCoord;
 	// Max roughness (encountered along the path, used in path tracing)
 	float maxRoughness;
+	// Flag that tells us if this was a volumetric ray
+	uint volFlag;
 };
 
 struct AttributeData

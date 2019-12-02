@@ -87,6 +87,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 500
     min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4
@@ -139,15 +144,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  useQualitySettings:
-    m_OverrideState: 0
-    m_Value: 0
   quality:
     m_OverrideState: 1
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0
     min: 0
     max: 1
   scatter:
