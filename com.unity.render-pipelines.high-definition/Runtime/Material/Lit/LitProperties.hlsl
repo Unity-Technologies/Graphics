@@ -151,6 +151,11 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+// Path traced SSS
+float4 _ScatteringCoeff;
+float4 _TransmittanceCoeff;
+float  _PhaseCoefficient;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables

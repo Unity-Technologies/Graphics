@@ -8,6 +8,11 @@ Shader "HDRP/Lit"
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
+        // Path traced SSS
+        _ScatteringCoeff("ScatteringCoefficient", Color) = (1,1,1,1)
+        _TransmittanceCoeff("TransmittanceCoefficient", Color) = (1,1,1,1)
+        _PhaseCoefficient("Phase", Float) = 0.8
+
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
         _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}

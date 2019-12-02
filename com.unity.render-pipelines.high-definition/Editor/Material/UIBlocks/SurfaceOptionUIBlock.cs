@@ -94,6 +94,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
+            // Path traced SSS
+            public static GUIContent scatteringCoeff = new GUIContent("Scattering Coefficient", "Cool kids don't do tooltips");
+            public static GUIContent transmittanceCoeff = new GUIContent("Transmittance Coefficient", "Cool kids don't do tooltips");
+            public static GUIContent phaseCoeff = new GUIContent("Phase Coefficient", "Cool kids don't do tooltips");
+
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
 
@@ -147,6 +152,14 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
         const string kTransmissionEnable = "_TransmissionEnable";
+
+        // Path traced SSS
+        MaterialProperty scatteringCoeff = null;
+        const string kScatteringCoeff = "_ScatteringCoeff";
+        MaterialProperty transmittanceCoeff = null;
+        const string kTransmittanceCoeff = "_TransmittanceCoeff";
+        MaterialProperty phaseCoeff = null;
+        const string kPhaseCoeff = "_PhaseCoefficient";
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -333,6 +346,11 @@ namespace UnityEditor.Rendering.HighDefinition
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA);
             specularAAScreenSpaceVariance = FindProperty(kSpecularAAScreenSpaceVariance);
             specularAAThreshold = FindProperty(kSpecularAAThreshold);
+
+            // Path traced SSS
+            scatteringCoeff = FindProperty(kScatteringCoeff);
+            transmittanceCoeff = FindProperty(kTransmittanceCoeff);
+            phaseCoeff = FindProperty(kPhaseCoeff);
 
             // SSR
             if ((m_Features & Features.ReceiveSSR) != 0)
@@ -764,6 +782,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            if(scatteringCoeff != null)
+            {
+                materialEditor.ShaderProperty(scatteringCoeff, Styles.scatteringCoeff);
+                materialEditor.ShaderProperty(transmittanceCoeff, Styles.transmittanceCoeff);
+                materialEditor.ShaderProperty(phaseCoeff, Styles.phaseCoeff);
             }
         }
 
