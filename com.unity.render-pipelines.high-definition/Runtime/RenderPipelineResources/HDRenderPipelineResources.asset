@@ -158,12 +158,12 @@ MonoBehaviour:
     bloomBlurCS: {fileID: 7200000, guid: 133a68380d324de4ea8d3ff8657b02d8, type: 3}
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
     FXAACS: {fileID: 7200000, guid: 1535d29f35ea86b4282b6ca652002e2a, type: 3}
+    accumulationMotionBlurCS: {fileID: 7200000, guid: 3abb0c82e92b8f741a57b54bc31a7b31,
+      type: 3}
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
-      type: 3}
-    accumulationMotionBlurPS: {fileID: 4800000, guid: 888d1e3bf1c21dd4e85ba8a8d922fd26,
       type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
