@@ -9,7 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Subgraph Delegate")]
-    class SubgraphDelegateNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
+    class SubgraphDelegateNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode, IGeneratesFunction
     {
         public SubgraphDelegateNode()
         {
@@ -37,10 +37,63 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision => false;
         public override bool hasPreview => true;
-        public const int OutputSlotId = 0;
+        //public const int OutputSlotId = 0;
+        List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+        List<MaterialSlot> outputSlots = new List<MaterialSlot>();
+
+        string GetFunctionName()
+        {
+            return $"SubgraphDelegate_{m_SubgraphDelegateGuid.GetHashCode().ToString()}";
+        }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            List<String> slotValues = new List<String>();
+
+            for (int i = 0; i < inputSlots.Count(); ++i)
+            {
+                slotValues.Add(GetSlotValue(inputSlots[i].id, generationMode, concretePrecision));
+            }
+            for (int i = 0; i < outputSlots.Count(); ++i)
+            {
+                slotValues.Add(GetSlotValue(outputSlots[i].id, generationMode, concretePrecision));
+                sb.AppendLine("{0} {1} = ({0})0;", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id));
+            }
+
+            sb.Append("{0}(", GetFunctionName());
+            for (int i = 0; i < slotValues.Count(); ++i)
+            {
+                sb.Append("{0}", slotValues[i]);
+                if (i < (slotValues.Count() - 1))
+                    sb.Append(", ");
+            }
+            sb.Append(");\n");
+        }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.Append("void {0}(", GetFunctionName());
+                for (int i = 0; i < inputSlots.Count(); ++i)
+                {
+                    s.Append("{0} {1}", inputSlots[i].concreteValueType.ToShaderString(), inputSlots[i].shaderOutputName);
+                    if ((i < (inputSlots.Count() - 1)) || outputSlots.Count() > 0)
+                        s.Append(", ");
+                }
+
+                for (int i = 0; i < outputSlots.Count(); ++i)
+                {
+                    s.Append("inout {0} {1}", outputSlots[i].concreteValueType.ToShaderString(), outputSlots[i].shaderOutputName);
+                    if (i < (outputSlots.Count() - 1))
+                        s.Append(", ");
+                }
+                s.Append(")\n");
+                using (s.BlockScope())
+                {
+                    // TODO : If there's a source SubGraphAsset, we put in a call
+                }
+            });
         }
 
         public void OnEnable()
@@ -60,7 +113,8 @@ namespace UnityEditor.ShaderGraph
         void UpdatePorts(ShaderSubgraphDelegate subDelegate)
         {
             // Get slots
-            List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+            //List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+            inputSlots.Clear();
             GetInputSlots(inputSlots);
 
             // Store the edges
@@ -76,7 +130,8 @@ namespace UnityEditor.ShaderGraph
 
 
             // Get slots
-            List<MaterialSlot> outputSlots = new List<MaterialSlot>();
+            //List<MaterialSlot> outputSlots = new List<MaterialSlot>();
+            outputSlots.Clear();
             GetOutputSlots(outputSlots);
 
             // Store the edges
