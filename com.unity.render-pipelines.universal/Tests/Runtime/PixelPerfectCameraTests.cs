@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             public float unitsPerPixel;
         }
 
+        [UnityEngine.Scripting.Preserve]
         private static object[] GetCalculateCameraPropertiesTestCases()
         {
             object[] testCaseArray = new object[9];
