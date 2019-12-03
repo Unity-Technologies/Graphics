@@ -347,11 +347,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader);
-                    }                    
+                    }
                 }
             }
 
             UpdateTitle();
+
+            // Hackweek!
+            CreateHackweekBullcrapFile();
         }
 
         public void SaveAs()
@@ -389,6 +392,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphObject.isDirty = false;
             }
+
+            // Hackweek!
+            CreateHackweekBullcrapFile();
+        }
+
+        private void CreateHackweekBullcrapFile()
+        {
+            string[] shaderInputToolstips;
+            int propertyCount = graphObject.graph.properties.Count();
+            int keywordCount = graphObject.graph.properties.Count();
+            string[] tooltips = new string[propertyCount + keywordCount];
+            string[] headers = new string[propertyCount + keywordCount];
+            int p = 0;
+            int k = 0;
+            for (p = 0; p < propertyCount; p++)
+            {
+                // string tip = graphObject.graph.properties.tooltip;
+            }
+            // HackweekHacks.CreateShaderGUIInfo
         }
 
         public void ToSubGraph()
