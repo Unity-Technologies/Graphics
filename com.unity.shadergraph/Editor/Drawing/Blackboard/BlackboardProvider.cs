@@ -329,9 +329,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var icon = (m_Graph.isSubGraph || (sgdelegate.isExposable && sgdelegate.generatePropertyBlock)) ? exposedIcon : null;
                     var typeText = sgdelegate.isEditable ? sgdelegate.GetType().ToString() : "Subgraph Delegate";
-                    field = new BlackboardField(icon, sgdelegate.displayName, typeText);
+                    field = new BlackboardField(icon, sgdelegate.displayName, typeText) { userData = sgdelegate };
                     var delegateView = new BlackboardFieldSubgraphDelegateView(field, m_Graph, sgdelegate);
-                    row = new BlackboardRow(field, delegateView);
+                    row = new BlackboardRow(field, delegateView) { userData = input };
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)
@@ -418,6 +418,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
             }
+            // TODO : Subgraph Proxy Nodes
         }
 
         public BlackboardRow GetBlackboardRow(Guid guid)

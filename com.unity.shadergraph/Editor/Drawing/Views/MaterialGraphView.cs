@@ -584,6 +584,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         case ShaderKeyword keyword:
                             keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
                             break;
+                        case ShaderSubgraphDelegate sgdelegate:
+                            // TODO : remove all the subgraph proxy nodes
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

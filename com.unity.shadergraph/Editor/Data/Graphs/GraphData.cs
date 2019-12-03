@@ -917,7 +917,8 @@ namespace UnityEditor.ShaderGraph
         void RemoveGraphInputNoValidate(Guid guid)
         {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
-                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
+                m_Keywords.RemoveAll(x => x.guid == guid) > 0 ||
+                m_subgraphDelegates.RemoveAll(x => x.guid == guid) > 0)
             {
                 m_RemovedInputs.Add(guid);
                 m_AddedInputs.RemoveAll(x => x.guid == guid);
@@ -1105,6 +1106,8 @@ namespace UnityEditor.ShaderGraph
                     removedInputGuids.Add(property.guid);
                 foreach (var keyword in m_Keywords)
                     removedInputGuids.Add(keyword.guid);
+                foreach (var sgdelegate in m_subgraphDelegates)
+                    removedInputGuids.Add(sgdelegate.guid);
                 foreach (var inputGuid in removedInputGuids)
                     RemoveGraphInputNoValidate(inputGuid);
             }
@@ -1117,6 +1120,11 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!keywords.Any(p => p.guid == otherKeyword.guid))
                     AddGraphInput(otherKeyword);
+            }
+            foreach (var otherDelegate in other.subgraphDelegates)
+            {
+                if (!subgraphDelegates.Any(p => p.guid == otherDelegate.guid))
+                    AddGraphInput(otherDelegate);
             }
 
             other.ValidateGraph();
