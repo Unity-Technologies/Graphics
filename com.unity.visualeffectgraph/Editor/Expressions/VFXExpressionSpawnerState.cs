@@ -9,15 +9,16 @@ namespace UnityEditor.VFX
     #pragma warning disable 0659
     sealed class VFXSpawnerStateExpression : VFXExpression
     {
-        public static readonly VFXExpression NewLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateNewLoop);
-        public static readonly VFXExpression LoopState = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateLoopState);
-        public static readonly VFXExpression DeltaTime = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateDeltaTime);
-        public static readonly VFXExpression TotalTime = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateTotalTime);
-        public static readonly VFXExpression DelayBeforeLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateDelayBeforeLoop);
-        public static readonly VFXExpression LoopDuration = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateLoopDuration);
-        public static readonly VFXExpression DelayAfterLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateDelayAfterLoop);
-        public static readonly VFXExpression LoopIndex = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateLoopIndex);
-        public static readonly VFXExpression LoopCount = new VFXSpawnerStateExpression(VFXExpressionOperation.kVFXSpawnerStateLoopCount);
+        public static readonly VFXExpression NewLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateNewLoop);
+        public static readonly VFXExpression LoopState = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateLoopState);
+        public static readonly VFXExpression SpawnCount = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateSpawnCount);
+        public static readonly VFXExpression DeltaTime = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateDeltaTime);
+        public static readonly VFXExpression TotalTime = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateTotalTime);
+        public static readonly VFXExpression DelayBeforeLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateDelayBeforeLoop);
+        public static readonly VFXExpression LoopDuration = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateLoopDuration);
+        public static readonly VFXExpression DelayAfterLoop = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateDelayAfterLoop);
+        public static readonly VFXExpression LoopIndex = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateLoopIndex);
+        public static readonly VFXExpression LoopCount = new VFXSpawnerStateExpression(VFXExpressionOperation.SpawnerStateLoopCount);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
         public static readonly VFXExpressionOperation[] All = AllExpressions.Select(e => e.operation).ToArray();
