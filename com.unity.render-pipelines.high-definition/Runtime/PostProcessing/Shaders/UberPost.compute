@@ -168,13 +168,6 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
-    // Frame Accumulation Normalization
-    // UNITY_BRANCH
-    //if (AccumulationEnabled)
-    //{
-        //color *= rcp(AccumulationSampleIndex / AccumulationSampleCount);
-    //}
-
     // Vignette
     if (VARIANT & UBERPOSTFEATUREFLAGS_VIGNETTE)
     {

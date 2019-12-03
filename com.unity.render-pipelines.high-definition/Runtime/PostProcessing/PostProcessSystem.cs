@@ -555,15 +555,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             DoColorGrading(cmd, cs, kernel);
                         }
 
-                        //Set Accumulation normalization term
-                        Vector4 accumulationMotionBlurParams = new Vector4(
-                            (float)m_MotionBlur.accumulationSampleCount,
-                            (float)m_MotionBlur.accumulationSampleIndex,
-                            0,
-                            1f // Always enable for dev 
-                        );
-                        cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams3, accumulationMotionBlurParams);
-
                         // Setup the rest of the effects
                         DoLensDistortion(cmd, cs, kernel, featureFlags);
                         DoChromaticAberration(cmd, cs, kernel, featureFlags);
@@ -1451,7 +1442,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ResetHistory)
             {
                 // TODO
-                // NOTE: Might require similar solution as what we do on 'shutter close'
             }
 
             var cs = m_Resources.shaders.accumulationMotionBlurCS;
@@ -1459,9 +1449,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector4 accumulationMotionBlurParams = new Vector4(
                 1f / m_MotionBlur.accumulationSampleCount.value,
-                (float)m_MotionBlur.accumulationSampleCount,
+                (float)(m_MotionBlur.accumulationSampleIndex.value + 1) / (float)m_MotionBlur.accumulationSampleCount,
                 (float)m_MotionBlur.accumulationSampleIndex,
-                1f // Always enabled for dev
+                (float)m_MotionBlur.accumulationSampleCount
             );
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._AccumulationMotionBlurParams, accumulationMotionBlurParams);
