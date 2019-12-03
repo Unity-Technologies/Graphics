@@ -604,7 +604,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
 #else
-        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 4, 2);
+        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 4, 1);
 #endif // USE_PATH_SKY
 
         return float4(skyColor, 1.0);
