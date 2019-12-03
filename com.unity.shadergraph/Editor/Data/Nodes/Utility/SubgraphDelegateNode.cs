@@ -45,13 +45,11 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            Debug.Log("OnEnableTest");
             UpdateNode();
         }
 
         public void UpdateNode()
         {
-            Debug.Log("OnUpdateTest");
             //TODO: Get the subgraph delegate from the graphdata
             var subDelegate = new ShaderSubgraphDelegate();
             name = "Subgraph Delegate";
@@ -60,7 +58,6 @@ namespace UnityEditor.ShaderGraph
 
         void UpdatePorts(ShaderSubgraphDelegate subDelegate)
         {
-            Debug.Log("UpdatePortsTest");
             // Get slots
             List<MaterialSlot> inputSlots = new List<MaterialSlot>();
             GetInputSlots(inputSlots);

@@ -331,7 +331,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var typeText = sgdelegate.isEditable ? sgdelegate.GetType().ToString() : "Subgraph Delegate";
                     field = new BlackboardField(icon, sgdelegate.displayName, typeText) { userData = sgdelegate };
                     var delegateView = new BlackboardFieldSubgraphDelegateView(field, m_Graph, sgdelegate);
-                    row = new BlackboardRow(field, delegateView) { userData = input };
+                    row = new BlackboardRow(field, delegateView) { userData = sgdelegate };
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)
