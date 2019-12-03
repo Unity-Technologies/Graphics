@@ -545,7 +545,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
             var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
+            // Collect the subgraph delegate nodes and get the corresponding delegates
+            var delegateNodeGuids = nodes.OfType<SubgraphDelegateNode>().Select(x => x.subgraphDelegateGuid);
+            var metaDelegates = this.graph.subgraphDelegates.Where(x => delegateNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, metaDelegates, notes);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -570,6 +574,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Track dependent keyword nodes to remove them
             List<KeywordNode> keywordNodes = new List<KeywordNode>();
+            List<SubgraphDelegateNode> delegateNodes = new List<SubgraphDelegateNode>();
 
             foreach (var selectable in selection)
             {
@@ -585,7 +590,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
                             break;
                         case ShaderSubgraphDelegate sgdelegate:
-                            // TODO : remove all the subgraph proxy nodes
+                            delegateNodes.AddRange(graph.GetNodes<SubgraphDelegateNode>().Where(x => x.subgraphDelegateGuid == sgdelegate.guid));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -605,8 +610,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Filter nodes that cannot be deleted
             var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
 
-            // Add keyword nodes dependent on deleted keywords
+            // Add keyword nodes dependent on deleted keywords and delegate nodes dependent on deleted subgraph delegates
             nodesToDelete = nodesToDelete.Union(keywordNodes);
+            nodesToDelete = nodesToDelete.Union(delegateNodes);
 
             // If deleting a Sub Graph node whose asset contains Keywords test variant limit
             foreach(SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
@@ -846,6 +852,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.keywordGuid = keyword.guid;
                         break;
                     }
+                    case ShaderSubgraphDelegate sgdelegate:
+                    {
+                        var node = new SubgraphDelegateNode();
+                        var drawState = node.drawState;
+                        drawState.position = new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.subgraphDelegateGuid = sgdelegate.guid;
+                        break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -895,6 +913,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         // Pasting a new Keyword so need to test against variant limit
                         keywordsDirty = true;
+                        break;
+                    case ShaderSubgraphDelegate sgdelegate:
+                        var dependentDelegateNodes = copyGraph.GetNodes<SubgraphDelegateNode>().Where(x => x.subgraphDelegateGuid == input.guid);
+                        foreach (var node in dependentDelegateNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.keywordGuid = copiedInput.guid;
+                        }
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

@@ -36,6 +36,9 @@ namespace UnityEditor.Graphing.Util
         [NonSerialized]
         HashSet<ShaderKeyword> m_MetaKeywords = new HashSet<ShaderKeyword>();
 
+        [NonSerialized]
+        HashSet<ShaderSubgraphDelegate> m_MetaSubgraphDelegates = new HashSet<ShaderSubgraphDelegate>();
+
         [SerializeField]
         string m_SourceGraphGuid;
 
@@ -56,7 +59,7 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<ShaderSubgraphDelegate> metaDelegates, IEnumerable<StickyNoteData> notes)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
@@ -92,6 +95,9 @@ namespace UnityEditor.Graphing.Util
 
             foreach (var metaKeyword in metaKeywords)
                 AddMetaKeyword(metaKeyword);
+
+            foreach (var metaDelegate in metaDelegates)
+                AddMetaSubgraphDelegate(metaDelegate);
         }
 
         public void AddGroup(GroupData group)
@@ -129,6 +135,11 @@ namespace UnityEditor.Graphing.Util
             m_MetaKeywords.Add(metaKeyword);
         }
 
+        public void AddMetaSubgraphDelegate(ShaderSubgraphDelegate metaDelegate)
+        {
+            m_MetaSubgraphDelegates.Add(metaDelegate);
+        }
+
         public IEnumerable<T> GetNodes<T>()
         {
             return m_Nodes.OfType<T>();
@@ -159,6 +170,11 @@ namespace UnityEditor.Graphing.Util
         public IEnumerable<ShaderKeyword> metaKeywords
         {
             get { return m_MetaKeywords; }
+        }
+
+        public IEnumerable<ShaderSubgraphDelegate> metaSubgraphDelegates
+        {
+            get { return m_MetaSubgraphDelegates; }
         }
 
         public string sourceGraphGuid

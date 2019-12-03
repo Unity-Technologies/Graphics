@@ -418,7 +418,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
             }
-            // TODO : Subgraph Proxy Nodes
+            foreach (var node in m_Graph.GetNodes<SubgraphDelegateNode>())
+            {
+                node.OnEnable();
+                node.Dirty(ModificationScope.Node);
+            }
         }
 
         public BlackboardRow GetBlackboardRow(Guid guid)
@@ -449,6 +453,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (node.userData is KeywordNode keywordNode)
                         {
                             if (keywordNode.keywordGuid == input.guid)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
+                        }
+                    }
+                    else if (input is ShaderSubgraphDelegate sgdelegate)
+                    {
+                        if (node.userData is SubgraphDelegateNode delegateNode)
+                        {
+                            if (delegateNode.subgraphDelegateGuid == input.guid)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");

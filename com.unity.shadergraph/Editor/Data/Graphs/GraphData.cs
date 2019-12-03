@@ -1302,6 +1302,21 @@ namespace UnityEditor.ShaderGraph
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
                     keywordNode.UpdateNode();
                 }
+
+                if (node is SubgraphDelegateNode sgdelegateNode)
+                {
+                    if (!subgraphDelegates.Select(x => x.guid).Contains(sgdelegateNode.subgraphDelegateGuid))
+                    {
+                        var pastedGraphMetaDelegates = graphToPaste.metaSubgraphDelegates.Where(x => x.guid == sgdelegateNode.subgraphDelegateGuid);
+                        if (pastedGraphMetaDelegates.Any())
+                        {
+                            var subgraphDelegate = pastedGraphMetaDelegates.FirstOrDefault(x => x.guid == sgdelegateNode.subgraphDelegateGuid);
+                            SanitizeGraphInputName(subgraphDelegate);
+                            SanitizeGraphInputReferenceName(subgraphDelegate, subgraphDelegate.overrideReferenceName);
+                            AddGraphInput(subgraphDelegate);
+                        }
+                    }
+                }
             }
 
             // only connect edges within pasted elements, discard
