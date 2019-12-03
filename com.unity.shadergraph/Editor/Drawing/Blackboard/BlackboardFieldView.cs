@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         Toggle m_ExposedToogle;
         TextField m_ReferenceNameField;
+        TextField m_TooltipField;
         List<VisualElement> m_Rows;
         public List<VisualElement> rows => m_Rows;
 
@@ -68,20 +69,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_UndoGroup = -1;
             });
 
-            BuildDefaultFields(input);
-            BuildCustomFields(input);
+            Rebuild();
 
             AddToClassList("sgblackboardFieldView");
         }
 
-        void BuildDefaultFields(ShaderInput input)
+        void BuildUpperDefaultFields(ShaderInput input)
         {
-            if(!m_Graph.isSubGraph)
+            if (!m_Graph.isSubGraph)
             {
                 m_ExposedToogle = new Toggle();
                 m_ExposedToogle.OnToggleChanged(evt =>
                 {
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
+
                     input.generatePropertyBlock = evt.newValue;
                     m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
                     Rebuild();
@@ -89,10 +90,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
                 m_ExposedToogle.value = input.generatePropertyBlock;
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
-				
             }
 
-            if(!m_Graph.isSubGraph || input is ShaderKeyword)
+            if (!m_Graph.isSubGraph || input is ShaderKeyword)
             {
                 m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
                 m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
@@ -100,10 +100,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ReferenceNameField.RegisterValueChangedCallback(evt =>
                 {
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
+
                     if (m_ReferenceNameField.value != m_Input.referenceName)
                         m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
-                    
+
                     m_ReferenceNameField.value = input.referenceName;
+
                     if (string.IsNullOrEmpty(input.overrideReferenceName))
                         m_ReferenceNameField.RemoveFromClassList("modified");
                     else
@@ -117,6 +119,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ReferenceNameField.AddToClassList("modified");
 
                 AddRow("Reference", m_ReferenceNameField, input.isRenamable);
+            }
+        }
+
+        void BuildLowerDefaultFields(ShaderInput input)
+        {
+            if (!m_Graph.isSubGraph)
+            {
+                m_TooltipField = new TextField(2048, false, false, ' ') {isDelayed = true};
+                m_TooltipField.styleSheets.Add(
+                    Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField")); // TODO: Use your own brah
+                m_TooltipField.value = input.tooltip;
+                m_TooltipField.RegisterValueChangedCallback(evt =>
+                {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change Tooltip");
+
+                    if (m_TooltipField.value != m_Input.tooltip)
+                        m_Graph.SanitizeGraphInputTooltip(input, evt.newValue);
+
+                    m_TooltipField.value = input.tooltip;
+
+                    if (string.IsNullOrEmpty(input.tooltip))
+                        m_TooltipField.RemoveFromClassList("modified");
+                    else
+                        m_TooltipField.AddToClassList("modified");
+
+                    Rebuild();
+                    // DirtyNodes(ModificationScope.Graph); // TODO:
+                    UpdateReferenceNameResetMenu();
+                });
+                // m_TooltipField.multiline = true;  // TODO:
+
+                AddRow("Tooltip", m_TooltipField);
             }
         }
 
@@ -166,8 +200,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Rebuild
-            BuildDefaultFields(m_Input);
+            BuildUpperDefaultFields(m_Input);
             BuildCustomFields(m_Input);
+            BuildLowerDefaultFields(m_Input);
         }
 
         VisualElement CreateRow(string labelText, VisualElement control, bool enabled)
@@ -183,7 +218,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 label.AddToClassList("rowViewLabel");
                 rowView.Add(label);
             }
-            
+
             control.AddToClassList("rowViewControl");
             control.SetEnabled(enabled);
 

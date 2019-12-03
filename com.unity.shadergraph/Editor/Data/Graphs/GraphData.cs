@@ -320,7 +320,7 @@ namespace UnityEditor.ShaderGraph
         List<ITarget> m_ValidTargets = new List<ITarget>();
 
         public List<ITarget> validTargets => m_ValidTargets;
-        
+
         [SerializeField]
         int m_ActiveTargetIndex;
 
@@ -351,7 +351,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 // Return a list of all valid TargetImplementations enabled in the bitmask
-                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
+                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) &
                     m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
             }
         }
@@ -843,6 +843,18 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public void SanitizeGraphInputTooltip(ShaderInput input, string newTooltip)
+        {
+            if (string.IsNullOrEmpty(newTooltip))
+                return;
+
+            string name = newTooltip.Trim();
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            input.tooltip = Regex.Replace(name, @"(?:[^A-Za-z_0-9 ])", "");
         }
 
         public void RemoveGraphInput(ShaderInput input)
@@ -1478,7 +1490,7 @@ namespace UnityEditor.ShaderGraph
             // Update valid Targets and TargetImplementations
             m_ValidTargets = foundTargets;
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
-            
+
             // Nothing or Everything. No need to update bitmask.
             if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
                 return;

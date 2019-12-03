@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Internal
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
         [SerializeField]
         string m_Name;
 
@@ -65,6 +65,15 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get => m_GeneratePropertyBlock;
             set => m_GeneratePropertyBlock = value;
+        }
+
+        [SerializeField]
+        string m_Tooltip;
+
+        public string tooltip
+        {
+            get => m_Tooltip;
+            set => m_Tooltip = value;
         }
 
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }

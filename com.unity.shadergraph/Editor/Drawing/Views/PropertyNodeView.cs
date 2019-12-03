@@ -35,6 +35,7 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
+
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         public Node gvNode => this;
         public AbstractMaterialNode node { get; }
@@ -100,10 +101,25 @@ namespace UnityEditor.ShaderGraph
                     propRow.RemoveFromClassList("hovered");
                 }
             }
+
+            UpdateTooltip();
         }
 
         public void Dispose()
         {
+        }
+
+        void UpdateTooltip()
+        {
+            PropertyNode propertyNode = node as PropertyNode;
+            if (propertyNode != null)
+            {
+                var shaderProperty = propertyNode.property;
+                if (shaderProperty != null && !String.IsNullOrEmpty(shaderProperty.tooltip))
+                {
+                    tooltip = shaderProperty.tooltip;
+                }
+            }
         }
     }
 }

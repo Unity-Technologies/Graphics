@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
             name = "Property";
             UpdateNodeAfterDeserialization();
         }
-        
+
         [SerializeField]
         string m_PropertyGuidSerialized;
 
@@ -29,10 +29,9 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_PropertyGuid = value;
-                var property = owner.properties.FirstOrDefault(x => x.guid == value);
                 if (property == null)
                     return;
-                
+
                 AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
         }
@@ -41,13 +40,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return;
 
             AddOutputSlot(property);
         }
-        
+
         public const int OutputSlotId = 0;
 
         void AddOutputSlot(AbstractShaderProperty property)
@@ -115,12 +113,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public AbstractShaderProperty property
+        {
+            get
+            {
+                return owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            }
+        }
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return;
-            
+
             switch(property.propertyType)
             {
                 case PropertyType.Boolean:
@@ -164,10 +169,9 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-                if (property == null)
+            if (property == null)
                 throw new NullReferenceException();
-            
+
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -176,7 +180,7 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-        
+
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
@@ -191,7 +195,6 @@ namespace UnityEditor.ShaderGraph
         public override bool ValidateConcretePrecision(ref string errorMessage)
         {
             // Get precision from Property
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return true;
 
@@ -203,7 +206,7 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = owner.concretePrecision;
                 return false;
             }
-        
+
         public override void OnBeforeSerialize()
             {
             base.OnBeforeSerialize();
