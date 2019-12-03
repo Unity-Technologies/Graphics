@@ -2,9 +2,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 {
     HLSLINCLUDE
 
-    #define USE_PATH_SKY 1
+    #define USE_PATH_SKY 0
     #define NUM_BOUNCES 2
-    #define NUM_BOUNCES_MINUS_ONE 1
 
     #pragma vertex Vert
 
@@ -324,7 +323,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return color;
     }
 
-    float3 SpectralTracking(uint2 positonSS, float3 X, uint numWavelengths, uint numPaths, uint numBounces)
+    float3 SpectralTracking(uint2 positonSS, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
@@ -422,10 +421,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     pathContribution += lightColor * bounceWeight;
 
+                    const float2 random2D = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[b]);
                     if (surfaceScatteringEvent)
                     {
                         /* Shade the surface point (account for atmospheric attenuation). */
                         /* Pick a new direction for a Lambertian BRDF. */
+                        float3x3 basis = GetLocalFrame(normalize(X));
+                        D = SampleHemisphereCosine(random2D.x, random2D.y);
+                        D = mul(basis, D);
                     }
                     else // Volume scattering event
                     {
@@ -433,9 +436,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         /* Shade the volume point (account for atmospheric attenuation). */
                         /* Compute a new direction (uniformly for now). */
+                        D = SampleSphereUniform(random2D.x, random2D.y);
                     }
                 }
+
+                color[w] += pathContribution / numPaths;
             }
+
 
         }
 
@@ -528,6 +535,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             }
         }
 
+#if !USE_PATH_SKY
         if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
         {
             float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
@@ -594,6 +602,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
+#else
+        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 4, 2);
+#endif // USE_PATH_SKY
 
         return float4(skyColor, 1.0);
     }
