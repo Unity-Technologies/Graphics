@@ -428,6 +428,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keywordGuid);
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
+            // Collect the keyword nodes and get the corresponding keywords
+            var delegateNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is SubgraphDelegateNode)).Select(x => ((SubgraphDelegateNode)x.node).subgraphDelegateGuid);
+            var metaDelegates = graphView.graph.subgraphDelegates.Where(x => delegateNodeGuids.Contains(x.guid));
+
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.assetGuid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
@@ -436,6 +440,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphInputs,
                     metaProperties,
                     metaKeywords,
+                    metaDelegates,
                     graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));

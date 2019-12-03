@@ -919,7 +919,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in dependentDelegateNodes)
                         {
                             node.owner = graphView.graph;
-                            node.keywordGuid = copiedInput.guid;
+                            node.subgraphDelegateGuid = copiedInput.guid;
                         }
                         break;
                     default:
