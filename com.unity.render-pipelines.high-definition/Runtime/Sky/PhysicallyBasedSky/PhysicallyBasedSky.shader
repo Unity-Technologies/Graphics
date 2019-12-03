@@ -68,6 +68,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     // Utilities
 
+    static const uint s_RandomPrimes[11] = { 0xD974CF83,
+                                             0xFAF269B5,
+                                             0xAE727FA9,
+                                             0x5BA52335,
+                                             0xA4E819D5,
+                                             0xDD638559,
+                                             0xC0972367,
+                                             0x4B190D9B,
+                                             0xD1894DB5,
+                                             0xA78BCBB3,
+                                             0xCBE0EC0B };
+
     uint permute(uint i, uint l, uint p)
     {
         if (p == 0) return i; // identity permutation when p == 0
@@ -114,7 +126,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return f;
     }
 
-    // Compute the digits of decimal value ‘v‘ expressed in base ‘s‘
+    // Compute the digits of decimal value â€˜vâ€˜ expressed in base â€˜sâ€˜
     void toBaseS(uint v, uint s, uint t, out uint outData[NUM_BOUNCES])
     {
         for (uint i = 0; i < t; v /= s, ++i)
@@ -126,12 +138,16 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // Copy all but the j-th element of vector in
     void allButJ(const uint inData[NUM_BOUNCES], uint inSize, uint omit, out uint outData[NUM_BOUNCES - 1])
     {
-        for (uint i = 0; i < omit; ++i)
+        uint i = 0;
+
+        for (; i < omit; ++i)
         {
             outData[i] = inData[i];
         }
 
-        for (uint i = omit + 1; i < inSize; ++i)
+        i++;
+
+        for (; i < inSize; ++i)
         {
             outData[i - 1] = inData[i];
         }
@@ -145,7 +161,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         for (int i = last; i >= 0; i--)
         {
-            ans = (ans * arg) + inData[i]; // Horner’s rule
+            ans = (ans * arg) + inData[i]; // Hornerâ€™s rule
         }
 
         return ans;
@@ -186,25 +202,136 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         return (stratum + (sStratum + jitter) / stm) / s;
     }
-    ​
-    float3 SpectralTracking(float3 X, float3 V, float3 N, uint numWavelengths, uint numPaths)
+
+    float2 cmj2D(int s, int m, int n, int p)
     {
-        float3 color = 0;
-        for (uint w = 0; w < 3; w++) // iterate across wavelengths
+        int   sx = permute(s % m, m, p * 0xA511E9B3);
+        int   sy = permute(s / m, n, p * 0x63D83595);
+        float jx = randfloat(s,      p * 0xA399D265);
+        float jy = randfloat(s,      p * 0x711AD6A5);
+
+        float2 r = float2((s % m + (sy + jx) / n) / m,
+                          (s / m + (sx + jy) / m) / n);
+        return r;
+    }
+
+    float SampleSpherExpMedium(float optDepth, float r, float cosTheta,
+                               float rcpSeaLvlAtt, float Z, float R, float H, float rcpH)
+    {
+        // This allows us to use (seaLvlAtt = rcpSeaLvlAtt = 1) below.
+        optDepth *= rcpSeaLvlAtt;
+        float rcpOptDepth = rcp(optDepth); // Must not be 0.
+        // Make an initial guess.
+        float t = SampleRectExpMedium(optDepth, r - R, cosTheta, 1, rcpH);
+        float relDiff;
+        unsigned int numIterations = 0;
+        do // Perform a Newton�Raphson iteration.
         {
-            for (uint b = 0; b < 10; b++) // replace literal with constant later
+            float radAtDist = RadAtDist(r, cosTheta, t);
+            // Evaluate the function and its (reciprocal) derivative:
+            // f (t) = OptDepthAtDist(t) - GivenOptDepth = 0,
+            // f'(t) = AttCoefAtDist(t).
+            // The sea level attenuation coefficient cancels out during division.
+            float optDepthAtDist = EvalOptDepthSpherExpMedium(r, cosTheta, t, 1, Z, H, rcpH);
+            float rcpAttCoefAtDist = 1 * exp((radAtDist - R) * rcpH);
+            // Refine the initial guess.
+            // t1 = t0 - f(t0) / f'(t0).
+            t = t - (optDepthAtDist - optDepth) * rcpAttCoefAtDist;
+            relDiff = optDepthAtDist * rcpOptDepth - 1;
+            numIterations++;
+        } while (abs(relDiff) > 0.001); // Stop when the accuracy goal has been reached.
+        return t;
+    }
+
+    float3 SpectralTracking(uint2 positonSS, float3 X, uint numWavelengths, uint numPaths, uint numBounces)
+    {
+        const float A = _AtmosphericRadius;
+        const float R = _PlanetaryRadius;
+        const float n = _AirDensityFalloff;
+        const float H = _AirScaleHeight;
+        const float Z = n * R;
+
+        float3 color = 0;
+
+        for (uint p = 0; p < numPaths; p++) // Iterate over paths
+        {
+            const uint numStrata   = (uint)sqrt(numPaths);
+            const uint permutation = positonSS.x ^ positonSS.y;
+
+            // Sample the sensor.
+            const float2 subPixel  = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]);
+            const float2 sensorPos = positonSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
+
+            // Init the ray.
+            const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+            const float3 V = GetSkyViewDirWS(sensorPos);
+
+            float2 atmosEntryExit = IntersectSphere(A, dot(normalize(O), -V), length(O));
+
+            bool rayIntersectsAtmosphere = atmosEntryExit.y >= 0;
+            if (!rayIntersectsAtmosphere) continue; // Miss
+
+            // Do not start outside the atmosphere.
+            if (atmosEntryExit.x > 0)
             {
-                float r = length(X);
-                float NdotV  = dot(N, V);
-                float cosChi = -NdotV;
-                float cosHor = ComputeCosineOfHorizonAngle(r);
-                float2 closestHit = IntersectSphere(_PlanetaryRadius, cosChi, r);
-                bool intersectPlanet = (closestHit.y >= 0);
-                bool lookAboveHorizon = (cosChi >= cosHor);
-                float opticalDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
-                float opacity = OpacityFromOpticalDepth(opticalDepth);
+                O -= V * atmosEntryExit.x * (1 + FLT_EPS);
             }
+
+            for (uint w = 0; w < numWavelengths; w++) // Iterate over wavelengths
+            {
+                float3 X =  O;
+                float3 D = -V; // Point away from the camera
+
+                for (uint b = 0; b < numBounces; b++) // Step along the path
+                {
+                    float  r = length(X);
+                    float3 N = normalize(X);
+
+                    if (r > A) break; // Outside of the atmosphere
+
+                    float cosChi = dot(N, D);
+                    float cosHor = ComputeCosineOfHorizonAngle(r);
+
+                    bool lookAboveHorizon = (cosChi >= cosHor);
+
+                    float maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
+                    float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
+                    float rndOpacity  = randfloat(permutation ^ s_RandomPrimes[b + 1]); // TODO: how to stratify?
+
+                    bool surfaceContibution     = !lookAboveHorizon;
+                    bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
+
+                    if (surfaceScatteringEvent)
+                    {
+                        float t = IntersectSphere(R, cosChi, r).x; // Assume we are outside
+
+                        X += t * D;
+
+                        /* Shade the surface point (account for atmospheric attenuation). */
+                        /* Pick a new direction for a Lambertian BRDF. */
+                    }
+                    else // Volume scattering event
+                    {
+                        float weight           = surfaceContibution ? 1 : rndOpacity;
+                        float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity / maxOpacity;
+                        float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
+
+                        float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi,
+                                                       _AirSeaLevelExtinction[w], Z, R, H, n);
+
+                        X += t * D;
+
+                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
+
+                        /* Shade the volume point (account for atmospheric attenuation). */
+                        /* Compute a new direction (uniformly for now). */
+                    }
+                }
+            }
+
         }
+
+        return color;
     }
 
     float4 RenderSky(Varyings input)
