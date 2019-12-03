@@ -397,7 +397,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     else // Volume scattering event
                     {
                         bounceWeight           = surfaceContibution ? 1 : rndOpacity;
-                        float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity / maxOpacity;
+                        float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
                         float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi,
