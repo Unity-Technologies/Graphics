@@ -7,6 +7,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/SubSurface.hlsl"
 #endif
 
 bool RussianRouletteTest(float value, float rand, inout float factor, bool skip = false)
@@ -32,31 +33,6 @@ float PowerHeuristic(float f, float b)
 float3 GetPositionBias(float3 geomNormal, float3 dir, float bias)
 {
     return geomNormal * (dot(geomNormal, dir) > 0.0 ? bias : -bias);
-}
-
-real3 SamplePhaseFunction(real u1, real u2, float g, out float outPDF)
-{
-    float phi = 2.0 * PI * u2;
-    float g2 = g * g;
-    float a = (1.0 - g2)/(1.0 - g + 2 * g * u1);
-    float cosTheta = (1.0 + g2 - a * a) / (2 * g);
-
-    float b = pow(1 + g2 - 2* g * cosTheta, 3.0/2.0) * 4.0 * PI;
-    outPDF = 1 - g2 / b;
-
-    float cosPhi = cos(phi);
-    float sinPhi = sin(phi);
-    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-    return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
-}
-
-void RemapSubSurfaceScatteringParameters(float3 albedo, float radius, out float3 sigmaT, out float3 sigmaS)
-{
-    const float3 a = 1.0f - exp(albedo * (-5.09406f + albedo * (2.61188f - albedo * 4.31805f)));
-    const float3 s = 1.9f - albedo + 3.5f * pow(albedo - 0.8f, 2.0);
-
-    sigmaT = 1.0f / max(radius * s, 1e-16f);
-    sigmaS = sigmaT * a;
 }
 
 // Generic function that handles the reflection code
@@ -88,13 +64,15 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Grab depth information
     uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
+    const float3 position = GetAbsolutePositionWS(fragInput.positionRWS);
 
-
-
-
+    if (rayIntersection.remainingDepth == (_RaytracingMaxRecursion - 1))
+    {
+        rayIntersection.color = position;
+        return;
+    }
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
-    const float3 position = GetAbsolutePositionWS(fragInput.positionRWS);
 
     // Make sure to add the additional travel distance
     rayIntersection.cone.width += rayIntersection.t * abs(rayIntersection.cone.spreadAngle);
@@ -131,9 +109,6 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     inputSample.y = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 1);
     inputSample.z = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 2);
 
-    // Get current path throughput
-    float3 previousPathThrough = rayIntersection.color;
-
     float3 pathThroughput = rayIntersection.color;
 
     // And reset the ray intersection color, which will store our final result
@@ -157,7 +132,6 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     rayDescriptor.TMin = 0.0;
 
     RayIntersection nextRayIntersection;
-
     // Light sampling
     if (computeDirect)
     {
@@ -184,113 +158,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         }
     }
 
-
-    float3 sigmaS;
-    float3 sigmaT;
-    RemapSubSurfaceScatteringParameters(bsdfData.scatteringCoeff, bsdfData.transmittanceCoeff.x, sigmaT, sigmaS);
-
-    // Path traced SSS
-    float3 outputVolumetricPosition = float3(0.0, 0.0, 0.0);
-    float3 outputVolumetricDirection = float3(0.0, 0.0, 0.0);
-    float3 outputVolumetricNormal = float3(0.0, 0.0, 0.0);
-    float3 robertDeNiro = float3(1.0, 1.0, 1.0);
-
-    if (IsVolumetric(mtlData) && IsAbove(mtlData))
-    {
-        // Evaluate the length of our steps
-        RayDesc internalRayDesc;
-        RayIntersection internalRayIntersection;
-
-        int maxWalkSteps = 16;
-        bool hit = false;
-        int internalSegment = 0;
-        float3 currentPathPosition = position;
-        float3 transmittance;
-        float3 sampleDir;
-
-        while (!hit && internalSegment < maxWalkSteps)
-        {
-            // Samples the random numbers for the direction
-            float dir0Rnd = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount,  4 * internalSegment + 0);
-            float dir1Rnd = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount,  4 * internalSegment + 1);
-
-            // Samples the random numbers for the distance
-            float dstRndSample = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * internalSegment + 2);
-
-            // Random number used to do channel selection
-            float channelSelection = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * internalSegment + 3);
-            
-            // Evaluate what channel we should be using for this sample
-            int channelIdx = (int)floor(channelSelection * 3.0);
-
-            // Fetch sigmaT and sigmaS
-            float currentSigmaT = sigmaT[channelIdx];
-
-            // Evaluate the length of our steps
-            float currentDist = -log(1.0f - dstRndSample)/currentSigmaT; //0.001 * dstRndSample;//dist[channelIdx];
-
-            float samplePDF;
-            float3 rayOrigin;
-            if (internalSegment != 0)
-            {
-                /*
-                #if 0
-                sampleDir = SamplePhaseFunction(dir0Rnd, dir1Rnd, bsdfData.phaseCoeff, samplePDF);
-                rayOrigin = currentPathPosition;
-                #else
-                */
-                sampleDir = normalize(SampleSphereUniform(dir0Rnd, dir1Rnd));
-                samplePDF = 2.0 * PI;
-                rayOrigin = currentPathPosition;
-                // #endif
-            }
-            else
-            {
-                // If it's the first sample, the surface is considered lambertian
-                sampleDir = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -bsdfData.geomNormalWS));
-                samplePDF = dot(sampleDir, -bsdfData.geomNormalWS);
-                rayOrigin = position - bsdfData.geomNormalWS * 0.001;
-            }
-
-            // Now that we have all the info for throwing our ray
-            internalRayDesc.Origin = rayOrigin;
-            internalRayDesc.Direction = sampleDir;
-            internalRayDesc.TMin = 0.0;
-            internalRayDesc.TMax = currentDist;
-
-            // Initialize the intersection data
-            internalRayIntersection.t = -1.0;
-            internalRayIntersection.volFlag = 1;
-            
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, internalRayDesc, internalRayIntersection);
-
-            // Define if we did a hit
-            hit = internalRayIntersection.t > 0.0;
-            // Evalaute the transmittance for the current segment
-            transmittance = exp(-currentDist * sigmaT);
-
-            // Evaluate the pdf for the current segment
-            float pdf = (hit ? transmittance : sigmaT * transmittance)[channelIdx];
-
-            // Contribute to the throughput
-            pathThroughput *= (hit ? transmittance : sigmaS * transmittance) / (pdf);
-            robertDeNiro *= (hit ? transmittance : sigmaS * transmittance) / (pdf);
-
-            // Compute the next path position
-            currentPathPosition = currentPathPosition + sampleDir * (hit ? internalRayIntersection.t: currentDist);
-            outputVolumetricNormal = internalRayIntersection.incidentDirection;
-            if (hit)
-                break;
-            // increment the path
-            internalSegment++;
-        }
-
-        if (!hit)
-            pathThroughput = float3(0.0, 0.0, 0.0);
-
-        outputVolumetricPosition = currentPathPosition;
-        outputVolumetricDirection = sampleDir;
-    }
+    ScatteringResult scatteringResult = ScatteringWalk(mtlData, rayIntersection, position, pathThroughput);
 
     // Material sampling
     if (SampleMaterial(mtlData, inputSample, rayDescriptor.Direction, mtlResult))
@@ -326,11 +194,18 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
             // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
             nextRayIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextRayIntersection.maxRoughness);
 
-            RayDesc shittyPattern = rayDescriptor;
-            if (IsVolumetric(mtlData) && IsAbove(mtlData))
+            if (!scatteringResult.hit)
             {
-                shittyPattern.Origin = outputVolumetricPosition + outputVolumetricNormal * _RaytracingRayBias;
-                shittyPattern.Direction = outputVolumetricDirection;
+                rayIntersection.color = float3(0.5, 0.5, 1.0);
+                rayIntersection.incidentDirection = float3(0.5, 0.5, 1.0);
+                //return;
+            }
+
+            RayDesc shittyPattern = rayDescriptor;
+            if (IsVolumetric(mtlData) && IsAbove(mtlData) && scatteringResult.hit)
+            {
+                shittyPattern.Origin = scatteringResult.outputPosition + scatteringResult.outputNormal * _RaytracingRayBias;
+                shittyPattern.Direction = scatteringResult.outputDirection;
             }
             else
             {
@@ -339,6 +214,10 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
             // Shoot ray for indirect lighting
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, shittyPattern, nextRayIntersection);
+            rayIntersection.color = nextRayIntersection.color;
+            rayIntersection.incidentDirection = position;
+            return;
+            /*
             if (computeDirect)
             {
                 // Use same ray for direct lighting (use indirect result for occlusion)
@@ -351,6 +230,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
                 nextRayIntersection.color += lightValue * misWeight * GetCurrentExposureMultiplier();
             }
             rayIntersection.color += value * russianRouletteFactor * nextRayIntersection.color;
+            */
         }
     }
 

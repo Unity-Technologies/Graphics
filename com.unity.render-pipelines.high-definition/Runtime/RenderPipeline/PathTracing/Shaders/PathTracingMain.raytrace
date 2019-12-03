@@ -105,6 +105,7 @@ void RayGen()
     rayIntersection.maxRoughness = 0.001;
     rayIntersection.rayCount = sampleCount;
     rayIntersection.volFlag = 0;
+    rayIntersection.incidentDirection = 0.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
@@ -124,10 +125,10 @@ void RayGen()
         sampleCount++;
         rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color) / sampleCount;
     }
-    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, sampleCount);
+    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.incidentDirection, 1.0);
 
     // Add a little convergence cue to our result (FIXME: definitely not the right way to do it!!)
-    AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
+    //AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
 
     _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
 }
