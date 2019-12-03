@@ -28,6 +28,8 @@ struct RayIntersection
 	float3 normal;
 	// Value that holds the normal of the intersection point
 	float3 outPosition;
+	// Value that holds the normal of the intersection point
+	float3 outColor;
 	// Cone representation of the ray
 	RayCone cone;
 	// The remaining available depth for the current Ray

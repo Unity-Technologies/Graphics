@@ -30,13 +30,6 @@ void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
     {
         rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0);
     }
-    /*
-    if (rayIntersection.rayType == LAST_VOLUMETRIC_RAY)
-    {
-        rayIntersection.t = 10.0f;
-        rayIntersection.normal = -rayIntersection.incidentDirection;
-    }
-    */
 }
 
 [shader("raygeneration")]

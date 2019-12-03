@@ -16,8 +16,8 @@ float3 SamplePhaseFunction(real u1, real u2, float g, out float outPDF)
 
 void RemapSubSurfaceScatteringParameters(float3 albedo, float radius, out float3 sigmaT, out float3 sigmaS)
 {
-    const float3 a = 1.0f - exp(albedo * (-5.09406f + albedo * (2.61188f - albedo * 4.31805f)));
-    const float3 s = 1.9f - albedo + 3.5f * pow(albedo - 0.8f, 2.0);
+    float3 a = 1.0f - exp(albedo * (-5.09406f + albedo * (2.61188f - albedo * 4.31805f)));
+    float3 s = 1.9f - albedo + 3.5f * (albedo - 0.8f) * (albedo - 0.8f);
 
     sigmaT = 1.0f / max(radius * s, 1e-16f);
     sigmaS = sigmaT * a;
@@ -47,20 +47,22 @@ int GetChannel(float u1, float3 channelWeight)
     }
 }
 
-float3 safeDivide(float3 val0, float3 val1)
+float3 SafeDivide(float3 val0, float3 val1)
 {
     float3 result;
     result.x = val1.x != 0.0 ? val0.x / val1.x : 0.0;
     result.y = val1.y != 0.0 ? val0.y / val1.y : 0.0;
     result.z = val1.z != 0.0 ? val0.z / val1.z : 0.0;
+    return result;
 }
 
 ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersection, float3 positionWS, float3 viewWS, inout float3 pathThroughput)
 {
     float3 sigmaS;
     float3 sigmaT;
-    RemapSubSurfaceScatteringParameters(bsdfData.scatteringCoeff, bsdfData.transmittanceCoeff.x, sigmaT, sigmaS);
-
+    RemapSubSurfaceScatteringParameters(bsdfData.diffuseColor, bsdfData.transmittanceCoeff, sigmaT, sigmaS);
+    //pathThroughput = SafeDivide(1.0, bsdfData.scatteringCoeff);
+    // i love big butts, however. i cannot lie.
     ScatteringResult result;
     result.hit = false;
 
@@ -68,7 +70,7 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
     RayDesc internalRayDesc;
     RayIntersection internalRayIntersection;
 
-    int maxWalkSteps = 256;
+    int maxWalkSteps = 64;
     int walkIdx = 0;
     float3 currentPathPosition = positionWS;
     float3 transmittance;
@@ -86,10 +88,11 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         // Random number used to do channel selection
         float channelSelection = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * walkIdx + 3);
         
-        float3 weights = pathThroughput * sigmaS / sigmaT;
+        float3 weights = pathThroughput * SafeDivide(sigmaS, sigmaT);
+
         float channelSum = weights.x + weights.y + weights.z;
         float3 channelWeight;
-        channelWeight = weights / channelSum;
+        channelWeight = SafeDivide(weights, channelSum);
 
         // Evaluate what channel we should be using for this sample
         int channelIdx = GetChannel(channelSelection, channelWeight);
@@ -105,20 +108,17 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         if (walkIdx != 0)
         {
             /*
-            #if 0
             sampleDir = SamplePhaseFunction(dir0Rnd, dir1Rnd, bsdfData.phaseCoeff, samplePDF);
             rayOrigin = currentPathPosition;
-            #else
             */
             sampleDir = normalize(SampleSphereUniform(dir0Rnd, dir1Rnd));
             samplePDF = 1.0 /(2.0 * PI);
             rayOrigin = currentPathPosition;
-            // #endif
         }
         else
         {
             // If it's the first sample, the surface is considered lambertian
-            sampleDir = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -bsdfData.geomNormalWS));
+            sampleDir = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -bsdfData.normalWS));
             samplePDF = dot(sampleDir, -bsdfData.geomNormalWS);
             rayOrigin = positionWS - bsdfData.geomNormalWS * 0.0001;
         }
@@ -158,6 +158,9 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         // increment the path
         walkIdx++;
     }
+
+    pathThroughput = walkIdx / (float)maxWalkSteps;
+    return result;
 
     if (!result.hit)
         pathThroughput = float3(0.0, 0.0, 0.0);

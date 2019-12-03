@@ -32,14 +32,6 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
     const float3 positionWS = GetAbsolutePositionWS(fragInput.positionRWS);
 
-    // If we are in the case of a shadow ray or a volumetric ray, we do not have anything left to do
-    if (rayIntersection.rayType == SHADOW_RAY || rayIntersection.rayType == VOLUMETRIC_RAY)
-    {
-        rayIntersection.outPosition = positionWS;
-        rayIntersection.normal = fragInput.tangentToWorld[2];
-        return;
-    }
-
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
 
@@ -47,6 +39,14 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentVertex, rayIntersection.cone, surfaceData, builtinData);
+
+    // If we are in the case of a shadow ray or a volumetric ray, we do not have anything left to do
+    if (rayIntersection.rayType == SHADOW_RAY || rayIntersection.rayType == VOLUMETRIC_RAY)
+    {
+        rayIntersection.outPosition = positionWS;
+        rayIntersection.normal = fragInput.tangentToWorld[2];
+        return;
+    }
 
 #ifdef HAS_LIGHTLOOP
 
@@ -67,6 +67,8 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         {
             float3 result = 1.0;
             ScatteringResult scatteringResult = ScatteringWalk(bsdfData, rayIntersection, positionWS, viewWS, result);
+            rayIntersection.color = result;
+            return;
             // Create a ray descriptor for the next ray
             RayDesc rayDescriptor;
             rayDescriptor.Origin = scatteringResult.outputPosition + scatteringResult.outputNormal * _RaytracingRayBias;
@@ -94,7 +96,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
             // Create a ray descriptor for the next ray
             RayDesc rayDescriptor;
-            rayDescriptor.Origin = positionWS + bsdfData.geomNormalWS * _RaytracingRayBias;
+            rayDescriptor.Origin = positionWS + bsdfData.normalWS * _RaytracingRayBias;
             rayDescriptor.Direction = nextDirection;
             rayDescriptor.TMin = 0.0;
             rayDescriptor.TMax = FLT_INF;

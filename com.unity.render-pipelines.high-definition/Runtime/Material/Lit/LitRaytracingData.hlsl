@@ -202,15 +202,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     // Default subsurface mask
     surfaceData.subsurfaceMask = 0.0;
 
-#ifdef _THICKNESSMAP_IDX
-    #ifdef USE_RAY_CONE_LOD
-    lod = computeTargetTextureLOD(_ThicknessMap, baseLOD);
-    #endif
-    surfaceData.thickness = SAMPLE_TEXTURE2D_LOD(_ThicknessMap, SAMPLER_THICKNESSMAP_IDX, uvBase, lod).r;
-    surfaceData.thickness = _ThicknessRemap.x + _ThicknessRemap.y * surfaceData.thickness;
-#else
-    surfaceData.thickness = _Thickness;
-#endif
+    surfaceData.thickness = SAMPLE_TEXTURE2D_LOD(_ThicknessMap, sampler_ThicknessMap, uvBase, lod).r;
 
     // Default tangent and normal (non-mapped, smooth normal here)
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
