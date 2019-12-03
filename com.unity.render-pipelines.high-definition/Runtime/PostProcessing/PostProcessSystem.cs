@@ -1454,17 +1454,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // NOTE: Might require similar solution as what we do on 'shutter close'
             }
 
-            Vector4 accumulationMotionBlurParams = new Vector4(
-                (float)m_MotionBlur.accumulationSampleCount,
-                (float)m_MotionBlur.accumulationSampleIndex,
-                0,
-                1f // Always enabled for dev
-            );
-
             var cs = m_Resources.shaders.accumulationMotionBlurCS;
             int kernel = cs.FindKernel("KMain");
 
-            //TODO: Setup Param
+            Vector4 accumulationMotionBlurParams = new Vector4(
+                1f / m_MotionBlur.accumulationSampleCount.value,
+                (float)m_MotionBlur.accumulationSampleCount,
+                (float)m_MotionBlur.accumulationSampleIndex,
+                1f // Always enabled for dev
+            );
+
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AccumulationMotionBlurParams, accumulationMotionBlurParams);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture,         source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture,  prevHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture,        destination);

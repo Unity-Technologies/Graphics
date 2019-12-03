@@ -41,7 +41,6 @@ CBUFFER_START(cb0)
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
-    float4 _MotionBlurParams3;
     float4 _DebugFlags;
 CBUFFER_END
 
@@ -74,10 +73,6 @@ CBUFFER_END
 #define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
-
-#define AccumulationSampleCount _MotionBlurParams3.x
-#define AccumulationSampleIndex uint(_MotionBlurParams3.y)
-#define AccumulationEnabled     _MotionBlurParams3.w
 
 #define OutputLogEnabled        _DebugFlags.x
 
@@ -174,11 +169,11 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Frame Accumulation Normalization
-    UNITY_BRANCH
-    if (AccumulationEnabled)
-    {
-        color *= rcp(AccumulationSampleIndex / AccumulationSampleCount);
-    }
+    // UNITY_BRANCH
+    //if (AccumulationEnabled)
+    //{
+        //color *= rcp(AccumulationSampleIndex / AccumulationSampleCount);
+    //}
 
     // Vignette
     if (VARIANT & UBERPOSTFEATUREFLAGS_VIGNETTE)

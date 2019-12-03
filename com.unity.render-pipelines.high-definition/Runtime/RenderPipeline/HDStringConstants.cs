@@ -837,6 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MotionBlurParams2              = Shader.PropertyToID("_MotionBlurParams2");
         public static readonly int _MotionBlurParams3              = Shader.PropertyToID("_MotionBlurParams3");
         public static readonly int _PrevVPMatrixNoTranslation      = Shader.PropertyToID("_PrevVPMatrixNoTranslation");
+        public static readonly int _AccumulationMotionBlurParams   = Shader.PropertyToID("_AccumulationMotionBlurParams");
 
         public static readonly int _SMAAAreaTex                    = Shader.PropertyToID("_AreaTex");
         public static readonly int _SMAASearchTex                  = Shader.PropertyToID("_SearchTex");

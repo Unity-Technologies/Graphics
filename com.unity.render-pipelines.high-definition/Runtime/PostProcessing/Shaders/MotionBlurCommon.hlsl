@@ -45,10 +45,6 @@ CBUFFER_END
 #define _SampleCount                        uint(_MotionBlurParams2.x)
 #define _TileSize                           uint(_MotionBlurParams2.y)
 #define _DepthScale                         _MotionBlurParams2.z
-#define _AccumulationSampleCount            _MotionBlurParams3.x
-#define _AccumulationSampleIndex            uint(_MotionBlurParams3.y)
-#define _AccumulationEnabled                _MotionBlurParams3.w
-
 
 #if defined(USING_STEREO_MATRICES)
 #define _PrevVPMatrixNoTranslation          _XRPrevViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
