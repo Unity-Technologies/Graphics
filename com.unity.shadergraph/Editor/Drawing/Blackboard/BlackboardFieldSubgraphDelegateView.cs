@@ -168,8 +168,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Delegate.output_Entries.Add(new SubgraphDelegateEntry(index, PropertyType.Vector1, displayName, referenceName));
 
             // Update GUI
+            DirtyNodes();
             Rebuild();
-            //graph.OnKeywordChanged();
+            graph.OnSubgraphDelegateChanged();
             if (list == m_ReorderableList_Input)
                 m_SelectedIndex_Input = list.list.Count - 1;
             else
@@ -192,8 +193,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Delegate.output_Entries.Remove(selectedEntry);
 
+            DirtyNodes();
             Rebuild();
-            //graph.OnKeywordChanged();
+            graph.OnSubgraphDelegateChanged();
         }
 
         private void ReorderEntries(ReorderableList list)
@@ -201,19 +203,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             DirtyNodes();
         }
 
-        public string GetDuplicateSafeDisplayName(int id, string name, ReorderableList reorderableList)
+        public string GetDuplicateSafeDisplayName(int id, string name, ReorderableList list)
         {
             name = name.Trim();
-            var entryList = reorderableList.list as List<SubgraphDelegateEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
+            var entryListIn = m_ReorderableList_Input.list as List<SubgraphDelegateEntry>;
+            var entryListOut = m_ReorderableList_Output.list as List<SubgraphDelegateEntry>;
+            var matchingIn = entryListIn.Where(p => p.id != id || list != m_ReorderableList_Input);
+            var matchingOut = entryListOut.Where(p => p.id != id || list != m_ReorderableList_Output);
+            var matchingString = matchingIn.Concat<SubgraphDelegateEntry>(matchingOut).Select(p => p.displayName);
+            return GraphUtil.SanitizeName(matchingString, "{0} ({1})", name);
         }
 
-        public string GetDuplicateSafeReferenceName(int id, string name, ReorderableList reorderableList)
+        public string GetDuplicateSafeReferenceName(int id, string name, ReorderableList list)
         {
             name = name.Trim();
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            var entryList = reorderableList.list as List<SubgraphDelegateEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
+            var entryListIn = m_ReorderableList_Input.list as List<SubgraphDelegateEntry>;
+            var entryListOut = m_ReorderableList_Output.list as List<SubgraphDelegateEntry>;
+            var matchingIn = entryListIn.Where(p => p.id != id || list != m_ReorderableList_Input);
+            var matchingOut = entryListOut.Where(p => p.id != id || list != m_ReorderableList_Output);
+            var matchingString = matchingIn.Concat<SubgraphDelegateEntry>(matchingOut).Select(p => p.referenceName);
+            return GraphUtil.SanitizeName(matchingString, "{0}_{1}", name);
         }
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)

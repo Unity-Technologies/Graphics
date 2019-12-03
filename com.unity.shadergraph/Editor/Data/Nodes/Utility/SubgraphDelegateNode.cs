@@ -45,22 +45,20 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            Debug.Log("OnEnableTest");
             UpdateNode();
         }
 
         public void UpdateNode()
         {
-            Debug.Log("OnUpdateTest");
-            //TODO: Get the subgraph delegate from the graphdata
-            var subDelegate = new ShaderSubgraphDelegate();
-            name = "Subgraph Delegate";
+            var subDelegate = owner.subgraphDelegates.FirstOrDefault(x => x.guid == subgraphDelegateGuid);
+            if (subDelegate == null)
+                return;
+            name = subDelegate.displayName;
             UpdatePorts(subDelegate);
         }
 
         void UpdatePorts(ShaderSubgraphDelegate subDelegate)
         {
-            Debug.Log("UpdatePortsTest");
             // Get slots
             List<MaterialSlot> inputSlots = new List<MaterialSlot>();
             GetInputSlots(inputSlots);
@@ -79,7 +77,7 @@ namespace UnityEditor.ShaderGraph
 
             // Get slots
             List<MaterialSlot> outputSlots = new List<MaterialSlot>();
-            GetInputSlots(outputSlots);
+            GetOutputSlots(outputSlots);
 
             // Store the edges
             Dictionary<MaterialSlot, List<IEdge>> outputEdgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
@@ -99,13 +97,15 @@ namespace UnityEditor.ShaderGraph
                 // Get slot based on entry id
                 MaterialSlot slot = inputSlots.Where(x =>
                 x.id == subDelegate.input_Entries[i].id &&
+                x.concreteValueType == subDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType() &&
                 x.RawDisplayName() == subDelegate.input_Entries[i].displayName &&
                 x.shaderOutputName == subDelegate.input_Entries[i].referenceName).FirstOrDefault();
 
                 // If slot doesnt exist its new so create it
                 if (slot == null)
                 {
-                    slot = new DynamicVectorMaterialSlot(subDelegate.input_Entries[i].id, subDelegate.input_Entries[i].displayName, subDelegate.input_Entries[i].referenceName, SlotType.Input, Vector4.zero);
+                    SlotValueType valueType = subDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToSlotValueType();
+                    slot = MaterialSlot.CreateMaterialSlot(valueType, subDelegate.input_Entries[i].id, subDelegate.input_Entries[i].displayName, subDelegate.input_Entries[i].referenceName, SlotType.Input, Vector4.zero);
                 }
 
                 AddSlot(slot);
@@ -114,19 +114,21 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < subDelegate.output_Entries.Count; i++)
             {
                 // Get slot based on entry id
-                MaterialSlot slot = outputSlots.Where(x =>
-                x.id == subDelegate.output_Entries[i].id &&
+                int newID = subDelegate.output_Entries[i].id + subDelegate.input_Entries.Count;
+                MaterialSlot slot = outputSlots.Where(x => x.id == newID &&
+                x.concreteValueType == subDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType() &&
                 x.RawDisplayName() == subDelegate.output_Entries[i].displayName &&
                 x.shaderOutputName == subDelegate.output_Entries[i].referenceName).FirstOrDefault();
 
-                // If slot doesnt exist its new so create it
+                // If slot doesnt exist it's new so create it
                 if (slot == null)
                 {
-                    slot = new DynamicVectorMaterialSlot(subDelegate.output_Entries[i].id, subDelegate.output_Entries[i].displayName, subDelegate.output_Entries[i].referenceName, SlotType.Output, Vector4.zero);
+                    SlotValueType valueType = subDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType().ToSlotValueType();
+                    slot = MaterialSlot.CreateMaterialSlot(valueType, newID, subDelegate.output_Entries[i].displayName, subDelegate.output_Entries[i].referenceName, SlotType.Output, Vector4.zero);
                 }
 
                 AddSlot(slot);
-                slotIds[i] = subDelegate.output_Entries[i].id;
+                slotIds[i + subDelegate.input_Entries.Count] = newID;
             }
                 RemoveSlotsNameNotMatching(slotIds);
 
