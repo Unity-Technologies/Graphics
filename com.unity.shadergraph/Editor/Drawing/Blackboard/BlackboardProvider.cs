@@ -328,7 +328,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderSubgraphDelegate sgdelegate:
                 {
                     var icon = (m_Graph.isSubGraph || (sgdelegate.isExposable && sgdelegate.generatePropertyBlock)) ? exposedIcon : null;
-                    var typeText = sgdelegate.isEditable ? sgdelegate.GetType().ToString() : "Subgraph Delegate";
+                    var typeText = "SubgraphDelegate";
                     field = new BlackboardField(icon, sgdelegate.displayName, typeText) { userData = sgdelegate };
                     var delegateView = new BlackboardFieldSubgraphDelegateView(field, m_Graph, sgdelegate);
                     row = new BlackboardRow(field, delegateView) { userData = input };
