@@ -126,7 +126,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return f;
     }
 
-    // Compute the digits of decimal value â€˜vâ€˜ expressed in base â€˜sâ€˜
+    // Compute the digits of decimal value Ã¢â‚¬ËœvÃ¢â‚¬Ëœ expressed in base Ã¢â‚¬ËœsÃ¢â‚¬Ëœ
     void toBaseS(uint v, uint s, uint t, out uint outData[NUM_BOUNCES])
     {
         for (uint i = 0; i < t; v /= s, ++i)
@@ -161,7 +161,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         for (int i = last; i >= 0; i--)
         {
-            ans = (ans * arg) + inData[i]; // Hornerâ€™s rule
+            ans = (ans * arg) + inData[i]; // HornerÃ¢â‚¬â„¢s rule
         }
 
         return ans;
@@ -215,6 +215,50 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return r;
     }
 
+    float SampleRectExpMedium(float optDepth, float height, float cosTheta, float rcpSeaLvlAtt, float rcpH)
+    {
+        float t = optDepth * rcpSeaLvlAtt;
+        float p = cosTheta * rcpH;
+
+        if (abs(p) > FLT_EPS)
+        {
+            t = -log(1.0f - p * t * exp(height * rcpH)) * rcp(p);
+        }
+
+        return t;
+    }
+
+    float RadAtDist(float r, float cosTheta, float t)
+    {
+        return sqrt(r * r + t * (t + 2.0f * (r * cosTheta)));
+    }
+
+    float CosAtDist(float r, float cosTheta, float t, float radAtDist)
+    {
+        return (t + r * cosTheta) * rcp(radAtDist);
+    }
+
+    float EvalOptDepthSpherExpMedium(float r, float cosTheta, float t,
+                                     float seaLvlAtt, float Z,
+                                     float H, float rcpH)
+    {
+        float rX        = r;
+        float cosThetaX = cosTheta;
+        float rY        = RadAtDist(rX, cosThetaX, t);
+        float cosThetaY = CosAtDist(rX, cosThetaX, t, rY);
+        // Potentially swap X and Y.
+        // Convention: at the point Y, the ray points up.
+        cosThetaX = (cosThetaY >= 0) ? cosThetaX : -cosThetaX;
+        cosThetaY = abs(cosThetaY);
+        float zX  = rX * rcpH;
+        float zY  = rY * rcpH;
+        float chX = RescaledChapmanFunction(zX, Z, cosThetaX);
+        float chY = ChapmanUpperApprox(zY, cosThetaY) * exp(Z - zY); // Rescaling adds 'exp'
+        // We may have swapped X and Y.
+        float ch = abs(chX - chY);
+        return ch * H * seaLvlAtt;
+    }
+
     float SampleSpherExpMedium(float optDepth, float r, float cosTheta,
                                float rcpSeaLvlAtt, float Z, float R, float H, float rcpH)
     {
@@ -225,7 +269,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         float t = SampleRectExpMedium(optDepth, r - R, cosTheta, 1, rcpH);
         float relDiff;
         unsigned int numIterations = 0;
-        do // Perform a Newton�Raphson iteration.
+        do // Perform a Newton–Raphson iteration.
         {
             float radAtDist = RadAtDist(r, cosTheta, t);
             // Evaluate the function and its (reciprocal) derivative:
@@ -263,7 +307,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             const float2 sensorPos = positonSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
 
             // Init the ray.
-            const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+            float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
             const float3 V = GetSkyViewDirWS(sensorPos);
 
             float2 atmosEntryExit = IntersectSphere(A, dot(normalize(O), -V), length(O));
@@ -296,7 +340,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     float maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
                     float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
-                    float rndOpacity  = randfloat(permutation ^ s_RandomPrimes[b + 1]); // TODO: how to stratify?
+                    float rndOpacity  = randfloat(b, permutation ^ s_RandomPrimes[b + 1]);
 
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
