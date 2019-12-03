@@ -40,6 +40,9 @@ namespace UnityEditor.ShaderGraph
             get { return m_Keywords; }
         }
 
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
+
         [NonSerialized]
         List<ShaderSubgraphDelegate> m_subgraphDelegates = new List<ShaderSubgraphDelegate>();
 
@@ -49,7 +52,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
+        List<SerializationHelper.JSONSerializedElement> m_SerializedDelegates = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
@@ -1329,10 +1332,13 @@ namespace UnityEditor.ShaderGraph
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // Why in the name of all that is good and fine and decent in this world, would you sort these things by GUID
+            // knowing that the order in which they are listed affects the UI?
+            //m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            //m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
+            m_SerializedDelegates = SerializationHelper.Serialize<ShaderSubgraphDelegate>(m_subgraphDelegates);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
@@ -1341,7 +1347,7 @@ namespace UnityEditor.ShaderGraph
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
-
+            m_subgraphDelegates = SerializationHelper.Deserialize<ShaderSubgraphDelegate>(m_SerializedDelegates, GraphUtil.GetLegacyTypeRemapping());
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 
             m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
