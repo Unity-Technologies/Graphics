@@ -30,9 +30,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
 
-    float3 color = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).rgb;
-    float3 history = LOAD_TEXTURE2D_X(_InputHistoryTexture, posInputs.positionSS).rgb;
-
+    float2 uv = posInputs.positionNDC;
+    float3 color   = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, uv * _RTHandleScale.xy, 0).xyz;
+    float3 history = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryTexture, s_point_clamp_sampler, uv * _RTHandleScaleHistory.xy, 0).xyz;
+    
     // Uniformly weight sub-frame by inverse sample count.
     color *= _AccumulationWeight;
 
@@ -42,9 +43,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Write accumulation to history
     _OutputHistoryTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;
 
-    // Normalize the current accumulation for presentation to back buffer
-    float3 colorNormalized = color;
-    colorNormalized /= _AccumulationNormalizeWeight;
+    // Normalize the progressive accumulation for presentation to back buffer
+    color /= _AccumulationNormalizeWeight;
     
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = colorNormalized;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;
 }
