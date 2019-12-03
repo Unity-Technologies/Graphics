@@ -73,8 +73,8 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         outputSHCoeffs[channel * 9 + 8] = (n.x * n.x - n.y * n.y) * value[channel];
     }
 
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     uint i;
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     // Sum up all threads result and broadcast
     for (i = 0; i < SH_COEFF_COUNT; ++i)
