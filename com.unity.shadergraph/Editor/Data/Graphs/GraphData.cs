@@ -978,6 +978,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void OnSubgraphDelegateChanged()
+        {
+            OnSubgraphDelegateChangedNoValidate();
+            ValidateGraph();
+        }
+
+        public void OnSubgraphDelegateChangedNoValidate()
+        {
+            var allNodes = GetNodes<AbstractMaterialNode>();
+            foreach (AbstractMaterialNode node in allNodes)
+            {
+                node.Dirty(ModificationScope.Topological);
+                node.ValidateNode();
+            }
+        }
+
         public void ValidateGraph()
         {
             var propertyNodes = GetNodes<PropertyNode>().Where(n => !m_Properties.Any(p => p.guid == n.propertyGuid)).ToArray();

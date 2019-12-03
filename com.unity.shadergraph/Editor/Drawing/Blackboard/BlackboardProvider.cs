@@ -418,7 +418,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
             }
-            // TODO : Subgraph Proxy Nodes
+            foreach (var node in m_Graph.GetNodes<SubgraphDelegateNode>())
+            {
+                node.OnEnable();
+                node.Dirty(ModificationScope.Node);
+            }
         }
 
         public BlackboardRow GetBlackboardRow(Guid guid)

@@ -168,8 +168,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Delegate.output_Entries.Add(new SubgraphDelegateEntry(index, PropertyType.Vector1, displayName, referenceName));
 
             // Update GUI
+            DirtyNodes();
             Rebuild();
-            //graph.OnKeywordChanged();
+            graph.OnSubgraphDelegateChanged();
             if (list == m_ReorderableList_Input)
                 m_SelectedIndex_Input = list.list.Count - 1;
             else
@@ -192,8 +193,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Delegate.output_Entries.Remove(selectedEntry);
 
+            DirtyNodes();
             Rebuild();
-            //graph.OnKeywordChanged();
+            graph.OnSubgraphDelegateChanged();
         }
 
         private void ReorderEntries(ReorderableList list)
