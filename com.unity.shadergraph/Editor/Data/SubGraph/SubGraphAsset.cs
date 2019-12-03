@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         public List<AbstractShaderProperty> inputs = new List<AbstractShaderProperty>();
-        
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -54,6 +54,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
         
+        [NonSerialized]
+        public List<ShaderSubgraphDelegate> subgraphDelegates = new List<ShaderSubgraphDelegate>();
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedSubgraphDelegates = new List<SerializationHelper.JSONSerializedElement>();
+
         [NonSerialized]
         public List<AbstractShaderProperty> nodeProperties = new List<AbstractShaderProperty>();
         
@@ -80,6 +86,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_SerializedInputs = SerializationHelper.Serialize<AbstractShaderProperty>(inputs);
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(keywords);
+            m_SerializedSubgraphDelegates = SerializationHelper.Serialize<ShaderSubgraphDelegate>(subgraphDelegates);
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(nodeProperties);
             m_SerializedOutputs = SerializationHelper.Serialize<MaterialSlot>(outputs);
         }
@@ -89,6 +96,7 @@ namespace UnityEditor.ShaderGraph
             var typeSerializationInfos = GraphUtil.GetLegacyTypeRemapping();
             inputs = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedInputs, typeSerializationInfos);
             keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, typeSerializationInfos);
+            subgraphDelegates = SerializationHelper.Deserialize<ShaderSubgraphDelegate>(m_SerializedSubgraphDelegates, typeSerializationInfos);
             nodeProperties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, typeSerializationInfos);
             outputs = SerializationHelper.Deserialize<MaterialSlot>(m_SerializedOutputs, typeSerializationInfos);
         }
