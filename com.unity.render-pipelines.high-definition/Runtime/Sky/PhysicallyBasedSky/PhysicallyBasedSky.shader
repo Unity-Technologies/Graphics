@@ -287,6 +287,43 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return t;
     }
 
+    // Input position is relative to sphere origin
+    float3 EvalLight(float3 position, bool useNormal, DirectionalLightData light)
+    {
+        float3 color = 0;
+        float3 L = -light.forward;
+
+        // Use scalar or integer cores (more efficient).
+        bool interactsWithSky = asint(light.distanceFromCamera) > 0;
+
+        if (interactsWithSky)
+        {
+            // TODO: should probably unify height attenuation somehow...
+            // TODO: Not sure it's possible to precompute cam rel pos since variables
+            // in the two constant buffers may be set at a different frequency?
+            float3 X       = position;
+            float r        = length(X);
+            float cosHoriz = ComputeCosineOfHorizonAngle(r);
+            float cosTheta = dot(X, L) * rcp(r); // Normalize
+
+            if (cosTheta >= cosHoriz) // Above horizon
+            {
+                color = light.color;
+                float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+                // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
+                float3 transm  = TransmittanceFromOpticalDepth(oDepth);
+                float3 opacity = 1 - transm;
+                color *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+                if (useNormal)
+                {
+                    color *= saturate(dot(normalize(position), L));
+                }
+            }
+        }
+
+        return color;
+    }
+
     float3 SpectralTracking(uint2 positonSS, float3 X, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
@@ -325,6 +362,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             {
                 float3 X =  O;
                 float3 D = -V; // Point away from the camera
+                float pathContribution = 0;
 
                 for (uint b = 0; b < numBounces; b++) // Step along the path
                 {
@@ -345,6 +383,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
 
+                    float bounceWeight = 1;
                     if (surfaceScatteringEvent)
                     {
                         float t = IntersectSphere(R, cosChi, r).x; // Assume we are outside
@@ -352,11 +391,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         X += t * D;
 
                         /* Shade the surface point (account for atmospheric attenuation). */
+                        bounceWeight *= _GroundAlbedo[w] / PI;
                         /* Pick a new direction for a Lambertian BRDF. */
                     }
                     else // Volume scattering event
                     {
-                        float weight           = surfaceContibution ? 1 : rndOpacity;
+                        bounceWeight           = surfaceContibution ? 1 : rndOpacity;
                         float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity / maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
@@ -365,6 +405,30 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         X += t * D;
 
+                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
+
+                        /* Shade the volume point (account for atmospheric attenuation). */
+                        float volumeAlbedo = (_AirSeaLevelScattering / _AirSeaLevelExtinction)[w];
+                        bounceWeight *= volumeAlbedo / (4.0f * PI);
+                        /* Compute a new direction (uniformly for now). */
+                    }
+
+                    float lightColor = 0;
+                    for (uint i = 0; i < _DirectionalLightCount; i++)
+                    {
+                        DirectionalLightData light = _DirectionalLightDatas[i];
+                        lightColor += EvalLight(X, surfaceScatteringEvent, light)[w];
+                    }
+
+                    pathContribution += lightColor * bounceWeight;
+
+                    if (surfaceScatteringEvent)
+                    {
+                        /* Shade the surface point (account for atmospheric attenuation). */
+                        /* Pick a new direction for a Lambertian BRDF. */
+                    }
+                    else // Volume scattering event
+                    {
                         // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
 
                         /* Shade the volume point (account for atmospheric attenuation). */
