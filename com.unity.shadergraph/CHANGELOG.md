@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.7] - 2019-12-11
+### Added
+- Added StencilOverride support.
 
 ### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
@@ -35,7 +37,6 @@ The version number for this package has increased due to a version update of a r
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
 - Added support for vertex skinning when you use the DOTS animation package.
-- Added StencilOverride support.
 
 ### Fixed 
 - The Editor now displays correct errors for missing or deleted Sub Graph Assets.

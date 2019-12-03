@@ -274,7 +274,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
 #else
-    inputData.normalWS = input.interpolated.normalWS;
+    inputData.normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
     inputData.viewDirectionWS = input.interpolated.viewDirWS;
 #endif
 
