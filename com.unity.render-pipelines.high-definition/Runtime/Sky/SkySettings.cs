@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Exposure,
         Lux,
+        Multiplier,
     }
 
     [System.Flags]
@@ -36,6 +37,21 @@ namespace UnityEngine.Rendering.HighDefinition
         ShowMultiplierAndEV = (1 << 0),
         ShowRotation =        (1 << 1),
         ShowUpdateMode =      (1 << 2),
+    }
+
+    public enum BackplateType
+    {
+        Disc,
+        Rectangle,
+        Ellipse,
+        Infinite
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class BackplateTypeParameter : VolumeParameter<BackplateType>
+    {
+        public BackplateTypeParameter(BackplateType value, bool overrideState = false)
+            : base(value, overrideState) { }
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
@@ -57,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
         [Tooltip("Informative helper that displays the relative intensity (in Lux) for the current HDR texture set in HDRI Sky.")]
         public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
+        [Tooltip("Informative helper that displays Show the color of Shadow.")]
+        public Vector3Parameter         upperHemisphereLuxColor = new Vector3Parameter(new Vector3(0, 0, 0));
         [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky.")]
         public FloatParameter           desiredLuxValue = new FloatParameter(20000);
         [Tooltip("Specifies when HDRP updates the environment lighting. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
@@ -82,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
                 hash = hash * 23 + desiredLuxValue.GetHashCode();
-                hash = hash * 23 + skyIntensityMode.value.GetHashCode();
+                hash = hash * 23 + skyIntensityMode.GetHashCode();
                 hash = hash * 23 + includeSunInBaking.GetHashCode();
 
                 return hash;

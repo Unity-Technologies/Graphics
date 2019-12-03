@@ -88,7 +88,16 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (s_ErrorMaterial == null)
-                    s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
+                {
+                    // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+                    // This might be in a point that some resources required for the pipeline are not finished importing yet.
+                    // Proper fix is to add a fence on asset import.
+                    try
+                    {
+                        s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
+                    }
+                    catch { }
+                }
 
                 return s_ErrorMaterial;
             }

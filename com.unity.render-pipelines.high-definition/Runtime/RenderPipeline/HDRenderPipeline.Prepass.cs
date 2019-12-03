@@ -70,11 +70,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphMutableResource   resolvedDepthBuffer;
             public RenderGraphMutableResource   resolvedNormalBuffer;
             public RenderGraphMutableResource   resolvedMotionVectorsBuffer;
+            public RenderGraphMutableResource   resolvedStencilBuffer;
 
             // Copy of the resolved depth buffer with mip chain
             public RenderGraphMutableResource   depthPyramidTexture;
 
-            public RenderGraphResource          stencilBufferCopy;
+            public RenderGraphResource          stencilBuffer;
         }
 
         RenderGraphMutableResource CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
@@ -127,6 +128,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
             }
 
+            ResolveStencilBufferIfNeeded(renderGraph, hdCamera, ref result);
+
             // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
             ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
@@ -145,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
 
-            result.stencilBufferCopy = CopyStencilBufferIfNeeded(m_RenderGraph, hdCamera, result.depthBuffer, m_CopyStencil, m_CopyStencilForSSR);
+            result.stencilBuffer = msaa ? result.resolvedStencilBuffer : result.depthBuffer;
 
             StopSinglePass(renderGraph, hdCamera);
 
@@ -455,6 +458,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class ResolveStencilPassData
+        {
+            public RenderGraphResource inputDepth;
+            public RenderGraphMutableResource outputStencil;
+        }
+
+        void ResolveStencilBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        {
+            bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            if (isMSAAEnabled)
+            {
+                using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, CustomSamplerId.ResolveStencilBuffer.GetSampler()))
+                {
+                    passData.inputDepth = output.depthBuffer;
+                    passData.outputStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, name = "StencilBufferResolved" }));
+                    builder.SetRenderFunc(
+                       (ResolveStencilPassData data, RenderGraphContext context) =>
+                       {
+                           var res = context.resources;
+                           ResolveStencilBufferIfNeeded(hdCamera,
+                               res.GetTexture(data.inputDepth),
+                               res.GetTexture(data.outputStencil),
+                               context.cmd);
+                       }
+                    );
+
+                    output.resolvedStencilBuffer = passData.outputStencil;
+                }
+            }
+        }
         class RenderDBufferPassData
         {
             public RenderGraphMutableResource[] mrt = new RenderGraphMutableResource[Decal.GetMaterialDBufferCount()];

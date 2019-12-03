@@ -95,8 +95,8 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 		o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 		
 		#ifdef VFX_VARYING_BENTFACTORS
-		${VFXLoadParameter:{bentNormalFactor}}
-		o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+		${VFXLoadParameter:{normalBendingFactor}}
+		o.VFX_VARYING_BENTFACTORS = vOffsets * normalBendingFactor;
 		#endif
 
 		${VFXVertexCommonProcess}

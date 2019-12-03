@@ -2,16 +2,16 @@
 
 ## Description
 
-The **Create Node Menu** is how to create [Nodes](Node.md) in **Shader Graph**. To open the **Create Node Menu** either right click on the workspace in the [Shader Graph Window](Shader-Graph-Window.md) and select **Create Node** or press spacebar.
+Use the **Create Node Menu** to create [nodes](Node.md) in Shader Graph. To open the **Create Node Menu**, either right-click on the workspace in the [Shader Graph Window](Shader-Graph-Window.md) and select **Create Node**, or press the spacebar.
 
-At the top of the **Create Node Menu** is a search bar. You can search for a node by typing any part of its name in the search field.
+At the top of the **Create Node Menu** is a search bar. To search for a node, type any part of its name in the search field. The search box gives you autocomplete options, and you can press Tab to accept the predictive text. It highlights matching text in yellow.
 
-All [Nodes](Node.md) that are available in **Shader Graph** are listed in the **Create Node Menu** categorised by their function. Any user created [Sub-graphs](Sub-graph.md) are also available in the **Create Node Menu** under **Sub-graph Assets**.
+The **Create Node Menu** lists all nodes that are available in Shader Graph, categorized by their function. User-created [Sub Graphs](Sub-graph.md) are also available in the **Create Node Menu** under **Sub Graph Assets**, or in a custom category that you define in the Sub Graph Asset. 
 
-Selecting a [Node](Node.md) in the **Create Node Menu** will add it to the workspace.
+To add a node to the workspace, double-click it in the **Create Node Menu**.
 
 ### Contextual Create Node Menu
 
-A contextual **Create Node Menu** filters the [Nodes](Node.md) available to show only those that use the [Data Type](Data-Types.md) of a selected edge. It will list every available [Port](Port.md) on these [Nodes](Node.md) that matches that [Data Type](Data-Types.md).
+A contextual **Create Node Menu** filters the available nodes, and only shows those that use the [Data Type](Data-Types.md) of a selected edge. It lists every available [Port](Port.md) on nodes that match that Data Type.
 
-You can open a contextual **Create Node Menu** by dragging an [Edge](Edge.md) from a [Port](Port.md) with left mouse button and releasing it in an empty area of the workspace.
+To open a contextual **Create Node Menu**, click and drag an [Edge](Edge.md) from a Port, and then release it in an empty area of the workspace.

@@ -27,15 +27,16 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    
+
     // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
-    $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
-    $AddPrecomputedVelocity:           #define _ADD_PRECOMPUTED_VELOCITY
+    $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
+    $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
+    $EnableShadowMatte:                 #define _ENABLE_SHADOW_MATTE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
@@ -75,10 +76,23 @@ Pass
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
 
+    #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
+        #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        #define HAS_LIGHTLOOP
+        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
+
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl"
+    #endif
+
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
-	$splice(DotsInstancedVars)
+    $splice(DotsInstancedVars)
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
@@ -135,10 +149,36 @@ $include("SharedCode.template.hlsl")
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
-        // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+        // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         $AlphaTest: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
+
+        #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
+            HDShadowContext shadowContext = InitShadowContext();
+            float shadow;
+            float3 shadow3;
+            posInput = GetPositionInput(fragInputs.positionSS.xy, _ScreenSize.zw, fragInputs.positionSS.z, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+            float3 normalWS = normalize(fragInputs.tangentToWorld[1]);
+            uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+            ShadowLoopMin(shadowContext, posInput, normalWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
+            shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
+
+            float4 shadowColor = (1 - shadow)*surfaceDescription.ShadowTint.rgba;
+            float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
+
+            // Keep the nested lerp
+            // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
+            // And mix color to consider the Color & ShadowColor alpha (from texture or/and color picker)
+            #ifdef _SURFACE_TYPE_TRANSPARENT
+                surfaceData.color = lerp(shadowColor.rgb*surfaceData.color, lerp(lerp(shadowColor.rgb, surfaceData.color, 1 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow), surfaceDescription.Alpha);
+            #else
+                surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color, 1 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow);
+            #endif
+            localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
+
+            surfaceDescription.Alpha = localAlpha;
+        #endif
 
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting

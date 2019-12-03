@@ -597,7 +597,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         [SerializeField, FormerlySerializedAs("angularDiameter")]
-        float m_AngularDiameter = 0;
+        float m_AngularDiameter = 0.5f;
         /// <summary>
         /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
         /// Used to render the sun/moon disk.
@@ -610,12 +610,97 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_AngularDiameter == value)
                     return;
 
-                m_AngularDiameter = Mathf.Clamp(value, 0, 360);
+                m_AngularDiameter = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareSize")]
+        float m_FlareSize = 2.0f;
+        /// <summary>
+        /// Size the flare around the celestial body (in degrees).
+        /// </summary>
+        public float flareSize
+        {
+            get => m_FlareSize;
+            set
+            {
+                if (m_FlareSize == value)
+                    return;
+
+                m_FlareSize = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareTint")]
+        Color m_FlareTint = Color.white;
+        /// <summary>
+        /// Tints the flare of the celestial body.
+        /// </summary>
+        public Color flareTint
+        {
+            get => m_FlareTint;
+            set
+            {
+                if (m_FlareTint == value)
+                    return;
+
+                m_FlareTint = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareFalloff")]
+        float m_FlareFalloff = 4.0f;
+        /// <summary>
+        /// The falloff rate of flare intensity as the angle from the light increases.
+        /// </summary>
+        public float flareFalloff
+        {
+            get => m_FlareFalloff;
+            set
+            {
+                if (m_FlareFalloff == value)
+                    return;
+
+                m_FlareFalloff = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTexture")]
+        Texture2D m_SurfaceTexture = null;
+        /// <summary>
+        /// 2D (disk) texture of the surface of the celestial body. Acts like a multiplier.
+        /// </summary>
+        public Texture2D surfaceTexture
+        {
+            get => m_SurfaceTexture;
+            set
+            {
+                if (m_SurfaceTexture == value)
+                    return;
+
+                m_SurfaceTexture = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTint")]
+        Color m_SurfaceTint = Color.white;
+        /// <summary>
+        /// Tints the surface of the celestial body.
+        /// </summary>
+        public Color surfaceTint
+        {
+            get => m_SurfaceTint;
+            set
+            {
+                if (m_SurfaceTint == value)
+                    return;
+
+                m_SurfaceTint = value;
             }
         }
 
         [SerializeField, FormerlySerializedAs("distance")]
-        float m_Distance = 150000000.0f; // Sun to Earth
+        float m_Distance = 150000000000; // Sun to Earth
         /// <summary>
         /// Distance from the camera to the emissive celestial body represented by the light.
         /// </summary>
@@ -627,7 +712,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Distance == value)
                     return;
 
-                m_Distance = value;
+                m_Distance = value; // Serialization code clamps
             }
         }
 
@@ -1174,6 +1259,45 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Only for Rectangle area lights.
+        [Range(0.0f, 90.0f)]
+        [SerializeField]
+        float m_BarnDoorAngle = 90.0f;
+        /// <summary>
+        /// Get/Set the angle so that it behaves like a barn door.
+        /// </summary>
+        public float barnDoorAngle
+        {
+            get => m_BarnDoorAngle;
+            set
+            {
+                if (m_BarnDoorAngle == value)
+                    return;
+
+                m_BarnDoorAngle = Mathf.Clamp(value, 0.0f, 90.0f);
+                UpdateAllLightValues();
+            }
+        }
+
+        // Only for Rectangle area lights
+        [SerializeField]
+        float m_BarnDoorLength = 0.05f;
+        /// <summary>
+        /// Get/Set the length for the barn door sides.
+        /// </summary>
+        public float barnDoorLength
+        {
+            get => m_BarnDoorLength;
+            set
+            {
+                if (m_BarnDoorLength == value)
+                    return;
+
+                m_BarnDoorLength = Mathf.Clamp(value, 0.0f, float.MaxValue);
+                UpdateAllLightValues();
+            }
+        }
+
 #endregion
 
 #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData
@@ -1251,6 +1375,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
+        // temporary matrix that stores the previous light transform
+        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex;
 
@@ -1723,7 +1849,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float softness = 0.0f;
             if (lightType == HDLightType.Directional)
             {
-                
+
                 var devProj = shadowRequest.deviceProjection;
                 Vector3 frustumExtents = new Vector3(
                     2.0f * (devProj.m00 * devProj.m33 - devProj.m03 * devProj.m30) /
@@ -1933,6 +2059,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
             data.angularDiameter = angularDiameter;
+            data.flareSize = flareSize;
+            data.flareTint = flareTint;
+            data.surfaceTexture = surfaceTexture;
+            data.surfaceTint = surfaceTint;
             data.distance = distance;
 
             shadowResolution.CopyTo(data.shadowResolution);

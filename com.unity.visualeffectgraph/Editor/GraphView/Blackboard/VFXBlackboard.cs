@@ -94,7 +94,7 @@ namespace  UnityEditor.VFX.UI
 
             Resizer resizer = this.Query<Resizer>();
 
-            hierarchy.Add(new ResizableElement());
+            hierarchy.Add(new UnityEditor.Experimental.GraphView.ResizableElement());
 
             style.position = PositionType.Absolute;
 
