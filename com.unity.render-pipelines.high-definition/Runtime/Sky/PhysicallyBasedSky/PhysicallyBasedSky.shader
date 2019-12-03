@@ -2,8 +2,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 {
     HLSLINCLUDE
 
-    #define USE_PATH_SKY 0
-    #define NUM_BOUNCES 2
+    #define USE_PATH_SKY 1
+    #define NUM_BOUNCES 1
 
     #pragma vertex Vert
 
@@ -125,82 +125,82 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return f;
     }
 
-    // Compute the digits of decimal value Ã¢â‚¬ËœvÃ¢â‚¬Ëœ expressed in base Ã¢â‚¬ËœsÃ¢â‚¬Ëœ
-    void toBaseS(uint v, uint s, uint t, out uint outData[NUM_BOUNCES])
-    {
-        for (uint i = 0; i < t; v /= s, ++i)
-        {
-            outData[i] = v % s;
-        }
-    }
+    // // Compute the digits of decimal value Ã¢â‚¬ËœvÃ¢â‚¬Ëœ expressed in base Ã¢â‚¬ËœsÃ¢â‚¬Ëœ
+    // void toBaseS(uint v, uint s, uint t, out uint outData[NUM_BOUNCES])
+    // {
+    //     for (uint i = 0; i < t; v /= s, ++i)
+    //     {
+    //         outData[i] = v % s;
+    //     }
+    // }
 
-    // Copy all but the j-th element of vector in
-    void allButJ(const uint inData[NUM_BOUNCES], uint inSize, uint omit, out uint outData[NUM_BOUNCES - 1])
-    {
-        uint i = 0;
+    // // Copy all but the j-th element of vector in
+    // void allButJ(const uint inData[NUM_BOUNCES], uint inSize, uint omit, out uint outData[NUM_BOUNCES - 1])
+    // {
+    //     uint i = 0;
 
-        for (; i < omit; ++i)
-        {
-            outData[i] = inData[i];
-        }
+    //     for (; i < omit; ++i)
+    //     {
+    //         outData[i] = inData[i];
+    //     }
 
-        i++;
+    //     i++;
 
-        for (; i < inSize; ++i)
-        {
-            outData[i - 1] = inData[i];
-        }
-    }
+    //     for (; i < inSize; ++i)
+    //     {
+    //         outData[i - 1] = inData[i];
+    //     }
+    // }
 
-    // Evaluate polynomial with coefficients a at location arg
-    uint evalPoly(const uint inData[NUM_BOUNCES - 1], uint inSize, uint arg)
-    {
-        uint ans  = 0;
-        int  last = inSize - 1;
+    // // Evaluate polynomial with coefficients a at location arg
+    // uint evalPoly(const uint inData[NUM_BOUNCES - 1], uint inSize, uint arg)
+    // {
+    //     uint ans  = 0;
+    //     int  last = inSize - 1;
 
-        for (int i = last; i >= 0; i--)
-        {
-            ans = (ans * arg) + inData[i]; // HornerÃ¢â‚¬â„¢s rule
-        }
+    //     for (int i = last; i >= 0; i--)
+    //     {
+    //         ans = (ans * arg) + inData[i]; // HornerÃ¢â‚¬â„¢s rule
+    //     }
 
-        return ans;
-    }
+    //     return ans;
+    // }
 
-    float cmjdD(uint i, // Sample index
-            uint j, // Dimension (<= s+1)
-            uint s, // Number of levels/strata
-            uint t, // Strength of OA (t=d)
-            uint p) // Pseudo-random permutation seed (per set)
-    {
-        uint iDigits[NUM_BOUNCES];
-        uint pDigits[NUM_BOUNCES - 1];
+    // float cmjdD(uint i, // Sample index
+    //         uint j, // Dimension (<= s+1)
+    //         uint s, // Number of levels/strata
+    //         uint t, // Strength of OA (t=d)
+    //         uint p) // Pseudo-random permutation seed (per set)
+    // {
+    //     uint iDigits[NUM_BOUNCES];
+    //     uint pDigits[NUM_BOUNCES - 1];
 
-        // memset(iDigits, 0, t       * sizeof(uint));
-        // memset(pDigits, 0, (t - 1) * sizeof(uint));
+    //     // memset(iDigits, 0, t       * sizeof(uint));
+    //     // memset(pDigits, 0, (t - 1) * sizeof(uint));
 
-        uint p0 = p;
-        uint p1 = p * (j + 1) * 0x51633e2d;
-        uint p2 = p * (j + 1) * 0x68bc21eb;
-        uint p3 = p * (j + 1) * 0x02e5be93;
+    //     uint p0 = p;
+    //     uint p1 = p * (j + 1) * 0x51633e2d;
+    //     uint p2 = p * (j + 1) * 0x68bc21eb;
+    //     uint p3 = p * (j + 1) * 0x02e5be93;
 
-        uint N   = (uint)round(pow(s, t)); // Total number of samples
-        uint stm = N / s; // pow(s, t-1)
+    //     uint N   = (uint)round(pow(s, t)); // Total number of samples
+    //     uint stm = N / s; // pow(s, t-1)
 
-        i = permute(i, N, p0);
+    //     i = permute(i, N, p0);
 
-        toBaseS(i, s, t, iDigits);
+    //     toBaseS(i, s, t, iDigits);
 
-        uint stratum = permute(iDigits[j], s, p1);
+    //     uint stratum = permute(iDigits[j], s, p1);
 
-        allButJ(iDigits, t, j, pDigits);
+    //     allButJ(iDigits, t, j, pDigits);
 
-        uint sStratum = evalPoly(pDigits, t - 1, s);
-                 sStratum = permute(sStratum, stm, p2);
+    //     uint sStratum = evalPoly(pDigits, t - 1, s);
+    //              sStratum = permute(sStratum, stm, p2);
 
-        float jitter = randfloat(i, p3);
+    //     float jitter = randfloat(i, p3);
 
-        return (stratum + (sStratum + jitter) / stm) / s;
-    }
+    //     return (stratum + (sStratum + jitter) / stm) / s;
+    // }
 
     float2 cmj2D(int s, int m, int n, int p)
     {
@@ -267,7 +267,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         // Make an initial guess.
         float t = SampleRectExpMedium(optDepth, r - R, cosTheta, 1, rcpH);
         float relDiff;
-        unsigned int numIterations = 0;
+        uint numIterations = 0;
         do // Perform a Newton–Raphson iteration.
         {
             float radAtDist = RadAtDist(r, cosTheta, t);
@@ -282,7 +282,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             t = t - (optDepthAtDist - optDepth) * rcpAttCoefAtDist;
             relDiff = optDepthAtDist * rcpOptDepth - 1;
             numIterations++;
-        } while (abs(relDiff) > 0.001); // Stop when the accuracy goal has been reached.
+        } while (numIterations < 4);
+        // } while (abs(relDiff) > 0.001); // Stop when the accuracy goal has been reached.
         return t;
     }
 
