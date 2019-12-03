@@ -35,6 +35,7 @@ The version number for this package has increased due to a version update of a r
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
 - Added support for vertex skinning when you use the DOTS animation package.
+- Added StencilOverride support.
 
 ### Fixed 
 - The Editor now displays correct errors for missing or deleted Sub Graph Assets.
