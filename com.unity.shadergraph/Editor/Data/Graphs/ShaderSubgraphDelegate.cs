@@ -15,9 +15,9 @@ namespace UnityEditor.ShaderGraph
             
             // Add sensible default entries
             m_Input_Entries = new List<SubgraphDelegateEntry>();
-            m_Input_Entries.Add(new SubgraphDelegateEntry(1, PropertyType.Vector1));
+            m_Input_Entries.Add(new SubgraphDelegateEntry(1, PropertyType.Vector1, "Vector1In", "_VECTOR1IN"));
             m_Output_Entries = new List<SubgraphDelegateEntry>();
-            m_Output_Entries.Add(new SubgraphDelegateEntry(1, PropertyType.Vector1));
+            m_Output_Entries.Add(new SubgraphDelegateEntry(1, PropertyType.Vector1, "Vector1Out", "_VECTOR1OUT"));
         }
 
         [SerializeField]
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public List<SubgraphDelegateEntry> input_Entries
         {
-            get => m_Output_Entries;
+            get => m_Input_Entries;
             set => m_Input_Entries = value;
         }
 

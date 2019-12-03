@@ -8,17 +8,23 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public int id;
         public PropertyType propertyType;
+        public string displayName;
+        public string referenceName;
 
-        public SubgraphDelegateEntry(PropertyType propertyType)
+        public SubgraphDelegateEntry(PropertyType propertyType, string displayName, string referenceName)
         {
             this.id = -1;
             this.propertyType = propertyType;
+            this.displayName = displayName;
+            this.referenceName = referenceName;
         }
 
-        internal SubgraphDelegateEntry(int id, PropertyType propertyType)
+        internal SubgraphDelegateEntry(int id, PropertyType propertyType, string displayName, string referenceName)
         {
             this.id = id;
             this.propertyType = propertyType;
+            this.displayName = displayName;
+            this.referenceName = referenceName;
         }
     }
 }
