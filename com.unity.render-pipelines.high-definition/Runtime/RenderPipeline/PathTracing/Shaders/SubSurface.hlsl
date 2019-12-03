@@ -31,6 +31,30 @@ struct ScatteringResult
     bool hit;
 };
 
+int GetChannel(float u1, float3 channelWeight)
+{
+    if (channelWeight.x > u1)
+    {
+        return 0;
+    }
+    else if ((channelWeight.x + channelWeight.y) > u1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 2;
+    }
+}
+
+float3 safeDivide(float3 val0, float3 val1)
+{
+    float3 result;
+    result.x = val1.x != 0.0 ? val0.x / val1.x : 0.0;
+    result.y = val1.y != 0.0 ? val0.y / val1.y : 0.0;
+    result.z = val1.z != 0.0 ? val0.z / val1.z : 0.0;
+}
+
 ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersection, float3 positionWS, float3 viewWS, inout float3 pathThroughput)
 {
     float3 sigmaS;
@@ -50,12 +74,6 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
     float3 transmittance;
     float3 sampleDir;
 
-    float channelSum = sigmaT.x + sigmaT.y + sigmaT.z;
-    float3 channelWeight;
-    channelWeight.x = sigmaT.x / channelSum;
-    channelWeight.y = sigmaT.y / channelSum;
-    channelWeight.z = sigmaT.z / channelSum;
-
     while (!result.hit && walkIdx < maxWalkSteps)
     {
         // Samples the random numbers for the direction
@@ -68,8 +86,13 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         // Random number used to do channel selection
         float channelSelection = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * walkIdx + 3);
         
+        float3 weights = pathThroughput * sigmaS / sigmaT;
+        float channelSum = weights.x + weights.y + weights.z;
+        float3 channelWeight;
+        channelWeight = weights / channelSum;
+
         // Evaluate what channel we should be using for this sample
-        int channelIdx = (int)floor(channelSelection * 3.0);
+        int channelIdx = GetChannel(channelSelection, channelWeight);
 
         // Fetch sigmaT
         float currentSigmaT = sigmaT[channelIdx];
@@ -123,7 +146,7 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         transmittance = exp(-t * sigmaT);
 
         // Evaluate the pdf for the current segment
-        float pdf = (result.hit ? transmittance : sigmaT * transmittance)[channelIdx];
+        float pdf = dot((result.hit ? transmittance : sigmaT * transmittance), channelWeight);
 
         // Contribute to the throughput
         pathThroughput *= (result.hit ? transmittance : sigmaS * transmittance) / (pdf);
@@ -137,7 +160,7 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
     }
 
     if (!result.hit)
-        pathThroughput = float3(1.0, 0.0, 0.0);
+        pathThroughput = float3(0.0, 0.0, 0.0);
 
     result.outputPosition = currentPathPosition;
     result.outputDirection = sampleDir;
