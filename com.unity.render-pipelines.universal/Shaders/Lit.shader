@@ -166,11 +166,10 @@ Shader "Universal Render Pipeline/Lit"
             ZTest LEqual
             Cull[_Cull]
 
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must unset bit 5 and bit 6 Lit materials.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // This is a Lit material.
             Stencil {
-                Ref 0        // 0b00000000
+                Ref 32       // 0b00100000
                 WriteMask 96 // 0b01100000
                 Comp Always
                 Pass Replace

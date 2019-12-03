@@ -31,7 +31,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -132,131 +132,6 @@ Shader "Universal Render Pipeline/Baked Lit"
                 color = MixFog(color, input.uv0AndFogCoord.z);
 
                 return half4(color, alpha);
-            }
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "GBuffer"
-            Tags{"LightMode" = "UniversalGBuffer"}
-
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must set bit 5 and unset bit 6 it for BakedLit materials.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
-            HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
-
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma shader_feature _ _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
-            //#pragma shader_feature _ALPHAPREMULTIPLY_ON
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fog
-            #pragma multi_compile_instancing
-
-            // Lighting include is needed because of GI
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
-
-            struct Attributes
-            {
-                float4 positionOS       : POSITION;
-                float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
-                float3 normalOS         : NORMAL;
-                float4 tangentOS        : TANGENT;
-
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct Varyings
-            {
-                float2 uv0                      : TEXCOORD0; // xy: uv0
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-                half3 normal                    : TEXCOORD2;
-    #if defined(_NORMALMAP)
-                half3 tangent                   : TEXCOORD3;
-                half3 bitangent                 : TEXCOORD4;
-    #endif
-                float4 vertex : SV_POSITION;
-
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            Varyings vert(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-                output.vertex = vertexInput.positionCS;
-                output.uv0.xy = TRANSFORM_TEX(input.uv, _BaseMap);
-
-                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-                output.normal = normalInput.normalWS;
-    #if defined(_NORMALMAP)
-                output.tangent = normalInput.tangentWS;
-                output.bitangent = normalInput.bitangentWS;
-    #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normal, output.vertexSH);
-
-                return output;
-            }
-
-            FragmentOutput frag(Varyings input)
-            {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                half2 uv = input.uv0.xy;
-                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-                half3 color = texColor.rgb * _BaseColor.rgb;
-                half alpha = texColor.a * _BaseColor.a;
-                AlphaDiscard(alpha, _Cutoff);
-
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
-
-    #if defined(_NORMALMAP)
-                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
-    #else
-                half3 normalWS = input.normal;
-    #endif
-                normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-
-                SurfaceData surfaceData = (SurfaceData)0;
-                surfaceData.alpha = alpha;
-
-                InputData inputData = (InputData)0;
-                inputData.normalWS = half3(0, 1, 0); // need some default to avoid division by 0.
-
-                return SurfaceDataToGbuffer(surfaceData, inputData, color, kLightingInvalid);
             }
             ENDHLSL
         }

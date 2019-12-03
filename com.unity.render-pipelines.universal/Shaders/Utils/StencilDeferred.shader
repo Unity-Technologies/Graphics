@@ -147,20 +147,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             color = diffuseColor * surfaceData.albedo + specularColor;
         #endif
 
-        #if 0 // Temporary debug output
-            // TO CHECK (does Forward support works??):
-            //color.rgb = surfaceData.emission;
-
-            // TO REVIEW (needed for cutouts?):
-            //color.rgb = half3(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha);
-
-            // TODO (approach for shadows?)
-            //color.rgb = inputData.shadowCoord.xyz;
-            // TO REVIEW (support those? fog passed with VertexLight in forward)
-            //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
-            //color.rgb = inputData.vertexLighting;
-        #endif
-
         return half4(color, 0.0);
     }
 
@@ -227,10 +213,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 16       // 0b00010000
+                Ref 48       // 0b00110000
                 WriteMask 16 // 0b00010000
                 ReadMask 112 // 0b01110000
                 CompBack Equal
@@ -266,8 +251,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 80       // 0b01010000
                 WriteMask 16 // 0b00010000
@@ -306,10 +290,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 0       // 0b00000000
+                Ref 32      // 0b00100000
                 WriteMask 0 // 0b00000000
                 ReadMask 96 // 0b01100000
                 Comp Equal
@@ -346,8 +329,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
             Stencil {
                 Ref 64      // 0b01000000
                 WriteMask 0 // 0b00000000

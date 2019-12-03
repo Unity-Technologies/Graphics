@@ -58,9 +58,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must unset bit 5 and set bit 6 for SimpleLit materials.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // This is an SimpleLit material.
             Stencil {
                 Ref 64       // 0b01000000
                 WriteMask 96 // 0b01100000

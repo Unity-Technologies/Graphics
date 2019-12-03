@@ -16,10 +16,28 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         bool m_IsOpaque;
 
+        public DrawObjectsPass(string profilerTag, ShaderTagId shaderTagId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        {
+            m_ProfilerTag = profilerTag;
+            m_ShaderTagIdList.Add(shaderTagId);
+            renderPassEvent = evt;
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+            m_IsOpaque = opaque;
+
+            if (stencilState.enabled)
+            {
+                m_RenderStateBlock.stencilReference = stencilReference;
+                m_RenderStateBlock.mask = RenderStateMask.Stencil;
+                m_RenderStateBlock.stencilState = stencilState;
+            }
+        }
+
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
             m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
+            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
             m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             renderPassEvent = evt;

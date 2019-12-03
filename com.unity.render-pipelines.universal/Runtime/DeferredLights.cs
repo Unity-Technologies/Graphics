@@ -15,6 +15,9 @@ using static Unity.Mathematics.math;
 // TODO remove Vector4UInt
 // TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
+// TODO Rename shaderTagId for UniversalForward, UniversalForwardOnly Forward, ForwardOnly ? Match HDRP
+// TODO PostProcessing bind depth-buffer copy texture without any valid mechanism?
+// TODO BakedLit.shader has a Universal2D pass, but Unlit.shader doesn't have?
 
 namespace UnityEngine.Rendering.Universal.Internal
 {

@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangePass;
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DeferredPass m_DeferredPass;
+        DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
+        CopyDepthPass m_CopyDepthPass2;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyColorPass m_CopyColorPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
@@ -81,6 +83,8 @@ namespace UnityEngine.Rendering.Universal
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
+            m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 6, copyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
@@ -223,6 +227,17 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EnqueuePass(m_DeferredPass);
+
+            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+
+            // ForwardOnly pass can have written more pixels needed by post-effects. TODO: Need binding depth render-targets as read-only.
+            if (!requiresDepthPrepass)
+            {
+                m_CopyDepthPass2.Setup(m_DepthTexture, m_DepthCopyTexture);
+                EnqueuePass(m_CopyDepthPass2);
+            }
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {

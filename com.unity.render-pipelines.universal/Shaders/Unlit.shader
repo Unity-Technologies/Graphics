@@ -34,7 +34,9 @@ Shader "Universal Render Pipeline/Unlit"
 
         Pass
         {
+            // This pass is picked up by 2D renderer.
             Name "Unlit"
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
@@ -108,42 +110,79 @@ Shader "Universal Render Pipeline/Unlit"
         }
         Pass
         {
-            Name "GBuffer"
-            Tags{"LightMode" = "UniversalGBuffer"}
-
-            ZTest LEqual
-
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must set bit 5 and unset bit 6 it for UnLit materials.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
+            // This pass is picked up by Forward and Deferred renderers.
+            Name "Unlit"
+            Tags{"LightMode" = "UniversalForwardOnly"}
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
 
-            #pragma vertex UnlitGBufferPassVertex
-            #pragma fragment UnlitGBufferPassFragment
-
+            #pragma vertex vert
+            #pragma fragment frag
             #pragma shader_feature _ALPHATEST_ON
-            //#pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitGBufferPass.hlsl"
+            #include "UnlitInput.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS       : POSITION;
+                float2 uv               : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float2 uv        : TEXCOORD0;
+                float fogCoord  : TEXCOORD1;
+                float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.vertex = vertexInput.positionCS;
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                half2 uv = input.uv;
+                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                half3 color = texColor.rgb * _BaseColor.rgb;
+                half alpha = texColor.a * _BaseColor.a;
+                AlphaDiscard(alpha, _Cutoff);
+
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
+
+                color = MixFog(color, input.fogCoord);
+
+                return half4(color, alpha);
+            }
             ENDHLSL
         }
         Pass

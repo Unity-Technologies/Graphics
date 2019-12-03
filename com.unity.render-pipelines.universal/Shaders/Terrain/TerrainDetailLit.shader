@@ -132,11 +132,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             Name "TerrainDetailVertex - GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must set bit 5 and unset bit 6 it for UnLit materials. Vertex-lit behaves like Unlit for the deferred renderer.
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
+            // This is an Unlit material.
+            // Vertex-lit behaves like Unlit for the deferred renderer.
             Stencil {
-                Ref 32       // 0b00100000
+                Ref 0        // 0b00000000
                 WriteMask 96 // 0b01100000
                 Comp always
                 Pass Replace

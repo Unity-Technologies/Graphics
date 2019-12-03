@@ -56,11 +56,11 @@ Shader "Universal Render Pipeline/Particles/Unlit"
         Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
 
         // ------------------------------------------------------------------
-        //  Forward pass.
+        //  Forward pass (legacy).
         Pass
         {
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Universal Render Pipeline
+            // no LightMode tag are also rendered by 2D renderer.
             Name "ForwardLit"
 
             BlendOp[_BlendOp]
@@ -103,31 +103,18 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
-
         // ------------------------------------------------------------------
-        //  GBuffer pass.
+        //  Forward pass.
         Pass
         {
-            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
-            // no LightMode tag are also rendered by Universal Render Pipeline
-            Name "GBuffer"
-            Tags{"LightMode" = "UniversalGBuffer"}
+            Name "UniversalForwardOnly"
+            Tags{"LightMode" = "UniversalForwardOnly"} // Picked up by Forward and Deferred renderers.
 
+            BlendOp[_BlendOp]
+            Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
             ColorMask RGB
-
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must set bit 5 and unset bit 6 it for UnLit materials.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
@@ -143,19 +130,23 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             // -------------------------------------
             // Particle Keywords
-            //#pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature _FLIPBOOKBLENDING_ON
-            //#pragma shader_feature _SOFTPARTICLES_ON
-            //#pragma shader_feature _FADING_ON
-            //#pragma shader_feature _DISTORTION_ON
+            #pragma shader_feature _SOFTPARTICLES_ON
+            #pragma shader_feature _FADING_ON
+            #pragma shader_feature _DISTORTION_ON
 
-            #pragma vertex vertParticleUnlitGBuffer
-            #pragma fragment fragParticleUnlitGBuffer
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fog
+
+            #pragma vertex vertParticleUnlit
+            #pragma fragment fragParticleUnlit
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitGBufferPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
 
             ENDHLSL
         }

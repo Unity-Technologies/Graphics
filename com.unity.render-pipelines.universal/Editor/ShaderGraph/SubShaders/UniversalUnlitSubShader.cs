@@ -18,7 +18,8 @@ namespace UnityEditor.Rendering.Universal
     class UniversalUnlitSubShader : IUnlitSubShader
     {
 #region Passes
-        ShaderPass m_UnlitPass = new ShaderPass
+        // This pass is legacy and picked up by 2D renderer.
+        ShaderPass m_DefaultPass = new ShaderPass
         {
             // Definition
             displayName = "Pass",
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
                 UnlitMasterNode.VertNormalSlotId,
                 UnlitMasterNode.VertTangentSlotId
             },
-            pixelPorts = new List<int>
+            pixelPorts = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
@@ -162,13 +163,14 @@ namespace UnityEditor.Rendering.Universal
             },
         };
 
-        ShaderPass m_GBufferPass = new ShaderPass
+        // This pass is picked up by the forward and deferred renderers.
+        ShaderPass m_UnlitPass = new ShaderPass
         {
             // Definition
-            displayName = "GBuffer",
-            referenceName = "SHADERPASS_UNLIT_GBUFFER",
-            lightMode = "UniversalGBuffer",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitGBufferPass.hlsl",
+            displayName = "Pass",
+            referenceName = "SHADERPASS_UNLIT",
+            lightMode = "UniversalForwardOnly",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
             useInPreview = true,
 
@@ -179,27 +181,11 @@ namespace UnityEditor.Rendering.Universal
                 UnlitMasterNode.VertNormalSlotId,
                 UnlitMasterNode.VertTangentSlotId
             },
-            pixelPorts = new List<int>
+            pixelPorts = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
                 UnlitMasterNode.AlphaThresholdSlotId
-            },
-
-            StencilOverride = new List<String>()
-            {
-                "// [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).",
-                "// [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.",
-                "// We must set bit 5 and unset bit 6 it for Unlit materials.",
-                "Stencil",
-                "{",
-                "Ref 32",       // 0b00100000
-                "WriteMask 96", // 0b01100000
-                "Comp always",
-                "Pass Replace",
-                "Fail Keep",
-                "ZFail Keep",
-                "}",
             },
 
             // Pass setup
@@ -208,7 +194,6 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
             },
             pragmas = new List<string>()
@@ -216,6 +201,7 @@ namespace UnityEditor.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
+                // Missing multi_compile_fog,
                 "multi_compile_instancing",
             },
             keywords = new KeywordDescriptor[]
@@ -348,9 +334,9 @@ namespace UnityEditor.Rendering.Universal
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
                 
+                GenerateShaderPass(unlitMasterNode, m_DefaultPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, m_GBufferPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);   
             }
             subShader.Deindent();
