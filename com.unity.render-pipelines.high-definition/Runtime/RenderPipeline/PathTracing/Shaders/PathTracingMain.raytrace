@@ -23,40 +23,20 @@ float4x4 _PixelCoordToViewDirWS;
 RWTexture2D<float4> _CameraColorTextureRW;
 RWTexture2D<float4> _AccumulatedFrameTexture;
 
-void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
-{
-    uint width, height;
-    _CameraColorTextureRW.GetDimensions(width, height);
-
-    // Change color only in a region corresponding to a progress bar, on the bottom 1% of the screen
-    if (pixelCoord.y < 0.01 * height && (float)pixelCoord.x / width <= (float)sampleCount / (_RaytracingNumSamples - 1))
-    {
-        float lum = Luminance(color);
-
-        if (lum > 1.0)
-        {
-            color /= lum;
-            lum = 1.0;
-        }
-
-        // Make dark color brighter, and vice versa
-        color += lum > 0.5 ? -0.5 * lum : 0.05 + 0.5 * lum;
-    }
-}
-
 [shader("miss")]
 void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-    // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
-
-    rayIntersection.color = !currentDepth || currentDepth >= _RaytracingMinRecursion ?
-        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0) : 0.0;
-}
-
-[shader("miss")]
-void VoluemtricMiss(inout RayIntersection rayIntersection : SV_RayPayload)
-{
+    if (rayIntersection.rayType == MAIN_RAY)
+    {
+        rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0);
+    }
+    /*
+    if (rayIntersection.rayType == LAST_VOLUMETRIC_RAY)
+    {
+        rayIntersection.t = 10.0f;
+        rayIntersection.normal = -rayIntersection.incidentDirection;
+    }
+    */
 }
 
 [shader("raygeneration")]
@@ -99,23 +79,15 @@ void RayGen()
 
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
-    rayIntersection.color = 1.0;
+    rayIntersection.color = float3(1.0, 1.0, 1.0);
+    rayIntersection.incidentDirection = directionWS;
     rayIntersection.remainingDepth = _RaytracingMaxRecursion;
     rayIntersection.pixelCoord = currentPixelCoord;
-    rayIntersection.maxRoughness = 0.001;
+    rayIntersection.rayType = MAIN_RAY;
     rayIntersection.rayCount = sampleCount;
-    rayIntersection.volFlag = 0;
-    rayIntersection.incidentDirection = 0.0;
 
-    // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
-    rayIntersection.cone.width = 0.0f;
-
-    // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, rayIntersection);
-
-    // FIXME: should be based on another criterion than velocity
-    // Accumulate the result
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE
+                                                , RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, rayIntersection);
     if (any(velocity))
     {
         sampleCount = 1; // Reset sample count
@@ -125,11 +97,8 @@ void RayGen()
         sampleCount++;
         rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color) / sampleCount;
     }
-    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.incidentDirection, 1.0);
 
-    // Add a little convergence cue to our result (FIXME: definitely not the right way to do it!!)
-    //AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
-
+    _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, sampleCount);
     _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
 }
 

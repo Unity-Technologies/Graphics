@@ -1,6 +1,11 @@
 // Engine includes
 #include "UnityRaytracingMeshUtils.cginc"
 
+#define MAIN_RAY 0
+#define SHADOW_RAY 1
+#define VOLUMETRIC_RAY 2
+#define LAST_VOLUMETRIC_RAY 3
+
 // Raycone structure that defines the stateof the ray
 struct RayCone
 {
@@ -19,6 +24,10 @@ struct RayIntersection
 	float t;
 	// Value that holds the color of the ray
 	float3 color;
+	// Value that holds the normal of the intersection point
+	float3 normal;
+	// Value that holds the normal of the intersection point
+	float3 outPosition;
 	// Cone representation of the ray
 	RayCone cone;
 	// The remaining available depth for the current Ray
@@ -32,7 +41,7 @@ struct RayIntersection
 	// Max roughness (encountered along the path, used in path tracing)
 	float maxRoughness;
 	// Flag that tells us if this was a volumetric ray
-	uint volFlag;
+	uint rayType;
 };
 
 struct AttributeData

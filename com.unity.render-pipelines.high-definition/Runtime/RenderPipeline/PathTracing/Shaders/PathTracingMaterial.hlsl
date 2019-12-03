@@ -83,7 +83,7 @@ float3x3 GetTangentFrame(MaterialData mtlData)
 }
 
 // HACK! I am too lazy to add extra param for now!
-bool IsVolumetric(MaterialData mtlData)
+bool IsVolumetric(BSDFData bsdfData)
 {
-    return mtlData.bsdfData.phaseCoeff != 0.0f;
+    return bsdfData.phaseCoeff != 0.0f;
 }
