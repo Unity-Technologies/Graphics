@@ -393,6 +393,16 @@ namespace UnityEditor.ShaderGraph
                 validNames.Add(id);
             }
 
+            var subdels = asset.subgraphDelegates;
+            foreach (var subdel in subdels)
+            {
+                int id = subdel.guid.GetHashCode();
+                SlotValueType valueType = subdel.output_Entries[0].propertyType.ToConcreteShaderValueType().ToSlotValueType();
+                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, subdel.displayName + "_CNCT", subdel.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
+                AddSlot(slot);
+                validNames.Add(id);
+            }
+
             var outputStage = asset.effectiveShaderStage;
 
             foreach (var slot in asset.outputs)

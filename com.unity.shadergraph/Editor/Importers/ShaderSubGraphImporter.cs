@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
+            asset.subgraphDelegates = graph.subgraphDelegates.ToList();
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;

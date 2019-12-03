@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Can remove
             reorderableList.onCanRemoveCallback = (ReorderableList list) => 
             {  
-                return list.count > 0;
+                return list.count > 1;
             };
 
             // Add callback delegates
