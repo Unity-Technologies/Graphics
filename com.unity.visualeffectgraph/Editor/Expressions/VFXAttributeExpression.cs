@@ -317,7 +317,7 @@ namespace UnityEditor.VFX
         private VFXAttribute m_attribute;
         private UInt32 m_elementOffset;
 
-        public VFXReadEventAttributeExpression(VFXAttribute attribute, UInt32 elementOffset) : base(/*Flags.PerElement |*/ Flags.InvalidOnGPU) //TODOPAUL : Add a Per Event Instance
+        public VFXReadEventAttributeExpression(VFXAttribute attribute, UInt32 elementOffset) : base(Flags.PerSpawn | Flags.InvalidOnGPU)
         {
             m_attribute = attribute;
             m_elementOffset = elementOffset;
