@@ -846,6 +846,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.keywordGuid = keyword.guid;
                         break;
                     }
+                    case ShaderSubgraphDelegate sgdelegate:
+                    {
+                        var node = new SubgraphDelegateNode();
+                        var drawState = node.drawState;
+                        drawState.position = new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.subgraphDelegateGuid = sgdelegate.guid;
+                        break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
