@@ -401,7 +401,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
                         float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi,
-                                                       _AirSeaLevelExtinction[w], Z, R, H, n);
+                                                       rcp(_AirSeaLevelExtinction[w]), Z, R, H, n);
 
                         X += t * D;
 
