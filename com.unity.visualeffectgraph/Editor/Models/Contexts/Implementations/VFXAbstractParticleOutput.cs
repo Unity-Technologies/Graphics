@@ -62,6 +62,7 @@ namespace UnityEditor.VFX
         {
             Stretch,
             RepeatPerSegment,
+            Custom,
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
@@ -272,7 +273,7 @@ namespace UnityEditor.VFX
                 else
                     yield return "IS_TRANSPARENT_PARTICLE";
 
-                if (useAlphaClipping)
+                if (hasAlphaClipping)
                     yield return "USE_ALPHA_TEST";
                 if (hasSoftParticles)
                     yield return "USE_SOFT_PARTICLE";

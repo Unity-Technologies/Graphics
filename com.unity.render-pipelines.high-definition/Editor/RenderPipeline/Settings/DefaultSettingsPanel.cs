@@ -141,6 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             private static GUIContent k_DefaultVolumeProfileLabel = new GUIContent("Default Volume Profile Asset");
+            private static GUIContent k_LookDevVolumeProfileLabel = new GUIContent("LookDev Volume Profile Asset");
             void Draw_VolumeInspector()
             {
                 var hdrpAsset = HDRenderPipeline.defaultAsset;
@@ -151,7 +152,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth = k_LabelWidth;
 
                 var asset = EditorDefaultSettings.GetOrAssignDefaultVolumeProfile();
-
                 var newAsset = (VolumeProfile)EditorGUILayout.ObjectField(k_DefaultVolumeProfileLabel, asset, typeof(VolumeProfile), false);
                 if (newAsset == null)
                 {
@@ -163,12 +163,31 @@ namespace UnityEditor.Rendering.HighDefinition
                     hdrpAsset.defaultVolumeProfile = asset;
                     EditorUtility.SetDirty(hdrpAsset);
                 }
-
+                
                 Editor.CreateCachedEditor(asset,
                     Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_Cached);
                 EditorGUIUtility.labelWidth -= 18;
                 m_Cached.OnInspectorGUI();
                 EditorGUIUtility.labelWidth = oldWidth;
+
+                EditorGUILayout.Space();
+
+                var lookDevAsset = EditorDefaultSettings.GetOrAssignLookDevVolumeProfile();
+                var newLookDevAsset = (VolumeProfile)EditorGUILayout.ObjectField(k_LookDevVolumeProfileLabel, lookDevAsset, typeof(VolumeProfile), false);
+                if (lookDevAsset == null)
+                {
+                    Debug.Log("LookDev Volume Profile Asset cannot be null. Rolling back to previous value.");
+                }
+                else if (newLookDevAsset != lookDevAsset)
+                {
+                    hdrpAsset.defaultLookDevProfile = newLookDevAsset;
+                    EditorUtility.SetDirty(hdrpAsset);
+                }
+
+                if (lookDevAsset.Has<VisualEnvironment>())
+                    EditorGUILayout.HelpBox("VisualEnvironment is not modifiable and will be overridden by the LookDev", MessageType.Warning);
+                if (lookDevAsset.Has<HDRISky>())
+                    EditorGUILayout.HelpBox("HDRISky is not modifiable and will be overridden by the LookDev", MessageType.Warning);
             }
 
             void Draw_DefaultFrameSettings()
@@ -202,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     CoreUtils.Destroy(comp);
                 }
 
-                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.BeforeTransparent);
+                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
                 

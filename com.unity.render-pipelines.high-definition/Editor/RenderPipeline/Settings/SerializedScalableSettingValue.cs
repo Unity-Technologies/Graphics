@@ -162,40 +162,57 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Assert.IsNotNull(schema);
 
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
+            // Match const defined in EditorGUI.cs
+            const int k_IndentPerLevel = 15;
+            const int k_PrefixPaddingRight = 2;
 
-            var contentRect = EditorGUI.PrefixLabel(rect, label);
-
-            // Render the enum popup
+            const int k_ValueUnitSeparator = 2;
             const int k_EnumWidth = 70;
-            // Magic number??
-            const int k_EnumOffset = 30;
-            var enumRect = new Rect(contentRect);
-            enumRect.x -= k_EnumOffset;
-            enumRect.width = k_EnumWidth + k_EnumOffset;
 
-            var oldShowMixedValue = EditorGUI.showMixedValue;
-            EditorGUI.showMixedValue |= self.level.hasMultipleDifferentValues || self.useOverride.hasMultipleDifferentValues;
-            EditorGUI.BeginChangeCheck();
-            var (level, useOverride) = LevelFieldGUI(
-                enumRect,
-                GUIContent.none,
-                schema,
-                self.level.intValue,
-                self.useOverride.boolValue
-            );
-            EditorGUI.showMixedValue = oldShowMixedValue;
-            if (EditorGUI.EndChangeCheck())
+            float indent = k_IndentPerLevel * EditorGUI.indentLevel;
+
+            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect labelRect = lineRect;
+            Rect levelRect = lineRect;
+            Rect fieldRect = lineRect;
+            labelRect.width = EditorGUIUtility.labelWidth;
+            // Dealing with indentation add space before the actual drawing
+            // Thus resize accordingly to have a coherent aspect
+            levelRect.x += labelRect.width - indent + k_PrefixPaddingRight;
+            levelRect.width = k_EnumWidth + indent;
+            fieldRect.x = levelRect.x + levelRect.width + k_ValueUnitSeparator - indent;
+            fieldRect.width -= fieldRect.x - lineRect.x;
+
+            label = EditorGUI.BeginProperty(labelRect, label, self.level);
+            label = EditorGUI.BeginProperty(labelRect, label, self.@override);
+            label = EditorGUI.BeginProperty(labelRect, label, self.useOverride);
             {
-                self.useOverride.boolValue = useOverride;
-                if (!self.useOverride.boolValue)
-                    self.level.intValue = level;
+                EditorGUI.LabelField(labelRect, label);
             }
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
 
-            // Return the rect fo user can render the field there
-            var fieldRect = new Rect(contentRect);
-            fieldRect.x = enumRect.x + enumRect.width + 2 - k_EnumOffset;
-            fieldRect.width = contentRect.width - (fieldRect.x - enumRect.x) + k_EnumOffset;
+            EditorGUI.BeginProperty(levelRect, label, self.level);
+            EditorGUI.BeginProperty(levelRect, label, self.useOverride);
+            {
+                EditorGUI.BeginChangeCheck();
+                var (level, useOverride) = LevelFieldGUI(
+                    levelRect,
+                    GUIContent.none,
+                    schema,
+                    self.level.intValue,
+                    self.useOverride.boolValue
+                );
+                if (EditorGUI.EndChangeCheck())
+                {
+                    self.useOverride.boolValue = useOverride;
+                    if (!self.useOverride.boolValue)
+                        self.level.intValue = level;
+                }
+            }
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
 
             return fieldRect;
         }
@@ -232,6 +249,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var fieldRect = LevelFieldGUILayout(self, label, schema);
 
+            EditorGUI.BeginProperty(fieldRect, label, self.level);
+            EditorGUI.BeginProperty(fieldRect, label, self.@override);
+            EditorGUI.BeginProperty(fieldRect, label, self.useOverride);
             if (!self.useOverride.hasMultipleDifferentValues && self.useOverride.boolValue)
             {
                 // All fields have custom values
@@ -254,6 +274,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Scalable settings have all the same level value
                     gui.LevelValueDescriptionGUI(fieldRect, self, label, sourceValue, sourceName);
             }
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
         }
 
         /// <summary>

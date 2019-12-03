@@ -11,6 +11,7 @@ You can add operator nodes:
 
 * Using the Create Node Menu:
   * By right-clicking in an empty space and selecting **Create Node** from the menu
+  * By right-clicking on a edge and selecting **Create Node** from the menu
   * By pressing the Spacebar key with the cursor in an empty space.
   * By making an Edge Connection from a Property, then releasing the click in an empty space.
 * By duplicating nodes:

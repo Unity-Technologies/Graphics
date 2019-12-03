@@ -31,5 +31,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return hdrpAsset.defaultVolumeProfile;
         }
+
+        /// <summary>Get the current LookDev VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
+        /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
+        internal static VolumeProfile GetOrAssignLookDevVolumeProfile()
+        {
+            if (!(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset))
+                return null;
+
+            return GetOrAssignLookDevVolumeProfile(hdrpAsset);
+        }
+
+        /// <summary>Get the current LookDev VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
+        /// <param name="hdrpAsset">Asset to check.</param>
+        /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
+        internal static VolumeProfile GetOrAssignLookDevVolumeProfile(HDRenderPipelineAsset hdrpAsset)
+        {
+            if (hdrpAsset.defaultVolumeProfile == null || hdrpAsset.defaultVolumeProfile.Equals(null))
+                hdrpAsset.defaultVolumeProfile =
+                    AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_DefaultVolumeAssetPath);
+
+            return hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+        }
     }
 }

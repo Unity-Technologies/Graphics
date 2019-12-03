@@ -7,7 +7,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
+
+            [Reload("Shaders/Utils/FallbackError.shader")]
+            public Shader fallbackErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
@@ -54,16 +57,16 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] bool m_ShadowTransparentReceive = true;
 
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new ForwardRenderer(this);
@@ -74,6 +77,8 @@ namespace UnityEngine.Rendering.Universal
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        public bool shadowTransparentReceive => m_ShadowTransparentReceive;
 
         protected override void OnEnable()
         {
@@ -87,12 +92,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

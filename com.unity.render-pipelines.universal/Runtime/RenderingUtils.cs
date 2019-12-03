@@ -88,15 +88,32 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (s_ErrorMaterial == null)
-                    s_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
+                {
+                    // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+                    // This might be in a point that some resources required for the pipeline are not finished importing yet.
+                    // Proper fix is to add a fence on asset import.
+                    try
+                    {
+                        s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
+                    }
+                    catch { }
+                }
 
                 return s_ErrorMaterial;
             }
         }
 
+        // This is used to render materials that contain built-in shader passes not compatible with URP. 
+        // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
+            // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+            // This might be in a point that some resources required for the pipeline are not finished importing yet.
+            // Proper fix is to add a fence on asset import.
+            if (errorMaterial == null)
+                return;
+            
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
             {

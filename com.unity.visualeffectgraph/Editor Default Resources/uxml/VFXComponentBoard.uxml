@@ -1,4 +1,4 @@
-<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:gv="UnityEditor.Experimental.GraphView">
 
   <ui:VisualElement name="header" pickingMode="Ignore">
       <ui:VisualElement name="labelContainer" pickingMode="Ignore">
@@ -53,5 +53,5 @@
         </ui:VisualElement>
       </ui:VisualElement>
   </ui:ScrollView>
-    <vfx:ResizableElement pickingMode="Ignore" />
+    <gv:ResizableElement pickingMode="Ignore" />
 </UXML>

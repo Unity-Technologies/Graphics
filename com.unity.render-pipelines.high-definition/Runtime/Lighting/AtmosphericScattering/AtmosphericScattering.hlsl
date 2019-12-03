@@ -14,6 +14,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
+float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
+{
+    // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
+    t = exp(x * t) * y - y;
+    // Perform linear interpolation using the new value of t.
+    return lerp(A, B, t);
+}
+
 float3 GetFogColor(float3 V, float fragDist)
 {
     if (_FogColorMode == FOGCOLORMODE_CONSTANT_COLOR)
@@ -47,8 +55,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O     = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
-    const float  tFrag = abs(distAlongRay) * 0.001;                           // Convert m to km and clear the "hit ground" flag
+    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition;
+    const float  tFrag = abs(distAlongRay); // Clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
     float  tEntry = IntersectAtmosphere(O, V, N, r).x;
@@ -220,6 +228,21 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             skyColor += radiance;
         }
 
+        skyColor   = Desaturate(skyColor,   _ColorSaturation);
+        skyOpacity = Desaturate(skyOpacity, _AlphaSaturation) * _AlphaMultiplier;
+
+        float horAngle = acos(cosHor);
+        float chiAngle = acos(cosChi);
+
+        // [start, end] -> [0, 1] : (x - start) / (end - start) = x * rcpLength - (start * rcpLength)
+        // TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
+        float start    = horAngle;
+        float end      = 0;
+        float rcpLen   = rcp(end - start);
+        float nrmAngle = Remap01(chiAngle, rcpLen, start * rcpLen);
+        // float angle = saturate((0.5 * PI) - acos(cosChi) * rcp(0.5 * PI));
+
+        skyColor *= ExpLerp(_HorizonTint, _ZenithTint, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
     }
 }
 
@@ -254,9 +277,9 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                 posInput.positionNDC,
                 fogFragDist,
-                _VBufferResolution,
-                _VBufferUvScaleAndLimit.xy,
-                _VBufferUvScaleAndLimit.zw,
+                _VBufferViewportSize,
+                _VBufferSharedUvScaleAndLimit.xy,
+                _VBufferSharedUvScaleAndLimit.zw,
                 _VBufferDistanceEncodingParams,
                 _VBufferDistanceDecodingParams,
                 true, false);

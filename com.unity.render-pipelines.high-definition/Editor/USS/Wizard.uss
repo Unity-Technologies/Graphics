@@ -6,6 +6,11 @@
     left: 180px;
 }
 
+#DefaultResourceFolder > Label, #NewScene > Label, #NewDXRScene > Label
+{
+    width: 165px;
+}
+
 #TestLabel
 {
     width: 180px;
@@ -45,6 +50,7 @@
 {
     -unity-text-align: middle-left;
     white-space: normal;
+    margin-right: 32px;
 }
 
 #TestRow
@@ -136,7 +142,7 @@ ToolbarRadio
     width: 120px;
 }
 
-#MigrationButton
+#LargeButton
 {
     margin-left: 20px;
     margin-right: 20px;
@@ -145,7 +151,7 @@ ToolbarRadio
 
 /* spacing between categories */
 
-#NewDXRScene
+#NewDXRScene, #InstallConfigPackageArea
 {
     margin-bottom: 15px;
 }

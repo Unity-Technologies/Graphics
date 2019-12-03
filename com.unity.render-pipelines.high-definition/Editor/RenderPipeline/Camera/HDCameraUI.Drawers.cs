@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
         public static readonly CED.IDrawer SectionXRSettings = CED.Conditional(
-            (serialized, owner) => PlayerSettings.virtualRealitySupported,
+            (serialized, owner) => XRGraphics.tryEnable,
             CED.FoldoutGroup(
                 xrSettingsHeaderContent,
                 Expandable.XR,
@@ -203,15 +203,21 @@ namespace UnityEditor.Rendering.HighDefinition
             // code is internal, we have to copy/paste some stuff from the editor code :(
 
             var cam = p.baseCameraSettings;
-            var projectionType = cam.orthographic.boolValue ? ProjectionType.Orthographic : ProjectionType.Perspective;
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = cam.orthographic.hasMultipleDifferentValues;
-            projectionType = (ProjectionType)EditorGUILayout.EnumPopup(projectionContent, projectionType);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-                cam.orthographic.boolValue = (projectionType == ProjectionType.Orthographic);
+            Rect perspectiveRect = EditorGUILayout.GetControlRect();
 
+            ProjectionType projectionType;
+            EditorGUI.BeginProperty(perspectiveRect, projectionContent, cam.orthographic);
+            {
+                projectionType = cam.orthographic.boolValue ? ProjectionType.Orthographic : ProjectionType.Perspective;
+
+                EditorGUI.BeginChangeCheck();
+                projectionType = (ProjectionType)EditorGUI.EnumPopup(perspectiveRect, projectionContent, projectionType);
+                if (EditorGUI.EndChangeCheck())
+                    cam.orthographic.boolValue = (projectionType == ProjectionType.Orthographic);
+            }
+            EditorGUI.EndProperty();
+            
             if (cam.orthographic.hasMultipleDifferentValues)
                 return;
 
@@ -226,6 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isPhysicalCamera = p.projectionMatrixMode.intValue == (int)ProjectionMatrixMode.PhysicalPropertiesBased;
 
                 var rect = EditorGUILayout.GetControlRect();
+
                 var guiContent = EditorGUI.BeginProperty(rect, FOVAxisModeContent, cam.fovAxisMode);
                 EditorGUI.showMixedValue = cam.fovAxisMode.hasMultipleDifferentValues;
 
@@ -316,30 +323,46 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(p.iso, isoContent);
 
                 // Custom layout for shutter speed
-                int unitMenuWidth = 80;
-                int offsetFix = 25;
-                float indentOffset = EditorGUI.indentLevel * 15f;
-                var lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-                var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
-                var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - unitMenuWidth, lineRect.height);
-                var unitMenu = new Rect(fieldRect.xMax - offsetFix, lineRect.y, unitMenuWidth + offsetFix, lineRect.height);
+                const int k_UnitMenuWidth = 80;
+                const int k_OffsetPerIndent = 15;
+                const int k_LabelFieldSeparator = 2;
+                float indentOffset = EditorGUI.indentLevel * k_OffsetPerIndent;
+                int oldIndentLevel = EditorGUI.indentLevel;
+                
+                var lineRect = EditorGUILayout.GetControlRect();
+                var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth, lineRect.height);
+                var fieldRect = new Rect(labelRect.xMax + k_LabelFieldSeparator, lineRect.y, lineRect.width - labelRect.width - k_UnitMenuWidth - k_LabelFieldSeparator * 2, lineRect.height);
+                var unitMenu = new Rect(fieldRect.xMax + k_LabelFieldSeparator, lineRect.y, k_UnitMenuWidth, lineRect.height);
+
+                //We cannot had the shutterSpeedState as this is not a serialized property but a global edition mode.
+                //This imply that it will never go bold nor can be reverted in prefab overrides
+                EditorGUI.BeginProperty(labelRect, shutterSpeedContent, p.shutterSpeed);
+                EditorGUI.LabelField(labelRect, shutterSpeedContent);
+                EditorGUI.EndProperty();
+                EditorGUI.indentLevel = 0;
 
                 m_ShutterSpeedState.value = (ShutterSpeedUnit)EditorGUI.Popup(unitMenu, (int)m_ShutterSpeedState.value, k_ShutterSpeedUnitNames);
-
-                EditorGUI.PrefixLabel(labelRect, shutterSpeedContent);
-
-                float shutterSpeed = p.shutterSpeed.floatValue;
-                if (shutterSpeed > 0f && m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
-                    shutterSpeed = 1f / shutterSpeed;
-
-                shutterSpeed = EditorGUI.FloatField(fieldRect, shutterSpeed);
-
-                if (shutterSpeed <= 0f)
-                    p.shutterSpeed.floatValue = 0f;
-                else if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
-                    p.shutterSpeed.floatValue = 1f / shutterSpeed;
-                else
-                    p.shutterSpeed.floatValue = shutterSpeed;
+                
+                float previousShutterSpeed = p.shutterSpeed.floatValue;
+                if (previousShutterSpeed > 0f && m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
+                    previousShutterSpeed = 1f / previousShutterSpeed;
+                
+                EditorGUI.BeginProperty(fieldRect, shutterSpeedContent, p.shutterSpeed);
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var newShutterSpeed = EditorGUI.FloatField(fieldRect, previousShutterSpeed);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (newShutterSpeed <= 0f)
+                            p.shutterSpeed.floatValue = 0f;
+                        else if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
+                            p.shutterSpeed.floatValue = 1f / newShutterSpeed;
+                        else
+                            p.shutterSpeed.floatValue = newShutterSpeed;
+                    }
+                }
+                EditorGUI.EndProperty();
+                EditorGUI.indentLevel = oldIndentLevel;
 
                 using (var horizontal = new EditorGUILayout.HorizontalScope())
                 using (var propertyScope = new EditorGUI.PropertyScope(horizontal.rect, gateFitContent, cam.gateFit))
@@ -387,7 +410,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     const int kFloatFieldWidth = 50;
                     const int kSeparatorWidth = 5;
                     float indentOffset = EditorGUI.indentLevel * 15f;
-                    var lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                    var lineRect = EditorGUILayout.GetControlRect();
                     var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
                     var floatFieldLeft = new Rect(labelRect.xMax, lineRect.y, kFloatFieldWidth + indentOffset, lineRect.height);
                     var sliderRect = new Rect(floatFieldLeft.xMax + kSeparatorWidth - indentOffset, lineRect.y, lineRect.width - labelRect.width - kFloatFieldWidth * 2 - kSeparatorWidth * 2, lineRect.height);
@@ -419,7 +442,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
-            //if(p.clearColorMode.enumValueIndex == (int)HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
+            // if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
             EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
 
             if(p.clearDepth.boolValue == false)
@@ -428,7 +451,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_Antialiasing(SerializedHDCamera p, Editor owner)
         {
-            p.antialiasing.intValue = EditorGUILayout.Popup(antialiasingContent, p.antialiasing.intValue, antialiasingModeNames);
+            Rect antiAliasingRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(antiAliasingRect, antialiasingContent, p.antialiasing);
+            {
+                EditorGUI.BeginChangeCheck();
+                int selectedValue = EditorGUI.Popup(antiAliasingRect, antialiasingContent, p.antialiasing.intValue, antialiasingModeNames);
+                if (EditorGUI.EndChangeCheck())
+                    p.antialiasing.intValue = selectedValue;
+            }
+            EditorGUI.EndProperty();
+
             if (p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
             {
                 EditorGUILayout.PropertyField(p.SMAAQuality, SMAAQualityPresetContent);

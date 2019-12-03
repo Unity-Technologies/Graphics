@@ -435,7 +435,7 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXBlock> activeFlattenedChildrenWithImplicit
         {
             get{
-                return implicitPreBlock.Concat(children.SelectMany(t => t is VFXSubgraphBlock ? (t.enabled ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Empty<VFXBlock>()): Enumerable.Repeat(t, 1))).Concat(implicitPostBlock).Where(o => o.enabled);
+                return implicitPreBlock.Concat(children.SelectMany(t => t is VFXSubgraphBlock ? (t.isActive ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Empty<VFXBlock>()): Enumerable.Repeat(t, 1))).Concat(implicitPostBlock).Where(o => o.enabled);
             }
         }
 

@@ -26,6 +26,9 @@ struct BilateralData
     float  z01;
     float  zNF;
     float3 normal;
+    #ifdef BILATERAL_ROUGHNESS
+    float roughness;
+    #endif
 };
 
 BilateralData TapBilateralData(uint2 coordSS)
@@ -52,6 +55,9 @@ BilateralData TapBilateralData(uint2 coordSS)
         const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
         DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
         key.normal = normalData.normalWS;
+    #ifdef BILATERAL_ROUGHNESS
+        key.roughness = normalData.perceptualRoughness;
+    #endif
     }
 
     return key;

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 using UnityEditor.Rendering;
 using Utilities;
 
@@ -48,9 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
     partial class FrameSettingsUI
     {
-
-
-
         enum Expandable
         {
             RenderingPasses = 1 << 0,
@@ -62,15 +58,33 @@ namespace UnityEditor.Rendering.HighDefinition
 
         readonly static ExpandedState<Expandable, FrameSettings> k_ExpandedState = new ExpandedState<Expandable, FrameSettings>(~(-1), "HDRP");
 
+        static Rect lastBoxRect;
         internal static CED.IDrawer Inspector(bool withOverride = true) => CED.Group(
                 CED.Group((serialized, owner) =>
                 {
-                    EditorGUILayout.BeginVertical("box");
-                    EditorGUILayout.LabelField(FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
+                    lastBoxRect = EditorGUILayout.BeginVertical("box");
+                    
+                    // Add dedicated scope here and on each FrameSettings field to have the contextual menu on everything
+                    Rect rect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                    using (new SerializedFrameSettings.TitleDrawingScope(rect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
+                    {
+                        EditorGUI.LabelField(rect, FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
+                    }
                 }),
                 InspectorInnerbox(withOverride),
-                CED.Group((serialized, owner) => EditorGUILayout.EndVertical())
-                );
+                CED.Group((serialized, owner) =>
+                {
+                    EditorGUILayout.EndVertical();
+                    using (new SerializedFrameSettings.TitleDrawingScope(lastBoxRect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
+                    {
+                        //Nothing to draw.
+                        //We just want to have a big blue bar at left that match the whole framesetting box.
+                        //This is because framesettings will be considered as one bg block from prefab point
+                        //of view as there is no way to separate it bit per bit in serialization and Prefab
+                        //override API rely on SerializedProperty.
+                    }
+                })
+            );
 
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
@@ -195,40 +209,40 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
                 overridedDefaultValue: LODBiasMode.FromQualitySettings,
-                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
-                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
+                customGetter: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
+                customSetter: v => serialized.lodBiasMode.SetEnumValue((LODBiasMode)v)
             );
             area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
                 customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
+                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
                 overridedDefaultValue: QualitySettings.lodBias,
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings,
-                labelOverride: serialized.lodBiasMode.enumValueIndex == (int)LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
+                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
 
             area.AmmendInfo(
                 FrameSettingsField.MaximumLODLevelMode,
                 overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
-                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
-                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
+                customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
+                customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v)
             );
             area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
+                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: QualitySettings.maximumLODLevel,
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings,
-                labelOverride: serialized.maximumLODLevelMode.enumValueIndex == (int)MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
+                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
 
             area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
                 overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),

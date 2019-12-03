@@ -1,185 +1,289 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
-using System;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    using LightShape = HDLightUI.LightShape;
     internal class SerializedHDLight
     {
-        public sealed class SerializedLightData
-        {
-            public SerializedProperty intensity;
-            public SerializedProperty enableSpotReflector;
-            public SerializedProperty luxAtDistance;
-            public SerializedProperty spotInnerPercent;
-            public SerializedProperty lightDimmer;
-            public SerializedProperty fadeDistance;
-            public SerializedProperty affectDiffuse;
-            public SerializedProperty affectSpecular;
-            public SerializedProperty nonLightmappedOnly;
-            public SerializedProperty lightTypeExtent;
-            public SerializedProperty spotLightShape;
-            public SerializedProperty shapeWidth;
-            public SerializedProperty shapeHeight;
-            public SerializedProperty aspectRatio;
-            public SerializedProperty shapeRadius;
-            public SerializedProperty maxSmoothness;
-            public SerializedProperty applyRangeAttenuation;
-            public SerializedProperty volumetricDimmer;
-            public SerializedProperty lightUnit;
-            public SerializedProperty displayAreaLightEmissiveMesh;
-            public SerializedProperty renderingLayerMask;
-            public SerializedProperty shadowNearPlane;
-            public SerializedProperty shadowSoftness;
-            public SerializedProperty blockerSampleCount;
-            public SerializedProperty filterSampleCount;
-            public SerializedProperty minFilterSize;
-            public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
-            public SerializedProperty areaLightShadowCone;
-            public SerializedProperty useCustomSpotLightShadowCone;
-            public SerializedProperty customSpotLightShadowCone;
-            public SerializedProperty useScreenSpaceShadows;
-            public SerializedProperty interactsWithSky;
-            public SerializedProperty angularDiameter;
-            public SerializedProperty distance;
-#if ENABLE_RAYTRACING
-            public SerializedProperty useRayTracedShadows;
-            public SerializedProperty numRayTracingSamples;
-            public SerializedProperty filterTracedShadow;
-            public SerializedProperty filterSizeTraced;
-            public SerializedProperty sunLightConeAngle;
-            public SerializedProperty lightShadowRadius;
-#endif
-            public SerializedProperty evsmExponent;
-            public SerializedProperty evsmLightLeakBias;
-            public SerializedProperty evsmVarianceBias;
-            public SerializedProperty evsmBlurPasses;
+        public SerializedProperty intensity;
+        public SerializedProperty enableSpotReflector;
+        public SerializedProperty luxAtDistance;
+        public SerializedProperty spotInnerPercent;
+        public SerializedProperty lightDimmer;
+        public SerializedProperty fadeDistance;
+        public SerializedProperty affectDiffuse;
+        public SerializedProperty affectSpecular;
+        public SerializedProperty nonLightmappedOnly;
+        public SerializedProperty spotLightShape;
+        public SerializedProperty shapeWidth;
+        public SerializedProperty shapeHeight;
+        public SerializedProperty barnDoorAngle;
+        public SerializedProperty barnDoorLength;
+        public SerializedProperty aspectRatio;
+        public SerializedProperty shapeRadius;
+        public SerializedProperty maxSmoothness;
+        public SerializedProperty applyRangeAttenuation;
+        public SerializedProperty volumetricDimmer;
+        public SerializedProperty lightUnit;
+        public SerializedProperty displayAreaLightEmissiveMesh;
+        public SerializedProperty renderingLayerMask;
+        public SerializedProperty shadowNearPlane;
+        public SerializedProperty blockerSampleCount;
+        public SerializedProperty filterSampleCount;
+        public SerializedProperty minFilterSize;
+        public SerializedProperty scaleForSoftness;
+        public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
+        public SerializedProperty areaLightShadowCone;
+        public SerializedProperty useCustomSpotLightShadowCone;
+        public SerializedProperty customSpotLightShadowCone;
+        public SerializedProperty useScreenSpaceShadows;
+        public SerializedProperty interactsWithSky;
+        public SerializedProperty angularDiameter;
+        public SerializedProperty flareSize;
+        public SerializedProperty flareTint;
+        public SerializedProperty flareFalloff;
+        public SerializedProperty surfaceTexture;
+        public SerializedProperty surfaceTint;
+        public SerializedProperty distance;
+        public SerializedProperty useRayTracedShadows;
+        public SerializedProperty numRayTracingSamples;
+        public SerializedProperty filterTracedShadow;
+        public SerializedProperty filterSizeTraced;
+        public SerializedProperty sunLightConeAngle;
+        public SerializedProperty lightShadowRadius;
+        public SerializedProperty evsmExponent;
+        public SerializedProperty evsmLightLeakBias;
+        public SerializedProperty evsmVarianceBias;
+        public SerializedProperty evsmBlurPasses;
 
-            // Improved moment shadows data
-            public SerializedProperty lightAngle;
-            public SerializedProperty kernelSize;
-            public SerializedProperty maxDepthBias;
+        // Improved moment shadows data
+        public SerializedProperty lightAngle;
+        public SerializedProperty kernelSize;
+        public SerializedProperty maxDepthBias;
 
-            // Editor stuff
-            public SerializedProperty useOldInspector;
-            public SerializedProperty showFeatures;
-            public SerializedProperty showAdditionalSettings;
-            public SerializedProperty useVolumetric;
+        // Editor stuff
+        public SerializedProperty useOldInspector;
+        public SerializedProperty showFeatures;
+        public SerializedProperty showAdditionalSettings;
+        public SerializedProperty useVolumetric;
 
-            // Layers
-            public SerializedProperty linkLightLayers;
-            public SerializedProperty lightlayersMask;
+        // Layers
+        public SerializedProperty linkLightLayers;
+        public SerializedProperty lightlayersMask;
 
-            // Shadow datas
-            public SerializedProperty shadowDimmer;
-            public SerializedProperty volumetricShadowDimmer;
-            public SerializedProperty shadowFadeDistance;
-            public SerializedScalableSettingValue contactShadows;
-            public SerializedProperty shadowTint;
-            public SerializedProperty shadowUpdateMode;
-            public SerializedScalableSettingValue shadowResolution;
+        // Shadow datas
+        public SerializedProperty shadowDimmer;
+        public SerializedProperty volumetricShadowDimmer;
+        public SerializedProperty shadowFadeDistance;
+        public SerializedScalableSettingValue contactShadows;
+        public SerializedProperty rayTracedContactShadow;
+        public SerializedProperty shadowTint;
+        public SerializedProperty penumbraTint;
+        public SerializedProperty shadowUpdateMode;
+        public SerializedScalableSettingValue shadowResolution;
 
-            // Bias control
-            public SerializedProperty constantBias;
+        // Bias control
+        public SerializedProperty slopeBias;
+        public SerializedProperty normalBias;
 
-            public SerializedProperty normalBias;
-        }
+        private SerializedProperty pointLightHDType;
+        private SerializedProperty areaLightShapeProperty;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
-        public SerializedObject serializedLightDatas;
-
-        public SerializedLightData serializedLightData;
+        public SerializedObject serializedObject;
 
         //contain serialized property that are mainly used to draw inspector
         public LightEditor.Settings settings;
 
-        // Used for UI only; the processing code must use LightTypeExtent and LightType
-        public LightShape editorLightShape;
+        //type is converted on the fly each time so we cannot have SerializedProperty on it
+        public HDLightType type
+        {
+            get => haveMultipleTypeValue
+                ? (HDLightType)(-1) //as serialize property on enum when mixed value state happens
+                : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
+            set
+            {
+                //Note: type is split in both component
+                var undoObjects = serializedObject.targetObjects.SelectMany((Object x) => new Object[] { x, (x as HDAdditionalLightData).legacyLight }).ToArray();
+                Undo.RecordObjects(undoObjects, "Change light type");
+                var objects = serializedObject.targetObjects;
+                for (int index = 0; index < objects.Length; ++index)
+                    (objects[index] as HDAdditionalLightData).type = value;
+                serializedObject.Update();
+            }
+        }
+
+        bool haveMultipleTypeValue
+        {
+            get
+            {
+                var objects = serializedObject.targetObjects;
+                HDLightType value = (objects[0] as HDAdditionalLightData).type;
+                for (int index = 1; index < objects.Length; ++index)
+                    if (value != (objects[index] as HDAdditionalLightData).type)
+                        return true;
+                return false;
+            }
+        }
+
+        // This scope is here mainly to keep pointLightHDType isolated
+        public struct LightTypeEditionScope : System.IDisposable
+        {
+            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+            }
+        }
+
+        //areaLightShape need to be accessed by its property to always report modification in the right way
+        public AreaLightShape areaLightShape
+        {
+            get => haveMultipleAreaLightShapeValue
+                ? (AreaLightShape)(-1) //as serialize property on enum when mixed value state happens
+                : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
+            set
+            {
+                //Note: Disc is actually changing legacyLight.type to Disc
+                var undoObjects = serializedObject.targetObjects.SelectMany((Object x) => new Object[] { x, (x as HDAdditionalLightData).legacyLight }).ToArray();
+                Undo.RecordObjects(undoObjects, "Change light area shape");
+                var objects = serializedObject.targetObjects;
+                for (int index = 0; index < objects.Length; ++index)
+                    (objects[index] as HDAdditionalLightData).areaLightShape = value;
+                serializedObject.Update();
+            }
+        }
+
+        bool haveMultipleAreaLightShapeValue
+        {
+            get
+            {
+                var objects = serializedObject.targetObjects;
+                AreaLightShape value = (objects[0] as HDAdditionalLightData).areaLightShape;
+                for (int index = 1; index < objects.Length; ++index)
+                    if (value != (objects[index] as HDAdditionalLightData).areaLightShape)
+                        return true;
+                return false;
+            }
+        }
+
+        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated
+        public struct AreaLightShapeEditionScope : System.IDisposable
+        {
+            public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+                EditorGUI.BeginProperty(rect, label, serialized.areaLightShapeProperty);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+            }
+        }
 
         public SerializedHDLight(HDAdditionalLightData[] lightDatas, LightEditor.Settings settings)
         {
-            serializedLightDatas = new SerializedObject(lightDatas);
+            serializedObject = new SerializedObject(lightDatas);
             this.settings = settings;
 
-            using (var o = new PropertyFetcher<HDAdditionalLightData>(serializedLightDatas))
-                serializedLightData = new SerializedLightData
-                {
-                    intensity = o.Find("m_Intensity"),
-                    enableSpotReflector = o.Find("m_EnableSpotReflector"),
-                    luxAtDistance = o.Find("m_LuxAtDistance"),
-                    spotInnerPercent = o.Find("m_InnerSpotPercent"),
-                    lightDimmer = o.Find("m_LightDimmer"),
-                    volumetricDimmer = o.Find("m_VolumetricDimmer"),
-                    lightUnit = o.Find("m_LightUnit"),
-                    displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh"),
-                    fadeDistance = o.Find("m_FadeDistance"),
-                    affectDiffuse = o.Find("m_AffectDiffuse"),
-                    affectSpecular = o.Find("m_AffectSpecular"),
-                    nonLightmappedOnly = o.Find("m_NonLightmappedOnly"),
-                    lightTypeExtent = o.Find("m_LightTypeExtent"),
-                    spotLightShape = o.Find("m_SpotLightShape"), // WTF?
-                    shapeWidth = o.Find("m_ShapeWidth"),
-                    shapeHeight = o.Find("m_ShapeHeight"),
-                    aspectRatio = o.Find("m_AspectRatio"),
-                    shapeRadius = o.Find("m_ShapeRadius"),
-                    maxSmoothness = o.Find("m_MaxSmoothness"),
-                    applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation"),
-                    shadowNearPlane = o.Find("m_ShadowNearPlane"),
-                    shadowSoftness = o.Find("m_ShadowSoftness"),
-                    blockerSampleCount = o.Find("m_BlockerSampleCount"),
-                    filterSampleCount = o.Find("m_FilterSampleCount"),
-                    minFilterSize = o.Find("m_MinFilterSize"),
-                    areaLightCookie = o.Find("m_AreaLightCookie"),
-                    areaLightShadowCone = o.Find("m_AreaLightShadowCone"),
-                    useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone"),
-                    customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone"),
-                    useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows"),
-                    interactsWithSky = o.Find("m_InteractsWithSky"),
-                    angularDiameter = o.Find("m_AngularDiameter"),
-                    distance = o.Find("m_Distance"),
-#if ENABLE_RAYTRACING
-                    useRayTracedShadows = o.Find("m_UseRayTracedShadows"),
-                    numRayTracingSamples = o.Find("m_NumRayTracingSamples"),
-                    filterTracedShadow = o.Find("m_FilterTracedShadow"),
-                    filterSizeTraced = o.Find("m_FilterSizeTraced"),
-                    sunLightConeAngle = o.Find("m_SunLightConeAngle"),
-                    lightShadowRadius = o.Find("m_LightShadowRadius"),
-#endif
-                    evsmExponent = o.Find("m_EvsmExponent"),
-                    evsmVarianceBias = o.Find("m_EvsmVarianceBias"),
-                    evsmLightLeakBias = o.Find("m_EvsmLightLeakBias"),
-                    evsmBlurPasses = o.Find("m_EvsmBlurPasses"),
+            using (var o = new PropertyFetcher<HDAdditionalLightData>(serializedObject))
+            {
+                intensity = o.Find("m_Intensity");
+                enableSpotReflector = o.Find("m_EnableSpotReflector");
+                luxAtDistance = o.Find("m_LuxAtDistance");
+                spotInnerPercent = o.Find("m_InnerSpotPercent");
+                lightDimmer = o.Find("m_LightDimmer");
+                volumetricDimmer = o.Find("m_VolumetricDimmer");
+                lightUnit = o.Find("m_LightUnit");
+                displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh");
+                fadeDistance = o.Find("m_FadeDistance");
+                affectDiffuse = o.Find("m_AffectDiffuse");
+                affectSpecular = o.Find("m_AffectSpecular");
+                nonLightmappedOnly = o.Find("m_NonLightmappedOnly");
+                spotLightShape = o.Find("m_SpotLightShape");
+                shapeWidth = o.Find("m_ShapeWidth");
+                shapeHeight = o.Find("m_ShapeHeight");
+                barnDoorAngle = o.Find("m_BarnDoorAngle");
+                barnDoorLength = o.Find("m_BarnDoorLength");
+                aspectRatio = o.Find("m_AspectRatio");
+                shapeRadius = o.Find("m_ShapeRadius");
+                maxSmoothness = o.Find("m_MaxSmoothness");
+                applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
+                shadowNearPlane = o.Find("m_ShadowNearPlane");
+                blockerSampleCount = o.Find("m_BlockerSampleCount");
+                filterSampleCount = o.Find("m_FilterSampleCount");
+                minFilterSize = o.Find("m_MinFilterSize");
+                scaleForSoftness = o.Find("m_SoftnessScale");
+                areaLightCookie = o.Find("m_AreaLightCookie");
+                areaLightShadowCone = o.Find("m_AreaLightShadowCone");
+                useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
+                customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");
+                useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
+                interactsWithSky = o.Find("m_InteractsWithSky");
+                angularDiameter = o.Find("m_AngularDiameter");
+                flareSize = o.Find("m_FlareSize");
+                flareFalloff = o.Find("m_FlareFalloff");
+                flareTint = o.Find("m_FlareTint");
+                surfaceTexture = o.Find("m_SurfaceTexture");
+                surfaceTint = o.Find("m_SurfaceTint");
+                distance = o.Find("m_Distance");
+                useRayTracedShadows = o.Find("m_UseRayTracedShadows");
+                numRayTracingSamples = o.Find("m_NumRayTracingSamples");
+                filterTracedShadow = o.Find("m_FilterTracedShadow");
+                filterSizeTraced = o.Find("m_FilterSizeTraced");
+                sunLightConeAngle = o.Find("m_SunLightConeAngle");
+                lightShadowRadius = o.Find("m_LightShadowRadius");
+                evsmExponent = o.Find("m_EvsmExponent");
+                evsmVarianceBias = o.Find("m_EvsmVarianceBias");
+                evsmLightLeakBias = o.Find("m_EvsmLightLeakBias");
+                evsmBlurPasses = o.Find("m_EvsmBlurPasses");
 
-                    // Moment light
-                    lightAngle = o.Find("m_LightAngle"),
-                    kernelSize = o.Find("m_KernelSize"),
-                    maxDepthBias = o.Find("m_MaxDepthBias"),
+                // Moment light
+                lightAngle = o.Find("m_LightAngle");
+                kernelSize = o.Find("m_KernelSize");
+                maxDepthBias = o.Find("m_MaxDepthBias");
 
-                    // Editor stuff
-                    useOldInspector = o.Find("useOldInspector"),
-                    showFeatures = o.Find("featuresFoldout"),
-                    showAdditionalSettings = o.Find("showAdditionalSettings"),
-                    useVolumetric = o.Find("useVolumetric"),
-                    renderingLayerMask = settings.renderingLayerMask,
+                // Editor stuff
+                useOldInspector = o.Find("useOldInspector");
+                showFeatures = o.Find("featuresFoldout");
+                showAdditionalSettings = o.Find("showAdditionalSettings");
+                useVolumetric = o.Find("useVolumetric");
+                renderingLayerMask = settings.renderingLayerMask;
 
-                    // Layers
-                    linkLightLayers = o.Find("m_LinkShadowLayers"),
-                    lightlayersMask = o.Find("m_LightlayersMask"),
+                // Layers
+                linkLightLayers = o.Find("m_LinkShadowLayers");
+                lightlayersMask = o.Find("m_LightlayersMask");
 
-                    // Shadow datas:
-                    shadowDimmer = o.Find("m_ShadowDimmer"),
-                    volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer"),
-                    shadowFadeDistance = o.Find("m_ShadowFadeDistance"),
-                    contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow)),
-                    shadowTint = o.Find("m_ShadowTint"),
-                    shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
-                    shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
+                // Shadow datas:
+                shadowDimmer = o.Find("m_ShadowDimmer");
+                volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer");
+                shadowFadeDistance = o.Find("m_ShadowFadeDistance");
+                contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow));
+                rayTracedContactShadow = o.Find("m_RayTracedContactShadow");
+                shadowTint = o.Find("m_ShadowTint");
+                penumbraTint = o.Find("m_PenumbraTint");
+                shadowUpdateMode = o.Find("m_ShadowUpdateMode");
+                shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
-                    constantBias = o.Find("m_ConstantBias"),
-                    normalBias = o.Find("m_NormalBias"),
-                };
+				slopeBias = o.Find("m_SlopeBias");
+                normalBias = o.Find("m_NormalBias");
+
+                // private references for prefab handling
+                pointLightHDType = o.Find("m_PointlightHDType");
+                areaLightShapeProperty = o.Find("m_AreaLightShape");
+            }
         }
 
         public void Update()
@@ -188,59 +292,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // For some reasons, the is different cache is not updated while we actually have different
             // values for shadowResolution.level
             // So we force the update here as a workaround
-            serializedLightDatas.SetIsDifferentCacheDirty();
+            serializedObject.SetIsDifferentCacheDirty();
 
-            serializedLightDatas.Update();
+            serializedObject.Update();
             settings.Update();
-
-            ResolveLightShape();
         }
 
         public void Apply()
         {
-            serializedLightDatas.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
-        }
-
-        void ResolveLightShape()
-        {
-            var type = settings.lightType;
-
-            // Special case for multi-selection: don't resolve light shape or it'll corrupt lights
-            if (type.hasMultipleDifferentValues
-                || serializedLightData.lightTypeExtent.hasMultipleDifferentValues)
-            {
-                editorLightShape = (LightShape)(-1);
-                return;
-            }
-
-            editorLightShape = ResolveLightShape(
-                (LightTypeExtent) serializedLightData.lightTypeExtent.enumValueIndex,
-                (LightType)type.enumValueIndex
-            );
-        }
-
-        internal static LightShape ResolveLightShape(LightTypeExtent typeExtent, LightType type)
-        {
-            switch (typeExtent)
-            {
-                case LightTypeExtent.Punctual:
-                    switch (type)
-                    {
-                        case LightType.Directional:
-                            return LightShape.Directional;
-                        case LightType.Point:
-                            return LightShape.Point;
-                        case LightType.Spot:
-                            return LightShape.Spot;
-                    }
-                    break;
-                case LightTypeExtent.Rectangle:
-                    return LightShape.Rectangle;
-                case LightTypeExtent.Tube:
-                    return LightShape.Tube;
-            }
-            throw new Exception("Unknown light type");
         }
     }
 }

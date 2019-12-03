@@ -25,8 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class RayCountManager
     {
-        
-#if ENABLE_RAYTRACING
         // Texture that holds the ray count per pixel
         RTHandle m_RayCountTexture = null;
 
@@ -42,7 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader rayCountCS;
 
         // Flag that defines if ray counting is enabled for the current frame
-        bool m_IsActive;
+        bool m_IsActive = false;
+        bool m_RayTracingSupported = false;
 
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
         Queue<AsyncGPUReadbackRequest> rayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
@@ -68,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // By default, this is not active
             m_IsActive = false;
+            m_RayTracingSupported = true;
         }
 
         public void Release()
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint GetRaysPerFrame(RayCountValues rayCountValue)
         {
-            if (!m_IsActive)
+            if (!m_RayTracingSupported || !m_IsActive)
             {
                 return 0;
             }
@@ -238,6 +238,5 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-#endif
     }
 }

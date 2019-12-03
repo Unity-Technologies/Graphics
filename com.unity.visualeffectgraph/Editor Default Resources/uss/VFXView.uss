@@ -18,3 +18,15 @@ VFXView .unity-toolbar
     flex-wrap:wrap;
     height:auto;
 }
+
+VFXView #no-asset
+{
+    align-items:center;
+    justify-content: center;
+}
+
+
+VFXView #no-asset *
+{
+    margin-top:128px;
+}

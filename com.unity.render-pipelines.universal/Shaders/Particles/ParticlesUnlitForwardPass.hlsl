@@ -41,10 +41,6 @@ struct VaryingsParticle
     float4 projectedPosition        : TEXCOORD6;
 #endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    float4 shadowCoord              : TEXCOORD7;
-#endif
-
     float3 vertexSH                 : TEXCOORD8; // SH
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -73,12 +69,6 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 #endif
 
     output.viewDirectionWS = viewDirWS;
-
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    output.shadowCoord = input.shadowCoord;
-#else
-    output.shadowCoord = float4(0, 0, 0, 0);
-#endif
 
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);

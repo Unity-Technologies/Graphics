@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Intermediate buffer that stores the reflection pre-denoising
@@ -173,5 +172,4 @@ namespace UnityEngine.Rendering.HighDefinition
             hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.RecursiveRayTracing);
         }
     }
-#endif
 }
