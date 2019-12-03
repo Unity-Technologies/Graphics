@@ -85,24 +85,24 @@ namespace UnityEditor.VFX
         {
             globalEventAttributes.Clear();
             globalEventAttributes.Add(new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float });
+
+            IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
             foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
             {
-                foreach (var linked in context.outputContexts)
+                var attributesToStoreFromOutputContext = context.outputContexts   .Select(o => o.GetData()).Where(o => o != null)
+                                                                                  .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
+                var attributesReadInSpawnContext = context.GetData().GetAttributes().Where(a => (a.mode & VFXAttributeMode.Read) != 0);
+                var attributesInGlobal = attributesToStoreFromOutputContext.Concat(attributesReadInSpawnContext).GroupBy(o => o.attrib.name);
+
+                foreach (var attribute in attributesInGlobal.Select(o => o.First()))
                 {
-                    var data = linked.GetData();
-                    if (data)
+                    if (!globalEventAttributes.Any(o => o.name == attribute.attrib.name))
                     {
-                        foreach (var attribute in data.GetAttributes())
+                        globalEventAttributes.Add(new VFXLayoutElementDesc()
                         {
-                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !globalEventAttributes.Any(o => o.name == attribute.attrib.name))
-                            {
-                                globalEventAttributes.Add(new VFXLayoutElementDesc()
-                                {
-                                    name = attribute.attrib.name,
-                                    type = attribute.attrib.type
-                                });
-                            }
-                        }
+                            name = attribute.attrib.name,
+                            type = attribute.attrib.type
+                        });
                     }
                 }
             }
