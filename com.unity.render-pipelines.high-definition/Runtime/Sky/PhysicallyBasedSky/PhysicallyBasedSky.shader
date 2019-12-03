@@ -452,6 +452,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     float4 RenderSky(Varyings input)
     {
+#if USE_PATH_SKY
+        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 1, 1);
+#else
         const float R = _PlanetaryRadius;
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
@@ -536,7 +539,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             }
         }
 
-#if !USE_PATH_SKY
+
         if (rayIntersectsAtmosphere && !lookAboveHorizon) // See the ground?
         {
             float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
@@ -603,8 +606,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
-#else
-        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 4, 1);
 #endif // USE_PATH_SKY
 
         return float4(skyColor, 1.0);
