@@ -6,7 +6,9 @@ RW_TEXTURE2D_X(uint, _ScratchBuffer);       // Unused!
 /**
 * Variance estimate modes:
 * VARIANCE_ESTIMATE 0: Textbook variance imlpementation, with precision issues: https://en.wikipedia.org/wiki/Variance
-* VARIANCE_ESTIMATE 1: Running average implementation described in SVGF paper : https://cg.ivd.kit.edu/publications/2017/svgf/svgf_preprint.pdf
+* VARIANCE_ESTIMATE 1: Variance computation using exponential moving average, recommended in PICA PICA:
+* https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
+* VARIANCE_ESTIMATE 2: Variance computation using classic running average (more stable but slower convergence??)
 */
 #define VARIANCE_ESTIMATE   1
 #define MIN_ITERATIONS      32
@@ -63,8 +65,14 @@ void UpdatePerPixelVariance(uint2 currentPixelCoord, float3 colorIn)
     _VarianceTexture[crd].x += L;               // first moment
     _VarianceTexture[crd].y += L * L;           // second moment
 #elif (VARIANCE_ESTIMATE == 1)
-    _VarianceTexture[crd].x = lerp(_VarianceTexture[crd].x, L, HYSTERISIS);     // first moment
-    _VarianceTexture[crd].y = lerp(_VarianceTexture[crd].y, L * L, HYSTERISIS); // second moment
+    _VarianceTexture[crd].x = lerp(_VarianceTexture[crd].x, L, HYSTERISIS);         // first moment
+    _VarianceTexture[crd].y = lerp(_VarianceTexture[crd].y, L * L, HYSTERISIS);     // second moment
+#elif (VARIANCE_ESTIMATE == 2)
+    if (_RaytracingFrameIndex > 0)
+    {
+        _VarianceTexture[crd].x = (_VarianceTexture[crd].x * (_RaytracingFrameIndex - 1) + L) / _RaytracingFrameIndex;
+        _VarianceTexture[crd].y = (_VarianceTexture[crd].y * (_RaytracingFrameIndex - 1) + L * L) / _RaytracingFrameIndex;
+    }
 #endif
 }
 
@@ -80,6 +88,8 @@ float EstimateUnfilteredVariance(uint2 currentPixelCoord)
         value = abs(_VarianceTexture[crd].y / _RaytracingFrameIndex - m_1);
 #elif (VARIANCE_ESTIMATE == 1)
         value = 10 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
+#elif (VARIANCE_ESTIMATE == 2)
+        value = 0.01 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
 #endif
     }
     return value; 
