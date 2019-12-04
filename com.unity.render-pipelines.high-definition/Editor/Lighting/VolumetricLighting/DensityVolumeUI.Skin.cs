@@ -23,9 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling", "Modify the tiling of the fog Texture on each axis individually.");
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
             public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values so 0 becomes the new maximum value and the original maximum value becomes 0.");
-            public static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Exposes standard parameters.");
-            public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
-
+            public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.");
+            
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
             public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
 

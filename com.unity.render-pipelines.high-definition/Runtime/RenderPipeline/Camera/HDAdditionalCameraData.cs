@@ -96,12 +96,35 @@ namespace UnityEngine.Rendering.HighDefinition
             ForceFlipY
         }
 
+        [Flags]
+        public enum BufferAccessType
+        {
+            Depth = 1,
+            Normal = 1 << 1,
+            Color = 1 << 2
+        }
+
+        public struct BufferAccess
+        {
+            internal BufferAccessType bufferAccess;
+
+            internal void Reset()
+            {
+                bufferAccess = 0;
+            }
+
+            public void RequestAccess(BufferAccessType flags)
+            {
+                bufferAccess |= flags;
+            }
+        }
+
         // The light culling use standard projection matrices (non-oblique)
         // If the user overrides the projection matrix with an oblique one
         // He must also provide a callback to get the equivalent non oblique for the culling
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
-        Camera m_camera;
+        Camera m_Camera;
 
         public enum ClearColorMode
         {
@@ -172,10 +195,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
 
+        public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
+        public event RequestAccessDelegate requestGraphicsBuffer;
+
         internal float probeCustomFixedExposure = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
-        FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.defaultCamera;
+        FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
         public FrameSettingsRenderType defaultFrameSettings;
 
@@ -240,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnEnable()
         ///     {
-        ///         var aovRequest = new AOVRequest(AOVRequest.@default)
+        ///         var aovRequest = new AOVRequest(AOVRequest.NewDefault())
         ///             .SetLightFilter(m_DebugLightFilter);
         ///         if (m_DebugFullScreen != DebugFullScreen.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_DebugFullScreen);
@@ -362,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
                 m_CameraRegisterName = name;
-                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
+                if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
                 }
@@ -376,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (m_camera.cameraType != CameraType.Preview && m_camera?.cameraType != CameraType.Reflection)
+                if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
@@ -390,12 +416,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
-            m_camera = GetComponent<Camera>();
-            if (m_camera == null)
+            m_Camera = GetComponent<Camera>();
+            if (m_Camera == null)
                 return;
 
-            m_camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
-            m_camera.allowHDR = false;
+            m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
+            m_Camera.allowHDR = false;
 
             RegisterDebug();
 
@@ -443,6 +469,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 customRender(renderContext, hdCamera);
             }
+        }
+
+        internal BufferAccessType GetBufferAccess()
+        {
+            BufferAccess result = new BufferAccess();
+            requestGraphicsBuffer?.Invoke(ref result);
+            return result.bufferAccess;
+        }
+
+        public RTHandle GetGraphicsBuffer(BufferAccessType type)
+        {
+            HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
+            if ((type & BufferAccessType.Color) != 0)
+                return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+            else if ((type & BufferAccessType.Depth) != 0)
+                return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
+            else if ((type & BufferAccessType.Normal) != 0)
+                return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
+            else
+                return null;
         }
     }
 }

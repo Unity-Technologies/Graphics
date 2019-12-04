@@ -4,7 +4,7 @@ editors:
   - version: fast-trunk
     cmd: -u trunk --fast 
 platforms:
-  - name: Windows64
+  - name: Win
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
@@ -83,8 +83,9 @@ linux_apis:
 {% elsif platform.name == "OSX_OpenGLCore" %}
 
 {% for testplatform in testplatforms %}
-{{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}:
-  name : {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
+{% for win_api in win_apis %}
+{{ project.name }}_Win_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
+  name : {{ project.name }} on Win_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
   agent:
     type: {{ platform.type }}
     image: {{ platform.image }}      
@@ -206,7 +207,7 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "Linux" %}
   #skip
   
-  {% elsif platform.name == "Windows64" %}
+  {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
   {% if win_api.name == "Vulkan" %}
   #skip

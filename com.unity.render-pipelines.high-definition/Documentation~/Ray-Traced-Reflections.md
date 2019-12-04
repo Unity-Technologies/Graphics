@@ -29,7 +29,7 @@ Because this feature replaces the [Screen Space Reflection](Override-Screen-Spac
 
 Cameras use [Frame Settings](Frame-Settings.html) to decide how to render the Scene. To enable screen space reflection for your Cameras by default:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
 3. In the Lighting section, enable Screen Space Reflection.
 
@@ -43,7 +43,7 @@ All Cameras can now process screen space reflection unless they use custom [Fram
 Ray-Traced Reflections uses the [Volume](Volumes.html) framework, so to enable this feature, and modify its properties, you need to add a Screen Space Reflection override to a [Volume](Volumes.html) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to Add Override > Lighting and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
+2. In the Inspector, navigate to ****Add Override > Lighting**** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
 3. In the Inspector for the Screen Space Reflection Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html#TierTable).
 
 ## Properties

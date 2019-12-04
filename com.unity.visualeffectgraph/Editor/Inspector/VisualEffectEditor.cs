@@ -115,10 +115,12 @@ namespace UnityEditor.VFX
             m_RendererEditor = new RendererEditor(renderers);
 
             s_FakeObjectSerializedCache = new SerializedObject(targets[0]);
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         protected void OnDisable()
         {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
@@ -146,6 +148,11 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty,bool overrideMixed,bool valueMixed, out bool overriddenChanged)
         {
+            if (parameter.realType == typeof(Matrix4x4).Name)
+            {
+                overriddenChanged = false;
+                return false;
+            }
             EditorGUILayout.BeginHorizontal();
 
             var height = 16f;
@@ -510,7 +517,7 @@ namespace UnityEditor.VFX
             effect.playRate = rate;
         }
 
-        protected virtual void OnSceneGUI()
+        protected virtual void OnSceneViewGUI(SceneView sv)
         {
             SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
@@ -722,6 +729,14 @@ namespace UnityEditor.VFX
             {
                 EditorPrefs.SetBool(kGeneralFoldoutStatePreferenceName, newShowGeneralCategory);
                 showGeneralCategory = newShowGeneralCategory;
+            }
+            m_SingleSerializedObject.Update();
+            if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+            {
+                foreach (var serobj in m_OtherSerializedObjects)
+                {
+                    serobj.Update();
+                }
             }
 
             if(showGeneralCategory)

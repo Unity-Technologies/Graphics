@@ -2,8 +2,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-Texture2D _CameraDepthTexture;
 float3 _LightDirection;
 
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
@@ -97,7 +97,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LOAD_TEXTURE2D(_CameraDepthTexture, posSS.xy).r;
+    return LoadSceneDepth(uint2(posSS.xy));
 }
 
 float VFXLinearEyeDepth(float depth)
