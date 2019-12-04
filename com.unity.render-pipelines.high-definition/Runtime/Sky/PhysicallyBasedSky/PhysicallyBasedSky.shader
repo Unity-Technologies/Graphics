@@ -4,7 +4,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #define USE_PATH_SKY 1
     #define NUM_PATHS    4
-    #define NUM_BOUNCES 1
+    #define NUM_BOUNCES 2
 
     #pragma vertex Vert
 
@@ -382,7 +382,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         for (uint p = 0; p < numPaths; p++) // Iterate over paths
         {
             const uint numStrata   = (uint)sqrt(numPaths);
-            const uint permutation = positonSS.x ^ positonSS.y;
+            const uint permutation = positonSS.x | (positonSS.y << 16);
 
             // Sample the sensor.
             const float2 subPixel  = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]);
@@ -408,6 +408,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 float3 X =  O;
                 float3 D = -V; // Point away from the camera
                 float pathContribution = 0;
+                float monteCarloScore  = 1;
 
                 for (uint b = 0; b < numBounces; b++) // Step along the path
                 {
@@ -429,19 +430,19 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
 
                     float bounceWeight;
+
                     if (surfaceScatteringEvent)
                     {
                         float t = IntersectSphere(R, cosChi, r).x; // Assume we are outside
 
                         X += t * D;
 
-                        /* Shade the surface point (account for atmospheric attenuation). */
-                        bounceWeight = _GroundAlbedo[w] / PI;
-                        /* Pick a new direction for a Lambertian BRDF. */
+                        monteCarloScore *= _GroundAlbedo[w];     // Albedo = Brdf / Pdf(Brdf)
+                        bounceWeight     = monteCarloScore / PI; // * BRDF, NdotL is handled later
                     }
                     else // Volume scattering event
                     {
-                        bounceWeight           = surfaceContibution ? 1 : maxOpacity;
+                        monteCarloScore       *= surfaceContibution ? 1 : maxOpacity;
                         float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
@@ -454,8 +455,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         /* Shade the volume point (account for atmospheric attenuation). */
                         float volumeAlbedo = (_AirSeaLevelScattering / _AirSeaLevelExtinction)[w];
-                        bounceWeight *= volumeAlbedo / (4.0f * PI);
-                        /* Compute a new direction (uniformly for now). */
+
+                        monteCarloScore *= volumeAlbedo;
+                        bounceWeight     = monteCarloScore / (4.0f * PI); // * Phase function
                     }
 
                     float lightColor = 0;
@@ -467,7 +469,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     pathContribution += lightColor * bounceWeight;
 
-                    const float2 random2D = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[b]);
+                    const float2 random2D = cmj2D(p, 1, 1, permutation ^ s_RandomPrimes[b + 1]);
                     if (surfaceScatteringEvent)
                     {
                         /* Shade the surface point (account for atmospheric attenuation). */
