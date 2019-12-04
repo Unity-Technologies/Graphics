@@ -62,7 +62,10 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < outputSlots.Count(); ++i)
             {
                 slotValues.Add(GetSlotValue(outputSlots[i].id, generationMode, concretePrecision));
-                sb.AppendLine("{0} {1} = ({0})0;", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id));
+                if (FindSlot<MaterialSlot>(outputSlots[i].id) != null)
+                {
+                    sb.AppendLine("{0} {1} = ({0})0;", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id));
+                }
             }
 
             sb.Append("{0}(", GetFunctionName());
@@ -125,14 +128,16 @@ namespace UnityEditor.ShaderGraph
             // Store the edges
             Dictionary<MaterialSlot, List<IEdge>> inputEdgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
             foreach (MaterialSlot slot in inputSlots)
-                inputEdgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+            {
+                var edges = (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference);
+                inputEdgeDict.Add(slot, edges);
+            }
 
             // Remove old slots
             for (int i = 0; i < inputSlots.Count; i++)
             {
                 RemoveSlot(inputSlots[i].id);
             }
-
 
             // Get slots
             //List<MaterialSlot> outputSlots = new List<MaterialSlot>();
@@ -142,7 +147,10 @@ namespace UnityEditor.ShaderGraph
             // Store the edges
             Dictionary<MaterialSlot, List<IEdge>> outputEdgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
             foreach (MaterialSlot slot in outputSlots)
-                outputEdgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
+            {
+                var edges = (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference);
+                outputEdgeDict.Add(slot, edges);
+            }
 
             // Remove old slots
             for (int i = 0; i < outputSlots.Count; i++)
@@ -157,6 +165,7 @@ namespace UnityEditor.ShaderGraph
                 // Get slot based on entry id
                 MaterialSlot slot = inputSlots.Where(x =>
                 x.id == subDelegate.input_Entries[i].id &&
+                x.slotType == SlotType.Input &&
                 x.concreteValueType == subDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType() &&
                 x.RawDisplayName() == subDelegate.input_Entries[i].displayName &&
                 x.shaderOutputName == subDelegate.input_Entries[i].referenceName).FirstOrDefault();
@@ -176,6 +185,7 @@ namespace UnityEditor.ShaderGraph
                 // Get slot based on entry id
                 int newID = subDelegate.output_Entries[i].id + subDelegate.input_Entries.Count;
                 MaterialSlot slot = outputSlots.Where(x => x.id == newID &&
+                x.slotType == SlotType.Output &&
                 x.concreteValueType == subDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType() &&
                 x.RawDisplayName() == subDelegate.output_Entries[i].displayName &&
                 x.shaderOutputName == subDelegate.output_Entries[i].referenceName).FirstOrDefault();
@@ -193,7 +203,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(slotIds);
 
             // Reconnect the edges
-            /*foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in inputEdgeDict)
+            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in inputEdgeDict)
             {
                 foreach (IEdge edge in entry.Value)
                 {
@@ -208,7 +218,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     owner.Connect(edge.outputSlot, edge.inputSlot);
                 }
-            }*/
+            }
 
             ValidateNode();
         }
