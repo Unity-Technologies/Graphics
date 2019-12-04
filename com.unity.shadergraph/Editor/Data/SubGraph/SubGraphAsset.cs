@@ -38,7 +38,11 @@ namespace UnityEditor.ShaderGraph
 
         public ShaderGraphRequirements requirements;
 
+        public ShaderGraphRequirements subDelRequirements;
+
         public string path;
+
+        //public Dictionary<ShaderSubgraphDelegate, SubGraphNode> subgraphDelegateNodes = new Dictionary<ShaderSubgraphDelegate, SubGraphNode>();
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 

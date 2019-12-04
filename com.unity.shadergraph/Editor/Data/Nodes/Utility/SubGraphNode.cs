@@ -191,7 +191,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             var inputVariableName = $"_{GetVariableNameForNode()}";
-            
             SubShaderGenerator.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
             foreach (var outSlot in asset.outputs)
@@ -488,18 +487,36 @@ namespace UnityEditor.ShaderGraph
         void CreateSubgraphDelegateFunctions()
         {
             asset.subgraphDelegateFunctions.Clear();
+            asset.subDelRequirements = new ShaderGraphRequirements();
             foreach (int id in m_SubDelSlotIds)
             {
+                string guidstr = m_SubDelGuids[m_SubDelSlotIds.IndexOf(id)];
+                var sgdels = asset.subgraphDelegates.Where(x => x.guid.ToString() == guidstr);
                 var edges = owner.GetEdges(GetSlotReference(id));
                 if (edges.Count() > 0)
                 {
                     AbstractMaterialNode node = owner.GetNodeFromGuid(edges.First().outputSlot.nodeGuid);
                     if (node is SubGraphNode sgNode)
                     {
-                        WriteSubgraphDelegateFunction(sgNode, m_SubDelGuids[m_SubDelSlotIds.IndexOf(id)]);
+                        if (sgdels.Count() > 0)
+                        {
+                            sgdels.First().connectedNode = sgNode;
+                            //asset.subgraphDelegateNodes.Add(sgdels.First(), sgNode);
+                        }
+
+                        asset.subDelRequirements = asset.subDelRequirements.Union(sgNode.asset.requirements);
+                        WriteSubgraphDelegateFunction(sgNode, guidstr);
+                    }
+                }
+                else
+                {
+                    if (sgdels.Count() > 0)
+                    {
+                        sgdels.First().connectedNode = null;
                     }
                 }
             }
+            asset.requirements = asset.requirements.Union(asset.subDelRequirements);
         }
 
         void WriteSubgraphDelegateFunction(SubGraphNode sgNode, string delegateGuid)
@@ -516,6 +533,7 @@ namespace UnityEditor.ShaderGraph
             {
                 s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
             }
+            s.Append("{0} IN, ", sgNode.asset.inputStructName);
             for (int i = 0; i < currentDelegate.output_Entries.Count; i++)
             {
                 s.Append("inout {0} {1}", currentDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.output_Entries[i].referenceName);
