@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 - Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
 - subgraph block into subgraph context no longer forget parameter values.
+- Fix exception when compiling an asset with a turbulence block in absolute mode
 
 ## [7.1.1] - 2019-09-05
 ### Added
