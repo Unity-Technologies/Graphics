@@ -165,8 +165,11 @@ namespace UnityEditor.ShaderGraph
 
             registry.ProvideFunction(asset.functionName, sb =>
             {
-                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
-                sb.AppendNewLine();
+                if (asset.subgraphDelegates.Count() == 0)
+                {
+                    SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                    sb.AppendNewLine();
+                }
 
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();

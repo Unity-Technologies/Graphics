@@ -59,6 +59,7 @@ namespace UnityEditor.ShaderGraph
             {
                 slotValues.Add(GetSlotValue(inputSlots[i].id, generationMode, concretePrecision));
             }
+            slotValues.Add("IN");
             for (int i = 0; i < outputSlots.Count(); ++i)
             {
                 slotValues.Add(GetSlotValue(outputSlots[i].id, generationMode, concretePrecision));
@@ -95,6 +96,8 @@ namespace UnityEditor.ShaderGraph
                     if ((i < (inputSlots.Count() - 1)) || outputSlots.Count() > 0)
                         s.Append(", ");
                 }
+
+                s.Append("SurfaceDescriptionInputs IN, ");
 
                 for (int i = 0; i < outputSlots.Count(); ++i)
                 {

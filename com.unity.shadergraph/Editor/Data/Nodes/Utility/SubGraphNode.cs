@@ -418,7 +418,7 @@ namespace UnityEditor.ShaderGraph
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, subdel.displayName + "_CNCT", subdel.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
                 AddSlot(slot);
                 validNames.Add(id);
-                m_SubDelSlotIds.Add(id);
+                //m_SubDelSlotIds.Add(id);
             }
 
             var outputStage = asset.effectiveShaderStage;
@@ -488,6 +488,7 @@ namespace UnityEditor.ShaderGraph
         {
             asset.subgraphDelegateFunctions.Clear();
             asset.subDelRequirements = new ShaderGraphRequirements();
+            bool generatedInputStruct = false;
             foreach (int id in m_SubDelSlotIds)
             {
                 string guidstr = m_SubDelGuids[m_SubDelSlotIds.IndexOf(id)];
@@ -498,42 +499,121 @@ namespace UnityEditor.ShaderGraph
                     AbstractMaterialNode node = owner.GetNodeFromGuid(edges.First().outputSlot.nodeGuid);
                     if (node is SubGraphNode sgNode)
                     {
-                        if (sgdels.Count() > 0)
+                        /*if (sgdels.Count() > 0)
                         {
                             sgdels.First().connectedNode = sgNode;
                             //asset.subgraphDelegateNodes.Add(sgdels.First(), sgNode);
+                        }*/
+                        if (!generatedInputStruct)
+                        {
+                            WriteSubgraphDelegateInputStruct();
+                            generatedInputStruct = true;
                         }
-
                         asset.subDelRequirements = asset.subDelRequirements.Union(sgNode.asset.requirements);
                         WriteSubgraphDelegateFunction(sgNode, guidstr);
                     }
                 }
-                else
+                /*else
                 {
                     if (sgdels.Count() > 0)
                     {
                         sgdels.First().connectedNode = null;
                     }
-                }
+                }*/
             }
             asset.requirements = asset.requirements.Union(asset.subDelRequirements);
+
+        }
+        /*void TryWriteReplacementFunction()
+        {
+            try
+            {
+                //WriteSGDelegateReplacementFunction(graphData);
+            }
+            catch (Exception e)
+            {
+                //asset.isValid = false;
+                Debug.LogException(e, asset);
+            }
+        }
+
+        void WriteSGDelegateReplacementFunction(GraphData graph)
+        {
+            var outputNode = (SubGraphOutputNode)graph.outputNode;
+            List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
+
+            ShaderStringBuilder sb = new ShaderStringBuilder();
+            SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+            sb.AppendNewLine();
+
+            // Generate arguments... first INPUTS
+            var arguments = new List<string>();
+            foreach (var prop in asset.inputs)
+            {
+                prop.ValidateConcretePrecision(asset.graphPrecision);
+                arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+            }
+
+            // now pass surface inputs
+            arguments.Add(string.Format("{0} IN", asset.inputStructName));
+
+            // Now generate outputs
+            foreach (var output in asset.outputs)
+                arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
+
+            // Create the function prototype from the arguments
+            sb.AppendLine("void {0}({1})"
+                , asset.functionName
+                , arguments.Aggregate((current, next) => $"{current}, {next}"));
+
+            // now generate the function
+            using (sb.BlockScope())
+            {
+                // Just grab the body from the active nodes
+                foreach (var node in nodes)
+                {
+                    if (node is IGeneratesBodyCode generatesBodyCode)
+                    {
+                        sb.currentNode = node;
+                        generatesBodyCode.GenerateNodeCode(sb, GenerationMode.ForReals);
+                        sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                    }
+                }
+
+                foreach (var slot in asset.outputs)
+                {
+                    sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
+                }
+            }
+            asset.subgraphDelegateFunctions.Add(new FunctionPair(asset.functionName, sb.ToString()));
+        }*/
+
+        void WriteSubgraphDelegateInputStruct()
+        {
+            ShaderStringBuilder s = new ShaderStringBuilder();
+            SubShaderGenerator.GenerateSurfaceInputStruct(s, asset.requirements, asset.inputStructName);
+            s.AppendNewLine();
+            asset.subgraphDelegateFunctions.Add(new FunctionPair("delegate_input_struct", s.ToString()));
         }
 
         void WriteSubgraphDelegateFunction(SubGraphNode sgNode, string delegateGuid)
         {
+
             // If it mysteriously doesn't work, test this
             var matchingDelegates = asset.subgraphDelegates.Where(x => x.guid.ToString() == delegateGuid);
             if (matchingDelegates.Count() < 1) return;
             var currentDelegate = matchingDelegates.First();
             string delegateFunctionName = SubgraphDelegateNode.GetFunctionNameFromGuid(currentDelegate.guid);
             ShaderStringBuilder s = new ShaderStringBuilder();
+            //SubShaderGenerator.GenerateSurfaceInputStruct(s, asset.requirements, asset.inputStructName);
             s.Append("void {0}(", delegateFunctionName);
 
             for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
             {
                 s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
             }
-            s.Append("{0} IN, ", sgNode.asset.inputStructName);
+            s.Append("{0} IN, ", asset.inputStructName);
             for (int i = 0; i < currentDelegate.output_Entries.Count; i++)
             {
                 s.Append("inout {0} {1}", currentDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.output_Entries[i].referenceName);
