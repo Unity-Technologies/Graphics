@@ -399,18 +399,41 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void CreateHackweekBullcrapFile()
         {
-            string[] shaderInputToolstips;
-            int propertyCount = graphObject.graph.properties.Count();
-            int keywordCount = graphObject.graph.properties.Count();
+            List<AbstractShaderProperty> displayedProperties = graphObject.graph.properties.Where(prop => !prop.hidden).ToList();
+            List<ShaderKeyword> displayedKeywords = graphObject.graph.keywords.Where(key => key.isExposable && key.generatePropertyBlock).ToList();
+
+            int propertyCount = displayedProperties.Count();
+            int keywordCount = displayedKeywords.Count();
             string[] tooltips = new string[propertyCount + keywordCount];
             string[] headers = new string[propertyCount + keywordCount];
-            int p = 0;
-            int k = 0;
+            int p, k;
             for (p = 0; p < propertyCount; p++)
             {
-                // string tip = graphObject.graph.properties.tooltip;
+                tooltips[p] = displayedProperties[p].tooltip;
+                if (p % 3 == 0)
+                    headers[p] = "bool";
+                else
+                    headers[p] = null;
             }
-            // HackweekHacks.CreateShaderGUIInfo
+            for (k = 0; k < keywordCount; k++)
+            {
+                tooltips[k + propertyCount] = displayedKeywords[k].tooltip;
+                if ((k + propertyCount) % 3 == 0)
+                    headers[k + propertyCount] = "boolio";
+                else
+                    headers[k + propertyCount] = null;
+            }
+
+//            Debug.Log("propertyCount="+propertyCount+" keywordCount="+keywordCount);
+//            for (int x = 0; x < propertyCount + keywordCount; x++)
+//            {
+//                string t = tooltips[x] == null ? "null!" : tooltips[x];
+//                string h = headers[x] == null ? "null!" : headers[x];
+//
+//                Debug.Log("x(" + x + ") tooltips=" + t + "   headers=" + h);
+//            }
+
+            HackweekHacks.CreateShaderGUIInfo(tooltips, headers);
         }
 
         public void ToSubGraph()

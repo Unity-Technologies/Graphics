@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
-        public IEnumerable<AbstractShaderProperty> properties
+        public List<AbstractShaderProperty> properties
         {
             get { return m_Properties; }
         }
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
 
-        public IEnumerable<ShaderKeyword> keywords
+        public List<ShaderKeyword> keywords
         {
             get { return m_Keywords; }
         }
@@ -1330,13 +1330,13 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             var nodes = GetNodes<AbstractMaterialNode>().ToList();
-            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
-            m_Edges.Sort();
+            // m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }

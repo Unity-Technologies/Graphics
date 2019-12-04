@@ -31,24 +31,28 @@ namespace UnityEditor.Rendering.HighDefinition
         Expandable  m_ExpandableBit;
         Features    m_Features;
 
-        public ShaderGraphUIBlock(Expandable expandableBit = Expandable.ShaderGraph, Features features = Features.All)
+        string overrideHeader = null;
+
+        public ShaderGraphUIBlock(Expandable expandableBit = Expandable.ShaderGraph, Features features = Features.All, string header = null)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
+            overrideHeader = header;
         }
 
         public override void LoadMaterialProperties() {}
 
         public override void OnGUI()
         {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
+            string title = overrideHeader == null ? Styles.header : overrideHeader;
+            using (var header = new MaterialHeaderScope(title, (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)
                     DrawShaderGraphGUI();
             }
         }
 
-        MaterialProperty[]      oldProperties;
+        MaterialProperty[] oldProperties;
 
 		bool CheckPropertyChanged(MaterialProperty[] properties)
 		{
@@ -95,39 +99,43 @@ namespace UnityEditor.Rendering.HighDefinition
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset 
+            // If we change a property in a shadergraph, we trigger a material keyword reset
             if (CheckPropertyChanged(properties))
             {
                 foreach (var material in materials)
                     HDShaderUtils.ResetMaterialKeywords(material);
             }
 
-            if (properties.Length > 0)
-                EditorGUILayout.Space();
-
-            if ((m_Features & Features.DiffusionProfileAsset) != 0)
-                DrawDiffusionProfileUI();
-
-            if ((m_Features & Features.EnableInstancing) != 0)
-                materialEditor.EnableInstancingField();
-
-            if ((m_Features & Features.DoubleSidedGI) != 0)
-            {
-                // If the shader graph have a double sided flag, then we don't display this field.
-                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials[0].HasProperty(kDoubleSidedEnable))
-                    materialEditor.DoubleSidedGIField();
-            }
-
-            if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
-
-            if ((m_Features & Features.MotionVector) != 0)
-                DrawMotionVectorToggle();
+//            if (properties.Length > 0)
+//                EditorGUILayout.Space();
+//
+//            if ((m_Features & Features.DiffusionProfileAsset) != 0)
+//                DrawDiffusionProfileUI();
+//
+//            if ((m_Features & Features.EnableInstancing) != 0)
+//                materialEditor.EnableInstancingField();
+//
+//            if ((m_Features & Features.DoubleSidedGI) != 0)
+//            {
+//                // If the shader graph have a double sided flag, then we don't display this field.
+//                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
+//                if (!materials[0].HasProperty(kDoubleSidedEnable))
+//                    materialEditor.DoubleSidedGIField();
+//            }
+//
+//            if ((m_Features & Features.EmissionGI) != 0)
+//                DrawEmissionGI();
+//
+//            if ((m_Features & Features.MotionVector) != 0)
+//                DrawMotionVectorToggle();
         }
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
+//            Debug.Log("prop.length=" + properties.Length);
+//            foreach (MaterialProperty propers in properties)
+//                Debug.Log("    " + propers.displayName + " " + propers.name);
+
             for (var i = 0; i < properties.Length; i++)
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)

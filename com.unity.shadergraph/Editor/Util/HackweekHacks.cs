@@ -11,23 +11,52 @@ namespace UnityEditor.Graphing.Util
     {
         private const string HACK_PATH = "Assets/S/guiInfo.asset";
 
-        private class SG_ShaderGUIInfo : ScriptableObject
-        {
-            public string[] tooltips;
-            public string[] headers;
-        }
-
         public static void CreateShaderGUIInfo(string[] shaderTooltips, string[] shaderHeaders)
         {
             SG_ShaderGUIInfo guiInfo = new SG_ShaderGUIInfo();
+
+            if (shaderTooltips.Length != shaderHeaders.Length)
+            {
+                Debug.LogError("shaderTooltips.Length != shaderHeaders.Length");
+                return;
+            }
 
             guiInfo.tooltips = shaderTooltips;
             guiInfo.headers = shaderHeaders;
 
             AssetDatabase.CreateAsset(guiInfo, HACK_PATH);
             AssetDatabase.Refresh();
-            EditorUtility.FocusProjectWindow ();
-            Selection.activeObject = guiInfo;
+        }
+
+        public static void GatherTooltipsAndHeaders(out string[] tips, out string[] heads)
+        {
+            SG_ShaderGUIInfo guiInfo = AssetDatabase.LoadAssetAtPath<SG_ShaderGUIInfo>(HACK_PATH);
+            if (guiInfo == null)
+            {
+                Debug.LogError("SG_ShaderGUIInfo guiInfo Object Not Found!");
+                tips = null;
+                heads = null;
+                return;
+            }
+
+            int c = guiInfo.tooltips.Length;
+            if (c != guiInfo.headers.Length)
+            {
+                Debug.LogError("somehow... shaderTooltips.Length != shaderHeaders.Length");
+                tips = null;
+                heads = null;
+                return;
+            }
+
+            tips = new string[c];
+            heads = new string[c];
+            for (int x = 0; x < c; x++)
+            {
+                tips[x] = guiInfo.tooltips[x];
+                heads[x] = guiInfo.headers[x];
+            }
+
+            // guiInfo.PrintMe();
         }
 
         [MenuItem("Test/Test Creation of SG_ShaderGUIInfo")]
@@ -57,28 +86,13 @@ namespace UnityEditor.Graphing.Util
         private static void ReadTest()
         {
             SG_ShaderGUIInfo guiInfo = AssetDatabase.LoadAssetAtPath<SG_ShaderGUIInfo>(HACK_PATH);
-
             if (guiInfo == null)
             {
                 Debug.LogError("Object Not Found!");
                 return;
             }
 
-            foreach (string s in guiInfo.tooltips)
-            {
-                if (s != null)
-                    Debug.Log("tooltip: " + s);
-                else
-                    Debug.Log("null tooltip!");
-            }
-            foreach (string s in guiInfo.headers)
-            {
-                if (s != null)
-                    Debug.Log("header: " + s);
-                else
-                    Debug.Log("null header!");
-            }
-
+            // guiInfo.PrintMe();
         }
     }
 }
