@@ -67,7 +67,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
                 if (cameraData.isStereoEnabled)
-                    context.StartMultiEye(camera);
+                {
+                    context.StartMultiEye(camera, eyeIndex);
+                }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
