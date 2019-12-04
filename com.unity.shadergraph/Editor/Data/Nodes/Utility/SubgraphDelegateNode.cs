@@ -167,6 +167,10 @@ namespace UnityEditor.ShaderGraph
                 RemoveSlot(outputSlots[i].id);
             }
 
+            // Clear the lists again
+            inputSlots.Clear();
+            outputSlots.Clear();
+
             // Add input slots
             int[] slotIds = new int[subDelegate.input_Entries.Count + subDelegate.output_Entries.Count];
             for (int i = 0; i < subDelegate.input_Entries.Count; i++)
@@ -188,6 +192,7 @@ namespace UnityEditor.ShaderGraph
 
                 AddSlot(slot);
                 slotIds[i] = subDelegate.input_Entries[i].id;
+                inputSlots.Add(slot);
             }
             for (int i = 0; i < subDelegate.output_Entries.Count; i++)
             {
@@ -208,6 +213,7 @@ namespace UnityEditor.ShaderGraph
 
                 AddSlot(slot);
                 slotIds[i + subDelegate.input_Entries.Count] = newID;
+                outputSlots.Add(slot);
             }
             RemoveSlotsNameNotMatching(slotIds);
 
@@ -228,7 +234,7 @@ namespace UnityEditor.ShaderGraph
                     owner.Connect(edge.outputSlot, edge.inputSlot);
                 }
             }
-
+            
             ValidateNode();
         }
 
