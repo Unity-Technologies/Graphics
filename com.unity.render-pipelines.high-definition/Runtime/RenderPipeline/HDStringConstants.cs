@@ -518,6 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MultipleScatteringTexture         = Shader.PropertyToID("_MultipleScatteringTexture");
         public static readonly int _MultipleScatteringTable           = Shader.PropertyToID("_MultipleScatteringTable");
         public static readonly int _MultipleScatteringTableOrder      = Shader.PropertyToID("_MultipleScatteringTableOrder");
+        public static readonly int _SpectralTrackingTexture           = Shader.PropertyToID("_SpectralTrackingTexture");
 
         public static readonly int _PlanetaryRadius                   = Shader.PropertyToID("_PlanetaryRadius");
         public static readonly int _RcpPlanetaryRadius                = Shader.PropertyToID("_RcpPlanetaryRadius");

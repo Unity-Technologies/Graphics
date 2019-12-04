@@ -44,6 +44,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     TEXTURECUBE(_GroundAlbedoTexture);
     TEXTURECUBE(_GroundEmissionTexture);
     TEXTURECUBE(_SpaceEmissionTexture);
+    RW_TEXTURE2D_X(float4, _SpectralTrackingTexture);
 
     struct Attributes
     {
@@ -491,6 +492,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         }
 
+        _SpectralTrackingTexture[COORD_TEXTURE2D_X(positonSS)] = float4(color, 1.0f);
         return color;
     }
 

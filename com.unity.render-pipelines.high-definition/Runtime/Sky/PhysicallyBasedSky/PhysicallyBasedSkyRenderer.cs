@@ -30,6 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle[]                   m_GroundIrradianceTables;    // All orders, one order
         RTHandle[]                   m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
 
+        // Texture for accumulating spectral tracking data
+        RTHandle                     m_SpectralTrackingTexture;
+
         static ComputeShader         s_GroundIrradiancePrecomputationCS;
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
         static Material              s_PbrSkyMaterial;
@@ -66,6 +69,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return table;
         }
 
+        RTHandle AllocateSpectralTrackingTexture()
+        {
+            var table = RTHandles.Alloc(width: 4096, height: 4096, // TODO: get HDCamera.actualWidth,actualHeight
+                                        colorFormat: s_ColorFormat,
+                                        enableRandomWrite: true,
+                                        name: string.Format("SpectralTrackingTexture"));
+            Debug.Assert(table != null);
+            return table;
+        }
+
         public PhysicallyBasedSkyRenderer()
         {
         }
@@ -92,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InScatteredRadianceTables[0] = AllocateInScatteredRadianceTable(0);
             m_InScatteredRadianceTables[1] = AllocateInScatteredRadianceTable(1);
             m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
+
+            m_SpectralTrackingTexture = AllocateSpectralTrackingTexture();
         }
 
         public override void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky, Vector3 cameraPositionWS)
@@ -123,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InScatteredRadianceTables[2]); m_InScatteredRadianceTables[2] = null;
             RTHandles.Release(m_InScatteredRadianceTables[3]); m_InScatteredRadianceTables[3] = null;
             RTHandles.Release(m_InScatteredRadianceTables[4]); m_InScatteredRadianceTables[4] = null;
+            RTHandles.Release(m_SpectralTrackingTexture);      m_SpectralTrackingTexture      = null;
 
             m_LastPrecomputedBounce = 0;
         }
@@ -366,6 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
+            s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpectralTrackingTexture, m_SpectralTrackingTexture);
 
             if (m_LastPrecomputedBounce != 0)
             {
