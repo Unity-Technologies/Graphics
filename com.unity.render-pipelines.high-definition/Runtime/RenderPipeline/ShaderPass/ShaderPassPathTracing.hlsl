@@ -67,8 +67,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         {
             float3 result = 1.0;
             ScatteringResult scatteringResult = ScatteringWalk(bsdfData, rayIntersection, positionWS, viewWS, result);
-            rayIntersection.color = result;
-            return;
+
             // Create a ray descriptor for the next ray
             RayDesc rayDescriptor;
             rayDescriptor.Origin = scatteringResult.outputPosition + scatteringResult.outputNormal * _RaytracingRayBias;

@@ -14,7 +14,7 @@ float3 SamplePhaseFunction(real u1, real u2, float g, out float outPDF)
     return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
 }
 
-void RemapSubSurfaceScatteringParameters(float3 albedo, float radius, out float3 sigmaT, out float3 sigmaS)
+void RemapSubSurfaceScatteringParameters(float3 albedo, float3 radius, out float3 sigmaT, out float3 sigmaS)
 {
     float3 a = 1.0f - exp(albedo * (-5.09406f + albedo * (2.61188f - albedo * 4.31805f)));
     float3 s = 1.9f - albedo + 3.5f * (albedo - 0.8f) * (albedo - 0.8f);
@@ -60,9 +60,9 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
 {
     float3 sigmaS;
     float3 sigmaT;
-    RemapSubSurfaceScatteringParameters(bsdfData.diffuseColor, bsdfData.transmittanceCoeff, sigmaT, sigmaS);
+    RemapSubSurfaceScatteringParameters(bsdfData.diffuseColor, bsdfData.transmittanceCoeff.x*bsdfData.diffuseColor, sigmaT, sigmaS);
     //pathThroughput = SafeDivide(1.0, bsdfData.scatteringCoeff);
-    // i love big butts, however. i cannot lie.
+
     ScatteringResult result;
     result.hit = false;
 
@@ -119,8 +119,8 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         {
             // If it's the first sample, the surface is considered lambertian
             sampleDir = normalize(SampleHemisphereCosine(dir0Rnd, dir1Rnd, -bsdfData.normalWS));
-            samplePDF = dot(sampleDir, -bsdfData.geomNormalWS);
-            rayOrigin = positionWS - bsdfData.geomNormalWS * 0.0001;
+            samplePDF = dot(sampleDir, -bsdfData.normalWS);
+            rayOrigin = positionWS - bsdfData.normalWS * 0.0001;
         }
 
         // Now that we have all the info for throwing our ray
@@ -151,16 +151,20 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         // Contribute to the throughput
         pathThroughput *= (result.hit ? transmittance : sigmaS * transmittance) / (pdf);
 
+        if (result.hit && walkIdx == 0)
+        {
+            pathThroughput *= bsdfData.diffuseColor;
+        }
+
+        // 
         // Compute the next path position
         currentPathPosition = currentPathPosition + sampleDir * t;
         result.outputNormal = internalRayIntersection.normal;
-        
+
+
         // increment the path
         walkIdx++;
     }
-
-    pathThroughput = walkIdx / (float)maxWalkSteps;
-    return result;
 
     if (!result.hit)
         pathThroughput = float3(0.0, 0.0, 0.0);
