@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -256,6 +257,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
+        public bool IsVolumetricReprojectionEnabled()
+        {
+            return Application.isPlaying && camera.cameraType == CameraType.Game &&
+                   frameSettings.IsEnabled(FrameSettingsField.Volumetrics) &&
+                   frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+        }
+
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
@@ -275,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
-                bool isVolumetricHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && m_frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+                bool isVolumetricHistoryRequired   = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
                 if (isCurrentColorPyramidRequired)
@@ -302,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         colorPyramidHistoryIsValid = false;
                     }
 
-                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired, RTHandles.defaultRTHandleSystem);
+                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired);
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
@@ -354,14 +362,25 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, m_msaaSamples);
         }
 
+        void SetupCurrentMaterialQuality(CommandBuffer cmd)
+        {
+            var asset = HDRenderPipeline.currentAsset;
+            MaterialQuality availableQualityLevels = asset.availableMaterialQualityLevels;
+            MaterialQuality currentMaterialQuality = frameSettings.materialQuality == (MaterialQuality)0 ? asset.defaultMaterialQualityLevel : frameSettings.materialQuality;
+
+            availableQualityLevels.GetClosestQuality(currentMaterialQuality).SetGlobalShaderKeywords(cmd);
+        }
+
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
-        public void BeginRender()
+        public void BeginRender(CommandBuffer cmd)
         {
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.SwapAndSetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
+
+            SetupCurrentMaterialQuality(cmd);
         }
 
         void UpdateAntialiasing()
@@ -534,7 +553,9 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize);
+
+            var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
 
             if (updatePreviousFrameConstants)
             {
@@ -637,18 +658,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 volumeAnchor = camera.transform;
         }
 
-        public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        public void GetPixelCoordToViewDirWS(Vector4 resolution, float aspect, ref Matrix4x4[] transforms)
         {
             if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
-                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution);
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution, aspect);
                 }
             }
             else
             {
-                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution);
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution, aspect);
             }
         }
 
@@ -710,7 +738,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return proj;
         }
 
-        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution)
+        /// <summary>
+        /// Compute the matrix from screen space (pixel) to world space direction (RHS).
+        ///
+        /// You can use this matrix on the GPU to compute the direction to look in a cubemap for a specific
+        /// screen pixel.
+        /// </summary>
+        /// <param name="viewConstants"></param>
+        /// <param name="resolution">The target texture resolution.</param>
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        /// <returns></returns>
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
@@ -726,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
         }
 
         // Warning: different views can use the same camera!

@@ -15,16 +15,28 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
         private StripTilingMode tilingMode = StripTilingMode.Stretch;
+
+        [VFXSetting, SerializeField, Tooltip("When enabled, uvs for the strips are swapped.")]
+        protected bool swapUV = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
+        private bool UseCustomZAxis = false;
 
         public class NormalBendingProperties
         {
-            [Range(0, 1)]
-            public float bentNormalFactor = 0.1f;
+            [Range(0, 1), Tooltip("Controls the amount by which the normals will be bent, creating a rounder look.")]
+            public float normalBendingFactor = 0.1f;
+        }
+
+        public class CustomUVInputProperties
+        {
+            [Tooltip("Specifies the texture coordinate value (u or v depending on swap UV being enabled) used along the strip.")]
+            public float texCoord = 0.0f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -34,6 +46,8 @@ namespace UnityEditor.VFX
                 var properties = base.inputProperties;
                 if (normalBending)
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
+                if (tilingMode == StripTilingMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
                 return properties;
             }
         }
@@ -68,7 +82,9 @@ namespace UnityEditor.VFX
                 yield return exp;
 
             if (normalBending)
-                yield return slotExpressions.First(o => o.name == "bentNormalFactor");
+                yield return slotExpressions.First(o => o.name == "normalBendingFactor");
+            if (tilingMode == StripTilingMode.Custom)
+                yield return slotExpressions.First(o => o.name == "texCoord");
         }
 
         public override IEnumerable<string> additionalDefines
@@ -83,6 +99,16 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+                else if (tilingMode == StripTilingMode.RepeatPerSegment)
+                    yield return "VFX_STRIPS_UV_PER_SEGMENT";
+
+                if (swapUV)
+                    yield return "VFX_STRIPS_SWAP_UV";
+
+                if (UseCustomZAxis)
+                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
+
+                yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }

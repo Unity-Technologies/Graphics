@@ -8,7 +8,7 @@ struct ps_input
 	// y: alpha threshold
 	nointerpolation float2 builtInInterpolants : TEXCOORD1;
 	#endif
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD2;
 	float4 cPosNonJiterred : TEXCOORD3;
 	#endif
@@ -20,15 +20,25 @@ struct ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
 #undef VFX_USE_RIM_LIGHT
 
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#else
+${VFXPassDepthDefine}
+#endif
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
-	
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
 #pragma fragment frag
 float4 frag(ps_input i) : SV_Target0
 {
@@ -36,10 +46,14 @@ float4 frag(ps_input i) : SV_Target0
 	VFXTransformPSInputs(i);
 	float alpha = VFXGetFragmentColor(i).a;
 	VFXClipFragmentColor(alpha,i);
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		return encodedMotionVector;
-	#else
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+		return float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 		return (float4)0;
+	#else
+		#error VFX_PASSDEPTH undefined
 	#endif
 }

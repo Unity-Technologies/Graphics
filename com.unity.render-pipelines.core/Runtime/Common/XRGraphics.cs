@@ -1,6 +1,9 @@
 using System;
 using UnityEditor;
+
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -44,7 +47,14 @@ namespace UnityEngine.Rendering
         // TryEnable gets updated before "play" is pressed- we use this for updating GUI only.
         public static bool tryEnable
         {
-            get { return PlayerSettings.virtualRealitySupported; }
+            get
+            {
+            #if UNITY_2020_1_OR_NEWER
+                return false;
+            #else
+                return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
+            #endif
+            }
         }
 #endif
 

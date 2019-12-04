@@ -6,43 +6,67 @@
 
 using System;
 using System.Collections.Generic;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    internal struct XRPassCreateInfo
+    {
+        public int multipassId;
+        public int cullingPassId;
+        public RenderTexture renderTarget;
+        public ScriptableCullingParameters cullingParameters;
+        public XRPass.CustomMirrorView customMirrorView;
+    }
+
+    internal struct XRViewCreateInfo
+    {
+        public Matrix4x4 projMatrix;
+        public Matrix4x4 viewMatrix;
+        public Rect viewport;
+        public int textureArraySlice;
+    }
+
     internal struct XRView
     {
         internal readonly Matrix4x4 projMatrix;
         internal readonly Matrix4x4 viewMatrix;
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
+        internal readonly int textureArraySlice;
         internal readonly Camera.StereoscopicEye legacyStereoEye;
 
-        internal XRView(Camera camera, Camera.StereoscopicEye eye)
+        internal XRView(Camera camera, Camera.StereoscopicEye eye, int dstSlice)
         {
             projMatrix = camera.GetStereoProjectionMatrix(eye);
             viewMatrix = camera.GetStereoViewMatrix(eye);
             viewport = camera.pixelRect;
             occlusionMesh = null;
+            textureArraySlice = dstSlice;
             legacyStereoEye = eye;
         }
 
-        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp)
+        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
             projMatrix = proj;
             viewMatrix = view;
             viewport = vp;
             occlusionMesh = null;
+            textureArraySlice = dstSlice;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
             viewMatrix = renderParameter.view;
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
+            textureArraySlice = renderParameter.textureArraySlice;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
 
             // Convert viewport from normalized to screen space
@@ -60,10 +84,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
+        internal bool copyDepth    { get; private set; }
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
-        internal int dstSliceIndex  { get; private set; }
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
@@ -72,38 +96,44 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
 
         // Access to view information
-        internal Matrix4x4 GetProjMatrix(int viewIndex = 0) { return views[viewIndex].projMatrix; }
-        internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
-        internal Rect GetViewport(int viewIndex = 0)        { return views[viewIndex].viewport; }
+        internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
+        internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
+        internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
+        internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
 
-        // Instanced views support (instanced draw calls or multiview extension)
+        // Single-pass rendering support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }
         internal bool singlePassEnabled { get => viewCount > 1; }
 
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
 
+        // Ability to override mirror view behavior for each pass
+        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
+        CustomMirrorView customMirrorView = null;
+        internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
+
         // Legacy multipass support
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
-        internal static XRPass Create(int multipassId, int cullingPassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
+        internal static XRPass Create(XRPassCreateInfo createInfo)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
-            passInfo.multipassId = multipassId;
-            passInfo.cullingPassId = cullingPassId;
-            passInfo.cullingParams = cullingParameters;
-            passInfo.dstSliceIndex = -1;
+            passInfo.multipassId = createInfo.multipassId;
+            passInfo.cullingPassId = createInfo.cullingPassId;
+            passInfo.cullingParams = createInfo.cullingParameters;
+            passInfo.customMirrorView = createInfo.customMirrorView;
             passInfo.views.Clear();
 
-            if (rt != null)
+            if (createInfo.renderTarget != null)
             {
-                passInfo.renderTarget = new RenderTargetIdentifier(rt);
-                passInfo.renderTargetDesc = rt.descriptor;
+                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget);
+                passInfo.renderTargetDesc = createInfo.renderTarget.descriptor;
             }
             else
             {
@@ -113,34 +143,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passInfo.occlusionMeshMaterial = null;
             passInfo.xrSdkEnabled = false;
+            passInfo.copyDepth = false;
 
             return passInfo;
         }
 
-        internal void AddView(Camera camera, Camera.StereoscopicEye eye)
+        internal void AddView(Camera camera, Camera.StereoscopicEye eye, int textureArraySlice = -1)
         {
-            AddViewInternal(new XRView(camera, eye));
+            AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
-        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp)
+        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
         {
-            AddViewInternal(new XRView(proj, view, vp));
+            AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
         }
 
-#if ENABLE_XR_MODULE
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, int textureArraySlice, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
-            passInfo.dstSliceIndex = textureArraySlice;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
             passInfo.occlusionMeshMaterial = occlusionMeshMaterial;
             passInfo.xrSdkEnabled = true;
+            passInfo.copyDepth = xrRenderPass.shouldFillOutDepth;
+            passInfo.customMirrorView = null;
 
             Debug.Assert(passInfo.renderTargetValid, "Invalid render target from XRDisplaySubsystem!");
 
@@ -240,6 +272,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
                     renderContext.StereoEndRender(hdCamera.camera);
+            }
+
+            // Callback for custom mirror view
+            if (customMirrorView != null)
+            {
+                using (new ProfilingSample(cmd, "XR Custom Mirror View"))
+                {
+                    customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.camera.pixelRect);
+                }
             }
         }
 

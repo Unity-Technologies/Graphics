@@ -435,6 +435,16 @@ real3 LogCToLinear(real3 x)
 // Utilities
 //-----------------------------------------------------------------------------
 
+real3 Desaturate(real3 value, real saturation)
+{
+    // Saturation = Colorfulness / Brightness.
+    // https://munsell.com/color-blog/difference-chroma-saturation/
+    real  mean = Avg3(value.r, value.g, value.b);
+    real3 dev  = value - mean;
+
+    return mean + dev * saturation;
+}
+
 // Fast reversible tonemapper
 // http://gpuopen.com/optimized-reversible-tonemapper-for-resolve/
 real FastTonemapPerChannel(real c)
@@ -491,7 +501,7 @@ real4 FastTonemapInvert(real4 c)
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
 real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffset)
-{    
+{
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
 }

@@ -20,8 +20,8 @@ namespace UnityEditor.VFX
         [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded.")]
-        public bool useAlphaClipping = false;
+        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
+        protected bool useAlphaClipping = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
         protected bool generateMotionVector = false;
@@ -37,6 +37,8 @@ namespace UnityEditor.VFX
                     && generateMotionVector;
             }
         }
+
+        public virtual bool hasAlphaClipping => useAlphaClipping;
 
         public virtual bool implementsMotionVector { get { return false; } }
 

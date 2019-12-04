@@ -71,7 +71,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = _EnableSkyLighting.x != 0 ? 1.0 : 0.0;
+    output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -365,10 +365,16 @@ void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
     UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
 }
 
-float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
+void InvalidateConctactShadow(PositionInputs posInput, inout LightLoopContext context)
+{
+    context.contactShadowFade = 0.0;
+    context.contactShadow = 0;
+}
+
+float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask, float rayTracedShadow)
 {
     bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
-    return 1.0 - (occluded * lightLoopContext.contactShadowFade);
+    return 1.0 - occluded * lerp(lightLoopContext.contactShadowFade, 1.0, rayTracedShadow) * _ContactShadowOpacity;
 }
 
 float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)

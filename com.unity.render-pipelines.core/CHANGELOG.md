@@ -4,11 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
+
+### Added
+- Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
-- Only call SetDirty on an object when actually modifying it in SRP updater utility 
+- Only call SetDirty on an object when actually modifying it in SRP updater utility
+- Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
+- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
+- Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+
+### Fixed
+- Fixed compile errors for platforms with no VR support
+- Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
+- Fixed LighProbes when using LookDev.
+- Fix LookDev minimal window size.
+- Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
 
 ## [7.1.1] - 2019-09-05
 
