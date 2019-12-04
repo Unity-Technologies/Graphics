@@ -9,15 +9,16 @@ RW_TEXTURE2D_X(uint, _ScratchBuffer);       // Unused!
 * VARIANCE_ESTIMATE 1: Variance computation using exponential moving average, recommended in PICA PICA:
 * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
 * VARIANCE_ESTIMATE 2: Variance computation using classic running average (more stable but slower convergence??)
+* VARIANCE_ESTIMATE 3: Welford's online algorithm https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
 */
-#define VARIANCE_ESTIMATE   1
+#define VARIANCE_ESTIMATE   3
 #define MIN_ITERATIONS      32
 #define VARIANCE_THRESHOLD  0.001
-#define HYSTERISIS          0.15
+#define HYSTERISIS          0.1
 #define FILTER_RADIUS       2             // 0 disables variance filtering. A value of 2 creates a filter with a footprint of 5x5 pixels
 #define FILTER_SHARPNESS    1.0
 #define HEATMAP_MAX         0.05          // This value only affects the visualization
-#define FILTER_FUNC         MaxFilter
+#define FILTER_FUNC         BoxFilter
 #define ENABLE_ADAPTIVE_SAMPLING
 #define USE_GAMMA_SPACE
 #define ENABLE_HEATMAP
@@ -73,6 +74,16 @@ void UpdatePerPixelVariance(uint2 currentPixelCoord, float3 colorIn)
         _VarianceTexture[crd].x = (_VarianceTexture[crd].x * (_RaytracingFrameIndex - 1) + L) / _RaytracingFrameIndex;
         _VarianceTexture[crd].y = (_VarianceTexture[crd].y * (_RaytracingFrameIndex - 1) + L * L) / _RaytracingFrameIndex;
     }
+#elif (VARIANCE_ESTIMATE == 3)
+    // Welford's online algorithm
+    if (_RaytracingFrameIndex > 0)
+    {
+        float delta = L - _VarianceTexture[crd].x;
+        _VarianceTexture[crd].x += delta / _RaytracingFrameIndex;
+        float delta2 = L - _VarianceTexture[crd].x;
+        _VarianceTexture[crd].y += delta * delta2;
+    }
+
 #endif
 }
 
@@ -90,6 +101,11 @@ float EstimateUnfilteredVariance(uint2 currentPixelCoord)
         value = 100 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
 #elif (VARIANCE_ESTIMATE == 2)
         value = abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
+#elif (VARIANCE_ESTIMATE == 3)
+        if (_RaytracingFrameIndex > 0)
+        {
+            value = _VarianceTexture[crd].y / _RaytracingFrameIndex;
+        }
 #endif
     }
     return value; 
