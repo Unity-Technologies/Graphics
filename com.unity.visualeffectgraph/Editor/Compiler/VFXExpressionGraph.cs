@@ -41,7 +41,6 @@ namespace UnityEditor.VFX
 
         private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, VFXDeviceTarget target)
         {
-            HashSet<VFXExpression> expressions = new HashSet<VFXExpression>();
             var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
             var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
@@ -54,7 +53,6 @@ namespace UnityEditor.VFX
                 {
                     foreach (var exp in mapper.expressions)
                         expressionContext.RegisterExpression(exp);
-                    expressions.UnionWith(mapper.expressions);
                     contextsToExpressions.Add(context, mapper);
                 }
             }
@@ -62,7 +60,8 @@ namespace UnityEditor.VFX
             expressionContext.Compile();
 
             foreach (var exp in expressionContext.RegisteredExpressions)
-                expressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+                if (!expressionsToReduced.ContainsKey(exp)) //TODOPAUL (could compile twice the same branch, it's now expected)
+                    expressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
 
             m_Expressions.UnionWith(expressionContext.BuildAllReduced());
 
@@ -139,13 +138,15 @@ namespace UnityEditor.VFX
                 m_GPUExpressionsToReduced.Clear();
                 m_CPUExpressionsToReduced.Clear();
 
-                //TODOPAUL
-                var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
-                var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
+                //TODOPAUL : explain why we should keep compilation ordering in this PR
+                foreach (var context in contexts)
+                {
+                    var currentOptions = options;
+                    if (context.contextType == VFXContextType.Spawner)
+                        currentOptions = options | VFXExpressionContextOption.DoSomeMagicForSpawner;
+                    CompileExpressionContext(new[] { context }, currentOptions, VFXDeviceTarget.CPU);
+                }
 
-                //TODOPAUL I changed context order compilation, could break spawner chaining, do it differently !
-                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.DoSomeMagicForSpawner, VFXDeviceTarget.CPU);
-                CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
