@@ -518,6 +518,8 @@ namespace UnityEditor.VFX
                     m_Flags |= (parent.m_Flags & (Flags.NotCompilableOnCPU));
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+                    if (parent.Is(Flags.PerSpawn))
+                        m_Flags |= Flags.PerSpawn;
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;

@@ -382,7 +382,24 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        private static VFXEditorTaskDesc[] BuildEditorTaksDescFromBlock(IEnumerable<VFXBlock> blocks, VFXContextCompiledData contextData, VFXExpressionGraph graph)
+        private static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
+        {
+            if (processed.Contains(entry))
+                return;
+
+            foreach (var parent in entry.parents)
+                CollectParentExpressionRecursively(parent, processed);
+
+            processed.Add(entry);
+        }
+
+        private class ProcessChunk
+        {
+            public int startIndex;
+            public int endIndex;
+        }
+
+        private static VFXEditorTaskDesc[] BuildEditorTaksDescFromBlockSpawner(IEnumerable<VFXBlock> blocks, VFXContextCompiledData contextData, VFXExpressionGraph graph)
         {
             var taskDescList = new List<VFXEditorTaskDesc>();
 
@@ -402,15 +419,71 @@ namespace UnityEditor.VFX
                 {
                     throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
                 }
-                
-                var cpuExpression = contextData.cpuMapper.CollectExpression(index, false).Select(o =>
+
+                var mappingList = new List<VFXMapping>();
+                var expressionPerSpawnToProcess = new List<VFXExpression>();
+                foreach (var namedExpression in contextData.cpuMapper.CollectExpression(index, false))
                 {
-                    return new VFXMapping
+                    mappingList.Add(new VFXMapping()
                     {
-                        index = graph.GetFlattenedIndex(o.exp),
-                        name = o.name
+                        index = graph.GetFlattenedIndex(namedExpression.exp),
+                        name = namedExpression.name
+                    });
+
+                    if (namedExpression.exp.Is(VFXExpression.Flags.PerSpawn))
+                        expressionPerSpawnToProcess.Add(namedExpression.exp);
+                }
+
+                if (expressionPerSpawnToProcess.Any())
+                {
+                    var allExpressions = new HashSet<VFXExpression>();
+                    foreach (var expression in expressionPerSpawnToProcess)
+                        CollectParentExpressionRecursively(expression, allExpressions);
+
+                    var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
+                    var processChunk = new List<ProcessChunk>();
+
+                    int previousIndex = int.MinValue;
+                    foreach (var indice in expressionIndexes)
+                    {
+                        if (indice != previousIndex + 1)
+                            processChunk.Add(new ProcessChunk()
+                            {
+                                startIndex = indice,
+                                endIndex = indice + 1
+                            });
+                        else
+                            processChunk.Last().endIndex = indice + 1;
+                        previousIndex = indice;
+                    }
+
+                    var preProcessTask = new VFXEditorTaskDesc
+                    {
+                        type = UnityEngine.VFX.VFXTaskType.PreProcessExpression,
+                        buffers = new VFXMapping[0],
+                        values = processChunk.SelectMany((o, i) =>
+                        {
+                            var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
+                            return new[]
+                            {
+                                new VFXMapping
+                                {
+                                    name = "start_" + prefix,
+                                    index = o.startIndex
+                                },
+                                new VFXMapping
+                                {
+                                    name = "end_" + prefix,
+                                    index = o.endIndex
+                                }
+                            };
+
+                        }).ToArray(),
+                        parameters = contextData.parameters,
+                        externalProcessor = null
                     };
-                }).ToArray();
+                    taskDescList.Add(preProcessTask);
+                }
 
                 Object processor = null;
                 if (spawnerBlock.customBehavior != null)
@@ -434,7 +507,7 @@ namespace UnityEditor.VFX
                 {
                     type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
                     buffers = new VFXMapping[0],
-                    values = cpuExpression.ToArray(),
+                    values = mappingList.ToArray(),
                     parameters = contextData.parameters,
                     externalProcessor = processor
                 });
@@ -511,7 +584,7 @@ namespace UnityEditor.VFX
                     name = nativeName,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
-                    tasks = BuildEditorTaksDescFromBlock(spawnContext.activeFlattenedChildrenWithImplicit, contextData, graph)
+                    tasks = BuildEditorTaksDescFromBlockSpawner(spawnContext.activeFlattenedChildrenWithImplicit, contextData, graph)
                 });
             }
         }
