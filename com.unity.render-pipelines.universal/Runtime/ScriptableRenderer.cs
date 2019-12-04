@@ -94,6 +94,9 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+
+        bool m_FirstCameraRenderPassExecuted = false;
+
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
         bool m_FirstTimeStereoTargetIsBound = true;
@@ -388,9 +391,11 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
-            m_FirstTimeCameraColorTargetIsBound = true;
-            m_FirstTimeCameraDepthTargetIsBound = true;
-            m_FirstTimeStereoTargetIsBound = true;
+            m_FirstCameraRenderPassExecuted = false;
+
+            //m_FirstTimeCameraColorTargetIsBound = true;
+            //m_FirstTimeCameraDepthTargetIsBound = true;
+            //m_FirstTimeStereoTargetIsBound = true;
             m_InsideStereoRenderBlock = false;
             m_ActiveRenderPassQueue.Clear();
         }
@@ -512,9 +517,51 @@ namespace UnityEngine.Rendering.Universal
                         SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
                     }
                 }
+
+
+
+
+
+                {
+
+
+                    // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states
+                    // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+
+                    if (firstTimeStereo && cameraData.isStereoEnabled && m_FirstTimeStereoTargetIsBound)
+                    {
+                        m_FirstTimeStereoTargetIsBound = false;
+
+                        // The following call alters internal renderer states (we can think of some of the states as global states).
+                        // So any cmd recorded before must be executed before calling into that built-in call.
+                        context.StartMultiEye(camera);
+                        XRUtils.DrawOcclusionMesh(cmd, camera);
+                    }
+
+                    renderPass.Execute(context, ref renderingData);
+
+
+
+                }
+
+
+
+
+
+
+
+
             }
             else
             {
+
+
+#if false    // Code from universal/mrt branch
+
+
+
                 // Currently in non-MRT case, color attachment can actually be a depth attachment.
 
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
@@ -570,24 +617,63 @@ namespace UnityEngine.Rendering.Universal
                 // Only setup render target if current render pass attachments are different from the active ones
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+
+
+#else       // Code from master
+
+
+                //CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+                //renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+
+                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+                RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+                //ref CameraData cameraData = ref renderingData.cameraData;
+
+                // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+                // which might be backbuffer or the framebuffer render textures.
+                if (!renderPass.overrideCameraTarget)
+                {
+                    passColorAttachment = m_CameraColorTarget;
+                    passDepthAttachment = m_CameraDepthTarget;
+                }
+
+                if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+                {
+                    m_FirstCameraRenderPassExecuted = true;
+
+                    //Camera camera = cameraData.camera;
+                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
+                    // Overlay cameras composite on top of previous ones. They don't clear.
+                    // MTT: Commented due to not implemented yet
+                    //                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+                    //                    clearFlag = ClearFlag.None;
+
+                    SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+                        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    if (cameraData.isStereoEnabled)
+                    {
+                        context.StartMultiEye(cameraData.camera);
+                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    }
+                }
+
+                // Only setup render target if current render pass attachments are different from the active ones
+                else if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment)
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+
+                renderPass.Execute(context, ref renderingData);
+
+#endif
             }
 
-            // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states
-            // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-
-            if (firstTimeStereo && cameraData.isStereoEnabled && m_FirstTimeStereoTargetIsBound)
-            {
-                m_FirstTimeStereoTargetIsBound = false;
-
-                // The following call alters internal renderer states (we can think of some of the states as global states).
-                // So any cmd recorded before must be executed before calling into that built-in call.
-                context.StartMultiEye(camera);
-                XRUtils.DrawOcclusionMesh(cmd, camera);
-            }
-
-            renderPass.Execute(context, ref renderingData);
         }
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
