@@ -73,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPreRenderPostProcess;
+        public static event Action<Camera, RenderTexture> OnScreenshotCapture;
 
         private void InitializeExternalCallbacks()
         {
@@ -1611,6 +1612,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         CommandBufferPool.Release(cmd);
                         renderContext.Submit();
+
+                        // custom-begin:
+                        if (renderRequest.target.copyToTarget != null)
+                            Graphics.SetRenderTarget(renderRequest.target.copyToTarget);
+
+                        if (OnScreenshotCapture != null)
+                            OnScreenshotCapture(renderRequest.hdCamera.camera, renderRequest.target.copyToTarget);
+                        // custom-end
                     }
                 }
             }
