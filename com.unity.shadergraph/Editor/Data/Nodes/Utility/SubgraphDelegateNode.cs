@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                 slotValues.Add(GetSlotValue(outputSlots[i].id, generationMode, concretePrecision));
                 if (FindSlot<MaterialSlot>(outputSlots[i].id) != null)
                 {
-                    sb.AppendLine("{0} {1} = ({0})0;", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id));
+                    sb.AppendLine("{0} {1} = {2};", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id), outputSlots[i].GetDefaultValue(generationMode));
                 }
             }
 
