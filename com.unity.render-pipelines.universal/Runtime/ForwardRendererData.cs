@@ -48,6 +48,12 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/XR/XROcclusionMesh.shader")]
+            public Shader xrOcclusionMeshPS;
+
+            [Reload("Shaders/XR/XRMirrorView.shader")]
+            public Shader xrMirrorViewPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

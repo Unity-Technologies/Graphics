@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
+
+        internal XRPass compositionPass;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
@@ -144,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
             bool isGameCamera = camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
-            return XRGraphics.enabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGraphics.enabled && camera.stereoEnabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)

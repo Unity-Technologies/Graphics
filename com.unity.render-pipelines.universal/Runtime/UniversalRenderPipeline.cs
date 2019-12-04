@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
         const int k_MaxVisibleAdditionalLightsSSBO  = 256;
         const int k_MaxVisibleAdditionalLightsUBO   = 32;
 
-        static XRSystem m_XRSystem;
+        public static XRSystem m_XRSystem = new XRSystem();
 
         public static int maxVisibleAdditionalLights
         {
@@ -148,7 +148,6 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
-            m_XRSystem = new XRSystem();
         }
 
         protected override void Dispose(bool disposing)
@@ -168,6 +167,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+
+            m_XRSystem.Cleanup();
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -194,19 +195,29 @@ namespace UnityEngine.Rendering.Universal
             EndFrameRendering(renderContext, cameras);
         }
 
+        static bool TryGetCullingParameters(CameraData cameraData, out ScriptableCullingParameters cullingParams)
+        {
+            if (cameraData.compositionPass.enabled)
+            {
+                cullingParams = cameraData.compositionPass.cullingParams;
+                return true;
+            }
+            else
+            {
+                if (!cameraData.camera.TryGetCullingParameters(cameraData.camera.stereoEnabled, out cullingParams))
+                    return false;
+            }
+            return true;
+        }
+
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
-            if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
-                return;
-
             var settings = asset;
             UniversalAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
-            SetupPerCameraShaderConstants(cameraData);
-
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
             if (renderer == null)
             {
@@ -214,15 +225,27 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
+            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name : k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-            using (new ProfilingSample(cmd, tag))
-            {
-                renderer.Clear();
-                renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            var compositionPasses = m_XRSystem.SetupFrame(cameraData.camera, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ true);
+            foreach (XRPass compPass in compositionPasses)
+            {
+                cameraData.compositionPass = compPass;
+
+                if (!TryGetCullingParameters(cameraData, out var cullingParameters))
+                    return;
+
+                SetupPerCameraShaderConstants(cameraData);
+
+
+                using (new ProfilingSample(cmd, tag))
+                {
+                    renderer.Clear();
+                    renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
 #if UNITY_EDITOR
 
@@ -231,17 +254,29 @@ namespace UnityEngine.Rendering.Universal
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
 
-                var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
+                    var cullResults = context.Cull(ref cullingParameters);
+                    InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
-                renderer.Setup(context, ref renderingData);
+                    renderer.Setup(context, ref renderingData);
 
-                renderer.Execute(context, ref renderingData);
+                    renderer.Execute(context, ref renderingData);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
             }
 
-            context.ExecuteCommandBuffer(cmd);
+            // Render XR mirror view once all composition passes have been completed
+            if (cameraData.camera.cameraType == CameraType.Game)
+            {
+                cmd.Clear();
+                m_XRSystem.RenderMirrorView(cmd);
+                context.ExecuteCommandBuffer(cmd);
+            }
+
             CommandBufferPool.Release(cmd);
             context.Submit();
+
+            m_XRSystem.ReleaseFrame();
         }
 
         static void SetSupportedRenderingFeatures()
@@ -268,8 +303,7 @@ namespace UnityEngine.Rendering.Universal
             const float kRenderScaleThreshold = 0.05f;
             cameraData = new CameraData();
             cameraData.camera = camera;
-            cameraData.isStereoEnabled = IsStereoEnabled(camera);
-
+            
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
@@ -277,6 +311,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
 
+            cameraData.isStereoEnabled = IsStereoEnabled(camera);
             if (cameraData.isStereoEnabled)
             {
                 // XRTODO: Enable pure mode for XR

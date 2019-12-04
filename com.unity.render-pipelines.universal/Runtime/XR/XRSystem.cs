@@ -2,6 +2,9 @@
 // - XRDisplaySubsystem from the XR SDK
 // - the 'legacy' C++ stereo rendering path and XRSettings
 // - custom XR layout (only internal for now)
+// XRTODO: remove this
+#define ENABLE_VR
+#define ENABLE_XR_MODULE
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +19,7 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal partial class XRSystem
+    public partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
         internal readonly XRPass emptyPass = new XRPass();
@@ -62,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
         }
 
-        internal static void RegisterXRShaders(Shader xrOcclusionMeshPS, Shader xrMirrorViewPS)
+        internal void RegisterXRShaders(Shader xrOcclusionMeshPS, Shader xrMirrorViewPS)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(xrOcclusionMeshPS);
@@ -317,10 +320,22 @@ namespace UnityEngine.Rendering.Universal
             framePasses.Add(xrPass);
         }
 
+        internal static class XRShaderIDs
+        {
+            public static readonly int _BlitTexture       = Shader.PropertyToID("_BlitTexture");
+            public static readonly int _BlitScaleBias     = Shader.PropertyToID("_BlitScaleBias");
+            public static readonly int _BlitScaleBiasRt   = Shader.PropertyToID("_BlitScaleBiasRt");
+            public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
+
+        }
+
         internal void RenderMirrorView(CommandBuffer cmd)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (display == null || !display.running)
+                return;
+
+            if (!mirrorViewMaterial)
                 return;
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
@@ -343,10 +358,10 @@ namespace UnityEngine.Rendering.Universal
                             Vector4 scaleBias = new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            mirrorViewMaterialProperty.SetTexture(HDShaderIDs._BlitTexture, blitParam.srcTex);
-                            mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-                            mirrorViewMaterialProperty.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-                            mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, blitParam.srcTex);
+                            mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
+                            mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);

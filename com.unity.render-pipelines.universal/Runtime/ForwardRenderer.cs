@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+            UniversalRenderPipeline.m_XRSystem.RegisterXRShaders(data.shaders.xrOcclusionMeshPS, data.shaders.xrMirrorViewPS);
+
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
