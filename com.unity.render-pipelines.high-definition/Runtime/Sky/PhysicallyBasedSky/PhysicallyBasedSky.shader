@@ -3,11 +3,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
+    #define NUM_PATHS    4
     #define NUM_BOUNCES 1
 
     #pragma vertex Vert
 
-    // #pragma enable_d3d11_debug_symbols
+    #pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -282,10 +283,54 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             t = t - (optDepthAtDist - optDepth) * rcpAttCoefAtDist;
             relDiff = optDepthAtDist * rcpOptDepth - 1;
             numIterations++;
-        } while (numIterations < 4);
-        // } while (abs(relDiff) > 0.001); // Stop when the accuracy goal has been reached.
+        } while ((abs(relDiff) > 0.001) && (numIterations < 4)); // Stop when the accuracy goal has been reached.
         return t;
     }
+
+    float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta, bool aboveHorizon)
+{
+    const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
+    const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
+    const float  R = _PlanetaryRadius;
+
+    float2 z = n * r;
+    float2 Z = n * R;
+
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+    float2 ch;
+    ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
+    ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
+
+    if (!aboveHorizon) // Below horizon, intersect sphere
+    {
+        float sinGamma = (r / R) * sinTheta;
+        float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+
+        float2 ch_2;
+        ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
+        ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
+
+        ch = ch_2 - ch;
+    }
+    else if (cosTheta < 0)   // Above horizon, lower hemisphere
+    {
+        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+        // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
+        float2 z_0  = z * sinTheta;
+        float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
+        float2 a;
+        a.x         = 2 * ChapmanHorizontal(z_0.x);
+        a.y         = 2 * ChapmanHorizontal(z_0.y);
+        float2 ch_2 = a * b;
+
+        ch = ch_2 - ch;
+    }
+
+    float2 optDepth = ch * H;
+
+    return optDepth.x * _AirSeaLevelExtinction;// + optDepth.y * _AerosolSeaLevelExtinction;
+}
 
     // Input position is relative to sphere origin
     float3 EvalLight(float3 position, bool useNormal, DirectionalLightData light)
@@ -309,7 +354,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (cosTheta >= cosHoriz) // Above horizon
             {
                 color = light.color;
-                float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+                float3 oDepth = ComputeAtmosphericOpticalDepth1(r, cosTheta, true);
                 // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
                 float3 transm  = TransmittanceFromOpticalDepth(oDepth);
                 float3 opacity = 1 - transm;
@@ -376,14 +421,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     bool lookAboveHorizon = (cosChi >= cosHor);
 
-                    float maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
+                    float maxOptDepth = ComputeAtmosphericOpticalDepth1(r, cosChi, lookAboveHorizon)[w];
                     float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
-                    float rndOpacity  = randfloat(b, permutation ^ s_RandomPrimes[b + 1]);
+                    float rndOpacity  = randfloat(p, permutation ^ s_RandomPrimes[b + 1]);
 
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
 
-                    float bounceWeight = 1;
+                    float bounceWeight;
                     if (surfaceScatteringEvent)
                     {
                         float t = IntersectSphere(R, cosChi, r).x; // Assume we are outside
@@ -391,12 +436,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         X += t * D;
 
                         /* Shade the surface point (account for atmospheric attenuation). */
-                        bounceWeight *= _GroundAlbedo[w] / PI;
+                        bounceWeight = _GroundAlbedo[w] / PI;
                         /* Pick a new direction for a Lambertian BRDF. */
                     }
                     else // Volume scattering event
                     {
-                        bounceWeight           = surfaceContibution ? 1 : rndOpacity;
+                        bounceWeight           = surfaceContibution ? 1 : maxOpacity;
                         float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
@@ -453,7 +498,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     float4 RenderSky(Varyings input)
     {
 #if USE_PATH_SKY
-        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, 1, 1);
+        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
 #else
         const float R = _PlanetaryRadius;
 
