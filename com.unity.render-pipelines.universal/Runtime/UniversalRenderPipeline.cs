@@ -73,6 +73,9 @@ namespace UnityEngine.Rendering.Universal
         // These limits have to match same limits in Input.hlsl
         const int k_MaxVisibleAdditionalLightsSSBO  = 256;
         const int k_MaxVisibleAdditionalLightsUBO   = 32;
+
+        static XRSystem m_XRSystem;
+
         public static int maxVisibleAdditionalLights
         {
             get
@@ -144,6 +147,8 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            m_XRSystem = new XRSystem();
         }
 
         protected override void Dispose(bool disposing)
