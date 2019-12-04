@@ -41,9 +41,14 @@ namespace UnityEditor.ShaderGraph
         List<MaterialSlot> inputSlots = new List<MaterialSlot>();
         List<MaterialSlot> outputSlots = new List<MaterialSlot>();
 
-        string GetFunctionName()
+        public string GetFunctionName()
         {
-            return $"SubgraphDelegate_{m_SubgraphDelegateGuid.GetHashCode().ToString()}";
+            return GetFunctionNameFromGuid(m_SubgraphDelegateGuid);
+        }
+
+        public static string GetFunctionNameFromGuid(Guid guid)
+        {
+            return $"SubgraphDelegate_{guid.GetHashCode().ToString("X")}";
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -185,10 +190,10 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(slot);
                 slotIds[i + subDelegate.input_Entries.Count] = newID;
             }
-                RemoveSlotsNameNotMatching(slotIds);
+            RemoveSlotsNameNotMatching(slotIds);
 
             // Reconnect the edges
-            foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in inputEdgeDict)
+            /*foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in inputEdgeDict)
             {
                 foreach (IEdge edge in entry.Value)
                 {
@@ -203,7 +208,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     owner.Connect(edge.outputSlot, edge.inputSlot);
                 }
-            }
+            }*/
 
             ValidateNode();
         }

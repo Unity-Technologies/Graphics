@@ -85,6 +85,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<int> m_PropertyIds = new List<int>();
 
+        [SerializeField]
+        List<string> m_SubDelGuids = new List<string>();
+
+        [SerializeField]
+        List<int> m_SubDelSlotIds = new List<int>();
+
         public string subGraphGuid
         {
             get
@@ -393,14 +399,27 @@ namespace UnityEditor.ShaderGraph
                 validNames.Add(id);
             }
 
+            m_SubDelSlotIds.Clear();
+            m_SubDelGuids.Clear();
+
             var subdels = asset.subgraphDelegates;
             foreach (var subdel in subdels)
             {
-                int id = subdel.guid.GetHashCode();
+
+                var subDelString = subdel.guid.ToString();
+                var subDelIndex = m_SubDelGuids.IndexOf(subDelString);
+                if (subDelIndex < 0)
+                {
+                    subDelIndex = m_SubDelGuids.Count;
+                    m_SubDelGuids.Add(subDelString);
+                    m_SubDelSlotIds.Add(subdel.guid.GetHashCode());
+                }
+                var id = m_SubDelSlotIds[subDelIndex];
                 SlotValueType valueType = subdel.output_Entries[0].propertyType.ToConcreteShaderValueType().ToSlotValueType();
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, subdel.displayName + "_CNCT", subdel.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
                 AddSlot(slot);
                 validNames.Add(id);
+                m_SubDelSlotIds.Add(id);
             }
 
             var outputStage = asset.effectiveShaderStage;
@@ -461,7 +480,73 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(tempId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
+            CreateSubgraphDelegateFunctions();
+
             ValidateShaderStage();
+        }
+
+        void CreateSubgraphDelegateFunctions()
+        {
+            asset.subgraphDelegateFunctions.Clear();
+            foreach (int id in m_SubDelSlotIds)
+            {
+                var edges = owner.GetEdges(GetSlotReference(id));
+                if (edges.Count() > 0)
+                {
+                    AbstractMaterialNode node = owner.GetNodeFromGuid(edges.First().outputSlot.nodeGuid);
+                    if (node is SubGraphNode sgNode)
+                    {
+                        WriteSubgraphDelegateFunction(sgNode, m_SubDelGuids[m_SubDelSlotIds.IndexOf(id)]);
+                    }
+                }
+            }
+        }
+
+        void WriteSubgraphDelegateFunction(SubGraphNode sgNode, string delegateGuid)
+        {
+            // If it mysteriously doesn't work, test this
+            var matchingDelegates = asset.subgraphDelegates.Where(x => x.guid.ToString() == delegateGuid);
+            if (matchingDelegates.Count() < 1) return;
+            var currentDelegate = matchingDelegates.First();
+            string delegateFunctionName = SubgraphDelegateNode.GetFunctionNameFromGuid(currentDelegate.guid);
+            ShaderStringBuilder s = new ShaderStringBuilder();
+            s.Append("void {0}(", delegateFunctionName);
+
+            for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
+            {
+                s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
+            }
+            for (int i = 0; i < currentDelegate.output_Entries.Count; i++)
+            {
+                s.Append("inout {0} {1}", currentDelegate.output_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.output_Entries[i].referenceName);
+                if (i < currentDelegate.output_Entries.Count - 1)
+                    s.Append(", ");
+                else
+                    s.AppendLine(")");
+            }
+            using (s.BlockScope())
+            {
+                var inputVariableName = $"_{sgNode.GetVariableNameForNode()}";
+
+                SubShaderGenerator.GenerateSurfaceInputTransferCode(s, sgNode.asset.requirements, sgNode.asset.inputStructName, inputVariableName);
+                s.Append("{0}(", sgNode.asset.functionName);
+                for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
+                {
+                    s.Append("{0}, ", currentDelegate.input_Entries[i].referenceName);
+                }
+
+                s.Append("{0}, ", inputVariableName);
+
+                for (int i = 0; i < currentDelegate.output_Entries.Count; i++)
+                {
+                    s.Append("{0}", currentDelegate.output_Entries[i].referenceName);
+                    if (i < currentDelegate.output_Entries.Count - 1)
+                        s.Append(", ");
+                    else
+                        s.AppendLine(");");
+                }
+            }
+            asset.subgraphDelegateFunctions.Add(new FunctionPair(delegateFunctionName, s.ToString()));
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
@@ -498,20 +583,32 @@ namespace UnityEditor.ShaderGraph
             foreach (var property in asset.nodeProperties)
             {
                 properties.Add(property.GetPreviewMaterialProperty());
-        }
+            }
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if (asset == null || hasError)
                 return;
-            
-            foreach (var function in asset.functions)
+
+            foreach (var function in asset.subgraphDelegateFunctions)
             {
                 registry.ProvideFunction(function.key, s =>
                 {
                     s.AppendLines(function.value);
                 });
+            }
+
+            var delegateFunctionkeys = asset.subgraphDelegateFunctions.Select<FunctionPair, string>(x => x.key);
+            foreach (var function in asset.functions)
+            {
+                if (!delegateFunctionkeys.Contains<string>(function.key))
+                {
+                    registry.ProvideFunction(function.key, s =>
+                    {
+                        s.AppendLines(function.value);
+                    });
+                }
             }
         }
 

@@ -205,6 +205,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string GetDuplicateSafeDisplayName(int id, string name, ReorderableList list)
         {
+            if (m_ReorderableList_Output == null)
+            {
+                RecreateOutputList();
+                AddCallbacks(m_ReorderableList_Output, m_Delegate.output_Entries);
+            }
             name = name.Trim();
             var entryListIn = m_ReorderableList_Input.list as List<SubgraphDelegateEntry>;
             var entryListOut = m_ReorderableList_Output.list as List<SubgraphDelegateEntry>;
