@@ -25,6 +25,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
     int _RenderSunDisk;             // bool...
+    int _SpectralTrackingFrameIndex;
 
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
@@ -370,7 +371,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return color;
     }
 
-    float3 SpectralTracking(uint2 positonSS, uint numWavelengths, uint numPaths, uint numBounces)
+    float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
@@ -383,11 +384,11 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         for (uint p = 0; p < numPaths; p++) // Iterate over paths
         {
             const uint numStrata   = (uint)sqrt(numPaths);
-            const uint permutation = positonSS.x | (positonSS.y << 16);
+            const uint permutation = positionSS.x | (positionSS.y << 16);
 
             // Sample the sensor.
             const float2 subPixel  = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]);
-            const float2 sensorPos = positonSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
+            const float2 sensorPos = positionSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
 
             // Init the ray.
             float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
@@ -492,7 +493,15 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         }
 
-        _SpectralTrackingTexture[COORD_TEXTURE2D_X(positonSS)] = float4(color, 1.0f);
+        // If frame index is 0, we write (start over), otherwise we accumulate
+        if (_SpectralTrackingFrameIndex != 0)
+        {
+            _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] += float4(color, 1.0f);
+        }
+        else
+        {
+            _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
+        }
         return color;
     }
 

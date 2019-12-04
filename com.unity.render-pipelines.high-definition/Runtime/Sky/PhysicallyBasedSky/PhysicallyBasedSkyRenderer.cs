@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
+        static Vector3 s_cameraPosition = new Vector3(0, 0, 0);
+        static int s_cameraFrameCount = 0;
 
         RTHandle AllocateGroundIrradianceTable(int index)
         {
@@ -383,6 +385,17 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
             s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpectralTrackingTexture, m_SpectralTrackingTexture);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._SpectralTrackingFrameIndex, s_cameraFrameCount);
+
+            if (X == s_cameraPosition)
+            {
+                s_cameraFrameCount++;
+            }
+            else
+            {
+                s_cameraFrameCount = 0;
+                s_cameraPosition = X;
+            }
 
             if (m_LastPrecomputedBounce != 0)
             {
