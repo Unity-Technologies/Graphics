@@ -605,6 +605,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
 
+        // custom-begin:
+        // Accessor for non-hdrp custom render code.
+        public LightList GetLightList()
+        {
+            return m_lightList;
+        }
+
+        public HDShadowManager GetShadowManager()
+        {
+            return m_ShadowManager;
+        }
+        // custom-end
+
         public bool HasLightToCull()
         {
             return m_TotalLightCount > 0;

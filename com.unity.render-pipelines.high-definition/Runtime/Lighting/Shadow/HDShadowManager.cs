@@ -204,6 +204,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int                         m_ShadowRequestCount;
         int                         m_CascadeCount;
 
+        // custom-begin:
+        // Accessor for non-hdrp custom render code.
+        public List<HDShadowData> GetShadowDatas()
+        {
+            return m_ShadowDatas;
+        }
+
+        public HDShadowAtlas GetShadowAtlas()
+        {
+            return m_Atlas;
+        }
+        // custom-end
+
         public HDShadowManager(RenderPipelineResources renderPipelineResources, DepthBits directionalShadowDepthBits,
                             HDShadowInitParameters.HDShadowAtlasInitParams punctualLightAtlasInfo, HDShadowInitParameters.HDShadowAtlasInitParams areaLightAtlasInfo, int maxShadowRequests, Shader clearShader)
         {
