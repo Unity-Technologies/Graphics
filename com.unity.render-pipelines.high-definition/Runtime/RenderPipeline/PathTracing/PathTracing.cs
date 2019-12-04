@@ -1,8 +1,15 @@
+#define ENABLE_STOPWATCH
+#define ENABLE_IMAGE_CAPTURE
+
 using System;
+using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
+using System.Collections.Generic;
+using System.IO;
+using Unity.Collections;
 
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif // UNITY_EDITOR
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -37,6 +44,10 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_VarianceTexture = null;
         RTHandle m_MaxVariance = null;
         RTHandle m_ScratchBuffer = null;
+
+        Stopwatch m_Timer = new Stopwatch();
+        Queue<AsyncGPUReadbackRequest> _requests = new Queue<AsyncGPUReadbackRequest>();
+
         public void InitPathTracing()
         {
 #if UNITY_EDITOR
@@ -102,6 +113,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
+#if ENABLE_STOPWATCH
+            if (currentIteration == 1)
+            {
+                m_Timer.Reset();
+                m_Timer.Start();
+            }
+#endif
 
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
             PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
@@ -174,6 +192,54 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Run the computation
             cmd.DispatchRays(pathTracingShader, m_PathTracingRayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+
+#if ENABLE_STOPWATCH
+            // TODO: right now we don't detect "early" convergence with adaptive sampling
+            if (currentIteration == pathTracingSettings.maximumSamples.value)
+            {
+                m_Timer.Stop();
+                
+                TimeSpan ts = m_Timer.Elapsed;
+                Debug.Log($"Congergence time: {ts.TotalSeconds}");
+#if ENABLE_IMAGE_CAPTURE
+                // request an async readback of the accumulation buffer
+                _requests.Enqueue(AsyncGPUReadback.Request(history));
+#endif
+            }
+#if ENABLE_IMAGE_CAPTURE
+            // read the data when the async transfer is done
+            while (_requests.Count > 0)
+            {
+                var req = _requests.Peek();
+
+                if (req.hasError)
+                {
+                    Debug.Log("GPU readback error detected.");
+                    _requests.Dequeue();
+                }
+                else if (req.done)
+                {
+                    var buffer = req.GetData<Vector4>();
+                    SaveEXRFile(buffer, hdCamera.camera.pixelWidth, hdCamera.camera.pixelHeight);
+                    _requests.Dequeue();
+                }
+                else
+                {
+                    break;
+                }
+            }
+#endif //ENABLE_IMAGE_CAPTURE
+#endif //ENABLE_STOPWATCH
+        }
+
+        void SaveEXRFile(NativeArray<Vector4> buffer, int width, int height)
+        {
+            var tex = new Texture2D(width, height, TextureFormat.RGBAFloat, false);
+            tex.SetPixelData(buffer.ToArray(), 0);
+            tex.Apply();
+            File.WriteAllBytes("converged.exr", ImageConversion.EncodeToEXR(tex));
+            Debug.Log("Wrote converged image to disk.");
+
         }
     }
 }

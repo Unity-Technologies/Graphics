@@ -12,11 +12,11 @@ RW_TEXTURE2D_X(uint, _ScratchBuffer);       // Unused!
 */
 #define VARIANCE_ESTIMATE   1
 #define MIN_ITERATIONS      32
-#define VARIANCE_THRESHOLD  0.0001
+#define VARIANCE_THRESHOLD  0.001
 #define HYSTERISIS          0.15
-#define FILTER_RADIUS       2             // 0 disables variance filtering
+#define FILTER_RADIUS       2             // 0 disables variance filtering. A value of 2 creates a filter with a footprint of 5x5 pixels
 #define FILTER_SHARPNESS    1.0
-#define HEATMAP_MAX         0.01
+#define HEATMAP_MAX         0.05          // This value only affects the visualization
 #define FILTER_FUNC         MaxFilter
 #define ENABLE_ADAPTIVE_SAMPLING
 #define USE_GAMMA_SPACE
@@ -86,10 +86,10 @@ float EstimateUnfilteredVariance(uint2 currentPixelCoord)
         float m_1 = _VarianceTexture[crd].x / _RaytracingFrameIndex;
         m_1 *= m_1;
         value = abs(_VarianceTexture[crd].y / _RaytracingFrameIndex - m_1);
-#elif (VARIANCE_ESTIMATE == 1)
-        value = 10 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
+#elif (VARIANCE_ESTIMATE == 1) 
+        value = 100 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
 #elif (VARIANCE_ESTIMATE == 2)
-        value = 0.01 * abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
+        value = abs(_VarianceTexture[crd].y - _VarianceTexture[crd].x * _VarianceTexture[crd].x);
 #endif
     }
     return value; 
@@ -112,7 +112,7 @@ float EstimateFilteredVariance(uint2 currentPixelCoord)
         for (int y = currentPixelCoord.y - FILTER_RADIUS; y <= currentPixelCoord.y + FILTER_RADIUS; ++y)
         {
             int3 crd = int3(x, y, 0);
-                float squareDist = dot(crd - currentPixelCoord, crd - currentPixelCoord);
+            float squareDist = dot(crd - currentPixelCoord, crd - currentPixelCoord);
             FILTER_FUNC(squareDist, EstimateUnfilteredVariance(crd), accumVariance, accumWeight);
         }
     }
