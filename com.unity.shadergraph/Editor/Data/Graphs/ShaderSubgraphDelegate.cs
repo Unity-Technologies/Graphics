@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         private List<SubgraphDelegateEntry> m_Input_Entries;
         [SerializeField]
         private List<SubgraphDelegateEntry> m_Output_Entries;
+        public SubGraphNode connectedNode;
 
         public List<SubgraphDelegateEntry> input_Entries
         {

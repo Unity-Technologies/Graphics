@@ -67,7 +67,13 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{0} {1} = ({0})0;", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id));
                 }
             }
+            var subDelegate = owner.subgraphDelegates.FirstOrDefault(x => x.guid == subgraphDelegateGuid);
+            if (subDelegate != null && subDelegate.connectedNode != null)
+            {
+                var inputVariableName = $"_{subDelegate.connectedNode.GetVariableNameForNode()}";
 
+                SubShaderGenerator.GenerateSurfaceInputTransferCode(sb, subDelegate.connectedNode.asset.requirements, subDelegate.connectedNode.asset.inputStructName, inputVariableName);
+            }
             sb.Append("{0}(", GetFunctionName());
             for (int i = 0; i < slotValues.Count(); ++i)
             {
