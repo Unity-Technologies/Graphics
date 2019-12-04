@@ -3,8 +3,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
-    #define NUM_PATHS    4
-    #define NUM_BOUNCES 2
+    #define NUM_PATHS    8
+    #define NUM_BOUNCES  5
 
     #pragma vertex Vert
 
@@ -415,8 +415,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float  r = length(X);
                     float3 N = normalize(X);
 
-                    if (r > A) break; // Outside of the atmosphere
-
                     float cosChi = dot(N, D);
                     float cosHor = ComputeCosineOfHorizonAngle(r);
 
@@ -452,7 +450,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         X += t * D;
 
                         // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
-
                         /* Shade the volume point (account for atmospheric attenuation). */
                         float volumeAlbedo = (_AirSeaLevelScattering / _AirSeaLevelExtinction)[w];
 
