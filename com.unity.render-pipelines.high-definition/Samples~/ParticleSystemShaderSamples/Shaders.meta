@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/PostProcessing/Assets/ReferenceImages/Linear/OSXPlayer/Metal.meta
+guid: c5bd81c2355eb5a30aebc07f7e7599fd
+=======
 guid: b2479365dd75aba48b9dd79291a82c6c
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb:com.unity.render-pipelines.high-definition/Samples~/ParticleSystemShaderSamples/Shaders.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

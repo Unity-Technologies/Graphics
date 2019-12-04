@@ -91,11 +91,7 @@ PlayerSettings:
   xboxEnableFitness: 0
   visibleInBackground: 1
   allowFullscreenSwitch: 1
-<<<<<<< HEAD
   fullscreenMode: 3
-=======
-  fullscreenMode: 1
->>>>>>> 3340a4ec13238be2f4eac520dd7d815443a4f312
   xboxSpeechDB: 0
   xboxEnableHeadOrientation: 0
   xboxEnableGuest: 0
@@ -286,7 +282,6 @@ PlayerSettings:
     m_GraphicsJobMode: 0
   - m_BuildTarget: XboxOnePlayer
     m_GraphicsJobMode: 0
-<<<<<<< HEAD
   m_BuildTargetGraphicsAPIs:
   - m_BuildTarget: MacStandaloneSupport
     m_APIs: 10000000
@@ -297,9 +292,6 @@ PlayerSettings:
   - m_BuildTarget: WindowsStandaloneSupport
     m_APIs: 020000001200000015000000
     m_Automatic: 0
-=======
-  m_BuildTargetGraphicsAPIs: []
->>>>>>> 3340a4ec13238be2f4eac520dd7d815443a4f312
   m_BuildTargetVRSettings: []
   openGLRequireES31: 0
   openGLRequireES31AEP: 0

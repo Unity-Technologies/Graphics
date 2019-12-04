@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Samples~/ParticleSystemShaderSamples/Materials.meta
 guid: 944b1c6d4f6829c4d8ee768440bd97d2
+=======
+guid: d2b1fd1d4e6760f589615c14b88a481e
+>>>>>>> d88f208066b40a1db0f3362707bb2638081a8448:TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/LinuxPlayer.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

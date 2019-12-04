@@ -1,9 +1,20 @@
 fileFormatVersion: 2
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD:com.unity.render-pipelines.universal/Editor/AssetPostProcessors.meta
+guid: f1e8bdeb72d24430d910b9142ddfe0b2
+=======
+guid: c4c9a9009dcf9274bb35792dc1077f6b
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb:com.unity.render-pipelines.high-definition/Samples~/ProceduralSky/Editor.meta
+=======
+guid: 80a17677e8c9b3040a01d400cf19819f
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb
+=======
 guid: f1e8bdeb72d24430d910b9142ddfe0b2
 =======
 guid: 80a17677e8c9b3040a01d400cf19819f
 >>>>>>> 0251f6303b36cc6e5752c9680f20553462cacd59
+>>>>>>> d88f208066b40a1db0f3362707bb2638081a8448
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
