@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -354,14 +355,25 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, m_msaaSamples);
         }
 
+        void SetupCurrentMaterialQuality(CommandBuffer cmd)
+        {
+            var asset = HDRenderPipeline.currentAsset;
+            MaterialQuality availableQualityLevels = asset.availableMaterialQualityLevels;
+            MaterialQuality currentMaterialQuality = frameSettings.materialQuality == (MaterialQuality)0 ? asset.defaultMaterialQualityLevel : frameSettings.materialQuality;
+
+            availableQualityLevels.GetClosestQuality(currentMaterialQuality).SetGlobalShaderKeywords(cmd);
+        }
+
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
-        public void BeginRender()
+        public void BeginRender(CommandBuffer cmd)
         {
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.SwapAndSetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
+
+            SetupCurrentMaterialQuality(cmd);
         }
 
         void UpdateAntialiasing()

@@ -5,6 +5,10 @@
 using System;
 using System.Collections.Generic;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+using System.Diagnostics;
+#endif
+
 #if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
 #endif
@@ -42,6 +46,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Material occlusionMeshMaterial = null;
         Material mirrorViewMaterial = null;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+#endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        internal static bool dumpDebugInfo = false;
+        internal static List<string> passDebugInfos = new List<string>(8);
+        internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
 #endif
 
         internal XRSystem(RenderPipelineResources.ShaderResources shaders)
@@ -95,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return maxViews;
         }
 
-        internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
+        internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed)
         {
             bool xrSdkActive = RefreshXrSdk();
 
@@ -130,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (xrSdkActive)
                     {
-                        CreateLayoutFromXrSdk(camera);
+                        CreateLayoutFromXrSdk(camera, singlePassAllowed);
                     }
                     else
                     {
@@ -143,6 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     AddPassToFrame(camera, emptyPass);
                 }
             }
+
+            CaptureDebugInfo();
 
             return framePasses;
         }
@@ -214,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        void CreateLayoutFromXrSdk(Camera camera)
+        void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
         {
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
             {
@@ -241,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
-                if (CanUseSinglePass(renderPass))
+                if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: -1, cullingParams, occlusionMeshMaterial);
 
@@ -323,6 +335,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.ClearRenderTarget(true, true, Color.black);
                 }
             }
+#endif
+        }
+
+        void CaptureDebugInfo()
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (dumpDebugInfo)
+            {
+                passDebugInfos.Clear();
+
+                for (int passIndex = 0; passIndex < framePasses.Count; passIndex++)
+                {
+                    var pass = framePasses[passIndex].Item2;
+                    for (int viewIndex = 0; viewIndex < pass.viewCount; viewIndex++)
+                    {
+                        var viewport = pass.GetViewport(viewIndex);
+                        passDebugInfos.Add(string.Format("    Pass {0} Cull {1} View {2} Slice {3} : {4} x {5}",
+                            pass.multipassId,
+                            pass.cullingPassId,
+                            viewIndex,
+                            "todo", //pass.GetTextureArraySlice(viewIndex),
+                            viewport.width,
+                            viewport.height));
+                    }
+                }
+            }
+
+            while (passDebugInfos.Count < passDebugInfos.Capacity)
+                passDebugInfos.Add("inactive");
 #endif
         }
 

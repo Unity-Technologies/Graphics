@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
 
 ### Added
 - Ray tracing support for VR single-pass
@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added more detailed ray tracing stats in the debug window
 - Added Disc area light (bake only)
 - Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
+- Added XR single-pass setting into HDRP asset
+- Added a penumbra tint option for lights
+- Added support for depth copy with XR SDK
+- Added debug setting to Render Pipeline Window to list the active XR views
+- Added an option to filter the result of the volumetric lighting (off by default).
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -124,6 +129,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR multi-pass decals rendering
 - Fixed several fields on Light Inspector that not supported Prefab overrides
 - Fixed EOL for some files
+- Fixed scene view rendering with volumetrics and XR enabled
+- Fixed decals to work with multiple cameras
+- Fixed optional clear of GBuffer (Was always on)
+- Fixed render target clears with XR single-pass rendering
+- Fixed HDRP samples file hierarchy
+- Fixed Light units not matching light type
+- Fixed QualitySettings panel not displaying HDRP Asset
+- Fixed black reflection probes the first time loading a project
+- Fixed y-flip in scene view with XR SDK
+- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
+- Fixed y-flip in scene view with XR SDK
+- Fixed a number of issues with Material Quality setting
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -148,6 +165,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
 - Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
 - Hidden fields in Light Inspector that is not relevant while in BakingOnly mode.
+- Changed parametrization of PCSS, now softness is derived from angular diameter (for directional lights) or shape radius (for point/spot lights) and min filter size is now in the [0..1] range.
+- Moved the copy of the geometry history buffers to right after the depth mip chain generation.
+- Rename "Luminance" to "Nits" in UX for physical light unit
+- Rename FrameSettings "SkyLighting" to "SkyReflection"
 
 ## [7.1.1] - 2019-09-05
 

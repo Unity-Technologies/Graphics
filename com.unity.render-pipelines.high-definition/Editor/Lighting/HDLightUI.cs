@@ -133,13 +133,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                     CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                                 CED.space,
-                                CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
+                                CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
-
                                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
                                     CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
                                 )
@@ -476,19 +475,19 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (serialized.type)
             {
                 case HDLightType.Directional:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     break;
                 case HDLightType.Point:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 case HDLightType.Spot:
                     if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box)
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     else
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 default:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (AreaLightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
                     break;
             }
             EditorGUI.EndProperty();
@@ -549,13 +548,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
 
                 case HDLightType.Area:
-                    if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+                    if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Nits)
                         intensity = LightUtils.ConvertAreaLightLumenToLuminance(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+                    if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Lumen)
                         intensity = LightUtils.ConvertAreaLightLuminanceToLumen(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                    if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Ev100)
                         intensity = LightUtils.ConvertLuminanceToEv(intensity);
-                    if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                    if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Nits)
                         intensity = LightUtils.ConvertEvToLuminance(intensity);
                     if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
                         intensity = LightUtils.ConvertAreaLightEvToLumen(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
@@ -926,6 +925,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Slider(serialized.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
                     EditorGUILayout.PropertyField(serialized.shadowTint, s_Styles.shadowTint);
+                    EditorGUILayout.PropertyField(serialized.penumbraTint, s_Styles.penumbraTint);
                 }
 
                 if (lightType != HDLightType.Directional)
@@ -1015,10 +1015,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.shadowSoftness, s_Styles.shadowSoftness);
             EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
             EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
             EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
+            GUIContent styleForScale = s_Styles.radiusScaleForSoftness;
+            if (serialized.type == HDLightType.Directional)
+            {
+                styleForScale = s_Styles.diameterScaleForSoftness;
+            }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.scaleForSoftness, styleForScale);
+            if (EditorGUI.EndChangeCheck())
+            {
+                //Clamp the value and also affect baked shadows
+                serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
+            }
         }
 
         static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)

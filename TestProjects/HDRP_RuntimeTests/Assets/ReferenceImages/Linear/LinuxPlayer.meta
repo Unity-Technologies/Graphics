@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/LinuxPlayer.meta
 guid: d2b1fd1d4e6760f589615c14b88a481e
+=======
+guid: 6b59a8277ede28d42ae1e10566067eae
+>>>>>>> 3340a4ec13238be2f4eac520dd7d815443a4f312:TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/WindowsPlayer/Vulkan.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
