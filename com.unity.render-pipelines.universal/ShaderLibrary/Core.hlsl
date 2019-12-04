@@ -262,6 +262,7 @@ float2 UnityStereoTransformScreenSpaceTex(float2 uv)
 {
     return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
 }
+
 #else
 
 #define UnityStereoTransformScreenSpaceTex(uv) uv

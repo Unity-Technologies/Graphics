@@ -230,7 +230,7 @@ namespace UnityEngine.TestTools.Graphics
                 // Note: Currently there are some allocs between the Camera.Render and the begining of the render pipeline rendering.
                 // Because of that, we can't enable this test.
                 int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
-                
+
                 if (allocationCountOfRenderPipeline > 0)
                     throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
 

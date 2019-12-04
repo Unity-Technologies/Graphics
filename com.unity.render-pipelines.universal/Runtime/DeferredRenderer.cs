@@ -21,12 +21,17 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_CopyDepthPass2;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyColorPass m_CopyColorPass;
+        TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+
+#if UNITY_EDITOR
+        SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
+#endif
 
         public const int GBufferSlicesCount = 3;
 
@@ -44,20 +49,27 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_DepthInfoTexture;
         RenderTargetHandle m_TileDepthInfoTexture;
 
-        StencilState m_DefaultStencilState;
-
         ForwardLights m_ForwardLights; // Required for transparent pass
         DeferredLights m_DeferredLights;
+        StencilState m_DefaultStencilState;
+
+        Material m_BlitMaterial;
+        Material m_CopyDepthMaterial;
+        Material m_SamplingMaterial;
+        Material m_ScreenspaceShadowsMaterial;
+        Material m_TileDepthInfoMaterial;
+        Material m_TileDeferredMaterial;
+        Material m_StencilDeferredMaterial;
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
-            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
-            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
-            Material tileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
-            Material tileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
-            Material stencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
+            m_TileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
+            m_TileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
+            m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -68,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_ForwardLights = new ForwardLights();
-            m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tileDeferredMaterial, stencilDeferredMaterial);
+            m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
             m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
 
             // Note: Since all custom render passes inject first and we have stable sort,
@@ -76,23 +88,28 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, m_CopyDepthMaterial);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 6, copyDepthMaterial);
+            m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 6, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
+            m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
+
+#if UNITY_EDITOR
+            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
+#endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
@@ -112,45 +129,60 @@ namespace UnityEngine.Rendering.Universal
             m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
         }
 
+        /// <inheritdoc />
+        public override void Cleanup()
+        {
+            m_PostProcessPass.Cleanup();
+            // m_FinalPostProcessPass.Cleanup() ?
+            CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_CopyDepthMaterial);
+            CoreUtils.Destroy(m_SamplingMaterial);
+            CoreUtils.Destroy(m_ScreenspaceShadowsMaterial);
+            CoreUtils.Destroy(m_TileDepthInfoMaterial);
+            CoreUtils.Destroy(m_TileDeferredMaterial);
+            CoreUtils.Destroy(m_StencilDeferredMaterial);
+        }
+
+        /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            bool postProcessEnabled = cameraData.postProcessEnabled;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture;
+            bool isStereoEnabled = cameraData.isStereoEnabled;
+
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+            //bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
+            bool transparentsNeedSettingsPass = true; // ShaderKeywordStrings.AdditionalLightShadows seems to be reset to disabled when changing render-targets?
 
             // Depth prepass is generated in the following cases:
-            // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
-                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData))) ||
-                m_DeferredLights.tiledDeferredShading;
-            requiresDepthPrepass |= resolveShadowsInScreenSpace;
+            bool requiresDepthPrepass = isSceneViewCamera;
+            requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData)) || m_DeferredLights.tiledDeferredShading;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
             // we have a proper fix.
-            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
+            if (isStereoEnabled && requiresDepthTexture)
                 requiresDepthPrepass = true;
 
-            //bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-            //                          || rendererFeatures.Count != 0;
+            //bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
             bool createColorTexture = true; // we always create a new colorTexture in this pass: it is used as the 3rd GBuffer slice used in the GBuffer pass, and as lightingBuffer RenderTarget in the Deferred pass
 
-            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
-            // later by effect requiring it.
-            bool createDepthTexture = renderingData.cameraData.requiresDepthTexture;
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
+            bool createDepthTexture = requiresDepthTexture && !requiresDepthPrepass;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
             bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
             if (intermediateRenderTexture)
-                CreateCameraRenderTarget(context, ref renderingData.cameraData);
+                CreateCameraRenderTarget(context, ref cameraData);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
@@ -158,7 +190,7 @@ namespace UnityEngine.Rendering.Universal
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
 
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-                SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
+                SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -183,12 +215,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_DepthPrepass);
-            }
-
-            if (resolveShadowsInScreenSpace)
-            {
-                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-                EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
             if (postProcessEnabled)
@@ -257,6 +283,11 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyColorPass);
             }
 
+            if (transparentsNeedSettingsPass)
+            {
+                EnqueuePass(m_TransparentSettingsPass); // Only toggle shader keywords for shadow receivers
+            }
+
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
             m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
             EnqueuePass(m_RenderTransparentForwardPass);
@@ -292,7 +323,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (requiresFinalPostProcessPass)
                     {
-                        m_FinalPostProcessPass.SetupFinalPass(m_ActiveCameraColorAttachment);
+                        m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
@@ -325,8 +356,17 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
+
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera)
+            {
+                m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
+                EnqueuePass(m_SceneViewDepthCopyPass);
+            }
+#endif
         }
 
+        /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_ForwardLights.Setup(context, ref renderingData);
@@ -335,6 +375,7 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
+        /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
@@ -346,9 +387,14 @@ namespace UnityEngine.Rendering.Universal
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
 
-            cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+            // If shadow is disabled, disable shadow caster culling
+            if (Mathf.Approximately(cameraData.maxShadowDistance, 0.0f))
+                cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+
+            cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
 
+        /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
@@ -366,7 +412,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor; // Camera descides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
+                var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }

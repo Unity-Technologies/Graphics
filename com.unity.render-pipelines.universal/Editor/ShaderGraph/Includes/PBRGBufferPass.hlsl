@@ -10,7 +10,7 @@ void BuildInputData(Varyings input, float3 normal, out InputData inputData)
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
     inputData.shadowCoord = input.shadowCoord;
-    inputData.fogCoord = input.fogFactorAndVertexLight.x; // (kc)
+    inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
 }

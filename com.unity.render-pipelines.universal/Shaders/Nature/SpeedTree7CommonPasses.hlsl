@@ -68,9 +68,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
         inputData.viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
     #else
-        // Missing normalize here (forward/deferred lighting result differs because of it).
-        //inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
-        inputData.normalWS = input.normalWS;
+        inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 
@@ -78,8 +76,10 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
     #else
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
@@ -99,7 +99,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xyz, unity_LODFade.x);
+        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
     #endif
 #endif
 
@@ -169,7 +169,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xyz, unity_LODFade.x);
+        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
     #endif
 #endif
 

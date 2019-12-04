@@ -13,30 +13,28 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RendererTitle = new GUIContent("Deferred Renderer", "Custom Deferred Renderer for UniversalRP.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Deferred Renderer.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
+            public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading", "Allows Tiled Deferred Shading on appropriate lights");
         }
 
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_DefaultStencilState;
-
         SerializedProperty m_PostProcessData;
-
-        SerializedProperty m_TiledDeferredShading;
-
         SerializedProperty m_Shaders;
+        SerializedProperty m_ShadowTransparentReceiveProp;
+        SerializedProperty m_TiledDeferredShading;
 
         private void OnEnable()
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
-
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
-
+            m_Shaders = serializedObject.FindProperty("shaders");
+            m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
 
-            m_Shaders = serializedObject.FindProperty("shaders");
         }
 
         public override void OnInspectorGUI()
@@ -51,6 +49,10 @@ namespace UnityEditor.Rendering.Universal
                 m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
             EditorGUILayout.PropertyField(m_PostProcessData);
             EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);

@@ -11,7 +11,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     public class Renderer2DData : ScriptableRendererData
     {
@@ -68,8 +68,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new Renderer2D(this);
@@ -140,12 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch { }
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
 

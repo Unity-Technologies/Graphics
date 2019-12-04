@@ -20,9 +20,9 @@ struct Varyings
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-//#ifdef _ADDITIONAL_LIGHTS
-//    float3 positionWS               : TEXCOORD2;
-//#endif
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    float3 positionWS               : TEXCOORD2;
+#endif
 
 #ifdef _NORMALMAP
     float4 normalWS                 : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -35,7 +35,7 @@ struct Varyings
 
     half3 vertexLighting            : TEXCOORD6;    // xyz: vertex lighting
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
 #endif
 
@@ -48,9 +48,9 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-//#ifdef _ADDITIONAL_LIGHTS
-//    inputData.positionWS = input.positionWS;
-//#endif
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    inputData.positionWS = input.positionWS;
+#endif
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
@@ -63,13 +63,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     viewDirWS = SafeNormalize(viewDirWS);
-
     inputData.viewDirectionWS = viewDirWS;
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
+
     inputData.fogCoord = 0.0; // we don't apply fog in the guffer pass
     inputData.vertexLighting = input.vertexLighting.xyz;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -109,11 +112,11 @@ Varyings LitGBufferPassVertex(Attributes input)
 
     output.vertexLighting = vertexLight;
 
-//#ifdef _ADDITIONAL_LIGHTS
-//    output.positionWS = vertexInput.positionWS;
-//#endif
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    output.positionWS = vertexInput.positionWS;
+#endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 

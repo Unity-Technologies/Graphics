@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDTemporalFilter m_TemporalFilter = new HDTemporalFilter();
         HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
         HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
+        HDReflectionDenoiser m_ReflectionDenoiser = new HDReflectionDenoiser();
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -76,6 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
             m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
             m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
+            m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
 
             // Init the ray count manager
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
@@ -87,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleaseRayTracingManager()
         {
             m_RayTracingLightCluster.ReleaseResources();
+            m_ReflectionDenoiser.Release();
             m_TemporalFilter.Release();
             m_SimpleDenoiser.Release();
             m_DiffuseDenoiser.Release();
@@ -260,6 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
                             break;
                         case HDLightType.Point:
+                        case HDLightType.Spot:
                             m_RayTracingLights.hdPointLightArray.Add(hdLight);
                             break;
                         case HDLightType.Area:
@@ -459,6 +463,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_DiffuseDenoiser;
         }
+        
+        internal HDReflectionDenoiser GetReflectionDenoiser()
+        {
+            return m_ReflectionDenoiser;
+        }
 
         internal bool GetRayTracingState()
         {
@@ -469,6 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_ValidRayTracingCluster;
         }
+
         static internal float GetPixelSpreadTangent(float fov, int width, int height)
         {
             return Mathf.Tan(fov * Mathf.Deg2Rad * 0.5f) * 2.0f / Mathf.Min(width, height);

@@ -79,6 +79,8 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
+${VFXPassForwardDefine}
+	
 #if SHADERGRAPH_NEEDS_NORMAL_FORWARD
 #define VFX_VARYING_NORMAL normal
 #endif
@@ -87,8 +89,8 @@ Pass
 #endif
 		
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
-#if VFX_SHADERGRAPH            
-    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+#if VFX_SHADERGRAPH
+	${SHADERGRAPH_PIXEL_CODE_FORWARD}
 #endif
 		
 	#pragma fragment frag
@@ -121,7 +123,7 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
-        o.color = VFXTransformFinalColor(o.color);
+		o.color = VFXTransformFinalColor(o.color);
 		
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}

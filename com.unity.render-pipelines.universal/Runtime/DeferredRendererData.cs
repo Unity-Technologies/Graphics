@@ -63,8 +63,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-
-        [SerializeField] StencilStateData m_DefaultStencilState = null;
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] bool m_TiledDeferredShading = true;
 
         protected override ScriptableRenderer Create()
         {
@@ -83,6 +84,10 @@ namespace UnityEngine.Rendering.Universal
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        public bool shadowTransparentReceive => m_ShadowTransparentReceive;
+
+        public bool tiledDeferredShading => m_TiledDeferredShading;
 
         protected override void OnEnable()
         {
@@ -103,17 +108,6 @@ namespace UnityEngine.Rendering.Universal
             }
             catch {}
 #endif
-        }
-
-
-        [SerializeField] bool m_TiledDeferredShading = true;
-
-        /// <summary>
-        /// Allows tiled deferred shading on appropriate lights.
-        /// </summary>
-        public bool tiledDeferredShading
-        {
-            get => m_TiledDeferredShading;
         }
     }
 }
