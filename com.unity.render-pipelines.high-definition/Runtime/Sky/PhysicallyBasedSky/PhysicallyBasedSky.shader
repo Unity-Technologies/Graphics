@@ -3,8 +3,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
-    #define NUM_PATHS    1
-    #define NUM_BOUNCES  3
+    #define NUM_PATHS    4
+    #define NUM_BOUNCES  10
 
     #pragma vertex Vert
 
@@ -486,9 +486,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     {
                         /* Shade the surface point (account for atmospheric attenuation). */
                         /* Pick a new direction for a Lambertian BRDF. */
-                        float3x3 basis = GetLocalFrame(normalize(X));
-                        D = SampleHemisphereCosine(random2D.x, random2D.y);
-                        D = mul(basis, D);
+                        D = SampleHemisphereCosine(random2D.x, random2D.y, normalize(X));
                     }
                     else // Volume scattering event
                     {
