@@ -3,8 +3,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
-    #define NUM_PATHS    4
-    #define NUM_BOUNCES  10
+    #define NUM_PATHS    1
+    #define NUM_BOUNCES  3
 
     #pragma vertex Vert
 
@@ -267,16 +267,16 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                float seaLvlAtt0, float H0, float seaLvlAtt1, float H1,
                                float maxOptDepth, float maxDist)
     {
-        if (optDepth < FLT_EPS) return FLT_EPS;
+        if (optDepth < 0.001) return 0.001;
 
         const float rcpOptDepth = rcp(optDepth);
 
         float att = seaLvlAtt0 * exp((R - r) * rcp(H0))
                   + seaLvlAtt1 * exp((R - r) * rcp(H1));
 
-        // TODO: this is both expensive and dumb.
-        float t = min(SampleRectExpMedium(optDepth, 0, cosTheta, rcp(att), rcp(H0)),
-                      SampleRectExpMedium(optDepth, 0, cosTheta, rcp(att), rcp(H1)));
+        // TODO: this is dumb.
+        // float t = SampleRectExpMedium(optDepth, 0, cosTheta, rcp(att), rcp(H0));
+        float t = optDepth / maxOptDepth;
 
         float absDiff = optDepth, relDiff = 1;
         uint numIterations = 0;
@@ -305,12 +305,17 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         #if 0
             // https://en.wikipedia.org/wiki/Newton%27s_method
-            t = t - f / df;
+            float dt = f * rcp(df);
         #else
             // https://en.wikipedia.org/wiki/Halley%27s_method
-            t = t - (f * df) / (df * df - 0.5 * f * ddf);
+            float dt = (f * df) * rcp(df * df - 0.5 * f * ddf);
+
+            if (abs(df * df - 0.5 * f * ddf) < FLT_MIN)
+            {
+                dt = f * rcp(df);
+            }
         #endif
-            t = clamp(t, 0, maxDist); // This is a crappy workaround to avoid NaNs
+            t = max(0.001, t - dt);
 
             absDiff = abs(optDepthAtDist - optDepth);
             relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
@@ -366,14 +371,16 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
 
-        bool resetSpectralTracking = (_SpectralTrackingFrameIndex == 0);
-        uint startPath = _SpectralTrackingFrameIndex * numPaths;
+        uint frameIndex = 0;
+        // uisnt frameIndex = _SpectralTrackingFrameIndex;
+        bool resetSpectralTracking = (frameIndex == 0);
+        uint startPath = frameIndex * numPaths;
         float3 color = 0;
 
         if (!resetSpectralTracking)
         {
             color = _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
-            //numPaths *= _SpectralTrackingFrameIndex;
+            //numPaths *= frameIndex;
         }
 
         for (uint p = startPath; p < (startPath + numPaths); p++) // Iterate over paths
@@ -424,7 +431,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
 
-                    float tGround = lookAboveHorizon ? UINT_MAX : IntersectSphere(R, cosChi, r).x; // Assume we are outside
+                    float tGround = lookAboveHorizon ? 1e7 : IntersectSphere(R, cosChi, r).x; // Assume we are outside
 
                     float bounceWeight;
 
@@ -660,6 +667,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
 #endif // USE_PATH_SKY
+
+        if (AnyIsNaN(skyColor)) return float4(10,0,0,1);
 
         return float4(skyColor, 1.0);
     }
