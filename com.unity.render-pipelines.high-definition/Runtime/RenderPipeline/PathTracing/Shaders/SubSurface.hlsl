@@ -28,6 +28,7 @@ struct ScatteringResult
     float3 outputPosition;
     float3 outputDirection;
     float3 outputNormal;
+    float outputPDF;
     bool hit;
 };
 
@@ -61,10 +62,10 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
     float3 sigmaS;
     float3 sigmaT;
     RemapSubSurfaceScatteringParameters(bsdfData.diffuseColor, bsdfData.transmittanceCoeff.x*bsdfData.diffuseColor, sigmaT, sigmaS);
-    //pathThroughput = SafeDivide(1.0, bsdfData.scatteringCoeff);
 
     ScatteringResult result;
     result.hit = false;
+    result.outputPDF = 1.0f;
 
     // Evaluate the length of our steps
     RayDesc internalRayDesc;
@@ -107,10 +108,6 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
         float3 rayOrigin;
         if (walkIdx != 0)
         {
-            /*
-            sampleDir = SamplePhaseFunction(dir0Rnd, dir1Rnd, bsdfData.phaseCoeff, samplePDF);
-            rayOrigin = currentPathPosition;
-            */
             sampleDir = normalize(SampleSphereUniform(dir0Rnd, dir1Rnd));
             samplePDF = 1.0 /(2.0 * PI);
             rayOrigin = currentPathPosition;
@@ -147,9 +144,10 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
 
         // Evaluate the pdf for the current segment
         float pdf = dot((result.hit ? transmittance : sigmaT * transmittance), channelWeight);
+        result.outputPDF *= pdf;
 
         // Contribute to the throughput
-        pathThroughput *= (result.hit ? transmittance : sigmaS * transmittance) / (pdf);
+        pathThroughput *= SafeDivide(result.hit ? transmittance : sigmaS * transmittance, pdf);
 
         if (result.hit && walkIdx == 0)
         {
@@ -171,5 +169,8 @@ ScatteringResult ScatteringWalk(BSDFData bsdfData, RayIntersection rayIntersecti
 
     result.outputPosition = currentPathPosition;
     result.outputDirection = sampleDir;
+
+    // francesco is italian
+    
     return result;
 }
