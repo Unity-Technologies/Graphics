@@ -371,8 +371,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
 
-        uint frameIndex = 0;
-        // uisnt frameIndex = _SpectralTrackingFrameIndex;
+        // uint frameIndex = 0;
+        uint frameIndex = _SpectralTrackingFrameIndex;
         bool resetSpectralTracking = (frameIndex == 0);
         uint startPath = frameIndex * numPaths;
         float3 color = 0;
@@ -466,7 +466,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                          +  _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff))[w];
                         float extinction = (_AirSeaLevelExtinction     * exp(-height * _AirDensityFalloff)
                                          +  _AerosolSeaLevelExtinction * exp(-height * _AerosolDensityFalloff))[w];
-                        float volumeAlbedo = scattering / extinction;
+                        float volumeAlbedo = extinction > FLT_MIN ? (scattering / extinction) : 0;
 
                         monteCarloScore *= volumeAlbedo;
                         bounceWeight     = monteCarloScore / (4.0f * PI); // * Phase function
