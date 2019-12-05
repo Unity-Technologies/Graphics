@@ -449,7 +449,7 @@ namespace UnityEngine.Rendering.Universal
                 if (renderPass.hasInputAttachment)
                 {
                     inputs = new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.inputAttachmentDescriptor) }, Allocator.Temp); //TODO attachment inputs
-                    //inputs = GetMappedInputAttachments(attachmentList, renderPass.inputAttachmentDescriptor);
+
                     context.BeginSubPass(colors, inputs);
                     inputs.Dispose();
                 }

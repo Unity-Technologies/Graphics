@@ -96,15 +96,6 @@ namespace UnityEngine.Rendering.Universal
             depthAsColor = false;
         }
 
-        //lets try renderTargetHandle as a container for identifier and attachmentdescriptor
-        public void ConfigureTarget(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
-        {
-            m_ColorAttachment = colorHandle.Identifier();
-            m_ColorAttachmentDescriptor = colorHandle.targetDescriptor;
-
-            m_DepthAttachment = depthHandle.Identifier();
-            m_DepthAttachmentDescriptor = depthHandle.targetDescriptor;
-        }
         //Optional methods for passes to configure Attachments that will be used for the RenderPass
         public void ConfigureColorAttachment(RenderTargetHandle colorHandle)
         {
@@ -126,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachment = colorTarget.Identifier();
             m_ColorAttachmentDescriptor = colorTarget.targetDescriptor;
             m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
-            m_ColorAttachmentDescriptor.ConfigureTarget(colorTarget.Identifier(), false, true);//čia dabar
+            m_ColorAttachmentDescriptor.ConfigureTarget(colorTarget.Identifier(), false, true);
 
             m_DepthAttachment = depthTarget.Identifier();
             m_DepthAttachmentDescriptor = depthTarget.targetDescriptor;
@@ -149,17 +140,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachmentDescriptor = new AttachmentDescriptor(depthFormat);
             m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
 
-        }
-
-        public virtual void ConfigureDepthAttachment(RenderTextureFormat depthFormat, RenderTargetHandle target)
-        {
-            m_DepthAttachmentDescriptor = new AttachmentDescriptor(depthFormat);
-            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
-        }
-
-        public void ConfigureColorTarget(RenderTargetIdentifier colorAttachment, bool loadContents, bool storeContents)
-        {
-            m_ColorAttachmentDescriptor.ConfigureTarget(colorAttachment, loadContents, storeContents);
         }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.

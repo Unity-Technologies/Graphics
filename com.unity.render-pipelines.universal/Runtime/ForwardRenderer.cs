@@ -219,8 +219,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            m_RenderOpaqueForwardPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment);
-            m_RenderOpaqueForwardPass.ConfigureDepthAttachment(m_ActiveCameraDepthAttachment);
+            m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
             if (resolveShadowsInScreenSpace)
             {
@@ -244,17 +243,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            m_RenderTransparentForwardPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment);
-            m_RenderTransparentForwardPass.ConfigureDepthAttachment(m_ActiveCameraDepthAttachment);
-
-            //m_RenderTransparentForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            m_RenderTransparentForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 m_CopyDepthPass.Configure(cmd, desc);
-                EnqueuePass(m_CopyDepthPass);
+             //   EnqueuePass(m_CopyDepthPass); //TODO: how to approach this? it could be avoided as input attachment
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture)
@@ -263,7 +259,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
-               // EnqueuePass(m_CopyColorPass);
+               // EnqueuePass(m_CopyColorPass); //TODO: how to approach this? it could be avoided as input attachment
             }
 
             EnqueuePass(m_RenderTransparentForwardPass);
