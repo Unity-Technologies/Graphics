@@ -77,30 +77,31 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // TODO: z
         void OnMouseHover(EventBase evt)
         {
-            var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
-                return;
-
-            var blackboardProvider = graphView.blackboardProvider;
-            if (blackboardProvider == null)
-                return;
-
-            var propNode = (PropertyNode)node;
-
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
-            if (propRow != null)
-            {
-                if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                {
-                    propRow.AddToClassList("hovered");
-                }
-                else
-                {
-                    propRow.RemoveFromClassList("hovered");
-                }
-            }
+//            var graphView = GetFirstAncestorOfType<GraphEditorView>();
+//            if (graphView == null)
+//                return;
+//
+//            var blackboardProvider = graphView.blackboardProvider;
+//            if (blackboardProvider == null)
+//                return;
+//
+//            var propNode = (PropertyNode)node;
+//
+//            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
+//            if (propRow != null)
+//            {
+//                if (evt.eventTypeId == MouseEnterEvent.TypeId())
+//                {
+//                    propRow.AddToClassList("hovered");
+//                }
+//                else
+//                {
+//                    propRow.RemoveFromClassList("hovered");
+//                }
+//            }
 
             UpdateTooltip();
         }
