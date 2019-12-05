@@ -399,6 +399,49 @@ namespace UnityEditor.VFX
             public int endIndex;
         }
 
+        static VFXMapping[] ComputePreProcessExpressionForSpawn(IEnumerable<VFXExpression> expressionPerSpawnToProcess, VFXExpressionGraph graph)
+        {
+            var allExpressions = new HashSet<VFXExpression>();
+            foreach (var expression in expressionPerSpawnToProcess)
+                CollectParentExpressionRecursively(expression, allExpressions);
+
+            var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
+            var processChunk = new List<ProcessChunk>();
+
+            int previousIndex = int.MinValue;
+            foreach (var indice in expressionIndexes)
+            {
+                if (indice != previousIndex + 1)
+                    processChunk.Add(new ProcessChunk()
+                    {
+                        startIndex = indice,
+                        endIndex = indice + 1
+                    });
+                else
+                    processChunk.Last().endIndex = indice + 1;
+                previousIndex = indice;
+            }
+
+            return processChunk.SelectMany((o, i) =>
+            {
+                var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
+                return new[]
+                {
+                                new VFXMapping
+                                {
+                                    name = "start_" + prefix,
+                                    index = o.startIndex
+                                },
+                                new VFXMapping
+                                {
+                                    name = "end_" + prefix,
+                                    index = o.endIndex
+                                }
+                            };
+
+            }).ToArray();
+        }
+
         private static VFXEditorTaskDesc[] BuildEditorTaksDescFromBlockSpawner(IEnumerable<VFXBlock> blocks, VFXContextCompiledData contextData, VFXExpressionGraph graph)
         {
             var taskDescList = new List<VFXEditorTaskDesc>();
@@ -436,49 +479,12 @@ namespace UnityEditor.VFX
 
                 if (expressionPerSpawnToProcess.Any())
                 {
-                    var allExpressions = new HashSet<VFXExpression>();
-                    foreach (var expression in expressionPerSpawnToProcess)
-                        CollectParentExpressionRecursively(expression, allExpressions);
-
-                    var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
-                    var processChunk = new List<ProcessChunk>();
-
-                    int previousIndex = int.MinValue;
-                    foreach (var indice in expressionIndexes)
-                    {
-                        if (indice != previousIndex + 1)
-                            processChunk.Add(new ProcessChunk()
-                            {
-                                startIndex = indice,
-                                endIndex = indice + 1
-                            });
-                        else
-                            processChunk.Last().endIndex = indice + 1;
-                        previousIndex = indice;
-                    }
-
+                    var mappingPreProcess = ComputePreProcessExpressionForSpawn(expressionPerSpawnToProcess, graph);
                     var preProcessTask = new VFXEditorTaskDesc
                     {
                         type = UnityEngine.VFX.VFXTaskType.PreProcessExpression,
                         buffers = new VFXMapping[0],
-                        values = processChunk.SelectMany((o, i) =>
-                        {
-                            var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
-                            return new[]
-                            {
-                                new VFXMapping
-                                {
-                                    name = "start_" + prefix,
-                                    index = o.startIndex
-                                },
-                                new VFXMapping
-                                {
-                                    name = "end_" + prefix,
-                                    index = o.endIndex
-                                }
-                            };
-
-                        }).ToArray(),
+                        values = mappingPreProcess,
                         parameters = contextData.parameters,
                         externalProcessor = null
                     };
@@ -566,11 +572,23 @@ namespace UnityEditor.VFX
                 var contextData = contextToCompiledData[spawnContext];
                 var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
                 var systemValueMappings = new List<VFXMapping>();
+                var expressionPerSpawnToProcess = new List<VFXExpression>();
                 foreach (var contextExpression in contextExpressions)
                 {
                     var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
                     systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
+                    if (contextExpression.exp.Is(VFXExpression.Flags.PerSpawn))
+                    {
+                        expressionPerSpawnToProcess.Add(contextExpression.exp);
+                    }
                 }
+
+                if (expressionPerSpawnToProcess.Any())
+                {
+                    var addiionnalValues = ComputePreProcessExpressionForSpawn(expressionPerSpawnToProcess, graph);
+                    systemValueMappings.AddRange(addiionnalValues);
+                }
+
                 string nativeName = string.Empty;
                 if (systemNames != null)
                     nativeName = systemNames.GetUniqueSystemName(spawnContext);
