@@ -397,43 +397,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             CreateHackweekBullcrapFile();
         }
 
-        private void CreateHackweekBullcrapFile()
+        void CreateHackweekBullcrapFile() // Hackweeeeek!
         {
-            List<AbstractShaderProperty> displayedProperties = graphObject.graph.properties.Where(prop => !prop.hidden).ToList();
-            List<ShaderKeyword> displayedKeywords = graphObject.graph.keywords.Where(key => key.isExposable && key.generatePropertyBlock).ToList();
+            List<InputCategory> categories = graphObject.graph.categories;
 
-            int propertyCount = displayedProperties.Count();
-            int keywordCount = displayedKeywords.Count();
-            string[] tooltips = new string[propertyCount + keywordCount];
-            string[] headers = new string[propertyCount + keywordCount];
-            int p, k;
-            for (p = 0; p < propertyCount; p++)
+            List<string> tooltips = new List<string>();
+            List<string> headers = new List<string>();
+
+
+            foreach (InputCategory category in categories)
             {
-                tooltips[p] = displayedProperties[p].tooltip;
-                if (p % 3 == 0)
-                    headers[p] = "bool";
-                else
-                    headers[p] = null;
-            }
-            for (k = 0; k < keywordCount; k++)
-            {
-                tooltips[k + propertyCount] = displayedKeywords[k].tooltip;
-                if ((k + propertyCount) % 3 == 0)
-                    headers[k + propertyCount] = "boolio";
-                else
-                    headers[k + propertyCount] = null;
+                int c = category.inputs.Count;
+                for (int x = 0; x < c; x++)
+                {
+                    tooltips.Add(!String.IsNullOrEmpty(category.inputs[x].tooltip) ? category.inputs[x].tooltip : null);
+                    headers.Add(x == 0 ? category.header : null);
+                }
             }
 
-//            Debug.Log("propertyCount="+propertyCount+" keywordCount="+keywordCount);
-//            for (int x = 0; x < propertyCount + keywordCount; x++)
+            string[] tooltipsArray = tooltips.ToArray();
+            string[] headersArray = headers.ToArray();
+
+//            int d = tooltipsArray.Length;
+//            for (int x = 0; x < d; x++)
 //            {
-//                string t = tooltips[x] == null ? "null!" : tooltips[x];
-//                string h = headers[x] == null ? "null!" : headers[x];
+//                string t = tooltips[x] == null ? "null tip!" : tooltips[x];
+//                string h = headers[x] == null ? "null head!" : headers[x];
 //
 //                Debug.Log("x(" + x + ") tooltips=" + t + "   headers=" + h);
 //            }
 
-            HackweekHacks.CreateShaderGUIInfo(tooltips, headers);
+            HackweekHacks.CreateShaderGUIInfo(tooltipsArray, headersArray);
         }
 
         public void ToSubGraph()
