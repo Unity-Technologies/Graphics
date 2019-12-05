@@ -45,6 +45,21 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        public AttachmentDescriptor colorAttachmentDescriptor
+        {
+            get => m_ColorAttachmentDescriptor;
+        }
+
+        public AttachmentDescriptor depthAttachmentDescriptor
+        {
+            get => m_DepthAttachmentDescriptor;
+        }
+
+        public AttachmentDescriptor inputAttachmentDescriptor
+        {
+            get => m_InputAttachmentDescriptor;
+        }
+
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -57,9 +72,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
+        internal bool hasInputAttachment { get; set; } //need this as input attachment is never == null
+        internal bool depthAsColor { get; set; } //requires some special magic when doing a depth-only pass
 
         RenderTargetIdentifier m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        AttachmentDescriptor m_ColorAttachmentDescriptor;
+        AttachmentDescriptor m_DepthAttachmentDescriptor;
+        AttachmentDescriptor m_InputAttachmentDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -72,8 +92,75 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            hasInputAttachment = false;
+            depthAsColor = false;
         }
 
+        //lets try renderTargetHandle as a container for identifier and attachmentdescriptor
+        public void ConfigureTarget(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        {
+            m_ColorAttachment = colorHandle.Identifier();
+            m_ColorAttachmentDescriptor = colorHandle.targetDescriptor;
+
+            m_DepthAttachment = depthHandle.Identifier();
+            m_DepthAttachmentDescriptor = depthHandle.targetDescriptor;
+        }
+        //Optional methods for passes to configure Attachments that will be used for the RenderPass
+        public void ConfigureColorAttachment(RenderTargetHandle colorHandle)
+        {
+            m_ColorAttachment = colorHandle.Identifier();
+            m_ColorAttachmentDescriptor = colorHandle.targetDescriptor;
+            m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            m_ColorAttachmentDescriptor.ConfigureTarget(m_ColorAttachment, false, true);
+        }
+
+        public void ConfigureDepthAttachment(RenderTargetHandle depthHandle)
+        {
+            m_DepthAttachment = depthHandle.Identifier();
+            m_DepthAttachmentDescriptor = depthHandle.targetDescriptor;
+            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+        }
+
+        public virtual void ConfigureAttachments(RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)
+        {
+            m_ColorAttachment = colorTarget.Identifier();
+            m_ColorAttachmentDescriptor = colorTarget.targetDescriptor;
+            m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            m_ColorAttachmentDescriptor.ConfigureTarget(colorTarget.Identifier(), false, true);//čia dabar
+
+            m_DepthAttachment = depthTarget.Identifier();
+            m_DepthAttachmentDescriptor = depthTarget.targetDescriptor;
+            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+        }
+
+        public virtual void ConfigureInputAttachment(AttachmentDescriptor input)
+        {
+            hasInputAttachment = true;
+            m_InputAttachmentDescriptor = input;
+        }
+
+        public virtual void SetColorAttachmentDescriptor(AttachmentDescriptor desc)
+        {
+            m_ColorAttachmentDescriptor = desc;
+        }
+
+        public virtual void ConfigureDepthAttachment(RenderTextureFormat depthFormat)
+        {
+            m_DepthAttachmentDescriptor = new AttachmentDescriptor(depthFormat);
+            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+
+        }
+
+        public virtual void ConfigureDepthAttachment(RenderTextureFormat depthFormat, RenderTargetHandle target)
+        {
+            m_DepthAttachmentDescriptor = new AttachmentDescriptor(depthFormat);
+            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+        }
+
+        public void ConfigureColorTarget(RenderTargetIdentifier colorAttachment, bool loadContents, bool storeContents)
+        {
+            m_ColorAttachmentDescriptor.ConfigureTarget(colorAttachment, loadContents, storeContents);
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -124,14 +211,17 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {}
+        {
+        }
 
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
-        {}
+        {
+            hasInputAttachment = false;
+        }
 
         /// <summary>
         /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation

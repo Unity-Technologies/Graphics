@@ -52,6 +52,10 @@ Shader "Hidden/Universal Render Pipeline/Blit"
 
             half4 Fragment(Varyings input) : SV_Target
             {
+//TODO:
+            #if UNITY_UV_STARTS_AT_TOP
+                input.uv =  input.uv * half2(1.0, -1.0) + half2(0.0, 1.0);
+            #endif
                 half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, input.uv);
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);

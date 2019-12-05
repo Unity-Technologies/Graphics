@@ -24,6 +24,13 @@ SAMPLER_CMP(sampler_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
 
+#define SHADOWINPUT 0
+
+//TODO: MS framebuffer fetch read, this needs to be done AOT, so PerCameraBuffer probably doesn't work as it's set in runtime
+//UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(SHADOWINPUT);
+UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(SHADOWINPUT);
+
+
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -118,7 +125,9 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
+    half attenuation = UNITY_READ_FRAMEBUFFER_INPUT(SHADOWINPUT, shadowCoord.xy).x;
+
+    //half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
 #endif
 
     return attenuation;
@@ -165,6 +174,9 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real shadowStrength = shadowParams.x;
 
     // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.
+#if UNITY_UV_STARTS_AT_TOP
+       shadowCoord = shadowCoord * float4(1.0, -1.0, 1.0, 1.0) + float4(0.0, 1.0, 0.0, 0.0);
+#endif
 #ifdef _SHADOWS_SOFT
     attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
 #else

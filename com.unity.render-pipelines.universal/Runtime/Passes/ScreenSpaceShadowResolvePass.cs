@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_RenderTextureDescriptor = baseDescriptor;
             m_RenderTextureDescriptor.depthBufferBits = 0;
-            m_RenderTextureDescriptor.msaaSamples = 1;
+            m_RenderTextureDescriptor.msaaSamples = baseDescriptor.msaaSamples;
             m_RenderTextureDescriptor.colorFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             ConfigureTarget(screenSpaceOcclusionTexture);
             ConfigureClear(ClearFlag.All, Color.white);
+            m_ScreenSpaceShadowmap.InitDescriptor(m_RenderTextureDescriptor.colorFormat);
+            SetColorAttachmentDescriptor(m_ScreenSpaceShadowmap.targetDescriptor); //not entirely sure why, but we cannot bind the attachment to the target, so only set the descriptor
         }
 
         /// <inheritdoc/>
@@ -54,18 +56,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            if (!stereo)
-            {
+//            if (!stereo) // TODO: investigate how to do this with stereo
+//            {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            }
-            else
-            {
-                // Avoid setting and restoring camera view and projection matrices when in stereo.
-                RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-                Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
-            }
+//            }
+//            else
+//            {
+//                // Avoid setting and restoring camera view and projection matrices when in stereo.
+//                RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+//                Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+//
+//            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

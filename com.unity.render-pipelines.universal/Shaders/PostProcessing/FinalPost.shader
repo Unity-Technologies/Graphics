@@ -52,7 +52,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
+//TODO: this applies to all flips like this, needs some more investigation and also maybe adding if _ProjectionParams.x everywhere
+#if UNITY_UV_STARTS_AT_TOP
+                input.uv =  input.uv * float2(1.0, -1.0) + float2(0.0, 1.0);
+#endif
             float2 positionNDC = input.uv;
             int2   positionSS  = input.uv * _BlitTex_TexelSize.zw;
 

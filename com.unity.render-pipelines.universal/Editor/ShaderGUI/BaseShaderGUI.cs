@@ -174,6 +174,12 @@ namespace UnityEditor
             ShaderPropertiesGUI(material);
         }
 
+		public override void OnMaterialPreviewGUI(MaterialEditor materialEditor, Rect r, GUIStyle background)
+		{
+            //TODO: investigate material preview because this throws errors and even breaks the whole inspector window
+            //base.OnMaterialPreviewGUI(materialEditor, r, background);
+		}
+
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
             // Foldout states

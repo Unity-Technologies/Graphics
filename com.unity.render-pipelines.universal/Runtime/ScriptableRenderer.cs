@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Net.Mail;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -73,21 +75,37 @@ namespace UnityEngine.Rendering.Universal
             get => m_ActiveRenderPassQueue;
         }
 
-        static class RenderPassBlock
+        public struct BlockDescriptor
         {
+            internal int width;
+            internal int height;
+            internal int sampleCount;
+        };
+        const int k_RenderPassBlockCount = 6;
+
+        internal static class RenderPassBlock
+        {
+
+            public static BlockDescriptor[] BlockDescriptors = new BlockDescriptor[k_RenderPassBlockCount];
+
+            //Shadowmaps require their own separate renderpass due to explicit resolution
+            public static readonly int Shadowmaps = 0;
+
+            public static readonly int AdditionalShadowmaps = 1;
+
+            public static readonly int ColorGrading = 2;
             // Executes render passes that are inputs to the main rendering
             // but don't depend on camera state. They all render in monoscopic mode. f.ex, shadow maps.
-            public static readonly int BeforeRendering = 0;
+            public static readonly int BeforeRendering = 3;
 
             // Main bulk of render pass execution. They required camera state to be properly set
             // and when enabled they will render in stereo.
-            public static readonly int MainRendering = 1;
+            public static readonly int MainRendering = 4;
 
             // Execute after Post-processing.
-            public static readonly int AfterRendering = 2;
+            public static readonly int AfterRendering = 5;
         }
 
-        const int k_RenderPassBlockCount = 3;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
@@ -109,7 +127,6 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveColorAttachment = colorAttachment;
             m_ActiveDepthAttachment = depthAttachment;
         }
-
         public ScriptableRenderer(ScriptableRendererData data)
         {
             foreach (var feature in data.rendererFeatures)
@@ -123,6 +140,12 @@ namespace UnityEngine.Rendering.Universal
             Clear();
         }
 
+        public void SetBlockDescriptor(int idx, int width, int height, int sampleCount)
+        {
+            RenderPassBlock.BlockDescriptors[idx].width = width;
+            RenderPassBlock.BlockDescriptors[idx].height = height;
+            RenderPassBlock.BlockDescriptors[idx].sampleCount = sampleCount;
+        }
         /// <summary>
         /// Configures the camera target.
         /// </summary>
@@ -200,8 +223,12 @@ namespace UnityEngine.Rendering.Universal
 
             // Upper limits for each block. Each block will contains render passes with events below the limit.
             NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
-            blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
-            blockEventLimits[RenderPassBlock.MainRendering] = RenderPassEvent.AfterRenderingPostProcessing;
+
+            blockEventLimits[RenderPassBlock.Shadowmaps] = RenderPassEvent.AfterRenderingShadows;
+            blockEventLimits[RenderPassBlock.AdditionalShadowmaps] = RenderPassEvent.AfterRenderingPrePasses;
+            blockEventLimits[RenderPassBlock.ColorGrading] = RenderPassEvent.BeforeRenderingOpaques;
+            blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.AfterRenderingOpaques;
+            blockEventLimits[RenderPassBlock.MainRendering] = RenderPassEvent.AfterRenderingTransparents;
             blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
             NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
@@ -213,7 +240,9 @@ namespace UnityEngine.Rendering.Universal
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
-            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.Shadowmaps, blockRanges, context, ref renderingData, /*RenderPass*/ true);
+
+            ExecuteBlock(RenderPassBlock.AdditionalShadowmaps, blockRanges, context, ref renderingData, /*RenderPass*/ true);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -225,6 +254,10 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
+            ExecuteBlock(RenderPassBlock.ColorGrading, blockRanges, context, ref renderingData, /*RenderPass*/ false);
+
+
+            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData, /*RenderPass*/ true); // switching these two blocks make the camera flip (maybe cause of setrendertargets???)
 
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
@@ -243,17 +276,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // In this block main rendering executes.
-            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData, /*RenderPass*/ true);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
+
+            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData, /*RenderPass*/ false);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
-            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+           DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             //if (renderingData.resolveFinalTarget)
                 InternalFinishRendering(context);
@@ -347,26 +381,136 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
-            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, bool useRenderPass, bool submit = false)
         {
+            BlockDescriptor block = RenderPassBlock.BlockDescriptors[blockIndex];
+            if (block.height == 0 &&
+                block.width == 0)
+                return;
             int endIndex = blockRanges[blockIndex + 1];
+
+            int depthAttachmentIdx = 0;
+            bool isDepthOnly = true;
+
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+            List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
+            if (!useRenderPass)
+            {
+                for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
+                {
+                    var renderPass = m_ActiveRenderPassQueue[currIndex];
+                    ExecuteRenderPass(context, renderPass, ref renderingData, true);
+                }
+                return;
+            }
+            else
+            {
+                for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
+                {
+                    var renderPass = m_ActiveRenderPassQueue[currIndex];
+                    if (renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Depth ||
+                        renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Shadowmap)
+                        renderPass.depthAsColor = true;
+
+                    if (!attachmentList.Contains(renderPass.colorAttachmentDescriptor))
+                   {
+                       attachmentList.Add(renderPass.colorAttachmentDescriptor);
+                       //maybe map attachment descriptor with index right here?
+                   }
+                   if (renderPass.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && !attachmentList.Contains(renderPass.depthAttachmentDescriptor)) //only the z-buffer should be bound as depthAttachmentDescriptor, though depth attachments can also be used as color attachments
+                   {
+                       attachmentList.Add(renderPass.depthAttachmentDescriptor);
+                       depthAttachmentIdx = attachmentList.IndexOf(renderPass.depthAttachmentDescriptor);
+                   }
+                }
+            }
+            if (attachmentList.Count == 0 || depthAttachmentIdx >= attachmentList.Count)
+                return;
+
+            NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
+
+            if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
+                return;
+            context.BeginRenderPass(block.width, block.height, block.sampleCount, descriptors, depthAttachmentIdx);
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                ExecuteRenderPass(context, renderPass, ref renderingData);
-            }
+                NativeArray<int> colors;
+                if (renderPass.depthAsColor)
+                {
+                    colors = new NativeArray<int>(0, Allocator.Temp);
+                }
+                else
+                {
+                    colors = new NativeArray<int>(new int [] { attachmentList.IndexOf(renderPass.colorAttachmentDescriptor) }, Allocator.Temp);
+                }
 
+                NativeArray<int> inputs;
+                if (renderPass.hasInputAttachment)
+                {
+                    inputs = new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.inputAttachmentDescriptor) }, Allocator.Temp); //TODO attachment inputs
+                    //inputs = GetMappedInputAttachments(attachmentList, renderPass.inputAttachmentDescriptor);
+                    context.BeginSubPass(colors, inputs);
+                    inputs.Dispose();
+                }
+                else
+                    context.BeginSubPass(colors);
+
+                colors.Dispose();
+                ExecuteNativeRenderPass(context, renderPass, ref renderingData);
+                context.EndSubPass();
+
+            }
+            context.EndRenderPass();
+            descriptors.Dispose();
+            isDepthOnly = true;
+            attachmentList.Clear();
             if (submit)
                 context.Submit();
         }
 
-        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
+        void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
+            ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+
+            RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+            RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+            {
+                m_FirstCameraRenderPassExecuted = true;
+//                Camera camera = cameraData.camera;
+//                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+//                context.ExecuteCommandBuffer(cmd);
+//                cmd.Clear();
+//
+//                if (cameraData.isStereoEnabled)
+//                {
+//                    context.StartMultiEye(cameraData.camera);
+//                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+//                }
+            }
+//            if (!renderPass.overrideCameraTarget)
+//            {
+//                passColorAttachment = m_CameraColorTarget;
+//                passDepthAttachment = m_CameraDepthTarget;
+//            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            renderPass.Execute(context, ref renderingData);
+
+        }
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, bool noRenderPass)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+            var colorAtt = m_ActiveColorAttachment;
+            var depthAtt = m_ActiveDepthAttachment;
             ref CameraData cameraData = ref renderingData.cameraData;
 
             // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
@@ -389,27 +533,30 @@ namespace UnityEngine.Rendering.Universal
 //                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
 //                    clearFlag = ClearFlag.None;
 
-                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+            //    SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+            //        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                if (cameraData.isStereoEnabled)
-                {
-                    context.StartMultiEye(cameraData.camera);
-                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-                }
+//                context.ExecuteCommandBuffer(cmd);
+//                cmd.Clear();
+//
+//                if (cameraData.isStereoEnabled)
+//                {
+//                    context.StartMultiEye(cameraData.camera);
+//                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+//                }
             }
 
             // Only setup render target if current render pass attachments are different from the active ones
-            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
-                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+//            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+//            {
+//                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+//            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
+
         }
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
@@ -526,6 +673,11 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void GetMappedInputAttachments(List<AttachmentDescriptor> list, List<AttachmentDescriptor> inputs)
+        {
+
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

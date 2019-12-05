@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
             ConfigureTarget(depthAttachmentHandle.Identifier());
             ConfigureClear(ClearFlag.All, Color.black);
+
+            ConfigureColorAttachment(depthAttachmentHandle);
+
         }
 
         /// <inheritdoc/>
