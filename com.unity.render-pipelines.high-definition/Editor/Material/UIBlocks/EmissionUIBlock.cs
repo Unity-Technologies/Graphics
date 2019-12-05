@@ -5,6 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using System.Reflection;
 using System.Linq.Expressions;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

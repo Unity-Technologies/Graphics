@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;

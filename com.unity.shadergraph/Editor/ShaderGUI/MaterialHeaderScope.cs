@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     /// <summary>
     /// Create a toggleable header for material UI, must be used within a scope.

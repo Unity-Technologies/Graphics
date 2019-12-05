@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEditor.ShaderGraph;
 using System;
 
 // Include material common properties names

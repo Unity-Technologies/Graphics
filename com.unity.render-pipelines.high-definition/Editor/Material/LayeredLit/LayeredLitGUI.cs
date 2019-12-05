@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;

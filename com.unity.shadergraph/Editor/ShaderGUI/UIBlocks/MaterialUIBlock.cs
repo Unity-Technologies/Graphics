@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     abstract class MaterialUIBlock
     {

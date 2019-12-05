@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     internal static class MaterialEditorExtension
     {

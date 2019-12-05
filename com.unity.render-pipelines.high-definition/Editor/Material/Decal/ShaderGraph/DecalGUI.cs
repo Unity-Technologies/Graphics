@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
