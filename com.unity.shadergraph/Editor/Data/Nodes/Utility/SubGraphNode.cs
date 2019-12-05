@@ -91,6 +91,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<int> m_SubDelSlotIds = new List<int>();
 
+        [NonSerialized]
+        public List<FunctionPair> subgraphDelegateFunctions = new List<FunctionPair>();
+
         public string subGraphGuid
         {
             get
@@ -486,7 +489,7 @@ namespace UnityEditor.ShaderGraph
 
         void CreateSubgraphDelegateFunctions()
         {
-            asset.subgraphDelegateFunctions.Clear();
+            subgraphDelegateFunctions.Clear();
             asset.subDelRequirements = new ShaderGraphRequirements();
             bool generatedInputStruct = false;
             foreach (int id in m_SubDelSlotIds)
@@ -594,7 +597,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder s = new ShaderStringBuilder();
             SubShaderGenerator.GenerateSurfaceInputStruct(s, asset.requirements, asset.inputStructName);
             s.AppendNewLine();
-            asset.subgraphDelegateFunctions.Add(new FunctionPair("delegate_input_struct", s.ToString()));
+            subgraphDelegateFunctions.Add(new FunctionPair("delegate_input_struct", s.ToString()));
         }
 
         void WriteSubgraphDelegateFunction(SubGraphNode sgNode, string delegateGuid)
@@ -696,7 +699,8 @@ namespace UnityEditor.ShaderGraph
                         s.AppendLine(");");
                 }
             }
-            asset.subgraphDelegateFunctions.Add(new FunctionPair(finalDelegateFunctionName, s.ToString()));
+            //subgraphDelegateFunctions.Add(new FunctionPair(finalDelegateFunctionName, s.ToString()));
+            subgraphDelegateFunctions.Add(new FunctionPair(delegateFunctionName, s.ToString()));
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
@@ -740,10 +744,8 @@ namespace UnityEditor.ShaderGraph
         {
             if (asset == null || hasError)
                 return;
-
             
-
-            var delegateFunctionkeys = asset.subgraphDelegateFunctions.Select<FunctionPair, string>(x => x.key);
+            var delegateFunctionkeys = subgraphDelegateFunctions.Select<FunctionPair, string>(x => x.key);
             foreach (var function in asset.functions)
             {
                 if (!delegateFunctionkeys.Contains<string>(function.key) && (function.key != asset.functions.Last().key))
@@ -755,18 +757,21 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var function in asset.subgraphDelegateFunctions)
+            var nodeMainFunction = asset.functions.Last();
+            ShaderStringBuilder tempSb = new ShaderStringBuilder();
+            tempSb.AppendLines(nodeMainFunction.value);
+            tempSb.ReplaceInCurrentMapping(nodeMainFunction.key, String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")));
+
+            foreach (var function in subgraphDelegateFunctions)
             {
-                registry.ProvideFunction(function.key, s =>
+                String mangledName = (function.key != "delegate_input_struct") ? String.Format("{0}_{1}", function.key, guid.GetHashCode().ToString("X")) : function.key;
+                tempSb.ReplaceInCurrentMapping(function.key, mangledName);
+                registry.ProvideFunction(mangledName, s =>
                 {
                     s.AppendLines(function.value);
                 });
             }
 
-            var nodeMainFunction = asset.functions.Last();
-            ShaderStringBuilder tempSb = new ShaderStringBuilder();
-            tempSb.AppendLines(nodeMainFunction.value);
-            tempSb.ReplaceInCurrentMapping(nodeMainFunction.key, String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")));
             registry.ProvideFunction(String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")), s =>
             {
                 s.AppendLines(tempSb.ToString());

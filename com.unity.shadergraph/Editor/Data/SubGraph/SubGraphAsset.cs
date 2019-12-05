@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
-        public List<FunctionPair> subgraphDelegateFunctions = new List<FunctionPair>();
+        //public List<FunctionPair> subgraphDelegateFunctions = new List<FunctionPair>();
 
         [NonSerialized]
         public List<AbstractShaderProperty> inputs = new List<AbstractShaderProperty>();
