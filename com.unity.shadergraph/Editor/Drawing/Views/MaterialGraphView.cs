@@ -206,6 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (a) => (canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
             }
         }
 
@@ -518,6 +519,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
+        void DuplicateSelection()
+        {
+            graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
+
+            List<ShaderInput> selectedProperties = new List<ShaderInput>();
+            foreach (var selectable in selection)
+            {
+                ShaderInput shaderProp = (ShaderInput)((BlackboardField)selectable).userData;
+                if (shaderProp != null)
+                {
+                    selectedProperties.Add(shaderProp);
+                }
+            }
+
+            CopyPasteGraph copiedProperties = new CopyPasteGraph("", null, null, null, selectedProperties,
+                null, null, null, graph);
+
+            GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
+        }
+
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
         {
             if (onConvertToSubgraphClick == null) return DropdownMenuAction.Status.Hidden;
@@ -545,8 +566,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
             var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
-            return JsonUtility.ToJson(graph, true);
+            var copyPasteGraph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes, graph);
+            return JsonUtility.ToJson(copyPasteGraph, true);
         }
 
         bool CanPasteSerializedDataImplementation(string serializedData)
@@ -647,6 +668,55 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             selection.Clear();
+        }
+
+        public static void GetIndexToInsert(Blackboard blackboard, out int propertyIndex, out int keywordIndex)
+        {
+            if (blackboard == null || !blackboard.selection.Any())
+            {
+                propertyIndex = -1;
+                keywordIndex = -1;
+                return;
+            }
+
+            int highestPropertyIndex = -2;
+            int highestKeywordIndex  = -2;
+
+            foreach (ISelectable selection in blackboard.selection)
+            {
+                BlackboardField selectedBlackboardField = selection as BlackboardField;
+                if (selectedBlackboardField != null)
+                {
+                    BlackboardRow row = selectedBlackboardField.GetFirstAncestorOfType<BlackboardRow>();
+                    BlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<BlackboardSection>();
+                    if (row == null || section == null)
+                        continue;
+                    VisualElement sectionContainer = section.parent;
+
+                    int index;
+                    // Property Section
+                    if (sectionContainer.IndexOf(section) == 0)
+                    {
+                        index = section.IndexOf(row);
+                        if (index > highestPropertyIndex)
+                        {
+                            highestPropertyIndex = index;
+                        }
+                    }
+                    // Keyword Section
+                    else if (sectionContainer.IndexOf(section) == 1)
+                    {
+                        index = section.IndexOf(row);
+                        if (index > highestKeywordIndex)
+                        {
+                            highestKeywordIndex = index;
+                        }
+                    }
+                }
+            }
+
+            propertyIndex = highestPropertyIndex + 1;
+            keywordIndex = highestKeywordIndex + 1;
         }
 
         #region Drag and drop
@@ -854,6 +924,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     static class GraphViewExtensions
     {
+        // Sorts based on their position on the blackboard
+        internal class PropertyOrder : IComparer<ShaderInput>
+        {
+            GraphData graphData;
+
+            internal PropertyOrder(GraphData data)
+            {
+                graphData = data;
+            }
+
+            public int Compare(ShaderInput x, ShaderInput y)
+            {
+                if (graphData.GetGraphInputIndex(x) > graphData.GetGraphInputIndex(y)) return 1;
+                else return -1;
+            }
+        }
+
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
             if (copyGraph == null)
@@ -862,17 +949,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
 
+            Blackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
+            // Debug.Log((graphView.GetBlackboard() != null).ToString());
+
+            // Get the position to insert the new shader inputs per section
+            int propertyIndex;
+            int keywordIndex;
+            MaterialGraphView.GetIndexToInsert(blackboard, out propertyIndex, out keywordIndex);
+
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                ShaderInput copiedInput = input.Copy();
-                graphView.graph.SanitizeGraphInputName(copiedInput);
-                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
-                graphView.graph.AddGraphInput(copiedInput);
+                ShaderInput copiedInput;
 
                 switch(input)
                 {
                     case AbstractShaderProperty property:
+                        // Increment for next within the same section
+                        copiedInput = DuplicateShaderInputs(input, graphView.graph, propertyIndex);
+                        if (propertyIndex > 0) propertyIndex++;
+
                         // Update the property nodes that depends on the copied node
                         var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
                         foreach (var node in dependentPropertyNodes)
@@ -881,7 +977,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                             node.propertyGuid = copiedInput.guid;
                         }
                         break;
+
                     case ShaderKeyword shaderKeyword:
+                        // Don't duplicate built-in keywords within the same graph
+                        if (KeywordUtil.IsBuiltinKeyword(input as ShaderKeyword)
+                            && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
+                        {
+                            continue;
+                        }
+
+                        // Increment for next within the same section
+                        copiedInput = DuplicateShaderInputs(input, graphView.graph, keywordIndex);
+                        if (keywordIndex > 0) keywordIndex++;
+
                         // Update the keyword nodes that depends on the copied node
                         var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
                         foreach (var node in dependentKeywordNodes)
@@ -893,6 +1001,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Pasting a new Keyword so need to test against variant limit
                         keywordsDirty = true;
                         break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -960,6 +1069,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                         });
                 }
             }
+        }
+
+        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph, int index)
+        {
+            ShaderInput copy = original.Copy();
+            graph.SanitizeGraphInputName(copy);
+            graph.AddGraphInput(copy, index);
+            copy.generatePropertyBlock = original.generatePropertyBlock;
+            return copy;
         }
     }
 }
