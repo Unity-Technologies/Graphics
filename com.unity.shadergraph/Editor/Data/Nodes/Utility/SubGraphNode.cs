@@ -611,7 +611,41 @@ namespace UnityEditor.ShaderGraph
 
             for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
             {
-                s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
+                switch (currentDelegate.input_Entries[i].propertyType)
+                {
+                    case PropertyType.Texture2D:
+                        {
+                            Texture2DShaderProperty texProp = new Texture2DShaderProperty();
+                            texProp.overrideReferenceName = currentDelegate.input_Entries[i].referenceName;
+                            s.Append("{0}, ", texProp.GetPropertyAsArgumentString());
+                        }
+                        break;
+                    case PropertyType.Texture2DArray:
+                        {
+                            Texture2DArrayShaderProperty texProp = new Texture2DArrayShaderProperty();
+                            texProp.overrideReferenceName = currentDelegate.input_Entries[i].referenceName;
+                            s.Append("{0}, ", texProp.GetPropertyAsArgumentString());
+                        }
+                        break;
+                    case PropertyType.Texture3D:
+                        {
+                            Texture3DShaderProperty texProp = new Texture3DShaderProperty();
+                            texProp.overrideReferenceName = currentDelegate.input_Entries[i].referenceName;
+                            s.Append("{0}, ", texProp.GetPropertyAsArgumentString());
+                        }
+                        break;
+                    case PropertyType.Cubemap:
+                        {
+                            CubemapShaderProperty texProp = new CubemapShaderProperty();
+                            texProp.overrideReferenceName = currentDelegate.input_Entries[i].referenceName;
+                            s.Append("{0}, ", texProp.GetPropertyAsArgumentString());
+                        }
+                        break;
+                    default:
+                        s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
+                        break;
+                }
+                //s.Append("{0} {1}, ", currentDelegate.input_Entries[i].propertyType.ToConcreteShaderValueType().ToShaderString(), currentDelegate.input_Entries[i].referenceName);
             }
             s.Append("{0} IN, ", asset.inputStructName);
             for (int i = 0; i < currentDelegate.output_Entries.Count; i++)
@@ -630,7 +664,24 @@ namespace UnityEditor.ShaderGraph
                 s.Append("{0}(", sgNode.asset.functionName);
                 for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
                 {
-                    s.Append("{0}, ", currentDelegate.input_Entries[i].referenceName);
+                    switch (currentDelegate.input_Entries[i].propertyType)
+                    {
+                        case PropertyType.Texture2D:
+                            s.Append("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize, ", currentDelegate.input_Entries[i].referenceName);
+                            break;
+                        case PropertyType.Texture2DArray:
+                            s.Append("TEXTURE2D_ARRAY_ARGS({0}, sampler{0}), ", currentDelegate.input_Entries[i].referenceName);
+                            break;
+                        case PropertyType.Texture3D:
+                            s.Append("TEXTURE3D_ARGS({0}, sampler{0}), ", currentDelegate.input_Entries[i].referenceName);
+                            break;
+                        case PropertyType.Cubemap:
+                            s.Append("TEXTURECUBE_ARGS({0}, sampler{0}), ", currentDelegate.input_Entries[i].referenceName);
+                            break;
+                        default:
+                            s.Append("{0}, ", currentDelegate.input_Entries[i].referenceName);
+                            break;
+                    }
                 }
 
                 s.Append("{0}, ", inputVariableName);

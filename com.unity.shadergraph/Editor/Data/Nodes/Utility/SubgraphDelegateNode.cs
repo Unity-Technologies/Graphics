@@ -57,7 +57,25 @@ namespace UnityEditor.ShaderGraph
 
             for (int i = 0; i < inputSlots.Count(); ++i)
             {
-                slotValues.Add(GetSlotValue(inputSlots[i].id, generationMode, concretePrecision));
+                String slotValueStr = GetSlotValue(inputSlots[i].id, generationMode, concretePrecision);
+                switch (inputSlots[i].valueType)
+                {
+                    case SlotValueType.Texture2D:
+                        slotValues.Add(String.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", slotValueStr));
+                        break;
+                    case SlotValueType.Texture2DArray:
+                        slotValues.Add(String.Format("TEXTURE2DARRAY_ARGS({0}, sampler{0})", slotValueStr));
+                        break;
+                    case SlotValueType.Texture3D:
+                        slotValues.Add(String.Format("TEXTURE3D_ARGS({0}, sampler{0})", slotValueStr));
+                        break;
+                    case SlotValueType.Cubemap:
+                        slotValues.Add(String.Format("TEXTURECUBE_ARGS({0}, sampler{0})", slotValueStr));
+                        break;
+                    default:
+                        slotValues.Add(slotValueStr);
+                        break;
+                }
             }
             slotValues.Add("IN");
             for (int i = 0; i < outputSlots.Count(); ++i)
