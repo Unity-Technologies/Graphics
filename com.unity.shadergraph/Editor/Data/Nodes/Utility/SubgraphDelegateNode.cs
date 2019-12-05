@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
                 slotValues.Add(GetSlotValue(outputSlots[i].id, generationMode, concretePrecision));
                 if (FindSlot<MaterialSlot>(outputSlots[i].id) != null)
                 {
-                    sb.AppendLine("{0} {1} = {2};", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id), outputSlots[i].GetDefaultValue(generationMode));
+                    sb.AppendLine("{0} {1} = {2};", outputSlots[i].concreteValueType.ToShaderString(), GetVariableNameForSlot(outputSlots[i].id), outputSlots[i].GetDefaultValue(GenerationMode.ForReals));
                 }
             }
             var subDelegate = owner.subgraphDelegates.FirstOrDefault(x => x.guid == subgraphDelegateGuid);
@@ -110,9 +110,24 @@ namespace UnityEditor.ShaderGraph
                 s.Append("void {0}(", GetFunctionName());
                 for (int i = 0; i < inputSlots.Count(); ++i)
                 {
-                    s.Append("{0} {1}", inputSlots[i].concreteValueType.ToShaderString(), inputSlots[i].shaderOutputName);
-                    if ((i < (inputSlots.Count() - 1)) || outputSlots.Count() > 0)
-                        s.Append(", ");
+                    switch(inputSlots[i].valueType)
+                    {
+                        case SlotValueType.Texture2D:
+                            s.Append("TEXTURE2D_PARAM({0}, sampler_{0}), $precision4 {0}_TexelSize, ", inputSlots[i].shaderOutputName);
+                            break;
+                        case SlotValueType.Texture2DArray:
+                            s.Append("TEXTURE2DARRAY_PARAM({0}, sampler_{0}), ", inputSlots[i].shaderOutputName);
+                            break;
+                        case SlotValueType.Texture3D:
+                            s.Append("TEXTURE3D_PARAM({0}, sampler_{0}), ", inputSlots[i].shaderOutputName);
+                            break;
+                        case SlotValueType.Cubemap:
+                            s.Append("TEXTURECUBE_PARAM({0}, sampler_{0}), ", inputSlots[i].shaderOutputName);
+                            break;
+                        default:
+                            s.Append("{0} {1}, ", inputSlots[i].concreteValueType.ToShaderString(), inputSlots[i].shaderOutputName);
+                            break;
+                    }
                 }
 
                 s.Append("SurfaceDescriptionInputs IN, ");
