@@ -157,8 +157,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            //bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
-            bool transparentsNeedSettingsPass = true; // ShaderKeywordStrings.AdditionalLightShadows seems to be reset to disabled when changing render-targets?
+            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
             // Depth prepass is generated in the following cases:
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.

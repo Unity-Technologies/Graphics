@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string _SPOT = "_SPOT";
             public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
             public static readonly string _POINT = "_POINT";
-            public static readonly string _ADDITIONAL_LIGHT_SHADOWS = "_ADDITIONAL_LIGHT_SHADOWS";
+            public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
@@ -1084,9 +1084,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                     cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1106,7 +1106,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._SPOT);
-                cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
                 cmd.EnableShaderKeyword(ShaderConstants._DIRECTIONAL);
 
                 // Directional lights.
@@ -1162,9 +1161,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
                     cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
