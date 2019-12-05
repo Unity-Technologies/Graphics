@@ -39,7 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
-        static Vector3 s_cameraPosition = new Vector3(0, 0, 0);
+        static Matrix4x4 s_cameraTransform = new Matrix4x4();
+        static Vector3 s_cameraPosition = new Vector3();
         static int s_cameraFrameCount = 0;
 
         RTHandle AllocateGroundIrradianceTable(int index)
@@ -74,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle AllocateSpectralTrackingTexture()
         {
             var table = RTHandles.Alloc(width: 4096, height: 4096, // TODO: get HDCamera.actualWidth,actualHeight
-                                        colorFormat: s_ColorFormat,
+                                        colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
                                         enableRandomWrite: true,
                                         name: string.Format("SpectralTrackingTexture"));
             Debug.Assert(table != null);
@@ -384,18 +385,19 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
-            s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpectralTrackingTexture, m_SpectralTrackingTexture);
-            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._SpectralTrackingFrameIndex, s_cameraFrameCount);
+            builtinParams.commandBuffer.SetRandomWriteTarget(1, m_SpectralTrackingTexture);
 
-            if (X == s_cameraPosition)
+            if (builtinParams.viewMatrix == s_cameraTransform && X == s_cameraPosition)
             {
                 s_cameraFrameCount++;
             }
             else
             {
                 s_cameraFrameCount = 0;
+                s_cameraTransform = builtinParams.viewMatrix;
                 s_cameraPosition = X;
             }
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._SpectralTrackingFrameIndex, s_cameraFrameCount);
 
             if (m_LastPrecomputedBounce != 0)
             {
@@ -446,6 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
+            builtinParams.commandBuffer.ClearRandomWriteTargets();
         }
     }
 }

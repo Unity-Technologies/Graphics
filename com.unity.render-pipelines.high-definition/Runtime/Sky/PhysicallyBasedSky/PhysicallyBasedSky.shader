@@ -3,8 +3,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
-    #define NUM_PATHS    8
-    #define NUM_BOUNCES  5
+    #define NUM_PATHS    4
+    #define NUM_BOUNCES  10
 
     #pragma vertex Vert
 
@@ -379,9 +379,17 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float H = _AirScaleHeight;
         const float Z = n * R;
 
+        bool resetSpectralTracking = (_SpectralTrackingFrameIndex == 0);
+        uint startPath = _SpectralTrackingFrameIndex * numPaths;
         float3 color = 0;
 
-        for (uint p = 0; p < numPaths; p++) // Iterate over paths
+        if (!resetSpectralTracking)
+        {
+            color = _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
+            //numPaths *= _SpectralTrackingFrameIndex;
+        }
+
+        for (uint p = startPath; p < (startPath + numPaths); p++) // Iterate over paths
         {
             const uint numStrata   = (uint)sqrt(numPaths);
             const uint permutation = positionSS.x | (positionSS.y << 16);
@@ -487,22 +495,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     }
                 }
 
-                color[w] += pathContribution / numPaths;
+                color[w] += pathContribution;
             }
-
-
         }
 
-        // If frame index is 0, we write (start over), otherwise we accumulate
-        if (_SpectralTrackingFrameIndex != 0)
-        {
-            _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] += float4(color, 1.0f);
-        }
-        else
-        {
-            _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
-        }
-        return color;
+        _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
+
+        return color / (startPath + numPaths);
     }
 
     float4 RenderSky(Varyings input)
