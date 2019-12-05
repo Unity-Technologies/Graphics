@@ -3,8 +3,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     HLSLINCLUDE
 
     #define USE_PATH_SKY 1
-    #define NUM_PATHS    8
-    #define NUM_BOUNCES  5
+    #define NUM_PATHS    4
+    #define NUM_BOUNCES  10
 
     #pragma vertex Vert
 
@@ -25,6 +25,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasGroundEmissionTexture;  // bool...
     int _HasSpaceEmissionTexture;   // bool...
     int _RenderSunDisk;             // bool...
+    int _SpectralTrackingFrameIndex;
 
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
@@ -44,6 +45,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     TEXTURECUBE(_GroundAlbedoTexture);
     TEXTURECUBE(_GroundEmissionTexture);
     TEXTURECUBE(_SpaceEmissionTexture);
+    RW_TEXTURE2D_X(float4, _SpectralTrackingTexture);
 
     struct Attributes
     {
@@ -359,21 +361,29 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return color;
     }
 
-    float3 SpectralTracking(uint2 positonSS, uint numWavelengths, uint numPaths, uint numBounces)
+    float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
 
+        bool resetSpectralTracking = (_SpectralTrackingFrameIndex == 0);
+        uint startPath = _SpectralTrackingFrameIndex * numPaths;
         float3 color = 0;
 
-        for (uint p = 0; p < numPaths; p++) // Iterate over paths
+        if (!resetSpectralTracking)
+        {
+            color = _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
+            //numPaths *= _SpectralTrackingFrameIndex;
+        }
+
+        for (uint p = startPath; p < (startPath + numPaths); p++) // Iterate over paths
         {
             const uint numStrata   = (uint)sqrt(numPaths);
-            const uint permutation = positonSS.x | (positonSS.y << 16);
+            const uint permutation = positionSS.x | (positionSS.y << 16);
 
             // Sample the sensor.
             const float2 subPixel  = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]);
-            const float2 sensorPos = positonSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
+            const float2 sensorPos = positionSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
 
             // Init the ray.
             float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
@@ -484,11 +494,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     }
                 }
 
-                color[w] += pathContribution / numPaths;
+                color[w] += pathContribution;
             }
         }
 
-        return color;
+        _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
+
+        return color / (startPath + numPaths);
     }
 
     float4 RenderSky(Varyings input)
