@@ -386,10 +386,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         for (uint p = startPath; p < (startPath + numPaths); p++) // Iterate over paths
         {
             const uint numStrata   = (uint)sqrt(numPaths);
-            const uint permutation = positionSS.x | (positionSS.y << 16);
+            const uint coordinate  = positionSS.x | (positionSS.y << 16);
+            const uint leftPart    = coordinate << (frameIndex % 32);
+            const uint rightPart   = coordinate >> (32 - (frameIndex % 32));
+            const uint permutation = leftPart | rightPart;
+            const float rotation   = GenerateHashedRandomFloat(permutation);
 
             // Sample the sensor.
-            const float2 subPixel  = cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]);
+            const float2 subPixel  = frac(rotation + cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]));
             const float2 sensorPos = positionSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
 
             // Init the ray.
@@ -426,7 +430,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     float maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
                     float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
-                    float rndOpacity  = randfloat(p, permutation ^ s_RandomPrimes[b]);
+                    float rndOpacity  = frac(rotation + randfloat(p, permutation ^ s_RandomPrimes[b]));
 
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
@@ -481,7 +485,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     pathContribution += lightColor * bounceWeight;
 
-                    const float2 random2D = cmj2D(p, 1, 1, permutation ^ s_RandomPrimes[b + 1]);
+                    const float2 random2D = frac(rotation + cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[b + 1]));
                     if (surfaceScatteringEvent)
                     {
                         /* Shade the surface point (account for atmospheric attenuation). */
