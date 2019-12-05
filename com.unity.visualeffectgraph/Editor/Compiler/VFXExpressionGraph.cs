@@ -1,3 +1,4 @@
+#define _KEEP_ORDER_OF_CONTEXT_FOR_RANDOM_COMPATIBILITY
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,15 +139,31 @@ namespace UnityEditor.VFX
                 m_GPUExpressionsToReduced.Clear();
                 m_CPUExpressionsToReduced.Clear();
 
-                //TODOPAUL : explain why we should keep compilation ordering in this PR
-                foreach (var context in contexts)
+//Temporary : Remove this code as long as we merged this PR, it will require to update some test based on CPU Random
+#if _KEEP_ORDER_OF_CONTEXT_FOR_RANDOM_COMPATIBILITY
+                var itContext = contexts.GetEnumerator();
+                bool notFinished = itContext.MoveNext();
+                var contextList = new List<VFXContext>();
+                while (notFinished)
                 {
+                    bool isSpawner = itContext.Current.contextType == VFXContextType.Spawner;
+                    contextList.Clear();
+                    do
+                    {
+                        contextList.Add(itContext.Current);
+                    } while (       (notFinished = itContext.MoveNext()) == true
+                                &&  (itContext.Current.contextType == VFXContextType.Spawner) == isSpawner);
                     var currentOptions = options;
-                    if (context.contextType == VFXContextType.Spawner)
+                    if (isSpawner)
                         currentOptions = options | VFXExpressionContextOption.DoSomeMagicForSpawner;
-                    CompileExpressionContext(new[] { context }, currentOptions, VFXDeviceTarget.CPU);
+                    CompileExpressionContext(contextList, currentOptions, VFXDeviceTarget.CPU);
                 }
-
+#else
+                var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
+                var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
+                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.DoSomeMagicForSpawner, VFXDeviceTarget.CPU);
+                CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
+#endif
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
