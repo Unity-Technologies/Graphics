@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
         }
 
-        // TODO: do we want something like this for serialized things? Check how other serialized things work
+        // TODO: z do we want something like this for serialized things? Check how other serialized things work
 //        public InputCategory(string title, GraphData graphData, bool displayed = true)
 //        {
 //            m_Header = title;
@@ -98,8 +98,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateShaderInput(ShaderInput input)
         {
-            Debug.Log("I'm addin'");
-
             inputs.Add(input);
             AddInputRow(input);
 
@@ -117,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddInputRow(ShaderInput input)
         {
-            // TODO: double check that things cannot be added twice
+            // TODO: z double check that things cannot be added twice
 //            if (m_InputRows.ContainsKey(input.guid))
 //                return;
 
@@ -149,10 +147,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
 
-            Debug.Log("Adding! " + row);
             m_BlackboardSection.Add(row);
 
-            // TODO: for realz
+            // TODO: z
 //            var pill = row.Q<Pill>();
 //            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
 //            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));

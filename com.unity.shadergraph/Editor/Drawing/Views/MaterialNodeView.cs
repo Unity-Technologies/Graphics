@@ -695,33 +695,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        // TODO: z
         void OnMouseHover(EventBase evt)
         {
-            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphEditorView == null)
-                return;
+            // var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+            // if (graphEditorView == null)
+            //     return;
 
-            var blackboardProvider = graphEditorView.blackboardProvider;
-            if (blackboardProvider == null)
-                return;
+            // var blackboardProvider = graphEditorView.blackboardProvider;
+            // if (blackboardProvider == null)
+            //     return;
 
-            // Keyword nodes should be highlighted when Blackboard entry is hovered
-            // TODO: Move to new NodeView type when keyword node has unique style
-            if(node is KeywordNode keywordNode)
-            {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
-                if (keywordRow != null)
-                {
-                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                    {
-                        keywordRow.AddToClassList("hovered");
-                    }
-                    else
-                    {
-                        keywordRow.RemoveFromClassList("hovered");
-                    }
-                }
-            }
+            // // Keyword nodes should be highlighted when Blackboard entry is hovered
+            // // TODO: Move to new NodeView type when keyword node has unique style
+            // if(node is KeywordNode keywordNode)
+            // {
+            //     var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+            //     if (keywordRow != null)
+            //     {
+            //         if (evt.eventTypeId == MouseEnterEvent.TypeId())
+            //         {
+            //             keywordRow.AddToClassList("hovered");
+            //         }
+            //         else
+            //         {
+            //             keywordRow.RemoveFromClassList("hovered");
+            //         }
+            //     }
+            // }
         }
 
         void UpdatePreviewTexture()
