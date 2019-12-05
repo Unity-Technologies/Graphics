@@ -215,19 +215,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return r;
     }
 
-    float SampleRectExpMedium(float optDepth, float height, float cosTheta, float rcpSeaLvlAtt, float rcpH)
-    {
-        float t = optDepth * rcpSeaLvlAtt;
-        float p = cosTheta * rcpH;
-
-        if (abs(p) > FLT_EPS)
-        {
-            t = -log(1.0f - p * t * exp(height * rcpH)) * rcp(p);
-        }
-
-        return t;
-    }
-
     float RadAtDist(float r, float cosTheta, float t)
     {
         return sqrt(r * r + t * (t + 2.0f * (r * cosTheta)));
@@ -259,78 +246,81 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return ch * H * seaLvlAtt;
     }
 
-    float SampleSpherExpMedium(float optDepth, float r, float cosTheta,
-                               float rcpSeaLvlAtt, float Z, float R, float H, float rcpH)
+    float SampleRectExpMedium(float optDepth, float height, float cosTheta, float rcpSeaLvlAtt, float rcpH)
     {
-        // This allows us to use (seaLvlAtt = rcpSeaLvlAtt = 1) below.
-        optDepth *= rcpSeaLvlAtt;
-        float rcpOptDepth = rcp(optDepth); // Must not be 0.
-        // Make an initial guess.
-        float t = SampleRectExpMedium(optDepth, r - R, cosTheta, 1, rcpH);
-        float relDiff;
-        uint numIterations = 0;
-        do // Perform a Newton–Raphson iteration.
+        float t = optDepth * rcpSeaLvlAtt;
+        float p = cosTheta * rcpH;
+
+        if (abs(p) > FLT_EPS)
         {
-            float radAtDist = RadAtDist(r, cosTheta, t);
-            // Evaluate the function and its (reciprocal) derivative:
-            // f (t) = OptDepthAtDist(t) - GivenOptDepth = 0,
-            // f'(t) = AttCoefAtDist(t).
-            // The sea level attenuation coefficient cancels out during division.
-            float optDepthAtDist = EvalOptDepthSpherExpMedium(r, cosTheta, t, 1, Z, H, rcpH);
-            float rcpAttCoefAtDist = 1 * exp((radAtDist - R) * rcpH);
-            // Refine the initial guess.
-            // t1 = t0 - f(t0) / f'(t0).
-            t = t - (optDepthAtDist - optDepth) * rcpAttCoefAtDist;
-            relDiff = optDepthAtDist * rcpOptDepth - 1;
-            numIterations++;
-        } while ((abs(relDiff) > 0.001) && (numIterations < 4)); // Stop when the accuracy goal has been reached.
+            // Note: if the value of the optical depth we are querying is larger
+            // than the maximal value along the entire ray, this will produce a NaN.
+            t = -log(max(FLT_EPS, 1.0f - p * t * exp(height * rcpH))) * rcp(p);
+        }
+
         return t;
     }
 
-    float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta, bool aboveHorizon)
-{
-    const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
-    const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
-    const float  R = _PlanetaryRadius;
-
-    float2 z = n * r;
-    float2 Z = n * R;
-
-    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
-
-    float2 ch;
-    ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
-    ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
-
-    if (!aboveHorizon) // Below horizon, intersect sphere
+    float SampleSpherExpMedium(float optDepth, float r, float cosTheta, float R,
+                               float seaLvlAtt0, float H0, float seaLvlAtt1, float H1,
+                               float maxOptDepth, float maxDist)
     {
-        float sinGamma = (r / R) * sinTheta;
-        float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+        if (optDepth < FLT_EPS) return FLT_EPS;
 
-        float2 ch_2;
-        ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
-        ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
+        const float rcpOptDepth = rcp(optDepth);
 
-        ch = ch_2 - ch;
+        float att = seaLvlAtt0 * exp((R - r) * rcp(H0))
+                  + seaLvlAtt1 * exp((R - r) * rcp(H1));
+
+        // TODO: this is both expensive and dumb.
+        float t = min(SampleRectExpMedium(optDepth, 0, cosTheta, rcp(att), rcp(H0)),
+                      SampleRectExpMedium(optDepth, 0, cosTheta, rcp(att), rcp(H1)));
+
+        float absDiff = optDepth, relDiff = 1;
+        uint numIterations = 0;
+        do // Perform a Newton–Raphson iteration.
+        {
+            float radiusAtDist = RadAtDist(r, cosTheta, t);
+            float heightAtDist = radiusAtDist - R;
+            // Evaluate the function and its derivative:
+            // f  (t) = OptDepthAtDist(t) - GivenOptDepth = 0,
+            // f' (t) = AttCoefAtDist(t),
+            // f''(t) = AttCoefAtDist'(t) = -AttCoefAtDist(t) * (t + r * cosTheta) / (H * RadAtDist(t)).
+            float optDepthAtDist0     = EvalOptDepthSpherExpMedium(r, cosTheta, t, seaLvlAtt0, R * rcp(H0), H0, rcp(H0));
+            float optDepthAtDist1     = EvalOptDepthSpherExpMedium(r, cosTheta, t, seaLvlAtt1, R * rcp(H1), H1, rcp(H1));
+            float optDepthAtDist      = optDepthAtDist0 + optDepthAtDist1;
+            float attCoefAtDist0      = seaLvlAtt0 * exp(-heightAtDist * rcp(H0));
+            float attCoefAtDist1      = seaLvlAtt1 * exp(-heightAtDist * rcp(H1));
+            float attCoefAtDist       = attCoefAtDist0 + attCoefAtDist1;
+            float attCoefAtDistDeriv0 = -attCoefAtDist0 * (t + r * cosTheta) * rcp(H0 * radiusAtDist);
+            float attCoefAtDistDeriv1 = -attCoefAtDist1 * (t + r * cosTheta) * rcp(H1 * radiusAtDist);
+            float attCoefAtDistDeriv  = attCoefAtDistDeriv0 + attCoefAtDistDeriv1;
+
+            // Refine the initial guess.
+            float   f = optDepthAtDist - optDepth;
+            float  df = attCoefAtDist;
+            float ddf = attCoefAtDistDeriv;
+
+        #if 0
+            // https://en.wikipedia.org/wiki/Newton%27s_method
+            t = t - f / df;
+        #else
+            // https://en.wikipedia.org/wiki/Halley%27s_method
+            t = t - (f * df) / (df * df - 0.5 * f * ddf);
+        #endif
+            t = clamp(t, 0, maxDist); // This is a crappy workaround to avoid NaNs
+
+            absDiff = abs(optDepthAtDist - optDepth);
+            relDiff = abs(optDepthAtDist * rcpOptDepth - 1);
+
+            numIterations++;
+            // Stop when the accuracy goal has been reached.
+            // Note that this uses the accuracy of the old value of 't'.
+            // The new value of 't' we just computed is even more accurate.
+        } while ((absDiff > 0.001) && (relDiff > 0.001) && (numIterations < 4));
+
+        return min(t, maxDist);
     }
-    else if (cosTheta < 0)   // Above horizon, lower hemisphere
-    {
-        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
-        // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
-        float2 z_0  = z * sinTheta;
-        float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
-        float2 a;
-        a.x         = 2 * ChapmanHorizontal(z_0.x);
-        a.y         = 2 * ChapmanHorizontal(z_0.y);
-        float2 ch_2 = a * b;
-
-        ch = ch_2 - ch;
-    }
-
-    float2 optDepth = ch * H;
-
-    return optDepth.x * _AirSeaLevelExtinction;// + optDepth.y * _AerosolSeaLevelExtinction;
-}
 
     // Input position is relative to sphere origin
     float3 EvalLight(float3 position, bool useNormal, DirectionalLightData light)
@@ -354,7 +344,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (cosTheta >= cosHoriz) // Above horizon
             {
                 color = light.color;
-                float3 oDepth = ComputeAtmosphericOpticalDepth1(r, cosTheta, true);
+                float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
                 // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
                 float3 transm  = TransmittanceFromOpticalDepth(oDepth);
                 float3 opacity = 1 - transm;
@@ -373,9 +363,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
-        const float n = _AirDensityFalloff;
-        const float H = _AirScaleHeight;
-        const float Z = n * R;
 
         float3 color = 0;
 
@@ -420,20 +407,23 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                     bool lookAboveHorizon = (cosChi >= cosHor);
 
-                    float maxOptDepth = ComputeAtmosphericOpticalDepth1(r, cosChi, lookAboveHorizon)[w];
+                    float maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon)[w];
                     float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
-                    float rndOpacity  = randfloat(p, permutation ^ s_RandomPrimes[b + 1]);
+                    float rndOpacity  = randfloat(p, permutation ^ s_RandomPrimes[b]);
 
                     bool surfaceContibution     = !lookAboveHorizon;
                     bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
+
+                    float tGround = lookAboveHorizon ? UINT_MAX : IntersectSphere(R, cosChi, r).x; // Assume we are outside
 
                     float bounceWeight;
 
                     if (surfaceScatteringEvent)
                     {
-                        float t = IntersectSphere(R, cosChi, r).x; // Assume we are outside
+                        float t = tGround;
 
                         X += t * D;
+                        r = length(X);
 
                         monteCarloScore *= _GroundAlbedo[w];     // Albedo = Brdf / Pdf(Brdf)
                         bounceWeight     = monteCarloScore / PI; // * BRDF, NdotL is handled later
@@ -444,14 +434,22 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
-                        float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi,
-                                                       rcp(_AirSeaLevelExtinction[w]), Z, R, H, n);
+                        float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi, R,
+                                                       _AirSeaLevelExtinction[w],  _AirScaleHeight,
+                                                       _AerosolSeaLevelExtinction, _AerosolScaleHeight, maxOptDepth, tGround);
 
                         X += t * D;
+                        r = length(X);
 
-                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
                         /* Shade the volume point (account for atmospheric attenuation). */
-                        float volumeAlbedo = (_AirSeaLevelScattering / _AirSeaLevelExtinction)[w];
+                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
+                        float height = r - R;
+                        // TODO: anisotropic phase function.
+                        float scattering = (_AirSeaLevelScattering     * exp(-height * _AirDensityFalloff)
+                                         +  _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff))[w];
+                        float extinction = (_AirSeaLevelExtinction     * exp(-height * _AirDensityFalloff)
+                                         +  _AerosolSeaLevelExtinction * exp(-height * _AerosolDensityFalloff))[w];
+                        float volumeAlbedo = scattering / extinction;
 
                         monteCarloScore *= volumeAlbedo;
                         bounceWeight     = monteCarloScore / (4.0f * PI); // * Phase function
@@ -481,14 +479,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         /* Shade the volume point (account for atmospheric attenuation). */
                         /* Compute a new direction (uniformly for now). */
+                        // TODO: anisotropic phase function.
                         D = SampleSphereUniform(random2D.x, random2D.y);
                     }
                 }
 
                 color[w] += pathContribution / numPaths;
             }
-
-
         }
 
         return color;
