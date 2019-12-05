@@ -29,5 +29,10 @@ namespace UnityEditor.Graphing.Util
                     Debug.Log("null header!");
             }
         }
+
+        private static void PrintLists()
+        {
+
+        }
     }
 }

@@ -1,27 +1,11 @@
-using System.Net.Mail;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
 
-// Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
-    /// <summary>
-    /// GUI for HDRP Unlit shader graphs
-    /// </summary>
-    class HDUnlitGUI : HDShaderGUI
+    class BaseShaderGraphGUI : ShaderGUI
     {
-        // For surface option shader graph we only want all unlit features but alpha clip, double sided mode and back then front rendering
-        const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
-            ^ SurfaceOptionUIBlock.Features.AlphaCutoff
-            ^ SurfaceOptionUIBlock.Features.DoubleSidedNormalMode
-            ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering;
-
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             // new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
@@ -46,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (myBlocks == null)
             {
-                OldOnGUI(materialEditor, props);
+                base.OnGUI(materialEditor, props);
             }
             else
             {
@@ -65,42 +49,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void OldOnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
-        {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                    {
-                        SetupMaterialKeywordsAndPassInternal(material);
-                    }
-                }
-            }
-        }
-
-        public static void SetupMaterialKeywordsAndPass(Material material)
-        {
-            SynchronizeShaderGraphProperties(material);
-            UnlitGUI.SetupUnlitMaterialKeywordsAndPass(material);
-        }
-
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
-
         struct ShaderGraphBlock
         {
             public string header;
             public MaterialProperty[] properties;
             public GUIContent[] contents;
         }
-
-
-
-
-
 
         List<ShaderGraphBlock> GetHeaderBlocks(MaterialProperty[] allProperties)
         {
@@ -178,6 +132,5 @@ namespace UnityEditor.Rendering.HighDefinition
             return ((prop.flags &
                      (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) == 0);
         }
-
     }
 }

@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-// Include material common properties names
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.ShaderGraph
 {
     class ShaderGraphUIBlock : MaterialUIBlock
     {
@@ -100,11 +96,12 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertiesDefaultGUI(properties);
 
             // If we change a property in a shadergraph, we trigger a material keyword reset
-            if (CheckPropertyChanged(properties))
-            {
-                foreach (var material in materials)
-                    HDShaderUtils.ResetMaterialKeywords(material);
-            }
+            // TODO: z
+//            if (CheckPropertyChanged(properties))
+//            {
+//                foreach (var material in materials)
+//                    HDShaderUtils.ResetMaterialKeywords(material);
+//            }
 
 //            if (properties.Length > 0)
 //                EditorGUILayout.Space();
@@ -148,62 +145,63 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawEmissionGI()
-        {
-            if (materialEditor.EmissionEnabledProperty())
-            {
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
-            }
-        }
+//        void DrawEmissionGI()
+//        {
+//            if (materialEditor.EmissionEnabledProperty())
+//            {
+//                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
+//            }
+//        }
 
-        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
-        bool m_AddPrecomputedVelocity = false;
-
-        void DrawMotionVectorToggle()
-        {
-            // I absolutely don't know what this is meant to do
-            const string materialTag = "MotionVector";
-            foreach (var material in materials)
-            {
-                string tag = material.GetTag(materialTag, false, "Nothing");
-                if (tag == "Nothing")
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                    material.SetOverrideTag(materialTag, "User");
-                }
-            }
-
-            // If using multi-select, apply toggled material to all materials.
-            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            EditorGUI.BeginChangeCheck();
-            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
-
-            // SG-ADDITIONALVELOCITY-NOTE:
-            // We would like to automatically enable the motion vector pass (handled on material UI side)
-            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
-            // a value in between shadergraph compilations would have no effect on a material, so we instead
-            // inform the motion vector UI via the existence of the property at all and query against that.
-            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
-            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
-            {
-                enabled |= hasPrecomputedVelocity;
-                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
-                GUI.changed = true;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var material in materials)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
-                }
-            }
-        }
-
-        void DrawDiffusionProfileUI()
-        {
-            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
-        }
+        // TODO: z HD will need an extension of this class
+//        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
+//        bool m_AddPrecomputedVelocity = false;
+//
+//        void DrawMotionVectorToggle()
+//        {
+//            // I absolutely don't know what this is meant to do
+//            const string materialTag = "MotionVector";
+//            foreach (var material in materials)
+//            {
+//                string tag = material.GetTag(materialTag, false, "Nothing");
+//                if (tag == "Nothing")
+//                {
+//                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
+//                    material.SetOverrideTag(materialTag, "User");
+//                }
+//            }
+//
+//            // If using multi-select, apply toggled material to all materials.
+//            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
+//            EditorGUI.BeginChangeCheck();
+//            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
+//
+//            // SG-ADDITIONALVELOCITY-NOTE:
+//            // We would like to automatically enable the motion vector pass (handled on material UI side)
+//            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
+//            // a value in between shadergraph compilations would have no effect on a material, so we instead
+//            // inform the motion vector UI via the existence of the property at all and query against that.
+//            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
+//            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
+//            {
+//                enabled |= hasPrecomputedVelocity;
+//                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
+//                GUI.changed = true;
+//            }
+//
+//            if (EditorGUI.EndChangeCheck())
+//            {
+//                foreach (var material in materials)
+//                {
+//                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
+//                }
+//            }
+//        }
+//
+//        void DrawDiffusionProfileUI()
+//        {
+//            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
+//                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
+//        }
     }
 }

@@ -92,7 +92,7 @@ namespace UnityEditor.Graphing.Util
                 return;
             }
 
-            // guiInfo.PrintMe();
+            guiInfo.PrintMe();
         }
     }
 }
