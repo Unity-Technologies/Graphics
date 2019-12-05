@@ -493,7 +493,7 @@ namespace UnityEditor.ShaderGraph
             {
                 string guidstr = m_SubDelGuids[m_SubDelSlotIds.IndexOf(id)];
                 var sgdels = asset.subgraphDelegates.Where(x => x.guid.ToString() == guidstr);
-                var edges = owner.GetEdges(GetSlotReference(id));
+                var edges = owner.GetEdges(GetSlotReference(id)).Where(x => x.inputSlot.nodeGuid == guid);
                 if (edges.Count() > 0)
                 {
                     AbstractMaterialNode node = owner.GetNodeFromGuid(edges.First().outputSlot.nodeGuid);
