@@ -151,6 +151,7 @@ namespace UnityEditor.ShaderGraph
             //List<MaterialSlot> inputSlots = new List<MaterialSlot>();
             inputSlots.Clear();
             GetInputSlots(inputSlots);
+            int numInputSlots = inputSlots.Count();
 
             // Store the edges
             Dictionary<MaterialSlot, List<IEdge>> inputEdgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
@@ -235,6 +236,8 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveSlotsNameNotMatching(slotIds);
 
+            int inputSlotsOffset = inputSlots.Count() - numInputSlots;
+
             // Reconnect the edges
             foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in inputEdgeDict)
             {
@@ -249,7 +252,8 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (IEdge edge in entry.Value)
                 {
-                    owner.Connect(edge.outputSlot, edge.inputSlot);
+                    SlotReference newOutputSlot = new SlotReference(edge.outputSlot.nodeGuid, edge.outputSlot.slotId + inputSlotsOffset);
+                    owner.Connect(newOutputSlot, edge.inputSlot);
                 }
             }
             

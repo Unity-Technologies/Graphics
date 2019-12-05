@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void AddEntry(ReorderableList list)
         {
             graph.owner.RegisterCompleteObjectUndo("Add Subgraph Delegate Entry");
-
+            
             var index = list.list.Count + 1;
             var displayName = GetDuplicateSafeDisplayName(index, "New", list);
             var referenceName = GetDuplicateSafeReferenceName(index, "NEW", list);
@@ -167,6 +167,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Delegate.output_Entries.Add(new SubgraphDelegateEntry(index, PropertyType.Vector1, displayName, referenceName));
 
+            ValidateEntries(m_Delegate.input_Entries);
+            ValidateEntries(m_Delegate.output_Entries);
             // Update GUI
             DirtyNodes();
             Rebuild();
@@ -193,9 +195,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
                 m_Delegate.output_Entries.Remove(selectedEntry);
 
+            ValidateEntries(m_Delegate.input_Entries);
+            ValidateEntries(m_Delegate.output_Entries);
+
+            // Update GUI
             DirtyNodes();
             Rebuild();
             graph.OnSubgraphDelegateChanged();
+        }
+
+        private void ValidateEntries(List<SubgraphDelegateEntry> entries)
+        {
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var newEntry = entries[i];
+                newEntry.id = i + 1;
+                entries[i] = newEntry;
+            }
         }
 
         private void ReorderEntries(ReorderableList list)
