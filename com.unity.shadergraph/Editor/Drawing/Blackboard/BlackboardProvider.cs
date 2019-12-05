@@ -366,10 +366,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardRow GetBlackboardRow(Guid guid)
-        {
-            return m_InputRows[guid];
-        }
+        // TODO: z
+//        public BlackboardRow GetBlackboardRow(Guid guid)
+//        {
+//            return m_InputRows[guid];
+//        }
 
         void OnMouseHover(EventBase evt, ShaderInput input)
         {
