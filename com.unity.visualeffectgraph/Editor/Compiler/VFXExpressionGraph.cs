@@ -155,7 +155,7 @@ namespace UnityEditor.VFX
                                 &&  (itContext.Current.contextType == VFXContextType.Spawner) == isSpawner);
                     var currentOptions = options;
                     if (isSpawner)
-                        currentOptions = options | VFXExpressionContextOption.DoSomeMagicForSpawner;
+                        currentOptions = options | VFXExpressionContextOption.PatchReadToEventAttribute;
                     CompileExpressionContext(contextList, currentOptions, VFXDeviceTarget.CPU);
                 }
 #else
