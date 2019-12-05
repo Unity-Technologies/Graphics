@@ -1,0 +1,226 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Graphing;
+using UnityEngine;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.Graphs;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
+
+namespace UnityEditor.ShaderGraph.Drawing
+{
+    class InputCategory
+    {
+        [SerializeField]
+        string m_Header = "";
+
+        public string header
+        {
+            get { return m_Header; }
+            set { m_Header = value;  }
+        }
+
+        [SerializeField]
+        bool m_Expanded = true;
+
+        public bool expanded
+        {
+            get { return m_Expanded; }
+        }
+
+        [NonSerialized]
+        GraphData m_Graph;
+
+        #region  ShaderInputs
+
+        [NonSerialized]
+        public List<ShaderInput> m_Inputs = new List<ShaderInput>();
+
+        public List<ShaderInput> inputs
+        {
+            get { return m_Inputs; }
+        }
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
+
+        public void AddShaderInput(ShaderInput input, int index = -1)
+        {
+            if (index < 0)
+                m_Inputs.Add(input);
+            else
+                m_Inputs.Insert(index, input);
+        }
+
+        #endregion
+
+        public InputCategory()
+        {
+        }
+
+        // TODO: do we want something like this for serialized things? Check how other serialized things work
+//        public InputCategory(string title, GraphData graphData, bool displayed = true)
+//        {
+//            m_Header = title;
+//            m_Expanded = displayed;
+//
+//            CreateBlackboardSection();
+//        }
+
+
+        [NonSerialized]
+        BlackboardSection m_BlackboardSection;
+
+        public BlackboardSection blackboardSection
+        {
+            get
+            {
+                return m_BlackboardSection;
+            }
+        }
+
+
+        public void CreateBlackboardSection(GraphData graph)
+        {
+            m_Graph = graph;
+
+            m_BlackboardSection = new BlackboardSection();
+            m_BlackboardSection.title = m_Header;
+
+            m_BlackboardSection.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            foreach (ShaderInput input in inputs)
+            {
+                AddInputRow(input);
+            }
+        }
+
+        void CreateShaderInput(ShaderInput input)
+        {
+            Debug.Log("I'm addin'");
+
+            inputs.Add(input);
+            AddInputRow(input);
+
+            m_Graph.SanitizeGraphInputName(input);
+            input.generatePropertyBlock = input.isExposable;
+
+            m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
+            m_Graph.AddGraphInput(input);
+
+            if (input as ShaderKeyword != null)
+            {
+                m_Graph.OnKeywordChangedNoValidate();
+            }
+        }
+
+        void AddInputRow(ShaderInput input)
+        {
+            // TODO: double check that things cannot be added twice
+//            if (m_InputRows.ContainsKey(input.guid))
+//                return;
+
+            BlackboardField field = null;
+            BlackboardRow row = null;
+
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                {
+                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
+                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+                    row = new BlackboardRow(field, propertyView) { userData = input };
+
+                    break;
+                }
+                case ShaderKeyword keyword:
+                {
+                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
+                    var typeText = KeywordUtil.IsBuiltinKeyword(keyword) ? "Built-in Keyword" : keyword.keywordType.ToString();
+                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
+                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
+                    row = new BlackboardRow(field, keywordView);
+
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            Debug.Log("Adding! " + row);
+            m_BlackboardSection.Add(row);
+
+            // TODO: for realz
+//            var pill = row.Q<Pill>();
+//            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
+//            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
+//            pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+//
+//            var expandButton = row.Q<Button>("expandButton");
+//            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
+//
+//            m_InputRows[input.guid] = row;
+//            m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
+        }
+
+        #region Serialization
+
+        public void OnBeforeSerialize()
+        {
+            // TODO: does making the ShaderInput cause Property or Keyword specific serialized fields to get lost? probably?
+            m_SerializedInputs = SerializationHelper.Serialize<ShaderInput>(m_Inputs);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            m_Inputs = SerializationHelper.Deserialize<ShaderInput>(m_SerializedInputs, GraphUtil.GetLegacyTypeRemapping());
+        }
+
+        #endregion
+
+
+        #region DropdownMenu
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => RemoveSelf(), DropdownMenuAction.AlwaysEnabled);
+
+            evt.menu.AppendSeparator("/");
+
+            AddPropertyItems(evt.menu);
+        }
+
+        void OpenTextEditor()
+        {
+            Debug.Log("OpenTextEditor()");
+        }
+
+        void RemoveSelf()
+        {
+            m_Graph.categories.Remove(this);
+        }
+
+        void AddPropertyItems(DropdownMenu menu)
+        {
+            menu.AppendAction($"Vector1", (a) => CreateShaderInput(new Vector1ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Vector2", (a) => CreateShaderInput(new Vector2ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Vector3", (a) => CreateShaderInput(new Vector3ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Vector4", (a) => CreateShaderInput(new Vector4ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Color", (a) => CreateShaderInput(new ColorShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Texture2D", (a) => CreateShaderInput(new Texture2DShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Texture2D Array", (a) => CreateShaderInput(new Texture2DArrayShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Texture3D", (a) => CreateShaderInput(new Texture3DShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Cubemap", (a) => CreateShaderInput(new CubemapShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Boolean", (a) => CreateShaderInput(new BooleanShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Matrix2x2", (a) => CreateShaderInput(new Matrix2ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Matrix3x3", (a) => CreateShaderInput(new Matrix3ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Matrix4x4", (a) => CreateShaderInput(new Matrix4ShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"SamplerState", (a) => CreateShaderInput(new SamplerStateShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+            menu.AppendAction($"Gradient", (a) => CreateShaderInput(new GradientShaderProperty()), DropdownMenuAction.AlwaysEnabled);
+        }
+        #endregion
+
+    }
+}
