@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (builtinParams.viewMatrix == s_cameraTransform && X == s_cameraPosition)
             {
-                s_cameraFrameCount++;
+                s_cameraFrameCount++; // why is this happening.  no really
             }
             else
             {
@@ -398,6 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_cameraPosition = X;
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._SpectralTrackingFrameIndex, s_cameraFrameCount);
+            s_PbrSkyMaterialProperties.SetInt("_NumBounces", pbrSky.numberOfBounces.value);
 
             if (m_LastPrecomputedBounce != 0)
             {

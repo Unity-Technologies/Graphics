@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     #define NUM_WAVELENGTHS 3
     #define NUM_PATHS       4
-    #define NUM_BOUNCES    10
+    #define DO_ACCUM 1
 
     #pragma vertex Vert
 
@@ -28,6 +28,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasSpaceEmissionTexture;   // bool...
     int _RenderSunDisk;             // bool...
     int _SpectralTrackingFrameIndex;
+    int _NumBounces;
 
     float _GroundEmissionMultiplier;
     float _SpaceEmissionMultiplier;
@@ -464,8 +465,11 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
 
-        //uint frameIndex = 0;
+#if !DO_ACCUM
+        uint frameIndex = 0;
+#else
         uint frameIndex = _SpectralTrackingFrameIndex;
+#endif
         bool resetSpectralTracking = (frameIndex == 0);
         uint startPath = frameIndex * numPaths;
         float3 color = 0;
@@ -533,6 +537,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float tGround = lookAboveHorizon ? 1e7 : IntersectSphere(R, cosChi, r).x; // Assume we are outside
 
                     float3 bounceWeight;
+                    float3 lightColor = 0;
 
                     bool shouldScatter = true;
                     if (surfaceScatteringEvent)
@@ -542,12 +547,24 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         X += t * D;
                         r = length(X);
 
-                        monteCarloScore *= _GroundAlbedo;        // Albedo = Brdf / Pdf(Brdf)
+                        float3 gN = normalize(X);
+                        if (_HasGroundEmissionTexture)
+                        {
+                            float3 gE = SAMPLE_TEXTURECUBE_LOD(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation), 0).rgb;
+                            lightColor += _GroundEmissionMultiplier * gE;
+                        }
+
+                        float3 albedo = _GroundAlbedo;
+                        if (_HasGroundAlbedoTexture)
+                        {
+                            albedo *= SAMPLE_TEXTURECUBE_LOD(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation), 0).rgb;
+                        }
+                        monteCarloScore *= albedo;               // Albedo = Brdf / Pdf(Brdf)
                         bounceWeight     = monteCarloScore / PI; // * BRDF, NdotL is handled later
                     }
                     else // Volume scattering event
                     {
-                        monteCarloScore       *= surfaceContibution ? 1 : OpacityFromOpticalDepth(ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon));
+                        monteCarloScore       *= surfaceContibution ? 1 : OpacityFromOpticalDepth(ComputeAtmosphericOpticalDepthM(r, cosChi, majorant, lookAboveHorizon));
                         float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
                         float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
 
@@ -580,7 +597,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         bounceWeight = monteCarloScore / (4.0f * PI); // * Phase function
                     }
 
-                    float3 lightColor = 0;
                     for (uint i = 0; i < _DirectionalLightCount; i++)
                     {
                         DirectionalLightData light = _DirectionalLightDatas[i];
@@ -630,7 +646,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         uint startPath = frameIndex * numPaths;
         float3 color = 0;
 
-        if (!resetSpectralTracking)
+        if (!resetSpectralTracking) // what the everloving fuck?
         {
             color = _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
             //numPaths *= frameIndex;
@@ -656,13 +672,35 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             float2 atmosEntryExit = IntersectSphere(A, dot(normalize(O), -V), length(O));
 
             bool rayIntersectsAtmosphere = atmosEntryExit.y >= 0;
-            if (!rayIntersectsAtmosphere) continue; // Miss
 
             // Do not start outside the atmosphere.
             if (atmosEntryExit.x > 0)
             {
                 O -= V * atmosEntryExit.x * (1 + FLT_EPS);
             }
+
+
+            if (_HasSpaceEmissionTexture)
+            {
+                float3 X =  O;
+                float3 D = -V; // Point away from the camera
+                float3 N = normalize(X);
+                float  r = length(X);
+                float cosChi = dot(N, D);
+                float cosHor = ComputeCosineOfHorizonAngle(r);
+
+                bool lookAboveHorizon = (cosChi >= cosHor);
+                if (lookAboveHorizon)
+                {
+                    float3 maxOptDepth = ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon);
+                    float3 maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
+                    // V points towards the camera.
+                    float4 ts = SAMPLE_TEXTURECUBE_LOD(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation), 0);
+                    color += _SpaceEmissionMultiplier * ts.rgb * (1 - maxOpacity);
+                }
+            }
+
+            if (!rayIntersectsAtmosphere) continue; // Miss
 
             for (uint w = 0; w < numWavelengths; w++) // Iterate over wavelengths
             {
@@ -691,7 +729,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float tGround = lookAboveHorizon ? 1e7 : IntersectSphere(R, cosChi, r).x; // Assume we are outside
 
                     float bounceWeight;
-
+                    float lightColor = 0;
+                    float emission = 0;
                     if (surfaceScatteringEvent)
                     {
                         float t = tGround;
@@ -699,7 +738,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         X += t * D;
                         r = length(X);
 
-                        monteCarloScore *= _GroundAlbedo[w];     // Albedo = Brdf / Pdf(Brdf)
+                        float3 gN = normalize(X);
+                        if (_HasGroundEmissionTexture) // add chars
+                        {
+                            float3 gE = SAMPLE_TEXTURECUBE_LOD(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation), 0).rgb;
+                            emission += _GroundEmissionMultiplier * gE[w] * monteCarloScore;
+                        }
+                        float albedo = _GroundAlbedo[w];
+                        if (_HasGroundAlbedoTexture)
+                        {
+                            albedo *= SAMPLE_TEXTURECUBE_LOD(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation), 0)[w];
+                        }
+                        monteCarloScore *= albedo;               // Albedo = Brdf / Pdf(Brdf)
                         bounceWeight     = monteCarloScore / PI; // * BRDF, NdotL is handled later
                     }
                     else // Volume scattering event
@@ -729,14 +779,14 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                         bounceWeight     = monteCarloScore / (4.0f * PI); // * Phase function
                     }
 
-                    float lightColor = 0;
                     for (uint i = 0; i < _DirectionalLightCount; i++)
                     {
                         DirectionalLightData light = _DirectionalLightDatas[i];
                         lightColor += EvalLight(X, surfaceScatteringEvent, light)[w];
                     }
 
-                    pathContribution += lightColor * bounceWeight;
+
+                    pathContribution += lightColor * bounceWeight + emission;
 
                     const float2 random2D = frac(rotation + cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[b + 1]));
                     if (surfaceScatteringEvent)
@@ -768,17 +818,15 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     float4 RenderSky(Varyings input)
     {
 #if USE_PATH_SKY
-        float3 skyColor;
+        float3 skyColor = 0;
 
         if ((uint)(2 * input.positionCS.x) < (uint)(_ScreenSize.x))
         {
-            skyColor = BasicTracking((uint2)input.positionCS.xy, NUM_WAVELENGTHS, NUM_PATHS, NUM_BOUNCES);
+            skyColor = BasicTracking((uint2)input.positionCS.xy, NUM_WAVELENGTHS, NUM_PATHS, _NumBounces);
         }
         else
         {
-            skyColor = SpectralTracking((uint2)input.positionCS.xy, NUM_PATHS, NUM_BOUNCES);
-        }
-#else
+            //skyColor = SpectralTracking((uint2)input.positionCS.xy, NUM_PATHS, _NumBounces);
         const float R = _PlanetaryRadius;
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
@@ -844,7 +892,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                 float2 angles = HALF_PI - acos(proj);
                                 float2 uv     = angles * rcp(radInner) * 0.5 + 0.5;
 
-                                color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
+                                color *= SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex, 0).rgb;
                                 color *= light.surfaceTint;
                             }
                         }
@@ -915,12 +963,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (_HasSpaceEmissionTexture)
             {
                 // V points towards the camera.
-                float4 ts = SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
+                float4 ts = SAMPLE_TEXTURECUBE_LOD(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation), 0);
                 radiance += _SpaceEmissionMultiplier * ts.rgb;
             }
         }
 
-        float3 skyColor = 0, skyOpacity = 0;
+        float3 /*skyColor = 0,*/ skyOpacity = 0;
 
         if (rayIntersectsAtmosphere)
         {
@@ -930,6 +978,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         skyColor += radiance * (1 - skyOpacity);
         skyColor *= _IntensityMultiplier;
+        }
+#else
 #endif // USE_PATH_SKY
 
         if (AnyIsNaN(skyColor))
