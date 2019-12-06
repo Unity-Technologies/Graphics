@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_Categories; }
         }
 
-
+        // TODO: z need to check that we can't make this more efficient, or rather than when it is used it's okay
         public IEnumerable<AbstractShaderProperty> properties
         {
             get
@@ -74,6 +74,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        List<InputCategory> m_AlteredCategories = new List<InputCategory>();
+
+        // TODO: z use this
+        public List<InputCategory> alteredCategories
+        {
+            get { return m_AlteredCategories; }
+        }
+
 //        [SerializeField]
 //        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -86,29 +95,31 @@ namespace UnityEditor.ShaderGraph
 //        [NonSerialized]
 //        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
 
-        [NonSerialized]
-        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
-
-        public IEnumerable<ShaderInput> addedInputs
-        {
-            get { return m_AddedInputs; }
-        }
-
-        [NonSerialized]
-        List<Guid> m_RemovedInputs = new List<Guid>();
-
-        public IEnumerable<Guid> removedInputs
-        {
-            get { return m_RemovedInputs; }
-        }
-
-        [NonSerialized]
-        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
-
-        public IEnumerable<ShaderInput> movedInputs
-        {
-            get { return m_MovedInputs; }
-        }
+//// TODO: z Remove most of these?
+//        [NonSerialized]
+//        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
+//
+//        // TODO: z why IEnumeratable?
+//        public List<ShaderInput> addedInputs
+//        {
+//            get { return m_AddedInputs; }
+//        }
+//
+//        [NonSerialized]
+//        List<Guid> m_RemovedInputs = new List<Guid>();
+//
+//        public List<Guid> removedInputs
+//        {
+//            get { return m_RemovedInputs; }
+//        }
+//
+//        [NonSerialized]
+//        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
+//
+//        public List<ShaderInput> movedInputs
+//        {
+//            get { return m_MovedInputs; }
+//        }
 
         public string assetGuid { get; set; }
 
@@ -421,14 +432,30 @@ namespace UnityEditor.ShaderGraph
             m_PastedGroups.Clear();
             m_AddedEdges.Clear();
             m_RemovedEdges.Clear();
-            m_AddedInputs.Clear();
-            m_RemovedInputs.Clear();
-            m_MovedInputs.Clear();
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
+            m_AlteredCategories.Clear();
             m_MostRecentlyCreatedGroup = null;
             didActiveOutputNodeChange = false;
+        }
+
+        public void AddShaderInput(ShaderInput input, InputCategory category)
+        {
+            category.inputs.Add(input);
+
+            m_AlteredCategories.Add(category);
+
+            SanitizeGraphInputName(input);
+            input.generatePropertyBlock = input.isExposable;
+
+            owner.RegisterCompleteObjectUndo("Create Graph Input");
+            AddGraphInput(input);
+
+            if (input as ShaderKeyword != null)
+            {
+                OnKeywordChangedNoValidate();
+            }
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -835,10 +862,21 @@ namespace UnityEditor.ShaderGraph
 
             int categoryCount = m_Categories.Count();
             if (categoryCount <= 0)
-                return; // TODO:
+                return; // TODO: z Also why is adding to a dirty state not necessary here?
             m_Categories[categoryCount - 1].AddShaderInput(input);
+        }
 
-            m_AddedInputs.Add(input);
+        public InputCategory GetContainingCategory(ShaderInput input)
+        {
+            foreach (InputCategory cateogory in m_Categories)
+            {
+                if (cateogory.inputs.Contains(input))
+                {
+                    return cateogory;
+                }
+            }
+
+            return null;
         }
 
         public void SanitizeGraphInputName(ShaderInput input)
@@ -892,8 +930,25 @@ namespace UnityEditor.ShaderGraph
             input.tooltip = Regex.Replace(name, @"(?:[^A-Za-z_0-9 ])", "");
         }
 
+        public void MoveWithinCategory(ShaderInput input, int newIndex)
+        {
+            owner.RegisterCompleteObjectUndo("Move Graph Input");
+
+            InputCategory category = GetContainingCategory(input);
+            if (category != null)
+            {
+                bool moved = category.MoveShaderInput(input, newIndex);
+                if (moved)
+                {
+                    m_AlteredCategories.Add(category);
+                }
+            }
+        }
+
         public void RemoveGraphInput(ShaderInput input)
         {
+            owner.RegisterCompleteObjectUndo("Removed Graph Input");
+
             switch(input)
             {
                 case AbstractShaderProperty property:
@@ -907,50 +962,17 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void MoveProperty(AbstractShaderProperty property, int newIndex)
+        // TODO: y Why delete by Guid?
+        void RemoveGraphInputNoValidate(Guid guid)
         {
-            Debug.Log("PROPERTY MOVE REQUESTED");
-//            if (newIndex > m_Properties.Count || newIndex < 0)
-//                throw new ArgumentException("New index is not within properties list.");
-//            var currentIndex = m_Properties.IndexOf(property);
-//            if (currentIndex == -1)
-//                throw new ArgumentException("Property is not in graph.");
-//            if (newIndex == currentIndex)
-//                return;
-//            m_Properties.RemoveAt(currentIndex);
-//            if (newIndex > currentIndex)
-//                newIndex--;
-//            var isLast = newIndex == m_Properties.Count;
-//            if (isLast)
-//                m_Properties.Add(property);
-//            else
-//                m_Properties.Insert(newIndex, property);
-//            if (!m_MovedInputs.Contains(property))
-//                m_MovedInputs.Add(property);
+            foreach (InputCategory category in m_Categories)
+            {
+                category.RemoveShaderInputByGuid(guid);
+                m_AlteredCategories.Add(category);
+            }
         }
 
-        public void MoveKeyword(ShaderKeyword keyword, int newIndex)
-        {
-            Debug.Log("KEYWORD MOVE REQUESTED");
-//            if (newIndex > m_Keywords.Count || newIndex < 0)
-//                throw new ArgumentException("New index is not within keywords list.");
-//            var currentIndex = m_Keywords.IndexOf(keyword);
-//            if (currentIndex == -1)
-//                throw new ArgumentException("Keyword is not in graph.");
-//            if (newIndex == currentIndex)
-//                return;
-//            m_Keywords.RemoveAt(currentIndex);
-//            if (newIndex > currentIndex)
-//                newIndex--;
-//            var isLast = newIndex == m_Keywords.Count;
-//            if (isLast)
-//                m_Keywords.Add(keyword);
-//            else
-//                m_Keywords.Insert(newIndex, keyword);
-//            if (!m_MovedInputs.Contains(keyword))
-//                m_MovedInputs.Add(keyword);
-        }
-
+        // TODO: z What was this used for?
         public int GetGraphInputIndex(ShaderInput input)
         {
 //            switch(input)
@@ -965,17 +987,6 @@ namespace UnityEditor.ShaderGraph
             return 0;
         }
 
-        // TODO:
-        void RemoveGraphInputNoValidate(Guid guid)
-        {
-//            if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
-//                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
-//            {
-//                m_RemovedInputs.Add(guid);
-//                m_AddedInputs.RemoveAll(x => x.guid == guid);
-//                m_MovedInputs.RemoveAll(x => x.guid == guid);
-//            }
-        }
 
         static List<IEdge> s_TempEdges = new List<IEdge>();
 
@@ -1281,7 +1292,7 @@ namespace UnityEditor.ShaderGraph
                 // Check if the property nodes need to be made into a concrete node.
                 if (node is PropertyNode propertyNode)
                 {
-                    // TODO:
+                    // TODO: z
                     Debug.Log("PasteGraph... node is PropertyNode propertyNode");
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.

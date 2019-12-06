@@ -205,9 +205,50 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (evt.target is BlackboardField)
             {
-                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                selection.Add(evt.target as BlackboardField);
+                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser),(e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                 evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (a) => (canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
             }
+
+            if (evt.target is BlackboardCateogrySection_V)
+            {
+                PopulateBlackboardSectionMenu(evt);
+            }
+
+            Debug.Log("I am a... " + evt.target.GetType().ToString());
+        }
+
+        void PopulateBlackboardSectionMenu(ContextualMenuPopulateEvent evt)
+        {
+            BlackboardCateogrySection_V section = evt.target as BlackboardCateogrySection_V;
+            InputCategory category = graph.categories[section.parent.IndexOf(section)];
+
+            evt.menu.AppendAction("Rename", (a) => category.blackboardSection.OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete All", (a) => RemoveCategory(category), DropdownMenuAction.AlwaysEnabled);
+
+            evt.menu.AppendSeparator("/");
+
+            evt.menu.AppendAction($"Insert/Vector1", (a) => graph.AddShaderInput(new Vector1ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Vector2", (a) => graph.AddShaderInput(new Vector2ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Vector3", (a) => graph.AddShaderInput(new Vector3ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Vector4", (a) => graph.AddShaderInput(new Vector4ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Color", (a) => graph.AddShaderInput(new ColorShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Texture2D", (a) => graph.AddShaderInput(new Texture2DShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Texture2D Array", (a) => graph.AddShaderInput(new Texture2DArrayShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Texture3D", (a) => graph.AddShaderInput(new Texture3DShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Cubemap", (a) => graph.AddShaderInput(new CubemapShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Boolean", (a) => graph.AddShaderInput(new BooleanShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Matrix2x2", (a) => graph.AddShaderInput(new Matrix2ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Matrix3x3", (a) => graph.AddShaderInput(new Matrix3ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Matrix4x4", (a) => graph.AddShaderInput(new Matrix4ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/SamplerState", (a) => graph.AddShaderInput(new SamplerStateShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction($"Insert/Gradient", (a) => graph.AddShaderInput(new GradientShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+        }
+
+        void RemoveCategory(InputCategory category)
+        {
+            BlackboardProvider.needsUpdate = true;
+            graph.categories.Remove(category);
         }
 
         void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
@@ -219,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
         {
-            // Default the menu buttons to disabled
+            // Default the evt.menu buttons to disabled
             DropdownMenuAction.Status inheritPrecisionAction = DropdownMenuAction.Status.Disabled;
             DropdownMenuAction.Status floatPrecisionAction = DropdownMenuAction.Status.Disabled;
             DropdownMenuAction.Status halfPrecisionAction = DropdownMenuAction.Status.Disabled;
@@ -328,6 +369,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             get
             {
+                Debug.Log("Selection Count... " + selection.Count());
+                foreach (ISelectable isss in selection) Debug.Log("my type is... " + isss.GetType() + "  --> " + (isss is IShaderNodeView).ToString());
+                Debug.Log(selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode).ToString());
                 return selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode);
             }
         }
@@ -537,6 +581,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 null, null, null, graph);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -639,12 +685,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // TODO: z Is this when undo is recorded? Seems inconsistent.
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
+            // Blackboard deletion
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -668,6 +716,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             selection.Clear();
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         public static void GetIndexToInsert(Blackboard blackboard, out int propertyIndex, out int keywordIndex)
@@ -945,6 +995,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (copyGraph == null)
                 return;
+
+            BlackboardProvider.needsUpdate = true;
 
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
