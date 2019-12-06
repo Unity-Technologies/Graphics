@@ -1,6 +1,6 @@
 editors:
-  - version: trunk
-    cmd: -u trunk
+  - version: graphics/vfx/fix/read-attribute-in-spawner
+    cmd: -u graphics/vfx/fix/read-attribute-in-spawner
   - version: fast-trunk
     cmd: -u trunk --fast
 platforms:
