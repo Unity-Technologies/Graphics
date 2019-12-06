@@ -86,14 +86,20 @@ namespace UnityEditor.VFX
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
 
-        private static void FillExpressionDescs(List<VFXExpressionDesc> outExpressionDescs, List<VFXExpressionValueContainerDesc> outValueDescs, VFXExpressionGraph graph)
+        private static void FillExpressionDescs(VFXExpressionGraph graph, List<VFXExpressionDesc> outExpressionCommonDescs, List<VFXExpressionDesc> outExpressionPerSpawnEventDescs, List<VFXExpressionValueContainerDesc> outValueDescs)
         {
             var flatGraph = graph.FlattenedExpressions;
             var numFlattenedExpressions = flatGraph.Count;
 
+            var maxCommonExpressionIndex = (uint)numFlattenedExpressions;
             for (int i = 0; i < numFlattenedExpressions; ++i)
             {
                 var exp = flatGraph[i];
+                if (exp.Is(VFXExpression.Flags.PerSpawn) && maxCommonExpressionIndex == numFlattenedExpressions)
+                    maxCommonExpressionIndex = (uint)i;
+
+                if (!exp.Is(VFXExpression.Flags.PerSpawn) && maxCommonExpressionIndex != numFlattenedExpressions)
+                    throw new InvalidOperationException("Not contiguous expression VFXExpression.Flags.PerSpawn detected");
 
                 // Must match data in C++ expression
                 if (exp.Is(VFXExpression.Flags.Value))
@@ -125,7 +131,8 @@ namespace UnityEditor.VFX
                     outValueDescs.Add(value);
                 }
 
-                outExpressionDescs.Add(new VFXExpressionDesc
+                var outExpressionsDesc = i >= maxCommonExpressionIndex ? outExpressionPerSpawnEventDescs : outExpressionCommonDescs;
+                outExpressionsDesc.Add(new VFXExpressionDesc
                 {
                     op = exp.operation,
                     data = exp.GetOperands(graph).ToArray(),
@@ -918,8 +925,9 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
+                var expressionPerSpawnEventAttributesDescs = new List<VFXExpressionDesc>();
                 var valueDescs = new List<VFXExpressionValueContainerDesc>();
-                FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
+                FillExpressionDescs(m_ExpressionGraph, expressionDescs, expressionPerSpawnEventAttributesDescs, valueDescs);
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
                 foreach (var context in compilableContexts)
@@ -1021,6 +1029,7 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
                 var expressionSheet = new VFXExpressionSheet();
                 expressionSheet.expressions = expressionDescs.ToArray();
+                expressionSheet.expressionsPerSpawnEventAttribute = expressionPerSpawnEventAttributesDescs.ToArray();
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 

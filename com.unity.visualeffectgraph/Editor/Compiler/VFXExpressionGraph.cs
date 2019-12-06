@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
 #else
                 var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
-                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.DoSomeMagicForSpawner, VFXDeviceTarget.CPU);
+                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.PatchReadToEventAttribute, VFXDeviceTarget.CPU);
                 CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
 #endif
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
@@ -169,12 +169,20 @@ namespace UnityEditor.VFX
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
                     var exp = kvp.Key;
-                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                }).ToList();     // remove per element expression from flattened data // TODO Remove uniform constants too
+                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU); // remove per element expression from flattened data // TODO Remove uniform constants too
+                });
 
-                sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));
-                m_FlattenedExpressions = sortedList.Select(kvp => kvp.Key).ToList();
+                var expressionPerSpawn = sortedList.Where(o => o.Key.Is(VFXExpression.Flags.PerSpawn));
+                var expressionNotPerSpawn = sortedList.Where(o => !o.Key.Is(VFXExpression.Flags.PerSpawn));
 
+                //m_FlattenedExpressions is a concatenation of [sorted all expression !PerSpawn] & [sorted all expression Per Spawn]
+                //It's more convenient for two reasons :
+                // - Reduces process chunk for ComputePreProcessExpressionForSpawn
+                // - Allows to determine the maximum index of expression while processing main expression evaluation
+                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth);
+                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth));
+
+                m_FlattenedExpressions = sortedList.Select(o => o.Key).ToList();
                 // update index in expression data
                 for (int i = 0; i < m_FlattenedExpressions.Count; ++i)
                 {
