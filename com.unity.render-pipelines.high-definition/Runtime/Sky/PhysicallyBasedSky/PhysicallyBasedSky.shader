@@ -366,9 +366,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return color;
     }
 
-#define PIMP_MY_RAYS 1
-#if PIMP_MY_RAYS
-
     float ComputeAtmosphericOpticalDepthM(float r, float cosTheta, float majorant, bool aboveHorizon)
     {
         const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
@@ -611,8 +608,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         return color / (startPath + numPaths);
     }
-#else
-    float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
+
+    float3 BasicTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
@@ -757,11 +754,20 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         return color / (startPath + numPaths);
     }
-#endif // PIMP_MY_RAYS
+
     float4 RenderSky(Varyings input)
     {
 #if USE_PATH_SKY
-        float3 skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
+        float3 skyColor;
+
+        if (2 * (uint)input.positionCS.x < _ScreenSize.x)
+        {
+            skyColor = BasicTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
+        }
+        else
+        {
+            skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
+        }
 #else
         const float R = _PlanetaryRadius;
 
