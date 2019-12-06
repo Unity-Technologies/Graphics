@@ -53,39 +53,69 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ref CameraData cameraData = ref renderingData.cameraData;
 
-            // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
-            // The blit will be reworked for stereo along the XRSDK work.
-            Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
-            cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if (URPCameraMode.isPureURP)
             {
-                // This set render target is necessary so we change the LOAD state to DontCare.
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
+                if (cameraData.compositionPass.viewCount == 1)
+                {
+                    // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+                    // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                    // meanwhile we set to load so split screen case works.
+                    if (m_TargetDimension == TextureDimension.Tex2DArray)
+                        CoreUtils.SetRenderTarget(cmd, cameraData.compositionPass.renderTarget, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, cameraData.compositionPass.GetTextureArraySlice(0));
+                    else
+                        CoreUtils.SetRenderTarget(cmd, cameraData.compositionPass.renderTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
+                }
+                else
+                {
+                    Debug.LogError("Need to setup render target for multi view camera target case!");
+                }
+
+                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+
+                bool isRenderToCameraTarget = true;
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
+                RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
+                cmd.SetViewport(cameraData.compositionPass.GetViewport());
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                RenderingUtils.SetViewProjectionMatrices(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture), true);
             }
             else
             {
-                // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
-                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
-                // meanwhile we set to load so split screen case works.
-                SetRenderTarget(
-                    cmd,
-                    BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.Load,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
+                // Use default blit for XR as we are not sure the UniversalRP blit handles stereo.
+                // The blit will be reworked for stereo along the XRSDK work.
+                Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
+                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
+                if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+                {
+                    // This set render target is necessary so we change the LOAD state to DontCare.
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                    cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
+                }
+                else
+                {
+                    // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+                    // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                    // meanwhile we set to load so split screen case works.
+                    SetRenderTarget(
+                        cmd,
+                        BuiltinRenderTextureType.CameraTarget,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.Store,
+                        ClearFlag.None,
+                        Color.black,
+                        m_TargetDimension);
 
-                Camera camera = cameraData.camera;
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(cameraData.camera.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                    Camera camera = cameraData.camera;
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.SetViewport(cameraData.camera.pixelRect);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
+                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                }
             }
-
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

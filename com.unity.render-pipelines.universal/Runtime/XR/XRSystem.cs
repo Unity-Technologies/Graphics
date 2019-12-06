@@ -109,8 +109,9 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
-        internal List<XRPass> SetupFrame(Camera camera, bool singlePassAllowed, bool singlePassTestModeActive)
+        internal List<XRPass> SetupFrame(CameraData cameraData, bool singlePassAllowed, bool singlePassTestModeActive)
         {
+            Camera camera = cameraData.camera;
             bool xrSdkActive = RefreshXrSdk();
 
             if (framePasses.Count > 0)
@@ -155,6 +156,29 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                camera.TryGetCullingParameters(false, out var cullingParams);
+                var passInfo = new XRPassCreateInfo
+                {
+                    multipassId = 0,
+                    cullingPassId = 0,
+                    cullingParameters = cullingParams,
+                    renderTarget = camera.targetTexture,
+                    renderTargetDesc = cameraData.cameraTargetDescriptor,
+                    // TODO: config renderTarget desc
+                    customMirrorView = null
+                };
+
+                var viewInfo = new XRViewCreateInfo
+                {
+                    projMatrix = camera.projectionMatrix,
+                    viewMatrix = camera.worldToCameraMatrix,
+                    viewport = camera.pixelRect,
+                    textureArraySlice = -1
+                };
+
+                var emptyPass = XRPass.Create(passInfo);
+                emptyPass.AddView(viewInfo.projMatrix, viewInfo.viewMatrix, viewInfo.viewport, viewInfo.textureArraySlice);
+
                 AddPassToFrame(emptyPass);
             }
 

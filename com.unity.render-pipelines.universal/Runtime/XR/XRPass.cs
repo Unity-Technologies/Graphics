@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
         public int multipassId;
         public int cullingPassId;
         public RenderTexture renderTarget;
+        public RenderTextureDescriptor renderTargetDesc;
         public ScriptableCullingParameters cullingParameters;
         public XRPass.CustomMirrorView customMirrorView;
     }
@@ -140,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 passInfo.renderTarget = invalidRT;
-                passInfo.renderTargetDesc = default;
+                passInfo.renderTargetDesc = createInfo.renderTargetDesc;
             }
 
             passInfo.occlusionMeshMaterial = null;
@@ -170,7 +171,15 @@ namespace UnityEngine.Rendering.Universal
             passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
-            passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
+            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(
+                    xrRenderPass.renderTargetDesc.width, xrRenderPass.renderTargetDesc.height, xrRenderPass.renderTargetDesc.colorFormat,
+                    xrRenderPass.renderTargetDesc.depthBufferBits, xrRenderPass.renderTargetDesc.mipCount);
+            rtDesc.dimension = xrRenderPass.renderTargetDesc.dimension;
+            rtDesc.volumeDepth = xrRenderPass.renderTargetDesc.volumeDepth;
+            passInfo.renderTargetDesc = rtDesc;
+            
+            // XRTODO: check other descriptor field
+            //passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
             passInfo.occlusionMeshMaterial = occlusionMeshMaterial;
             passInfo.xrSdkEnabled = true;
             passInfo.copyDepth = xrRenderPass.shouldFillOutDepth;

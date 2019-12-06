@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.compositionPass.renderTargetDesc;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
@@ -164,11 +164,32 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
             bool intermediateRenderTexture = createColorTexture || createDepthTexture;
-            
-            if (intermediateRenderTexture)
-                CreateCameraRenderTarget(context, ref cameraData);
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+            if (intermediateRenderTexture)
+            {
+                var intermediateRTDesc = cameraTargetDescriptor;
+                // Create Tex2D if we only need to handle 1 view in this pass, create Tex2DArray in case we need to handle multi views in this pass
+                if(cameraData.compositionPass.viewCount == 1)
+                {
+                    intermediateRTDesc.dimension = TextureDimension.Tex2D;
+                    intermediateRTDesc.volumeDepth = 1;
+                }
+                else
+                {
+                    intermediateRTDesc.dimension = TextureDimension.Tex2DArray;
+                    intermediateRTDesc.volumeDepth = cameraData.compositionPass.viewCount;
+                }
+                CreateCameraRenderTarget(context, ref intermediateRTDesc);
+            }
+
+            if (createColorTexture)
+            {
+                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+            }
+            else
+            {
+                ConfigureCameraTarget(cameraData.compositionPass.renderTarget, cameraData.compositionPass.renderTarget);
+            }
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
@@ -343,10 +364,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(m_ActiveCameraDepthAttachment.id);
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
-            var descriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = descriptor.msaaSamples;
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {

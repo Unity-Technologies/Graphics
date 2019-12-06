@@ -1,6 +1,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-TEXTURE2D_X(_BlitTexture);
+#if (SRC_TEXTURE2D_X_ARRAY == 1)
+TEXTURE2D_ARRAY(_BlitTexture);
+#else
+TEXTURE2D(_BlitTexture);
+#endif
 SamplerState sampler_LinearClamp;
 uniform float4 _BlitScaleBias;
 uniform float4 _BlitScaleBiasRt;
@@ -28,7 +31,7 @@ Varyings VertQuad(Attributes input)
 
 float4 FragBilinear(Varyings input) : SV_Target
 {
-#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+#if defined(SRC_TEXTURE2D_X_ARRAY)
     return SAMPLE_TEXTURE2D_ARRAY(_BlitTexture, sampler_LinearClamp, input.texcoord.xy, _BlitTexArraySlice);
 #else
     return SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord.xy);

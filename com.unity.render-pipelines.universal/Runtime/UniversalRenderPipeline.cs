@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
 
         public const string k_ShaderTagName = "UniversalPipeline";
 
-        const string k_RenderCameraTag = "Render Camera";
+        const string k_RenderCameraTag = "Render Composition Pass";
 
         public static float maxShadowBias
         {
@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name : k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
 
-            var compositionPasses = m_XRSystem.SetupFrame(cameraData.camera, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ true);
+            var compositionPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ false);
             foreach (XRPass compPass in compositionPasses)
             {
                 cameraData.compositionPass = compPass;
@@ -263,6 +263,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 context.ExecuteCommandBuffer(cmd);
+                renderer.Clear();
             }
 
             // Render XR mirror view once all composition passes have been completed

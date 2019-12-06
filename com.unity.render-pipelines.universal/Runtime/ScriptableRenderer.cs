@@ -189,6 +189,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
 
             // Initialize Camera Render State
@@ -238,14 +239,14 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup camera world clip planes properties
             /// * Setup HDR keyword
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
-            bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
-            context.SetupCameraProperties(camera, stereoEnabled);
+            SetupCameraProperties(context, cmd, ref renderingData.cameraData);
 
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
             SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
 
+            bool stereoEnabled = cameraData.isStereoEnabled;
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
@@ -288,6 +289,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="pass">Render pass to be enqueued.</param>
         public void EnqueuePass(ScriptableRenderPass pass)
         {
+            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+            // which might be backbuffer or the framebuffer render textures.
+            if (!pass.overrideCameraTarget)
+            {
+                pass.ConfigureTarget(m_CameraColorTarget, m_CameraDepthTarget);
+            }
             m_ActiveRenderPassQueue.Add(pass);
         }
 
@@ -352,6 +359,34 @@ namespace UnityEngine.Rendering.Universal
             VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
         }
 
+        internal void SetupCameraProperties(ScriptableRenderContext context, CommandBuffer cmd, ref CameraData cameraData)
+        {
+            bool stereoEnabled = cameraData.isStereoEnabled;
+            context.SetupCameraProperties(cameraData.camera, stereoEnabled);
+            if (URPCameraMode.isPureURP)
+            {
+                bool isRenderToCameraTarget = true;
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+
+                // if contains only 1 view, setup view proj
+                if (cameraData.compositionPass.viewCount == 1)
+                {
+                    Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.compositionPass.GetProjMatrix(0), isRenderToTexture);
+                    RenderingUtils.SetViewProjectionMatrices(cmd, cameraData.compositionPass.GetViewMatrix(0), projectionMatrix, false);
+                }
+                // else, set up multi view proj to stereo buffer
+                // camera stack goes here too?
+                else
+                {
+                    Debug.LogError("Need to set multi view camera data!");
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+        }
+
         internal void Clear()
         {
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
@@ -387,14 +422,6 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
             ref CameraData cameraData = ref renderingData.cameraData;
-
-            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures.
-            if (!renderPass.overrideCameraTarget)
-            {
-                passColorAttachment = m_CameraColorTarget;
-                passDepthAttachment = m_CameraDepthTarget;
-            }
 
             if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
             {

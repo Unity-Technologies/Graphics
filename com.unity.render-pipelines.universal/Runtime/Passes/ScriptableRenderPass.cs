@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
 
-        // TODO: Remove this. Currently only used by FinalBlit pass.
+        // TODO: Remove this. Currently only used by non-URPPure FinalBlit pass.
         internal void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
