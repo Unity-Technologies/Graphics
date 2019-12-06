@@ -2,9 +2,11 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 {
     HLSLINCLUDE
 
-    #define USE_PATH_SKY 1
-    #define NUM_PATHS    4
-    #define NUM_BOUNCES  10
+    #define USE_PATH_SKY    1
+
+    #define NUM_WAVELENGTHS 3
+    #define NUM_PATHS       4
+    #define NUM_BOUNCES    10
 
     #pragma vertex Vert
 
@@ -36,6 +38,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // Just don't use them. Ever.
     float3   _WorldSpaceCameraPos1;
     float4x4 _ViewMatrix1;
+    #undef UNITY_MATRIX_V
     #define UNITY_MATRIX_V _ViewMatrix1
 
     // 3x3, but Unity can only set 4x4...
@@ -84,7 +87,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
     uint permute(uint i, uint l, uint p)
     {
-        if (p == 0) return i; // identity permutation when p == 0
         uint w = l - 1;
         w |= w >> 1;
         w |= w >> 2;
@@ -106,12 +108,15 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             i &= w;
             i ^= i >> 5;
         } while (i >= l);
-        return (i + p) % l;
+
+        if (p == 0)
+            return i; // identity permutation when p == 0
+        else
+            return (i + p) % l;
     }
 
     float randfloat(uint i, uint p)
     {
-        if (p == 0) return 0.5f; // always 0.5 when p == 0
         i ^= p;
         i ^= i >> 17;
         i ^= i >> 10;
@@ -125,7 +130,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float f = i * (1.0f / 4294967808.0f);
 
-        return f;
+        if (p == 0)
+            return 0.5f; // always 0.5 when p == 0
+        else
+            return f;
     }
 
     // // Compute the digits of decimal value Ã¢â‚¬ËœvÃ¢â‚¬Ëœ expressed in base Ã¢â‚¬ËœsÃ¢â‚¬Ëœ
@@ -205,10 +213,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     //     return (stratum + (sStratum + jitter) / stm) / s;
     // }
 
-    float2 cmj2D(int s, int m, int n, int p)
+    float2 cmj2D(uint s, uint m, uint n, uint p)
     {
-        int   sx = permute(s % m, m, p * 0xA511E9B3);
-        int   sy = permute(s / m, n, p * 0x63D83595);
+        uint  sx = permute(s % m, m, p * 0xA511E9B3);
+        uint  sy = permute(s / m, n, p * 0x63D83595);
         float jx = randfloat(s,      p * 0xA399D265);
         float jy = randfloat(s,      p * 0x711AD6A5);
 
@@ -267,7 +275,6 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                float seaLvlAtt0, float H0, float seaLvlAtt1, float H1,
                                float maxOptDepth, float maxDist)
     {
-        if (optDepth < 0.001) return 0.001;
 
         const float rcpOptDepth = rcp(optDepth);
 
@@ -326,7 +333,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             // The new value of 't' we just computed is even more accurate.
         } while ((absDiff > 0.001) && (relDiff > 0.001) && (numIterations < 4));
 
-        return min(t, maxDist);
+        if (optDepth < 0.001)
+            return 0.001;
+        else
+            return min(t, maxDist);
     }
 
     // Input position is relative to sphere origin
@@ -449,7 +459,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         majK = MaxComponent(totalExtinction);
     }
 
-    float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
+    float3 SpectralTracking(uint2 positionSS, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
         const float R = _PlanetaryRadius;
@@ -760,13 +770,13 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 #if USE_PATH_SKY
         float3 skyColor;
 
-        if (2 * (uint)input.positionCS.x < _ScreenSize.x)
+        if ((uint)(2 * input.positionCS.x) < (uint)(_ScreenSize.x))
         {
-            skyColor = BasicTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
+            skyColor = BasicTracking((uint2)input.positionCS.xy, NUM_WAVELENGTHS, NUM_PATHS, NUM_BOUNCES);
         }
         else
         {
-            skyColor = SpectralTracking((uint2)input.positionCS.xy, 3, NUM_PATHS, NUM_BOUNCES);
+            skyColor = SpectralTracking((uint2)input.positionCS.xy, NUM_PATHS, NUM_BOUNCES);
         }
 #else
         const float R = _PlanetaryRadius;
@@ -922,9 +932,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         skyColor *= _IntensityMultiplier;
 #endif // USE_PATH_SKY
 
-        if (AnyIsNaN(skyColor)) return float4(10,0,0,1);
-
-        return float4(skyColor, 1.0);
+        if (AnyIsNaN(skyColor))
+            return float4(666, 0, 0, 1);
+        else
+            return float4(skyColor, 1);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
