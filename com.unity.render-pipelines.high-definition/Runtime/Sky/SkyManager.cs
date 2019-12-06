@@ -417,11 +417,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // This is only needed if we use realtime GI otherwise enlighten won't get the right sky information
-            RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-            RenderSettings.ambientIntensity = 1.0f;
-            RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
-            RenderSettings.reflectionIntensity = 1.0f;
-            RenderSettings.customReflection = null;
+                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                //RenderSettings.ambientIntensity = 1.0f;
+                RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
+                //RenderSettings.reflectionIntensity = 1.0f;
+                RenderSettings.customReflection = null;
         }
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
