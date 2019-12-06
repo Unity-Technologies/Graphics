@@ -7,15 +7,7 @@
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "com.unity.test-framework": "1.1.1",
-=======
-    "com.unity.test-framework": "1.1.3",
->>>>>>> 0251f6303b36cc6e5752c9680f20553462cacd59
-=======
     "com.unity.test-framework": "1.1.5",
->>>>>>> e876a9e8bec23003e55a592de1c52047b9ce6511
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.legacyinputhelpers": "2.0.6",
@@ -51,11 +43,9 @@
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
   },
-  "disableProjectUpdate": true,
   "testables": [
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal",
     "com.unity.testframework.graphics"
-  ],
-  "disableProjectUpdate": true
+  ]
 }
