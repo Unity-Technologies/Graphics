@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         readonly GraphData m_Graph;
 
-        // readonly Dictionary<Guid, BlackboardRow> m_InputRows;
+        readonly Dictionary<Guid, BlackboardRow> m_InputRows;
 
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
@@ -191,6 +191,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_Graph.MoveWithinCategory(input, newIndex);
+            needsUpdate = true;
         }
 
         void AddItemRequested(Blackboard blackboard)
@@ -200,10 +201,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"Category"), false, () => CreateNewCategory("new category " + UnityEngine.Random.value.ToString()));
             gm.AddSeparator($"");
 
-//            AddPropertyItems(gm);
-//            AddKeywordItems(gm);
+            AddPropertyItems(gm);
+            AddKeywordItems(gm);
 
             gm.ShowAsContext();
+            needsUpdate = true;
         }
 
         void AddPropertyItems(GenericMenu gm)
@@ -252,7 +254,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
-            Debug.Log("I'mma edit " + visualElement);
+            Debug.Log("EditTextRequested " + visualElement);
 
             var field = (BlackboardField)visualElement;
             var input = (ShaderInput)field.userData;
@@ -266,16 +268,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public static bool needsUpdate = true;
+
         public void HandleGraphChanges()
         {
             // Simply remove and then add the categories only
-            BlackboardClear();
-            foreach (var category in m_Graph.categories)
+            if (needsUpdate)
             {
-                AddCategoryOnBlackboard(category);
+                BlackboardClear();
+                foreach (var category in m_Graph.categories)
+                {
+                    AddCategoryOnBlackboard(category);
 
-                if (m_Graph.alteredCategories.Count() > 0 && m_Graph.alteredCategories.Contains(category))
-                    category.blackboardSection.RefreshSection();
+                    // if (m_Graph.alteredCategories.Count() > 0 && m_Graph.alteredCategories.Contains(category))
+                        category.blackboardSection.RefreshSection();
+                }
+
+                needsUpdate = false;
             }
 
             foreach (var expandedInput in expandedInputs)
@@ -286,20 +295,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ExpandedInputs.Clear();
         }
 
-        // TODO: z these below need to be moved / modified
+        // TODO: z these below need to be moved / modified (also keep the new item stuff)
         void CreateShaderInput(ShaderInput input)
         {
             m_Graph.SanitizeGraphInputName(input);
             input.generatePropertyBlock = input.isExposable;
 
-//            AddInputRow(input);
+            m_Graph.categories[0].AddShaderInput(input);
 
             m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
             m_Graph.AddGraphInput(input);
 
-
-//            row.expanded = true;
-//            field.OpenTextEditor();
 
             if(input as ShaderKeyword != null)
             {

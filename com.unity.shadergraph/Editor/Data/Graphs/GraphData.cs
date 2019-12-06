@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
         List<InputCategory> m_AlteredCategories = new List<InputCategory>();
 
         // TODO: z use this
-        public IEnumerable<InputCategory> alteredCategories
+        public List<InputCategory> alteredCategories
         {
             get { return m_AlteredCategories; }
         }
@@ -95,31 +95,31 @@ namespace UnityEditor.ShaderGraph
 //        [NonSerialized]
 //        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
 
-// TODO: z Remove most of these?
-        [NonSerialized]
-        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
-
-        // TODO: z why IEnumeratable?
-        public List<ShaderInput> addedInputs
-        {
-            get { return m_AddedInputs; }
-        }
-
-        [NonSerialized]
-        List<Guid> m_RemovedInputs = new List<Guid>();
-
-        public List<Guid> removedInputs
-        {
-            get { return m_RemovedInputs; }
-        }
-
-        [NonSerialized]
-        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
-
-        public List<ShaderInput> movedInputs
-        {
-            get { return m_MovedInputs; }
-        }
+//// TODO: z Remove most of these?
+//        [NonSerialized]
+//        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
+//
+//        // TODO: z why IEnumeratable?
+//        public List<ShaderInput> addedInputs
+//        {
+//            get { return m_AddedInputs; }
+//        }
+//
+//        [NonSerialized]
+//        List<Guid> m_RemovedInputs = new List<Guid>();
+//
+//        public List<Guid> removedInputs
+//        {
+//            get { return m_RemovedInputs; }
+//        }
+//
+//        [NonSerialized]
+//        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
+//
+//        public List<ShaderInput> movedInputs
+//        {
+//            get { return m_MovedInputs; }
+//        }
 
         public string assetGuid { get; set; }
 
@@ -432,9 +432,6 @@ namespace UnityEditor.ShaderGraph
             m_PastedGroups.Clear();
             m_AddedEdges.Clear();
             m_RemovedEdges.Clear();
-            m_AddedInputs.Clear();
-            m_RemovedInputs.Clear();
-            m_MovedInputs.Clear();
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();

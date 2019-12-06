@@ -175,6 +175,16 @@
     padding-bottom: 0;
 }
 
+.blackboardRow > #expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronRight");
+    width: 12px;
+    height: 12px;
+}
+
+.blackboardRow.expanded  > #expandButton > #buttonImage {
+    --unity-image : resource("GraphView/Nodes/NodeChevronDown");
+}
+
 .sgblackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
     --unity-image : resource("GraphView/Nodes/NodeChevronRight");
     width: 12px;

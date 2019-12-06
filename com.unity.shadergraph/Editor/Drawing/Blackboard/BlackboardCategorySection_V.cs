@@ -11,12 +11,157 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardCateogrySection_V : GraphElement
     {
-        private VisualElement m_DragIndicator;
-        private VisualElement m_MainContainer;
-        private VisualElement m_Header;
-        private Label m_TitleLabel;
-        private VisualElement m_RowsContainer;
+        InputCategory m_Category;
+        GraphData m_Graph; // TODO: y are we sure about this?
+
+        VisualElement m_DragIndicator;
+        VisualElement m_MainContainer;
+        VisualElement m_Header;
+        Label m_TitleLabel;
+        VisualElement m_RowsContainer;
         public Button m_ExpandButton;
+        TextField m_NameField;
+
+        int m_InsertIndex;
+
+        bool m_Expanded;
+
+        public bool expanded
+        {
+            get { return m_Expanded; }
+            set
+            {
+                m_Expanded = value;
+                if (m_Expanded)
+                {
+                    m_Header.AddToClassList("expanded");
+                }
+                else
+                {
+                    m_Header.RemoveFromClassList("expanded");
+                }
+            }
+        }
+
+        public BlackboardCateogrySection_V(InputCategory category, GraphData graph)
+        {
+            m_Category = category;
+            m_Graph = graph;
+
+            // TODO: y why is this necessary?
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            var uxml = Resources.Load<VisualTreeAsset>("uxml/GraphView/BlackboardSection");
+            m_MainContainer = uxml.CloneTree();
+
+            m_MainContainer.AddToClassList("mainContainer");
+
+            m_Header = m_MainContainer.Q<VisualElement>("sectionHeader");
+            m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
+            m_RowsContainer = m_MainContainer.Q<VisualElement>("rowsContainer");
+
+            m_ExpandButton = m_Header.Q<Button>("expandButton");
+            m_ExpandButton.clickable.clicked += ToggleExpand;
+
+            hierarchy.Add(m_MainContainer);
+            hierarchy.Add(m_MainContainer);
+
+            title = m_Category.header;
+
+            m_DragIndicator = new VisualElement();
+
+            m_DragIndicator.name = "dragIndicator";
+            // m_DragIndicator.style.position = PositionType.Absolute; // TODO:
+            hierarchy.Add(m_DragIndicator);
+
+            ClearClassList();
+            AddToClassList("blackboardSection");
+            AddToClassList("selectable");
+            this.Q<VisualElement>("sectionHeader").AddToClassList("blackboardRow");
+
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            SetSelectable(); // TODO:
+
+            m_InsertIndex = -1;
+            expanded = true;
+            RefreshSection();
+
+            if (m_DragIndicator == null) Debug.Log("m_DragIndicator == null");
+            if (m_MainContainer == null) Debug.Log("m_MainContainer == null");
+            if (m_Header == null) Debug.Log("m_Header == null");
+            if (m_TitleLabel == null) Debug.Log("m_TitleLabel == null");
+            if (m_RowsContainer == null) Debug.Log("m_RowsContainer == null");
+            if (m_ExpandButton == null) Debug.Log("m_ExpandButton == null");
+            if (m_NameField == null) Debug.Log("m_NameField == null");
+            BlackboardProvider.needsUpdate = true;
+        }
+
+        public void RefreshSection()
+        {
+            Clear();
+            if (!expanded)
+            {
+                return;
+            }
+            foreach (ShaderInput input in m_Category.inputs)
+            {
+                AddDisplayedInputRow(input);
+            }
+        }
+
+        void AddDisplayedInputRow(ShaderInput input)
+        {
+            // TODO: z double check that things cannot be added twice
+//            if (m_InputRows.ContainsKey(input.guid))
+//                return;
+
+            BlackboardField field = null;
+            BlackboardRow row = null;
+
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                {
+                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
+                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
+                    row = new BlackboardRow(field, propertyView) { userData = input };
+
+                    break;
+                }
+                case ShaderKeyword keyword:
+                {
+                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? BlackboardProvider.exposedIcon : null;
+                    var typeText = KeywordUtil.IsBuiltinKeyword(keyword) ? "Built-in Keyword" : keyword.keywordType.ToString();
+                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
+                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
+                    row = new BlackboardRow(field, keywordView);
+
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            this.Add(row);
+
+            // TODO: z
+//            var pill = row.Q<Pill>();
+//            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
+//            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
+//            pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+//
+//            var expandButton = row.Q<Button>("expandButton");
+//            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
+//
+//            m_InputRows[input.guid] = row;
+//            m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
+        }
 
         int InsertionIndex(Vector2 pos)
         {
@@ -53,46 +198,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 //            return row;
 //        }
 
-        public BlackboardCateogrySection_V()
-        {
-            // TODO:
-//            var tpl = VFX.VFXView.LoadUXML("VFXBlackboardSection");
-//            m_MainContainer = tpl.CloneTree();
-
-            m_MainContainer.AddToClassList("mainContainer");
-
-            m_Header = m_MainContainer.Q<VisualElement>("sectionHeader");
-            m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
-            m_RowsContainer = m_MainContainer.Q<VisualElement>("rowsContainer");
-
-            m_ExpandButton = m_Header.Q<Button>("expandButton");
-            m_ExpandButton.clickable.clicked += ToggleExpand;
-
-            hierarchy.Add(m_MainContainer);
-            hierarchy.Add(m_MainContainer);
-
-
-            m_DragIndicator = new VisualElement();
-
-            m_DragIndicator.name = "dragIndicator";
-            // m_DragIndicator.style.position = PositionType.Absolute; // TODO:
-            hierarchy.Add(m_DragIndicator);
-
-            ClearClassList();
-            AddToClassList("blackboardSection");
-            AddToClassList("selectable");
-
-            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-            RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
-
-            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
-
-            SetSelectable();
-        }
-
-        TextField m_NameField;
-
         void OnTextFieldKeyPressed(KeyDownEvent e)
         {
             switch (e.keyCode)
@@ -107,18 +212,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnEditTextSucceded()
-        {
-            Debug.Log("OnEditTextSucceded()");
-
-//            CleanupNameField();
-//            var blackboard = GetFirstAncestorOfType<VFXBlackboard>();
-//            if (blackboard != null)
-//            {
-//                blackboard.SetCategoryName(this, m_NameField.value);
-//            }
-        }
-
         void CleanupNameField()
         {
             m_NameField.style.display = DisplayStyle.None;
@@ -127,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void SetSelectable()
         {
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable;
-            // styleSheets.Add(VFXView.LoadStyleSheet("Selectable")); TODO: ?
+            // styleSheets.Add(VFXView.LoadStyleSheet("Selectable")); // TODO: ?
             AddToClassList("selectable");
             hierarchy.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
 
@@ -147,31 +240,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ToggleExpand()
         {
-            Debug.Log("ToggleExpand");
-//            var parent = GetFirstAncestorOfType<VFXBlackboard>();
-//            if (parent != null)
-//            {
-//                parent.SetCategoryExpanded(this, !expanded);
-//            }
-        }
+            BlackboardProvider.needsUpdate = true;
 
-        bool m_Expanded;
-
-        public bool expanded
-        {
-            get { return m_Expanded; }
-            set
-            {
-                m_Expanded = value;
-                if (m_Expanded)
-                {
-                    AddToClassList("expanded");
-                }
-                else
-                {
-                    RemoveFromClassList("expanded");
-                }
-            }
+            expanded = !expanded;
+            m_Graph.alteredCategories.Add(m_Category); // TODO: this hack...
+            Debug.Log("I'm now going to expand... " + expanded.ToString());
         }
 
         public override VisualElement contentContainer
@@ -185,25 +258,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_TitleLabel.text = value; }
         }
 
-        public bool headerVisible
-        {
-            get { return m_Header.parent != null; }
-            set
-            {
-                if (value == (m_Header.parent != null))
-                    return;
-
-                if (value)
-                {
-                    m_MainContainer.Insert(1, m_Header);
-                }
-                else
-                {
-                    m_MainContainer.Remove(m_Header);
-                    expanded = true;
-                }
-            }
-        }
+//        public bool headerVisible
+//        {
+//            get { return m_Header.parent != null; }
+//            set
+//            {
+//                if (value == (m_Header.parent != null))
+//                    return;
+//
+//                if (value)
+//                {
+//                    m_MainContainer.Insert(1, m_Header);
+//                }
+//                else
+//                {
+//                    m_MainContainer.Remove(m_Header);
+//                    expanded = true;
+//                }
+//            }
+//        }
 
         private void SetDragIndicatorVisible(bool visible)
         {
@@ -222,109 +295,107 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Debug.Log("OnDragUpdatedEvent");
 
-//            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-//
-//            if (selection == null)
-//            {
-//                SetDragIndicatorVisible(false);
-//                return;
-//            }
-//
-//            if (selection.Any(t => !(t is VFXBlackboardField)))
-//            {
-//                SetDragIndicatorVisible(false);
-//                return;
-//            }
-//
-//            Vector2 localPosition = evt.localMousePosition;
-//
-//            m_InsertIndex = InsertionIndex(localPosition);
-//
-//            if (m_InsertIndex != -1)
-//            {
-//                float indicatorY = 0;
-//
-//                if (m_InsertIndex == childCount)
-//                {
-//                    if (childCount > 0)
-//                    {
-//                        VisualElement lastChild = this[childCount - 1];
-//
-//                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
-//                    }
-//                    else
-//                    {
-//                        indicatorY = this.contentRect.height;
-//                    }
-//                }
-//                else
-//                {
-//                    VisualElement childAtInsertIndex = this[m_InsertIndex];
-//
-//                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
-//                }
-//
-//                SetDragIndicatorVisible(true);
-//
-//                Rect dragLayout = m_DragIndicator.layout;
-//                m_DragIndicator.style.left = 0f;
-//                m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
-//
-//            }
-//            else
-//            {
-//                SetDragIndicatorVisible(false);
-//
-//                m_InsertIndex = -1;
-//            }
-//
-//            if (m_InsertIndex != -1)
-//            {
-//                DragAndDrop.visualMode = evt.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
-//            }
-//
-//            evt.StopPropagation();
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            if (selection == null)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            if (selection.Any(t => !(t is BlackboardCateogrySection_V)))
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            Vector2 localPosition = evt.localMousePosition;
+
+            m_InsertIndex = InsertionIndex(localPosition);
+
+            if (m_InsertIndex != -1)
+            {
+                float indicatorY = 0;
+
+                if (m_InsertIndex == childCount)
+                {
+                    if (childCount > 0)
+                    {
+                        VisualElement lastChild = this[childCount - 1];
+
+                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
+                    }
+                    else
+                    {
+                        indicatorY = this.contentRect.height;
+                    }
+                }
+                else
+                {
+                    VisualElement childAtInsertIndex = this[m_InsertIndex];
+
+                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
+                }
+
+                SetDragIndicatorVisible(true);
+
+                Rect dragLayout = m_DragIndicator.layout;
+                m_DragIndicator.style.left = 0f;
+                m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
+
+            }
+            else
+            {
+                SetDragIndicatorVisible(false);
+
+                m_InsertIndex = -1;
+            }
+
+            if (m_InsertIndex != -1)
+            {
+                DragAndDrop.visualMode = evt.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
+            }
+
+            evt.StopPropagation();
         }
 
         private void OnDragPerformEvent(DragPerformEvent evt)
         {
             Debug.Log("OnDragPerformEvent");
-//            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-//
-//            if (selection == null)
-//            {
-//                SetDragIndicatorVisible(false);
-//                return;
-//            }
-//
-//            if (selection.OfType< VFXBlackboardCategory>().Any())
-//                return;
-//
-//            if (m_InsertIndex != -1)
-//            {
-//                var parent = GetFirstAncestorOfType<VFXBlackboard>();
+
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            if (selection == null)
+            {
+                Debug.Log("selection == null");
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            if (selection.OfType<BlackboardCateogrySection_V>().Any())
+            {
+                Debug.Log("selection.OfType<BlackboardCateogrySection_V>().Any()");
+                // return;
+            }
+
+            Debug.Log("I want to move here! " + m_InsertIndex);
+
+            if (m_InsertIndex != -1)
+            {
+//                var parent = GetFirstAncestorOfType<Blackboard>();
 //                if (parent != null)
-//                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<VFXBlackboardRow>()).Where(t=> t!= null), this, m_InsertIndex);
+//                    parent.OnMoveParameter(selection.OfType<VisualElement>().Select(t => t.GetFirstOfType<BlackboardRow>()).Where(t=> t!= null), this, m_InsertIndex);
 //                SetDragIndicatorVisible(false);
 //                evt.StopPropagation();
 //                m_InsertIndex = -1;
-//            }
+            }
         }
 
         void OnDragLeaveEvent(DragLeaveEvent evt)
         {
+            Debug.Log("OnDragLeaveEvent");
             SetDragIndicatorVisible(false);
         }
-
-//        public new void Clear()
-//        {
-//            foreach (var param in m_Parameters)
-//            {
-//                param.Value.RemoveFromHierarchy();
-//            }
-//
-//            m_Parameters.Clear();
-//        }
 
         private void OnMouseDownEvent(MouseDownEvent e)
         {
@@ -337,21 +408,32 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OpenTextEditor()
         {
+            Debug.Log("OpenTextEditor()");
+
             m_NameField.value = title;
             m_NameField.style.display = DisplayStyle.Flex;
             m_NameField.Q(TextField.textInputUssName).Focus();
             m_NameField.SelectAll();
         }
 
+        void OnEditTextSucceded()
+        {
+            CleanupNameField();
+            title = m_NameField.value;
+
+            // Unsure why we would do this
+//            var blackboard = GetFirstAncestorOfType<Blackboard>();
+//            if (blackboard != null)
+//            {
+//                blackboard.SetCategoryName(this, m_NameField.value);
+//            }
+        }
+
+        #region DropdownMenu
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            if (evt.target == this && (capabilities & Capabilities.Selectable) != 0)
-            {
-                evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
-
-                evt.menu.AppendAction("Delete", (a) => Debug.Log("Nah, I'mma delete you instead."),
-                    DropdownMenuAction.AlwaysEnabled);
-            }
         }
+        #endregion
+
     }
 }

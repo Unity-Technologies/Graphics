@@ -205,23 +205,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (evt.target is BlackboardField)
             {
-                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                selection.Add(evt.target as BlackboardField);
+                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser),(e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                 evt.menu.AppendAction("Duplicate", (e) => DuplicateSelection(), (a) => (canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
             }
 
-            if (evt.target is BlackboardSection)
+            if (evt.target is BlackboardCateogrySection_V)
             {
                 PopulateBlackboardSectionMenu(evt);
             }
+
+            Debug.Log("I am a... " + evt.target.GetType().ToString());
         }
 
         void PopulateBlackboardSectionMenu(ContextualMenuPopulateEvent evt)
         {
-            BlackboardSection section = evt.target as BlackboardSection;
+            BlackboardCateogrySection_V section = evt.target as BlackboardCateogrySection_V;
             InputCategory category = graph.categories[section.parent.IndexOf(section)];
 
-            // evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled); // TODO: z
-            evt.menu.AppendAction("Delete All", (a) => graph.categories.Remove(category), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Rename", (a) => category.blackboardSection.OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete All", (a) => RemoveCategory(category), DropdownMenuAction.AlwaysEnabled);
 
             evt.menu.AppendSeparator("/");
 
@@ -240,6 +243,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.menu.AppendAction($"Insert/Matrix4x4", (a) => graph.AddShaderInput(new Matrix4ShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction($"Insert/SamplerState", (a) => graph.AddShaderInput(new SamplerStateShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction($"Insert/Gradient", (a) => graph.AddShaderInput(new GradientShaderProperty(), category), DropdownMenuAction.AlwaysEnabled);
+        }
+
+        void RemoveCategory(InputCategory category)
+        {
+            BlackboardProvider.needsUpdate = true;
+            graph.categories.Remove(category);
         }
 
         void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
@@ -360,6 +369,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             get
             {
+                Debug.Log("Selection Count... " + selection.Count());
+                foreach (ISelectable isss in selection) Debug.Log("my type is... " + isss.GetType() + "  --> " + (isss is IShaderNodeView).ToString());
+                Debug.Log(selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode).ToString());
                 return selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode);
             }
         }
@@ -569,6 +581,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 null, null, null, graph);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -702,6 +716,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             selection.Clear();
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         public static void GetIndexToInsert(Blackboard blackboard, out int propertyIndex, out int keywordIndex)
@@ -979,6 +995,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (copyGraph == null)
                 return;
+
+            BlackboardProvider.needsUpdate = true;
 
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
