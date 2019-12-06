@@ -71,10 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph.categories.Add(inputCategory);
         }
 
-        void DisplayCategoryOnBlackboard(InputCategory category)
+        void AddCategoryOnBlackboard(InputCategory category)
         {
-            // Debug.Log("Adding my main man " + category.header + " " + category.expanded + "   null=" + (category.blackboardSection == null));
-
             if (category.blackboardSection == null)
                 category.CreateBlackboardSection(m_Graph);
 
@@ -192,19 +190,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (input == null)
                 return;
 
-            m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
-
-            // TODO: z not needed if we don't replace the constantly rewrite system
-            InputCategory containerCategory = m_Graph.GetContainingCategory(input);
-            if (containerCategory != null)
-            {
-                bool moved = containerCategory.MoveShaderInput(input, newIndex);
-                if (moved)
-                {
-                    if (!m_Graph.movedInputs.Contains(input))
-                        m_Graph.movedInputs.Add(input);
-                }
-            }
+            m_Graph.MoveWithinCategory(input, newIndex);
         }
 
         void AddItemRequested(Blackboard blackboard)
@@ -212,7 +198,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             var gm = new GenericMenu();
 
             gm.AddItem(new GUIContent($"Category"), false, () => CreateNewCategory("new category " + UnityEngine.Random.value.ToString()));
-//            gm.AddItem(new GUIContent($"KILL!"), false, () => BlackboardClear());
             gm.AddSeparator($"");
 
 //            AddPropertyItems(gm);
@@ -283,21 +268,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-//            foreach (var inputGuid in m_Graph.removedInputs)
-//            {
-//
-//            }
-
-            foreach (var alteredCategory in m_Graph.alteredCategories)
-            {
-                alteredCategory.RefreshBlackboardSectionDisplay();
-            }
-
             // Simply remove and then add the categories only
             BlackboardClear();
             foreach (var category in m_Graph.categories)
             {
-                DisplayCategoryOnBlackboard(category);
+                AddCategoryOnBlackboard(category);
+
+                if (m_Graph.alteredCategories.Count() > 0 && m_Graph.alteredCategories.Contains(category))
+                    category.blackboardSection.RefreshSection();
             }
 
             foreach (var expandedInput in expandedInputs)

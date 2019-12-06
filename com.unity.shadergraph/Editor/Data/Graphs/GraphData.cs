@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_Categories; }
         }
 
-
+        // TODO: z need to check that we can't make this more efficient, or rather than when it is used it's okay
         public IEnumerable<AbstractShaderProperty> properties
         {
             get
@@ -99,7 +99,8 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
 
-        public IEnumerable<ShaderInput> addedInputs
+        // TODO: z why IEnumeratable?
+        public List<ShaderInput> addedInputs
         {
             get { return m_AddedInputs; }
         }
@@ -107,7 +108,7 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Guid> m_RemovedInputs = new List<Guid>();
 
-        public IEnumerable<Guid> removedInputs
+        public List<Guid> removedInputs
         {
             get { return m_RemovedInputs; }
         }
@@ -115,7 +116,6 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
 
-        // TODO: z why IEnumeratable?
         public List<ShaderInput> movedInputs
         {
             get { return m_MovedInputs; }
@@ -438,8 +438,27 @@ namespace UnityEditor.ShaderGraph
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
+            m_AlteredCategories.Clear();
             m_MostRecentlyCreatedGroup = null;
             didActiveOutputNodeChange = false;
+        }
+
+        public void AddShaderInput(ShaderInput input, InputCategory category)
+        {
+            category.inputs.Add(input);
+
+            m_AlteredCategories.Add(category);
+
+            SanitizeGraphInputName(input);
+            input.generatePropertyBlock = input.isExposable;
+
+            owner.RegisterCompleteObjectUndo("Create Graph Input");
+            AddGraphInput(input);
+
+            if (input as ShaderKeyword != null)
+            {
+                OnKeywordChangedNoValidate();
+            }
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -846,10 +865,8 @@ namespace UnityEditor.ShaderGraph
 
             int categoryCount = m_Categories.Count();
             if (categoryCount <= 0)
-                return; // TODO:
+                return; // TODO: z Also why is adding to a dirty state not necessary here?
             m_Categories[categoryCount - 1].AddShaderInput(input);
-
-            // m_AddedInputs.Add(input);
         }
 
         public InputCategory GetContainingCategory(ShaderInput input)
@@ -904,9 +921,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void MoveWithinCategory(ShaderInput input, int newIndex)
+        {
+            owner.RegisterCompleteObjectUndo("Move Graph Input");
+
+            InputCategory category = GetContainingCategory(input);
+            if (category != null)
+            {
+                bool moved = category.MoveShaderInput(input, newIndex);
+                if (moved)
+                {
+                    m_AlteredCategories.Add(category);
+                }
+            }
+        }
+
         public void RemoveGraphInput(ShaderInput input)
         {
-            Debug.Log("Remove me " + input.displayName);
+            owner.RegisterCompleteObjectUndo("Removed Graph Input");
 
             switch(input)
             {
@@ -919,6 +951,16 @@ namespace UnityEditor.ShaderGraph
 
             RemoveGraphInputNoValidate(input.guid);
             ValidateGraph();
+        }
+
+        // TODO: y Why delete by Guid?
+        void RemoveGraphInputNoValidate(Guid guid)
+        {
+            foreach (InputCategory category in m_Categories)
+            {
+                category.RemoveShaderInputByGuid(guid);
+                m_AlteredCategories.Add(category);
+            }
         }
 
         // TODO: z What was this used for?
@@ -936,12 +978,6 @@ namespace UnityEditor.ShaderGraph
             return 0;
         }
 
-        // TODO: y Is this really necessary? (to delete by Guid?)
-        void RemoveGraphInputNoValidate(Guid guid)
-        {
-            foreach (InputCategory category in m_Categories)
-                category.RemoveShaderInputByGuid(guid);
-        }
 
         static List<IEdge> s_TempEdges = new List<IEdge>();
 
