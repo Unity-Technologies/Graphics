@@ -39,6 +39,22 @@ namespace UnityEditor.ShaderGraph
             get { return m_Inputs; }
         }
 
+        [NonSerialized]
+        BlackboardCateogrySection_V m_BlackboardSection;
+
+        public BlackboardCateogrySection_V blackboardSection
+        {
+            get
+            {
+                return m_BlackboardSection;
+            }
+        }
+
+        public void CreateBlackboardSection(GraphData graph)
+        {
+            m_BlackboardSection = new BlackboardCateogrySection_V(this, graph);
+        }
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -50,6 +66,8 @@ namespace UnityEditor.ShaderGraph
                 m_Inputs.Add(input);
             else
                 m_Inputs.Insert(index, input);
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         public void RemoveShaderInput(ShaderInput input)
@@ -60,6 +78,8 @@ namespace UnityEditor.ShaderGraph
         public void RemoveShaderInputByGuid(Guid guid)
         {
             m_Inputs.RemoveAll(x => x.guid == guid);
+
+            BlackboardProvider.needsUpdate = true;
         }
 
         // True if the input was moved TODO: y probably remove that though lol...
@@ -84,28 +104,12 @@ namespace UnityEditor.ShaderGraph
             else
                 m_Inputs.Insert(newIndex, input);
 
+            BlackboardProvider.needsUpdate = true;
+
             return true;
         }
 
         #endregion
-
-
-        [NonSerialized]
-        BlackboardCateogrySection m_BlackboardSection;
-
-        public BlackboardCateogrySection blackboardSection
-        {
-            get
-            {
-                return m_BlackboardSection;
-            }
-        }
-
-
-        public void CreateBlackboardSection(GraphData graph)
-        {
-            m_BlackboardSection = new BlackboardCateogrySection(this, graph);
-        }
 
         #region Serialization
 

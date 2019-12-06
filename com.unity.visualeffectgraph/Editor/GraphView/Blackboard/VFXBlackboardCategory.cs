@@ -214,6 +214,8 @@ namespace UnityEditor.VFX.UI
 
         private void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
+            Debug.Log("OnDragUpdatedEvent");
+
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
             if (selection == null)
@@ -279,6 +281,8 @@ namespace UnityEditor.VFX.UI
 
         private void OnDragPerformEvent(DragPerformEvent evt)
         {
+            Debug.Log("OnDragPerformEvent");
+
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
             if (selection == null)
@@ -303,6 +307,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragLeaveEvent(DragLeaveEvent evt)
         {
+            Debug.Log("OnDragLeaveEvent");
+
             SetDragIndicatorVisible(false);
         }
 
