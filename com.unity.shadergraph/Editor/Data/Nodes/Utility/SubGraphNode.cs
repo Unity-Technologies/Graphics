@@ -231,7 +231,14 @@ namespace UnityEditor.ShaderGraph
             foreach (var outSlot in asset.outputs)
                 arguments.Add(GetVariableNameForSlot(outSlot.id));
 
-            sb.AppendLine("{0}_{2}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)), guid.GetHashCode().ToString("X"));
+            if (subgraphDelegateFunctions.Count == 0)
+            {
+                sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+            }
+            else
+            {
+                sb.AppendLine("{0}_{2}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)), guid.GetHashCode().ToString("X"));
+            }
         }
 
         public void OnEnable()
@@ -665,7 +672,14 @@ namespace UnityEditor.ShaderGraph
                 var inputVariableName = $"_{sgNode.GetVariableNameForNode()}";
 
                 SubShaderGenerator.GenerateSurfaceInputTransferCode(s, sgNode.asset.requirements, sgNode.asset.inputStructName, inputVariableName);
-                s.Append("{0}_{1}(", sgNode.asset.functionName, sgNode.guid.GetHashCode().ToString("X"));
+                if (sgNode.subgraphDelegateFunctions.Count == 0)
+                {
+                    s.Append("{0}(", sgNode.asset.functionName);
+                }
+                else
+                {
+                    s.Append("{0}_{1}(", sgNode.asset.functionName, sgNode.guid.GetHashCode().ToString("X"));
+                }
                 for (int i = 0; i < currentDelegate.input_Entries.Count; i++)
                 {
                     switch (currentDelegate.input_Entries[i].propertyType)
@@ -748,7 +762,7 @@ namespace UnityEditor.ShaderGraph
             var delegateFunctionkeys = subgraphDelegateFunctions.Select<FunctionPair, string>(x => x.key);
             foreach (var function in asset.functions)
             {
-                if (!delegateFunctionkeys.Contains<string>(function.key) && (function.key != asset.functions.Last().key))
+                if (!delegateFunctionkeys.Contains<string>(function.key) && (function.key != asset.functions.Last().key || subgraphDelegateFunctions.Count == 0))
                 {
                     registry.ProvideFunction(function.key, s =>
                     {
@@ -757,25 +771,28 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var nodeMainFunction = asset.functions.Last();
-            ShaderStringBuilder tempSb = new ShaderStringBuilder();
-            tempSb.AppendLines(nodeMainFunction.value);
-            tempSb.ReplaceInCurrentMapping(nodeMainFunction.key, String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")));
-
-            foreach (var function in subgraphDelegateFunctions)
+            if (subgraphDelegateFunctions.Count != 0)
             {
-                String mangledName = (function.key != "delegate_input_struct") ? String.Format("{0}_{1}", function.key, guid.GetHashCode().ToString("X")) : function.key;
-                tempSb.ReplaceInCurrentMapping(function.key, mangledName);
-                registry.ProvideFunction(mangledName, s =>
+                var nodeMainFunction = asset.functions.Last();
+                ShaderStringBuilder tempSb = new ShaderStringBuilder();
+                tempSb.AppendLines(nodeMainFunction.value);
+                tempSb.ReplaceInCurrentMapping(nodeMainFunction.key, String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")));
+
+                foreach (var function in subgraphDelegateFunctions)
                 {
-                    s.AppendLines(function.value);
+                    String mangledName = (function.key != "delegate_input_struct") ? String.Format("{0}_{1}", function.key, guid.GetHashCode().ToString("X")) : function.key;
+                    tempSb.ReplaceInCurrentMapping(function.key, mangledName);
+                    registry.ProvideFunction(mangledName, s =>
+                    {
+                        s.AppendLines(function.value);
+                    });
+                }
+
+                registry.ProvideFunction(String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")), s =>
+                {
+                    s.AppendLines(tempSb.ToString());
                 });
             }
-
-            registry.ProvideFunction(String.Format("{0}_{1}", nodeMainFunction.key, guid.GetHashCode().ToString("X")), s =>
-            {
-                s.AppendLines(tempSb.ToString());
-            });
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
