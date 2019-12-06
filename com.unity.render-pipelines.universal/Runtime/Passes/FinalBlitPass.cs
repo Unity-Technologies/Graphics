@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         CoreUtils.SetRenderTarget(cmd, cameraData.compositionPass.renderTarget, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, cameraData.compositionPass.GetTextureArraySlice(0));
                     else
                         CoreUtils.SetRenderTarget(cmd, cameraData.compositionPass.renderTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
+                    cmd.SetViewport(cameraData.compositionPass.GetViewport(0));
                 }
                 else
                 {
@@ -77,7 +78,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
-                cmd.SetViewport(cameraData.compositionPass.GetViewport());
+
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                 RenderingUtils.SetViewProjectionMatrices(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture), true);
             }
