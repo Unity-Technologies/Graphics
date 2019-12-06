@@ -366,6 +366,252 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         return color;
     }
 
+#define PIMP_MY_RAYS 1
+#if PIMP_MY_RAYS
+
+    float ComputeAtmosphericOpticalDepthM(float r, float cosTheta, float majorant, bool aboveHorizon)
+    {
+        const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
+        const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
+        const float  R = _PlanetaryRadius;
+
+        float2 z = n * r;
+        float2 Z = n * R;
+
+        float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+
+        float2 ch;
+        ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
+        ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
+
+        if (!aboveHorizon) // Below horizon, intersect sphere
+        {
+            float sinGamma = (r / R) * sinTheta;
+            float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+
+            float2 ch_2;
+            ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
+            ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
+
+            ch = ch_2 - ch;
+        }
+        else if (cosTheta < 0)   // Above horizon, lower hemisphere
+        {
+            // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+            // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
+            float2 z_0  = z * sinTheta;
+            float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
+            float2 a;
+            a.x         = 2 * ChapmanHorizontal(z_0.x);
+            a.y         = 2 * ChapmanHorizontal(z_0.y);
+            float2 ch_2 = a * b;
+
+            ch = ch_2 - ch;
+        }
+
+        float2 optDepth = ch * H;
+
+        return optDepth.x * majorant + optDepth.y * _AerosolSeaLevelExtinction;
+    }
+
+    float MaxComponent(float3 v)
+    {
+        return Max3(v.r, v.g, v.b);
+    }
+
+    float3 AirExtinction(float height)
+    {
+        return _AirSeaLevelExtinction * exp(-height * _AirDensityFalloff);
+    }
+
+    float3 AerosolExtinction(float height)
+    {
+        return _AerosolSeaLevelExtinction * exp(-height * _AerosolDensityFalloff);
+    }
+
+    void ComputeVolumeEventProbability(float height, out float scaP, out float nulP,
+                                       out float majK, out float3 scaK, out float3 nulK)
+    {
+        float3 totalExtinction = AirExtinction(height) + AerosolExtinction(height);
+        float3 totalScattering = AirScatter(height) + AerosolScatter(height);
+        float3 muAbsorption = totalExtinction - totalScattering;
+        float3 muNull = MaxComponent(totalExtinction) - muAbsorption - totalScattering;
+
+        float maxAbsorption = MaxComponent(muAbsorption);
+        float maxScattering = MaxComponent(totalScattering);
+        float maxNull = MaxComponent(muNull);
+
+        float probAbsorption = maxAbsorption / (maxAbsorption + maxScattering + maxNull);
+        float probScattering = maxScattering / (maxAbsorption + maxScattering + maxNull);
+        float probNull = maxNull / (maxAbsorption + maxScattering + maxNull);
+
+        scaP = probScattering / (probScattering + probNull);
+        nulP = probNull / (probScattering + probNull);
+        scaK = totalScattering;
+        nulK = muNull;
+        majK = MaxComponent(totalExtinction);
+    }
+
+    float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
+    {
+        const float A = _AtmosphericRadius;
+        const float R = _PlanetaryRadius;
+
+        //uint frameIndex = 0;
+        uint frameIndex = _SpectralTrackingFrameIndex;
+        bool resetSpectralTracking = (frameIndex == 0);
+        uint startPath = frameIndex * numPaths;
+        float3 color = 0;
+
+        if (!resetSpectralTracking)
+        {
+            color = _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)].rgb;
+            //numPaths *= frameIndex;
+        }
+
+        for (uint p = startPath; p < (startPath + numPaths); p++) // Iterate over paths
+        {
+            const uint numStrata   = (uint)sqrt(numPaths);
+            const uint coordinate  = positionSS.x | (positionSS.y << 16);
+            const uint leftPart    = coordinate << (frameIndex % 32);
+            const uint rightPart   = coordinate >> (32 - (frameIndex % 32));
+            const uint permutation = leftPart | rightPart;
+            const float rotation   = GenerateHashedRandomFloat(permutation);
+
+            // Sample the sensor.
+            const float2 subPixel  = frac(rotation + cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[0]));
+            const float2 sensorPos = positionSS + subPixel * _ScreenSize.zw; // TODO: verify (_ScreenSize != 0)
+
+            // Init the ray.
+            float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
+            const float3 V = GetSkyViewDirWS(sensorPos);
+
+            float2 atmosEntryExit = IntersectSphere(A, dot(normalize(O), -V), length(O));
+
+            bool rayIntersectsAtmosphere = atmosEntryExit.y >= 0;
+            if (!rayIntersectsAtmosphere) continue; // Miss
+
+            // Do not start outside the atmosphere.
+            if (atmosEntryExit.x > 0)
+            {
+                O -= V * atmosEntryExit.x * (1 + FLT_EPS);
+            }
+
+            float majorant = MaxComponent(_AirSeaLevelExtinction);
+
+            //for (uint w = 0; w < numWavelengths; w++) // Iterate over wavelengths
+            {
+                float3 X =  O;
+                float3 D = -V; // Point away from the camera
+                float3 pathContribution = 0;
+                float3 monteCarloScore = 1;
+
+                for (uint b = 0; b < numBounces; b++) // Step along the path
+                {
+                    float  r = length(X);
+                    float3 N = normalize(X);
+
+                    float cosChi = dot(N, D);
+                    float cosHor = ComputeCosineOfHorizonAngle(r);
+
+                    bool lookAboveHorizon = (cosChi >= cosHor);
+
+                    float maxOptDepth = ComputeAtmosphericOpticalDepthM(r, cosChi, majorant, lookAboveHorizon);
+                    float maxOpacity  = OpacityFromOpticalDepth(maxOptDepth);
+                    float rndOpacity  = frac(rotation + randfloat(p, permutation ^ s_RandomPrimes[b]));
+
+                    bool surfaceContibution     = !lookAboveHorizon;
+                    bool surfaceScatteringEvent = surfaceContibution && (rndOpacity > maxOpacity);
+
+                    float tGround = lookAboveHorizon ? 1e7 : IntersectSphere(R, cosChi, r).x; // Assume we are outside
+
+                    float3 bounceWeight;
+
+                    bool shouldScatter = true;
+                    if (surfaceScatteringEvent)
+                    {
+                        float t = tGround;
+
+                        X += t * D;
+                        r = length(X);
+
+                        monteCarloScore *= _GroundAlbedo;        // Albedo = Brdf / Pdf(Brdf)
+                        bounceWeight     = monteCarloScore / PI; // * BRDF, NdotL is handled later
+                    }
+                    else // Volume scattering event
+                    {
+                        monteCarloScore       *= surfaceContibution ? 1 : OpacityFromOpticalDepth(ComputeAtmosphericOpticalDepth(r, cosChi, lookAboveHorizon));
+                        float opacityToInvert  = surfaceContibution ? rndOpacity : rndOpacity * maxOpacity;
+                        float optDepthToInvert = OpticalDepthFromOpacity(opacityToInvert);
+
+                        float t = SampleSpherExpMedium(optDepthToInvert, r, cosChi, R,
+                                                       majorant,  _AirScaleHeight,
+                                                       _AerosolSeaLevelExtinction, _AerosolScaleHeight, maxOptDepth, tGround);
+
+                        X += t * D;
+                        r = length(X);
+
+                        /* Shade the volume point (account for atmospheric attenuation). */
+                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
+                        float height = r - R;
+                        float scaP;
+                        float nulP;
+                        float majK;
+                        float3 scaK;
+                        float3 nulK;
+                        ComputeVolumeEventProbability(height, scaP, nulP, majK, scaK, nulK);
+                        float rndEvent = frac(rotation + randfloat(p, ~permutation ^ s_RandomPrimes[b]));
+                        if (rndEvent < scaP)
+                        {
+                            monteCarloScore *= scaK / (scaP * majK);
+                        }
+                        else
+                        {
+                            monteCarloScore *= nulK / (nulP * majK);
+                            shouldScatter = false;
+                        }
+                        bounceWeight = monteCarloScore / (4.0f * PI); // * Phase function
+                    }
+
+                    float3 lightColor = 0;
+                    for (uint i = 0; i < _DirectionalLightCount; i++)
+                    {
+                        DirectionalLightData light = _DirectionalLightDatas[i];
+                        lightColor += EvalLight(X, surfaceScatteringEvent, light);
+                    }
+
+                    pathContribution += lightColor * bounceWeight;
+
+                    const float2 random2D = frac(rotation + cmj2D(p, numStrata, numStrata, permutation ^ s_RandomPrimes[b + 1]));
+                    if (surfaceScatteringEvent)
+                    {
+                        /* Shade the surface point (account for atmospheric attenuation). */
+                        /* Pick a new direction for a Lambertian BRDF. */
+                        D = SampleHemisphereCosine(random2D.x, random2D.y, normalize(X));
+                    }
+                    else // Volume scattering event
+                    {
+                        // TODO: do not generate scattering events outside the atmosphere. Should probably clamp the distance.
+
+                        /* Shade the volume point (account for atmospheric attenuation). */
+                        /* Compute a new direction (uniformly for now). */
+                        // TODO: anisotropic phase function.
+                        if (shouldScatter)
+                        {
+                            D = SampleSphereUniform(random2D.x, random2D.y);
+                        }
+                    }
+                }
+
+                color += pathContribution;
+            }
+        }
+
+        _SpectralTrackingTexture[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1.0f);
+
+        return color / (startPath + numPaths);
+    }
+#else
     float3 SpectralTracking(uint2 positionSS, uint numWavelengths, uint numPaths, uint numBounces)
     {
         const float A = _AtmosphericRadius;
@@ -511,7 +757,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         return color / (startPath + numPaths);
     }
-
+#endif // PIMP_MY_RAYS
     float4 RenderSky(Varyings input)
     {
 #if USE_PATH_SKY
