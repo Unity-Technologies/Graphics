@@ -32,8 +32,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         GraphData m_Graph;
 
-        #region  ShaderInputs
-
         [NonSerialized]
         public List<ShaderInput> m_Inputs = new List<ShaderInput>();
 
@@ -45,6 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
 
+        #region ShaderInputs
+
         public void AddShaderInput(ShaderInput input, int index = -1)
         {
             if (index < 0)
@@ -53,11 +53,55 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Inputs.Insert(index, input);
         }
 
-        #endregion
-
-        public InputCategory()
+        public void RemoveShaderInput(ShaderInput input)
         {
+            m_Inputs.Remove(input);
+            RefreshBlackboardSectionDisplay();
         }
+
+        public void RemoveShaderInputByGuid(Guid guid)
+        {
+            m_Inputs.RemoveAll(x => x.guid == guid);
+            RefreshBlackboardSectionDisplay();
+        }
+
+        // True if the input was moved
+        public bool MoveShaderInput(ShaderInput input, int newIndex)
+        {
+            if (newIndex > m_Inputs.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within keywords list.");
+
+            var currentIndex = m_Inputs.IndexOf(input);
+            if (currentIndex == -1)
+                throw new ArgumentException("Input is not in Input Category.");
+
+            if (newIndex == currentIndex)
+                return false;
+
+            m_Inputs.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+
+            if (newIndex == m_Inputs.Count)
+                m_Inputs.Add(input);
+            else
+                m_Inputs.Insert(newIndex, input);
+
+            RefreshBlackboardSectionDisplay();
+
+            return true;
+        }
+
+        public void RefreshBlackboardSectionDisplay()
+        {
+            m_BlackboardSection.Clear();
+            foreach (ShaderInput input in m_Inputs)
+            {
+                AddDisplayedInputRow(input);
+            }
+        }
+
+        #endregion
 
         // TODO: z do we want something like this for serialized things? Check how other serialized things work
 //        public InputCategory(string title, GraphData graphData, bool displayed = true)
@@ -92,14 +136,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (ShaderInput input in inputs)
             {
-                AddInputRow(input);
+                AddDisplayedInputRow(input);
             }
         }
 
+        // TODO: z probably shouldn't go here?
         void CreateShaderInput(ShaderInput input)
         {
             inputs.Add(input);
-            AddInputRow(input);
+            AddDisplayedInputRow(input);
 
             m_Graph.SanitizeGraphInputName(input);
             input.generatePropertyBlock = input.isExposable;
@@ -113,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddInputRow(ShaderInput input)
+        void AddDisplayedInputRow(ShaderInput input)
         {
             // TODO: z double check that things cannot be added twice
 //            if (m_InputRows.ContainsKey(input.guid))

@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         readonly GraphData m_Graph;
 
-        readonly Dictionary<Guid, BlackboardRow> m_InputRows;
+        // readonly Dictionary<Guid, BlackboardRow> m_InputRows;
 
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
@@ -43,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(GraphData graph)
         {
             m_Graph = graph;
-            m_InputRows = new Dictionary<Guid, BlackboardRow>();
 
             blackboard = new Blackboard()
             {
@@ -87,6 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.Clear();
         }
 
+        // TODO: z
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
             if (m_SelectedNodes.Any())
@@ -193,16 +193,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            switch(input)
+
+            // TODO: z not needed if we don't replace the constantly rewrite system
+            InputCategory containerCategory = m_Graph.GetContainingCategory(input);
+            if (containerCategory != null)
             {
-                case AbstractShaderProperty property:
-                    m_Graph.MoveProperty(property, newIndex);
-                    break;
-                case ShaderKeyword keyword:
-                    m_Graph.MoveKeyword(keyword, newIndex);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                bool moved = containerCategory.MoveShaderInput(input, newIndex);
+                if (moved)
+                {
+                    if (!m_Graph.movedInputs.Contains(input))
+                        m_Graph.movedInputs.Add(input);
+                }
             }
         }
 
@@ -282,23 +283,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            foreach (var inputGuid in m_Graph.removedInputs)
-            {
-                BlackboardRow row;
-                if (m_InputRows.TryGetValue(inputGuid, out row))
-                {
-                    row.RemoveFromHierarchy();
-                    m_InputRows.Remove(inputGuid);
-                }
-            }
-
-            // TODO:
-//            foreach (var input in m_Graph.addedInputs)
+//            foreach (var inputGuid in m_Graph.removedInputs)
 //            {
-//                AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
+//
 //            }
 
-            // Just remove and then readd everything trollolololz
+            foreach (var alteredCategory in m_Graph.alteredCategories)
+            {
+                alteredCategory.RefreshBlackboardSectionDisplay();
+            }
+
+            // Simply remove and then add the categories only
             BlackboardClear();
             foreach (var category in m_Graph.categories)
             {
@@ -310,23 +305,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SessionState.SetBool(expandedInput.Key.guid.ToString(), expandedInput.Value);
             }
 
-            // TODO:
-//            if (m_Graph.movedInputs.Any())
-//            {
-//                foreach (var row in m_InputRows.Values)
-//                    row.RemoveFromHierarchy();
-//
-//                foreach (var property in m_Graph.properties)
-//                    m_PropertySection.Add(m_InputRows[property.guid]);
-//
-//                foreach (var keyword in m_Graph.keywords)
-//                    m_KeywordSection.Add(m_InputRows[keyword.guid]);
-//            }
-
             m_ExpandedInputs.Clear();
         }
 
-        // TODO: these below need to be moved / modified
+        // TODO: z these below need to be moved / modified
         void CreateShaderInput(ShaderInput input)
         {
             m_Graph.SanitizeGraphInputName(input);
@@ -347,10 +329,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnExpanded(MouseDownEvent evt, ShaderInput input)
-        {
-            m_ExpandedInputs[input] = !m_InputRows[input.guid].expanded;
-        }
+        // TODO: z (needed for mouse hover, doing this for the categories themselve would also be nice)
+//        void OnExpanded(MouseDownEvent evt, ShaderInput input)
+//        {
+//            m_ExpandedInputs[input] = !m_InputRows[input.guid].expanded;
+//        }
 
         void DirtyNodes()
         {

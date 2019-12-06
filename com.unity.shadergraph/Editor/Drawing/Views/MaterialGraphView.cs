@@ -645,6 +645,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
+            // Blackboard deletion
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
