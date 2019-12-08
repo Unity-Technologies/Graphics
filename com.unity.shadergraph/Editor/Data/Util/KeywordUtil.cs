@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Global,
                 value = 0,
+                tooltip = "Built-in Keyword tooltip test",
                 entries = new KeywordEntry[]
                 {
                     new KeywordEntry("High", "HIGH"),

@@ -47,7 +47,8 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 displayName = displayName,
                 hidden = hidden,
-                value = value
+                value = value,
+                tooltip = tooltip
             };
         }
     }

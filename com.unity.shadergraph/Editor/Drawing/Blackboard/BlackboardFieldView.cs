@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildLowerDefaultFields(ShaderInput input)
         {
-            // TODO: decide how we want tooltips in subgraphs to work, if at all. (I could see an subgraph having a tooltip)
+            // TODO: decide how we want tooltips in subgraphs to work, if at all. (An entire subgraph could have a tooltip, or it could display the tooltip for each port)
             if (!m_Graph.isSubGraph)
             {
                 m_TooltipField = new TextField(4096, false, false, ' ') {isDelayed = true};
@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Won't work with trunk tag
                 // m_TooltipField.multiline = true;
 
-                AddRow("Tooltip", m_TooltipField);
+                AddRow("Tooltip", m_TooltipField, input.isRenamable);
             }
         }
 

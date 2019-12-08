@@ -8,6 +8,7 @@
         public KeywordDefinition definition;
         public KeywordScope scope;
         public int value;
+        public string tooltip;
         public KeywordEntry[] entries;
     }
 }

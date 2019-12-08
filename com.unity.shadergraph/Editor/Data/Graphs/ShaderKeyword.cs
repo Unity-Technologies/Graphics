@@ -51,6 +51,7 @@ namespace UnityEditor.ShaderGraph
                 keywordDefinition = descriptor.definition,
                 keywordScope = descriptor.scope,
                 value = descriptor.value,
+                tooltip = descriptor.tooltip,
                 entries = descriptor.entries.ToList(),
             };
         }
@@ -200,6 +201,7 @@ namespace UnityEditor.ShaderGraph
                 keywordType = keywordType,
                 keywordDefinition = keywordDefinition,
                 keywordScope = keywordScope,
+                tooltip = tooltip,
                 entries = entries
             };
         }

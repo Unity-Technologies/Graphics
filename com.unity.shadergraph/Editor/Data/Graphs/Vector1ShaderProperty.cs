@@ -148,7 +148,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 rangeValues = rangeValues,
                 enumType = enumType,
                 enumNames = enumNames,
-                enumValues = enumValues
+                enumValues = enumValues,
+                tooltip = tooltip
             };
         }
     }

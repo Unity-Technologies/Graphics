@@ -64,7 +64,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 hidden = hidden,
                 value = value,
-                colorMode = colorMode
+                colorMode = colorMode,
+                tooltip = tooltip
             };
         }
     }
