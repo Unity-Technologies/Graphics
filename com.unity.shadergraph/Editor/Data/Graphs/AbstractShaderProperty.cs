@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         [SerializeField]
         Precision m_Precision = Precision.Inherit;
-
+        
         [SerializeField]
         private bool m_GPUInstanced = false;
 
@@ -67,12 +67,12 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return GetPropertyDeclarationString(string.Empty);
         }
-
+        
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
         internal virtual bool isGpuInstanceable => false;
     }
-
+    
     [Serializable]
     public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {

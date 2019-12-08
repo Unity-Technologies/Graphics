@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         EnumType m_EnumType = EnumType.Enum;
-        
+
         public EnumType enumType
         {
             get => m_EnumType;
@@ -98,13 +98,13 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         List<string> m_EnumNames = new List<string>();
-
+        
         public List<string> enumNames
         {
             get => m_EnumNames;
             set => m_EnumNames = value;
         }
-        
+
         List<int> m_EnumValues = new List<int>();
 
         public List<int> enumValues
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumValues;
             set => m_EnumValues = value;
         }
-
+        
         internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)

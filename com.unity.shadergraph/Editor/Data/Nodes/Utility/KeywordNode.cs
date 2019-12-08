@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
 
             // Handle keyword guid serialization
-            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized)) 
+            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized))
             {
                 m_KeywordGuid = new Guid(m_KeywordGuidSerialized);
             } 

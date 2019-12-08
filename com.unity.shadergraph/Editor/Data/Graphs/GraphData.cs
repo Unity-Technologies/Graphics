@@ -334,7 +334,7 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-            
+
         public List<ITargetImplementation> validImplementations => m_ValidImplementations;
 
         [SerializeField]
@@ -351,7 +351,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 // Return a list of all valid TargetImplementations enabled in the bitmask
-                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) &
+                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
                     m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
             }
         }
@@ -1327,13 +1327,13 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             var nodes = GetNodes<AbstractMaterialNode>().ToList();
-            // nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
-            // m_Edges.Sort();
+            m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            // m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            // m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
