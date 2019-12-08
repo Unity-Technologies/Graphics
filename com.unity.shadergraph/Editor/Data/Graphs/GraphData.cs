@@ -845,15 +845,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        // TODO: may want to remove this method if we don't go with the tooltip(text) tag
-        public void SanitizeGraphInputTooltip(ShaderInput input, string newTooltip)
-        {
-            input.tooltip = newTooltip.Trim();
-
-            // Version that is a single line and works with the trunk tooltip(text) tag
-            input.tooltip = Regex.Replace(input.tooltip, @"(?:[^A-Za-z_0-9 ])", "");
-        }
-
         public void RemoveGraphInput(ShaderInput input)
         {
             switch(input)
@@ -1487,7 +1478,7 @@ namespace UnityEditor.ShaderGraph
             // Update valid Targets and TargetImplementations
             m_ValidTargets = foundTargets;
             m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
-
+            
             // Nothing or Everything. No need to update bitmask.
             if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
                 return;

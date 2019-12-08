@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Tooltip ");
 
-                    m_Graph.SanitizeGraphInputTooltip(input, evt.newValue);
+                    input.tooltip = evt.newValue.Trim();
 
                     m_TooltipField.value = input.tooltip;
 
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     Rebuild();
                 });
                 // Won't work with trunk tag
-                // m_TooltipField.multiline = true;
+                m_TooltipField.multiline = true;
 
                 AddRow("Tooltip", m_TooltipField, input.isRenamable);
             }

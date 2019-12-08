@@ -52,9 +52,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal virtual string GetPropertyBlockString()
         {
-            if (!String.IsNullOrEmpty(tooltip) && !hidden)
-                return "[Tooltip(" + tooltip + ")]";
-            return "";
+            return string.Empty;
         }
 
         internal virtual string GetPropertyDeclarationString(string delimiter = ";")
