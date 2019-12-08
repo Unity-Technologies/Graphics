@@ -16,14 +16,14 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Vector1";
         }
-
+        
         public override PropertyType propertyType => PropertyType.Vector1;
-
+        
         internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
         internal override bool isGpuInstanceable => true;
-
+        
         string enumTagString
         {
             get
@@ -48,19 +48,21 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
+            string shaderTooltipTag = base.GetPropertyBlockString();
+
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return base.GetPropertyBlockString() + $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{shaderTooltipTag}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Integer:
-                    return base.GetPropertyBlockString() + $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{shaderTooltipTag}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Enum:
-                    return base.GetPropertyBlockString() + $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{shaderTooltipTag}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
                 default:
-                    return base.GetPropertyBlockString() + $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{shaderTooltipTag}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
             }
         }
-
+        
         [SerializeField]
         FloatType m_FloatType = FloatType.Default;
 
@@ -80,13 +82,13 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         EnumType m_EnumType = EnumType.Enum;
-
+        
         public EnumType enumType
         {
             get => m_EnumType;
             set => m_EnumType = value;
         }
-
+    
         Type m_CSharpEnumType;
 
         public Type cSharpEnumType
@@ -102,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumNames;
             set => m_EnumNames = value;
         }
-
+        
         List<int> m_EnumValues = new List<int>();
 
         public List<int> enumValues

@@ -35,6 +35,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public ShaderKeyword keyword
+        {
+            get  { return owner.keywords.FirstOrDefault(x => x.guid == keywordGuid); }
+        }
+
         public override bool canSetPrecision => false;
         public override bool hasPreview => true;
         public const int OutputSlotId = 0;
@@ -46,7 +51,6 @@ namespace UnityEditor.ShaderGraph
 
         public void UpdateNode()
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
             
@@ -126,7 +130,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
             
@@ -216,7 +219,7 @@ namespace UnityEditor.ShaderGraph
             base.OnAfterDeserialize();
 
             // Handle keyword guid serialization
-            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized))
+            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized)) 
             {
                 m_KeywordGuid = new Guid(m_KeywordGuidSerialized);
             } 

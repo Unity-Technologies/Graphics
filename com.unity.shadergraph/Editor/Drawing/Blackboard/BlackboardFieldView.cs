@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildUpperDefaultFields(ShaderInput input)
         {
-            if (!m_Graph.isSubGraph)
+            if(!m_Graph.isSubGraph)
             {
                 m_ExposedToogle = new Toggle();
                 m_ExposedToogle.OnToggleChanged(evt =>
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
             }
 
-            if (!m_Graph.isSubGraph || input is ShaderKeyword)
+            if(!m_Graph.isSubGraph || input is ShaderKeyword)
             {
                 m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
                 m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (m_ReferenceNameField.value != m_Input.referenceName)
                         m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
-
+                    
                     m_ReferenceNameField.value = input.referenceName;
 
                     if (string.IsNullOrEmpty(input.overrideReferenceName))
@@ -124,18 +124,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildLowerDefaultFields(ShaderInput input)
         {
+            // TODO: decide how we want tooltips in subgraphs to work, if at all. (I could see an subgraph having a tooltip)
             if (!m_Graph.isSubGraph)
             {
-                m_TooltipField = new TextField(2048, false, false, ' ') {isDelayed = true};
-                m_TooltipField.styleSheets.Add(
-                    Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField")); // TODO: Use your own brah
+                m_TooltipField = new TextField(4096, false, false, ' ') {isDelayed = true};
+                m_TooltipField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
                 m_TooltipField.value = input.tooltip;
                 m_TooltipField.RegisterValueChangedCallback(evt =>
                 {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Change Tooltip");
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change Tooltip ");
 
-                    if (m_TooltipField.value != m_Input.tooltip)
-                        m_Graph.SanitizeGraphInputTooltip(input, evt.newValue);
+                    m_Graph.SanitizeGraphInputTooltip(input, evt.newValue);
 
                     m_TooltipField.value = input.tooltip;
 
@@ -145,10 +144,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_TooltipField.AddToClassList("modified");
 
                     Rebuild();
-                    // DirtyNodes(ModificationScope.Graph); // TODO:
-                    UpdateReferenceNameResetMenu();
                 });
-                // m_TooltipField.multiline = true;  // TODO:
+                // Won't work with trunk tag
+                // m_TooltipField.multiline = true;
 
                 AddRow("Tooltip", m_TooltipField);
             }
@@ -157,6 +155,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public abstract void BuildCustomFields(ShaderInput input);
         public abstract void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node);
 
+        // Adds ability to reset back to the default reference via blackboard dropdown menu.
         void UpdateReferenceNameResetMenu()
         {
             if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
@@ -218,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 label.AddToClassList("rowViewLabel");
                 rowView.Add(label);
             }
-
+            
             control.AddToClassList("rowViewControl");
             control.SetEnabled(enabled);
 

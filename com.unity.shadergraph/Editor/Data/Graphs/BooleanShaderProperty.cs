@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return base.GetPropertyBlockString()
-                   + $"{hideTagString}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
+            string shaderTooltipTag = base.GetPropertyBlockString();
+            return $"{hideTagString}{shaderTooltipTag}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
         }
 
         internal override AbstractMaterialNode ToConcreteNode()

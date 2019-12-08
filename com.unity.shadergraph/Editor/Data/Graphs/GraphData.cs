@@ -320,7 +320,7 @@ namespace UnityEditor.ShaderGraph
         List<ITarget> m_ValidTargets = new List<ITarget>();
 
         public List<ITarget> validTargets => m_ValidTargets;
-
+        
         [SerializeField]
         int m_ActiveTargetIndex;
 
@@ -334,7 +334,7 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
+            
         public List<ITargetImplementation> validImplementations => m_ValidImplementations;
 
         [SerializeField]
@@ -845,16 +845,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // TODO: may want to remove this method if we don't go with the tooltip(text) tag
         public void SanitizeGraphInputTooltip(ShaderInput input, string newTooltip)
         {
-            if (string.IsNullOrEmpty(newTooltip))
-                return;
+            input.tooltip = newTooltip.Trim();
 
-            string name = newTooltip.Trim();
-            if (string.IsNullOrEmpty(name))
-                return;
-
-            input.tooltip = Regex.Replace(name, @"(?:[^A-Za-z_0-9 ])", "");
+            // Version that is a single line and works with the trunk tooltip(text) tag
+            input.tooltip = Regex.Replace(input.tooltip, @"(?:[^A-Za-z_0-9 ])", "");
         }
 
         public void RemoveGraphInput(ShaderInput input)
@@ -1330,13 +1327,13 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             var nodes = GetNodes<AbstractMaterialNode>().ToList();
-            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
-            m_Edges.Sort();
+            // m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            // m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }

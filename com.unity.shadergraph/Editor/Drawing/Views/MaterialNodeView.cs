@@ -651,7 +651,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -659,7 +659,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -740,6 +740,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         keywordRow.RemoveFromClassList("hovered");
                     }
                 }
+
+                UpdateTooltip();
             }
         }
 
@@ -779,6 +781,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PreviewImage.style.height = height;
             m_PreviewImage.style.width = width;
+        }
+
+        void UpdateTooltip()
+        {
+            var shaderProperty = (node as KeywordNode).keyword;
+            tooltip = shaderProperty.tooltip;
         }
 
         public void Dispose()

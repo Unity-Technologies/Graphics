@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return base.GetPropertyBlockString()
-                   + $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
+            string shaderTooltipTag = base.GetPropertyBlockString();
+            return $"{hideTagString}{shaderTooltipTag}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
