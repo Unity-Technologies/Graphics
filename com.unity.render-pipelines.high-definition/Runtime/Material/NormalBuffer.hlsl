@@ -5,6 +5,8 @@
 // Encoding/decoding normal buffer functions
 // ----------------------------------------------------------------------------
 
+#define UNITY_INVALID_NORMALBUFFER_VALUE float4(0.0, 0.0, 0.0, 0.0)
+
 struct NormalData
 {
     float3 normalWS;
@@ -44,6 +46,11 @@ void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 {
     float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, positionSS);
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
+}
+
+float4 FetchRawNormalBuffer(uint2 positionSS)
+{
+    return LOAD_TEXTURE2D_X(_NormalBufferTexture, positionSS);
 }
 
 // OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer

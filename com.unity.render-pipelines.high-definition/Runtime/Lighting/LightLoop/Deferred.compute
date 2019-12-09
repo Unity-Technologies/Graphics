@@ -176,6 +176,13 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
         return;
     }
 
+    // This is required for camera stacking: Since the depth is preserved between layers, we might have a valid depth but invalid normal
+    // Note: I have verified with renderdoc that this is not causing any extra Normal buffer access
+    if (all(FetchRawNormalBuffer(posInput.positionSS) == UNITY_INVALID_NORMALBUFFER_VALUE))
+    {
+        return;
+    }
+
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     BSDFData bsdfData;
