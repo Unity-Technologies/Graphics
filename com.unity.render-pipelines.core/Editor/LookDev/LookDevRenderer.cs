@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.LookDev
         public RenderTexture output;
 
         private bool disposed = false;
+
+        /// <summary>Dispose pattern</summary>
         public void Dispose()
         {
             if (disposed)
@@ -39,11 +41,16 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>Basic renderer to draw scene in texture</summary>
     public class Renderer
     {
+        /// <summary>Use pixel perfect</summary>
         public bool pixelPerfect { get; set; }
 
+        /// <summary>Constructor</summary>
+        /// <param name="pixelPerfect">[Optional] Use pixel perfect</param>
         public Renderer(bool pixelPerfect = false)
             => this.pixelPerfect = pixelPerfect;
 
+        /// <summary>Init for rendering</summary>
+        /// <param name="data">The data to use</param>
         public void BeginRendering(RenderingData data)
         {
             data.stage.SetGameObjectVisible(true);
@@ -51,6 +58,8 @@ namespace UnityEditor.Rendering.LookDev
             data.stage.camera.enabled = true;
         }
 
+        /// <summary>Finish to render</summary>
+        /// <param name="data">The data to use</param>
         public void EndRendering(RenderingData data)
         {
             data.stage.camera.enabled = false;
@@ -108,9 +117,12 @@ namespace UnityEditor.Rendering.LookDev
         }
     }
 
+    /// <summary>Rect extension</summary>
     public static partial class RectExtension
     {
         /// <summary>Return true if the <see cref="Rect"/> is null sized or inverted.</summary>
+        /// <param name="r">The rect</param>
+        /// <returns>True: null or inverted area</returns>
         public static bool IsNullOrInverted(this Rect r)
             => r.width <= 0f || r.height <= 0f
             || float.IsNaN(r.width) || float.IsNaN(r.height);
