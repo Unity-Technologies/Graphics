@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Operator
     {
         public override string libraryName => "Spawn Context State";
 
-        public override string name => "Spaw Context State";
+        public override string name => "Spawn State";
 
         public class OutputProperties
         {
