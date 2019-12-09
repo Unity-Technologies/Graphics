@@ -26,38 +26,25 @@ void KerName(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.x < _OutputSize.x))
     {
-        //float2 u = GenerateHashedRandomFloat(id.xy);
-        //float2 u = Hammersley2dSeq(id.x, 512);
-        ////float2 randNum = InitRandom(id.xy);
-        //u = frac(u /*+ randNum*/)*1024.0f;
-
-        float2 rnd = float2(
-                        GenerateHashedRandomFloat(id.x)*2.0f,
-                        GenerateHashedRandomFloat(id.x + 4096)
-                    );
-
-        float2 u = rnd*1024.0f;
+        float2 u = Hammersley2dSeq(id.x, 4096)*1024.0f;
 
 #ifdef HORIZONTAL
-        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(0, rnd.x), 0).x;
-        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(rnd.y, sliceInvCDFValue), 0).x;
-        //float sliceInvCDFValue = _SliceInvCDF[uint2(0, round(u.x))];
-        //float invCDFValue      =      _InvCDF[uint2(round(sliceInvCDFValue*1024.0f), round(u.y))];
-        //float sliceInvCDFValue = rnd.x;
-        //float sliceInvCDFValue = _SliceInvCDF[uint2(0, round(u.x))];
-        //float invCDFValue      =      _InvCDF[uint2(round(u.y), round(sliceInvCDFValue*1024.0f))];
+        float sliceInvCDFValue = _SliceInvCDF[uint2(0, round(u.x))].x;
+        float invCDFValue      =      _InvCDF[uint2(round(u.y), round(sliceInvCDFValue*1024.0f))].x;
+        //float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(0, rnd.x), 0).x;
+        //float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(rnd.y, sliceInvCDFValue), 0).x;
 
         float2 smpl = float2(saturate(invCDFValue), saturate(sliceInvCDFValue));
 
-        //_Output[id.xy] = float4(UnpackNormalOctQuadEncode(smpl), 1);
         _Output[id.xy] = float4(smpl.xy, 0, 1);
 #else
-        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(u.x, 0), 0).x;
-        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(0, u.y), 0).x;
+        float sliceInvCDFValue = _SliceInvCDF[uint2(round(u.x), 0)].x;
+        float invCDFValue      =      _InvCDF[uint2(round(sliceInvCDFValue*1024.0f), round(u.y))].x;
+        //float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(rnd.x, 0), 0).x;
+        //float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(sliceInvCDFValue, rnd.y), 0).x;
 
-        float2 smpl = float2(sliceInvCDFValue, invCDFValue);
+        float2 smpl = float2(saturate(sliceInvCDFValue), saturate(invCDFValue));
 
-        //_Output[id.xy] = float4(UnpackNormalOctQuadEncode(smpl), 1);
         _Output[id.xy] = float4(smpl.xy, 0, 1);
 #endif
     }

@@ -161,8 +161,6 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            RTHandle invCDF;
-
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader invCDFCS = hdrp.renderPipelineResources.shaders.InverseCDF1DCS;
 
@@ -175,7 +173,7 @@ namespace UnityEngine.Rendering
             int width  = cdf.rt.width;
             int height = cdf.rt.height;
 
-            invCDF = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
+            RTHandle invCDF = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
 
             string addon = "";
             if (direction == SumDirection.Vertical)
@@ -198,7 +196,7 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute     (invCDFCS, kernel, numTilesX, numTilesY, 1);
             //cmd.RequestAsyncReadback(invCDF, SaveInvCDF);
 
-            return cdf;
+            return invCDF;
         }
     }
 }

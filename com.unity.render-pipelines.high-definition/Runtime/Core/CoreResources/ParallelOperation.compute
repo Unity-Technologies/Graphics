@@ -89,7 +89,7 @@ void KerName(uint3 id : SV_DispatchThreadID)
 //#else
 //        UNITY_LOOP
 //#endif
-        for (int i = 0; i < _Iteration; ++i)
+        for (uint i = 0; i < _Iteration; ++i)
         {
 #ifdef SUM
             opVal  += GetSample(id.xy, i);

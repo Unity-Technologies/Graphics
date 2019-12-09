@@ -1,3 +1,5 @@
+#define DUMP_IMAGE 0
+
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
@@ -15,10 +17,7 @@ namespace UnityEngine.Rendering
         RTHandle m_InvCDFRows;
         RTHandle m_OutDebug;
 
-        public ImportantSampler2D()
-        {
-        }
-
+#if DUMP_IMAGE
         static public int _Idx = 0;
 
         static private void Default(AsyncGPUReadbackRequest request, string name)
@@ -39,23 +38,21 @@ namespace UnityEngine.Rendering
                 ++_Idx;
             }
         }
+#endif
 
         public void Init(RTHandle pdfDensity, CommandBuffer cmd)
         {
             ParallelOperation._Idx = 0;
             _Idx = 0;
-            cmd.RequestAsyncReadback(pdfDensity, delegate (AsyncGPUReadbackRequest request)
-            {
-                Default(request, "___PDFDensity");
-            });
-
             // Rescale pdf between 0 & 1
             RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
             cmd.CopyTexture(pdfDensity, pdfCopy);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "___PDFCopy");
             });
+#endif
 
             ////////////////////////////////////////////////////////////////////////////////
             /// Full
@@ -68,10 +65,13 @@ namespace UnityEngine.Rendering
                                     ParallelOperation.Direction.Horizontal,
                                     2,
                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(minMaxFull0, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "00_MinMaxOfRows");
             });
+#endif
+
             // MinMax of the MinMax of rows => Single Pixel
             RTHandle minMaxFull1 = ParallelOperation.ComputeOperation(
                                     minMaxFull0,
@@ -80,15 +80,19 @@ namespace UnityEngine.Rendering
                                     ParallelOperation.Direction.Vertical,
                                     2,
                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(minMaxFull1, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "01_MinMaxOfMinMaxOfRows");
             });
+#endif
             Rescale(pdfCopy, minMaxFull1, ParallelOperation.Direction.Horizontal, cmd, true);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "02_PDFRescaled");
             });
+#endif
 
             // Compute the CDF of the rows of the rescaled PDF
             RTHandle cdfFull = ComputeCDF1D.ComputeCDF(
@@ -96,10 +100,12 @@ namespace UnityEngine.Rendering
                                     cmd,
                                     ComputeCDF1D.SumDirection.Horizontal,
                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "03_CDFFull");
             });
+#endif
 
             // Rescale between 0 & 1 the rows_cdf: to be inverted in UV
             RTHandle minMaxFull = ParallelOperation.ComputeOperation(
@@ -109,27 +115,39 @@ namespace UnityEngine.Rendering
                                     ParallelOperation.Direction.Horizontal,
                                     2,
                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(minMaxFull, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "04_MinMaxCDF");
             });
+#endif
+
+            ////////////////////////////////////////////////////////////////////////////////
+            /// Rows
+            // Before Rescaling the CDFFull
+            RTHandle sumRows = RTHandles.Alloc(1, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+
+            // Last columns of "CDF of rows" already contains the sum of rows
+            cmd.CopyTexture(cdfFull, 0, 0, pdfDensity.rt.width - 1, 0, 1, pdfDensity.rt.height, sumRows, 0, 0, 0, 0);
+#if DUMP_IMAGE
+            cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
+            {
+                Default(request, "05_SumRowsFromCopy");
+            });
+#endif
+            ////////////////////////////////////////////////////////////////////////////////
+
             Rescale(cdfFull, minMaxFull, ParallelOperation.Direction.Horizontal, cmd);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
             {
-                Default(request, "05_CDFRescaled");
+                Default(request, "06_CDFRescaled");
             });
-
-            RTHandle sumRows = RTHandles.Alloc(1, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+#endif
 
             ////////////////////////////////////////////////////////////////////////////////
             /// Rows
             ////////////////////////////////////////////////////////////////////////////////
-            // Last columns of "CDF of rows" already contains the sum of rows
-            cmd.CopyTexture(cdfFull, 0, 0, pdfDensity.rt.width - 1, 0, 1, pdfDensity.rt.height, sumRows, 0, 0, 0, 0);
-            cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
-            {
-                Default(request, "06_SumRowsFromCopy");
-            });
 
             // Minmax of rows
             RTHandle minMaxRows = ParallelOperation.ComputeOperation(sumRows,
@@ -138,59 +156,73 @@ namespace UnityEngine.Rendering
                                                     ParallelOperation.Direction.Vertical,
                                                     2,
                                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(minMaxRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "07_MinMaxSumOfRows");
             });
+#endif
 
             // Rescale sum of rows
             Rescale(sumRows, minMaxRows, ParallelOperation.Direction.Vertical, cmd, true);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "08_SumRowsRescaled");
             });
+#endif
             RTHandle cdfRows = ComputeCDF1D.ComputeCDF(
                                     sumRows,
                                     cmd,
                                     ComputeCDF1D.SumDirection.Vertical,
                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "09_CDFRows");
             });
+#endif
             RTHandle minMaxCDFRows = ParallelOperation.ComputeOperation(cdfRows,
                                                     cmd,
                                                     ParallelOperation.Operation.MinMax,
                                                     ParallelOperation.Direction.Vertical,
                                                     2,
                                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(minMaxCDFRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "10_MinMaxCDFRows");
             });
+#endif
             Rescale(cdfRows, minMaxCDFRows, ParallelOperation.Direction.Vertical, cmd, true);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "11_MinMaxCDFRowsRescaled");
             });
+#endif
 
             // Compute inverse of CDFs
             m_InvCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
                                                           cmd,
                                                           ComputeCDF1D.SumDirection.Horizontal,
                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(m_InvCDFFull, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "12_InvCDFFull");
             });
+#endif
             m_InvCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
                                                           cmd,
                                                           ComputeCDF1D.SumDirection.Vertical,
                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(m_InvCDFRows, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "13_InvCDFRows");
             });
+#endif
 
             // Generate sample from invCDFs
             RTHandle samples = GenerateSamples(4096, m_InvCDFRows, m_InvCDFFull, ParallelOperation.Direction.Horizontal, cmd);
@@ -211,10 +243,12 @@ namespace UnityEngine.Rendering
 
             int numTilesX = (samples.rt.width  + (8 - 1))/8;
             cmd.DispatchCompute(outputDebug2D, kernel, numTilesX, 1, 1);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(m_OutDebug, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "Debug");
             });
+#endif
         }
 
         private void Rescale(RTHandle tex, RTHandle minMax, ParallelOperation.Direction direction, CommandBuffer cmd, bool single = false)

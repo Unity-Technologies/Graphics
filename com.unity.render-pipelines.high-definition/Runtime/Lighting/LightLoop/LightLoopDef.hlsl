@@ -15,7 +15,7 @@ struct LightLoopContext
     int sampleReflection;
 
     HDShadowContext shadowContext;
-    
+
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;    // combined fade factor of all contact shadows 
     real shadowValue;          // Stores the value of the cascade shadow map

@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
+        RTHandle m_OctMap;
+        Material m_CubeToOct;
+        bool preValue = false;
+
         public HDRISkyRenderer()
         {
         }
@@ -20,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.hdriSkyPS);
+            m_CubeToOct = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
         }
 
         public override void Cleanup()
@@ -83,18 +88,44 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
 
-            if (hdriSky.rebuildMarginal.value == true)
+            if (hdriSky.rectLightShadow.value != preValue)
             {
+                preValue = hdriSky.rectLightShadow.value;
                 int size = 1024;
                 ImportantSampler2D sampler = new ImportantSampler2D();
-                Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
-                RenderTexture.active = hdriSky.octahedralMap;
-                octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
-                octBack.Apply();
-                RenderTexture.active = null;
-                sampler.Init(octBack, builtinParams.commandBuffer);
-                CoreUtils.Destroy(octBack);
+                m_OctMap = RTHandles.Alloc(size, size,
+                                           colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                           enableRandomWrite: true);
+                //builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, m_OctMap, m_CubeToOct);
+                m_CubeToOct.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
+                Graphics.Blit(Texture2D.whiteTexture, m_OctMap, m_CubeToOct);
+                //builtinParams.commandBuffer.RequestAsyncReadback(m_OctMap, delegate (AsyncGPUReadbackRequest request)
+                //{
+                //    if (!request.hasError)
+                //    {
+                //        Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                //        float[] copy = new float[result.Length];
+                //        result.CopyTo(copy);
+                //        byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                //        string path = @"C:\UProjects\CubeToOctahedral.exr";
+                //        if (System.IO.File.Exists(path))
+                //        {
+                //            System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                //            System.IO.File.Delete(path);
+                //        }
+                //        System.IO.File.WriteAllBytes(path, bytes0);
+                //    }
+                //});
+                //Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
+                //RenderTexture.active = m_OctMap;
+                //octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
+                //octBack.Apply();
+                //RenderTexture.active = null;
+                //byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+                //System.IO.File.WriteAllBytes(@"C:\UProjects\CubeToOct.exr", bytes);
+                //CoreUtils.Destroy(octBack);
 
+                sampler.Init(m_OctMap, builtinParams.commandBuffer);
                 //octBack = new Texture2D(sampler.m_Temp0.width, sampler.m_Temp0.height, TextureFormat.RGBAFloat, false);
                 //RenderTexture.active = sampler.m_Temp0;
                 //octBack.ReadPixels(new Rect(0.0f, 0.0f, sampler.m_Temp0.width, sampler.m_Temp0.height), 0, 0);

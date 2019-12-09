@@ -24,7 +24,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         float2 dp = 1.0f/_IOSize;
 
-        const int r = 2;
+        const int r = 1;
         UNITY_LOOP
         for (int i = -r; i <= r; ++i)
         {
@@ -33,7 +33,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             {
                 float2 uv = _Samples[uint2(id.x, 0)].xy + float2(i, j)*dp;
                 uint2 posOut = uint2(round(uv*_IOSize));
-                _Output[posOut] = float4(1, 0, 0, 1);
+                _Output[posOut] = float4(FLT_MAX, 0, 0, 1);
             }
         }
     }

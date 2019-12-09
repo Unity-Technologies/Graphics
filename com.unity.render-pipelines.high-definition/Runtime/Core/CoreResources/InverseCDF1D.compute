@@ -47,10 +47,15 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             const float x0 = float(u0*_InputSize.x);
             const float x1 = float(u1*_InputSize.x);
 
-            const float a  = (y0 - y1)/(x0 - x1);
-            const float b  = (x0*y1 - x1*y0)/(x0 - x1);
+            const float a  =    (y0 - y1)
+                           / // ----------
+                                (x0 - x1);
 
-            for (i = 0; i <= maxIter; ++i)
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
             {
                 //_Output[uint2(u0*_InputSize.x + i, id.y)] = saturate(float(id.x - 1 + i)*dp);
                 uint xi = uint(u0*_InputSize.x + i);
@@ -74,10 +79,15 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             const float x0 = float(u0*_InputSize.y);
             const float x1 = float(u1*_InputSize.y);
 
-            const float a  = (y0 - y1)/(x0 - x1);
-            const float b  = (x0*y1 - x1*y0)/(x0 - x1);
+            const float a  =    (y0 - y1)
+                           / // ----------
+                                (x0 - x1);
 
-            for (i = 0; i <= maxIter; ++i)
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
             {
                 //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
                 uint xi = uint(u0*_InputSize.y + i);
