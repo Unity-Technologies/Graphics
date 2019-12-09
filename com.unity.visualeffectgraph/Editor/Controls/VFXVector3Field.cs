@@ -8,6 +8,8 @@ namespace UnityEditor.VFX.UI
     abstract class VFXVectorNField<T> : VFXControl<T>
     {
         FloatField[] m_Fields;
+        VisualElement[] m_FieldParents;
+        VisualElement[] m_TooltipHolders;
 
         protected abstract int componentCount {get; }
         public virtual string GetComponentName(int i)
@@ -27,10 +29,31 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public new void SetEnabled(bool value)
+        {
+            for(int i = 0; i < componentCount; ++i)
+            {
+                m_Fields[i].SetEnabled(value);
+                if (value)
+                {
+                    if (m_TooltipHolders[i].parent != null)
+                        m_TooltipHolders[i].RemoveFromHierarchy();
+                }
+                else
+                {
+                    if (m_TooltipHolders[i].parent == null)
+                        m_FieldParents[i].Add(m_TooltipHolders[i]);
+                }
+            }
+        }
+    
+
         void CreateTextField()
         {
             m_Fields = new FloatField[componentCount];
-
+            m_FieldParents = new VisualElement[componentCount];
+            m_TooltipHolders = new VisualElement[componentCount];
 
             for (int i = 0; i < m_Fields.Length; ++i)
             {
@@ -38,6 +61,17 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].control.AddToClassList("fieldContainer");
                 m_Fields[i].AddToClassList("fieldContainer");
                 m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
+
+                m_FieldParents[i] = new VisualElement();
+                m_FieldParents[i].Add(m_Fields[i]);
+                m_FieldParents[i].style.flexGrow = 1;
+                m_TooltipHolders[i] = new VisualElement();
+                m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
+                m_TooltipHolders[i].style.top = 0;
+                m_TooltipHolders[i].style.left = 0;
+                m_TooltipHolders[i].style.right = 0;
+                m_TooltipHolders[i].style.bottom = 0;
+                Add(m_FieldParents[i]);
             }
 
             m_Fields[0].label.AddToClassList("first");
@@ -73,11 +107,6 @@ namespace UnityEditor.VFX.UI
             CreateTextField();
 
             style.flexDirection = FlexDirection.Row;
-
-            foreach (var field in m_Fields)
-            {
-                Add(field);
-            }
         }
 
         protected override void ValueToGUI(bool force)
@@ -87,7 +116,10 @@ namespace UnityEditor.VFX.UI
             {
                 if (!m_Fields[i].control.HasFocus() || force)
                 {
-                    m_Fields[i].SetValueWithoutNotify(GetValueComponent(ref value, i));
+                    float componentValue = GetValueComponent(ref value, i);
+                    m_Fields[i].SetValueWithoutNotify(componentValue);
+                    m_Fields[i].tooltip = componentValue.ToString();
+                    m_TooltipHolders[i].tooltip = m_Fields[i].tooltip;
                 }
             }
         }
