@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/ScreenSpaceShadows.compute")] // seongdae;vxsm
+            public ComputeShader screenSpaceShadowCS; // seongdae;vxsm
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

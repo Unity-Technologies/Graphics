@@ -89,7 +89,8 @@ namespace UnityEditor.Rendering.Universal
                 s_LightmapKeyword,
                 s_DirectionalLightmapCombinedKeyword,
                 s_MainLightShadowsKeyword,
-                s_MainLightShadowsCascadeKeyword,
+                //s_MainLightShadowsCascadeKeyword, //seongdae;vxsm;origin
+                s_MainlightShadowsScreenKeyword, //seongdae;vxsm
                 s_AdditionalLightsKeyword,
                 s_AdditionalLightShadowsKeyword,
                 s_ShadowsSoftKeyword,
@@ -322,14 +323,27 @@ namespace UnityEditor.Rendering.Universal
             scope = KeywordScope.Global,
         };
 
-        static KeywordDescriptor s_MainLightShadowsCascadeKeyword = new KeywordDescriptor()
+        //seongdae;vxsm;origin
+        //static KeywordDescriptor s_MainLightShadowsCascadeKeyword = new KeywordDescriptor()
+        //{
+        //    displayName = "Main Light Shadows Cascade",
+        //    referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
+        //    type = KeywordType.Boolean,
+        //    definition = KeywordDefinition.MultiCompile,
+        //    scope = KeywordScope.Global,
+        //};
+        //seongdae;vxsm;origin
+
+        //seongdae;vxsm
+        static KeywordDescriptor s_MainlightShadowsScreenKeyword = new KeywordDescriptor()
         {
-            displayName = "Main Light Shadows Cascade",
-            referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
+            displayName = "Main Light Shadows in ScreenSpace",
+            referenceName = "_MAIN_LIGHT_SHADOWS_SCREEN",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+        //seongdae;vxsm
 
         static KeywordDescriptor s_AdditionalLightsKeyword = new KeywordDescriptor()
         {
