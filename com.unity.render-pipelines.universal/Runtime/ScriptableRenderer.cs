@@ -344,7 +344,8 @@ namespace UnityEngine.Rendering.Universal
         {
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            //cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades); //seongdae;vxsm;origin
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowInScreenSpace); //seongdae;vxsm
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);

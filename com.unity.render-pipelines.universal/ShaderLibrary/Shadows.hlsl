@@ -12,9 +12,21 @@
     #if defined(_MAIN_LIGHT_SHADOWS)
         #define MAIN_LIGHT_CALCULATE_SHADOWS
 
-        #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+        //#if !defined(_MAIN_LIGHT_SHADOWS_CASCADE) //seongdae;vxsm;origin
+        //    #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR //seongdae;vxsm;origin
+        //#endif //seongdae;vxsm;origin
+
+        //seongdae;vxsm
+        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+            #ifdef SHADOWS_SCREEN
+            #undef SHADOWS_SCREEN
+            #endif
+
+            #define SHADOWS_SCREEN 1
+
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
         #endif
+        //seongdae;vxsm
     #endif
 
     #if defined(_ADDITIONAL_LIGHT_SHADOWS)
@@ -22,7 +34,8 @@
     #endif
 #endif
 
-#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+//#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) //seongdae;vxsm;origin
+#if defined(_ADDITIONAL_LIGHTS) || (defined(_MAIN_LIGHT_SHADOWS) && !defined(_MAIN_LIGHT_SHADOWS_SCREEN)) //seongdae;vxsm
     #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 #endif
 
@@ -120,6 +133,29 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
 #endif
 }
 
+//seongdae;vxsm
+half SampleScreenSpaceShadowmap(float4 shadowCoord, half4 shadowParams)
+{
+    shadowCoord.xy /= shadowCoord.w;
+
+    // The stereo transform has to happen after the manual perspective divide
+    shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
+
+    real shadowStrength = shadowParams.x;
+    real attenuation;
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
+#else
+    attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
+#endif
+
+    attenuation = LerpWhiteTo(attenuation, shadowStrength);
+
+    return attenuation;
+}
+//seongdae;vxsm
+
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
@@ -207,11 +243,11 @@ half ComputeCascadeIndex(float3 positionWS)
 
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
-#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+//#ifdef _MAIN_LIGHT_SHADOWS_CASCADE //seongdae;vxsm;origin
     half cascadeIndex = ComputeCascadeIndex(positionWS);
-#else
-    half cascadeIndex = 0;
-#endif
+//#else //seongdae;vxsm;origin
+    //half cascadeIndex = 0; //seongdae;vxsm;origin
+//#endif //seongdae;vxsm;origin
 
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
@@ -224,7 +260,11 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
+#if SHADOWS_SCREEN //seongdae;vxsm
+    return SampleScreenSpaceShadowmap(shadowCoord, shadowParams); //seongdae;vxsm
+#else //seongdae;vxsm
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+#endif //seongdae;vxsm
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
@@ -255,7 +295,11 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
+#if SHADOWS_SCREEN //seongdae;vxsm
+    return ComputeScreenPos(vertexInput.positionCS); //seongdae;vxsm
+#else //seongdae;vxsm
     return TransformWorldToShadowCoord(vertexInput.positionWS);
+#endif //seongdae;vxsm
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
