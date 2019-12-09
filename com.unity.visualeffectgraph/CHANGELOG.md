@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
 - Naming for particles system and spawn context
+- Ability to read attribute in spawn context through graph 
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
