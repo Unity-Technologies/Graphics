@@ -858,6 +858,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        public static readonly int _UISrcColorBlend                = Shader.PropertyToID("_UISrcColorBlend");
+        public static readonly int _UIDstColorBlend                = Shader.PropertyToID("_UIDstColorBlend");
+        public static readonly int _UISrcAlphaBlend                = Shader.PropertyToID("_UISrcAlphaBlend");
+        public static readonly int _UIDstAlphaBlend                = Shader.PropertyToID("_UIDstAlphaBlend");
+
     }
 
     // Shared material property names

@@ -37,6 +37,7 @@ MonoBehaviour:
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
     defaultDecalMat: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
+    defaulUIMat: {fileID: 2100000, guid: 372d9c5a96d8e6d4d94f74f3ffa14c20, type: 2}
     GUITextureBlit2SRGB: {fileID: 2100000, guid: 6e95c04e4e686554e8bed96ee69f690c,
       type: 2}
   shaderGraphs:

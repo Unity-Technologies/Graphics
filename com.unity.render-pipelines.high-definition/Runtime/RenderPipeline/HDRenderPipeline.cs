@@ -989,6 +989,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._ReplaceDiffuseForIndirect, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f);
                 cmd.SetGlobalInt(HDShaderIDs._EnableSkyReflection, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SkyReflection) ? 1 : 0);
 
+
+                cmd.SetGlobalInt(HDShaderIDs._UISrcColorBlend, (int)BlendMode.SrcAlpha);
+                cmd.SetGlobalInt(HDShaderIDs._UIDstColorBlend, (int)BlendMode.OneMinusSrcAlpha);
+                cmd.SetGlobalInt(HDShaderIDs._UISrcAlphaBlend, (int)BlendMode.SrcAlpha);
+                cmd.SetGlobalInt(HDShaderIDs._UIDstAlphaBlend, (int)BlendMode.OneMinusSrcAlpha);
+
                 m_SkyManager.SetGlobalSkyData(cmd, hdCamera);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))

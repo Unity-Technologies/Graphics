@@ -246,6 +246,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Material defaultMaterial
             => renderPipelineEditorResources?.materials.defaultDiffuseMat;
 
+        public override Material defaultUIMaterial
+            => renderPipelineEditorResources?.materials.defaulUIMat;
+
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
         public override Shader autodeskInteractiveShader
             => renderPipelineEditorResources?.shaderGraphs.autodeskInteractive;
