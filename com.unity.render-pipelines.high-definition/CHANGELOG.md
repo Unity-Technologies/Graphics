@@ -226,10 +226,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only tracing rays for shadow if the point is inside the code for spotlight shadows
 - Only tracing rays if the point is inside the range for point lights
 - Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
+- Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
 - Fix an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
 - Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
 - Fix recursive ray tracing not working anymore after intermediate buffer refactor.
 - Fix ray traced shadow denoising not working (history rejected all the time).
+- Fixed shader warning on xbox one
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
