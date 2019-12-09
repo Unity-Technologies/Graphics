@@ -232,6 +232,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix recursive ray tracing not working anymore after intermediate buffer refactor.
 - Fix ray traced shadow denoising not working (history rejected all the time).
 - Fixed shader warning on xbox one
+- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
