@@ -2,10 +2,13 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for integer widget.
+    /// </summary>
     public class DebugUIHandlerIntField : DebugUIHandlerWidget
     {
-        public Text nameLabel;
-        public Text valueLabel;
+        Text nameLabel;
+        Text valueLabel;
         DebugUI.IntField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
@@ -16,6 +19,12 @@ namespace UnityEngine.Rendering.UI
             UpdateValueLabel();
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             nameLabel.color = colorSelected;
@@ -23,17 +32,28 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             ChangeValue(fast, 1);
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             ChangeValue(fast, -1);

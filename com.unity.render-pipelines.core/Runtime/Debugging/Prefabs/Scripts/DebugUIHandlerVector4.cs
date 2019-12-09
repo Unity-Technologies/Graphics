@@ -2,15 +2,18 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for vector4 widget.
+    /// </summary>
     public class DebugUIHandlerVector4 : DebugUIHandlerWidget
     {
-        public Text nameLabel;
-        public UIFoldout valueToggle;
+        Text nameLabel;
+        UIFoldout valueToggle;
 
-        public DebugUIHandlerIndirectFloatField fieldX;
-        public DebugUIHandlerIndirectFloatField fieldY;
-        public DebugUIHandlerIndirectFloatField fieldZ;
-        public DebugUIHandlerIndirectFloatField fieldW;
+        DebugUIHandlerIndirectFloatField fieldX;
+        DebugUIHandlerIndirectFloatField fieldY;
+        DebugUIHandlerIndirectFloatField fieldZ;
+        DebugUIHandlerIndirectFloatField fieldW;
 
         DebugUI.Vector4Field m_Field;
         DebugUIHandlerContainer m_Container;
@@ -64,6 +67,12 @@ namespace UnityEngine.Rendering.UI
             field.Init();
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             if (fromNext || valueToggle.isOn == false)
@@ -86,26 +95,44 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             valueToggle.isOn = true;
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             valueToggle.isOn = false;
         }
 
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
         public override void OnAction()
         {
             valueToggle.isOn = !valueToggle.isOn;
         }
 
+        /// <summary>
+        /// Next implementation.
+        /// </summary>
+        /// <returns>Next widget UI handler, parent if there is none.</returns>
         public override DebugUIHandlerWidget Next()
         {
             if (!valueToggle.isOn || m_Container == null)

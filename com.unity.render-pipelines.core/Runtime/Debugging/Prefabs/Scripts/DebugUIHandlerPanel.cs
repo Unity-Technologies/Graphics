@@ -2,17 +2,20 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for panels.
+    /// </summary>
     public class DebugUIHandlerPanel : MonoBehaviour
     {
-        public Text nameLabel;
-        public ScrollRect scrollRect;
-        public RectTransform viewport;
+        Text nameLabel;
+        ScrollRect scrollRect;
+        RectTransform viewport;
 
         RectTransform m_ScrollTransform;
         RectTransform m_ContentTransform;
         RectTransform m_MaskTransform;
 
-        protected DebugUI.Panel m_Panel;
+        internal protected DebugUI.Panel m_Panel;
 
         void OnEnable()
         {
