@@ -214,17 +214,7 @@ namespace UnityEngine.Rendering.Universal
             if (MainDirVxShadowMap == null)
                 return;
 
-            if (isOpaquePass)
-            {
-                //CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowInScreenSpace, true);
-            }
-            else
-            {
-                //bool useShadowCascades = shadowData.mainLightShadowCascadesCount > 1;
-                //CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, useShadowCascades);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowInScreenSpace, false);
-            }
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowInScreenSpace, isOpaquePass);
         }
     }
 }
