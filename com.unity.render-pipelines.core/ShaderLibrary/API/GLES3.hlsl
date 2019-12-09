@@ -68,9 +68,15 @@
 #define TEXTURECUBE_SHADOW(textureName)         TEXTURECUBE(textureName)
 #define TEXTURECUBE_ARRAY_SHADOW(textureName)   TEXTURECUBE_ARRAY(textureName)
 
+#if GLES3_1_AEP
+#define RW_TEXTURE2D(type, textureName)         RWTexture2D<type> textureName
+#define RW_TEXTURE2D_ARRAY(type, textureName)   RWTexture2DArray<type> textureName
+#define RW_TEXTURE3D(type, textureName)         RWTexture3D<type> textureName
+#else
 #define RW_TEXTURE2D(type, textureName)         ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2D)
 #define RW_TEXTURE2D_ARRAY(type, textureName)   ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2DArray)
 #define RW_TEXTURE3D(type, textureName)         ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture3D)
+#endif
 
 #define SAMPLER(samplerName)                    SamplerState samplerName
 #define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
