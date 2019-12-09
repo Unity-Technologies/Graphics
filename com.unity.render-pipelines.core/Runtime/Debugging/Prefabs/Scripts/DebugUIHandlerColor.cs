@@ -2,16 +2,19 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for color widget.
+    /// </summary>
     public class DebugUIHandlerColor : DebugUIHandlerWidget
     {
-        public Text nameLabel;
-        public UIFoldout valueToggle;
-        public Image colorImage;
+        Text nameLabel;
+        UIFoldout valueToggle;
+        Image colorImage;
 
-        public DebugUIHandlerIndirectFloatField fieldR;
-        public DebugUIHandlerIndirectFloatField fieldG;
-        public DebugUIHandlerIndirectFloatField fieldB;
-        public DebugUIHandlerIndirectFloatField fieldA;
+        DebugUIHandlerIndirectFloatField fieldR;
+        DebugUIHandlerIndirectFloatField fieldG;
+        DebugUIHandlerIndirectFloatField fieldB;
+        DebugUIHandlerIndirectFloatField fieldA;
 
         DebugUI.ColorField m_Field;
         DebugUIHandlerContainer m_Container;
@@ -69,6 +72,12 @@ namespace UnityEngine.Rendering.UI
             field.Init();
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>State of the widget.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             if (fromNext || valueToggle.isOn == false)
@@ -91,32 +100,50 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             valueToggle.isOn = true;
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             valueToggle.isOn = false;
         }
 
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
         public override void OnAction()
         {
             valueToggle.isOn = !valueToggle.isOn;
         }
 
-        public void UpdateColor()
+        void UpdateColor()
         {
             if (colorImage != null)
                 colorImage.color = m_Field.GetValue();
         }
 
+        /// <summary>
+        /// Next implementation.
+        /// </summary>
+        /// <returns>Next child.</returns>
         public override DebugUIHandlerWidget Next()
         {
             if (!valueToggle.isOn || m_Container == null)

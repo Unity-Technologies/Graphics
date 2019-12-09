@@ -3,10 +3,13 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for container widget.
+    /// </summary>
     public class DebugUIHandlerContainer : MonoBehaviour
     {
         [SerializeField]
-        public RectTransform contentHolder;
+        internal RectTransform contentHolder;
 
         internal DebugUIHandlerWidget GetFirstItem()
         {

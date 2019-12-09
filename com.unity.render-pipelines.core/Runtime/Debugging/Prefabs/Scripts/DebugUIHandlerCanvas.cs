@@ -6,19 +6,22 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Rendering.UI
 {
     [Serializable]
-    public class DebugUIPrefabBundle
+    class DebugUIPrefabBundle
     {
         public string type;
         public RectTransform prefab;
     }
 
+    /// <summary>
+    /// DebugUIHandler for canvas widget.
+    /// </summary>
     public class DebugUIHandlerCanvas : MonoBehaviour
     {
         int m_DebugTreeState;
         Dictionary<Type, Transform> m_PrefabsMap;
 
-        public Transform panelPrefab;
-        public List<DebugUIPrefabBundle> prefabs;
+        internal Transform panelPrefab;
+        internal List<DebugUIPrefabBundle> prefabs;
 
         List<DebugUIHandlerPanel> m_UIPanels;
         int m_SelectedPanel;
@@ -176,7 +179,7 @@ namespace UnityEngine.Rendering.UI
             ChangeSelection(widget, true);
         }
 
-        public void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
+        internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
         {
             if (widget == null)
                 return;
