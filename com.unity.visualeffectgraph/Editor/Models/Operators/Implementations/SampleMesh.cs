@@ -99,6 +99,7 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetOutputType(), ""));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "count", new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "The number of vertices in this mesh")));
             }
         }
 
@@ -145,16 +146,18 @@ namespace UnityEditor.VFX.Operator
             }
 
             var outputType = GetOutputType();
+            VFXExpression sampled = null;
             if (output == VertexAttribute.Color)
-                return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
-            if (outputType == typeof(float))
-                return new[] { new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+                sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+            else if (outputType == typeof(float))
+                sampled = new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
             else if (outputType == typeof(Vector2))
-                return new[] { new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+                sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
             else if (outputType == typeof(Vector3))
-                return new[] { new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+                sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
             else
-                return new[] { new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
+                sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+            return new[] { sampled, meshVertexCount };
         }
     }
 }

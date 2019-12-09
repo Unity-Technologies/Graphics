@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", experimental = true)]
     class PositionMesh : PositionBase
     {
         public override string name { get { return "Position (Mesh)"; } }
