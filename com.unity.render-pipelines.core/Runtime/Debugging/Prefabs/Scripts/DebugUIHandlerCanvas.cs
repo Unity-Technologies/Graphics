@@ -5,10 +5,15 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// Debug UI Prefab bundle.
+    /// </summary>
     [Serializable]
-    class DebugUIPrefabBundle
+    public class DebugUIPrefabBundle
     {
+        /// <summary>type of the widget.</summary>
         public string type;
+        /// <summary>Prefab for the widget.</summary>
         public RectTransform prefab;
     }
 
@@ -20,8 +25,10 @@ namespace UnityEngine.Rendering.UI
         int m_DebugTreeState;
         Dictionary<Type, Transform> m_PrefabsMap;
 
-        internal Transform panelPrefab;
-        internal List<DebugUIPrefabBundle> prefabs;
+        /// <summary>Panel prefab.</summary>
+        public Transform panelPrefab;
+        /// <summary>List of prefabs.</summary>
+        public List<DebugUIPrefabBundle> prefabs;
 
         List<DebugUIHandlerPanel> m_UIPanels;
         int m_SelectedPanel;

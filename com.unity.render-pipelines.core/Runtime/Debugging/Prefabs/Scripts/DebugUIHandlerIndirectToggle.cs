@@ -12,8 +12,10 @@ namespace UnityEngine.Rendering.UI
         /// Label of the widget.
         /// </summary>
         public Text nameLabel;
-        Toggle valueToggle;
-        Image checkmarkImage;
+        /// <summary>Toggle of the toggle field.</summary>
+        public Toggle valueToggle;
+        /// <summary>Checkmark image.</summary>
+        public Image checkmarkImage;
 
         /// <summary>
         /// Getter function for this indirect widget.

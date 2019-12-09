@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerIndirectFloatField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Text valueLabel;
+        /// <summary>Name of the indirect float field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the indirect float field.</summary>
+        public Text valueLabel;
 
         /// <summary>
         /// Getter function for this indirect widget.

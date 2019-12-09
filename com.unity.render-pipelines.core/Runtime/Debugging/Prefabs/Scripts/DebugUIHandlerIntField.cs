@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerIntField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Text valueLabel;
+        /// <summary>Name of the int field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the int field.</summary>
+        public Text valueLabel;
         DebugUI.IntField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)

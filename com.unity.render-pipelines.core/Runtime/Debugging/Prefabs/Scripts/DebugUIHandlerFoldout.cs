@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerFoldout : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        UIFoldout valueToggle;
+        /// <summary>Name of the Foldout.</summary>
+        public Text nameLabel;
+        /// <summary>Toggle value of the Foldout.</summary>
+        public UIFoldout valueToggle;
 
         DebugUI.Foldout m_Field;
         DebugUIHandlerContainer m_Container;

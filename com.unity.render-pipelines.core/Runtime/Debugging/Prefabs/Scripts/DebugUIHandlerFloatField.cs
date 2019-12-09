@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerFloatField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Text valueLabel;
+        /// <summary>Name of the enum field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the enum field.</summary>
+        public Text valueLabel;
         DebugUI.FloatField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)

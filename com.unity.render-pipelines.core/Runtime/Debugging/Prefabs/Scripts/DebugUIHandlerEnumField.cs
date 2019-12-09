@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerEnumField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        internal protected Text valueLabel;
+        /// <summary>Name of the enum field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the enum field.</summary>
+        public Text valueLabel;
         internal protected DebugUI.EnumField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)

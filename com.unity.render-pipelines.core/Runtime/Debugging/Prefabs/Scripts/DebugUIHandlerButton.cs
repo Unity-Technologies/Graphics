@@ -7,7 +7,8 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerButton : DebugUIHandlerWidget
     {
-        Text nameLabel;
+        /// <summary>Name of the widget.</summary>
+        public Text nameLabel;
         DebugUI.Button m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)

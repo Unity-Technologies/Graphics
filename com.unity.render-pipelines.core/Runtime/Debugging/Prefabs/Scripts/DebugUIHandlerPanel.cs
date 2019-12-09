@@ -7,9 +7,12 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerPanel : MonoBehaviour
     {
-        Text nameLabel;
-        ScrollRect scrollRect;
-        RectTransform viewport;
+        /// <summary>Name of the panel.</summary>
+        public Text nameLabel;
+        /// <summary>Scroll rect of the panel.</summary>
+        public ScrollRect scrollRect;
+        /// <summary>Viewport of the panel.</summary>
+        public RectTransform viewport;
 
         RectTransform m_ScrollTransform;
         RectTransform m_ContentTransform;

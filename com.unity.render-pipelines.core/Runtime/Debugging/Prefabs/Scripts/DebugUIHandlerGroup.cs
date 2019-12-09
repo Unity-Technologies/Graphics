@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerGroup : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Transform header;
+        /// <summary>Name of the group.</summary>
+        public Text nameLabel;
+        /// <summary>Header of the group.</summary>
+        public Transform header;
         DebugUI.Container m_Field;
         DebugUIHandlerContainer m_Container;
 
