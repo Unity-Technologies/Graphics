@@ -591,8 +591,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            var gpuAspect = HDUtils.ProjectionMatrixAspect(hdCamera.mainViewConstants.projMatrix);
+
             // Compose the matrix which allows us to compute the world space view direction.
-            hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
+            hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, gpuAspect, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
 
             // Compute texel spacing at the depth of 1 meter.
@@ -734,8 +736,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            var gpuAspect = HDUtils.ProjectionMatrixAspect(hdCamera.mainViewConstants.projMatrix);
+
             // Compose the matrix which allows us to compute the world space view direction.
-            hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
+            hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, gpuAspect, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
 
             // Compute texel spacing at the depth of 1 meter.
