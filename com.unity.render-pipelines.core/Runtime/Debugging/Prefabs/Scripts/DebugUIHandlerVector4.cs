@@ -7,13 +7,19 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerVector4 : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        UIFoldout valueToggle;
+        /// <summary>Name of the Vector4 field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the Vector4 toggle.</summary>
+        public UIFoldout valueToggle;
 
-        DebugUIHandlerIndirectFloatField fieldX;
-        DebugUIHandlerIndirectFloatField fieldY;
-        DebugUIHandlerIndirectFloatField fieldZ;
-        DebugUIHandlerIndirectFloatField fieldW;
+        /// <summary>X float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldX;
+        /// <summary>Y float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldY;
+        /// <summary>Z float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldZ;
+        /// <summary>W float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldW;
 
         DebugUI.Vector4Field m_Field;
         DebugUIHandlerContainer m_Container;

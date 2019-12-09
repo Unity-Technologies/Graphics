@@ -7,14 +7,21 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerColor : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        UIFoldout valueToggle;
-        Image colorImage;
+        /// <summary>Name of the widget.</summary>
+        public Text nameLabel;
+        /// <summary>/// <summary>Name of the widget.</summary>alue toggle.</summary>
+        public UIFoldout valueToggle;
+        /// <summary>Color image.</summary>
+        public Image colorImage;
 
-        DebugUIHandlerIndirectFloatField fieldR;
-        DebugUIHandlerIndirectFloatField fieldG;
-        DebugUIHandlerIndirectFloatField fieldB;
-        DebugUIHandlerIndirectFloatField fieldA;
+        /// <summary>Red float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldR;
+        /// <summary>Green float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldG;
+        /// <summary>Blue float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldB;
+        /// <summary>Alpha float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldA;
 
         DebugUI.ColorField m_Field;
         DebugUIHandlerContainer m_Container;

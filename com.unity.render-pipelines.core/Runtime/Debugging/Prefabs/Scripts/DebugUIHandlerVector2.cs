@@ -7,11 +7,15 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerVector2 : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        UIFoldout valueToggle;
+        /// <summary>Name of the Vector2 field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the Vector2 toggle.</summary>
+        public UIFoldout valueToggle;
 
-        DebugUIHandlerIndirectFloatField fieldX;
-        DebugUIHandlerIndirectFloatField fieldY;
+        /// <summary>X float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldX;
+        /// <summary>Y float field.</summary>
+        public DebugUIHandlerIndirectFloatField fieldY;
 
         DebugUI.Vector2Field m_Field;
         DebugUIHandlerContainer m_Container;

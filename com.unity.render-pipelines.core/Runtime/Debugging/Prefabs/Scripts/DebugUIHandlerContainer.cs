@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerContainer : MonoBehaviour
     {
+        /// <summary>Content holder.</summary>
         [SerializeField]
-        internal RectTransform contentHolder;
+        public RectTransform contentHolder;
 
         internal DebugUIHandlerWidget GetFirstItem()
         {

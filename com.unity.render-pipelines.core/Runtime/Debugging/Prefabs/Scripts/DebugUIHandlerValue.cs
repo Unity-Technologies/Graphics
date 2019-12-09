@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerValue : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Text valueLabel;
+        /// <summary>Name of the value field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the value field.</summary>
+        public Text valueLabel;
         DebugUI.Value m_Field;
 
         float m_Timer;

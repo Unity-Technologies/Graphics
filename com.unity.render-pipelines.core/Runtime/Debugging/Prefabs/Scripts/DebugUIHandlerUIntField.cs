@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerUIntField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        Text valueLabel;
+        /// <summary>Name of the indirect uint field.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the indirect uint field.</summary>
+        public Text valueLabel;
         DebugUI.UIntField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)

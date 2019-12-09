@@ -8,10 +8,13 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerBitField : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        UIFoldout valueToggle;
+        /// <summary>Name of the widget.</summary>
+        public Text nameLabel;
+        /// <summary>Value toggle.</summary>
+        public UIFoldout valueToggle;
 
-        List<DebugUIHandlerIndirectToggle> toggles;
+        /// <summary>Toggles for the bitfield.</summary>
+        public List<DebugUIHandlerIndirectToggle> toggles;
 
         DebugUI.BitField m_Field;
         DebugUIHandlerContainer m_Container;

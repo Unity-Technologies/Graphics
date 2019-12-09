@@ -7,9 +7,12 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerToggle : DebugUIHandlerWidget
     {
-        Text nameLabel;
-        internal protected Toggle valueToggle;
-        Image checkmarkImage;
+        /// <summary>Name of the toggle.</summary>
+        public Text nameLabel;
+        /// <summary>Value of the toggle.</summary>
+        public Toggle valueToggle;
+        /// <summary>Checkermark image.</summary>
+        public Image checkmarkImage;
 
         internal protected DebugUI.BoolField m_Field;
 
