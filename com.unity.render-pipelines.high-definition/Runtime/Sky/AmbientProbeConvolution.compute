@@ -73,9 +73,11 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         outputSHCoeffs[channel * 9 + 8] = (n.x * n.x - n.y * n.y) * value[channel];
     }
 
+    uint i;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
     // Sum up all threads result and broadcast
-    for (int i = 0; i < SH_COEFF_COUNT; ++i)
+    for (i = 0; i < SH_COEFF_COUNT; ++i)
     {
         outputSHCoeffs[i] = WaveActiveSum(outputSHCoeffs[i]);
     }
@@ -84,7 +86,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     uint laneCount = WaveGetLaneCount();
     if (dispatchThreadId % laneCount == 0)
     {
-        for (int i = 0; i < SH_COEFF_COUNT; ++i)
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             uint offset = (dispatchThreadId / laneCount) * SH_COEFF_COUNT;
             outputSHCoeffsLDS[i + offset] = outputSHCoeffs[i];
@@ -95,7 +97,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 
     // Read back the result to VGPRs to store it to memory at the end
     // First wave intializes the array
-    for (int i = 0; i < SH_COEFF_COUNT; ++i)
+    for (i = 0; i < SH_COEFF_COUNT; ++i)
     {
         outputSHCoeffs[i] = outputSHCoeffsLDS[i];
     }
@@ -104,7 +106,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     uint waveCount = sampleCount / laneCount;
     for (uint wave = 1; wave < waveCount; ++wave)
     {
-        for (int i = 0; i < SH_COEFF_COUNT; ++i)
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             outputSHCoeffs[i] += outputSHCoeffsLDS[i + wave * SH_COEFF_COUNT];
         }
@@ -143,7 +145,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     // Write to memory and convolution + weighing
     if (dispatchThreadId == 0)
     {
-        for (uint i = 0; i < SH_COEFF_COUNT; ++i)
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
         }
