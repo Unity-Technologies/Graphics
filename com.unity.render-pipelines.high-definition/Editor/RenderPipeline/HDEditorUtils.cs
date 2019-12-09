@@ -11,6 +11,9 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// A collection of utilities used by editor code of the HDRP.
+    /// </summary>
     public class HDEditorUtils
     {
         internal const string FormatingPath =
@@ -121,7 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return true;
         }
-        
+
         internal static void PropertyFieldWithoutToggle<TEnum>(
             TEnum v, SerializedProperty property, GUIContent label, TEnum displayed,
             Action<SerializedProperty, GUIContent> drawer = null, int indent = 0
@@ -212,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
             DrawLightLayerMask_Internal(lineRect, label, property);
         }
-        
+
         internal static void DrawLightLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
         {
             EditorGUI.BeginProperty(rect, label, property);
@@ -237,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;
         }
-        
+
         /// <summary>
         /// Like EditorGUILayout.DrawTextField but for delayed text field
         /// </summary>
@@ -268,7 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// public class MyObject : MonoBehavior
         /// {
         ///     public MyEnum theEnum = MyEnum.A;
-        /// }    
+        /// }
         /// #if UNITY_EDITOR
         /// [CustomEditor(typeof(MyObject))]
         /// class MyObjectEditor : Editor

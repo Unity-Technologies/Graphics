@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///     [SerializeField] private MaterialSharedProperty m_MaterialSharedProperty;
         ///     [SerializeField] private LightingProperty m_LightingProperty;
         ///     [SerializeField] private AOVBuffers m_BuffersToCopy;
-        ///     [SerializeField] private List<GameObject> m_IncludedLights;
+        ///     [SerializeField] private List&lt;GameObject&gt; m_IncludedLights;
         ///
         ///
         ///     void OnEnable()
@@ -275,12 +275,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ///         if (m_LightingProperty != LightingProperty.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_LightingProperty);
         ///
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(
         ///             new AOVRequestBuilder()
         ///                 .Add(
         ///                     aovRequest,
-        ///                     bufferId => m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
+        ///                     bufferId =&gt; m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
         ///                     m_IncludedLights.Count > 0 ? m_IncludedLights : null,
         ///                     new []{ m_BuffersToCopy },
         ///                     (cmd, textures, properties) =>
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnDisable()
         ///     {
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(null);
         ///     }
         ///
