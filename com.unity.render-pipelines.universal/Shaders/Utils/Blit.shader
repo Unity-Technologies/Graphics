@@ -45,7 +45,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             {
                 Varyings output;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = input.uv;
+                output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
                 return output;
             }
 

@@ -73,9 +73,9 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
 
 #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
+    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
 #else
-    half3 emission = half3(0 ,0 ,0 );
+    half3 emission = half3(0, 0, 0);
 #endif
 
 #if defined(_DISTORTION_ON)
