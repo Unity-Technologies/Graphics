@@ -4,9 +4,9 @@ Provide an input for a diffusion profile asset.
 
 ## Output port
 
-| name | type | description
---- | --- | ---
-| Out | float | A unique float that is used in the Shader to identify the diffusion profile.
+| name | type | description |
+|--- | --- | --- |
+| Out | float | A unique float that is used in the Shader to identify the diffusion profile. |
 
 See the [Diffusion Profile Documentation](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Diffusion-Profile) for more detail.
 
