@@ -440,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class VolumetricLightingPassData
         {
             public VolumetricLightingParameters parameters;
+            public Texture2DArray               cmjPointSet;
             public RenderGraphResource          densityBuffer;
             public RenderGraphMutableResource   lightingBuffer;
             public RenderGraphResource          historyBuffer;
@@ -451,7 +452,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricLightingEnabled(hdCamera))
             {
-                var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
+                Texture2DArray cmjPointSet = null;
+                var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex, ref cmjPointSet);
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
@@ -459,6 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.parameters = parameters;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
+                    passData.cmjPointSet = cmjPointSet;
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeVBufferResolutionXY, false, false)
                     {
@@ -481,11 +484,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     (VolumetricLightingPassData data, RenderGraphContext ctx) =>
                     {
                         VolumetricLightingPass( data.parameters,
+                                                data.cmjPointSet,
                                                 ctx.resources.GetTexture(data.densityBuffer),
                                                 ctx.resources.GetTexture(data.lightingBuffer),
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
-                                                null, // TODO...
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
                     });

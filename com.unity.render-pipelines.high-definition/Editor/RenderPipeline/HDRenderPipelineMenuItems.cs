@@ -190,8 +190,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     var fog = CreateFogComponentIfNeeded(profile);
                     if (volController.depthExtent.overrideState)
                         fog.depthExtent.Override(volController.depthExtent.value);
-                    //if (volController.sliceDistributionUniformity.overrideState)
-                    //    fog.sliceDistributionUniformity.Override(volController.sliceDistributionUniformity.value);
 
                     EditorUtility.SetDirty(profile);
                 }
