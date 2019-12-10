@@ -17,7 +17,7 @@ There are properties on the master node as well as properties on the Materials t
 
 ### Unlit Master node input ports
 
-|![Default](Images/MasterNodeUnlit1.png)|![Default](Images/MasterNodeUnlit3.png)|
+|![](Images/MasterNodeUnlit1.png)|![](Images/MasterNodeUnlit3.png)|
 |:--:|:--:|
 | Default | With ShadowMatte enabled|
 

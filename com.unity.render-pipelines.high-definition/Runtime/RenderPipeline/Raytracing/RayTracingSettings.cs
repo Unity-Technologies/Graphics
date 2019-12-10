@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Ray Tracing/Settings")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Settings (Preview)")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         [Tooltip("Controls the bias for all real-time ray tracing effects.")]

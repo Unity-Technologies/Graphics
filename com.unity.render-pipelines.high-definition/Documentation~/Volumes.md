@@ -6,7 +6,7 @@ You can add a __Volume__ component to any GameObject, including a Camera, althou
 
 A Scene can contain many Volumes so each Volume contains properties that control how it interacts with others in the Scene. **Global** Volumes affect the Camera wherever the Camera is in the Scene and **Local** Volumes affect the Camera if they encapsulate the Camera within the bounds of their Collider.
 
-At run time, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in every Volume override.
+At runtime, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in every Volume override.
 
 Volumes can contain different combinations of Volume overrides. For example, one Volume may hold a Physically Based Sky Volume override while other Volumes hold an Exponential Fog Volume override.
 

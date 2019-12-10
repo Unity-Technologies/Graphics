@@ -81,19 +81,21 @@ namespace UnityEngine.Rendering.Universal
 
             // Main bulk of render pass execution. They required camera state to be properly set
             // and when enabled they will render in stereo.
-            public static readonly int MainRendering = 1;
+            public static readonly int MainRenderingOpaque = 1;
+            public static readonly int MainRenderingTransparent = 2;
 
             // Execute after Post-processing.
-            public static readonly int AfterRendering = 2;
+            public static readonly int AfterRendering = 3;
         }
 
-        const int k_RenderPassBlockCount = 3;
+        const int k_RenderPassBlockCount = 4;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstCameraRenderPassExecuted = false;
+        bool m_XRRenderTargetNeedsClear = false;
 
         const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -188,8 +190,14 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
-            SetCameraRenderState(context, ref renderingData.cameraData);
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
 
+            // Initialize Camera Render State
+            SetCameraRenderState(cmd, ref renderingData.cameraData);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            
+            // Sort the render pass queue
             SortStable(m_ActiveRenderPassQueue);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
@@ -208,7 +216,8 @@ namespace UnityEngine.Rendering.Universal
             // Upper limits for each block. Each block will contains render passes with events below the limit.
             NativeArray<RenderPassEvent> blockEventLimits = new NativeArray<RenderPassEvent>(k_RenderPassBlockCount, Allocator.Temp);
             blockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
-            blockEventLimits[RenderPassBlock.MainRendering] = RenderPassEvent.AfterRenderingPostProcessing;
+            blockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
+            blockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
             blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
             NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
@@ -222,6 +231,8 @@ namespace UnityEngine.Rendering.Universal
             // Used to render input textures like shadowmaps.
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
+           for (int eyeIndex = 0; eyeIndex < renderingData.cameraData.numberOfXRPasses; ++eyeIndex)
+           {
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
             /// * VR Camera Setup and SINGLE_PASS_STEREO props
@@ -231,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup HDR keyword
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
-            context.SetupCameraProperties(camera, stereoEnabled);
+            context.SetupCameraProperties(camera, stereoEnabled, eyeIndex);
 
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
@@ -239,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
             SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
 
             if (stereoEnabled)
-                BeginXRRendering(context, camera);
+                BeginXRRendering(context, camera, eyeIndex);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             var localCmd = CommandBufferPool.Get(string.Empty);
@@ -249,22 +260,29 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(localCmd);
 #endif
 
-            // In this block main rendering executes.
-            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
+            // In the opaque and transparent blocks the main rendering executes.
 
+            // Opaque blocks...
+            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData, eyeIndex);
+
+            // Transparent blocks...
+            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex);
+
+            // Draw Gizmos...
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData, eyeIndex);
 
             if (stereoEnabled)
-                EndXRRendering(context, camera);
+                EndXRRendering(context, camera, renderingData, eyeIndex);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-
+           }
             //if (renderingData.resolveFinalTarget)
                 InternalFinishRendering(context);
             blockRanges.Dispose();
+            CommandBufferPool.Release(cmd);
         }
 
         /// <summary>
@@ -322,10 +340,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Initialize Camera Render State
         // Place all per-camera rendering logic that is generic for all types of renderers here.
-        void SetCameraRenderState(ScriptableRenderContext context, ref CameraData cameraData)
+        void SetCameraRenderState(CommandBuffer cmd, ref CameraData cameraData)
         {
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
@@ -336,8 +353,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Required by VolumeSystem / PostProcessing.
             VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         internal void Clear()
@@ -354,23 +369,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
-            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, int eyeIndex = 0, bool submit = false)
         {
             int endIndex = blockRanges[blockIndex + 1];
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                ExecuteRenderPass(context, renderPass, ref renderingData);
+                ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
             }
 
             if (submit)
                 context.Submit();
         }
 
-        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, int eyeIndex)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+            renderPass.eyeIndex = eyeIndex;
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
@@ -384,7 +400,8 @@ namespace UnityEngine.Rendering.Universal
                 passDepthAttachment = m_CameraDepthTarget;
             }
 
-            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+            if (passColorAttachment == m_CameraColorTarget && (!m_FirstCameraRenderPassExecuted ||
+                (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear)))
             {
                 m_FirstCameraRenderPassExecuted = true;
 
@@ -404,9 +421,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (cameraData.isStereoEnabled)
                 {
-                    context.StartMultiEye(cameraData.camera);
+                    context.StartMultiEye(cameraData.camera, eyeIndex);
                     XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
                 }
+                m_XRRenderTargetNeedsClear = false;
             }
 
             // Only setup render target if current render pass attachments are different from the active ones
@@ -419,16 +437,18 @@ namespace UnityEngine.Rendering.Universal
             renderPass.Execute(context, ref renderingData);
         }
 
-        void BeginXRRendering(ScriptableRenderContext context, Camera camera)
+        void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
         {
-            context.StartMultiEye(camera);
+            context.StartMultiEye(camera, eyeIndex);
             m_InsideStereoRenderBlock = true;
+            m_XRRenderTargetNeedsClear = true;
         }
 
-        void EndXRRendering(ScriptableRenderContext context, Camera camera)
+        void EndXRRendering(ScriptableRenderContext context, Camera camera, RenderingData renderingData, int eyeIndex)
         {
             context.StopMultiEye(camera);
-            context.StereoEndRender(camera);
+            bool isLastPass = eyeIndex == renderingData.cameraData.numberOfXRPasses - 1;
+            context.StereoEndRender(camera, eyeIndex, isLastPass);
             m_InsideStereoRenderBlock = false;
         }
 

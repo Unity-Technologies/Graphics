@@ -81,10 +81,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   angularDiameter;         // Units: radians
-        public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
-        public float   isRayTracedContactShadow;
         public float   penumbraTint;
+        public float   isRayTracedContactShadow;
+
+        public float   distanceFromCamera;      // -1 -> no sky interaction
+        public float   angularDiameter;         // Units: radians
+        public float   flareFalloff;
+        public float   __unused__;
+
+        public Vector3 flareTint;
+        public float   flareSize;               // Units: radians
+
+        public Vector3 surfaceTint;
+        public int     surfaceTextureIndex;     // -1 if unused (TODO: 16 bit)
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]

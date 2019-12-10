@@ -38,6 +38,7 @@
   * [Frame Settings](Frame-Settings)
   * [Default Settings](Default-Settings-Window)
   * [HDRP Config Package](HDRP-Config-Package)
+  * [Scalability](Scalability-Manual)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
@@ -60,6 +61,13 @@
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
+  * Shader Graph Nodes
+    * [Emission](SGNode-Emission)
+    * [Baked GI](SGNode-Baked-GI)
+    * [Diffusion Profile](SGNode-Diffusion-Profile)
+    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
+    * [Exposure](SGNode-Exposure)
+    * [HD Scene Color](SGNode-HD-Scene-Color)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -106,10 +114,12 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Authoring Custom Effects](Custom-Post-Process)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
     * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows)
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
@@ -129,7 +139,7 @@
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
-  * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
+  * [Creating a Custom Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
-

@@ -9,7 +9,10 @@ using UnityEngine.SceneManagement;
 
 public class UniversalGraphicsTests
 {
-
+#if UNITY_ANDROID
+    static bool wasFirstSceneRan = false;
+    const int firstSceneAdditionalFrames = 3;
+#endif
     public const string universalPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("UniversalRP")]
@@ -54,6 +57,19 @@ public class UniversalGraphicsTests
 
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;
+
+#if UNITY_ANDROID
+        // On Android first scene often needs a bit more frames to load all the assets
+        // otherwise the screenshot is just a black screen
+        if (!wasFirstSceneRan)
+        {
+            for(int i = 0; i < firstSceneAdditionalFrames; i++)
+            {
+                yield return null;
+            }
+            wasFirstSceneRan = true;
+        }
+#endif
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
