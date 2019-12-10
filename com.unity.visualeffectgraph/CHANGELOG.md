@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
 - Fix exception when compiling an asset with a turbulence block in absolute mode
 - Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
 
 ## [7.1.1] - 2019-09-05
 ### Added
