@@ -199,6 +199,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int m_CachedRenderHeight = 0;
         // Cached.
         Matrix4x4 m_CachedProjectionMatrix;
+        //
+        int m_EyeIndex = 0;
 
         // Hierarchical tilers.
         DeferredTiler[] m_Tilers;
@@ -234,7 +236,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_StencilDeferredMaterial;
 
         // Output lighting result.
-        internal RenderTargetHandle m_LightingTexture;
+        internal RenderTargetHandle[] m_GbufferColorAttachments;
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle m_DepthTexture;
         //
@@ -305,12 +307,30 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
+        }
+
+        void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        {
             float yInversionFactor = SystemInfo.graphicsUVStartsAtTop ? -1.0f : 1.0f;
             // TODO There is an inconsistency in UniversalRP where the screen is already y-inverted. Why?
             yInversionFactor *= -1.0f;
 
-            Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
-            Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
+            Matrix4x4 proj;
+            Matrix4x4 view;
+
+            if (renderingData.cameraData.isXRMultipass)
+            {
+                //Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)renderingData.cameraData.camera.stereoActiveEye; // Always left eye
+                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)m_EyeIndex;
+                proj = renderingData.cameraData.camera.GetStereoProjectionMatrix(eyeIndex);
+                view = renderingData.cameraData.camera.GetStereoViewMatrix(eyeIndex);
+            }
+            else
+            {
+                proj = renderingData.cameraData.camera.projectionMatrix;
+                view = renderingData.cameraData.camera.worldToCameraMatrix;
+            }
+
             // Go to pixel coordinates for xy coordinates, z goes to texture space [0.0; 1.0].
             Matrix4x4 toScreen = new Matrix4x4(
                 new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
@@ -330,6 +350,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            m_EyeIndex = 0;
+
             Profiler.BeginSample(k_SetupLights);
 
             DeferredShaderData.instance.ResetBuffers();
@@ -496,13 +518,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        public void Setup(ref RenderingData renderingData, AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass, RenderTargetHandle depthCopyTexture, RenderTargetHandle depthInfoTexture, RenderTargetHandle tileDepthInfoTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
+        public void Setup(ref RenderingData renderingData,
+            AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
+            RenderTargetHandle depthCopyTexture,
+            RenderTargetHandle depthInfoTexture,
+            RenderTargetHandle tileDepthInfoTexture,
+            RenderTargetHandle depthTexture,
+            RenderTargetHandle[] gbufferColorAttachments)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             m_DepthCopyTexture = depthCopyTexture;
             m_DepthInfoTexture = depthInfoTexture;
             m_TileDepthInfoTexture = tileDepthInfoTexture;
-            m_LightingTexture = lightingTexture;
+            m_GbufferColorAttachments = gbufferColorAttachments;
             m_DepthTexture = depthTexture;
 
             m_HasTileVisLights = this.tiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
@@ -698,9 +726,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Profiler.BeginSample(k_DeferredPass);
 
+            // This must be set for each eye in XR mode multipass.
+            SetupMatrixConstants(cmd, ref renderingData);
+
             // We bind a copy of depth buffer because we cannot make it readonly at the moment.
-            // This binding may be used by the deferred shaders (TODO) or the transparent pass (soft-particles).
+            // This binding may be used by the deferred shaders and the transparent pass (soft-particles).
             cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
+
+            // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
+            // Workaround is to bind gbuffer textures explicitely here.
+            cmd.SetGlobalTexture(m_GbufferColorAttachments[0].id, this.m_GbufferColorAttachments[0].Identifier());
+            cmd.SetGlobalTexture(m_GbufferColorAttachments[1].id, this.m_GbufferColorAttachments[1].Identifier());
+            cmd.SetGlobalTexture(m_GbufferColorAttachments[2].id, this.m_GbufferColorAttachments[2].Identifier());
 
             RenderTiledPunctualLights(context, cmd, ref renderingData);
 
@@ -714,6 +751,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
+            ++m_EyeIndex;
         }
 
         void SortLights(ref NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights)

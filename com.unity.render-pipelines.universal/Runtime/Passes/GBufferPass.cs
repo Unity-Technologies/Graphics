@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
         }
 
-        public override void Execute(ScriptableRenderContext scriptableRenderContext, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
             using (new ProfilingSample(gbufferCommands, "Render GBuffer"))
@@ -85,14 +85,21 @@ namespace UnityEngine.Rendering.Universal
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
 
-                scriptableRenderContext.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
+                context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
                 gbufferCommands.Clear();
 
                 DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
 
-                scriptableRenderContext.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
+                ref CameraData cameraData = ref renderingData.cameraData;
+                Camera camera = cameraData.camera;
+                if (cameraData.isStereoEnabled)
+                {
+                    context.StartMultiEye(camera, eyeIndex);
+                }
+
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }
-            scriptableRenderContext.ExecuteCommandBuffer(gbufferCommands);
+            context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
         }
 

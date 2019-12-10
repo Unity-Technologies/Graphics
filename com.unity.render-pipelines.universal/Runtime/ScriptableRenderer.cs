@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
 
-                if( Contains(renderPass.colorAttachment, m_CameraColorTarget) && !m_FirstCameraRenderPassExecuted)
+                if( Contains(renderPass.colorAttachment, m_CameraColorTarget) && (!m_FirstCameraRenderPassExecuted || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear)))
                 {
                     m_FirstCameraRenderPassExecuted = true;
 
@@ -451,6 +451,16 @@ namespace UnityEngine.Rendering.Universal
                     //SetRenderTarget(cmd, renderPass.colorAttachment, m_CameraDepthTarget, clearFlag,
                     SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, clearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    if (cameraData.isStereoEnabled)
+                    {
+                        context.StartMultiEye(cameraData.camera, eyeIndex);
+                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    }
+                    m_XRRenderTargetNeedsClear = false;
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones

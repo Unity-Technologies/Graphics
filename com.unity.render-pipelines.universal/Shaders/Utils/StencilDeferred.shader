@@ -100,7 +100,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);
 
-        #if !defined(USING_STEREO_MATRICES) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
+        #if !defined(UNITY_SINGLE_PASS_STEREO) && !defined(UNITY_STEREO_INSTANCING_ENABLED) // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
             float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
             posWS.xyz *= rcp(posWS.w);
         #else
