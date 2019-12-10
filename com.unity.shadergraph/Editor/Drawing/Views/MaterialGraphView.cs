@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     sealed class MaterialGraphView : GraphView
     {
-        public MaterialGraphView()
+        MaterialGraphView()
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialGraphView"));
             serializeGraphElements = SerializeGraphElementsImplementation;

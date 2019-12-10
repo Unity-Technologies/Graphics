@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed class GraphData : JsonObject, ISerializationCallbackReceiver
+    sealed class GraphData : JsonObject
     {
         JsonStore m_Owner;
 
@@ -154,8 +154,6 @@ namespace UnityEditor.ShaderGraph
                 if (m_Path == value)
                     return;
                 m_Path = value;
-                if (owner != null)
-                    owner.RegisterCompleteObjectUndo("Change Path");
             }
         }
 

@@ -2,12 +2,59 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing.Util
 {
     static class UIUtilities
     {
+        public static void Synchronize<T>(this IEnumerable<VisualElement> elements, IEnumerable<T> source, Action<T> addAction, Action<VisualElement> removeAction)
+        {
+            var sourceSet = new HashSet<T>(source);
+            var elementsToRemove = new List<VisualElement>();
+
+            foreach (var element in elements)
+            {
+                if (!(element.userData is T data))
+                {
+                    continue;
+                }
+
+                if (!sourceSet.Remove(data))
+                {
+                    elementsToRemove.Add(element);
+                }
+            }
+
+            foreach (var element in elementsToRemove)
+            {
+                removeAction(element);
+            }
+
+            foreach (var item in sourceSet)
+            {
+                addAction(item);
+            }
+        }
+
+        public static void Synchronize<T>(this VisualElement container, IEnumerable<T> source, Action<T> addAction, Action<VisualElement> removeAction)
+        {
+            container.Children().Synchronize(source, addAction, removeAction);
+
+            var indexMap = new Dictionary<object, int>();
+            var i = 0;
+            foreach (var item in source)
+            {
+                indexMap[item] = i++;
+            }
+
+            container.Sort((v1, v2) =>
+                indexMap.TryGetValue(v1.userData, out var i1) && indexMap.TryGetValue(v2.userData, out var i2)
+                    ? i1 - i2
+                    : 0);
+        }
+
         public static bool ItemsReferenceEquals<T>(this IList<T> first, IList<T> second)
         {
             if (first.Count != second.Count)

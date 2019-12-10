@@ -45,7 +45,7 @@ namespace UnityEditor.Graphing
         {
             foreach (var element in elements)
             {
-                if (!JsonStore.typeMap.TryGetValue(element.typeInfo.fullName, out var type))
+                if (!JsonAsset.typeMap.TryGetValue(element.typeInfo.fullName, out var type))
                 {
                     throw new InvalidOperationException($"Cannot find type {element.typeInfo.fullName}");
                 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Drawing.Views;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 
@@ -78,8 +77,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 action = action
             };
 
-            HandleCallback(handle);
-
             return handle;
         }
 
@@ -120,6 +117,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Element = element;
                 m_JsonObject = jsonObject;
+                m_Version = jsonObject.changeVersion;
                 m_Action = action;
                 m_GeometryChangedCallback = OnGeometryChanged;
                 element.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
@@ -166,6 +164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public static void Connect(VisualElement element, JsonObject jsonObject, Action onChange)
         {
+            onChange();
             new ContainerElementChangeState(element, jsonObject, onChange);
         }
     }

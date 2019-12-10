@@ -403,33 +403,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         SetStickyNotePosition(stickyNote);
                     }
+
+                    if (element.userData is ContextData contextData)
+                    {
+                        contextData.position = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition()).position;
+                    }
                 }
             }
 
             var nodesToUpdate = m_NodeViewHashSet;
             nodesToUpdate.Clear();
-
-            if (graphViewChange.elementsToRemove != null)
-            {
-                m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
-                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<EdgeView>().Select(e => (Edge)e.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray());
-                foreach (var edge in graphViewChange.elementsToRemove.OfType<EdgeView>())
-                {
-                    if (edge.input != null)
-                    {
-                        if (edge.input.node is IShaderNodeView materialNodeView)
-                            nodesToUpdate.Add(materialNodeView);
-                    }
-                    if (edge.output != null)
-                    {
-                        if (edge.output.node is IShaderNodeView materialNodeView)
-                            nodesToUpdate.Add(materialNodeView);
-                    }
-                }
-            }
 
             foreach (var node in nodesToUpdate)
             {
