@@ -293,8 +293,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
-                    HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
-                    simpleDenoiser.DenoiseBuffer(cmd, hdCamera, outputTexture, reflectionHistory, m_ReflIntermediateTexture0, settings.denoiserRadius.value, singleChannel: false);
+                    HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, m_ReflIntermediateTexture0);
                     HDUtils.BlitCameraTexture(cmd, m_ReflIntermediateTexture0, outputTexture);
                 }
             }   
@@ -337,8 +337,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
-                    HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
-                    simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_ReflIntermediateTexture0, reflectionHistory, outputTexture, settings.denoiserRadius.value, singleChannel: false);
+                    HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, m_ReflIntermediateTexture0, reflectionHistory, outputTexture);
                 }
                 else
                 {

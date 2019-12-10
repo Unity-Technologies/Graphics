@@ -15,9 +15,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
 - ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+- Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
+- Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
+- Fixed LighProbes when using LookDev.
+- Fix LookDev minimal window size.
+- Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
 
 ## [7.1.1] - 2019-09-05
 

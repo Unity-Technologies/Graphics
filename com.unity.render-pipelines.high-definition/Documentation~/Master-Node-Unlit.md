@@ -17,7 +17,9 @@ There are properties on the master node as well as properties on the Materials t
 
 ### Unlit Master node input ports
 
-![](Images/MasterNodeUnlit1.png)
+|![Default](Images/MasterNodeUnlit1.png)|![Default](Images/MasterNodeUnlit3.png)|
+|:--:|:--:|
+| Default | With ShadowMatte enabled|
 
 The following table describes the input ports on an Unlit Master node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html).
 
@@ -28,6 +30,7 @@ The following table describes the input ports on an Unlit Master node, including
 | **Alpha**				                    | Vector 1 | Fragment  | Defines the Material's alpha value. Used for transparency and/or alpha clip. Expected range 0 - 1.|
 | **AlphaClipThreshold**                    | Vector 1 | Fragment  | Set the alpha value limit that HDRP uses to determine whether it should render each pixel of the Material. If the alpha value of the pixel is equal to or higher than this threshold then HDRP renders the pixel. If the value is lower than this threshold then HDRP does not render the pixel. This port only appears when you enable the **Alpha Clipping** setting.|
 | **Emission**                           	| Vector 3 | Fragment  | Defines the Material's emission color value. Expects positive values.|
+| **Shadow Tint**                              | Vector 4 | Fragment  | Defines the shadow color value with alpha value. Enable only if Shadow Matte enable cf. [Master node settings menu](#SettingsMenu)|
 
 <a name="SettingsMenu"></a>
 
@@ -51,6 +54,7 @@ To view these properties, click the **Cog** icon in the top right of the master 
 | **DepthTest**    					|Unity uses DepthTest when rendering an object, to check if it is behind another object. Unity does this by testing the Z-value of a given Objects pixel and comparing against a value stored in the Z-buffer. By default, DepthTest is set to Less Equal, allowing the original object to appear in front of the object it is tested against. Use the drop-down to select the comparison function to use for the depth test. Each comparison function changes how the Shader renders. To expose this option, select **Transparent** from the **Surface Type** drop-down. <br/>&#8226; **Disabled:** Do not perform a ZTest. <br/>&#8226; **Never:** The ZTest is never passed. <br/>&#8226; **Less:** The ZTest passes if the pixels Z-value is less than the stored value. <br/>&#8226; **Equal:** The ZTest passes if the pixels Z-value is equal to the stored value. <br/>&#8226; **Less Equal:** The ZTest passes if the pixels Z-value is less than or equal than the Z-buffers value. This renders the tested pixel in front of the other. <br/>&#8226; **Greater:** The ZTest passes if the pixels Z-value is greater than the stored value. <br/>&#8226; **Not Equal:** The ZTest passes if the pixels Z-value is not equal to the stored value. <br/>&#8226; **Greater Equal:** The ZTest passes if the pixels Z-value is greater than or equal to the stored value. <br/>&#8226; **Always:** The ZTest always passes, there is no comparison to the stored value.|
 | **Double Sided**     						|Enable or disable whether or not the Shader should be rendered on both sides of a geometry.|
 | **Alpha Clipping**                 		|Enable or disable Alpha Clipping. This controls whether your Shader acts as a Cutout Shader or not. Cutout Shader is a Shader type that has both Opaque and Transparent parts.|
+| **Shadow Matte**                          |Enable or disable whether or not the Shader receive the shadow.|
 
 <a name="MaterialProperties"></a>
 

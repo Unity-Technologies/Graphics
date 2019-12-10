@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_XrTitle = EditorGUIUtility.TrTextContent("XR");
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
         static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
+        static readonly GUIContent k_LightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
         static readonly GUIContent k_LightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
         static readonly GUIContent k_CookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
@@ -46,6 +47,19 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_ResolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
         static readonly GUIContent k_HighQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
         static readonly GUIContent k_MaxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
+
+        static readonly GUIContent k_SSAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion");
+        static readonly GUIContent k_AOStepCount = EditorGUIUtility.TrTextContent("Step Count");
+        static readonly GUIContent k_AOFullRes = EditorGUIUtility.TrTextContent("Full Resolution");
+        static readonly GUIContent k_AOMaxRadiusInPixels = EditorGUIUtility.TrTextContent("Maximum Radius in Pixels");
+        static readonly GUIContent k_AODirectionCount = EditorGUIUtility.TrTextContent("Direction Count");
+        static readonly GUIContent k_AOBilateralUpsample = EditorGUIUtility.TrTextContent("Bilateral Upsample");
+
+        static readonly GUIContent k_ContactShadowsSettingsSubTitle = EditorGUIUtility.TrTextContent("Contact Shadows");
+        static readonly GUIContent k_ContactShadowsSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
+
+        static readonly GUIContent k_SSRSettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Reflection");
+        static readonly GUIContent k_SSRMaxRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps");
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
@@ -87,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SupportTransparentBackface = EditorGUIUtility.TrTextContent("Transparent Backface", "When disabled, HDRP removes all transparent backface Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
-        static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
+        static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
         static readonly GUIContent k_RaytracingTier = EditorGUIUtility.TrTextContent("Raytracing Tier");
         static readonly GUIContent k_RayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
         static readonly GUIContent k_MaximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");

@@ -26,14 +26,18 @@ Here you can see an example of a custom pass with a box collider (solid transpar
 ## Injection Points
 
 Custom passes can be injected at 6 different places. Note that these injection points **don't tell you exactly where you pass will be executed**, the only guarantee we give is that a certain list of buffers will be available for **Read** or **Write** and will contain a certain subset of objects rendered before your pass. Unlike Universal Render Pipeline, we don't give you the guarantee that your passes will be executed before or after any HDRP internal operation (also due to our async rendering). However we guarantee that the injection points will be triggered from top to bottom in this order in a frame:
+
 Name | Available Buffers | Description
 --- | --- | ---
 BeforeRendering | Depth (Write) | Just after the depth clear, you can write to the depth buffer so Z-Tested opaque objects won't be rendered. It's useful to mask a part of the rendering. Here you can also clear the buffer you allocated or the `Custom Buffer`
 AfterOpaqueDepthAndNormal | Depth (Read \| Write), Normal + roughness (Read \| Write) | Buffers will contain all opaque objects. Here you can modify the normal, roughness and depth buffer, it will be taken in account in the lighting and the depth pyramid. Note that normals and roughness are in the same buffer, you can use `DecodeFromNormalBuffer` and `EncodeIntoNormalBuffer` functions to read/write normal and roughness data.
-BeforePreRefraction | Color (no pyramid \| Read \| Write), Depth (Read \| Write), Normal (Read) | Buffers will contain all opaque objects plus the sky. Use this point to render any transparent objects that you want to be in the refraction (they, will end up in the color pyramid we use for refraction when drawing transparent objects).
-BeforeTransparent | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal (Read) | Here you can sample the color pyramid we use for transparent refraction. It's useful to do some blur effects but note that all objects rendered at this point won't be in the color pyramid. You can also draw some transparent objects here that needs to refract the scene (like water for example).
-BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal (Read) | Buffers contains all objects in the frame in HDR.
+BeforePreRefraction | Color (no pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers will contain all opaque objects plus the sky. Use this point to render any transparent objects that you want to be in the refraction (they, will end up in the color pyramid we use for refraction when drawing transparent objects).
+BeforeTransparent | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Here you can sample the color pyramid we use for transparent refraction. It's useful to do some blur effects but note that all objects rendered at this point won't be in the color pyramid. You can also draw some transparent objects here that needs to refract the scene (like water for example).
+BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers contains all objects in the frame in HDR.
 AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
+
+You can see here on this diagram where the custom passes are injected inside an HDRP frame.
+![](Images/HDRP-frame-graph-diagram.jpg)
 
 ## Custom Pass List
 
@@ -89,7 +93,7 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 |  ⚠️ **WARNING**: There are some gotchas that you need to be aware of when writing FullScreen Shaders |
 | ---  |
 | **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
-| **The Depth buffer is not available everywhere and might not contains what you expect**. There is not depth buffer in before rendering, the depth buffer never contains transparent that writes depth and finally the depth buffer is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
+| **The Depth buffer might not contains what you expect**. The depth buffer never contains transparent that writes depth and it is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
 | **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
 | **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
