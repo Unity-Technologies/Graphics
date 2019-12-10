@@ -68,7 +68,6 @@ CBUFFER_START(UnityVolumetricLighting)
     float    _CornetteShanksConstant;           // Not used by this shader
     uint     _VBufferLightingHistoryIsValid;    // Not used by this shader
 
-    float4   _VBufferSampleOffset;              // Not used by this shader
     float4   _VolumeMaskDimensions;             // x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
 
     // BigTile...

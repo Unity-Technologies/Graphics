@@ -485,6 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnableVolumetricFog               = Shader.PropertyToID("_EnableVolumetricFog");
         public static readonly int _GlobalFogAnisotropy               = Shader.PropertyToID("_GlobalFogAnisotropy");
         public static readonly int _CornetteShanksConstant            = Shader.PropertyToID("_CornetteShanksConstant");
+        public static readonly int _CmjPointSet                       = Shader.PropertyToID("_CmjPointSet");
         public static readonly int _VBufferViewportSize               = Shader.PropertyToID("_VBufferViewportSize");
         public static readonly int _VBufferSliceCount                 = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferRcpSliceCount              = Shader.PropertyToID("_VBufferRcpSliceCount");
@@ -505,7 +506,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferLightingHistory            = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingHistoryIsValid     = Shader.PropertyToID("_VBufferLightingHistoryIsValid");
         public static readonly int _VBufferLightingFeedback           = Shader.PropertyToID("_VBufferLightingFeedback");
-        public static readonly int _VBufferSampleOffset               = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
         public static readonly int _NumVisibleDensityVolumes          = Shader.PropertyToID("_NumVisibleDensityVolumes");
@@ -615,7 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
         public static readonly int _ReflectionFilterMapping         = Shader.PropertyToID("_ReflectionFilterMapping");
-        
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
