@@ -97,7 +97,6 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            PatchInputExpressions();
             return null;
         }
 
@@ -187,10 +186,10 @@ namespace UnityEditor.VFX
                     }
                 }
                 else if( child.copy is VFXSubgraphBlock subgraphBlock)
-                {
-                    subgraphBlock.RecreateCopy();
+                    {
+                        subgraphBlock.RecreateCopy();
+                    }
                 }
-            }
 
             List<string> newInputFlowNames = new List<string>();
 
@@ -262,7 +261,6 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
-            PatchInputExpressions();
             SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
@@ -328,7 +326,7 @@ namespace UnityEditor.VFX
 
         Dictionary<VFXSlot, VFXSlot> m_OriginalToCopy = new Dictionary<VFXSlot, VFXSlot>();
 
-        void PatchInputExpressions()
+        public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 
