@@ -682,7 +682,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
-    uint2 tileCoord   = groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE;
+    uint2 tileCoord   = groupOffset * (VBUFFER_TILE_SIZE* _VolumetricFogResolution) / TILE_SIZE_BIG_TILE;
     uint  tileIndex   = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).

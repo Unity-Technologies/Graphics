@@ -293,13 +293,12 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.vBufferParams[1] = parameters;
 
             hdCamera.volumetricHistoryIsValid = false;
-
+            Debug.Log("InitializeVolumetricLightingPerCameraData"  );
             RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 frameIndex &= 1; // 0 or 1
 
                 int d = ComputeVBufferSliceCount(volumetricLightingPreset);
-
                 return rtHandleSystem.Alloc(scaleFunc: ComputeVBufferResolutionXY,
                     slices: d,
                     dimension: TextureDimension.Tex3D,
@@ -319,6 +318,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DeinitializeVolumetricLightingPerCameraData(HDCamera hdCamera)
         {
+              Debug.Log("DeinitializeVolumetricLightingPerCameraData"  );
+          
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
@@ -370,18 +371,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
         {
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
+            
             switch (preset)
             {
-                case VolumetricLightingPreset.Medium:
-                    return 8;
+                     case VolumetricLightingPreset.Medium:
+                    Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*8  );
+
+                    return fog.volumetricFogResolution.value * 8;
+              
                 case VolumetricLightingPreset.High:
-                    return 4;
+                    Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*4  );
+  return fog.volumetricFogResolution.value * 4;
+                 
                 case VolumetricLightingPreset.Off:
                     return 0;
                 default:
                     Debug.Assert(false, "Encountered an unexpected VolumetricLightingPreset.");
                     return 0;
             }
+               return 0;
         }
 
         static int ComputeVBufferSliceCount(VolumetricLightingPreset preset)

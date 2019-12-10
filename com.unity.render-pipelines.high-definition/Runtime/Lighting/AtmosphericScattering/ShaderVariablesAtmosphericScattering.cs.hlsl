@@ -9,6 +9,7 @@
     int _FogEnabled;
     int _PBRFogEnabled;
     float _MaxFogDistance;
+    float _VolumetricFogResolution;
     float _FogColorMode;
     float _SkyTextureMipCount;
     float4 _FogColor;

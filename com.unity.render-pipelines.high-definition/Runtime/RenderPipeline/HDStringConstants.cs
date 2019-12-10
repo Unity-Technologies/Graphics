@@ -477,6 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FogEnabled                        = Shader.PropertyToID("_FogEnabled");
         public static readonly int _PBRFogEnabled                     = Shader.PropertyToID("_PBRFogEnabled");
         public static readonly int _MaxFogDistance                    = Shader.PropertyToID("_MaxFogDistance");
+        public static readonly int _VolumetricFogResolution           = Shader.PropertyToID("_VolumetricFogResolution");
         public static readonly int _AmbientProbeCoeffs                = Shader.PropertyToID("_AmbientProbeCoeffs");
         public static readonly int _HeightFogBaseExtinction           = Shader.PropertyToID("_HeightFogBaseExtinction");
         public static readonly int _HeightFogBaseScattering           = Shader.PropertyToID("_HeightFogBaseScattering");

@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
         public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
+        [Tooltip("Sets the volumetric fog resolution.")]
+        public ClampedIntParameter    volumetricFogResolution = new ClampedIntParameter(1, 1, 8);
         [Tooltip("Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).")]
         public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         [Tooltip("Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.")]
@@ -107,6 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 1);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
+            cmd.SetGlobalInt(HDShaderIDs._VolumetricFogResolution, volumetricFogResolution.value);
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);

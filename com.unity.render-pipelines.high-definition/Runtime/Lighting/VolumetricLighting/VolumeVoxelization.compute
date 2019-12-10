@@ -337,12 +337,12 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
 {
     // Perform compile-time checks.
     if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_BIG_TILE)) return;
-
+   
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
-    uint2 tileCoord   = groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE;
+    uint2 tileCoord   = groupOffset * (VBUFFER_TILE_SIZE* _VolumetricFogResolution) / TILE_SIZE_BIG_TILE;
     uint  tileIndex   = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
