@@ -98,6 +98,12 @@ namespace UnityEditor.Graphing.Util
             {
                 foreach (var input in inputs)
                     AddInput(input);
+
+                // Sort based on input graph data's order
+                if (graphData != null)
+                {
+                    m_Inputs.Sort((x, y) => graphData.GetContainingCategory(x).GetInputIndex(x) > graphData.GetContainingCategory(y).GetInputIndex(y) ? 1 : -1);
+                }
             }
 
             if (metaProperties != null)

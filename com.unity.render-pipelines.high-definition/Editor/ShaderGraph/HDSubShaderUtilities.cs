@@ -195,6 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
             // TODO: z
             bool supportsRayTracing = false; // HDRenderPipeline.AggreateRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings); // Don't push this! lol
+
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {

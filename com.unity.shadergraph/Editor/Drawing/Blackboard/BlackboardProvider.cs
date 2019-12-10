@@ -28,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
-        List<Node> m_SelectedNodes = new List<Node>();
 
         Dictionary<Guid, bool> m_ExpandedInputs = new Dictionary<Guid, bool>();
 
@@ -46,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardProvider(GraphData graph)
+        public BlackboardProvider(GraphData graph, GraphView graphView)
         {
             m_Graph = graph;
 
@@ -66,43 +65,50 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.hierarchy.Add(m_PathLabelTextField);
+
+            graphView.Add(blackboard);
+
+            // Should always have at least one category.
+            if (m_Graph.categories.Count() == 0)
+                CreateNewCategory("Default");
+
+            // Build everything for the first time
+            RebuildCategorySections();
+            foreach (InputCategory category in m_Graph.categories)
+            {
+                category.blackboardSection.RebuildSection();
+            }
         }
 
-        // TODO: move
+        public BlackboardRow GetBlackboardRow(Guid guid)
+        {
+            foreach (InputCategory category in m_Graph.categories)
+            {
+                BlackboardRow currentRow = category.blackboardSection.GetBlackboardRow(guid);
+                if (currentRow != null)
+                    return currentRow;
+            }
+            return null;
+        }
+        // End of exposed members
+
+        void RebuildCategorySections()
+        {
+            blackboard.Clear();
+            foreach (var category in m_Graph.categories)
+            {
+                Debug.Log("Adding " + category.header + " to blackboard");
+                blackboard.Add(category.blackboardSection);
+            }
+        }
+
         void CreateNewCategory(string categoryHeader)
         {
             InputCategory inputCategory = new InputCategory();
             inputCategory.header = categoryHeader;
 
-            m_Graph.categories.Add(inputCategory);
+            m_Graph.AddInputCategory(inputCategory);
         }
-
-        void AddCategoryOnBlackboard(InputCategory category)
-        {
-            if (category.blackboardSection == null)
-                category.CreateBlackboardSection(m_Graph);
-
-            blackboard.Add(category.blackboardSection);
-        }
-
-        void BlackboardClear()
-        {
-            blackboard.Clear();
-        }
-
-        // TODO: z
-        void OnDragUpdatedEvent(DragUpdatedEvent evt)
-        {
-            if (m_SelectedNodes.Any())
-            {
-                foreach (var node in m_SelectedNodes)
-                {
-                    node.RemoveFromClassList("hovered");
-                }
-                m_SelectedNodes.Clear();
-            }
-        }
-
         void OnMouseDownEvent(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
@@ -196,48 +202,47 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (input == null)
                 return;
 
-            m_Graph.MoveWithinCategory(input, newIndex);
-            needsUpdate = true;
+            InputCategory category = m_Graph.GetContainingCategory(input);
+            m_Graph.MoveInput(input, category, index: newIndex);
         }
 
         void AddItemRequested(Blackboard blackboard)
         {
             var gm = new GenericMenu();
 
-            gm.AddItem(new GUIContent($"Category"), false, () => CreateNewCategory("new category " + UnityEngine.Random.value.ToString()));
+            gm.AddItem(new GUIContent($"Category"), false, () => CreateNewCategory(BlackboardCateogrySection.GetRandomTrollName()));
             gm.AddSeparator($"");
 
             AddPropertyItems(gm);
             AddKeywordItems(gm);
 
             gm.ShowAsContext();
-            needsUpdate = true;
         }
 
         void AddPropertyItems(GenericMenu gm)
         {
-            gm.AddItem(new GUIContent($"Vector1"), false, () => CreateShaderInput(new Vector1ShaderProperty()));
-            gm.AddItem(new GUIContent($"Vector2"), false, () => CreateShaderInput(new Vector2ShaderProperty()));
-            gm.AddItem(new GUIContent($"Vector3"), false, () => CreateShaderInput(new Vector3ShaderProperty()));
-            gm.AddItem(new GUIContent($"Vector4"), false, () => CreateShaderInput(new Vector4ShaderProperty()));
-            gm.AddItem(new GUIContent($"Color"), false, () => CreateShaderInput(new ColorShaderProperty()));
-            gm.AddItem(new GUIContent($"Texture2D"), false, () => CreateShaderInput(new Texture2DShaderProperty()));
-            gm.AddItem(new GUIContent($"Texture2D Array"), false, () => CreateShaderInput(new Texture2DArrayShaderProperty()));
-            gm.AddItem(new GUIContent($"Texture3D"), false, () => CreateShaderInput(new Texture3DShaderProperty()));
-            gm.AddItem(new GUIContent($"Cubemap"), false, () => CreateShaderInput(new CubemapShaderProperty()));
-            gm.AddItem(new GUIContent($"Boolean"), false, () => CreateShaderInput(new BooleanShaderProperty()));
-            gm.AddItem(new GUIContent($"Matrix2x2"), false, () => CreateShaderInput(new Matrix2ShaderProperty()));
-            gm.AddItem(new GUIContent($"Matrix3x3"), false, () => CreateShaderInput(new Matrix3ShaderProperty()));
-            gm.AddItem(new GUIContent($"Matrix4x4"), false, () => CreateShaderInput(new Matrix4ShaderProperty()));
-            gm.AddItem(new GUIContent($"SamplerState"), false, () => CreateShaderInput(new SamplerStateShaderProperty()));
-            gm.AddItem(new GUIContent($"Gradient"), false, () => CreateShaderInput(new GradientShaderProperty()));
+            gm.AddItem(new GUIContent($"Vector1"), false, () => CreateNewShaderInput(new Vector1ShaderProperty()));
+            gm.AddItem(new GUIContent($"Vector2"), false, () => CreateNewShaderInput(new Vector2ShaderProperty()));
+            gm.AddItem(new GUIContent($"Vector3"), false, () => CreateNewShaderInput(new Vector3ShaderProperty()));
+            gm.AddItem(new GUIContent($"Vector4"), false, () => CreateNewShaderInput(new Vector4ShaderProperty()));
+            gm.AddItem(new GUIContent($"Color"), false, () => CreateNewShaderInput(new ColorShaderProperty()));
+            gm.AddItem(new GUIContent($"Texture2D"), false, () => CreateNewShaderInput(new Texture2DShaderProperty()));
+            gm.AddItem(new GUIContent($"Texture2D Array"), false, () => CreateNewShaderInput(new Texture2DArrayShaderProperty()));
+            gm.AddItem(new GUIContent($"Texture3D"), false, () => CreateNewShaderInput(new Texture3DShaderProperty()));
+            gm.AddItem(new GUIContent($"Cubemap"), false, () => CreateNewShaderInput(new CubemapShaderProperty()));
+            gm.AddItem(new GUIContent($"Boolean"), false, () => CreateNewShaderInput(new BooleanShaderProperty()));
+            gm.AddItem(new GUIContent($"Matrix2x2"), false, () => CreateNewShaderInput(new Matrix2ShaderProperty()));
+            gm.AddItem(new GUIContent($"Matrix3x3"), false, () => CreateNewShaderInput(new Matrix3ShaderProperty()));
+            gm.AddItem(new GUIContent($"Matrix4x4"), false, () => CreateNewShaderInput(new Matrix4ShaderProperty()));
+            gm.AddItem(new GUIContent($"SamplerState"), false, () => CreateNewShaderInput(new SamplerStateShaderProperty()));
+            gm.AddItem(new GUIContent($"Gradient"), false, () => CreateNewShaderInput(new GradientShaderProperty()));
             gm.AddSeparator($"/");
         }
 
         void AddKeywordItems(GenericMenu gm)
         {
-            gm.AddItem(new GUIContent($"Keyword/Boolean"), false, () => CreateShaderInput(new ShaderKeyword(KeywordType.Boolean)));
-            gm.AddItem(new GUIContent($"Keyword/Enum"), false, () => CreateShaderInput(new ShaderKeyword(KeywordType.Enum)));
+            gm.AddItem(new GUIContent($"Keyword/Boolean"), false, () => CreateNewShaderInput(new ShaderKeyword(KeywordType.Boolean)));
+            gm.AddItem(new GUIContent($"Keyword/Enum"), false, () => CreateNewShaderInput(new ShaderKeyword(KeywordType.Enum)));
             gm.AddSeparator($"Keyword/");
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
@@ -254,7 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => CreateShaderInput(keyword.Copy()));
+                gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => CreateNewShaderInput(keyword.Copy()));
             }
         }
 
@@ -274,23 +279,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public static bool needsUpdate = true;
-
         public void HandleGraphChanges()
         {
             // Simply remove and then add the categories only
-            if (needsUpdate)
+            if (m_Graph.hasBlackboardSectionChanges)
             {
-                BlackboardClear();
-                foreach (var category in m_Graph.categories)
-                {
-                    AddCategoryOnBlackboard(category);
+                RebuildCategorySections();
+            }
 
-                    // if (m_Graph.alteredCategories.Count() > 0 && m_Graph.alteredCategories.Contains(category))
-                        category.blackboardSection.RefreshSection();
-                }
-
-                needsUpdate = false;
+            foreach (var alteredCategory in m_Graph.alteredCategories)
+            {
+                alteredCategory.blackboardSection.RebuildSection();
             }
 
             foreach (var expandedInput in expandedInputs)
@@ -301,19 +300,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ExpandedInputs.Clear();
         }
 
-        // TODO: z these below need to be moved / modified (also keep the new item stuff)
-        void CreateShaderInput(ShaderInput input)
+        void CreateNewShaderInput(ShaderInput input, InputCategory category = null)
         {
             m_Graph.SanitizeGraphInputName(input);
             input.generatePropertyBlock = input.isExposable;
 
-            m_Graph.categories[0].AddShaderInput(input);
+            if (category == null)
+                m_Graph.AddShaderInputToDefaultCategory(input);
+            else
+                m_Graph.AddShaderInput(input, category);
 
-            m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
-            m_Graph.AddGraphInput(input);
+            if (input as ShaderKeyword != null)
+                m_Graph.OnKeywordChangedNoValidate();
 
-// TODO: z Where should this stuff go?...
-// <<<<<<< HEAD
+            // TODO: z Where should this stuff go?...
+//             m_Graph.SanitizeGraphInputName(input);
+//             input.generatePropertyBlock = input.isExposable;
+
+//  HEAD
+//             m_Graph.categories[0].AddShaderInput(input);
+
+//             m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
+//             m_Graph.AddGraphInput(input);
+
+
+//  HEAD
 //                     break;
 //                 }
 //                 case ShaderKeyword keyword:
@@ -329,13 +340,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
 //                     if (index < 0 || index > m_InputRows.Count)
 //                         index = m_InputRows.Count;
-// =======
-// >>>>>>> e7b6a7272e... hackweek start to blackboard section
+// 
+//  e7b6a7272e... hackweek start to blackboard section
 
 // //            row.expanded = true;
 // //            field.OpenTextEditor();
 
-// <<<<<<< HEAD
+//  HEAD
 //                     break;
 //                 }
 //                 default:
@@ -371,11 +382,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 //                 {
 //                     m_Graph.OnKeywordChangedNoValidate();
 //                 }
+// =======
+//             if (category == null)
+//                 m_Graph.AddShaderInputToDefaultCategory(input);
+//             else
+//                 m_Graph.AddShaderInput(input, category);
+// >>>>>>> 2e8346c8e0... work & cleanup
 
-            if(input as ShaderKeyword != null)
-            {
-                m_Graph.OnKeywordChangedNoValidate();
-            }
+//             if (input as ShaderKeyword != null)
+//                 m_Graph.OnKeywordChangedNoValidate();
         }
 
         void OnExpanded(MouseDownEvent evt, ShaderInput input)
@@ -403,51 +418,5 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // TODO: z
-//        public BlackboardRow GetBlackboardRow(Guid guid)
-//        {
-//            return m_InputRows[guid];
-//        }
-
-        void OnMouseHover(EventBase evt, ShaderInput input)
-        {
-            var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
-            if (evt.eventTypeId == MouseEnterEvent.TypeId())
-            {
-                foreach (var node in graphView.nodes.ToList())
-                {
-                    if(input is AbstractShaderProperty property)
-                    {
-                        if (node.userData is PropertyNode propertyNode)
-                        {
-                            if (propertyNode.propertyGuid == input.guid)
-                            {
-                                m_SelectedNodes.Add(node);
-                                node.AddToClassList("hovered");
-                            }
-                        }
-                    }
-                    else if(input is ShaderKeyword keyword)
-                    {
-                        if (node.userData is KeywordNode keywordNode)
-                        {
-                            if (keywordNode.keywordGuid == input.guid)
-                            {
-                                m_SelectedNodes.Add(node);
-                                node.AddToClassList("hovered");
-                            }
-                        }
-                    }
-                }
-            }
-            else if (evt.eventTypeId == MouseLeaveEvent.TypeId() && m_SelectedNodes.Any())
-            {
-                foreach (var node in m_SelectedNodes)
-                {
-                    node.RemoveFromClassList("hovered");
-                }
-                m_SelectedNodes.Clear();
-            }
-        }
     }
 }
