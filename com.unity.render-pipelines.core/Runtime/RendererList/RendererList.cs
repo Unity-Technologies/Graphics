@@ -5,18 +5,44 @@ namespace UnityEngine.Experimental.Rendering
 {
     // This is a temporary structure that will help transition to render graph
     // Plan is to define this correctly on the C++ side and expose it to C# later.
+    /// <summary>
+    /// Structure holding RendererList information used to draw renderers.
+    /// </summary>
     public struct RendererList
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
+        /// <summary>
+        /// Default null renderer list.
+        /// </summary>
         public static readonly RendererList nullRendererList = new RendererList();
 
+        /// <summary>
+        /// True if the renderer list is valid.
+        /// </summary>
         public bool                 isValid { get; private set; }
+        /// <summary>
+        /// CullingResults associated with the renderer list.
+        /// </summary>
         public CullingResults       cullingResult;
+        /// <summary>
+        /// DrawingSettings associated with the renderer list.
+        /// </summary>
         public DrawingSettings      drawSettings;
+        /// <summary>
+        /// FilteringSettings associated with the renderer list.
+        /// </summary>
         public FilteringSettings    filteringSettings;
+        /// <summary>
+        /// Optional RenderStateBlock associated with the renderer list.
+        /// </summary>
         public RenderStateBlock?    stateBlock;
 
+        /// <summary>
+        /// Creates a new renderer list.
+        /// </summary>
+        /// <param name="desc">Parameters for renderer list creation.</param>
+        /// <returns>A new renderer list.</returns>
         public static RendererList Create(in RendererListDesc desc)
         {
             RendererList newRenderList = new RendererList();
@@ -70,23 +96,56 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 
+    /// <summary>
+    /// Renderer list creation descriptor.
+    /// </summary>
     public struct RendererListDesc
     {
+        /// <summary>
+        /// SortingCriteria for this renderer list.
+        /// </summary>
         public SortingCriteria sortingCriteria;
+        /// <summary>
+        /// PerObjectData configuration for this renderer list.
+        /// </summary>
         public PerObjectData rendererConfiguration;
+        /// <summary>
+        /// RenderQueueRange of this renderer list.
+        /// </summary>
         public RenderQueueRange renderQueueRange;
+        /// <summary>
+        /// Optional RenderStateBlock for this renderer list.
+        /// </summary>
         public RenderStateBlock? stateBlock;
+        /// <summary>
+        /// Override material for this renderer list.
+        /// </summary>
         public Material overrideMaterial;
+        /// <summary>
+        /// Exclude object with motion from this renderer list.
+        /// </summary>
         public bool excludeObjectMotionVectors;
+        /// <summary>
+        /// Rendering layer mask used for filtering this renderer list.
+        /// </summary>
         public int layerMask;
+        /// <summary>
+        /// Pass index for the override material.
+        /// </summary>
         public int overrideMaterialPassIndex;
 
         // Mandatory parameters passed through constructors
-        public CullingResults cullingResult { get; private set; }
-        public Camera camera { get; private set; }
-        public ShaderTagId passName { get; private set; }
-        public ShaderTagId[] passNames { get; private set; }
+        internal CullingResults cullingResult { get; private set; }
+        internal Camera camera { get; set; }
+        internal ShaderTagId passName { get; private set; }
+        internal ShaderTagId[] passNames { get; private set; }
 
+        /// <summary>
+        /// RendererListDesc constructor
+        /// </summary>
+        /// <param name="passName">Pass name used for this renderer list.</param>
+        /// <param name="cullingResult">Culling result used to create the renderer list.</param>
+        /// <param name="camera">Camera used to determine sorting parameters.</param>
         public RendererListDesc(ShaderTagId passName, CullingResults cullingResult, Camera camera)
             : this()
         {
@@ -98,6 +157,12 @@ namespace UnityEngine.Experimental.Rendering
             this.overrideMaterialPassIndex = 0;
         }
 
+        /// <summary>
+        /// RendererListDesc constructor
+        /// </summary>
+        /// <param name="passNames">List of pass names used for this renderer list.</param>
+        /// <param name="cullingResult">Culling result used to create the renderer list.</param>
+        /// <param name="camera">Camera used to determine sorting parameters.</param>
         public RendererListDesc(ShaderTagId[] passNames, CullingResults cullingResult, Camera camera)
             : this()
         {
@@ -109,6 +174,10 @@ namespace UnityEngine.Experimental.Rendering
             this.overrideMaterialPassIndex = 0;
         }
 
+        /// <summary>
+        /// Returns true if the descriptor is valid.
+        /// </summary>
+        /// <returns>True if the descriptor is valid.</returns>
         public bool IsValid()
         {
             if (camera == null || (passName == ShaderTagId.none && (passNames == null || passNames.Length == 0)))
