@@ -49,7 +49,7 @@ struct IntersectionVertex
 	float3 positionOS;
 	// Object space normal of the vertex
 	float3 normalOS;
-	// Object space normal of the vertex
+	// Object space tangent of the vertex
 	float3 tangentOS;
 	// UV coordinates
 	float2 texCoord0;
