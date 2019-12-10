@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         RTHandle densityBufferRT = ctx.resources.GetTexture(data.densityBuffer);
                         RTHandle lightinBufferRT = ctx.resources.GetTexture(data.lightingBuffer);
                         VolumetricLightingPass( data.parameters,
-                        						data.cmjPointSet,
+                                                data.cmjPointSet,
                                                 densityBufferRT,
                                                 lightinBufferRT,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
