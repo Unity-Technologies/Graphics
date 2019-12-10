@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
+        TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
@@ -75,6 +76,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
+            m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
@@ -129,30 +131,33 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            bool postProcessEnabled = cameraData.postProcessEnabled;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture;
+            bool isStereoEnabled = cameraData.isStereoEnabled;
+
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
             // Depth prepass is generated in the following cases:
-            // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
-                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
-            requiresDepthPrepass |= resolveShadowsInScreenSpace;
+            bool requiresDepthPrepass = isSceneViewCamera;
+            requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
 
-            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
-            // we have a proper fix.
-            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
+            // The copying of depth should normally happen after rendering skybox.
+            // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
+            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (postProcessEnabled || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox;
+
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
+            if (isStereoEnabled && requiresDepthTexture)
                 requiresDepthPrepass = true;
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || rendererFeatures.Count != 0;
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
 
-            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
-            // later by effect requiring it.
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = cameraData.postProcessEnabled;
+            // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
+            bool createDepthTexture = requiresDepthTexture && !requiresDepthPrepass;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
@@ -167,7 +172,7 @@ namespace UnityEngine.Rendering.Universal
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
             
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-                SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
+                SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
             
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -194,12 +199,6 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            if (resolveShadowsInScreenSpace)
-            {
-                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-                EnqueuePass(m_ScreenSpaceShadowResolvePass);
-            }
-
             if (postProcessEnabled)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
@@ -220,11 +219,16 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingData.cameraData.requiresOpaqueTexture)
             {
-                // TODO: Downsampling method should be store in the renderer isntead of in the asset.
+                // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
+            }
+
+            if (transparentsNeedSettingsPass)
+            {
+                EnqueuePass(m_TransparentSettingsPass);
             }
 
             EnqueuePass(m_RenderTransparentForwardPass);
@@ -259,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (requiresFinalPostProcessPass)
                     {
-                        m_FinalPostProcessPass.SetupFinalPass(m_ActiveCameraColorAttachment);
+                        m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else

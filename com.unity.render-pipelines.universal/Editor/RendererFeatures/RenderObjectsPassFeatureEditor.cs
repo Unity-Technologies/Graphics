@@ -1,8 +1,8 @@
-﻿using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
+using System.Collections.Generic;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -47,8 +47,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    private int m_DepthLines = 3;
 	    private int m_CameraLines = 4;
 
-	    private SerializedProperty m_Property;
-
 	    // Serialized Properties
 	    private SerializedProperty m_Callback;
 	    private SerializedProperty m_PassTag;
@@ -74,67 +72,81 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    private SerializedProperty m_RestoreCamera;
 
 	    private ReorderableList m_ShaderPassesList;
+        private List<SerializedObject> m_properties = new List<SerializedObject>();
 
-	    private void Init(SerializedProperty property)
-	    {
-		    //Header bools
-		    var key = $"{this.ToString().Split('.').Last()}.{property.serializedObject.targetObject.name}";
-		    m_FiltersFoldout = new HeaderBool($"{key}.FiltersFoldout", true);
-		    m_RenderFoldout = new HeaderBool($"{key}.RenderFoldout");
+        private void Init(SerializedProperty property)
+        {
+            //Header bools
+            var key = $"{this.ToString().Split('.').Last()}.{property.serializedObject.targetObject.name}";
+            m_FiltersFoldout = new HeaderBool($"{key}.FiltersFoldout", true);
+            m_RenderFoldout = new HeaderBool($"{key}.RenderFoldout");
 
 
-		    m_Callback = property.FindPropertyRelative("Event");
-		    m_PassTag = property.FindPropertyRelative("passTag");
-		    //Filter props
-		    m_FilterSettings = property.FindPropertyRelative("filterSettings");
-		    m_RenderQueue = m_FilterSettings.FindPropertyRelative("RenderQueueType");
-		    m_LayerMask = m_FilterSettings.FindPropertyRelative("LayerMask");
-		    m_ShaderPasses = m_FilterSettings.FindPropertyRelative("PassNames");
-			//Render options
-		    m_OverrideMaterial = property.FindPropertyRelative("overrideMaterial");
-		    m_OverrideMaterialPass = property.FindPropertyRelative("overrideMaterialPassIndex");
-		    //Depth props
-		    m_OverrideDepth = property.FindPropertyRelative("overrideDepthState");
-		    m_WriteDepth = property.FindPropertyRelative("enableWrite");
-		    m_DepthState = property.FindPropertyRelative("depthCompareFunction");
-		    //Stencil
-		    m_OverrideStencil = property.FindPropertyRelative("stencilSettings");
-		    //Camera
-		    m_CameraSettings = property.FindPropertyRelative("cameraSettings");
-		    m_OverrideCamera = m_CameraSettings.FindPropertyRelative("overrideCamera");
-		    m_FOV = m_CameraSettings.FindPropertyRelative("cameraFieldOfView");
-		    m_CameraOffset = m_CameraSettings.FindPropertyRelative("offset");
-		    m_RestoreCamera = m_CameraSettings.FindPropertyRelative("restoreCamera");
+            m_Callback = property.FindPropertyRelative("Event");
+            m_PassTag = property.FindPropertyRelative("passTag");
 
-		    m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
+            //Filter props
+            m_FilterSettings = property.FindPropertyRelative("filterSettings");
+            m_RenderQueue = m_FilterSettings.FindPropertyRelative("RenderQueueType");
+            m_LayerMask = m_FilterSettings.FindPropertyRelative("LayerMask");
+            m_ShaderPasses = m_FilterSettings.FindPropertyRelative("PassNames");
 
-		    m_ShaderPassesList.drawElementCallback =
-		    (Rect rect, int index, bool isActive, bool isFocused) =>
-		    {
-			    var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
-			    var propRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
-			    var labelWidth = EditorGUIUtility.labelWidth;
-			    EditorGUIUtility.labelWidth = 50;
-			    element.stringValue = EditorGUI.TextField(propRect, "Name", element.stringValue);
-			    EditorGUIUtility.labelWidth = labelWidth;
-		    };
+            //Render options
+            m_OverrideMaterial = property.FindPropertyRelative("overrideMaterial");
+            m_OverrideMaterialPass = property.FindPropertyRelative("overrideMaterialPassIndex");
 
-		    m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) => {
-			    EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
-		    };
+            //Depth props
+            m_OverrideDepth = property.FindPropertyRelative("overrideDepthState");
+            m_WriteDepth = property.FindPropertyRelative("enableWrite");
+            m_DepthState = property.FindPropertyRelative("depthCompareFunction");
 
-		    m_Property = property;
-	    }
+            //Stencil
+            m_OverrideStencil = property.FindPropertyRelative("stencilSettings");
 
-	    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
+            //Camera
+            m_CameraSettings = property.FindPropertyRelative("cameraSettings");
+            m_OverrideCamera = m_CameraSettings.FindPropertyRelative("overrideCamera");
+            m_FOV = m_CameraSettings.FindPropertyRelative("cameraFieldOfView");
+            m_CameraOffset = m_CameraSettings.FindPropertyRelative("offset");
+            m_RestoreCamera = m_CameraSettings.FindPropertyRelative("restoreCamera");
+
+            m_properties.Add(property.serializedObject);
+        }
+
+        private void CreateShaderPassList()
+        {
+            m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, false, true, true, true);
+
+            m_ShaderPassesList.drawElementCallback =
+            (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
+                var propRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
+                var labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 50;
+                element.stringValue = EditorGUI.TextField(propRect, "Name", element.stringValue);
+                EditorGUIUtility.labelWidth = labelWidth;
+            };
+
+            m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) =>
+            {
+                EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
+            };
+        }
+
+        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
 	    {
             rect.height = EditorGUIUtility.singleLineHeight;
 			EditorGUI.BeginChangeCheck();
 			EditorGUI.BeginProperty(rect, label, property);
-			if (property != m_Property)
-			    Init(property);
 
-			var passName = property.serializedObject.FindProperty("m_Name").stringValue;
+            if (!m_properties.Contains(property.serializedObject))
+            {
+                Init(property);
+                CreateShaderPassList();
+            }
+
+            var passName = property.serializedObject.FindProperty("m_Name").stringValue;
 			if (passName != m_PassTag.stringValue)
 			{
 				m_PassTag.stringValue = passName;
@@ -255,23 +267,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 	    {
 		    float height = Styles.defaultLineSpace;
-            if (property != m_Property)
+
+            if (m_properties.Contains(property.serializedObject))
             {
-                Init(property);
+                height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
+                height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
+
+                height += Styles.defaultLineSpace; // add line for overrides dropdown
+                if (m_RenderFoldout.value)
+                {
+                    height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
+                    height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
+                    height += EditorGUI.GetPropertyHeight(m_OverrideStencil);
+                    height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);
+                }
             }
-
-            height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
-            height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
-
-            height += Styles.defaultLineSpace; // add line for overrides dropdown
-            if (m_RenderFoldout.value)
-            {
-                height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
-                height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
-                height += EditorGUI.GetPropertyHeight(m_OverrideStencil);
-                height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);
-            }
-
             return height;
 	    }
 

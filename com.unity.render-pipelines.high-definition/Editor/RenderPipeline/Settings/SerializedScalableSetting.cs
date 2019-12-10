@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUIUtility.labelWidth = CalcPrefixLabelWidth(subLabels[index], (GUIStyle) null);
                 if (typeof(T) == typeof(int))
-                    values[index] = (T)(object)EditorGUI.IntField(position1, subLabels[index], (int)(object)values[index]);
+                    values[index] = (T)(object)EditorGUI.DelayedIntField(position1, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))
                     values[index] = (T)(object)EditorGUI.Toggle(position1, subLabels[index], (bool)(object)values[index]);
                 else if (typeof(T) == typeof(float))

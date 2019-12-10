@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Sky/Procedural Sky")]
+    [VolumeComponentMenu("Sky/Procedural Sky (Deprecated)")]
     [SkyUniqueID((int)SkyType.Procedural)]
     public class ProceduralSky : SkySettings
     {

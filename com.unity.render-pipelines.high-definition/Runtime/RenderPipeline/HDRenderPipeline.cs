@@ -3292,11 +3292,12 @@ namespace UnityEngine.Rendering.HighDefinition
         void PreRenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
             bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var colorBuffer = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-            var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
+            var colorBuffer  = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+            var depthBuffer  = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
+            var normalBuffer = m_SharedRTManager.GetNormalBuffer(msaaEnabled);
 
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            m_SkyManager.PreRenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
+            m_SkyManager.PreRenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, normalBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
         }
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)

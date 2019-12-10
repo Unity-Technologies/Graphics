@@ -61,7 +61,7 @@ Shader "HDRP/TerrainLit"
     #pragma shader_feature_local _TERRAIN_8_LAYERS
     #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _MASKMAP
-    #pragma shader_feature_local _SPECULAR_OCCLUSION_FROM_AMBIENT_OCCLUSION
+    #pragma shader_feature_local _SPECULAR_OCCLUSION_NONE
 
     #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
     // Sample normal in pixel shader when doing instancing
