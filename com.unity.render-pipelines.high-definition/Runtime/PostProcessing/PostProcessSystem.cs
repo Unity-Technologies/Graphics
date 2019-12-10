@@ -2014,7 +2014,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (tonemappingMode)
                 {
                     case TonemappingMode.Neutral:  kernelName = "KBuild_NeutralTonemap"; break;
-                    case TonemappingMode.ACES:     kernelName = "KBuild_AcesTonemap"; break;
+                    case TonemappingMode.ACES:
+                    {
+                        if (HDROutputSettings.main.active)
+                        {
+                            kernelName = "KBuild_AcesTonemap_HDR";
+                        }
+                        else
+                        {
+                            kernelName = "KBuild_AcesTonemap";
+                        }
+                        break;
+                    }
                     case TonemappingMode.Custom:   kernelName = "KBuild_CustomTonemap"; break;
                     case TonemappingMode.External: kernelName = "KBuild_ExternalTonemap"; break;
                 }
