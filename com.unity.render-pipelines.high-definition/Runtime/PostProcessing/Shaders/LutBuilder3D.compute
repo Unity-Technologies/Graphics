@@ -1,7 +1,3 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #pragma kernel KBuild_NoTonemap                MAIN=KBuild_NoTonemap                 TONEMAPPING_NONE
@@ -10,6 +6,10 @@
 #pragma kernel KBuild_AcesTonemap_HDR          MAIN=KBuild_AcesTonemap_HDR           TONEMAPPING_ACES       HDR
 #pragma kernel KBuild_CustomTonemap            MAIN=KBuild_CustomTonemap             TONEMAPPING_CUSTOM
 #pragma kernel KBuild_ExternalTonemap          MAIN=KBuild_ExternalTonemap           TONEMAPPING_EXTERNAL
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 TEXTURE3D(_LogLut3D);
 RW_TEXTURE3D(float4, _OutputTexture);
