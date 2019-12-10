@@ -69,9 +69,10 @@ namespace UnityEditor.VFX
 
     class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
-
         public static bool HasVFXExtension(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath))
+                return false;
             return filePath.EndsWith(VisualEffectResource.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphOperator.Extension);
