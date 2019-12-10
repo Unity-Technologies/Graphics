@@ -238,6 +238,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an inverted handling of CoatSmoothness for SSR in StackLit.
 - Fixed missing distortion inputs in Lit and Unlit material UI.
 - Fix issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue with Exclude from TAA stencil ignored. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

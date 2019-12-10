@@ -864,6 +864,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
         }
 
