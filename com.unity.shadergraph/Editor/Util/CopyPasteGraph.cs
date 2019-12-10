@@ -103,7 +103,7 @@ namespace UnityEditor.Graphing.Util
                 // Sort based on input graph data's order
                 if (graphData != null)
                 {
-                    m_Inputs.Sort((x, y) => graphData.GetGraphInputIndex(x) > graphData.GetGraphInputIndex(y) ? 1 : -1);
+                    m_Inputs.Sort((x, y) => graphData.GetContainingCategory(x).GetInputIndex(x) > graphData.GetContainingCategory(y).GetInputIndex(y) ? 1 : -1);
                 }
             }
 

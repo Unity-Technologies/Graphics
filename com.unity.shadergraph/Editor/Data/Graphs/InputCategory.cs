@@ -20,6 +20,31 @@ namespace UnityEditor.ShaderGraph
             set { m_Header = value;  }
         }
 
+        [NonSerialized]
+        BlackboardCateogrySection m_BlackboardSection;
+
+        public BlackboardCateogrySection blackboardSection
+        {
+            get
+            {
+                if (m_BlackboardSection == null)
+                    m_BlackboardSection = new BlackboardCateogrySection(this);
+
+                return m_BlackboardSection;
+            }
+        }
+
+        [NonSerialized]
+        List<ShaderInput> m_Inputs = new List<ShaderInput>();
+
+        public IEnumerable<ShaderInput> inputs
+        {
+            get { return m_Inputs; }
+        }
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
+
         [SerializeField]
         bool m_Expanded = true;
 
@@ -28,72 +53,53 @@ namespace UnityEditor.ShaderGraph
             get { return m_Expanded; }
         }
 
-        [NonSerialized]
-        GraphData m_Graph;
-
-        [NonSerialized]
-        List<ShaderInput> m_Inputs = new List<ShaderInput>();
-
-        public List<ShaderInput> inputs
+        public void ToggleCollapse()
         {
-            get { return m_Inputs; }
+            m_Expanded = !m_Expanded;
+            blackboardSection.GetFirstAncestorOfType<MaterialGraphView>().graph.SectionChangesHappened();
+
+            if (m_Expanded)
+                m_BlackboardSection.AddToClassList("expanded");
+            else
+                m_BlackboardSection.AddToClassList("expanded");
         }
-
-        [NonSerialized]
-        BlackboardCateogrySection_V m_BlackboardSection;
-
-        public BlackboardCateogrySection_V blackboardSection
-        {
-            get
-            {
-                return m_BlackboardSection;
-            }
-        }
-
-        public void CreateBlackboardSection(GraphData graph)
-        {
-            m_BlackboardSection = new BlackboardCateogrySection_V(this, graph);
-        }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedInputs = new List<SerializationHelper.JSONSerializedElement>();
 
         #region ShaderInputs
 
-        public void AddShaderInput(ShaderInput input, int index = -1)
+        internal ShaderInput GetInput(int index)
         {
-            if (index < 0)
+            return m_Inputs[index];
+        }
+
+        internal int GetInputIndex(ShaderInput input)
+        {
+            return m_Inputs.IndexOf(input);
+        }
+
+        internal void AddInput(ShaderInput input, int index)
+        {
+            if (index < 0 || index > m_Inputs.Count)
                 m_Inputs.Add(input);
             else
                 m_Inputs.Insert(index, input);
-
-            BlackboardProvider.needsUpdate = true;
         }
 
-        public void RemoveShaderInput(ShaderInput input)
-        {
-            m_Inputs.Remove(input);
-        }
-
-        public void RemoveShaderInputByGuid(Guid guid)
+        internal void RemoveInputByGuid(Guid guid)
         {
             m_Inputs.RemoveAll(x => x.guid == guid);
-
-            BlackboardProvider.needsUpdate = true;
         }
 
-        // True if the input was moved TODO: y probably remove that though lol...
-        public bool MoveShaderInput(ShaderInput input, int newIndex)
+        internal void MoveShaderInput(ShaderInput input, int newIndex)
         {
             if (newIndex > m_Inputs.Count || newIndex < 0)
-                throw new ArgumentException("New index is not within keywords list.");
+                throw new ArgumentException("New index is not within keywords list. newIndex=" + newIndex + " m_Inputs.Count=" + m_Inputs.Count);
 
             var currentIndex = m_Inputs.IndexOf(input);
             if (currentIndex == -1)
-                throw new ArgumentException("Input is not in Input Category.");
+                throw new ArgumentException("Input is not in the Input Category.");
 
             if (newIndex == currentIndex)
-                return false;
+                return;
 
             m_Inputs.RemoveAt(currentIndex);
             if (newIndex > currentIndex)
@@ -103,23 +109,19 @@ namespace UnityEditor.ShaderGraph
                 m_Inputs.Add(input);
             else
                 m_Inputs.Insert(newIndex, input);
-
-            BlackboardProvider.needsUpdate = true;
-
-            return true;
         }
 
         #endregion
 
         #region Serialization
 
-        public void OnBeforeSerialize()
+        internal void OnBeforeSerialize()
         {
             // TODO: does making the ShaderInput cause Property or Keyword specific serialized fields to get lost? probably?
             m_SerializedInputs = SerializationHelper.Serialize<ShaderInput>(m_Inputs);
         }
 
-        public void OnAfterDeserialize()
+        internal void OnAfterDeserialize()
         {
             m_Inputs = SerializationHelper.Deserialize<ShaderInput>(m_SerializedInputs, GraphUtil.GetLegacyTypeRemapping());
         }

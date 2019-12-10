@@ -28,12 +28,36 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedCategories = new List<SerializationHelper.JSONSerializedElement>();
 
-        public List<InputCategory> categories
+        public IEnumerable<InputCategory> categories
         {
             get { return m_Categories; }
         }
 
-        // TODO: z need to check that we can't make this more efficient, or rather than when it is used it's okay
+        // This is for when the category itself has been altered (name change, index, ect.), the blackboard should be rebuilt
+        // although rebuilding the inputs within each categories isn't required.
+        bool m_BlackboardSectionsChanged = false;
+
+        public bool hasBlackboardSectionChanges
+        {
+            get { return m_BlackboardSectionsChanged; }
+        }
+
+        // TODO: look into a way such that this isn't necessary (currently only one use)
+        public void SectionChangesHappened()
+        {
+            m_BlackboardSectionsChanged = true;
+        }
+
+        // This is for when the contents (ShaderInputs) within a category are altered: this category needs to be rebuilt.
+        [SerializeField]
+        List<InputCategory> m_AlteredCategories = new List<InputCategory>();
+
+        public IEnumerable<InputCategory> alteredCategories
+        {
+            get { return m_AlteredCategories; }
+        }
+
+        // TODO: y check that these aren't used on frequently reoccuring steps (actually, make these functions)
         public IEnumerable<AbstractShaderProperty> properties
         {
             get
@@ -74,52 +98,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [SerializeField]
-        List<InputCategory> m_AlteredCategories = new List<InputCategory>();
-
-        // TODO: z use this
-        public List<InputCategory> alteredCategories
+        public IEnumerable<ShaderInput> shaderInputs
         {
-            get { return m_AlteredCategories; }
+            get
+            {
+                List<ShaderInput> shaderInputs = new List<ShaderInput>();
+
+                foreach (InputCategory category in m_Categories)
+                {
+                    foreach (ShaderInput input in category.inputs)
+                    {
+                        shaderInputs.Add(input);
+                    }
+                }
+
+                return shaderInputs;
+            }
         }
-
-//        [SerializeField]
-//        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
-
-//        [NonSerialized]
-//        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
-
-//        [SerializeField]
-//        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
-
-//        [NonSerialized]
-//        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
-
-//// TODO: z Remove most of these?
-//        [NonSerialized]
-//        List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
-//
-//        // TODO: z why IEnumeratable?
-//        public List<ShaderInput> addedInputs
-//        {
-//            get { return m_AddedInputs; }
-//        }
-//
-//        [NonSerialized]
-//        List<Guid> m_RemovedInputs = new List<Guid>();
-//
-//        public List<Guid> removedInputs
-//        {
-//            get { return m_RemovedInputs; }
-//        }
-//
-//        [NonSerialized]
-//        List<ShaderInput> m_MovedInputs = new List<ShaderInput>();
-//
-//        public List<ShaderInput> movedInputs
-//        {
-//            get { return m_MovedInputs; }
-//        }
 
         public string assetGuid { get; set; }
 
@@ -436,26 +431,9 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_AlteredCategories.Clear();
+            m_BlackboardSectionsChanged = false;
             m_MostRecentlyCreatedGroup = null;
             didActiveOutputNodeChange = false;
-        }
-
-        public void AddShaderInput(ShaderInput input, InputCategory category)
-        {
-            category.inputs.Add(input);
-
-            m_AlteredCategories.Add(category);
-
-            SanitizeGraphInputName(input);
-            input.generatePropertyBlock = input.isExposable;
-
-            owner.RegisterCompleteObjectUndo("Create Graph Input");
-            AddGraphInput(input);
-
-            if (input as ShaderKeyword != null)
-            {
-                OnKeywordChangedNoValidate();
-            }
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -827,6 +805,167 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
+        public InputCategory GetInputCategory(int index)
+        {
+            return m_Categories[index];
+        }
+
+        public int GetInputCategoryIndex(InputCategory category)
+        {
+            return m_Categories.IndexOf(category);
+        }
+
+        public InputCategory GetContainingInputCategory(ShaderInput input)
+        {
+            foreach (InputCategory category in m_Categories)
+            {
+                if (category.inputs.Contains(input))
+                    return category;
+            }
+
+            return null;
+        }
+
+        public void AddInputCategory(InputCategory category)
+        {
+            owner.RegisterCompleteObjectUndo("Create Input Category");
+            m_BlackboardSectionsChanged = true;
+            m_Categories.Add(category);
+        }
+
+        public void RemoveInputCategory(InputCategory category)
+        {
+            owner.RegisterCompleteObjectUndo("Remove Input Category");
+            m_BlackboardSectionsChanged = true;
+            m_Categories.Remove(category);
+        }
+
+        public void MoveInputCategory(InputCategory category, int newIndex)
+        {
+            int currentIndex = GetInputCategoryIndex(category);
+            if (currentIndex == -1)
+                return;
+
+            if (newIndex == currentIndex)
+                return;
+
+            owner.RegisterCompleteObjectUndo("Move Input Category");
+            m_BlackboardSectionsChanged = true;
+
+            m_Categories.RemoveAt(newIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+
+            if (newIndex == m_Categories.Count)
+                m_Categories.Add(category);
+            else
+                m_Categories.Insert(newIndex, category);
+        }
+
+        public void AddShaderInputToDefaultCategory(ShaderInput input)
+        {
+            // TODO: We can keep the "Properties" and "Keywords" default fields
+            AddShaderInput(input, m_Categories[0]);
+        }
+
+        public void AddShaderInput(ShaderInput input, InputCategory category, int index = -1)
+        {
+            if (input == null)
+                return;
+            if (properties.Contains(input) || keywords.Contains(input))
+                return;
+
+            owner.RegisterCompleteObjectUndo("Create Graph Input");
+            m_AlteredCategories.Add(category);
+
+            SanitizeGraphInputName(input);
+            input.generatePropertyBlock = input.isExposable;
+
+            category.AddInput(input, index);
+            m_AlteredCategories.Add(category);
+
+            if (input as ShaderKeyword != null)
+            {
+                OnKeywordChangedNoValidate();
+            }
+        }
+
+        public void MoveInput(ShaderInput input, InputCategory fromCategory, InputCategory toCategory = null, int index = -1)
+        {
+            if (fromCategory == null)
+                return;
+
+            if (fromCategory == toCategory || toCategory == null)
+            {
+                MoveInputWithinCategory(input, fromCategory, index);
+                return;
+            }
+
+            Debug.Log("index is ..." + index);
+
+            fromCategory.RemoveInputByGuid(input.guid);
+            toCategory.AddInput(input, index);
+        }
+
+        void MoveInputWithinCategory(ShaderInput input, InputCategory category, int newIndex)
+        {
+            if (category != null)
+            {
+                owner.RegisterCompleteObjectUndo("Move Graph Input");
+                m_AlteredCategories.Add(category);
+
+                category.MoveShaderInput(input, newIndex);
+            }
+        }
+
+        public void RemoveGraphInput(ShaderInput input)
+        {
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    var propetyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid).ToList();
+                    foreach (var propNode in propetyNodes)
+                        ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
+                    break;
+            }
+
+            RemoveGraphInputNoValidate(input.guid);
+            ValidateGraph();
+        }
+
+        void RemoveGraphInputNoValidate(Guid guid)
+        {
+            InputCategory category = GetContainingCategory(guid);
+            owner.RegisterCompleteObjectUndo("Removed Graph Input");
+            if (category != null)
+                m_AlteredCategories.Add(category);
+
+            category.RemoveInputByGuid(guid);
+            m_AlteredCategories.Add(category);
+        }
+
+        public InputCategory GetContainingCategory(ShaderInput input)
+        {
+            foreach (InputCategory category in m_Categories)
+            {
+                if (category.inputs.Contains(input))
+                    return category;
+            }
+
+            return null;
+        }
+
+        InputCategory GetContainingCategory(Guid guid)
+        {
+            foreach (InputCategory cateogory in m_Categories)
+            {
+                if (cateogory.inputs.Any(i => i.guid == guid))
+                    return cateogory;
+            }
+
+            return null;
+        }
+
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
@@ -848,35 +987,8 @@ namespace UnityEditor.ShaderGraph
                 collector.AddShaderKeyword(keyword);
             }
 
-            // Alwways calculate permutations when collecting
+            // Always calculate permutations when collecting
             collector.CalculateKeywordPermutations();
-        }
-
-        public void AddGraphInput(ShaderInput input, int index = -1, int sectionIndex = -1)
-        {
-            if (input == null)
-                return;
-
-            if (properties.Contains(input) || keywords.Contains(input))
-                return;
-
-            int categoryCount = m_Categories.Count();
-            if (categoryCount <= 0)
-                return; // TODO: z Also why is adding to a dirty state not necessary here?
-            m_Categories[categoryCount - 1].AddShaderInput(input);
-        }
-
-        public InputCategory GetContainingCategory(ShaderInput input)
-        {
-            foreach (InputCategory cateogory in m_Categories)
-            {
-                if (cateogory.inputs.Contains(input))
-                {
-                    return cateogory;
-                }
-            }
-
-            return null;
         }
 
         public void SanitizeGraphInputName(ShaderInput input)
@@ -917,64 +1029,6 @@ namespace UnityEditor.ShaderGraph
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        public void MoveWithinCategory(ShaderInput input, int newIndex)
-        {
-            owner.RegisterCompleteObjectUndo("Move Graph Input");
-
-            InputCategory category = GetContainingCategory(input);
-            if (category != null)
-            {
-                bool moved = category.MoveShaderInput(input, newIndex);
-                if (moved)
-                {
-                    m_AlteredCategories.Add(category);
-                }
-            }
-        }
-
-        public void RemoveGraphInput(ShaderInput input)
-        {
-            owner.RegisterCompleteObjectUndo("Removed Graph Input");
-
-            switch(input)
-            {
-                case AbstractShaderProperty property:
-                    var propetyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid).ToList();
-                    foreach (var propNode in propetyNodes)
-                        ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
-                    break;
-            }
-
-            RemoveGraphInputNoValidate(input.guid);
-            ValidateGraph();
-        }
-
-        // TODO: y Why delete by Guid?
-        void RemoveGraphInputNoValidate(Guid guid)
-        {
-            foreach (InputCategory category in m_Categories)
-            {
-                category.RemoveShaderInputByGuid(guid);
-                m_AlteredCategories.Add(category);
-            }
-        }
-
-        // TODO: z What was this used for?
-        public int GetGraphInputIndex(ShaderInput input)
-        {
-//            switch(input)
-//            {
-//                case AbstractShaderProperty property:
-//                    return m_Properties.IndexOf(property);
-//                case ShaderKeyword keyword:
-//                    return m_Keywords.IndexOf(keyword);
-//                default:
-//                    throw new ArgumentOutOfRangeException();
-//            }
-            return 0;
-        }
-
 
         static List<IEdge> s_TempEdges = new List<IEdge>();
 
@@ -1032,11 +1086,8 @@ namespace UnityEditor.ShaderGraph
                 ReplacePropertyNodeWithConcreteNodeNoValidate(pNode);
 
             messageManager?.ClearAllFromProvider(this);
-            //First validate edges, remove any
-            //orphans. This can happen if a user
-            //manually modifies serialized data
-            //of if they delete a node in the inspector
-            //debug view.
+            // First validate edges, remove any orphans. This can happen if a user manually modifies serialized data
+            // of if they delete a node in the inspector debug view.
             foreach (var edge in edges.ToArray())
             {
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
@@ -1144,7 +1195,6 @@ namespace UnityEditor.ShaderGraph
             messageManager?.ClearNodesFromProvider(this, node.ToEnumerable());
         }
 
-        // TODO:
         public void ReplaceWith(GraphData other)
         {
             if (other == null)
@@ -1153,23 +1203,16 @@ namespace UnityEditor.ShaderGraph
             using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedInputGuids = removedInputsPooledObject.value;
-                // TODO:
-//                foreach (var property in m_Properties)
-//                    removedInputGuids.Add(property.guid);
-//                foreach (var keyword in m_Keywords)
-//                    removedInputGuids.Add(keyword.guid);
+                foreach (var input in shaderInputs)
+                    removedInputGuids.Add(input.guid);
                 foreach (var inputGuid in removedInputGuids)
                     RemoveGraphInputNoValidate(inputGuid);
             }
-            foreach (var otherProperty in other.properties)
+
+            foreach (var otherInput in other.shaderInputs)
             {
-                if (!properties.Any(p => p.guid == otherProperty.guid))
-                    AddGraphInput(otherProperty);
-            }
-            foreach (var otherKeyword in other.keywords)
-            {
-                if (!keywords.Any(p => p.guid == otherKeyword.guid))
-                    AddGraphInput(otherKeyword);
+                if (!shaderInputs.Any(p => p.guid == otherInput.guid))
+                    AddShaderInputToDefaultCategory(otherInput);
             }
 
             other.ValidateGraph();
@@ -1280,21 +1323,19 @@ namespace UnityEditor.ShaderGraph
                 // Check if the property nodes need to be made into a concrete node.
                 if (node is PropertyNode propertyNode)
                 {
-                    // TODO: z
-                    Debug.Log("PasteGraph... node is PropertyNode propertyNode");
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-//                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
-//                    {
-//                        // If the property is in the serialized paste graph, make the property node into a property node.
-//                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
-//                        if (pastedGraphMetaProperties.Any())
-//                        {
-//                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
-//                            pastedNode.drawState = node.drawState;
-//                            nodeGuidMap[oldGuid] = pastedNode.guid;
-//                        }
-//                    }
+                    if (!properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    {
+                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
+                        if (pastedGraphMetaProperties.Any())
+                        {
+                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            pastedNode.drawState = node.drawState;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;
+                        }
+                    }
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
@@ -1339,7 +1380,7 @@ namespace UnityEditor.ShaderGraph
                             var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
                             SanitizeGraphInputName(keyword);
                             SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
-                            AddGraphInput(keyword);
+                            AddShaderInputToDefaultCategory(keyword);
                         }
                     }
 
@@ -1377,28 +1418,23 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
 
-            // TODO: done?
             foreach (InputCategory category in m_Categories)
             {
                 category.OnBeforeSerialize();
             }
             m_SerializedCategories = SerializationHelper.Serialize<InputCategory>(m_Categories);
-//            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-//            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
 
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
         public void OnAfterDeserialize()
         {
-            // have to deserialize 'globals' before nodes
+            // Have to deserialize 'globals' before nodes
             m_Categories = SerializationHelper.Deserialize<InputCategory>(m_SerializedCategories, GraphUtil.GetLegacyTypeRemapping());
             foreach (InputCategory category in m_Categories)
             {
                 category.OnAfterDeserialize();
             }
-//            m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
-//            m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
 

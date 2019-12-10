@@ -178,10 +178,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Target");
-                    graph.activeTargetIndex = EditorGUILayout.Popup(graph.activeTargetIndex, 
+                    graph.activeTargetIndex = EditorGUILayout.Popup(graph.activeTargetIndex,
                         graph.validTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
                     GUILayout.Label("Implementations");
-                    graph.activeTargetImplementationBitmask = EditorGUILayout.MaskField(graph.activeTargetImplementationBitmask, 
+                    graph.activeTargetImplementationBitmask = EditorGUILayout.MaskField(graph.activeTargetImplementationBitmask,
                         graph.validImplementations.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -250,8 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
-                m_BlackboardProvider = new BlackboardProvider(graph);
-                m_GraphView.Add(m_BlackboardProvider.blackboard);
+                m_BlackboardProvider = new BlackboardProvider(graph, m_GraphView);
 
                 m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
 

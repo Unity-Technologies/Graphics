@@ -458,7 +458,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderInput copiedInput = keyword.Copy();
                 subGraph.SanitizeGraphInputName(copiedInput);
                 subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
-                subGraph.AddGraphInput(copiedInput);
+                // TODO: We could handle these in such a way such that we try to insert stuff in a similar custom category that they came from.
+                subGraph.AddShaderInputToDefaultCategory(copiedInput);
 
                 // Update the keyword nodes that depends on the copied keyword
                 var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
@@ -626,7 +627,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
 
-                    subGraph.AddGraphInput(prop);
+                    subGraph.AddShaderInputToDefaultCategory(prop);
                     var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;

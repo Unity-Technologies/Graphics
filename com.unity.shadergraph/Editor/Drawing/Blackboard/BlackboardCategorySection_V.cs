@@ -7,12 +7,13 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 
+// NOTICE: this is a rough attempt repalce blackboard sections with our own stuff.
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardCateogrySection_V : GraphElement
     {
         InputCategory m_Category;
-        GraphData m_Graph; // TODO: y are we sure about this?
+        GraphData m_Graph; // TODO: are we sure about this?
 
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
@@ -48,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Category = category;
             m_Graph = graph;
 
-            // TODO: y why is this necessary?
+            // TODO: why is this necessary?
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
 
             var uxml = Resources.Load<VisualTreeAsset>("uxml/GraphView/BlackboardSection");
@@ -98,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_RowsContainer == null) Debug.Log("m_RowsContainer == null");
             if (m_ExpandButton == null) Debug.Log("m_ExpandButton == null");
             if (m_NameField == null) Debug.Log("m_NameField == null");
-            BlackboardProvider.needsUpdate = true;
+            // BlackboardProvider.needsUpdate = true;
         }
 
         public void RefreshSection()
@@ -116,7 +117,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddDisplayedInputRow(ShaderInput input)
         {
-            // TODO: z double check that things cannot be added twice
+            // TODO: double check that things cannot be added twice
 //            if (m_InputRows.ContainsKey(input.guid))
 //                return;
 
@@ -150,7 +151,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             this.Add(row);
 
-            // TODO: z
+            // TODO:
 //            var pill = row.Q<Pill>();
 //            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
 //            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
@@ -220,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void SetSelectable()
         {
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable;
-            // styleSheets.Add(VFXView.LoadStyleSheet("Selectable")); // TODO: ?
+            // styleSheets.Add(VFXView.LoadStyleSheet("Selectable")); // TODO:
             AddToClassList("selectable");
             hierarchy.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
 
@@ -240,10 +241,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ToggleExpand()
         {
-            BlackboardProvider.needsUpdate = true;
+            // BlackboardProvider.needsUpdate = true;
 
             expanded = !expanded;
-            m_Graph.alteredCategories.Add(m_Category); // TODO: this hack...
+            // m_Graph.alteredCategories.Add(m_Category); // TODO: this hack...
             Debug.Log("I'm now going to expand... " + expanded.ToString());
         }
 
@@ -303,7 +304,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (selection.Any(t => !(t is BlackboardCateogrySection_V)))
+            if (selection.Any(t => !(t is BlackboardCateogrySection)))
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -372,7 +373,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (selection.OfType<BlackboardCateogrySection_V>().Any())
+            if (selection.OfType<BlackboardCateogrySection>().Any())
             {
                 Debug.Log("selection.OfType<BlackboardCateogrySection_V>().Any()");
                 // return;
