@@ -598,8 +598,10 @@ namespace UnityEditor.VFX
 
         private void PrepareSubgraphs()
         {
+            Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(this);
             RecurseSubgraphPatchInputExpression(this.children);
+            Profiler.EndSample();
         }
 
         IEnumerable<VFXGraph> GetAllGraphs<T>() where T : VisualEffectObject
