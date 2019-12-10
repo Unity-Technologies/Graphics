@@ -25,38 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.ReadTexture(buffers.contactShadowsBuffer);
         }
 
-        class CopyStencilBufferPassData
-        {
-            public HDCamera hdCamera;
-            public RenderGraphResource depthStencilBuffer;
-            public RenderGraphMutableResource stencilBufferCopy;
-            public Material copyStencil;
-            public Material copyStencilForSSR;
-        }
-
-        RenderGraphResource CopyStencilBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, Material copyStencil, Material copyStencilForSSR)
-        {
-            // TODO: Move early out outside of the rendering function, otherwise we adds a pass for nothing.
-            using (var builder = renderGraph.AddRenderPass<CopyStencilBufferPassData>("Copy Stencil", out var passData))
-            {
-                passData.hdCamera = hdCamera;
-                passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
-                passData.stencilBufferCopy = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "CameraStencilCopy" }));
-                passData.copyStencil = copyStencil;
-                passData.copyStencilForSSR = copyStencilForSSR;
-
-                builder.SetRenderFunc(
-                (CopyStencilBufferPassData data, RenderGraphContext context) =>
-                {
-                    RTHandle depthBuffer = context.resources.GetTexture(data.depthStencilBuffer);
-                    RTHandle stencilCopy = context.resources.GetTexture(data.stencilBufferCopy);
-                    CopyStencilBufferIfNeeded(context.cmd, data.hdCamera, depthBuffer, stencilCopy, data.copyStencil, data.copyStencilForSSR);
-                });
-
-                return passData.stencilBufferCopy;
-            }
-        }
-
         class BuildGPULightListPassData
         {
             public LightDataGlobalParameters lightDataGlobalParameters;
