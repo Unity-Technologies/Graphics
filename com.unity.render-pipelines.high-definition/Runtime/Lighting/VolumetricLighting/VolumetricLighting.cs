@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[]      pixelCoordToViewDirWS;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
+        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex, ref Texture2DArray cmjPointSet)
         {
             var parameters = new VolumetricLightingParameters();
 
@@ -783,15 +783,18 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTileY = GetNumTileBigTileY(hdCamera);
             parameters.filterVolume = fog.filter.value;
 
+            if (!parameters.enableReprojection) frameIndex = 0;
+            cmjPointSet = s_CmjPointSets[frameIndex & 15];
+
             return parameters;
         }
 
         static void VolumetricLightingPass( in VolumetricLightingParameters parameters,
+                                            Texture2DArray                  cmjPointSet,
                                             RTHandle                        densityBuffer,
                                             RTHandle                        lightingBuffer,
                                             RTHandle                        historyRT,
                                             RTHandle                        feedbackRT,
-                                            Texture2DArray                  cmjPointSet,
                                             ComputeBuffer                   bigTileLightList,
                                             CommandBuffer                   cmd)
         {
@@ -841,20 +844,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
 
-            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
+            Texture2DArray cmjPointSet = null;
+            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex, ref cmjPointSet);
 
             using (new ProfilingSample(cmd, "Volumetric Lighting"))
             {
-                if (!parameters.enableReprojection) frameIndex = 0;
-
                 // It is safe to request these RTs even if they have not been allocated.
                 // The system will return NULL in that case.
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
                 RTHandle feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
-                Texture2DArray cmjPointSet = s_CmjPointSets[frameIndex & 15];
-
-                VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, cmjPointSet, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, cmjPointSet, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
