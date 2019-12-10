@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Naming for particles system and spawn context
 
 ### Fixed
+- Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload

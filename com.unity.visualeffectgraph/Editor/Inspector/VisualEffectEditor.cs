@@ -498,10 +498,13 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-
             GUILayout.Label("Show Bounds", GUILayout.Width(192));
-
             VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Show Event Tester", GUILayout.Width(192));
+            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, GUILayout.Width(18));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
