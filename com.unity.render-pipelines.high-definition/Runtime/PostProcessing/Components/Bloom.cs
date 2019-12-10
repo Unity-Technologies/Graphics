@@ -28,6 +28,12 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
+        /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
+        /// </summary>
+        [Tooltip("Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.")]
+        public MinFloatParameter threshold = new MinFloatParameter(0f, 0f);
+
+        /// <summary>
         /// Controls the strength of the bloom filter.
         /// </summary>
         [Tooltip("Controls the strength of the bloom filter.")]
@@ -56,12 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the strength of the lens dirt.")]
         public MinFloatParameter dirtIntensity = new MinFloatParameter(0f, 0f);
-
-        /// <summary>
-        /// When enabled, bloom is more stable when you use high anamorphism factors or when you set the resolution to Quarter.
-        /// </summary>
-        [Tooltip("When enabled, bloom is more stable when you use high anamorphism factors or when you set the resolution to Quarter.")]
-        public BoolParameter prefilter = new BoolParameter(false);
 
         /// <summary>
         /// When enabled, bloom stretches horizontally depending on the current physical Camera's Anamorphism property value.

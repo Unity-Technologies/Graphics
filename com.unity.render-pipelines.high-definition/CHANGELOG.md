@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Reflections to the DXR Wizard
 - Added the support of skinned mesh renderers for ray tracing effects
 - Added API documentation for Dynamic Resolution.
+- Added a Threshold setting to Bloom. Setting a value higher than 0 will break the energy conservation rule.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
