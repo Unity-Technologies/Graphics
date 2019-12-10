@@ -490,7 +490,7 @@ namespace UnityEditor.VFX
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
-                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
                                     callSG.builder.AppendLine("INSG.WorldSpaceViewDirection = V;");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)

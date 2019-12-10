@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - subgraph block into subgraph context no longer forget parameter values.
 - Fix exception when compiling an asset with a turbulence block in absolute mode
 - Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
 
 ## [7.1.1] - 2019-09-05
 ### Added
