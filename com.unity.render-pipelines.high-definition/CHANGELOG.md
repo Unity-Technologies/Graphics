@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added HDRPCameraBinder property binder for Visual Effect Graph
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
+- Added Reflections to the DXR Wizard
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -212,6 +213,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in DensityVolume.
 - Fix light limit counts specified on the HDRP asset
 - Fixed Quality Settings for SSR, Contact Shadows and Ambient Occlusion volume components
+- Fixed decalui deriving from hdshaderui instead of just shaderui
+- Use DelayedIntField instead of IntField for scalable settings
+- Fixed init of debug for FrameSettingsHistory on SceneView camera
+- Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
+- Fix Wizard load when none selected for RenderPipelineAsset
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

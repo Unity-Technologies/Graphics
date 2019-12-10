@@ -42,6 +42,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl"
 
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
 
@@ -194,6 +196,14 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return GetColorWithRotation(dir, exposure, _CosSinPhi);
     }
 
+    float3 GetScreenSpaceAmbientOcclusionForBackplate(float2 positionSS, float NdotV, float perceptualRoughness)
+    {
+        float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, positionSS).x;
+        float directAmbientOcclusion   = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+
+        return lerp(_AmbientOcclusionParam.rgb, 1.0, directAmbientOcclusion);
+    }
+
     float4 RenderSkyWithBackplate(Varyings input, float3 positionOnBackplate, float exposure, float3 originalDir, float blend, float depth)
     {
         // Reverse it to point into the scene
@@ -215,7 +225,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 output = lerp(            GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
                              shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
 
-        return float4(output, exposure);
+        float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0f);
+
+        return float4(ao*output, exposure);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
@@ -292,10 +304,23 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return GetDepthWithBackplate(input);
     }
 
-    float FragRenderBackplateDepth(Varyings input) : SV_Depth
+    float4 FragRenderBackplateDepth(Varyings input, out float depth : SV_Depth) : SV_Target0
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        return GetDepthWithBackplate(input);
+        depth = GetDepthWithBackplate(input);
+
+        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+        NormalData normalData;
+        normalData.normalWS            = float3(0, 1, 0);
+        normalData.perceptualRoughness = 1.0f;
+
+        float4 gbufferNormal = 0;
+
+        if (depth != UNITY_RAW_FAR_CLIP_VALUE)
+            EncodeIntoNormalBuffer(normalData, posInput.positionSS, gbufferNormal);
+
+        return gbufferNormal;
     }
 
     ENDHLSL

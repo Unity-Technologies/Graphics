@@ -13,13 +13,13 @@ To create a new Light Gameobject:
 1. In the Unity Editor, go to **GameObject > Light**
 2. Select the Light type you want to add.
 
-Unity creates a new GameObject and attaches a Light component, as well as two other High Definition Render Pipeline (HDRP) components: **HD Additional Light Data** and **HD Additional Shadow Data**. Unity places the new Light GameObject into your Scene, centered on your current view in the Scene window.
+Unity creates a new GameObject and attaches a Light component, as well as another High Definition Render Pipeline (HDRP) component: **HD Additional Light Data**. Unity places the new Light GameObject into your Scene, centered on your current view in the Scene window.
 
 To add a Light component to an existing GameObject:
 
 1. Select the GameObject you want to add a Light.
 2.  In the Inspector, click **Add Component**.
-3. Go to the **Rendering** section, and click **Light**. This creates a new Light source and attaches it to the currently selected GameObject. It also adds the **HD Additional Light Data** and **HD Additional Shadow Data** HDRP components.
+3. Go to the **Rendering** section, and click **Light**. This creates a new Light source and attaches it to the currently selected GameObject. It also adds the **HD Additional Light Data** HDRP component.
 
 Alternatively, you can search for "Light" in the **Add Component** window, then click **Light** to add the Light component.
 
@@ -33,10 +33,11 @@ For more detailed information on how to configure realistic light fixtures, see 
 
 ### Properties
 
-The properties available for Lights are in separate drop-down sections. Each drop-down section contains some properties that all Lights share, and also properties that customize the behavior of the specific type of Light. These sections also contain [more options](More-Options.html) that you can expose if you want to fine-tune your light's behavior. The drop-down sections are:
+The properties available for Lights are in separate sections. Each section contains some properties that all Lights share, and also properties that customize the behavior of the specific type of Light. These sections also contain [more options](More-Options.html) that you can expose if you want to fine-tune your light's behavior. The sections are:
 
 - [General](#GeneralProperties)
 - [Shape](#ShapeProperties)
+- [Celestial Body](#CelestialBodyProperties)
 - [Emission](#EmissionProperties)
 - [Volumetrics](#VolumetricProperties)
 - [Shadows](#ShadowProperties)
@@ -76,12 +77,12 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Shape**           | HDRP Spot Lights can use three shapes.<br />&#8226; **Cone** : Projects light from a single point at the GameObject’s position, out to a circular base, like a cone. Alter the radius of the circular base  by changing the **Spot Angle** and the **Range**.<br />&#8226; **Pyramid** : Projects light from a single point at the GameObject’s position onto a base that is a square with its side length equal to the diameter of the **Cone**.<br />&#8226; **Box** : Projects light evenly across a rectangular area defined by a horizontal and vertical size. |
+| **Shape**           | HDRP Spot Lights can use three shapes.<br />&#8226; **Cone** : Projects light from a single point at the GameObject’s position, out to a circular base, like a cone. Alter the radius of the circular base  by changing the **Outer Angle** and the **Range**.<br />&#8226; **Pyramid** : Projects light from a single point at the GameObject’s position onto a base that is a square with its side length equal to the diameter of the **Cone**.<br />&#8226; **Box** : Projects light evenly across a rectangular area defined by a horizontal and vertical size. |
 | **Outer Angle**     | The angle in degrees at the base of a Spot Light’s cone. This property is only for Lights with a **Cone Shape**. |
 | **Inner Angle (%)** | Determines where the attenuation between the inner cone and the outer cone starts. Higher values cause the light at the edges of the Spot Light to fade out. Lower values stop the light from fading at the edges. This property is only for Lights with a **Cone Shape**. |
-| **Spot Angle**      | The angle in degrees at the base of a Spot Light’s cone.     |
+| **Spot Angle**      | The angle in degrees used to determine the size of a Spot Light using a **Pyramid** shape. |
 | **Aspect Ratio**    | Adjusts the shape of a Pyramid Spot Light to create rectangular Spot Lights. Set this to 1 for a square projection. Values lower than 1 make the Light wider, from the point of origin. Values higher than 1 make the Light longer. This property is only for Lights with a **Pyramid Shape**. |
-| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the softness of baked shadows and ray-traced shadows. |
+| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff, and the softness of baked, ray-traced, and PCSS shadows. |
 | **Size X**          | For **Box**. Adjusts the horizontal size of the Box Light. No light shines outside of the dimensions you set. |
 | **Size Y**          | For **Box**. Adjusts the vertical size of the Box Light. No light shines outside of the dimensions you set. |
 
@@ -91,9 +92,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property**         | **Description**                                              |
 | -------------------- | ------------------------------------------------------------ |
-| **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights and the softness of baked shadows and ray-traced shadows. |
-| **Affect Physically Based Sky** | When **Physically Based Sky** is in use, displays a sun disc in the sky in the direction of the directional light with a diameter, color and intensity that match the parameters of the directional light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
-| **- Distance** | Controls the distance of the sun disc which is useful for tweaking the sorting of multiple sun discs displayed in the sky. Smaller distance discs draw on top of longer distance discs.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights, and the softness of baked, ray-traced, and PCSS shadows.|
 
 <a name="PointLight"></a>
 
@@ -112,6 +111,22 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Size Y**   | For **Rectangle**. Defines the vertical size of the Rectangle Light. |
 | **Length**   | For **Tube**. Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
 | **Radius**   | For **Disc**. Define the radius of the Disc Light.           |
+
+<a name="CelestialBodyProperties"></a>
+
+### **Celestial Body (Directional only)**
+
+These settings define the behavior of the light when you use it as a celestial body with the [Physically Based Sky](Override-Physically-Based-Sky.html).
+
+| **Property**         | **Description**                                              |
+| -------------------- | ------------------------------------------------------------ |
+| **Affect Physically Based Sky** | When using a **Physically Based Sky**, this displays a sun disc in the sky in this Light's direction. The diameter, color, and intensity of the sun disc match the properties of this Directional Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **- Flare Size** | Controls the size of the flare around the celestial body (in degrees).. |
+| **- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. |
+| **- Flare Tint** | Controls the tint of the flare of the celestial body. |
+| **- Surface Texture** | Sets a 2D (disk) Texture for the surface of the celestial body. This acts like a multiplier. |
+| **- Surface Tint** | Tints the surface of the celestial body. |
+| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
 <a name="EmissionProperties"></a>
 
@@ -169,7 +184,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 ### **Shadows**
 
-Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select either of this **Type**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
+Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select this **Type**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
 
 Unity exposes extra properties in the **Shadows** section depending on the **Mode** you set in the [General](#GeneralProperties) section. It also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html). To change the **Filtering Quality** property, navigate to your Project’s **HDRP Asset > Shadows** and use the **Filtering Quality** drop-down  to select the shadow filtering mode. Setting **Filtering Quality** to **High** exposes extra properties in the Light Inspector’s **Shadow** drop-down section.
 

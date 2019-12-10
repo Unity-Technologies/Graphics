@@ -19,6 +19,33 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
         /// that are missing or broken.
+        /// This version will still return null value without throwing error if the issue is due to
+        /// AssetDatabase being not ready. But in this case the assetDatabaseNotReady result will be true.
+        /// </summary>
+        /// <param name="container">The object containing reload-able resources</param>
+        /// <param name="basePath">The base path for the package</param>
+        /// <returns>
+        ///   - 1 hasChange: True if something have been reloaded.
+        ///   - 2 assetDatabaseNotReady: True if the issue preventing loading is due to state of AssetDatabase
+        /// </returns>
+        public static (bool hasChange, bool assetDatabaseNotReady) TryReloadAllNullIn(System.Object container, string basePath)
+        {
+            try
+            {
+                return (ReloadAllNullIn(container, basePath), false);
+            }
+            catch (Exception e)
+            {
+                if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int && (int)e.Data["InvalidImport"] == 1))
+                    throw e;
+                return (false, true);
+            }
+        }
+
+
+        /// <summary>
+        /// Looks for resources in the given <paramref name="container"/> object and reload the ones
+        /// that are missing or broken.
         /// </summary>
         /// <param name="container">The object containing reload-able resources</param>
         /// <param name="basePath">The base path for the package</param>

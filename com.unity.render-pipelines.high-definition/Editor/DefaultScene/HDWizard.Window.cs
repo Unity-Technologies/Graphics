@@ -120,6 +120,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadow",
                 error: "Screen Space Shadow is required!");
+            public static readonly ConfigStyle dxrReflections = new ConfigStyle(
+                label: "Reflections",
+                error: "Screen Space Reflections are required!");
             public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: "Static Batching",
                 error: "Static Batching is not supported!");

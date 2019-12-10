@@ -36,6 +36,9 @@ BeforeTransparent | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Nor
 BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers contains all objects in the frame in HDR.
 AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
 
+You can see here on this diagram where the custom passes are injected inside an HDRP frame.
+![](Images/HDRP-frame-graph-diagram.png)
+
 ## Custom Pass List
 
 The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure then. There are two custom passes that are builtin to HDRP, the FullScreen and the DrawRenderers custom pass.  
@@ -90,7 +93,7 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 |  ⚠️ **WARNING**: There are some gotchas that you need to be aware of when writing FullScreen Shaders |
 | ---  |
 | **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
-| **The Depth buffer is not available everywhere and might not contains what you expect**. There is not depth buffer in before rendering, the depth buffer never contains transparent that writes depth and finally the depth buffer is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
+| **The Depth buffer might not contains what you expect**. The depth buffer never contains transparent that writes depth and it is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
 | **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
 | **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
