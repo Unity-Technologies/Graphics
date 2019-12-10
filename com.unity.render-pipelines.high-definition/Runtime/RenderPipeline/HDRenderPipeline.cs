@@ -1186,7 +1186,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
                     var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetRTHandleScale(stencilBufferSize));
+                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
                 }
             }
             );

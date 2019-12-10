@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
 - Added the support of skinned mesh renderers for ray tracing effects
+- Added API documentation for Dynamic Resolution.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -275,6 +276,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
 - Changed the ownership of temporary ray tracing buffers to reduce the memory footprint.
 - Removed dead code related to stencil handling. 
+- Update docs for dynamic resolution page.
 
 ## [7.1.1] - 2019-09-05
 
