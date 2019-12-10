@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wiz
 
 To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
 
-At top, you will see information regarding your current installation and last released package compatible with the Unity version you are using.
+At the top of the window, there is an information box that shows you the currently installed version of HDRP, as well as the latest version of HDRP that is compatible with your current Unity version.
 
 ![](Images/RenderPipelineWizard1.png)
 
@@ -15,7 +15,7 @@ At top, you will see information regarding your current installation and last re
 | **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
 | **Default Scene Prefab**                   | Set the default Prefab that Unity instantiates in a new Scene when you select **File > New Scene**. To instantly create a Scene Asset with this template, go to **Assets > Create** and click **HD Template Scene**. |
 | **Default DXR Scene Prefab**               | Set the default Prefab that Unity instantiates in a new Scene that uses ray tracing. |
-| **Install Configuration Editable Package** | This button will copy a local instance of the High-Definition Render Pipeline package compatible with your High-Definition Render Pipeline into your project in the LocalPackage folder. |
+| **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.html) in the **LocalPackage** folder of your HDRP Project. |
 
 ### Populating the default resources folder
 

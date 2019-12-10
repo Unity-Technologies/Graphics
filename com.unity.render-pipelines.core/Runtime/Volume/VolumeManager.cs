@@ -220,6 +220,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Checks the state of the base type library. This is only used in the editor to handle
+        /// entering and exiting of play mode and domain reload.
+        /// </summary>
         [Conditional("UNITY_EDITOR")]
         public void CheckBaseTypes()
         {
@@ -228,6 +232,11 @@ namespace UnityEngine.Rendering
                 ReloadBaseTypes();
         }
 
+        /// <summary>
+        /// Checks the state of a given stack. This is only used in the editor to handle entering
+        /// and exiting of play mode and domain reload.
+        /// </summary>
+        /// <param name="stack">The stack to check.</param>
         [Conditional("UNITY_EDITOR")]
         public void CheckStack(VolumeStack stack)
         {
@@ -442,6 +451,9 @@ namespace UnityEngine.Rendering
         public VolumeIsolationScope(bool unused)
             => VolumeManager.needIsolationFilteredByRenderer = true;
 
+        /// <summary>
+        /// Stops the Camera from filtering a Volume.
+        /// </summary>
         void IDisposable.Dispose()
             => VolumeManager.needIsolationFilteredByRenderer = false;
     }

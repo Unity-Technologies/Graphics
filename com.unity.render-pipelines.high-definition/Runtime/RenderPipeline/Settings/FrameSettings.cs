@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Deferred
     }
 
+    /// <summary>
+    /// Defines how the LODBias value is computed.
+    /// </summary>
     public enum LODBiasMode
     {
         /// <summary>Use the current quality settings value.</summary>
@@ -23,6 +26,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the current quality settings value.</summary>
         OverrideQualitySettings,
     }
+    /// <summary>
+    /// Defines how the MaximumLOD
+    /// </summary>
     public enum MaximumLODLevelMode
     {
         /// <summary>Use the current quality settings value.</summary>
@@ -470,6 +476,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set stored data for this field.</summary>
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
+        /// <summary>
+        /// Compute the LOD bias value to use
+        /// </summary>
+        /// <param name="hdrp">The HDRP Assets to use</param>
+        /// <returns>The LOD Bias to use</returns>
         public float GetResolvedLODBias(HDRenderPipelineAsset hdrp)
         {
             var source = hdrp.currentPlatformRenderPipelineSettings.lodBias;
@@ -482,6 +493,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Compute the Maximum LOD level to use
+        /// </summary>
+        /// <param name="hdrp">The HDRP Asset to use</param>
+        /// <returns>The Maximum LOD level to use.</returns>
         public int GetResolvedMaximumLODLevel(HDRenderPipelineAsset hdrp)
         {
             var source = hdrp.currentPlatformRenderPipelineSettings.maximumLODLevel;
