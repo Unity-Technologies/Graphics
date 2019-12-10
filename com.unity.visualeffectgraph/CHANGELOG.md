@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix exception when compiling an asset with a turbulence block in absolute mode
 - Fixed GetCustomAttribute that was locked to Current
 - Shader compilation now works when using view direction in shader graph
+- Fix for destroying selected component corrupt "Play Controls" window
 
 ## [7.1.1] - 2019-09-05
 ### Added
