@@ -6,7 +6,7 @@ editors:
 platforms:
   - name: Win
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
+    image: slough-ops/win10-1903-base
     flavor: b1.large
 #  - name: Linux
 #    type: Unity::VM::GPU
