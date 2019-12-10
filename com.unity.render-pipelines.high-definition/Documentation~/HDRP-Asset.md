@@ -4,6 +4,8 @@ The High Definition Render Pipeline (HDRP) Asset controls the global rendering s
 
 Unity does not allocate memory or build Shader variants for disabled features in your HDRP Asset. This means that you can disable settings that you are not using to save memory, but you can not enable disabled features at run time. You can toggle enabled features at run time on a per-Camera basis using [Frame-Settings](Frame-Settings.html).
 
+<a name="CreatingAnHDRPAsset"></a>
+
 ## Creating an HDRP Asset
 
 A new Project using the HDRP template includes an HDRP Asset file named HDRenderPipelineAsset in the Assets/Settings folder.
