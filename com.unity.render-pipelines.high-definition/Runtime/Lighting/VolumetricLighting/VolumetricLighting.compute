@@ -513,7 +513,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
         float dt = t1 - t0;
 
-        // TODO: double-check this + the sampling code...
         // Accurately compute the center of the voxel in the log space. It's important to perform
         // the inversion exactly, since the accumulated value of the integral is stored at the center.
         // We will use it for participating media sampling, asymmetric scattering and reprojection.
