@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for vertex skinning when you use the DOTS animation package.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
 - Updated the zoom level to let you zoom in further.
+- If Unity Editor Analytics are enabled, Shader Graph will collect anonymous data about which nodes you use in your graphs. This allows us to focus our efforts on the most common graph scenarios and better understand the needs of our customers. We do not track edge data and cannot re-create your graphs in any form.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
