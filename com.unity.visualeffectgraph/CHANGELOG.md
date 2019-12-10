@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 - subgraph block into subgraph context no longer forget parameter values.
 - Fix exception when compiling an asset with a turbulence block in absolute mode
+- Fixed GetCustomAttribute that was locked to Current
 
 ## [7.1.1] - 2019-09-05
 ### Added
