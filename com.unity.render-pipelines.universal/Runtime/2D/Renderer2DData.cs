@@ -11,7 +11,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     public class Renderer2DData : ScriptableRendererData
     {
