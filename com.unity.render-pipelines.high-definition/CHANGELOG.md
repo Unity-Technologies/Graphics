@@ -236,6 +236,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
 - Fix an inverted handling of CoatSmoothness for SSR in StackLit.
 - Fixed missing distortion inputs in Lit and Unlit material UI.
+- Fix issue that propagated NaNs across multiple frames through the exposure texture. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
