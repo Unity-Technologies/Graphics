@@ -3567,29 +3567,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.ClearRandomWriteTargets();
         }
 
-        static void CopyStencilBufferIfNeeded(CommandBuffer cmd, HDCamera hdCamera, RTHandle depthStencilBuffer, RTHandle stencilBufferCopy, Material copyStencil, Material copyStencilForSSR)
-        {
-            // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
-            // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
-            // For the SSR we need the lighting flags to be copied into the stencil texture (it is use to discard object that have no lighting)
-            if (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
-            {
-                // For material classification we use compute shader and so can't read into the stencil, so prepare it.
-                using (new ProfilingSample(cmd, "Clear and copy stencil texture for material classification", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
-                {
-                    CopyStencilBufferForMaterialClassification(cmd, depthStencilBuffer, stencilBufferCopy, copyStencil);
-                }
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
-                {
-                    using (new ProfilingSample(cmd, "Update stencil copy for SSR Exclusion", CustomSamplerId.UpdateStencilCopyForSSRExclusion.GetSampler()))
-                    {
-                        UpdateStencilBufferForSSRExclusion(cmd, depthStencilBuffer, stencilBufferCopy, copyStencilForSSR);
-                    }
-                }
-            }
-        }
-
         struct LightLoopDebugOverlayParameters
         {
             public Material                 debugViewTilesMaterial;
