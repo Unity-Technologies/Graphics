@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          hdCamera.camera.nearClipPlane,
                                          hdCamera.camera.farClipPlane,
                                          hdCamera.camera.fieldOfView,
-                                         controller.sliceDistributionUniformity.value);
+                                         controller.sliceDistributionUniformity);
         }
 
         internal void InitializeVolumetricLightingPerCameraData(HDCamera hdCamera, int bufferCount)
