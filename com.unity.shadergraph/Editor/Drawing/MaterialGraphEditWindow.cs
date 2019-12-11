@@ -64,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.saveAsRequested += SaveAs;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
+                    m_GraphEditorView.convertToContainedNodesRequested += ToContainedNodes;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
                     m_GraphEditorView.isCheckedOut += IsGraphAssetCheckedOut;
                     m_GraphEditorView.checkOut += CheckoutAsset;
@@ -347,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
-                    }                    
+                    }
                 }
             }
 
@@ -389,6 +390,63 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 graphObject.isDirty = false;
+            }
+        }
+
+
+        public void ToContainedNodes(SubGraphNode subgraph)
+        {
+            var graphView = graphEditorView.graphView;
+
+            graphObject.RegisterCompleteObjectUndo("Convert To Contained Nodes");
+
+            var selection = graphView.selection.OfType<IShaderNodeView>().Where(v => v.node != null && v.node is SubGraphNode);
+
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+
+            var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
+            foreach (var node in nodes)
+            {
+                var center = node.drawState.position.center;
+                bounds = Rect.MinMaxRect(
+                        Mathf.Min(bounds.xMin, center.x),
+                        Mathf.Min(bounds.yMin, center.y),
+                        Mathf.Max(bounds.xMax, center.x),
+                        Mathf.Max(bounds.yMax, center.y));
+            }
+            var middle = bounds.center;
+            bounds.center = Vector2.zero;
+
+            // TODO: these can be nulled out once the Blackboard minor-refactor goes in
+            var inputs = new List<ShaderInput>();
+            var properties = new List<AbstractShaderProperty>();
+            var keywords = new List<ShaderKeyword>();
+
+            var copyPasteGraph = new CopyPasteGraph(
+                    graphView.graph.assetGuid,
+                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
+                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
+                    inputs,
+                    properties,
+                    keywords,
+                    graphView.selection.OfType<StickyNote>().Select(x => x.userData));
+
+            var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
+            if (deserialized == null)
+                return;
+        }
+
+        void ToContainedNodes()
+        {
+            var selectedSubgraphNodes = graphEditorView.graphView.selection.OfType<IShaderNodeView>().Where(v => v.node is SubGraphNode);
+            foreach (var subgraphView in selectedSubgraphNodes)
+            {
+                SubGraphNode subgraph = (SubGraphNode)subgraphView.node;
+
+                Debug.Log(" i am " + subgraph.name);
+
+                ToContainedNodes(subgraph);
             }
         }
 

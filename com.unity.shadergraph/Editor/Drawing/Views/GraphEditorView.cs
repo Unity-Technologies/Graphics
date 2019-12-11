@@ -72,6 +72,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_GraphView.onConvertToSubgraphClick = value; }
         }
 
+        public Action convertToContainedNodesRequested
+        {
+            get { return m_GraphView.onConvertToContainedNodesClick; }
+            set { m_GraphView.onConvertToContainedNodesClick = value; }
+        }
+
         public Action showInProjectRequested { get; set; }
 
         public MaterialGraphView graphView
@@ -257,11 +263,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
+                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
-                
+
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)

@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
+        public Action onConvertToContainedNodesClick { get; set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -109,6 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To/Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
                 evt.menu.AppendAction("Convert To/Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To/Property", ConvertToProperty, ConvertToPropertyStatus);
+                evt.menu.AppendAction("Convert To/Contained Nodes", ConvertToContainedNodes, ConvertToContainedNodesStatus);
                 evt.menu.AppendSeparator();
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
@@ -527,6 +529,27 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ConvertToSubgraph(DropdownMenuAction action)
         {
             onConvertToSubgraphClick();
+        }
+
+        DropdownMenuAction.Status ConvertToContainedNodesStatus(DropdownMenuAction action)
+        {
+            if (onConvertToContainedNodesClick == null)
+                return DropdownMenuAction.Status.Hidden;
+            if (selection.OfType<IShaderNodeView>().Any(v => v.node != null && v.node is SubGraphNode))
+                return DropdownMenuAction.Status.Normal;
+            return DropdownMenuAction.Status.Hidden;
+        }
+
+        void ConvertToContainedNodes(DropdownMenuAction action)
+        {
+            onConvertToContainedNodesClick();
+//            var subgraphNodes = selection.OfType<IShaderNodeView>().Where(v => v.node is SubGraphNode);
+//            foreach (var subgraphView in subgraphNodes)
+//            {
+//                SubGraphNode subgraph = (SubGraphNode)subgraphView.node;
+//
+//                Debug.Log(" i am " + subgraph.name);
+//            }
         }
 
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
