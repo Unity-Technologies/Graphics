@@ -5,6 +5,9 @@
 #define GRA_ROW_MAJOR 1
 #define GRA_TEXTURE_ARRAY_SUPPORT 1
 #define GRA_PACK_RESOLVE_OUTPUT 0
+#if SHADER_API_PSSL
+#define GRA_NO_UNORM 1
+#endif
 #include "GraniteShaderLib3.cginc"
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -87,7 +90,7 @@ struct StackInfo
 
 #define DECLARE_STACK_CB(stackName) \
     float4x4 stackName##_spaceparams[2];\
-    float4 stackName##_atlasparams[2];\
+    float4 stackName##_atlasparams[2]
 
 #define DECLARE_STACK_BASE(stackName) \
 TEXTURE2D(stackName##_transtab);\
