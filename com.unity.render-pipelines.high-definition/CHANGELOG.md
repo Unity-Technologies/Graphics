@@ -244,6 +244,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the vibility of ray tracing related methods.
 - Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
 - Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
 - Fixed exposure management for the path tracer
 
 ### Changed
