@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, GetNormalBuffer(isMSAA));
         }
 
-        public void ResolveSharedRT(CommandBuffer cmd, HDCamera hdCamera)
+        public void ResolveSharedRT(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
+        public void ResolveMSAAColor(CommandBuffer cmd, HDCameraInfo hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {

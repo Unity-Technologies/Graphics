@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.")]
         public MinFloatParameter     mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
-        internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
+        internal abstract void PushShaderParameters(HDCameraInfo hdCamera, CommandBuffer cmd);
     }
 
     // Deprecated, kept for migration

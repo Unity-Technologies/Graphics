@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="camera">Current Camera</param>
         /// <param name="source">Source Render Target, it contains the camera color buffer in it's current state</param>
         /// <param name="destination">Destination Render Target</param>
-        public abstract void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination);
+        public abstract void Render(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination);
 
         /// <summary>
         /// Cleanup function, called when the render pipeline is disposed.

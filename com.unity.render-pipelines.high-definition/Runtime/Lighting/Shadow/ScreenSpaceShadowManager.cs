@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaAnalyticHistoryBuffer{0}", frameIndex));
         }
 
-        void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderScreenSpaceShadows(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             // If screen space shadows are not supported for this camera, we are done
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows))
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
+        void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             // Render directional screen space shadow if required
             if (m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow())
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        bool RenderLightScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
+        bool RenderLightScreenSpaceShadows(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Light Ray Traced Shadows", CustomSamplerId.RaytracingLightShadow.GetSampler()))
             {
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-            void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
+            void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCameraInfo hdCamera
                 , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
                 , RTHandle shadowHistoryArray)
             {
@@ -548,7 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
+            void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCameraInfo hdCamera
                 , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
                 , RTHandle shadowHistoryArray)
             {
@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_OutputShadowTextureKernel, numTilesX, numTilesY, hdCamera.viewCount);
             }
 
-        void EvaluateShadowDebugView(CommandBuffer cmd, HDCamera hdCamera)
+        void EvaluateShadowDebugView(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
 

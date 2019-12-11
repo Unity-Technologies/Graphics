@@ -583,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AreaLightShadowAtlas.Layout();
         }
 
-        unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCamera camera)
+        unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCameraInfo camera)
         {
             int shadowIndex = 0;
 
@@ -640,7 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DirectionalShadowData.cascadeDirection.w = VolumeManager.instance.stack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount.value;
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCamera hdCamera)
+        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCameraInfo hdCamera)
         {
             // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequestCount == 0)

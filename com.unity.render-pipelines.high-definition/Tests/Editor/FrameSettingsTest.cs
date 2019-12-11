@@ -107,18 +107,15 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 //create and init gameobjects
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
-                var cam = go.AddComponent<Camera>();
+                var cam = go.AddComponent<HDCamera>();
 
-                var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
-
-                add.renderingPathCustomFrameSettings = fs;
-                add.renderingPathCustomFrameSettingsOverrideMask = fso;
-                add.defaultFrameSettings = defaultFSType;
-                add.customRenderingSettings = true;
+                cam.renderingPathCustomFrameSettings = fs;
+                cam.renderingPathCustomFrameSettingsOverrideMask = fso;
+                cam.defaultFrameSettings = defaultFSType;
+                cam.customRenderingSettings = true;
 
                 //gather data two different ways
-                FrameSettings.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
+                FrameSettings.AggregateFrameSettings(ref result, cam, cam, ref defaultFS, supportedFeatures);
 
                 foreach (FrameSettingsField field in Enum.GetValues(typeof(FrameSettingsField)))
                 {
@@ -177,15 +174,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 //create and init gameobjects
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
-                var cam = go.AddComponent<Camera>();
+                var cam = go.AddComponent<HDCamera>();
 
-                var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
-
-                add.renderingPathCustomFrameSettings = fs;
-                add.renderingPathCustomFrameSettingsOverrideMask = fso;
-                add.defaultFrameSettings = defaultFSType;
-                add.customRenderingSettings = true;
+                cam.renderingPathCustomFrameSettings = fs;
+                cam.renderingPathCustomFrameSettingsOverrideMask = fso;
+                cam.defaultFrameSettings = defaultFSType;
+                cam.customRenderingSettings = true;
 
                 //gather simulated
                 foreach (FrameSettingsField field in Enum.GetValues(typeof(FrameSettingsField)))
@@ -197,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 for (int j = 0; j < 10; ++j)
                 {
                     FrameSettingsField field = RandomUtilities.RandomEnumValue<FrameSettingsField>((i + 0.5f) * (j + 0.3f));
-                    var fshc = FrameSettingsHistory.containers.Where(c => c == add as IFrameSettingsHistoryContainer).First();
+                    var fshc = FrameSettingsHistory.containers.Where(c => c == cam as IFrameSettingsHistoryContainer).First();
                     bool debugValue = RandomUtilities.RandomBool((i + 1) * j);
 
                     //simulate on both
@@ -208,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
 
                 //gather computed
-                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
+                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, cam, ref defaultFS, supportedFeatures);
 
                 //non bit non tested
                 tester.lodBias = result.lodBias;
@@ -217,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 tester.maximumLODLevelMode = result.maximumLODLevelMode;
 
                 //test
-                result = FrameSettingsHistory.containers.Where(c => c == add as IFrameSettingsHistoryContainer).First().frameSettingsHistory.debug;
+                result = FrameSettingsHistory.containers.Where(c => c == cam as IFrameSettingsHistoryContainer).First().frameSettingsHistory.debug;
                 Debug.Log($"different {result} {tester}");
                 Assert.AreEqual(result, tester);
 

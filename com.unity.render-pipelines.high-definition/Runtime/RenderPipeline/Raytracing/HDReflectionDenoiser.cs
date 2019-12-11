@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, int maxKernelSize
+        public void DenoiseBuffer(CommandBuffer cmd, HDCameraInfo hdCamera, int maxKernelSize
                                     , RTHandle noisySignal, RTHandle historySignal
                                     , RTHandle outputSignal)
         {

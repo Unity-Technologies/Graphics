@@ -461,11 +461,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
 
-            if (p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (p.antialiasing.intValue == (int)HDCamera.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
             {
                 EditorGUILayout.PropertyField(p.SMAAQuality, SMAAQualityPresetContent);
             }
-            else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+            else if(p.antialiasing.intValue == (int)HDCamera.AntialiasingMode.TemporalAntialiasing)
             {
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
             }

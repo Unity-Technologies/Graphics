@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy() => Cleanup();
 
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void UnRegister(CustomPassVolume volume) => m_ActivePassVolumes.Remove(volume);
 
-        internal static void Update(HDCamera camera)
+        internal static void Update(HDCameraInfo camera)
         {
             var triggerPos = camera.volumeAnchor.position;
 
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             });
         }
 
-        internal void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        internal void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCameraInfo hdCamera)
         {
             foreach (var pass in customPasses)
             {
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        internal static CullingResults? Cull(ScriptableRenderContext renderContext, HDCameraInfo hdCamera)
         {
             CullingResults?  result = null;
 

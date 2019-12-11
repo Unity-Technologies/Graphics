@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void EndCamera(CommandBuffer cmd, HDCamera hdCamera, ScriptableRenderContext renderContext)
+        internal void EndCamera(CommandBuffer cmd, HDCameraInfo hdCamera, ScriptableRenderContext renderContext)
         {
             if (!enabled)
                 return;

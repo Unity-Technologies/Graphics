@@ -21,9 +21,9 @@ namespace UnityEngine.Rendering.HighDefinition
             this.projectionMatrix = projectionMatrix;
         }
 
-        /// <summary>Creates a new FrameProperties from an <see cref="HDCamera"/>.</summary>
+        /// <summary>Creates a new FrameProperties from an <see cref="HDCameraInfo"/>.</summary>
         /// <param name="hdCamera">The camera to use.</param>
-        internal static RenderOutputProperties From(HDCamera hdCamera)
+        internal static RenderOutputProperties From(HDCameraInfo hdCamera)
             => new RenderOutputProperties(
                 new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
                 hdCamera.camera.cameraToWorldMatrix,

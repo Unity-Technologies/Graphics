@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PushCameraTexture(
             CommandBuffer cmd,
             AOVBuffers aovBufferId,
-            HDCamera camera,
+            HDCameraInfo camera,
             RTHandle source,
             List<RTHandle> targets
         )
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PushCameraTexture(
             RenderGraph         renderGraph,
             AOVBuffers          aovBufferId,
-            HDCamera            camera,
+            HDCameraInfo            camera,
             RenderGraphResource source,
             List<RTHandle>      targets
         )

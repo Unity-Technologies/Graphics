@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System;
@@ -21,7 +21,7 @@ public sealed class GreenPP : CustomPostProcessVolumeComponent, IPostProcessComp
             m_Material = new Material(Shader.Find("Hidden/Shader/GreenPP"));
     }
 
-    public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+    public override void Render(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination)
     {
         if (m_Material == null)
             return;

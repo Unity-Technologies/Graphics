@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCamera.AntialiasingMode;
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ResetHistory() => m_ResetHistory = true;
 
-        public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
+        public void BeginFrame(CommandBuffer cmd, HDCameraInfo camera, HDRenderPipeline hdInstance)
         {
             m_HDInstance = hdInstance;
             m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
             src = dst;
         }
 
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
+        public void Render(CommandBuffer cmd, HDCameraInfo camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 
@@ -642,7 +642,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region NaN Killer
 
-        void DoStopNaNs(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        void DoStopNaNs(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination)
         {
             var cs = m_Resources.shaders.nanKillerCS;
             int kernel = cs.FindKernel("KMain");
@@ -655,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Copy Alpha
 
-        void DoCopyAlpha(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        void DoCopyAlpha(CommandBuffer cmd, HDCameraInfo camera, RTHandle source)
         {
             var cs = m_Resources.shaders.copyAlphaCS;
             int kernel = cs.FindKernel("KMain");
@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsExposureFixed() => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera;
 
-        public RTHandle GetExposureTexture(HDCamera camera)
+        public RTHandle GetExposureTexture(HDCameraInfo camera)
         {
             // 1x1 pixel, holds the current exposure multiplied in the red channel and EV100 value
             // in the green channel
@@ -681,14 +681,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return rt ?? m_EmptyExposureTexture;
         }
 
-        public RTHandle GetPreviousExposureTexture(HDCamera camera)
+        public RTHandle GetPreviousExposureTexture(HDCameraInfo camera)
         {
             // See GetExposureTexture
             var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
             return rt ?? m_EmptyExposureTexture;
         }
 
-        void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
+        void DoFixedExposure(CommandBuffer cmd, HDCameraInfo camera)
         {
             var cs = m_Resources.shaders.exposureCS;
 
@@ -711,7 +711,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
-        static void GrabExposureHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        static void GrabExposureHistoryTextures(HDCameraInfo camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: Handle light buffer as a source for average luminance
-        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle lightingBuffer)
+        void DoDynamicExposure(CommandBuffer cmd, HDCameraInfo camera, RTHandle colorBuffer, RTHandle lightingBuffer)
         {
             var cs = m_Resources.shaders.exposureCS;
             int kernel;
@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Temporal Anti-aliasing
 
-        void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
+        void DoTemporalAntialiasing(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
         {
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
 
@@ -867,7 +867,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.ClearRandomWriteTargets();
         }
 
-        static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        static void GrabTemporalAntialiasingHistoryTextures(HDCameraInfo camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -901,7 +901,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: can be further optimized
         // TODO: debug panel entries (coc, tiles, etc)
         //
-        void DoDepthOfField(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, bool taaEnabled)
+        void DoDepthOfField(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination, bool taaEnabled)
         {
             bool nearLayerActive = m_DepthOfField.IsNearLayerActive();
             bool farLayerActive = m_DepthOfField.IsFarLayerActive();
@@ -1405,7 +1405,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Pool.Recycle(fullresCoC); // Already cleaned up if TAA is enabled
         }
 
-        static void GrabCoCHistory(HDCamera camera, out RTHandle previous, out RTHandle next)
+        static void GrabCoCHistory(HDCameraInfo camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -1424,7 +1424,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Motion Blur
 
-        void DoMotionBlur(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        void DoMotionBlur(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination)
         {
             // -----------------------------------------------------------------------------
 
@@ -1615,7 +1615,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
-        void DoPaniniProjection(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        void DoPaniniProjection(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination)
         {
             float distance = m_PaniniProjection.distance.value;
             var viewExtents = CalcViewExtents(camera);
@@ -1639,7 +1639,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
-        Vector2 CalcViewExtents(HDCamera camera)
+        Vector2 CalcViewExtents(HDCameraInfo camera)
         {
             float fovY = camera.camera.fieldOfView * Mathf.Deg2Rad;
             float aspect = (float)camera.actualWidth / (float)camera.actualHeight;
@@ -1650,7 +1650,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(viewExtX, viewExtY);
         }
 
-        Vector2 CalcCropExtents(HDCamera camera, float d)
+        Vector2 CalcCropExtents(HDCameraInfo camera, float d)
         {
             // given
             //    S----------- E--X-------
@@ -1691,7 +1691,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Bloom
 
         // TODO: All of this could be simplified and made faster once we have the ability to bind mips as SRV
-        unsafe void DoBloom(CommandBuffer cmd, HDCamera camera, RTHandle source, ComputeShader uberCS, int uberKernel)
+        unsafe void DoBloom(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, ComputeShader uberCS, int uberKernel)
         {
             var resolution = m_Bloom.resolution;
             var highQualityFiltering = m_Bloom.highQualityFiltering;
@@ -2213,7 +2213,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region FXAA
 
-        void DoFXAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        void DoFXAA(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination)
         {
             var cs = m_Resources.shaders.FXAACS;
             int kernel = cs.FindKernel("FXAA");
@@ -2226,7 +2226,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region SMAA
 
-        void DoSMAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
+        void DoSMAA(CommandBuffer cmd, HDCameraInfo camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
         {
             RTHandle SMAAEdgeTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
             RTHandle SMAABlendTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
@@ -2242,13 +2242,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             switch(camera.SMAAQuality)
             {
-                case HDAdditionalCameraData.SMAAQualityLevel.Low:
+                case HDCamera.SMAAQualityLevel.Low:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_LOW");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.Medium:
+                case HDCamera.SMAAQualityLevel.Medium:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_MEDIUM");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.High:
+                case HDCamera.SMAAQualityLevel.High:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_HIGH");
                     break;
                 default:
@@ -2286,7 +2286,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Final Pass
 
-        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
+        void DoFinalPass(CommandBuffer cmd, HDCameraInfo camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
         {
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
@@ -2403,7 +2403,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region User Post Processes
 
-        internal void DoUserAfterOpaqueAndSky(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        internal void DoUserAfterOpaqueAndSky(CommandBuffer cmd, HDCameraInfo camera, RTHandle colorBuffer)
         {
             if (!camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                 return;
@@ -2426,7 +2426,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PoolSourceGuard(ref source, null, colorBuffer);
         }
 
-        bool RenderCustomPostProcess(CommandBuffer cmd, HDCamera camera, ref RTHandle source, RTHandle colorBuffer, Type customPostProcessComponentType)
+        bool RenderCustomPostProcess(CommandBuffer cmd, HDCameraInfo camera, ref RTHandle source, RTHandle colorBuffer, Type customPostProcessComponentType)
         {
             if (customPostProcessComponentType == null)
                 return false;
@@ -2489,7 +2489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Targets.Clear();
             }
 
-            public void SetHWDynamicResolutionState(HDCamera camera)
+            public void SetHWDynamicResolutionState(HDCameraInfo camera)
             {
                 bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
                 if (needsHW && !m_HasHWDynamicResolution)

@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle historySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
+        public void DenoiseBuffer(CommandBuffer cmd, HDCameraInfo hdCamera, RTHandle noisySignal, RTHandle historySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
 
-        public void DenoiseBufferNoHistory(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true)
+        public void DenoiseBufferNoHistory(CommandBuffer cmd, HDCameraInfo hdCamera, RTHandle noisySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;

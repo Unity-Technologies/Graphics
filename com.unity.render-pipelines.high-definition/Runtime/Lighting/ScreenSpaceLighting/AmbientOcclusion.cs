@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FinalHalfRes = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Final Half Res AO Packed");
         }
 
-        void EnsureRTSize(AmbientOcclusion settings, HDCamera hdCamera)
+        void EnsureRTSize(AmbientOcclusion settings, HDCameraInfo hdCamera)
         {
             float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
             if (settings.fullResolution != m_RunningFullRes)
@@ -179,9 +179,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        public bool IsActive(HDCameraInfo camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
+        public void Render(CommandBuffer cmd, HDCameraInfo camera, ScriptableRenderContext renderContext, int frameCount)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, RTHandleProperties rtHandleProperties, int frameCount)
+        RenderAOParameters PrepareRenderAOParameters(HDCameraInfo camera, RTHandleProperties rtHandleProperties, int frameCount)
         {
             var parameters = new RenderAOParameters();
 
@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        public void Dispatch(CommandBuffer cmd, HDCameraInfo camera, int frameCount)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -536,7 +536,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
+        public void PushGlobalParameters(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
+        public void PostDispatchWork(CommandBuffer cmd, HDCameraInfo camera)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();

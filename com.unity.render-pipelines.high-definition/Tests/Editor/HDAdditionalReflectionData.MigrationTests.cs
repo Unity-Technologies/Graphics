@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             {
                 new LegacyProbeData
                 {
-                    clearColorMode = (int)HDAdditionalCameraData.ClearColorMode.Color,
+                    clearColorMode = (int)HDCamera.ClearColorMode.Color,
                     backgroundColorHDR = new Color(1.5f, 0.56234f, 62.523f, 0.123f),
                     clearDepth = false,
                     cullingMask = 101,
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 },
                 new LegacyProbeData
                 {
-                    clearColorMode = (int)HDAdditionalCameraData.ClearColorMode.Sky,
+                    clearColorMode = (int)HDCamera.ClearColorMode.Sky,
                     backgroundColorHDR = new Color(1.5f, 0.56234f, 62.523f, 0.123f),
                     clearDepth = true,
                     cullingMask = 101,
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 },
                 new LegacyProbeData
                 {
-                    clearColorMode = (int)HDAdditionalCameraData.ClearColorMode.None,
+                    clearColorMode = (int)HDCamera.ClearColorMode.None,
                     backgroundColorHDR = new Color(1.5f, 0.56234f, 62.523f, 0.123f),
                     clearDepth = true,
                     cullingMask = 101,
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     probe.enabled = true;
 
                     var settings = probe.settings;
-                    Assert.AreEqual((HDAdditionalCameraData.ClearColorMode)legacyProbeData.clearColorMode, settings.cameraSettings.bufferClearing.clearColorMode);
+                    Assert.AreEqual((HDCamera.ClearColorMode)legacyProbeData.clearColorMode, settings.cameraSettings.bufferClearing.clearColorMode);
                     Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.cameraSettings.bufferClearing.backgroundColorHDR);
                     Assert.AreEqual(legacyProbeData.clearDepth, settings.cameraSettings.bufferClearing.clearDepth);
                     Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.cameraSettings.culling.cullingMask);

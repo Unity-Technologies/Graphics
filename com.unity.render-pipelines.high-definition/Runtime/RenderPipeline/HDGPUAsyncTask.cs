@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     struct HDGPUAsyncTaskParams
     {
         public ScriptableRenderContext  renderContext;
-        public HDCamera                 hdCamera;
+        public HDCameraInfo                 hdCamera;
         public int                      frameCount;
     }
 
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering
             m_TaskStage = AsyncTaskStage.AsyncCmdEnqueued;
         }
 
-        public void EndWithPostWork(CommandBuffer cmd, HDCamera hdCamera, Action<CommandBuffer, HDCamera> postWork)
+        public void EndWithPostWork(CommandBuffer cmd, HDCameraInfo hdCamera, Action<CommandBuffer, HDCameraInfo> postWork)
         {
             Debug.Assert(m_TaskStage == AsyncTaskStage.AsyncCmdEnqueued);
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering
             m_TaskStage = AsyncTaskStage.TaskCompleted;
         }
 
-        public void End(CommandBuffer cmd, HDCamera hdCamera)
+        public void End(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             EndWithPostWork(cmd, hdCamera, (_1, _2) => { });
         }

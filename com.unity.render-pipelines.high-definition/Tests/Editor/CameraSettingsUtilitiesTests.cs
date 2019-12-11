@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     bufferClearing = new CameraSettings.BufferClearing
                     {
                         backgroundColorHDR = RandomUtilities.RandomColor(i),
-                        clearColorMode = RandomUtilities.RandomEnumIndex<HDAdditionalCameraData.ClearColorMode>(i),
+                        clearColorMode = RandomUtilities.RandomEnumIndex<HDCamera.ClearColorMode>(i),
                         clearDepth = RandomUtilities.RandomBool(i)
                     },
                     culling = new CameraSettings.Culling
@@ -68,13 +68,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
-                var cam = go.AddComponent<Camera>();
+                var cam = go.AddComponent<HDCamera>();
 
                 cam.ApplySettings(settings);
                 cam.ApplySettings(position);
-
-                var add = cam.GetComponent<HDAdditionalCameraData>();
-                Assert.True(add != null && !add.Equals(null));
 
                 // Position
                 switch (position.mode)
@@ -106,17 +103,17 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(settings.culling.useOcclusionCulling, cam.useOcclusionCulling);
                 Assert.AreEqual(settings.culling.cullingMask, (LayerMask)cam.cullingMask);
                 // Buffer clearing
-                Assert.AreEqual(settings.bufferClearing.clearColorMode, add.clearColorMode);
-                Assert.AreEqual(settings.bufferClearing.backgroundColorHDR, add.backgroundColorHDR);
-                Assert.AreEqual(settings.bufferClearing.clearDepth, add.clearDepth);
+                Assert.AreEqual(settings.bufferClearing.clearColorMode, cam.clearColorMode);
+                Assert.AreEqual(settings.bufferClearing.backgroundColorHDR, cam.backgroundColorHDR);
+                Assert.AreEqual(settings.bufferClearing.clearDepth, cam.clearDepth);
                 // Volumes
-                Assert.AreEqual(settings.volumes.layerMask, add.volumeLayerMask);
-                Assert.AreEqual(settings.volumes.anchorOverride, add.volumeAnchorOverride);
+                Assert.AreEqual(settings.volumes.layerMask, cam.volumeLayerMask);
+                Assert.AreEqual(settings.volumes.anchorOverride, cam.volumeAnchorOverride);
                 //FrameSettings
-                Assert.AreEqual(settings.renderingPathCustomFrameSettings, add.renderingPathCustomFrameSettings);
-                Assert.AreEqual(settings.renderingPathCustomFrameSettingsOverrideMask, add.renderingPathCustomFrameSettingsOverrideMask);
+                Assert.AreEqual(settings.renderingPathCustomFrameSettings, cam.renderingPathCustomFrameSettings);
+                Assert.AreEqual(settings.renderingPathCustomFrameSettingsOverrideMask, cam.renderingPathCustomFrameSettingsOverrideMask);
                 // HD Specific
-                Assert.AreEqual(settings.customRenderingSettings, add.customRenderingSettings);
+                Assert.AreEqual(settings.customRenderingSettings, cam.customRenderingSettings);
 
                 Object.DestroyImmediate(go);
             }

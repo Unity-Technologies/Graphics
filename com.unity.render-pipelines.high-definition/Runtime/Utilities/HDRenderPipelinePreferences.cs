@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
     using UnityEditor;
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCamera.AntialiasingMode;
 
     static class HDRenderPipelinePreferences
     {

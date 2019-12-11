@@ -1105,7 +1105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+        public void RenderDebugOverlay(HDCameraInfo hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
             if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {

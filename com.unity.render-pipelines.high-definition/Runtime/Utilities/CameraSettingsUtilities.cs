@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="settings">Settings to apply.</param>
         public static void ApplySettings(this Camera cam, CameraSettings settings)
         {
-            var add = cam.GetComponent<HDAdditionalCameraData>()
-                ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
+            var add = cam.GetComponent<HDCamera>()
+                ?? cam.gameObject.AddComponent<HDCamera>();
 
             // FrameSettings
             add.defaultFrameSettings = settings.defaultFrameSettings;

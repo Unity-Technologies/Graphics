@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 
-        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
+        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCameraInfo hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
         {
             DeferredLightingRTResources deferredResources = new DeferredLightingRTResources();
 
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredResources;
         }
 
-        void CheckBinningBuffersSize(HDCamera hdCamera)
+        void CheckBinningBuffersSize(HDCameraInfo hdCamera)
         {
             // Evaluate the dispatch parameters
             int numTilesRayBinX = (hdCamera.actualWidth + (binningTileSize - 1)) / binningTileSize;

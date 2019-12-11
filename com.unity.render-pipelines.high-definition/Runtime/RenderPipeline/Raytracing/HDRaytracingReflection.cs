@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        void RenderRayTracedReflections(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderRayTracedReflections(HDCameraInfo hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
             switch (currentTier)
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BindRayTracedReflectionData(CommandBuffer cmd, HDCamera hdCamera, RayTracingShader reflectionShader, ScreenSpaceReflection settings, LightCluster lightClusterSettings, RayTracingSettings rtSettings
+        void BindRayTracedReflectionData(CommandBuffer cmd, HDCameraInfo hdCamera, RayTracingShader reflectionShader, ScreenSpaceReflection settings, LightCluster lightClusterSettings, RayTracingSettings rtSettings
                                         , RTHandle outputLightingBuffer, RTHandle outputHitPointBuffer)
         {
             // Grab the acceleration structures and the light cluster to use
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
         }
 
-        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
+        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCameraInfo hdCamera)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderReflectionsT1(HDCameraInfo hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
             BlueNoise blueNoise = GetBlueNoiseManager();
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }   
         }
 
-        void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsT2(HDCameraInfo hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the shaders that we will be using
             ComputeShader reflectionFilter = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;

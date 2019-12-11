@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
-        static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        static public HDCamera s_DefaultHDAdditionalCameraData { get { return BehaviourSingleton<HDCamera>.instance; } }
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static float s_OverlayLineHeight = -1.0f;
         public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
 
-        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
+        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCameraInfo hdCamera)
         {
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseCoordinates(HDCamera camera)
+        public static Vector4 GetMouseCoordinates(HDCameraInfo camera)
         {
             // We request the mouse post based on the type of the camera
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y, camera.camera.cameraType == CameraType.SceneView);
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        public static Vector4 GetMouseClickCoordinates(HDCameraInfo camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, RTHandles.rtHandleProperties.rtHandleScale.x * mousePixelCoord.x / camera.screenSize.x, RTHandles.rtHandleProperties.rtHandleScale.y * mousePixelCoord.y / camera.screenSize.y);
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Preview)
             {
-                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                camera.TryGetComponent<HDCamera>(out var additionalCameraData);
                 return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
 
             }
@@ -727,12 +727,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        internal static HDCamera TryGetAdditionalCameraDataOrDefault(Camera camera)
         {
             if (camera == null || camera.Equals(null))
                 return s_DefaultHDAdditionalCameraData;
 
-            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+            if (camera is HDCamera hdCamera)
                 return hdCamera;
 
             return s_DefaultHDAdditionalCameraData;

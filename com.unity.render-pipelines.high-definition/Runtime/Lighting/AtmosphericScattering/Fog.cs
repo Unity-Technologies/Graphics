@@ -48,17 +48,17 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
         public BoolParameter filter = new BoolParameter(false);
 
-        public static bool IsFogEnabled(HDCamera hdCamera)
+        public static bool IsFogEnabled(HDCameraInfo hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
+        public static bool IsVolumetricLightingEnabled(HDCameraInfo hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && VolumeManager.instance.stack.GetComponent<Fog>().enableVolumetricFog.value;
         }
 
-        public static bool IsPBRFogEnabled(HDCamera hdCamera)
+        public static bool IsPBRFogEnabled(HDCameraInfo hdCamera)
         {
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
             // For now PBR fog (coming from the PBR sky) is disabled until we improve it
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
         }
 
-        public static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        public static void PushFogShaderParameters(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             // TODO Handle user override
             var fogSettings = VolumeManager.instance.stack.GetComponent<Fog>();
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         //internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
-        public virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        public virtual void PushShaderParameters(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 1);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);

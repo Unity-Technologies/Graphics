@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
+        public void EvaluateRaytracingMask(CullingResults cull, HDCameraInfo hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
         {
 
             // Clear our target
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
+        public void RaytracingRecursiveRender(HDCameraInfo hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();

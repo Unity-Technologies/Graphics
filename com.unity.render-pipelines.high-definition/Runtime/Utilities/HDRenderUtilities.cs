@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             if (forceFlipY)
-                cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+                cameraSettings.flipYMode = HDCamera.FlipYMode.ForceFlipY;
 
             switch (settings.type)
             {
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             if (forceFlipY)
-                cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+                cameraSettings.flipYMode = HDCamera.FlipYMode.ForceFlipY;
             if (forceInvertBackfaceCulling)
                 cameraSettings.invertFaceCulling = true;
 
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var go = new GameObject("__Render Camera");
             var camera = go.AddComponent<Camera>();
             camera.cameraType = CameraType.Reflection;
-            go.AddComponent<HDAdditionalCameraData>();
+            go.AddComponent<HDCamera>();
 
             return camera;
         }
@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && rt.dimension == TextureDimension.Cube
                 && settings.type == ProbeSettings.ProbeType.ReflectionProbe
                 && SystemInfo.graphicsUVStartsAtTop)
-                cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+                cameraSettings.flipYMode = HDCamera.FlipYMode.ForceFlipY;
         }
     }
 }

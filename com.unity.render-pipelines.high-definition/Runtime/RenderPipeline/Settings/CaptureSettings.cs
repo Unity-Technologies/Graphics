@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ObsoleteCaptureSettingsOverrides overrides;
 
-        public HDAdditionalCameraData.ClearColorMode clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
+        public HDCamera.ClearColorMode clearColorMode = HDCamera.ClearColorMode.Sky;
         [ColorUsage(true, true)]
         public Color backgroundColorHDR = new Color32(6, 18, 48, 0);
         public bool clearDepth = true;

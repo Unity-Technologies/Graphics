@@ -15,9 +15,8 @@ public class MultiCam : MonoBehaviour
 
     RenderTexture rt;
     RenderTexture smallRT;
-
-    Camera targetCam;
-    HDAdditionalCameraData hdCam;
+    
+    HDCamera hdCam;
 
     public Renderer displayObject;
     public string displayTextureProperty = "_UnlitColorMap";
@@ -84,13 +83,10 @@ public class MultiCam : MonoBehaviour
 
     void Render()
     {
-        if (targetCam == null) targetCam = GetComponent<Camera>();
-        if (targetCam == null) return;
+        if (hdCam == null) hdCam = GetComponent<HDCamera>();
 
-        if (hdCam == null) hdCam = GetComponent<HDAdditionalCameraData>();
-
-        var previousTargetTexture = targetCam.targetTexture;
-        targetCam.targetTexture = smallRT;
+        var previousTargetTexture = hdCam.targetTexture;
+        hdCam.targetTexture = smallRT;
 
         var i = 0;
         for (var y = 0; y < tiles.y; ++y)
@@ -100,7 +96,7 @@ public class MultiCam : MonoBehaviour
                 if ( i < sets.Length ) sets[i].gameObject.SetActive(true);
                 if ( i < modifiers.Length ) modifiers[i].Invoke();
 
-                targetCam.Render();
+                hdCam.Render();
 
                 Graphics.CopyTexture(smallRT, 0, 0, 0, 0, singleRes.x, singleRes.y, rt, 0, 0, x*singleRes.x, (tiles.y-y-1)*singleRes.y);
 
@@ -111,7 +107,7 @@ public class MultiCam : MonoBehaviour
 
         GL.Viewport(new Rect(0f, 0f, 1f, 1f));
 
-        targetCam.targetTexture = previousTargetTexture;
+        hdCam.targetTexture = previousTargetTexture;
 
         if (displayObject != null && displayObject.sharedMaterial != null)
         {

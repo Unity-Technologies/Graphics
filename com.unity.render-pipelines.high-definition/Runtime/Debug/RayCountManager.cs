@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_ReducedRayCountBuffer2);
         }
 
-        public void ClearRayCount(CommandBuffer cmd, HDCamera camera, bool isActive)
+        public void ClearRayCount(CommandBuffer cmd, HDCameraInfo camera, bool isActive)
         {
             m_IsActive = isActive;
 
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_RayCountTexture;
         }
 
-        public void EvaluateRayCount(CommandBuffer cmd, HDCamera camera)
+        public void EvaluateRayCount(CommandBuffer cmd, HDCameraInfo camera)
         {
             if (m_IsActive)
             {
