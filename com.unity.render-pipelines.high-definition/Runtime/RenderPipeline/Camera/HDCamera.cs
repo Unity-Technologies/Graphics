@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
-        public bool NeedTAAResetHistory()
+        internal bool NeedTAAResetHistory()
         {
             return m_NeedTAAResetHistory;
         }

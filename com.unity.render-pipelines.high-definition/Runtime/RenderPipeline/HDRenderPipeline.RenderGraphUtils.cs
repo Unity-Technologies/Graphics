@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public struct XRSinglePassScope : System.IDisposable
+    internal struct XRSinglePassScope : System.IDisposable
     {
         readonly RenderGraph m_RenderGraph;
         readonly HDCamera m_HDCamera;
