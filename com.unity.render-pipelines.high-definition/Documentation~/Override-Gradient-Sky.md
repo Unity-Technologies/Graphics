@@ -2,7 +2,7 @@
 
 The Gradient Sky Volume component override controls settings relevant to rendering a simple representation of the sky. It allows you to define three colors, the **Top**, **Middle**, and **Bottom**, which HDRP interpolates between to create a gradient sky.
 
-You can alter these values at run time. This component also exposes options that enable you to define how HDRP updates the indirect lighting the sky generates in the Scene.
+You can alter these values at runtime. This component also exposes options that enable you to define how HDRP updates the indirect lighting the sky generates in the Scene.
 
 ##  Using Gradient Sky
 
