@@ -39,9 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
-- Added the support of skinned mesh renderers for ray tracing effects
-- Added API documentation for Dynamic Resolution.
-- Added a Threshold setting to Bloom. Setting a value higher than 0 will break the energy conservation rule.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -229,21 +226,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only tracing rays if the point is inside the range for point lights
 - Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
 - Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
-- Fix an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
 - Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
-- Fix recursive ray tracing not working anymore after intermediate buffer refactor.
-- Fix ray traced shadow denoising not working (history rejected all the time).
+- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
+- Fixed ray traced shadow denoising not working (history rejected all the time).
 - Fixed shader warning on xbox one
 - Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
-- Fix an inverted handling of CoatSmoothness for SSR in StackLit.
+- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
 - Fixed missing distortion inputs in Lit and Unlit material UI.
-- Fix issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
 - Fixed issue with Exclude from TAA stencil ignored. 
-- Fix ray traced reflection exposure issue.
+- Fixed ray traced reflection exposure issue.
 - Fixed issue with TAA history not initialising corretly scale factor for first frame
 - Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
 - Fixed issue with History not reset when chaning antialiasing mode on camera
-- Hide unused LOD settings in Quality Settings legacy window.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -283,9 +278,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
-- Changed the ownership of temporary ray tracing buffers to reduce the memory footprint.
-- Removed dead code related to stencil handling. 
-- Update docs for dynamic resolution page.
+- Hide unused LOD settings in Quality Settings legacy window.
 
 ## [7.1.1] - 2019-09-05
 
