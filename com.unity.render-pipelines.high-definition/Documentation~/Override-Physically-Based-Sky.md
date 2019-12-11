@@ -2,7 +2,7 @@
 
 Physically Based Sky simulates a spherical planet with a two-part atmosphere which has an exponentially decreasing density with respect to its altitude. This means that the higher you go above sea level, the less dense the atmosphere is. It is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
-The simulation runs as a pre-process, meaning that it runs once instead of on every frame. The simulation evaluates the atmospheric scattering of all combinations of light and view angles and then stores the results in several 3D Textures, which Unity resamples at run-time. The pre-computation is Scene-agnostic, and only depends on the settings of the Physically Based Sky. 
+The simulation runs as a pre-process, meaning that it runs once instead of on every frame. The simulation evaluates the atmospheric scattering of all combinations of light and view angles and then stores the results in several 3D Textures, which Unity resamples at runtime. The pre-computation is Scene-agnostic, and only depends on the settings of the Physically Based Sky. 
 
 The Physically Based Sky’s atmosphere is composed of two types of particles: 
 
