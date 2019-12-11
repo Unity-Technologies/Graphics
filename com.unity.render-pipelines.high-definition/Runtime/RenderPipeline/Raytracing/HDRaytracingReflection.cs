@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
             BlueNoise blueNoise = GetBlueNoiseManager();
