@@ -66,18 +66,22 @@ projects:
 
 All_{{ project.name }}_{{ editor.version }}:
   name: All {{ project.name }} CI - {{ editor.version }}
-  agent:
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-    - dir
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
+  {% if editor.version == "fast-trunk" %}
+  triggers:
+    changes:
+      only:
+        - "com.unity.shadergraph/**/*"
+        - "TestProjects/ShaderGraph*/**/*"
+        - "com.unity.render-pipelines.universal/Editor/ShaderGraph/*"
+      except:
+        - "**/*.md"
+  {% endif %}
 
 {% endfor %}
 {% endfor %}
