@@ -201,6 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
+        private bool m_NeedTAAResetHistory = false;
 
         public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
 
@@ -255,6 +256,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsTAAEnabled()
         {
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
+        }
+
+        public bool NeedTAAResetHistory()
+        {
+            return m_NeedTAAResetHistory;
         }
 
         public bool IsVolumetricReprojectionEnabled()
@@ -336,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2Int nonScaledViewport = new Vector2Int(m_ActualWidth, m_ActualHeight);
             if (isMainGameView)
             {
-                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(m_ActualWidth, m_ActualHeight));
                 m_ActualWidth = scaledSize.x;
                 m_ActualHeight = scaledSize.y;
             }
@@ -385,6 +391,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateAntialiasing()
         {
+            AntialiasingMode previousAntialiasing = antialiasing;
+
             // Handle post-process AA
             //  - If post-processing is disabled all together, no AA
             //  - In scene view, only enable TAA if animated materials are enabled
@@ -417,6 +425,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 taaFrameIndex = 0;
                 taaJitter = Vector4.zero;
+            }
+
+            // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
+            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            {
+                m_NeedTAAResetHistory = true;
+            }
+            else
+            {
+                m_NeedTAAResetHistory = false;
             }
         }
 

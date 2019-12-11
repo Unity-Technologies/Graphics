@@ -10,6 +10,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <param name="buffers">The buffers that has been requested.</param>
     /// <param name="outputProperties">Several properties that were computed for this frame.</param>
     public delegate void FramePassCallback(CommandBuffer cmd, List<RTHandle> buffers, RenderOutputProperties outputProperties);
+    /// <summary>
+    /// Called to allocate a RTHandle for a specific AOVBuffer.
+    /// </summary>
+    /// <param name="aovBufferId">The AOVBuffer to allocatE.</param>
     public delegate RTHandle AOVRequestBufferAllocator(AOVBuffers aovBufferId);
 
     /// <summary>Describes a frame pass.</summary>
@@ -19,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Since 2019.3, use AOVRequestData.NewDefault() instead.")]
         public static readonly AOVRequestData @default = default;
         /// <summary>Default frame pass settings.</summary>
+        /// <returns>The default value.</returns>
         public static AOVRequestData NewDefault() => new AOVRequestData
         {
             m_Settings = AOVRequest.NewDefault(),

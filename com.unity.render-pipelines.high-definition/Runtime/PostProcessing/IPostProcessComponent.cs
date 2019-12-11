@@ -6,9 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
     public interface IPostProcessComponent
     {
         /// <summary>
-        /// Tells if the post process needs to be rendered or not
+        /// Tells if the post process needs to be rendered or not.
         /// </summary>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         bool IsActive();
     }
 }

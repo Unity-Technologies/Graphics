@@ -80,11 +80,13 @@ real3 F_Transm_Schlick(real3 f0, real u)
 }
 
 // Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
-// Fresnel dieletric / dielectric
-real F_FresnelDieletric(real ior, real u)
+// Fresnel dielectric / dielectric
+real F_FresnelDielectric(real ior, real u)
 {
     real g = sqrt(Sq(ior) + Sq(u) - 1.0);
-    return 0.5 * Sq((g - u) / (g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0)));
+
+    // The "1.0 - saturate(1.0 - result)" formulation allows to recover form cases where g is undefined, for IORs < 1
+    return 1.0 - saturate(1.0 - 0.5 * Sq((g - u) / (g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0))));
 }
 
 // Fresnel dieletric / conductor
@@ -350,7 +352,7 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
                                  roughnessT, roughnessB, partLambdaV);
 }
 
-// Get projected roughness for a certain normalized direction V in tangent space 
+// Get projected roughness for a certain normalized direction V in tangent space
 // and an anisotropic roughness
 // Ref: Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs, Heitz 2014, pp. 86, 88 - 39/60, 41/60
 float GetProjectedRoughness(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
@@ -448,7 +450,7 @@ real3 EvalSensitivity(real opd, real shift)
 real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, real3 baseLayerFresnel0, real iorOverBaseLayer = 0.0)
 {
     real3 I;
-    
+
     // iridescenceThickness unit is micrometer for this equation here. Mean 0.5 is 500nm.
     real Dinc = 3.0 * iridescenceThickness;
 

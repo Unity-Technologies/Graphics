@@ -27,9 +27,14 @@ MaterialData CreateMaterialData(BSDFData bsdfData, float3 V)
     }
     else // Below
     {
+        float NdotV = -dot(bsdfData.normalWS, V);
+        float F = F_FresnelDielectric(1.0 / mtlData.bsdfData.ior, NdotV);
+
+        // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
+        bool consistentNormal = (NdotV > 0.001);
         mtlData.bsdfWeight[0] = 0.0;
-        mtlData.bsdfWeight[1] = 0.0;
-        mtlData.bsdfWeight[2] = 1.0;
+        mtlData.bsdfWeight[1] = consistentNormal ? F : 0.0;
+        mtlData.bsdfWeight[2] = consistentNormal ? (1.0 - mtlData.bsdfWeight[1]) * bsdfData.transmittanceMask : 0.0;
     }
 
     // If we are basically black, no need to compute anything else for this material
@@ -90,8 +95,20 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
     }
     else // Below
     {
-        if (!BTDF::SampleDelta(mtlData, sampleDir, result.specValue, result.specPdf))
-            return false;
+        if (inputSample.z < mtlData.bsdfWeight[1]) // Specular BRDF
+        {
+            if (!BRDF::SampleDelta(mtlData, sampleDir, result.specValue, result.specPdf))
+                return false;
+
+            result.specPdf *= mtlData.bsdfWeight[1];
+        }
+        else // Specular BTDF
+        {
+            if (!BTDF::SampleDelta(mtlData, sampleDir, result.specValue, result.specPdf))
+                return false;
+
+            result.specPdf *= mtlData.bsdfWeight[2];
+        }
     }
 
     return true;
