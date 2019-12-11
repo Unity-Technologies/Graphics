@@ -161,6 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent k_LutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
         static readonly GUIContent k_LutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
+        static readonly GUIContent k_BufferFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Specifies the encoding format of the color buffers that are used during post processing. Lower precision formats are faster and use less memory at the expense of color precision.");
+        static readonly GUIContent k_UseAlpha = EditorGUIUtility.TrTextContent("Use Alpha", "Specifies whether post processing should be applied to the alpha channel.");
 
         static readonly GUIContent[] k_ShadowBitDepthNames = { new GUIContent("32 bit"),  new GUIContent("16 bit") };
         static readonly int[] k_ShadowBitDepthValues = { (int) DepthBits.Depth32, (int) DepthBits.Depth16};

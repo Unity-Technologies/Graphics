@@ -549,6 +549,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.postProcessSettings.lutSize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.postProcessSettings.lutSize.intValue, GlobalPostProcessSettings.k_MinLutSize, GlobalPostProcessSettings.k_MaxLutSize);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, k_LutFormat);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.bufferFormat, k_BufferFormat);
+
+            using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.postProcessSettings.bufferFormat.intValue == (int)PostProcessBufferFormat.RGB111110Float))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.useAlpha, k_UseAlpha);
+            }
         }
 
         static void Drawer_SectionXRSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             NeighborhoodBlending = 2
         }
 
-        const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
+        GraphicsFormat k_ColorFormat               = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat           = GraphicsFormat.R16_SFloat;
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
 
@@ -104,6 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_TempTexture1024; // RGHalf
         RTHandle m_TempTexture32;   // RGHalf
 
+        readonly bool m_ProcessAlpha; // if true, the post processing will read and process the alpha of the input texture
         readonly bool m_KeepAlpha;
         RTHandle m_AlphaTexture; // RHalf
 
@@ -124,6 +125,11 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly System.Random m_Random;
 
         HDRenderPipeline m_HDInstance;
+
+        static bool IsFormatWithAlphaChannel(GraphicsFormat format)
+        {
+            return format != GraphicsFormat.B10G11R11_UFloatPack32;
+        }
 
         public PostProcessSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
@@ -154,6 +160,18 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
+
+            //Alpha mask variants:
+            {
+                PushUberFeature(UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.HasAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.HasAlpha);
+            }
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -209,9 +227,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 32, 32, colorFormat: GraphicsFormat.R16G16_SFloat,
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
+   
+            k_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
+            m_ProcessAlpha = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.useAlpha && IsFormatWithAlphaChannel(k_ColorFormat);
 
-            // Used to copy the alpha channel of the color buffer if the format is set to fp16
-            m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.keepAlpha;
+            // Used to copy the alpha channel of the color buffer if the format is set to fp16. This is active only when explicit processing of the alpha channel was not requested.
+            m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.keepAlpha && !m_ProcessAlpha;
             if (m_KeepAlpha)
             {
                 m_AlphaTexture = RTHandles.Alloc(
@@ -628,6 +649,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
 
+            if (m_ProcessAlpha)
+            {
+                flags |= UberPostFeatureFlags.HasAlpha;
+            }
+
             return flags;
         }
 
@@ -843,6 +869,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
 
+            if (m_ProcessAlpha)
+            {
+                m_TemporalAAMaterial.EnableKeyword("HAS_ALPHA");
+            }
 
             if (m_ResetHistory)
             {
@@ -867,7 +897,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.ClearRandomWriteTargets();
         }
 
-        static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
@@ -886,7 +916,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Depth Of Field
-
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -1086,9 +1115,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cs = m_Resources.shaders.depthOfFieldPrefilterCS;
 
-                kernel = m_DepthOfField.resolution == DepthOfFieldResolution.Full
-                    ? cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes")
-                    : cs.FindKernel(bothLayersActive ? "KMainNearFar" : nearLayerActive ? "KMainNear" : "KMainFar");
+                string kernelName = m_DepthOfField.resolution == DepthOfFieldResolution.Full ?
+                    (bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes") :
+                    (bothLayersActive ? "KMainNearFar" : nearLayerActive ? "KMainNear" : "KMainFar");
+
+                kernel = cs.FindKernel(m_ProcessAlpha ? kernelName + "Alpha" : kernelName);
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
@@ -1154,7 +1185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         cs = m_Resources.shaders.depthOfFieldMipCS;
-                        kernel = cs.FindKernel("KMainColor");
+                        kernel = cs.FindKernel(m_ProcessAlpha ? "KMainColorAlpha": "KMainColor");
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB, 0);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, pingFarRGB, 1);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, pingFarRGB, 2);
@@ -1268,7 +1299,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     cs = m_Resources.shaders.depthOfFieldGatherCS;
-                    kernel = cs.FindKernel(useTiles ? "KMainFarTiles" : "KMainFar");
+                    kernel = m_ProcessAlpha ?
+                        cs.FindKernel(useTiles ? "KMainFarTilesAlpha" : "KMainFarAlpha") :
+                        cs.FindKernel(useTiles ? "KMainFarTiles" : "KMainFar");
+
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farSamples * farSamples, barrelClipping, farMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
@@ -1299,7 +1333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (farLayerActive)
                     {
                         cs = m_Resources.shaders.depthOfFieldCombineCS;
-                        kernel = cs.FindKernel("KMainPreCombineFar");
+                        kernel = cs.FindKernel(m_ProcessAlpha ? "KMainPreCombineFarAlpha" : "KMainPreCombineFar");
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputFarTexture, pongFarRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -1329,7 +1363,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     cs = m_Resources.shaders.depthOfFieldGatherCS;
-                    kernel = cs.FindKernel(useTiles ? "KMainNearTiles" : "KMainNear");
+                    kernel = m_ProcessAlpha ?
+                        cs.FindKernel(useTiles ? "KMainNearTilesAlpha" : "KMainNearAlpha") :
+                        cs.FindKernel(useTiles ? "KMainNearTiles" : "KMainNear");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearSamples * nearSamples, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
@@ -1358,12 +1394,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cs = m_Resources.shaders.depthOfFieldCombineCS;
 
-                if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes");
-                else if (hqFiltering)
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarHighQ" : nearLayerActive ? "KMainNearHighQ" : "KMainFarHighQ");
-                else
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarLowQ" : nearLayerActive ? "KMainNearLowQ" : "KMainFarLowQ");
+                string kernelName = "KMain";
+                kernelName += bothLayersActive ? "NearFar" : nearLayerActive ? "Near" : "Far";
+                kernelName += m_DepthOfField.resolution == DepthOfFieldResolution.Full ? "FullRes" : hqFiltering ? "HighQ" : "LowQ";
+                kernel = cs.FindKernel(m_ProcessAlpha ? kernelName + "Alpha" : kernelName);
 
                 if (nearLayerActive)
                 {
@@ -2345,6 +2379,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_FinalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
                     m_FinalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
                 }
+            }
+
+            if(m_ProcessAlpha)
+            {
+                m_FinalPassMaterial.EnableKeyword("HAS_ALPHA");
             }
 
             m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,

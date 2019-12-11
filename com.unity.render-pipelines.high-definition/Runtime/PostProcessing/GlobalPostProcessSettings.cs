@@ -11,6 +11,13 @@ namespace UnityEngine.Rendering.HighDefinition
         ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
     }
 
+    public enum PostProcessBufferFormat
+    {
+        RGB111110Float = GraphicsFormat.B10G11R11_UFloatPack32,
+        ARGBHalf = GraphicsFormat.R16G16B16A16_SFloat,
+        ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
+    }
+
     [Serializable]
     public struct GlobalPostProcessSettings
     {
@@ -18,7 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly GlobalPostProcessSettings @default = new GlobalPostProcessSettings()
         {
             lutSize = 32,
-            lutFormat = GradingLutFormat.ARGBHalf
+            lutFormat = GradingLutFormat.ARGBHalf,
+            bufferFormat = PostProcessBufferFormat.RGB111110Float,
+            useAlpha = false
         };
 
         // Note: A lut size of 16^3 is barely usable (noticeable color banding in highly contrasted
@@ -39,5 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [FormerlySerializedAs("m_LutFormat")]
         public GradingLutFormat lutFormat;
+
+        public PostProcessBufferFormat bufferFormat;
+
+        public bool useAlpha;
     }
 }
