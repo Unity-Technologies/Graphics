@@ -1,13 +1,13 @@
 {
     "name": "com.unity.render-pipelines.universal",
     "description": "The Universal Render Pipeline is a prebuilt Scriptable Render Pipeline, made by Unity. The technology offers graphics that are scalable to mobile platforms, and you can also use it for higher-end consoles and PCs. You’re able to achieve quick rendering at a high quality without needing compute shader technology. The Universal Render Pipeline uses simplified, physically based Lighting and Materials. The Universal Render Pipeline uses single-pass forward rendering. Use this pipeline to get optimized real-time performance on several platforms.",
-    "version": "7.1.6",
+    "version": "7.1.7",
     "unity": "2019.3",
-	"unityRelease": "0b13",
+	"unityRelease": "0f3",
     "displayName": "Universal RP",
     "dependencies": {
-        "com.unity.render-pipelines.core": "7.1.6",
-        "com.unity.shadergraph": "7.1.6"
+        "com.unity.render-pipelines.core": "7.1.7",
+        "com.unity.shadergraph": "7.1.7"
     },
 	"keywords":[
         "graphics",
