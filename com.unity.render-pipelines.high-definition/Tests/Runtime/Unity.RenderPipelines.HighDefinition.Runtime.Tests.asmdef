@@ -8,6 +8,9 @@
         "TestAssemblies"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true
+    "excludePlatforms": [],	
+    "allowUnsafeCode": true,
+	"defineConstraints": [
+		"UNITY_INCLUDE_TESTS"
+		]
 }
