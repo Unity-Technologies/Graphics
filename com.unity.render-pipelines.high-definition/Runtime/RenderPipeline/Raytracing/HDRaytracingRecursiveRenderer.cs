@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId raytracingPassID = new ShaderTagId("Forward");
         RenderStateBlock m_RaytracingFlagStateBlock;
 
-        public void InitRecursiveRenderer()
+        void InitRecursiveRenderer()
         {
             m_RaytracingFlagStateBlock = new RenderStateBlock
             {
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public void ReleaseRecursiveRenderer()
+        void ReleaseRecursiveRenderer()
         {
             if (m_RaytracingFlagMaterial != null)
             {
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
+        void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
         {
 
             // Clear our target
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
+        void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
