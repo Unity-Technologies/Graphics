@@ -161,7 +161,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half alpha = albedo.a;
 
 #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
+    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
 #else
     half3 emission = half3(0, 0, 0);
 #endif
