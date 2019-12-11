@@ -1,14 +1,16 @@
 #pragma kernel ValidateHistory
 
 #pragma kernel TemporalAccumulationSingle           TEMPORAL_ACCUMULATION=TemporalAccumulationSingle SINGLE_CHANNEL
-#pragma kernel TemporalAccumulationColor            TEMPORAL_ACCUMULATION=TemporalAccumulationColor
 #pragma kernel TemporalAccumulationSingleArray      TEMPORAL_ACCUMULATION=TemporalAccumulationSingleArray SINGLE_CHANNEL HISTORY_IS_ARRAY
 
+#pragma kernel TemporalAccumulationColor            TEMPORAL_ACCUMULATION=TemporalAccumulationColor
+#pragma kernel TemporalAccumulationColorArray       TEMPORAL_ACCUMULATION=TemporalAccumulationColorArray HISTORY_IS_ARRAY
+
 #pragma kernel CopyHistorySingle                    COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
-#pragma kernel CopyHistoryColor                     COPY_HISTORY=CopyHistoryColor 
 #pragma kernel CopyHistorySingleArray               COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
 
-#pragma only_renderers d3d11
+#pragma kernel CopyHistoryColor                     COPY_HISTORY=CopyHistoryColor 
+#pragma kernel CopyHistoryColorArray                COPY_HISTORY=CopyHistoryColorArray OUTPUT_IS_ARRAY
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -22,7 +24,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11
+// #pragma enable_d3d11_debug_symbols
 
 // Tile size of this compute shaders
 #define TEMPORAL_FILTER_TILE_SIZE 8
@@ -136,13 +139,16 @@ RW_TEXTURE2D_ARRAY(float2, _DenoiseOutputTextureRW);
 RW_TEXTURE2D_X(float2, _DenoiseOutputTextureRW);
     #endif
 #else
+    #ifdef OUTPUT_IS_ARRAY
+RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
+    #else
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+    #endif
 #endif
 
 // Index of the shadow in the arrays
 int _DenoisingHistorySlot;
 
-#ifndef OUTPUT_IS_ARRAY
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -172,7 +178,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     uint2 historyTapCoord = (uint2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
 
     // Fetch the current value, history value and current sample count
-    #if SINGLE_CHANNEL
+#if SINGLE_CHANNEL
     float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
     #if HISTORY_IS_ARRAY
     float2 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot)).xy;
@@ -180,12 +186,16 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord).xy;
     #endif
     float sampleCount = history.y;
-    #else
+#else
     // Get the current sample to filter
     float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+    #if HISTORY_IS_ARRAY
+    float4 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot));
+    #else
     float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
-    float sampleCount = history.w;
     #endif
+    float sampleCount = history.w;
+#endif
 
     // Apply the accumulation factor and return the result
     float accumulationFactor = 0.0;
@@ -212,7 +222,6 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
     #endif
 }
-#endif
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -229,6 +238,10 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
     #endif
 #else
+    #if OUTPUT_IS_ARRAY
+    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
+    #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
+    #endif
 #endif
 }

@@ -70,8 +70,11 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
+            // Should we use the history array shader variants
+            bool historyIsArray = slotIndex != -1;
+
             // Now that we have validated our history, let's accumulate
-            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "TemporalAccumulationSingle" : "TemporalAccumulationSingleArray") : "TemporalAccumulationColor");
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (historyIsArray ? "TemporalAccumulationSingleArray" : "TemporalAccumulationSingle") : (historyIsArray ? "TemporalAccumulationColorArray" : "TemporalAccumulationColor"));
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, historySignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -80,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
-            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "CopyHistorySingle" : "CopyHistorySingleArray") : "CopyHistoryColor");
+            m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (historyIsArray ? "CopyHistorySingleArray" : "CopyHistorySingle") : (historyIsArray ? "CopyHistoryColorArray" : "CopyHistoryColor"));
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputSignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historySignal);
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
