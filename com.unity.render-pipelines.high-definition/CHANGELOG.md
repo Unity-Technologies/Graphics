@@ -178,9 +178,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Metal Shader Compiler and GTAO shader for metal
 - Fixed resources load issue while upgrading HDRP package.
 - Fix LOD fade mask by accounting for field of view
-<<<<<<< HEAD
-- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
-=======
 - Fixed spot light missing from ray tracing indirect effects.
 - Fixed a UI bug in the diffusion profile list after fixing them from the wizard.
 - Fixed the hash collision when creating new diffusion profile assets.
@@ -221,7 +218,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed init of debug for FrameSettingsHistory on SceneView camera
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
->>>>>>> refs/heads/release/2019.3
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
