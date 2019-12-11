@@ -1,5 +1,8 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Additional component used to store settings for HDRP's reflection probes.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Probe" + Documentation.endURL)]
     [RequireComponent(typeof(ReflectionProbe))]
     public sealed partial class HDAdditionalReflectionData : HDProbe
@@ -11,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Utilities for reflection probes.
+    /// </summary>
     public static class HDAdditionalReflectionDataExtensions
     {
         /// <summary>
@@ -21,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// If the probe don't have a <see cref="HDAdditionalReflectionData"/> component, nothing is done.
         /// </summary>
+        /// <param name="probe">The probe to request a render.</param>
         public static void RequestRenderNextUpdate(this ReflectionProbe probe)
         {
             var add = probe.GetComponent<HDAdditionalReflectionData>();

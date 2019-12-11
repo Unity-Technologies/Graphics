@@ -14,7 +14,9 @@ The base unit of [luminous intensity](Glossary.html#LuminousIntensity) in the In
 
 #### Lumen:
 
-The unit of [luminous flux](Glossary.html#LuminousFlux). Measures the total quantity of visible light a source emits. A light source emitting 1 [candela](#Candela) of luminous intensity from an area of 1 steradian has a luminous flux of 1 lumen.
+The unit of [luminous flux](Glossary.html#LuminousFlux). Describes the total amount of visible light that a light source emits in all directions. When you use this unit, the amount of visible light is independent of the source's size meaning the illumination level of a Scene does not change depending on the size of a light source. However, highlights that a light source produces dim as the area of the light source increases. This is because the same power is spread across a larger area.
+
+A light source that emits 1 [candela](#Candela) of [luminous intensity](Glossary.html#LuminousIntensity) from an area of 1 steradian has a luminous flux of 1 lumen.
 
 <a name="Lux"></a>
 
@@ -26,7 +28,9 @@ The unit of [illuminance](Glossary.html#Illuminance). A light source that emits 
 
 #### Nits (candela per square meter):
 
-Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of [luminous intensity](Glossary.html#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
+The unit of luminance. Describes the surface power of a visible light source. When you use this unit, the overall power of a light source depends the size of the light source, meaning the the illumination level of a Scene changes depending on the size of the light source.  Highlights that a light source produces conserve their intensity regardless of the size of the surface.
+
+A light source that emits 1 candela of [luminous intensity](Glossary.html#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
 
 <a name="EV"></a>
 

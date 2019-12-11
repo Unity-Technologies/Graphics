@@ -37,7 +37,7 @@ BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Nor
 AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
 
 You can see here on this diagram where the custom passes are injected inside an HDRP frame.
-![](Images/HDRP-frame-graph-diagram.jpg)
+![](Images/HDRP-frame-graph-diagram.png)
 
 ## Custom Pass List
 
@@ -415,6 +415,8 @@ Shader "Hidden/Outline"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float4 color = float4(0.0, 0.0, 0.0, 0.0);

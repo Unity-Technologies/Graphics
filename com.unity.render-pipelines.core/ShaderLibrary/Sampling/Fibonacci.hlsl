@@ -12,11 +12,14 @@ real2 Fibonacci2dSeq(real fibN1, real fibN2, uint i)
     return real2(i / fibN1 + (0.5 / fibN1), frac(i * (fibN2 / fibN1)));
 }
 
-#define GOLDEN_RATIO 1.6180339887498948482
+#define GOLDEN_RATIO 1.61803
+#define GOLDEN_ANGLE 2.39996
 
 // Replaces the Fibonacci sequence in Fibonacci2dSeq() with the Golden ratio.
 real2 Golden2dSeq(uint i, real n)
 {
+    // GoldenAngle = 2 * Pi * (1 - 1 / GoldenRatio).
+    // We can drop the "1 -" part since all it does is reverse the orientation.
     return real2(i / n + (0.5 / n), frac(i * rcp(GOLDEN_RATIO)));
 }
 
@@ -269,7 +272,7 @@ real2 Fibonacci2d(uint i, uint sampleCount)
 real2 SampleDiskFibonacci(uint i, uint sampleCount)
 {
     real2 f = Fibonacci2d(i, sampleCount);
-    return real2(f.x, TWO_PI * f.y);
+    return real2(sqrt(f.x), TWO_PI * f.y);
 }
 
 // Returns the zenith as the X coordinate, and the azimuthal angle as the Y coordinate.
