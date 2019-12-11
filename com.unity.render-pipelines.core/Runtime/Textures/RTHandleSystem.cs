@@ -151,6 +151,16 @@ namespace UnityEngine.Rendering
             m_RTHandleProperties.currentViewportSize = new Vector2Int(width, height);
             m_RTHandleProperties.currentRenderTargetSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
 
+            // If the currentViewportSize is 0, it mean we are the first frame of rendering (can happen when doing domain reload for example or for reflection probe)
+            // in this case the scalePrevious below could be invalided. But some effect rely on having a correct value like TAA with the history buffer for the first frame.
+            // to work around this, when we detect that size is 0, we setup previous size to current size.
+            if (m_RTHandleProperties.previousViewportSize.x == 0)
+            {
+                m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
+                m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
+                lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
+            }
+
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
                 m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
