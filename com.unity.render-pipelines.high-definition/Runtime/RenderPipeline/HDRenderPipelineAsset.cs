@@ -327,6 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int index = diffusionProfileSettingsList.Length;
                 Array.Resize(ref diffusionProfileSettingsList, index + 1);
                 diffusionProfileSettingsList[index] = profile;
+                UnityEditor.EditorUtility.SetDirty(this);
                 return true;
             }
             else

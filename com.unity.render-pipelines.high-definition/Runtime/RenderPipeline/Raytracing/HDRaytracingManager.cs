@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingIntermediateBufferRGBA0;
         RTHandle m_RayTracingIntermediateBufferRGBA1;
 
-        public void InitRayTracingManager()
+        internal void InitRayTracingManager()
         {
             // Init the denoisers
             m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
         }
 
-        public void ReleaseRayTracingManager()
+        internal void ReleaseRayTracingManager()
         {
             RTHandles.Release(m_RayTracingDistanceBuffer);
             RTHandles.Release(m_RayTracingDirectionBuffer);
@@ -276,7 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // return the status
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
-        public void BuildRayTracingAccelerationStructure()
+
+        internal void BuildRayTracingAccelerationStructure()
         {
             // Clear all the per frame-data
             m_RayTracingRendererReference.Clear();

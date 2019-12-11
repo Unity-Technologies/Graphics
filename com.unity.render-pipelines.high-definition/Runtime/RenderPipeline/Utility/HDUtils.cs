@@ -742,7 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public static void DisplayUnsupportedMessage(string msg)
+        internal static void DisplayUnsupportedMessage(string msg)
         {
             Debug.LogError(msg);
 

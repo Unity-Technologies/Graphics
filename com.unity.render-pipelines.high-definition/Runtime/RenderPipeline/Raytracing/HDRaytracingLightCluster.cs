@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-    class HDRaytracingLightCluster
+    internal class HDRaytracingLightCluster
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
