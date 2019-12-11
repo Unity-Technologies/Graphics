@@ -23,10 +23,11 @@ This document explains how to convert the **3D With Extras** template Project to
 Firstly, to install HDRP, add the High Definition RP package to your Unity Project:
 
 1. In the Unity Editor, open the Package Manager window (menu: **Window > Package Manager**).
+2. Find and select the **High Definition RP** package, then click **Install**.
 
-2. Find and select the** High Definition RP **package, then click **Install**.
+HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
-HDRP is now available to use in your Project. To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html).
+To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html).
 
 1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
 
