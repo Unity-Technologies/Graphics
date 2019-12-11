@@ -240,6 +240,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
 - Fixed issue with History not reset when chaning antialiasing mode on camera
 - Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed ray tracing reflection denoiser not applied in tier 1
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
