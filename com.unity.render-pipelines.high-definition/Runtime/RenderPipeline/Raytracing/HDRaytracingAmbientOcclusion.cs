@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class HDRaytracingAmbientOcclusion
+    internal class HDRaytracingAmbientOcclusion
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
