@@ -21,7 +21,7 @@ platforms:
     flavor: m1.mac
   - name: Linux
     type: Unity::VM::GPU
-    image: cds-ops/ubuntu-18.04-base:latest
+    image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
 testplatforms:
   - name: Standalone
@@ -226,8 +226,12 @@ All_{{ project.name }}_{{ editor.version }}:
   name: All {{ project.name }} CI - {{ editor.version }}
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - dir
   dependencies:
@@ -261,6 +265,16 @@ All_{{ project.name }}_{{ editor.version }}:
     
   {% endfor %}
   {% endfor %}
+  {% if editor.version == "fast-trunk" %}
+  triggers:
+    changes:
+      only:
+        - "com.unity.shadergraph/**/*"
+        - "TestProjects/ShaderGraph*/**/*"
+        - "com.unity.render-pipelines.universal/Editor/ShaderGraph/*"
+      except:
+        - "**/*.md"
+  {% endif %}
 
 {% endfor %}    
 {% endfor %}

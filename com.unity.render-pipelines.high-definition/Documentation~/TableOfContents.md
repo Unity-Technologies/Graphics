@@ -1,5 +1,7 @@
 * [High Definition Render Pipeline](index)
-* [Features List](HDRP-Features)
+* Features
+  * [Features List](HDRP-Features)
+  * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
