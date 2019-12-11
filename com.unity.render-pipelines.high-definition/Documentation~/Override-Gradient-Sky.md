@@ -2,7 +2,7 @@
 
 The Gradient Sky Volume component override controls settings relevant to rendering a simple representation of the sky. It allows you to define three colors, the **Top**, **Middle**, and **Bottom**, which HDRP interpolates between to create a gradient sky.
 
-You can alter these values at run time. This component also exposes options that enable you to define how HDRP updates the indirect lighting the sky generates in the Scene.
+You can alter these values at runtime. This component also exposes options that enable you to define how HDRP updates the indirect lighting the sky generates in the Scene.
 
 ##  Using Gradient Sky
 
@@ -23,7 +23,7 @@ After you add a **Gradient Sky** override, you must set the Volume to use **Grad
 | **Middle**             | Use the color picker to select the color of the horizon.     |
 | **Bottom**             | Use the color picker to select the color of the lower hemisphere of the sky. This is below the horizon. |
 | **Gradient Diffusion** | Set the size of the **Middle** property in the Skybox. Higher values make the gradient thinner, shrinking the size of the **Middle** section. Low values make the gradient thicker, increasing the size of the **Middle** section. |
-| **Intensity Mode**        | Use the drop-down to set the way the sky intensity is computed.<br />&#8226; **Exposure**: Intensity is computed from an exposure in EV100.<br />&#8226; **Multiplier**: Intensity is a flat multiplier. |
+| **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br />&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br />&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. |
 | - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |
 | - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Multiplier** from the **Intensity Mode** drop-down. |
 | **Update Mode**        | Use the drop-down to set the rate at which HDRP updates the sky environment (using Ambient and Reflection Probes).<br />&#8226; **On Changed**: HDRP updates the sky environment when one of the sky properties changes.<br />&#8226; **On Demand**: HDRP waits until you manually call for a sky environment update from a script.<br />&#8226; **Realtime**: HDRP updates the sky environment at regular intervals defined by the **Update Period**. |

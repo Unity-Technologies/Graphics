@@ -8,7 +8,7 @@ The High Definition Render Pipeline (HDRP) uses the following techniques to calc
 
 To help you decide which techniques to use in your Unity Project, the following table shows the resource intensity of each technique.
 
-| **Technique**                  | **Description**                                              | **Resource Intensity at run time**                           |
+| **Technique**                  | **Description**                                              | **Resource Intensity at runtime**                           |
 | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **Screen space reflection**    | Screen space solution. Captures all GameObjects in real time. | High.                                                        |
 | **Realtime Reflection Probes** | Manually placed, local Reflection Probe. Captures all GameObjects in real time. | Medium-High (this depends on the resolution of the capture). |

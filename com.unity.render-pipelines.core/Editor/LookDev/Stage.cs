@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.LookDev
         public Scene scene => m_PreviewScene;
 
         private StageRuntimeInterface SRI;
+        /// <summary>The runtime interface on stage</summary>
         public StageRuntimeInterface runtimeInterface
             => SRI ?? (SRI = new StageRuntimeInterface(
                 CreateGameObjectIntoStage,

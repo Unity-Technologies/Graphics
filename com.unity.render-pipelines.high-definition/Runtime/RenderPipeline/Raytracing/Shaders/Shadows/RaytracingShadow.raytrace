@@ -482,7 +482,7 @@ void RayGenShadowSegmentSingle()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];

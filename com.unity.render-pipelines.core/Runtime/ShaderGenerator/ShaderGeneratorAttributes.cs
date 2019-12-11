@@ -3,38 +3,108 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Packing Rules for structs.
+    /// </summary>
     public enum PackingRules
     {
+        /// <summary>
+        /// Exact Packing
+        /// </summary>
         Exact,
+        /// <summary>
+        /// Aggressive Packing
+        /// </summary>
         Aggressive
     };
 
+    /// <summary>
+    /// Field packing scheme.
+    /// </summary>
     public enum FieldPacking
     {
+        /// <summary>
+        /// No Packing
+        /// </summary>
         NoPacking = 0,
+        /// <summary>
+        /// R11G11B10 Packing
+        /// </summary>
         R11G11B10,
+        /// <summary>
+        /// Packed Float
+        /// </summary>
         PackedFloat,
+        /// <summary>
+        /// Packed UInt
+        /// </summary>
         PackedUint
     }
 
+    /// <summary>
+    /// Field Precision
+    /// </summary>
     public enum FieldPrecision
     {
+        /// <summary>
+        /// Half Precision
+        /// </summary>
         Half,
+        /// <summary>
+        /// Real Precision
+        /// </summary>
         Real,
+        /// <summary>
+        /// Default Precision
+        /// </summary>
         Default
     }
 
+    /// <summary>
+    /// Attribute specifying that HLSL code should be generated.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Enum)]
     public class GenerateHLSL : System.Attribute
     {
+        /// <summary>
+        /// Packing rules for the struct.
+        /// </summary>
         public PackingRules packingRules;
+        /// <summary>
+        /// Structure contains packed fields.
+        /// </summary>
         public bool containsPackedFields;
-        public bool needAccessors; // Whether or not to generate the accessors
-        public bool needSetters; // Whether or not to generate setters
-        public bool needParamDebug; // // Whether or not to generate define for each field of the struct + debug function (use in HDRenderPipeline)
-        public int paramDefinesStart; // Start of the generated define
-        public bool omitStructDeclaration; // Whether to skip "struct <name> {" etc
+        /// <summary>
+        /// Structure needs generated accessors.
+        /// </summary>
+        public bool needAccessors;
+        /// <summary>
+        /// Structure needs generated setters.
+        /// </summary>
+        public bool needSetters;
+        /// <summary>
+        /// Structure needs generated debug defines and functions.
+        /// </summary>
+        public bool needParamDebug;
+        /// <summary>
+        /// Start value of generated defines.
+        /// </summary>
+        public int paramDefinesStart;
+        /// <summary>
+        /// Generate structure declaration or not.
+        /// </summary>
+        public bool omitStructDeclaration;
 
+        /// <summary>
+        /// GenerateHLSL attribute constructor.
+        /// </summary>
+        /// <param name="rules">Packing rules.</param>
+        /// <param name="needAccessors">Need accessors.</param>
+        /// <param name="needSetters">Need setters.</param>
+        /// <param name="needParamDebug">Need debug defines.</param>
+        /// <param name="paramDefinesStart">Start value of debug defines.</param>
+        /// <param name="omitStructDeclaration">Omit structure declaration.</param>
+        /// <param name="containsPackedFields">Contains packed fields.</param>
         public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
         {
             packingRules = rules;
@@ -47,14 +117,36 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// Attribute specifying the parameters of a surface data field.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class SurfaceDataAttributes : System.Attribute
     {
+        /// <summary>
+        /// Display names overrides for the field.
+        /// </summary>
         public string[] displayNames;
+        /// <summary>
+        /// True if the field is a direction.
+        /// </summary>
         public bool isDirection;
+        /// <summary>
+        /// True if the field is an sRGB value.
+        /// </summary>
         public bool sRGBDisplay;
+        /// <summary>
+        /// Field precision.
+        /// </summary>
         public FieldPrecision precision;
 
+        /// <summary>
+        /// SurfaceDataAttributes constructor.
+        /// </summary>
+        /// <param name="displayName">Display name.</param>
+        /// <param name="isDirection">Field is a direction.</param>
+        /// <param name="sRGBDisplay">Field is an sRGB value.</param>
+        /// <param name="precision">Field precision.</param>
         public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default)
         {
             displayNames = new string[1];
@@ -66,21 +158,42 @@ namespace UnityEngine.Rendering
 
         // We allow users to add several names for one field, so user can override the auto behavior and do something else with the same data
         // typical example is normal that you want to draw in view space or world space. So user can override view space case and do the transform.
-        public SurfaceDataAttributes(string[] displayName, bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default)
+        /// <summary>
+        /// SurfaceDataAttributes constructor.
+        /// </summary>
+        /// <param name="displayNames">List of names for the field.</param>
+        /// <param name="isDirection">Field is a direction.</param>
+        /// <param name="sRGBDisplay">Field is an sRGB value.</param>
+        /// <param name="precision">Field precision.</param>
+        public SurfaceDataAttributes(string[] displayNames, bool isDirection = false, bool sRGBDisplay = false, FieldPrecision precision = FieldPrecision.Default)
         {
-            displayNames = displayName;
+            this.displayNames = displayNames;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
             this.precision = precision;
         }
     }
 
+    /// <summary>
+    /// Attribute defining an HLSL array.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class HLSLArray : System.Attribute
     {
+        /// <summary>
+        /// Size of the array.
+        /// </summary>
         public int  arraySize;
+        /// <summary>
+        /// Type of the array elements.
+        /// </summary>
         public Type elementType;
 
+        /// <summary>
+        /// HLSLSArray constructor.
+        /// </summary>
+        /// <param name="arraySize">Size of the array.</param>
+        /// <param name="elementType">Type of the array elements.</param>
         public HLSLArray(int arraySize, Type elementType)
         {
             this.arraySize = arraySize;
@@ -88,21 +201,55 @@ namespace UnityEngine.Rendering
         }
     }
 
-
+    /// <summary>
+    /// Attribute defining packing.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class PackingAttribute : System.Attribute
     {
+        /// <summary>
+        /// Display names.
+        /// </summary>
         public string[] displayNames;
+        /// <summary>
+        /// Minimum and Maximum value.
+        /// </summary>
         public float[] range;
+        /// <summary>
+        /// Packing scheme.
+        /// </summary>
         public FieldPacking packingScheme;
+        /// <summary>
+        /// Offset in source.
+        /// </summary>
         public int offsetInSource;
+        /// <summary>
+        /// Size in bits.
+        /// </summary>
         public int sizeInBits;
+        /// <summary>
+        /// True if the field is a direction.
+        /// </summary>
         public bool isDirection;
+        /// <summary>
+        /// True if the field is an sRGB value.
+        /// </summary>
         public bool sRGBDisplay;
 
-        public PackingAttribute(string[] displayName, FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 32, int offsetInSource = 0, float minValue = 0.0f, float maxValue = 1.0f, bool isDirection = false, bool sRGBDisplay = false)
+        /// <summary>
+        /// Packing Attribute constructor.
+        /// </summary>
+        /// <param name="displayNames">Display names.</param>
+        /// <param name="packingScheme">Packing scheme.</param>
+        /// <param name="bitSize">Size in bits.</param>
+        /// <param name="offsetInSource">Offset in source.</param>
+        /// <param name="minValue">Minimum value.</param>
+        /// <param name="maxValue">Maximum value.</param>
+        /// <param name="isDirection">Field is a direction.</param>
+        /// <param name="sRGBDisplay">Field is an sRGB value.</param>
+        public PackingAttribute(string[] displayNames, FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 32, int offsetInSource = 0, float minValue = 0.0f, float maxValue = 1.0f, bool isDirection = false, bool sRGBDisplay = false)
         {
-            displayNames = displayName;
+            this.displayNames = displayNames;
             this.packingScheme = packingScheme;
             this.offsetInSource = offsetInSource;
             this.isDirection = isDirection;
@@ -111,6 +258,17 @@ namespace UnityEngine.Rendering
             this.range = new float[] { minValue, maxValue };
         }
 
+        /// <summary>
+        /// Packing Attribute constructor.
+        /// </summary>
+        /// <param name="displayName">Display name.</param>
+        /// <param name="packingScheme">Packing scheme.</param>
+        /// <param name="bitSize">Size in bits.</param>
+        /// <param name="offsetInSource">Offset in source.</param>
+        /// <param name="minValue">Minimum value.</param>
+        /// <param name="maxValue">Maximum value.</param>
+        /// <param name="isDirection">Field is a direction.</param>
+        /// <param name="sRGBDisplay">Field is an sRGB value.</param>
         public PackingAttribute(string displayName = "", FieldPacking packingScheme = FieldPacking.NoPacking, int bitSize = 0, int offsetInSource = 0, float minValue = 0.0f, float maxValue = 1.0f, bool isDirection = false, bool sRGBDisplay = false)
         {
             displayNames = new string[1];

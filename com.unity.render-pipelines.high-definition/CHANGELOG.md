@@ -6,8 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.7] - 2019-12-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed rendering errors when enabling debug modes with custom passes
+- Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
+- Fixing a bug whith histories when n>4 for ray traced shadows
+- Fixing wrong behavior in ray traced shadows for mesh renderers if their cast shadow is shadow only or double sided
+- Only tracing rays for shadow if the point is inside the code for spotlight shadows
+- Only tracing rays if the point is inside the range for point lights
+- Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
+- Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
+- Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
+- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
+- Fixed ray traced shadow denoising not working (history rejected all the time).
+- Fixed shader warning on xbox one
+- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
+- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
+- Fixed missing distortion inputs in Lit and Unlit material UI.
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed ray traced reflection exposure issue.
+- Fixed issue with TAA history not initialising corretly scale factor for first frame
+- Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
+- Fixed issue with History not reset when chaning antialiasing mode on camera
 
 ## [7.1.6] - 2019-11-22
 

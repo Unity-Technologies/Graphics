@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
+- Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
 
 ## [7.1.6] - 2019-11-22
 ### Fixed

@@ -3,9 +3,15 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Base class for reflection like probes.
+    /// </summary>
     [ExecuteAlways]
     public abstract partial class HDProbe : MonoBehaviour
     {
+        /// <summary>
+        /// Store the settings computed during a rendering
+        /// </summary>
         [Serializable]
         public struct RenderData
         {
@@ -22,13 +28,25 @@ namespace UnityEngine.Rendering.HighDefinition
             [SerializeField]
             float m_Aspect;
 
+
+            /// <summary>World to camera matrix (Right Hand).</summary>
             public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
+            /// <summary>Projection matrix.</summary>
             public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
+            /// <summary>The capture position.</summary>
             public Vector3 capturePosition => m_CapturePosition;
+            /// <summary>The capture rotation.</summary>
             public Quaternion captureRotation => m_CaptureRotation;
+            /// <summary>The field of view.</summary>
             public float fieldOfView => m_FieldOfView;
+            /// <summary>The aspect ratio.</summary>
             public float aspect => m_Aspect;
 
+            /// <summary>
+            /// Instantiate a new RenderData from camera and position settings.
+            /// </summary>
+            /// <param name="camera">The camera settings used.</param>
+            /// <param name="position">The position settings used.</param>
             public RenderData(CameraSettings camera, CameraPositionSettings position)
                 : this(
                     position.GetUsedWorldToCameraMatrix(),
@@ -41,6 +59,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
             }
 
+            /// <summary>
+            /// Instantiate a new RenderData from specified inputs.
+            /// </summary>
+            /// <param name="worldToCameraRHS">The world to camera matrix (Right Hand)</param>
+            /// <param name="projectionMatrix">The projection matrix.</param>
+            /// <param name="capturePosition">The capture position.</param>
+            /// <param name="captureRotation">The capture rotation.</param>
+            /// <param name="fov">The field of view.</param>
+            /// <param name="aspect">The aspect ratio.</param>
             public RenderData(
                 Matrix4x4 worldToCameraRHS,
                 Matrix4x4 projectionMatrix,
@@ -59,6 +86,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Backed values of the probe settings.
+        /// Don't use directly this except for migration code.
+        /// </summary>
         // Serialized Data
         [SerializeField]
         // This one is protected only to have access during migration of children classes.
@@ -108,10 +139,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Public API
         // Texture asset
+        /// <summary>
+        /// The baked texture. Can be null if the probe was never baked.
+        /// </summary>
         public Texture bakedTexture => m_BakedTexture;
+        /// <summary>
+        /// Texture used in custom mode.
+        /// </summary>
         public Texture customTexture => m_CustomTexture;
+        /// <summary>
+        /// The allocated realtime texture. Can be null if the probe never rendered with the realtime mode.
+        /// </summary>
         public RenderTexture realtimeTexture => m_RealtimeTexture;
+        /// <summary>
+        /// The texture used during lighting for this probe.
+        /// </summary>
         public Texture texture => GetTexture(mode);
+        /// <summary>
+        /// Get the texture for a specific mode.
+        /// </summary>
+        /// <param name="targetMode">The mode to query.</param>
+        /// <returns>The texture for this specified mode.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">When the<paramref name="targetMode"/> is invalid.</exception>
         public Texture GetTexture(ProbeSettings.Mode targetMode)
         {
             switch (targetMode)
@@ -122,6 +171,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+        /// <summary>
+        /// Set the texture for a specific target mode.
+        /// </summary>
+        /// <param name="targetMode">The mode to update.</param>
+        /// <param name="texture">The texture to set.</param>
+        /// <returns>The texture that was set.</returns>
+        /// <exception cref="ArgumentException">When the texture is invalid.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">When the mode is invalid</exception>
         public Texture SetTexture(ProbeSettings.Mode targetMode, Texture texture)
         {
             if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
@@ -136,10 +193,28 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// The render data of the last bake
+        /// </summary>
         public RenderData bakedRenderData { get => m_BakedRenderData; internal set => m_BakedRenderData = value; }
+        /// <summary>
+        /// The render data of the custom mode
+        /// </summary>
         public RenderData customRenderData { get => m_CustomRenderData; internal set => m_CustomRenderData = value; }
+        /// <summary>
+        /// The render data of the last realtime rendering
+        /// </summary>
         public RenderData realtimeRenderData { get => m_RealtimeRenderData; internal set => m_RealtimeRenderData = value; }
+        /// <summary>
+        /// The currently used render data.
+        /// </summary>
         public RenderData renderData => GetRenderData(mode);
+        /// <summary>
+        /// Get the render data of a specific mode
+        /// </summary>
+        /// <param name="targetMode">The mode to query</param>
+        /// <returns>The requested render data</returns>
+        /// <exception cref="ArgumentOutOfRangeException">When the mode is invalid</exception>
         public RenderData GetRenderData(ProbeSettings.Mode targetMode)
         {
             switch (mode)
@@ -150,6 +225,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+        /// <summary>
+        /// Set the render data for a specific mode
+        /// </summary>
+        /// <param name="targetMode">The mode to update</param>
+        /// <param name="renderData">The data to set</param>
+        /// <exception cref="ArgumentOutOfRangeException">When the mode is invalid</exception>
         public void SetRenderData(ProbeSettings.Mode targetMode, RenderData renderData)
         {
             switch (mode)
@@ -163,16 +244,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Settings
         // General
+        /// <summary>
+        /// The probe type
+        /// </summary>
         public ProbeSettings.ProbeType type { get => m_ProbeSettings.type; protected set => m_ProbeSettings.type = value; }
         /// <summary>The capture mode.</summary>
         public ProbeSettings.Mode mode { get => m_ProbeSettings.mode; set => m_ProbeSettings.mode = value; }
+        /// <summary>
+        /// The realtime mode of the probe
+        /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
         public LightLayerEnum lightLayers
         { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
-        // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// <summary>This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1</summary>
         public uint lightLayersAsUInt => lightLayers < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayers;
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier
@@ -191,6 +278,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Proxy
         /// <summary>ProxyVolume currently used by this probe.</summary>
         public ReflectionProxyVolumeComponent proxyVolume => m_ProxyVolume;
+        /// <summary>
+        /// Use the influence volume as the proxy volume if this is true.
+        /// </summary>
         public bool useInfluenceVolumeAsProxyVolume => m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
         /// <summary>Is the projection at infinite? Value could be changed by Proxy mode.</summary>
         public bool isProjectionInfinite
@@ -209,16 +299,28 @@ namespace UnityEngine.Rendering.HighDefinition
         // Camera
         /// <summary>Frame settings in use with this probe.</summary>
         public ref FrameSettings frameSettings => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings;
+        /// <summary>
+        /// Specify the settings overriden for the frame settins
+        /// </summary>
         public ref FrameSettingsOverrideMask frameSettingsOverrideMask => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask;
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
             ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
             : influenceToWorld;
+        /// <summary>
+        /// The extents of the proxy volume
+        /// </summary>
         public Vector3 proxyExtents
             => proxyVolume != null ? proxyVolume.proxyVolume.extents : influenceExtents;
 
+        /// <summary>
+        /// The bounding sphere of the influence
+        /// </summary>
         public BoundingSphere boundingSphere => influenceVolume.GetBoundingSphereAt(transform.position);
+        /// <summary>
+        /// The bounding box of the influence
+        /// </summary>
         public Bounds bounds => influenceVolume.GetBoundsAt(transform.position);
 
         internal ProbeSettings settings

@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     // Must be kept in sync with variants defined in UberPost.compute
     [GenerateHLSL, Flags]
-    public enum UberPostFeatureFlags
+    internal enum UberPostFeatureFlags
     {
         None                      = 0,
         ChromaticAberration       = 1 << 0,

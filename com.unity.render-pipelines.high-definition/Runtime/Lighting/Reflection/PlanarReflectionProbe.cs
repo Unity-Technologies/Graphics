@@ -4,6 +4,9 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// The planar reflection probe component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Planar-Reflection-Probe" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Planar Reflection Probe")]

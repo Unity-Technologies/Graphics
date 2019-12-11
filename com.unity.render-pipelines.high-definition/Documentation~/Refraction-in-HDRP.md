@@ -5,7 +5,7 @@ The High Definition Render Pipeline (HDRP) uses a refraction algorithm to simula
 - Light first travels through air, then through the Material, and then through air again. This means that the algorithm calculates light deviation at both interfaces with the Material: air to Material, and Material to air.
 - A simple shape can approximate the surface of the object. This shape is defined in the [Refraction Model](#RefractionModel).
 
-The refraction model is used to determine the deviated light direction and the distance that light travels within the Material. HDRP then ray cast against a probe proxy volume ([Proxy Raycasting](Reflection-Proxy-Volume.html))  to find the hit point of the refracted light ray.
+HDRP uses the refraction model to determine the deviated light direction and the distance that light travels within the Material. HDRP then ray cast against a probe proxy volume ([Proxy Raycasting](Reflection-Proxy-Volume.html))  to find the hit point of the refracted light ray.
 
 ## Using Refraction
 
@@ -16,20 +16,20 @@ To set up refraction on your Material, you need to do the following:
 3. Click the **Refraction Model** drop-down to select the [Refraction Model](#RefractionModel) for the Material.
 4. Make sure the alpha value for the **Base Map** is less than **1** to make the Material refractive. A value of **0** means that the Material is fully refractive.
 
-More information on the parameters used to control refraction can be found in the [Surface Type](Surface-Type.html) page. 
+For more information on the properties that control refraction, see [Surface Type](Surface-Type.html). 
 
-To have effective screen space refraction is also important to setup a probe proxy volume, since this will be used to approximate the scene and find the correct refracted color. To obtain the best result, the proxy volume should approximate as much as possible the scene region where the refracted rays are intended to land within. For more information on proxy volumes, see  the [Reflection Proxy Volume](Reflection-Proxy-Volume.html) page. 
+Settings up a Probe Proxy Volume is also necessary if you want to use screen space refraction effectively. This is because screen space refraction uses the Probe Proxy Volume to approximate the scene and find the correct refracted color. To obtain the best results, the proxy volume should approximate as much of the Scene where refracted rays are intended to land as possible. For more information on proxy volumes, see  the [Reflection Proxy Volume](Reflection-Proxy-Volume.html) page. 
 
 ## Refraction calculation
 
 HDRP uses these techniques to calculate light refraction:
 
 - [Screen space refraction](#ScreenSpaceRefraction).
-- Realtime and baked [Reflection Probe](#ReflectionProbes) data used for computing refraction.
+- Realtime and baked [Reflection Probe](#ReflectionProbes) data.
 
 To help you decide which techniques to use in your Unity Project, the following table shows the resource intensity of each technique.
 
-| **Technique**                  | **Description**                                              | **Resource intensity at run time**                           |
+| **Technique**                  | **Description**                                              | **Resource intensity at runtime**                           |
 | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **Screen space refractions**   | Screen space solution that captures all GameObjects in real time. | Low.                                                         |
 | **Baked Reflection Probes**    | Manually placed, local Reflection Probe that only captures static GameObjects during the baking process. | Low.                                                         |
@@ -43,18 +43,18 @@ To help you decide which techniques to use in your Unity Project, the following 
 
 To produce the highest quality refractions, HDRP selects which refraction technique gives the best accuracy for each pixel and uses that for calculating refraction, while ensuring it blends with all the other techniques.
 
-To do so, HDRP checks the available techniques in a specific order, called the Refraction hierarchy. The order of the Refraction hierarchy is:
+To do this, HDRP checks the available techniques in a specific order, called the Refraction hierarchy. The order of the Refraction hierarchy is:
 
 1. [Screen space refraction](Override-Screen-Space-Refraction.html).
 2. Sampling [standard](Reflection-Probe.html) and [Planar](Planar-Reflection-Probe.html) Reflection Probes.
 
-This means that if screen space refraction does not return information for a pixel, HDRP uses Reflection Probes for that pixel. 
+This means that, if screen space refraction does not return information for a pixel, HDRP uses Reflection Probes for that pixel. 
 
 <a name="ScreenSpaceRefraction"></a>
 
 ### Screen space refraction
 
-The first tier of the refraction hierarchy is a screen space solution. To calculate screen space refraction, the algorithm traces a ray starting from the refractive object. This ray is refracted according to the properties of the material. As previously mentioned, to compute the refracted ray the algorithm assumes that the refractive object can be approximated as a simple shape ([Refraction Model](#RefractionModel)) .
+The first tier of the refraction hierarchy is a screen space solution. To calculate screen space refraction, the algorithm traces a ray starting from the refractive object. It then refracts the ray according to the properties of the material. To compute the refracted ray, the algorithm assumes that the refractive object can be approximated as a simple shape ([Refraction Model](#RefractionModel)) .
 
 The refracted ray will be then intersected against the proxy volume to find the right pixel in screen space that best approximates the result of the refracted ray.
 
@@ -80,8 +80,8 @@ For more information on Reflection Probes, see:
 HDRP uses simple shapes to approximate the surface of GameObjects:
 
 - **Sphere**: Approximates the surface as a sphere.
-- **Box**: Approximates the surface as an hollow box. In this case the thickness can be thought as the distance between two parallel faces of the box.
-- **Thin**: The surface is approximated as a box with fixed thickness of 5cm.
+- **Box**: Approximates the surface as an hollow box. In this case think of the thickness as being the distance between two parallel faces of the box.
+- **Thin**: Approximated the surface as a box with a fixed thickness of 5cm.
 
 ### Examples
 

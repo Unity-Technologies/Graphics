@@ -65,9 +65,13 @@ namespace UnityEngine.Rendering.HighDefinition
     // We define explicitly specialized version of the ScalableSettingValue so it can be serialized with
     // Unity's serialization API.
 
+    /// <summary> An int scalable setting value</summary>
     [Serializable] public class IntScalableSettingValue: ScalableSettingValue<int> {}
+    /// <summary> An uint scalable setting value</summary>
     [Serializable] public class UintScalableSettingValue: ScalableSettingValue<uint> {}
+    /// <summary> An float scalable setting value</summary>
     [Serializable] public class FloatScalableSettingValue: ScalableSettingValue<float> {}
+    /// <summary> An bool scalable setting value</summary>
     [Serializable] public class BoolScalableSettingValue: ScalableSettingValue<bool> {}
     #endregion
 }
