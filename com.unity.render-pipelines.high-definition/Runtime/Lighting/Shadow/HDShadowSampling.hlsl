@@ -279,7 +279,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
 
     // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
     // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
-    float atlasResFactor = (4096 * _ShadowAtlasSize.zw);
+    float atlasResFactor = (4096 * _ShadowAtlasSize.z);
 
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
