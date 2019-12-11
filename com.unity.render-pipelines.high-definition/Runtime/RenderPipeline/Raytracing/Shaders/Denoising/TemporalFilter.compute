@@ -89,8 +89,9 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
     // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    float3 viewWS = normalize(-posInputs.positionWS);
     float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
-    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, -GetViewForwardDir()));
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
     float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Is it too far from the current position?
