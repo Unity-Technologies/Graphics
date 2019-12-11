@@ -821,6 +821,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_ColorShadow = true;
+        /// <summary>
+        /// Toggle the filtering of ray traced shadows.
+        /// </summary>
+        public bool colorShadow
+        {
+            get => m_ColorShadow;
+            set
+            {
+                if (m_ColorShadow == value)
+                    return;
+
+                m_ColorShadow = value;
+            }
+        }
+
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
         float m_EvsmExponent = 15.0f;
