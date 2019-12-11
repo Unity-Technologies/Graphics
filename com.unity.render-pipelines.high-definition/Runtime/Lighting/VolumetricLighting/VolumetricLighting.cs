@@ -281,16 +281,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                          controller.sliceDistributionUniformity.value);
         }
 
-        internal void InitializeVolumetricLightingPerCameraData(HDCamera hdCamera, int bufferCount)
+        internal void InitializeVBufferParameters(HDCamera hdCamera)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
             // Start with the same parameters for both frames. Then update them one by one every frame.
-            var parameters            = ComputeVBufferParameters(hdCamera);
-            hdCamera.vBufferParams    = new VBufferParameters[2];
+            var parameters = ComputeVBufferParameters(hdCamera);
+            hdCamera.vBufferParams = new VBufferParameters[2];
             hdCamera.vBufferParams[0] = parameters;
             hdCamera.vBufferParams[1] = parameters;
+        }
+
+        internal void InitializeVolumetricLightingHistoryPerCamera(HDCamera hdCamera, int bufferCount)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+                return;
 
             hdCamera.volumetricHistoryIsValid = false;
 
