@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with TAA history not initialising corretly scale factor for first frame
 - Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
 - Fixed issue with History not reset when chaning antialiasing mode on camera
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed ray tracing reflection denoiser not applied in tier 1
+- Fixed the vibility of ray tracing related methods.
+- Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
+- Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed exposure management for the path tracer
 
 ## [7.1.6] - 2019-11-22
 

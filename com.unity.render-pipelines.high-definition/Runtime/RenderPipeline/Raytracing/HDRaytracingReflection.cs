@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
             BlueNoise blueNoise = GetBlueNoiseManager();
@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, intermediateBuffer0, reflectionHistory, outputTexture);
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, intermediateBuffer0);
                     HDUtils.BlitCameraTexture(cmd, intermediateBuffer0, outputTexture);
                 }
             }   
