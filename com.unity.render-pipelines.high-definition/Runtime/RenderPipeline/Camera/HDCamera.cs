@@ -316,11 +316,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         colorPyramidHistoryIsValid = false;
                     }
 
-                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired);
+                    hdrp.InitializeVolumetricLightingHistoryPerCamera(this, numVolumetricBuffersRequired);
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
                     m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
+                }
+
+                // Init the vbuffer params if were never initialized
+                if(vBufferParams == null)
+                {
+                    hdrp.InitializeVBufferParameters(this);
                 }
             }
 
