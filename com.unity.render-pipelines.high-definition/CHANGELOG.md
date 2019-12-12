@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
+- Added a check in the custom post process template to throw an error if the default shader is not found.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
