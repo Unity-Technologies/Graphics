@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the old context if needed.
             if (IsCachedContextValid(updateContext))
             {
-                var cachedContext = m_CachedSkyContexts[updateContext.cachedSkyRenderingContextId];
+                ref var cachedContext = ref m_CachedSkyContexts[updateContext.cachedSkyRenderingContextId];
                 if (newHash != cachedContext.hash || updateContext.skySettings.GetSkyRendererType() != cachedContext.type)
                 {
                     // When a sky just changes hash without changing renderer, we need to keep previous ambient probe to avoid flickering transition through a default black probe
@@ -559,6 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // If the hash hasn't changed, keep it.
+                    cachedContext.lastFrameUsed = m_CurrentFrameIndex;
                     return false;
                 }
             }
@@ -571,6 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_CachedSkyContexts[i].hash == newHash)
                 {
                     m_CachedSkyContexts[i].refCount++;
+                    m_CachedSkyContexts[i].lastFrameUsed = m_CurrentFrameIndex;
                     updateContext.cachedSkyRenderingContextId = i;
                     updateContext.skyParametersHash = newHash;
                     return false;
@@ -616,7 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
             {
                 ref var context = ref m_CachedSkyContexts[i];
-                if (context.lastFrameUsed != 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
+                if (context.renderer != null && context.refCount == 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
                 {
                     context.Cleanup();
                 }
@@ -788,7 +790,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                         frameIndex,
                                         cmd);
 
-                int skyHash = ComputeSkyHash(skyContext, sunLight, SkyAmbientMode.Static);
+                SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 cachedContext.renderer.DoUpdate(m_BuiltinParameters);

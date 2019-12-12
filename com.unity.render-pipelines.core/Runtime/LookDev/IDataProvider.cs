@@ -35,6 +35,18 @@ namespace UnityEngine.Rendering.LookDev
         /// <param name="output">The computed ShadowMask</param>
         /// <param name="stage">Access element of the LookDev's scene</param>
         void GetShadowMask(ref RenderTexture output, StageRuntimeInterface stage);
+
+        /// <summary>
+        /// Callback called at the beginning of LookDev rendering.
+        /// </summary>
+        /// <param name="stage">Access element of the LookDev's scene</param>
+        void OnBeginRendering(StageRuntimeInterface stage);
+
+        /// <summary>
+        /// Callback called at the beginning of LookDev rendering.
+        /// </summary>
+        /// <param name="stage">Access element of the LookDev's scene</param>
+        void OnEndRendering(StageRuntimeInterface stage);
     }
 
     /// <summary>
