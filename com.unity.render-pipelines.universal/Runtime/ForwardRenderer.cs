@@ -140,6 +140,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            bool receiveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve; //seongdae;vxsm
             bool computeShadowsInScreenSpace = ScreenSpaceShadowComputePass.ComputeShadowsInScreenSpace(renderingData.lightData); //seongdae;vxsm
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
@@ -148,6 +149,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             bool requiresDepthPrepass = isSceneViewCamera;
             requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
+            requiresDepthPrepass |= receiveShadowsInScreenSpace; //seongdae;vxsm
 
             // screen space shadow in compute shader requires depth press, seongdae;vxsm
             requiresDepthPrepass |= computeShadowsInScreenSpace; //seongdae;vxsm
@@ -211,8 +213,17 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            if (computeShadowsInScreenSpace) //seongdae;vxsm
-                EnqueuePass(m_ScreenSpaceShadowComputePass); //seongdae;vxsm
+            //seongdae;vxsm
+            if (computeShadowsInScreenSpace)
+            {
+                EnqueuePass(m_ScreenSpaceShadowComputePass);
+            }
+            else
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+                EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
+            //seongdae;vxsm
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 

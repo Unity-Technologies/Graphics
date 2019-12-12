@@ -426,7 +426,8 @@ namespace UnityEngine.Rendering.Universal
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
-            shadowData.requiresScreenSpaceShadowResolve = false;// shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
+            //shadowData.requiresScreenSpaceShadowResolve = false;// shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades; //seongdae;vxsm;origin
+            shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows; //seongdae;vxsm
 
             int shadowCascadesCount;
             switch (settings.shadowCascadeOption)

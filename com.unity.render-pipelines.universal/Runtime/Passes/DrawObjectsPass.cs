@@ -41,7 +41,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                ScreenSpaceShadowComputePass.Prepare(cmd, m_IsOpaque, renderingData.shadowData); //seongdae;vxsm
+                if (renderingData.shadowData.requiresScreenSpaceShadowResolve) //seongdae;vxsm
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowInScreenSpace, m_IsOpaque); //seongdae;vxsm
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
