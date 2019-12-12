@@ -35,9 +35,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where Properties in the Blackboard could have duplicate names.
 - Sticky Notes can now be grouped properly.
 - Fixed an issue where nodes couldn't be copied from a group.
-- Fixed an issue where converting nodes into a Sub Graph could result in the Sub Graph having duplicate names. 
-- Fixed an issue where adding or removing entries into a Enum Keyword didn't update the number of ports on the Keyword Nodes, which could result in a graph crash.
-- Fixed an issue where changing a Blackboard Property's precision didn't update the colors inside the graph when using Precision as Color Mode.
+- Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
+- Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries, which sometimes crashed the graph.
+- Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
 
 
 ## [7.1.1] - 2019-09-05
