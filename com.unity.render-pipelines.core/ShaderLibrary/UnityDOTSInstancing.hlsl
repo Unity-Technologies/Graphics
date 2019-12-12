@@ -39,7 +39,7 @@ type##width LoadDOTSInstancedData_##type##width(uint metadata) \
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * width); \
     return conv(unity_DOTSInstanceData.Load##width(address)); \
 } \
-type LoadDOTSInstancedData(type##width dummy, uint metadata) { return LoadDOTSInstancedData_##type##width(metadata); }
+type##width LoadDOTSInstancedData(type##width dummy, uint metadata) { return LoadDOTSInstancedData_##type##width(metadata); }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(int,   int)
@@ -59,11 +59,12 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  4, uint4)
 float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
-    return float4x4(
+    // TODO: Remove this transpose, do it on CPU side
+    return transpose(float4x4(
         asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16)),
         asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16)),
         asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16)),
-        asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16)));
+        asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16))));
 }
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
