@@ -1,14 +1,14 @@
-#pragma kernel BlendCascadeShadowsNearest  CSMain=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
-#pragma kernel BlendCascadeShadowsHard     CSMain=BlendCascadeShadowsHard     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE HARD_SHADOWS
-#pragma kernel BlendCascadeShadowsSoft     CSMain=BlendCascadeShadowsSoft     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE SOFT_SHADOWS
+#pragma kernel BlendCascadeShadowsNearest  CSKernel=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
+#pragma kernel BlendCascadeShadowsHard     CSKernel=BlendCascadeShadowsHard     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE HARD_SHADOWS
+#pragma kernel BlendCascadeShadowsSoft     CSKernel=BlendCascadeShadowsSoft     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE SOFT_SHADOWS
 
-#pragma kernel BlendDynamicShadowsNearest  CSMain=BlendDynamicShadowsNearest  WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
-#pragma kernel BlendDynamicShadowsHard     CSMain=BlendDynamicShadowsHard     WITH_DYNAMIC_SHADOWS HARD_SHADOWS
-#pragma kernel BlendDynamicShadowsSoft     CSMain=BlendDynamicShadowsSoft     WITH_DYNAMIC_SHADOWS SOFT_SHADOWS
+#pragma kernel BlendDynamicShadowsNearest  CSKernel=BlendDynamicShadowsNearest  WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
+#pragma kernel BlendDynamicShadowsHard     CSKernel=BlendDynamicShadowsHard     WITH_DYNAMIC_SHADOWS HARD_SHADOWS
+#pragma kernel BlendDynamicShadowsSoft     CSKernel=BlendDynamicShadowsSoft     WITH_DYNAMIC_SHADOWS SOFT_SHADOWS
 
-#pragma kernel NoBlendNearest              CSMain=NoBlendNearest              NEAREST_SAMPLE
-#pragma kernel NoBlendHard                 CSMain=NoBlendHard                 HARD_SHADOWS
-#pragma kernel NoBlendSoft                 CSMain=NoBlendSoft                 SOFT_SHADOWS
+#pragma kernel NoBlendNearest              CSKernel=NoBlendNearest              NEAREST_SAMPLE
+#pragma kernel NoBlendHard                 CSKernel=NoBlendHard                 HARD_SHADOWS
+#pragma kernel NoBlendSoft                 CSKernel=NoBlendSoft                 SOFT_SHADOWS
 
 #define TILE_SIZE 8
 #define SHADER_STAGE_COMPUTE 1
@@ -43,14 +43,16 @@ TEXTURE2D_FLOAT(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 CBUFFER_START(_DirectionalVxShadowMap)
-int _BeginOffset;
-int _VoxelZBias;
-float _VoxelUpBias;
+    uint4 _VxShadowMapParameters; // x:begin offset, y:z-bias
 CBUFFER_END
+
+#define _BeginOffset _VxShadowMapParameters.x
+#define _VoxelZBias  _VxShadowMapParameters.y
+#define _VxsmOffset  _VxShadowMapParameters.x + OFFSET_DIR
 
 RW_TEXTURE2D(float, _ScreenSpaceShadowOutput);
 
-float TraversePCF9x9VxShadowMap(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
+float PCF9x9VxShadowMap(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
 {
     uint vxsmOffset = begin + typeOffset;
     uint4 nodeIndex4 = vxsmOffset + innerResults[0];
@@ -155,122 +157,82 @@ float TraversePCF9x9VxShadowMap(uint begin, uint typeOffset, uint2 adjOffset, ui
 }
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
-void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    uint2 tileId = groupId;
-    uint2 tileThreadId = groupThreadId;
+    // todo : need to consider XR slot
 
-    float2 pixelCoord = tileId * TILE_SIZE + tileThreadId;
-    float2 tileCoord = tileId;
-
-    if (any(pixelCoord.xy >= _ScreenSize.xy))
+    uint2 positionSS = dispatchThreadId.xy;
+    if (any(positionSS.xy >= _ScreenSize.xy))
         return;
 
-    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
+    float deviceDepth = LOAD_TEXTURE2D(_CameraDepthTexture, positionSS).x;
 
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _ScreenSpaceShadowOutput[pixelCoord] = 1.0;
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
         return;
     }
 
 #if defined(SHADER_API_GLCORE) || (defined(SHADER_API_GLES3) && defined(GLES3_1_AEP))
-    // reverse depth
-    depth = depth * 2.0 - 1.0;
+    // reverse depth on OpenGL
+    deviceDepth = deviceDepth * 2.0 - 1.0;
 #endif
 
-    PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw, tileCoord);
-    float3 positionWS = ComputeWorldSpacePosition(posInput.positionNDC, depth, UNITY_MATRIX_I_VP);
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
 
-    float shadowStrength = GetMainLightShadowStrength();
-    half4 shadowParams = GetMainLightShadowParams();
     float attenuation = 1.0;
 
 #if WITH_DYNAMIC_SHADOWS
     float4 shadowMapCoords = TransformWorldToShadowCoord(positionWS);
-
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    half4 shadowParams = GetMainLightShadowParams();
+
     SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowMapCoords, shadowSamplingData, shadowParams, false);
 
     if (attenuation == 0.0)
     {
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
         return;
     }
 #endif
 
-    float volumeScale = asfloat(_VxShadowMapsBuffer[_BeginOffset + 1]);
-    uint dagScale = _VxShadowMapsBuffer[_BeginOffset + 2];
-    float4x4 worldToShadowMatrix =
-    {
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  3]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  4]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  5]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  6]),
-
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  7]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  8]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset +  9]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset + 10]),
-
-        asfloat(_VxShadowMapsBuffer[_BeginOffset + 11]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset + 12]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset + 13]),
-        asfloat(_VxShadowMapsBuffer[_BeginOffset + 14]),
-
-        0.0, 0.0, 0.0, 1.0,
-    };
-
+    float volumeScale = GetVolumeScale(_BeginOffset);
+    uint dagScale = GetDagScale(_BeginOffset);
     uint voxelResolution = 1 << dagScale;
-    float bias = (volumeScale / voxelResolution);
 
-    positionWS.y += bias;
-
-    float3 posNDC = mul(worldToShadowMatrix, float4(positionWS, 1.0)).xyz;
-    float3 posP = posNDC * (float)voxelResolution;
-
-#if NEAREST_SAMPLE
-    posP -= float3(0.0, 0.0, 2.0);
-#else
-    posP -= float3(0.5, 0.5, 2.5);
-#endif
-
-    float3 posF = floor(posP);
-    float3 lerpWeight = posP - posF;
+    float3 posP = ComputePosP(_BeginOffset, voxelResolution, positionWS);
+    float3 lerpWeight = frac(posP);
 
     if (any(posP < 0.0) || any(posP >= float3(voxelResolution.xxx - 1)))
     {
-        _ScreenSpaceShadowOutput[pixelCoord] = 1.0;
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
         return;
     }
 
-    uint vxsmOffset = _BeginOffset + OFFSET_DIR;
-    uint shift = dagScale - 2;
-    uint3 posQ = (uint3)posP;
+    uint3 posQ = (uint3)posP - uint3(0, 0, _VoxelZBias);
 
 #if NEAREST_SAMPLE
     uint2 result;
-    TraverseVxShadowMapPosQ(vxsmOffset, shift, posQ, result);
+    TraverseVxShadowMapPosQ(_VxsmOffset, dagScale, posQ, result);
 
     if (result.y != VX_SHADOWS_INTERSECTED)
     {
         attenuation = (result.y & 0x000000001) ? attenuation : 0.0;
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
         return;
     }
 
-    float attenuationVxsm = TraverseNearestSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, result);
+    float attenuationVxsm = NearestSampleVxShadowMap(_VxsmOffset, posQ, result);
     attenuation = min(attenuation, attenuationVxsm);
 #elif HARD_SHADOWS
 
 #if 0 // Author's algorithm
     uint4 results[2];
-    TraverseVxShadowMapPosQ2x2_(vxsmOffset, shift, uint2(0, 1), posQ, results);
+    TraverseVxShadowMapPosQ2x2Stacktraced(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
 #else
     uint4 results[2];
-    TraverseVxShadowMapPosQ2x2(vxsmOffset, shift, uint2(0, 1), posQ, results);
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
 #endif
 
     if (all(results[1] != VX_SHADOWS_INTERSECTED))
@@ -279,12 +241,11 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
         attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
 
         attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
         return;
     }
 
-    float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
     attenuation = min(attenuation, attenuationVxsm);
 
 #elif SOFT_SHADOWS // todo : soft by PCF filtering
@@ -292,7 +253,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 #if 1 // hard shadows, not soft
 
     uint4 results[2];
-    TraverseVxShadowMapPosQ2x2(vxsmOffset, shift, uint2(0, 1), posQ, results);
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
 
     if (all(results[1] != VX_SHADOWS_INTERSECTED))
     {
@@ -300,12 +261,11 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
         attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
 
         attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
-        attenuation = LerpWhiteTo(attenuation, shadowStrength);
-        _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
         return;
     }
 
-    float attenuationVxsm = TraverseBilinearSampleVxShadowMap(_BeginOffset, OFFSET_DIR, posQ, results, lerpWeight.xy);
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
     attenuation = min(attenuation, attenuationVxsm);
 
 #else
@@ -313,7 +273,7 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     uint2 adjOffset = uint2(-4, 4);
     uint4 results[2];
 
-    TraverseVxShadowMapPosQ2x2(vxsmOffset, shift, adjOffset, posQ, results);
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, adjOffset, posQ, results);
 
     //if (all(results[1] != VX_SHADOWS_INTERSECTED))
     //{
@@ -322,16 +282,15 @@ void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
     //
     //    attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
     //    attenuation = LerpWhiteTo(attenuation, shadowStrength);
-    //    _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+    //    _ScreenSpaceShadowOutput[positionSS] = attenuation;
     //    return;
     //}
 
-    float attenuationVxsm = TraversePCF9x9VxShadowMap(_BeginOffset, OFFSET_DIR, adjOffset, posQ, results);
+    float attenuationVxsm = PCF9x9VxShadowMap(_VxsmOffset, adjOffset, posQ, results);
     attenuation = min(attenuation, attenuationVxsm);
 #endif
 
 #endif
 
-    attenuation = LerpWhiteTo(attenuation, shadowStrength);
-    _ScreenSpaceShadowOutput[pixelCoord] = attenuation;
+    _ScreenSpaceShadowOutput[positionSS] = attenuation;
 }

@@ -11,9 +11,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
             public static int _ScreenSize = Shader.PropertyToID("_ScreenSize");
-            public static int _BeginOffset = Shader.PropertyToID("_BeginOffset");
-            public static int _VoxelZBias = Shader.PropertyToID("_VoxelZBias");
-            public static int _VoxelUpBias = Shader.PropertyToID("_VoxelUpBias");
+            public static int _VxShadowMapParameters = Shader.PropertyToID("_VxShadowMapParameters");
 
             public static int _VxShadowMapsBuffer = Shader.PropertyToID("_VxShadowMapsBuffer");
             public static int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
@@ -26,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
 
         private RenderTextureFormat _shadowFormat;
         private RenderTargetHandle _cameraDepthTexture;
+        private RenderTargetHandle _mainLightShadowmapTexture;
         private RenderTargetHandle _screenSpaceShadowmapTexture;
         private RenderTextureDescriptor _cameraDepthDescriptor;
         private RenderTextureDescriptor _screenSpaceShadowmapDescriptor;
@@ -50,6 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
             _shadowFormat = R8 ? RenderTextureFormat.R8 : RenderTextureFormat.RFloat;
             _cameraDepthTexture.Init("_CameraDepthTexture");
+            _mainLightShadowmapTexture.Init("_MainLightShadowmapTexture");
             _screenSpaceShadowmapTexture.Init("_ScreenSpaceShadowmapTexture");
 
             renderPassEvent = evt;
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             var camera = renderingData.cameraData.camera;
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
-            SetupVxShadowReceiverConstants(cmd, kernel, camera, light);
+            SetupMainLightVxShadowReceiverConstants(cmd, kernel, camera, light);
 
             int screenSizeX = camera.pixelWidth;
             int screenSizeY = camera.pixelHeight;
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
             return kernel;
         }
 
-        private void SetupVxShadowReceiverConstants(CommandBuffer cmd, int kernel, Camera camera, Light light)
+        private void SetupMainLightVxShadowReceiverConstants(CommandBuffer cmd, int kernel, Camera camera, Light light)
         {
             float screenSizeX = (float)camera.pixelWidth;
             float screenSizeY = (float)camera.pixelHeight;
@@ -166,20 +166,21 @@ namespace UnityEngine.Rendering.Universal
             var projMatrix = gpuProj;
             var viewProjMatrix = projMatrix * viewMatrix;
 
-            var vxShadowMapsBuffer = VxShadowMapsManager.Instance.VxShadowMapsBuffer;
-
             int beginOffset = (int)(MainDirVxShadowMap.bitset & 0x3FFFFFFF);
-
-            int voxelZBias = 2;
+            int voxelZBias = MainDirVxShadowMap.ZBias;
             float voxelUpBias = 1 * (MainDirVxShadowMap.VolumeScale / MainDirVxShadowMap.VoxelResolutionInt);
 
-            cmd.SetComputeVectorParam(_screenSpaceVxShadowCS, ShaderIDs._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
+            var shadowData = new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f);
+            var screenSize = new Vector4(screenSizeX, screenSizeY, invScreenSizeX, invScreenSizeY);
+            var parameters = new int[] { beginOffset, voxelZBias, 0, 0, };
+
+            var vxShadowMapsBuffer = VxShadowMapsManager.Instance.VxShadowMapsBuffer;
+
+            cmd.SetComputeVectorParam(_screenSpaceVxShadowCS, ShaderIDs._ShadowData, shadowData);
 
             cmd.SetComputeMatrixParam(_screenSpaceVxShadowCS, ShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            cmd.SetComputeVectorParam(_screenSpaceVxShadowCS, ShaderIDs._ScreenSize, new Vector4(screenSizeX, screenSizeY, invScreenSizeX, invScreenSizeY));
-            cmd.SetComputeIntParam(_screenSpaceVxShadowCS, ShaderIDs._BeginOffset, beginOffset);
-            cmd.SetComputeIntParam(_screenSpaceVxShadowCS, ShaderIDs._VoxelZBias, voxelZBias);
-            cmd.SetComputeFloatParam(_screenSpaceVxShadowCS, ShaderIDs._VoxelUpBias, voxelUpBias);
+            cmd.SetComputeVectorParam(_screenSpaceVxShadowCS, ShaderIDs._ScreenSize, screenSize);
+            cmd.SetComputeIntParams(_screenSpaceVxShadowCS, ShaderIDs._VxShadowMapParameters, parameters);
 
             var cameraDepthTextureId = _cameraDepthTexture.Identifier();
             var screenSpaceShadowOutputId = _screenSpaceShadowmapTexture.Identifier();
