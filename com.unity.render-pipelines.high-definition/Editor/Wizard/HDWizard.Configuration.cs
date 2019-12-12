@@ -146,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         new Entry(InclusiveScope.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
                         new Entry(InclusiveScope.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
+                        new Entry(InclusiveScope.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                         new Entry(InclusiveScope.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
                         new Entry(InclusiveScope.HDRP, Style.hdrpAsset, IsHdrpAssetCorrect, FixHdrpAsset),
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetAssigned, IsHdrpAssetUsedCorrect, FixHdrpAssetUsed),
@@ -271,6 +272,11 @@ namespace UnityEditor.Rendering.HighDefinition
             => PlayerSettings.colorSpace == ColorSpace.Linear;
         void FixColorSpace(bool fromAsyncUnused)
             => PlayerSettings.colorSpace = ColorSpace.Linear;
+        
+        bool IsShadowCorrect()
+            => QualitySettings.shadows == ShadowQuality.All;
+        void FixShadow(bool fromAsyncUnused)
+            => QualitySettings.shadows = ShadowQuality.All;
 
         bool IsLightmapCorrect()
         {
