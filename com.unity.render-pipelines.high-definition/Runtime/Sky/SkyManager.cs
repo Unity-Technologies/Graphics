@@ -603,7 +603,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
             {
                 ref var context = ref m_CachedSkyContexts[i];
-                if (context.renderer != null && context.refCount == 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
+                if (context.refCount == 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
                 {
                     context.Cleanup();
                 }
