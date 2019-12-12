@@ -251,6 +251,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
 - Fixed issue that clamped PCSS softness too early and not after distance scale.
 - Fixed fog affect transparent on HD unlit master node
+- Fixed custom post processes re-ordering not saved.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
