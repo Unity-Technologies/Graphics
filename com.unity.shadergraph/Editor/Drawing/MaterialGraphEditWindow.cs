@@ -40,11 +40,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         bool m_ProTheme;
         [NonSerialized]
-        bool m_Deleted;
+        bool m_Deleted = false;
 
-        GraphEditorView m_GraphEditorView;
-
-        string m_PrevPath = Application.dataPath;
+        string m_PrevPath;
 
         MessageManager m_MessageManager;
         MessageManager messageManager
@@ -382,7 +380,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
-                    }                    
+                    }
                 }
             }
 
@@ -445,6 +443,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ToSubGraph()
         {
             var graphView = graphEditorView.graphView;
+
+            if (String.IsNullOrEmpty(m_PrevPath))
+                m_PrevPath = Application.dataPath;
 
             var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
             path = path.Replace(Application.dataPath, "Assets");
