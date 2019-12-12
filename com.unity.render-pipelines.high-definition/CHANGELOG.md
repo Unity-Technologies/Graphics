@@ -246,6 +246,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
 - Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
 - Fixed exposure management for the path tracer
+- Fixed AxF material UI containing two advanced options settings.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
