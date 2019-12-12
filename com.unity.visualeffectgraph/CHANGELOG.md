@@ -5,12 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.1.7] - 2019-12-11
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- subgraph block into subgraph context no longer forget parameter values.
+- Fix exception when compiling an asset with a turbulence block in absolute mode
+- Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
 
 ## [7.1.6] - 2019-11-22
-
 ### Added
 - New quad distortion output for particle strips
 - New attribute for strips: particleCountInStrip

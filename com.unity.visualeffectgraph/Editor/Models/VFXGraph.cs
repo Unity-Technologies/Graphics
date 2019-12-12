@@ -69,9 +69,10 @@ namespace UnityEditor.VFX
 
     class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
-
         public static bool HasVFXExtension(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath))
+                return false;
             return filePath.EndsWith(VisualEffectResource.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphOperator.Extension);
@@ -508,7 +509,6 @@ namespace UnityEditor.VFX
                     {
                         if( block is VFXSubgraphBlock)
                         {
-
                             var subgraphBlock = block as VFXSubgraphBlock;
                             if (subgraphBlock.subgraph != null)
                                 RecurseSubgraphRecreateCopy(subgraphBlock.subgraph.GetResource().GetOrCreateGraph());
@@ -524,11 +524,60 @@ namespace UnityEditor.VFX
             }
         }
 
+        void RecurseSubgraphPatchInputExpression(IEnumerable<VFXModel> children)
+        {
+            foreach (var child in children)
+            {
+                if (child is VFXSubgraphContext)
+                {
+                    var subgraphContext = child as VFXSubgraphContext;
+                    subgraphContext.PatchInputExpressions();
+                }
+                else if (child is VFXContext)
+                {
+                    foreach (var block in child.children)
+                    {
+                        if (block is VFXSubgraphBlock)
+                        {
+                            var subgraphBlock = block as VFXSubgraphBlock;
+                            subgraphBlock.PatchInputExpressions();
+                        }
+                    }
+                }
+                else if (child is VFXSubgraphOperator operatorChild)
+                {
+                    operatorChild.ResyncSlots(false);
+                    operatorChild.UpdateOutputExpressions();
+                }
+            }
+            foreach (var child in children)
+            {
+                if (child is VFXSubgraphContext)
+                {
+                    var subgraphContext = child as VFXSubgraphContext;
+                    if (subgraphContext.subgraph != null && subgraphContext.subChildren != null)
+                        RecurseSubgraphPatchInputExpression(subgraphContext.subChildren);
+                }
+                else if (child is VFXContext)
+                {
+                    foreach (var block in child.children)
+                    {
+                        if (block is VFXSubgraphBlock)
+                        {
+                            var subgraphBlock = block as VFXSubgraphBlock;
+                            if (subgraphBlock.subgraph != null && subgraphBlock.subChildren != null)
+                                RecurseSubgraphPatchInputExpression(subgraphBlock.subChildren);
+                        }
+                    }
+                }
+            }
+        }
+
         void SubgraphDirty(VisualEffectObject subgraph)
         {
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
-                RecurseSubgraphRecreateCopy(this);
+                PrepareSubgraphs();
                 compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
                 m_ExpressionGraphDirty = false;
 
@@ -536,7 +585,13 @@ namespace UnityEditor.VFX
             }
         }
 
-
+        private void PrepareSubgraphs()
+        {
+            Profiler.BeginSample("PrepareSubgraphs");
+            RecurseSubgraphRecreateCopy(this);
+            RecurseSubgraphPatchInputExpression(this.children);
+            Profiler.EndSample();
+        }
 
         IEnumerable<VFXGraph> GetAllGraphs<T>() where T : VisualEffectObject
         {
@@ -581,7 +636,7 @@ namespace UnityEditor.VFX
                 if (considerGraphDirty)
                 {
                     BuildSubgraphDependencies();
-                    RecurseSubgraphRecreateCopy(this);
+                    PrepareSubgraphs();
 
                     ComputeDataIndices();
 
@@ -600,7 +655,7 @@ namespace UnityEditor.VFX
             else if(m_ExpressionGraphDirty && !preventRecompilation)
             {
                 BuildSubgraphDependencies();
-                RecurseSubgraphRecreateCopy(this);
+                PrepareSubgraphs();
                 m_ExpressionGraphDirty = false;
             }
             if(!preventDependencyRecompilation && m_DependentDirty)

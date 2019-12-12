@@ -384,6 +384,7 @@ namespace UnityEditor.VFX.UI
             VisualEffect target = effect != null ? effect : m_SelectionCandidate;
             if (target != null)
             {
+                m_SelectionCandidate = target; // allow reattaching if effet != null;
                 m_AttachedComponent = target;
                 UpdateAttachButton();
                 m_LastKnownPauseState = !m_AttachedComponent.pause;

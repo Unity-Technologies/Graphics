@@ -120,13 +120,19 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+            OnDisableWithoutResetting();
+        }
+        
+        protected void OnDisableWithoutResetting()
+        {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            
             s_AllEditors.Remove(this);
         }
 
@@ -521,7 +527,7 @@ namespace UnityEditor.VFX
 
         protected virtual void OnSceneViewGUI(SceneView sv)
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target,SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
 
         private VisualEffectAsset m_asset;
