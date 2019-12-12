@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with deleting shader passes in the custom renderer features list [case 1201664](https://issuetracker.unity3d.com/issues/urp-remove-button-is-not-activated-in-shader-passes-list-after-creating-objects-from-renderer-features-in-urpassets-renderer)
 - Fixed camera inverse view-projection matrix in XR mode, depth-copy and color-copy passes.
 - Fixed an issue with the null check when `UniversalRenderPipelineLightEditor.cs` tries to access `SceneView.lastActiveSceneView`.
+- Fixed an issue where the 'Depth Texture' drop down was incorrectly disabled in the Camera Inspector. 
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
