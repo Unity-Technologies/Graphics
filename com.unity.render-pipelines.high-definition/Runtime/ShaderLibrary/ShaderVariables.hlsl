@@ -246,7 +246,7 @@ CBUFFER_START(UnityGlobal)
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
     float _ReplaceDiffuseForIndirect;
-    uint _EnableSkyLighting;
+    uint _EnableSkyReflection;
 
     uint _EnableSSRefraction;
 
@@ -257,6 +257,7 @@ CBUFFER_START(UnityGlobal)
     int  _FrameCount;
 
     float _ProbeExposureScale;
+    int  _UseRayTracedReflections;
 
 CBUFFER_END
 

@@ -18,7 +18,7 @@ struct Varyings
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     float3 positionWS               : TEXCOORD2;
 #endif
 
@@ -33,7 +33,7 @@ struct Varyings
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD7;
 #endif
 
@@ -46,7 +46,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     inputData.positionWS = input.positionWS;
 #endif
 
@@ -61,13 +61,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     viewDirWS = SafeNormalize(viewDirWS);
-
     inputData.viewDirectionWS = viewDirWS;
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
+
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -108,11 +111,11 @@ Varyings LitPassVertex(Attributes input)
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#ifdef _ADDITIONAL_LIGHTS
+#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     output.positionWS = vertexInput.positionWS;
 #endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 

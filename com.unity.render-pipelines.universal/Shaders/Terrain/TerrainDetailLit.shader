@@ -61,7 +61,9 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
                 half4   Color           : TEXCOORD2; // Vertex Color
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
+#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
+#endif
                 float4  PositionCS      : SV_POSITION; // Clip Position
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -82,22 +84,26 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 output.PositionCS = vertexInput.positionCS;
 
                 // Shadow Coords
-                output.ShadowCoords = GetShadowCoord(vertexInput);
+                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                    output.ShadowCoords = GetShadowCoord(vertexInput);
+                #endif
 
                 // Vertex Lighting
                 half3 NormalWS = input.NormalOS;
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
                 half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
-            #ifdef _ADDITIONAL_LIGHTS
-                int pixelLightCount = GetAdditionalLightsCount();
-                for (int i = 0; i < pixelLightCount; ++i)
-                {
-                    Light light = GetAdditionalLight(i, vertexInput.positionWS);
-                    half3 attenuatedLightColor = light.color * light.distanceAttenuation;
-                    diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
-                }
-            #endif
+
+                #ifdef _ADDITIONAL_LIGHTS
+                    int pixelLightCount = GetAdditionalLightsCount();
+                    for (int i = 0; i < pixelLightCount; ++i)
+                    {
+                        Light light = GetAdditionalLight(i, vertexInput.positionWS);
+                        half3 attenuatedLightColor = light.color * light.distanceAttenuation;
+                        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
+                    }
+                #endif
+
                 output.LightingFog.xyz = diffuseColor;
 
                 // Fog factor
@@ -113,7 +119,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
 
-                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                    half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                #else
+                    half3 lighting = input.LightingFog.rgb + bakedGI;
+                #endif
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;

@@ -274,7 +274,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = half3(input.interpolated.normalWS.w, input.interpolated.tangentWS.w, input.interpolated.bitangentWS.w);
 #else
-    inputData.normalWS = input.interpolated.normalWS;
+    inputData.normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
     inputData.viewDirectionWS = input.interpolated.viewDirWS;
 #endif
 
@@ -300,7 +300,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         #ifdef EFFECT_BILLBOARD
-            LODDitheringTransition(input.interpolated.clipPos.xyz, unity_LODFade.x);
+            LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
         #endif
     #endif
 #endif
@@ -385,7 +385,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         #ifdef EFFECT_BILLBOARD
-            LODDitheringTransition(input.clipPos.xyz, unity_LODFade.x);
+            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
         #endif
     #endif
 #endif

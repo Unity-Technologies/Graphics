@@ -15,11 +15,11 @@ The Render Pipeline Debug window.
 
 ## Using the Render Pipeline Debug window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at run time in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
-### Navigation at run time
+### Navigation at runtime
 
 To change the current active item:
 
@@ -113,14 +113,14 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Lighting Debug Mode**              | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
 | **Light Hierarchy Debug Mode**       | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
 | **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
-| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
 | **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
-| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
 | **- Albedo**                         | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
-| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene when you use any of the **Debug Modes**. |
-| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene. |
+| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene. |
 | **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
-| **Override Emissive Color**          | Enable the checkbox to override the emissive color  for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
 | **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
 | **Tile/Cluster Debug**               | Use the drop-down to select an internal HDRP lighting structure to visualize on screen.**None**: Select this option to turn off this debug feature.**Tile**: Select this option to show an overlay of each lighting tile, and the number of lights in them.**Cluster**: Select this option to show an overlay of each lighting cluster that intersects opaque geometry, and the number of lights in them.**Material Feature Variants**: Select this option to show the index of the lighting Shader variant that HDRP uses for a tile. You can find variant descriptions in the *lit.hlsl* file. |
 | **- Tile/Cluster Debug By Category** | Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. The options include [Light Types](Light-Component.html), [Decals](Decal-Projector.html), and [Density Volumes](Density-Volumes.html).This property only appears when you select **Tile** or **Cluster** from the **Tile/Cluster Debug** drop-down. |

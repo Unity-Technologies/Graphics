@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
 
+        [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
+        public BoolParameter filter = new BoolParameter(false);
+
         public static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;

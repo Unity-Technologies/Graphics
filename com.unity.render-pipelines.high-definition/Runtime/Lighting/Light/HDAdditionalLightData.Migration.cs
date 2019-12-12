@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResolution,
             RemoveAdditionalShadowData,
             AreaLightShapeTypeLogicIsolation,
+            PCSSUIUpdate,
         }
 
         /// <summary>
@@ -135,7 +136,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         //No other AreaLight types where supported at this time
                     }
+                }),
+                MigrationStep.New(Version.PCSSUIUpdate, (HDAdditionalLightData data) =>
+                {
+                    // The min filter size is now in the [0..1] range when user facing
+                    data.minFilterSize = data.minFilterSize * 1000.0f;
                 })
+
             );
 #pragma warning restore 0618, 0612
 

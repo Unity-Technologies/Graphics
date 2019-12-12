@@ -63,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLowResTransparencySettings lowresTransparentSettings;
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
+        public SerializedLightingQualitySettings lightingQualitySettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -92,13 +93,13 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-
+            
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
+            MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
-            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
@@ -119,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
+            lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
         }
     }
 }

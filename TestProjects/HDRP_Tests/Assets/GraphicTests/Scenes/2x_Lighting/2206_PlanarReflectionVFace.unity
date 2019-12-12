@@ -215,7 +215,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &61707002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278,11 +277,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 6
+  m_Version: 9
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 3
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -294,12 +296,11 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_LightTypeExtent: 0
-  m_SpotLightShape: 0
   m_ShapeWidth: 11.63
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
   m_ShapeRadius: 0
+  m_SoftnessScale: 1
   m_UseCustomSpotLightShadowCone: 0
   m_CustomSpotLightShadowCone: 30
   m_MaxSmoothness: 1
@@ -311,6 +312,12 @@ MonoBehaviour:
   m_InteractsWithSky: 1
   m_AngularDiameter: 0
   m_Distance: 150000000
+  m_UseRayTracedShadows: 0
+  m_NumRayTracingSamples: 4
+  m_FilterTracedShadow: 1
+  m_FilterSizeTraced: 16
+  m_SunLightConeAngle: 0.5
+  m_LightShadowRadius: 0.5
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0
   m_EvsmVarianceBias: 0.00001
@@ -318,10 +325,9 @@ MonoBehaviour:
   m_LightlayersMask: 1
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.2
-  m_ShadowSoftness: 0.5
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
-  m_MinFilterSize: 0.00001
+  m_MinFilterSize: 0.01
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -336,9 +342,11 @@ MonoBehaviour:
     m_Override: 0
     m_UseOverride: 1
     m_Level: 0
+  m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
+  m_PenumbraTint: 0
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -461,11 +469,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 6
+  m_Version: 9
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 3
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -477,12 +488,11 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_LightTypeExtent: 0
-  m_SpotLightShape: 0
   m_ShapeWidth: 11.63
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
   m_ShapeRadius: 0
+  m_SoftnessScale: 1
   m_UseCustomSpotLightShadowCone: 0
   m_CustomSpotLightShadowCone: 30
   m_MaxSmoothness: 1
@@ -494,6 +504,12 @@ MonoBehaviour:
   m_InteractsWithSky: 1
   m_AngularDiameter: 0
   m_Distance: 150000000
+  m_UseRayTracedShadows: 0
+  m_NumRayTracingSamples: 4
+  m_FilterTracedShadow: 1
+  m_FilterSizeTraced: 16
+  m_SunLightConeAngle: 0.5
+  m_LightShadowRadius: 0.5
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0
   m_EvsmVarianceBias: 0.00001
@@ -501,10 +517,9 @@ MonoBehaviour:
   m_LightlayersMask: 1
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.2
-  m_ShadowSoftness: 0.5
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
-  m_MinFilterSize: 0.00001
+  m_MinFilterSize: 0.01
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -519,9 +534,11 @@ MonoBehaviour:
     m_Override: 0
     m_UseOverride: 1
     m_Level: 0
+  m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
+  m_PenumbraTint: 0
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -694,7 +711,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &269421428
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -807,7 +823,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &269924569
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -912,7 +927,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &335665652
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1056,7 +1070,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &460449691
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1169,7 +1182,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &703787301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1282,7 +1294,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &705765944
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1447,6 +1458,8 @@ MonoBehaviour:
       m_Calls: []
   captureFramerate: 0
   waitFrames: 0
+  xrCompatible: 1
+  xrThresholdMultiplier: 1
   renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
 --- !u!20 &717369285
@@ -1614,7 +1627,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &745353041
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1736,7 +1748,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1268796612
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1839,7 +1850,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &1371258328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1929,7 +1939,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1501517936
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2009,7 +2018,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1515759146
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2089,7 +2097,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1583448026
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2201,7 +2208,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1673723396
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2304,7 +2310,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &1685727562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2430,7 +2435,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1921490679
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2582,7 +2586,7 @@ MonoBehaviour:
       fieldOfViewMode: 1
       fixedValue: 90
       automaticScale: 1
-      viewerScale: 3
+      viewerScale: 1
     type: 1
     mode: 1
     realtimeMode: 0
@@ -2590,6 +2594,8 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
+      fadeDistance: 10000
+      rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 0}
@@ -2627,7 +2633,7 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0.00000014883372, z: -0.000000009804136}
       mirrorRotationProxySpace: {x: -0.7071068, y: 0, z: 0, w: 0.70710677}
-    camera:
+    cameraSettings:
       customRenderingSettings: 0
       renderingPathCustomFrameSettings:
         bitDatas:
@@ -2681,6 +2687,7 @@ MonoBehaviour:
         cullingMask:
           serializedVersion: 2
           m_Bits: 4294967295
+        sceneCullingMaskOverride: 0
       invertFaceCulling: 0
       flipYMode: 0
       probeLayerMask:
@@ -2913,7 +2920,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &2041147250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3026,7 +3032,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &2113193877
 MonoBehaviour:
   m_ObjectHideFlags: 0
