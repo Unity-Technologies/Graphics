@@ -56,7 +56,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 => "Scene Camera";
 
             public MinimalHistoryContainer()
-                => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            {
+                if (!m_FrameSettingsHistory.Equals(null))
+                    m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            }
 
             Action IDebugData.GetReset()
                 //caution: we actually need to retrieve the

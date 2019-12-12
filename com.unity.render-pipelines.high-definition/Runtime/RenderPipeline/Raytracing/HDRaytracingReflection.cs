@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the number of bounces for reflections
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingDiffuseOnly, 0);
 
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
@@ -235,6 +236,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Bind all the required data for ray tracing
                     BindRayTracedReflectionData(cmd, hdCamera, reflectionShaderRT, settings, lightClusterSettings, rtSettings, intermediateBuffer0, intermediateBuffer1);
 
+                    // Force no recursion
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, 1);
+
                     // Run the computation
                     if (settings.fullResolution.value)
                     {
@@ -314,17 +318,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind all the required data for ray tracing
                 BindRayTracedReflectionData(cmd, hdCamera, reflectionShader, settings, lightClusterSettings, rtSettings, intermediateBuffer0, intermediateBuffer1);
 
-                // Only use the shader variant that has multi bounce if the bounce count > 1
-                CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", settings.bounceCount.value > 1);
-
-                // We are not in the diffuse only case
-                CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
-
                 // Run the computation
                 cmd.DispatchRays(reflectionShader, m_RayGenIntegrationName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
-
-                // Disable multi-bounce
-                CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
             }
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))

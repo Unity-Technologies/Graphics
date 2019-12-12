@@ -36,29 +36,41 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
 #ifdef HAS_LIGHTLOOP
     // We do not want to use the diffuse when we compute the indirect diffuse
-    #ifdef DIFFUSE_LIGHTING_ONLY
-    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    #endif
+    if (_RaytracingDiffuseOnly == 1)
+    {
+        builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+        builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);        
+    }
 
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
     float3 reflected = float3(0.0, 0.0, 0.0);
     float reflectedWeight = 0.0;
 
-    #ifdef MULTI_BOUNCE_INDIRECT
-    // We only launch a ray if there is still some depth be used
+    // We only launch a ray if we allow multibounce and there is still some depth be used
     if (rayIntersection.remainingDepth < _RaytracingMaxRecursion)
     {
         // Generate the new sample (follwing values of the sequence)
         float2 sample = float2(0.0, 0.0);
+        /*
         sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
         sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
-
-        #ifdef DIFFUSE_LIGHTING_ONLY
-        // Importance sample with a cosine lobe
-        float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, surfaceData.normalWS);
-
+        */
+        // Generate the sample we need
+        float3 sampleDir;
+        if (_RaytracingDiffuseOnly == 1)
+        {
+            // Importance sample with a cosine lobe
+            sampleDir = SampleHemisphereCosine(sample.x, sample.y, surfaceData.normalWS);
+        }
+        else
+        {
+            // Importance sample the direction using GGX
+            sampleDir = float3(0.0, 0.0, 0.0);
+            float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
+            float NdotL, NdotH, VdotH;
+            SampleGGXDir(sample, viewWS, fragInput.tangentToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        }
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
         rayDescriptor.Origin = pointWSPos + surfaceData.normalWS * _RaytracingRayBias;
@@ -72,7 +84,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.incidentDirection = rayDescriptor.Direction;
         reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
-        reflectedIntersection.remainingDepth = reflectedIntersection.remainingDepth + 1;
+        reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
         reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
         
@@ -80,53 +92,27 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
-        // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, rayDescriptor, reflectedIntersection);
-
-        // Contribute to the pixel
-        builtinData.bakeDiffuseLighting = reflectedIntersection.color;
-        #else
-        // Importance sample the direction using GGX
-        float3 sampleDir = float3(0.0, 0.0, 0.0);
-        float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
-        float NdotL, NdotH, VdotH;
-        SampleGGXDir(sample, viewWS, fragInput.tangentToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
-
-        // If the sample is under the surface
-        if (dot(sampleDir, surfaceData.normalWS) > 0.0)
+        if (_RaytracingDiffuseOnly == 1)
         {
-            // Build the reflected ray
-            RayDesc reflectedRay;
-            reflectedRay.Origin = pointWSPos + surfaceData.normalWS * _RaytracingRayBias;
-            reflectedRay.Direction = sampleDir;
-            reflectedRay.TMin = 0;
-            reflectedRay.TMax = _RaytracingRayMaxLength;
-
-            // Create and init the RayIntersection structure for this
-            RayIntersection reflectedIntersection;
-            reflectedIntersection.color = float3(0.0, 0.0, 0.0);
-            reflectedIntersection.incidentDirection = reflectedRay.Direction;
-            reflectedIntersection.origin = reflectedRay.Origin;
-            reflectedIntersection.t = -1.0f;
-            reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
-            reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
-            reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
-
-            // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-            reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
-            reflectedIntersection.cone.width = rayIntersection.cone.width;
-
             // Evaluate the ray intersection
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, reflectedRay, reflectedIntersection);
-
-            // Override the transmitted color
-            reflected = reflectedIntersection.color;
-            reflectedWeight = 1.0;
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, rayDescriptor, reflectedIntersection);
+            // Contribute to the pixel
+            builtinData.bakeDiffuseLighting = reflectedIntersection.color;
         }
-        #endif
+        else
+        {
+            // If the sample is under the surface
+            if (dot(sampleDir, surfaceData.normalWS) > 0.0)
+            {
+                // Evaluate the ray intersection
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, rayDescriptor, reflectedIntersection);
+
+                // Override the transmitted color
+                reflected = reflectedIntersection.color;
+                reflectedWeight = 1.0;
+            }
+        }
     }
-    #endif
-    
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;

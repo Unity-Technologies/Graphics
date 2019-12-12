@@ -217,14 +217,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     BindRayTracedIndirectDiffuseData(cmd, hdCamera, indirectDiffuseRT, settings, lightClusterSettings, rtSettings, m_IndirectDiffuseBuffer, intermediateBuffer1);
 
-                    // Run the computation
-                    CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
-                    CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
+                    // Force no recursion
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, 1);
 
                     // Run the computation
                     cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
-
-                    CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
                 }
             }
 
@@ -309,6 +306,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the pixel spread value
             cmd.SetRayTracingFloatParam(indirectDiffuseShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
+            // Note: Just in case, we rebind the directional light data (in case they were not)
+            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
+            cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
+
             // LightLoop data
             lightCluster.BindLightClusterData(cmd);
 
@@ -316,7 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
 
             // Set the number of bounces to 1
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, 1);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingDiffuseOnly, 1);
         }
 
         void RenderIndirectDiffuseT2(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
@@ -339,16 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int widthResolution = hdCamera.actualWidth;
             int heightResolution = hdCamera.actualHeight;
 
-            // Only use the shader variant that has multi bounce if the bounce count > 1
-            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", giSettings.bounceCount.value > 1);
-            // Run the computation
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
-
             cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)widthResolution, (uint)heightResolution, (uint)hdCamera.viewCount);
-
-            // Disable the keywords we do not need anymore
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
-            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
             using (new ProfilingSample(cmd, "Filter Indirect Diffuse", CustomSamplerId.RaytracingFilterIndirectDiffuse.GetSampler()))
             {
