@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - When you delete a Shader Graph or Sub Graph Asset associated with a window, Unity now displays a dialog that asks whether you would like to save the graph as a new Asset or close the window.
+- Sub Graphs remember the path to the last created Sub Graph (within a single Unity session), to minimize folder navigation.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -36,9 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
-
-### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
+- Fixed a bug where "Save As.." for a Shader or Sub Graph would sometimes open up in the wrong project when multiple Unity projects are open simultaneously.
 
 ## [7.1.1] - 2019-09-05
 ### Added

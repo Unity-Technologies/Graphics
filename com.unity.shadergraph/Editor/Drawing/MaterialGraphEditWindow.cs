@@ -44,12 +44,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphEditorView m_GraphEditorView;
 
+        string m_PrevPath = Application.dataPath;
+
         MessageManager m_MessageManager;
         MessageManager messageManager
         {
             get { return m_MessageManager ?? (m_MessageManager = new MessageManager()); }
         }
 
+        GraphEditorView m_GraphEditorView;
         GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
@@ -396,13 +399,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (selectedGuid != null && graphObject != null)
             {
-                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(path) || graphObject == null)
+                var pathAndFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                if (string.IsNullOrEmpty(pathAndFile) || graphObject == null)
                     return false;
 
+                // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
+                string path = Path.GetDirectoryName(pathAndFile);
+
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
-                var newPath = EditorUtility.SaveFilePanel("Save Graph As", path, Path.GetFileNameWithoutExtension(path), extension);
+                var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
+
                 if (newPath != path)
                 {
                     if (!string.IsNullOrEmpty(newPath))
@@ -439,7 +446,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var graphView = graphEditorView.graphView;
 
-            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
+            var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
             path = path.Replace(Application.dataPath, "Assets");
             if (path.Length == 0)
                 return;
@@ -715,6 +722,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
                 AssetDatabase.ImportAsset(path);
+
+            m_PrevPath = path; // Store path for next time
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
