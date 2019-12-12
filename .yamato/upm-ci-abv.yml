@@ -3,6 +3,8 @@ editors:
     cmd: -u trunk
   - version: fast-trunk
     cmd: -u trunk --fast
+  - version: CUSTOM-REVISION
+    cmd: -u %CUSTOM_REVISION%
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -33,58 +35,64 @@ all_project_ci_{{ editor.version }}:
   name: _ABV for SRP repository - {{ editor.version }}
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
-  - dir
+    - dir
   dependencies:
   {% for project in projects %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
+  {% if editor.version == "fast-trunk" %}
+  triggers:
+    pull_requests:
+      - targets:
+          only:
+            - "master"
+  {% endif %}
 {% endfor %}
 
 
 # a separate job so that only trunk is run nightly, not fast-trunk
 all_project_ci_nightly:
   name: _Nightly ABV against trunk
-  agent:
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-  - dir
   dependencies:
   {% for project in projects %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_trunk
       rerun: always
   {% endfor %}
   {% for testplatform in testplatforms %} 
-    - .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_trunk
+    - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_trunk
+      rerun: always
   {% endfor %}
+    - path: .yamato/upm-ci-packages.yml#all_package_ci
+      rerun: always
   triggers:
     recurring:
       - branch: master
-        frequency: daily
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
-        
+        frequency: daily     
 
 {% for testplatform in testplatforms %} 
-{% for editor in editors %}     
+{% for editor in editors %}
 smoke_test_{{ testplatform.name }}_{{ editor.version }}:
   name: SRP Smoke Test - {{ testplatform.name }}_{{ editor.version }}
   agent:
+    {% if testplatform.name == "editmode" %}
+    type: Unity::VM
+    {% else %}
     type: Unity::VM::GPU
+    {% endif %}
     image: sdet/gamecode_win10:stable
     flavor: b1.large
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
   - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
   - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
@@ -103,21 +111,66 @@ smoke_test_{{ testplatform.name }}_{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 
-all_smoke_tests:
-  name: All Smoke Tests
+{% for editor in editors %}
+
+all_smoke_tests_{{ editor.version }}:
+  name: All Smoke Tests - {{ editor.version }}
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
-  - dir
+    - dir
   dependencies:
-  {% for testplatform in testplatforms %} 
-  {% for editor in editors %}
+  {% for testplatform in testplatforms %}   
   - .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
+        
+{% for editor in editors %}
+trunk_verification_{{ editor.version }}:
+  name: Trunk verification - {{ editor.version }}
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:stable
+    flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
+  commands:
+    - dir
+  dependencies:
+    {% for project in projects %}  
+    {% for testplatform in testplatforms %}
+    {% if project.name == "HDRP_Standalone" %}
+    # skip
+    {% else %}
+    {% if project.name == "Universal_Stereo" %}
+    # skip
+    {% else %}
+    {% if project.name == "ShaderGraph_Stereo" %}
+    # skip
+    {% else %}
+    {% if testplatform.name == "Standalone" %}
+    # skip
+    {% else %}
+
+    {% if testplatform.name == "editmode" and project.name == "VFX_LWRP" %}
+    #skip
+    {% else %}
+    
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Win_DX11_{{ testplatform.name }}_{{ editor.version }}
+      rerun: always
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}

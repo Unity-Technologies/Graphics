@@ -926,6 +926,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 EditorGUI.indentLevel++;
                                 EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                                EditorGUILayout.PropertyField(serialized.colorShadow, s_Styles.colorShadow);
                                 EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
                                 using (new EditorGUI.DisabledScope(!serialized.filterTracedShadow.boolValue))
                                 {

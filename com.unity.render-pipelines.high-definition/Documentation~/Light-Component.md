@@ -82,7 +82,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Inner Angle (%)** | Determines where the attenuation between the inner cone and the outer cone starts. Higher values cause the light at the edges of the Spot Light to fade out. Lower values stop the light from fading at the edges. This property is only for Lights with a **Cone Shape**. |
 | **Spot Angle**      | The angle in degrees used to determine the size of a Spot Light using a **Pyramid** shape. |
 | **Aspect Ratio**    | Adjusts the shape of a Pyramid Spot Light to create rectangular Spot Lights. Set this to 1 for a square projection. Values lower than 1 make the Light wider, from the point of origin. Values higher than 1 make the Light longer. This property is only for Lights with a **Pyramid Shape**. |
-| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the softness of baked shadows, ray-traced and PCSS shadows. |
+| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff, and the softness of baked, ray-traced, and PCSS shadows. |
 | **Size X**          | For **Box**. Adjusts the horizontal size of the Box Light. No light shines outside of the dimensions you set. |
 | **Size Y**          | For **Box**. Adjusts the vertical size of the Box Light. No light shines outside of the dimensions you set. |
 
@@ -92,7 +92,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property**         | **Description**                                              |
 | -------------------- | ------------------------------------------------------------ |
-| **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights and the softness of baked shadows and ray-traced shadows. |
+| **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights, and the softness of baked, ray-traced, and PCSS shadows.|
 
 <a name="PointLight"></a>
 
@@ -114,19 +114,19 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 <a name="CelestialBodyProperties"></a>
 
-### **Celestial Body (directional lights only)**
+### **Celestial Body (Directional only)**
 
-These settings define the behavior of the light when used as a celestial body with the Physically Based Sky.
+These settings define the behavior of the light when you use it as a celestial body with the [Physically Based Sky](Override-Physically-Based-Sky.html).
 
 | **Property**         | **Description**                                              |
 | -------------------- | ------------------------------------------------------------ |
-| **Affect Physically Based Sky** | When **Physically Based Sky** is in use, displays a sun disc in the sky in the direction of the directional light with a diameter, color and intensity that match the parameters of the directional light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **Affect Physically Based Sky** | When using a **Physically Based Sky**, this displays a sun disc in the sky in this Light's direction. The diameter, color, and intensity of the sun disc match the properties of this Directional Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 | **- Flare Size** | Controls the size of the flare around the celestial body (in degrees).. |
 | **- Flare Falloff** | Controls the falloff rate of flare intensity as the angle from the light increases. |
 | **- Flare Tint** | Controls the tint of the flare of the celestial body. |
-| **- Surface Texture** | 2D (disk) texture of the surface of the celestial body. Acts like a multiplier. |
-| **- Surface Tint** | Controls the tints the surface of the celestial body. |
-| **- Distance** | Controls the distance of the sun disc which is useful for tweaking the sorting of multiple sun discs displayed in the sky. Smaller distance discs draw on top of longer distance discs.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **- Surface Texture** | Sets a 2D (disk) Texture for the surface of the celestial body. This acts like a multiplier. |
+| **- Surface Tint** | Tints the surface of the celestial body. |
+| **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
 <a name="EmissionProperties"></a>
 

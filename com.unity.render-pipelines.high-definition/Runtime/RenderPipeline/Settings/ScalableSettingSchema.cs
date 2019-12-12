@@ -44,6 +44,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The number of levels.</summary>
         public int levelCount => levelNames.Length;
 
+        /// <summary>
+        /// Instantiate a new schema.
+        /// </summary>
+        /// <param name="levelNames">The names of each level.</param>
         public ScalableSettingSchema(GUIContent[] levelNames) => this.levelNames = levelNames;
     }
 }

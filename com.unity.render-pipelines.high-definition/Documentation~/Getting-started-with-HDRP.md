@@ -26,9 +26,9 @@ In the Template Scene, you can view GameObjects in the Inspector to see things l
 
 ## Pipeline setup
 
-Before you can use HDRP, you need an HDRP Asset, which controls the global rendering settings and creates an instance of the HD render pipeline. The **High-Definition RP** Template creates an HDRP Asset for you, but you can create different HDRP Assets to suit your rendering needs, such as one HDRP Asset for every target platform. An HDRP Asset allows you to enable features for your entire Project in the Editor. It allocates memory for the different features, so you cannot edit them at run time. For more information, see [HDRP Asset](HDRP-Asset.html).
+Before you can use HDRP, you need an HDRP Asset, which controls the global rendering settings and creates an instance of the HD render pipeline. The **High-Definition RP** Template creates an HDRP Asset for you, but you can create different HDRP Assets to suit your rendering needs, such as one HDRP Asset for every target platform. An HDRP Asset allows you to enable features for your entire Project in the Editor. It allocates memory for the different features, so you cannot edit them at runtime. For more information, see [HDRP Asset](HDRP-Asset.html).
 
-To find the right balance between render quality and run-time performance, adjust the [Frame Settings](Frame-Settings.html) for your [Cameras](HDRP-Camera.html). Frame Settings allow you to enable or disable effects at run time on a per-Camera basis, as long as you enable the effect in the HDRP Asset before entering Play Mode/building your HDRP Project.
+To find the right balance between render quality and runtime performance, adjust the [Frame Settings](Frame-Settings.html) for your [Cameras](HDRP-Camera.html). Frame Settings allow you to enable or disable effects at runtime on a per-Camera basis, as long as you enable the effect in the HDRP Asset before entering Play Mode/building your HDRP Project.
 
 ## Render Pipeline Wizard
 
