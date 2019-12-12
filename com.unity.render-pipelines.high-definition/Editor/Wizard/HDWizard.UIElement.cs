@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             static class Style
             {
-                const string k_IconFolder = @"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/";
+                const string k_IconFolder = @"Packages/com.unity.render-pipelines.high-definition/Editor/Wizard/WizardResources/";
                 public static readonly Texture ok = CoreEditorUtils.LoadIcon(k_IconFolder, "OK");
                 public static readonly Texture error = CoreEditorUtils.LoadIcon(k_IconFolder, "Error");
 
