@@ -8,9 +8,9 @@ Note: The behavior of this [Node](Node.md) is undefined globally. Shader Graph d
 
 Different Render Pipelines may produce different results. If you're building a shader in one Render Pipeline that you want to use in both, try checking it in both pipelines before production. A [Node](Node.md) might be defined in one Render Pipeline and undefined in the other. If this [Node](Node.md) is undefined, it returns 0 (black).
 
-#### Unity Pipelines Supported
-- HD Render Pipeline
-- Lightweight Render Pipeline
+#### Unity Render Pipelines Support
+- High Definition Render Pipeline
+- Universal Render Pipeline
 
 ## Ports
 
