@@ -149,21 +149,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixHdrpAssetRuntimeResources(true);
             if (!IsHdrpAssetEditorResourcesCorrect())
                 FixHdrpAssetEditorResources(true);
-
-            if (AssetDatabase
-                .FindAssets("t:SceneTemplateAsset")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Where(assetPath => !assetPath.StartsWith("Packages/com.unity.scene-template"))
-                .Select(templateAssetPath => AssetDatabase.LoadAssetAtPath<SceneTemplateAsset>(templateAssetPath))
-                .Where(templateData => templateData != null && templateData.IsValid && templateData.addToDefaults)
-                .Count() == 0)
-            {
-                CreateSceneTemplate(
-                    Style.dxrDefaultSceneName,
-                    Style.dxrDefaultSceneDescription,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrDefaultScene,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot);
-            }
         }
 
         #endregion

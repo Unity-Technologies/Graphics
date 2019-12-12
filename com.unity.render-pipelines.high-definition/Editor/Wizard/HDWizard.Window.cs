@@ -36,13 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
 
-            public const string installDefaultSceneTemplate = "Install Hdrp Default Scene Template";
-            public const string defaultSceneName = "HDRP-DefaultScene-template";
-            public const string defaultSceneDescription = "A scene with a basic configuration for High-Definition Render Pipeline.";
-            public const string installDxrDefaultSceneTemplate = "Install Hdrp Default DXR Scene Template";
-            public const string dxrDefaultSceneName = "HDRP-DXR-DefaultScene-template";
-            public const string dxrDefaultSceneDescription = "A scene with a basic configuration for High-Definition Render Pipeline using DXR.";
-
             public const string installConfigPackageLabel = "Install Configuration Editable Package";
             public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
             public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
@@ -258,9 +251,6 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
 
-            container.Add(CreateInstallHdrpDefaultSceneTemplate());
-            container.Add(CreateInstallHdrpDxrDefaultSceneTemplate());
-
             container.Add(CreateInstallConfigPackageArea());
 
             container.Add(CreateTitle(Style.configurationTitle));
@@ -417,36 +407,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateDisplayOfConfigPackageArea(ConfigPackageState.BeingChecked);
 
             RefreshDisplayOfConfigPackageArea();
-            return area;
-        }
-
-        VisualElement CreateInstallHdrpDefaultSceneTemplate()
-        {
-            VisualElement area = new VisualElement()
-            {
-                name = "InstallHdrpDefaultSceneTemplateArea"
-            };
-            area.Add(CreateLargeButton(Style.installDefaultSceneTemplate, () =>
-                CreateSceneTemplate(
-                    Style.defaultSceneName,
-                    Style.defaultSceneDescription,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.defaultScene,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.snapshot)));
-            return area;
-        }
-
-        VisualElement CreateInstallHdrpDxrDefaultSceneTemplate()
-        {
-            VisualElement area = new VisualElement()
-            {
-                name = "InstallHdrpDefaultSceneTemplateArea"
-            };
-            area.Add(CreateLargeButton(Style.installDxrDefaultSceneTemplate, () =>
-                CreateSceneTemplate(
-                    Style.dxrDefaultSceneName,
-                    Style.dxrDefaultSceneDescription,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrDefaultScene,
-                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources.dxrSnapshot)));
             return area;
         }
 
