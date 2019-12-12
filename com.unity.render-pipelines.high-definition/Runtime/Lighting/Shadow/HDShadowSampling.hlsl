@@ -282,7 +282,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     float atlasResFactor = (4096 * _ShadowAtlasSize.z);
 
     // max softness is empirically set resolution of 512, so needs to be set res independent.
-    float shadowMapRes = scale * _ShadowAtlasSize.x;
+    float shadowMapRes = scale * _ShadowAtlasSize.xy;
     float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
 
     //1) Blocker Search

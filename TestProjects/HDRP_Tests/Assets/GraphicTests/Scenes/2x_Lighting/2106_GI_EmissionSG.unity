@@ -98,7 +98,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 044ac1fb15272ec4bac1cfd79d0df28c,
+  m_LightingDataAsset: {fileID: 112000002, guid: 84cc16aa5a6f75540b8d4431a602ca72,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -262,26 +262,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
-      value: Layered
+      propertyPath: m_Name
+      value: LayeredLit
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -352,11 +337,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
-      value: LayeredLit
+      propertyPath: m_Text
+      value: Layered
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &324377957 stripped
@@ -372,10 +372,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 777501270}
     m_Modifications:
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_Name
-      value: HDRP_Test_Camera
-      objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.22
@@ -420,6 +416,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: allowDynamicResolution
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: m_Version
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
+      value: 69456063102749
+      objectReference: {fileID: 0}
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_AllowDynamicResolution
@@ -439,21 +450,6 @@ PrefabInstance:
         type: 3}
       propertyPath: far clip plane
       value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: allowDynamicResolution
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: m_Version
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
-      value: 70005818916701
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -499,6 +495,10 @@ PrefabInstance:
         type: 3}
       propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
       value: 0.001
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_Name
+      value: HDRP_Test_Camera
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -588,26 +588,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_Name
       value: Lit
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -678,11 +663,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
+      propertyPath: m_Text
       value: Lit
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &437150164 stripped
@@ -808,26 +808,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
-      value: Master Nodes
+      propertyPath: m_Name
+      value: Lit (2)
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -898,11 +883,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1.6344206
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
-      value: Lit (2)
+      propertyPath: m_Text
+      value: Master Nodes
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &738776844 stripped
@@ -1115,26 +1115,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_Name
       value: Unlit
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1205,30 +1190,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_Name
-      value: Unlit
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
---- !u!4 &1046024936 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-    type: 3}
-  m_PrefabInstance: {fileID: 1046024935}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &1073110166
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 855606008}
-    m_Modifications:
     - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_Text
-      value: PBR
+      value: Unlit
       objectReference: {fileID: 0}
     - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
@@ -1245,6 +1210,26 @@ PrefabInstance:
       propertyPath: targetCamera
       value: 
       objectReference: {fileID: 1893843509}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
+--- !u!4 &1046024936 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1046024935}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1073110166
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 855606008}
+    m_Modifications:
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_Name
+      value: PBR
+      objectReference: {fileID: 0}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1315,11 +1300,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
+      propertyPath: m_Text
       value: PBR
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &1073110167 stripped
@@ -1698,26 +1698,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_Name
       value: StackLit
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1788,30 +1773,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_Name
-      value: StackLit
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
---- !u!4 &1732949246 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-    type: 3}
-  m_PrefabInstance: {fileID: 1732949245}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &1752861701
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 855606008}
-    m_Modifications:
     - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_Text
-      value: Fabric
+      value: StackLit
       objectReference: {fileID: 0}
     - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
@@ -1828,10 +1793,25 @@ PrefabInstance:
       propertyPath: targetCamera
       value: 
       objectReference: {fileID: 1893843509}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
+--- !u!4 &1732949246 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1732949245}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1752861701
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 855606008}
+    m_Modifications:
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: forceTargetDimensions.x
-      value: 200
+      propertyPath: m_Name
+      value: Fabric
       objectReference: {fileID: 0}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
@@ -1903,10 +1883,30 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
+      propertyPath: m_Text
       value: Fabric
+      objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: forceTargetDimensions.x
+      value: 200
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
@@ -1935,6 +1935,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 206167282}
     m_Modifications:
+    - target: {fileID: -927199367670048503, guid: af235522c0d3045b29b417768f157cf1,
+        type: 3}
+      propertyPath: m_Name
+      value: emissiveBox
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: af235522c0d3045b29b417768f157cf1,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: af235522c0d3045b29b417768f157cf1,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2010,16 +2020,6 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: faa40d22988dc804cbd34f0225ee849b, type: 2}
-    - target: {fileID: -927199367670048503, guid: af235522c0d3045b29b417768f157cf1,
-        type: 3}
-      propertyPath: m_Name
-      value: emissiveBox
-      objectReference: {fileID: 0}
-    - target: {fileID: -927199367670048503, guid: af235522c0d3045b29b417768f157cf1,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 4294967295
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af235522c0d3045b29b417768f157cf1, type: 3}
 --- !u!4 &1912748994 stripped
@@ -2035,26 +2035,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
-      value: Shaders
+      propertyPath: m_Name
+      value: Lit (1)
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2125,11 +2110,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1.6344206
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
-      value: Lit (1)
+      propertyPath: m_Text
+      value: Shaders
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &2072896922 stripped
@@ -2145,26 +2145,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 855606008}
     m_Modifications:
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_Name
       value: Lit
       objectReference: {fileID: 0}
-    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: m_CharacterSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: pixelSize
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
-        type: 3}
-      propertyPath: targetCamera
-      value: 
-      objectReference: {fileID: 1893843509}
     - target: {fileID: 5489785850083597078, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2235,11 +2220,26 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.89150214
       objectReference: {fileID: 0}
-    - target: {fileID: 6004892619064504655, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
         type: 3}
-      propertyPath: m_Name
+      propertyPath: m_Text
       value: Lit
       objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: pixelSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2366749451762349873, guid: 7340be8cd4dd8d34d808e2c6090d869f,
+        type: 3}
+      propertyPath: targetCamera
+      value: 
+      objectReference: {fileID: 1893843509}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7340be8cd4dd8d34d808e2c6090d869f, type: 3}
 --- !u!4 &2072976747 stripped

@@ -98,7 +98,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 72dea36163c0e914fa2f22d68329d3e3,
+  m_LightingDataAsset: {fileID: 112000002, guid: 2c1a425d998787346bb1f8c975537f1e,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -130,14 +130,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_Name
-      value: HDRP_Test_Camera
-      objectReference: {fileID: 0}
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -185,12 +177,12 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
-      value: 70005818654557
+      value: 69456062840605
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -397,6 +389,14 @@ PrefabInstance:
       propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
       value: 0.001
       objectReference: {fileID: 0}
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_Name
+      value: HDRP_Test_Camera
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &558938051
@@ -551,8 +551,6 @@ MonoBehaviour:
       multiplier: 1
       weight: 1
       lightLayer: 1
-      fadeDistance: 10000
-      rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 0}
@@ -590,7 +588,7 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
-    cameraSettings:
+    camera:
       customRenderingSettings: 0
       renderingPathCustomFrameSettings:
         bitDatas:
@@ -598,11 +596,8 @@ MonoBehaviour:
           data2: 4539628424389459968
         lodBias: 1
         lodBiasMode: 0
-        lodBiasQualityLevel: 0
         maximumLODLevel: 0
         maximumLODLevelMode: 0
-        maximumLODLevelQualityLevel: 0
-        materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -644,7 +639,6 @@ MonoBehaviour:
         cullingMask:
           serializedVersion: 2
           m_Bits: 4294967295
-        sceneCullingMaskOverride: 0
       invertFaceCulling: 0
       flipYMode: 0
       probeLayerMask:
@@ -740,9 +734,6 @@ MonoBehaviour:
       e32: 0
       e33: 0
     m_CapturePosition: {x: 0, y: 0, z: 0}
-    m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
-    m_FieldOfView: 0
-    m_Aspect: 0
   m_CustomRenderData:
     m_WorldToCameraRHS:
       e00: 0
@@ -779,9 +770,6 @@ MonoBehaviour:
       e32: 0
       e33: 0
     m_CapturePosition: {x: 0, y: 0, z: 0}
-    m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
-    m_FieldOfView: 0
-    m_Aspect: 0
   m_EditorOnlyData: 0
   m_ReflectionProbeVersion: 4
   m_ObsoleteInfluenceShape: 0
