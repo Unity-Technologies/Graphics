@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor)
         {
             m_RenderTextureDescriptor = baseDescriptor;
-            m_RenderTextureDescriptor.depthBufferBits = 0;
+            m_RenderTextureDescriptor.depthBufferBits = 32;
             m_RenderTextureDescriptor.msaaSamples = baseDescriptor.msaaSamples;
             m_RenderTextureDescriptor.colorFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
@@ -56,6 +56,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MsaaEnabled, renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1);
+
 //            if (!stereo) // TODO: investigate how to do this with stereo
 //            {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

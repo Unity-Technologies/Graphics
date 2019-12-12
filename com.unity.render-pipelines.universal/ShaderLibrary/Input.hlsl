@@ -44,6 +44,7 @@ half4 _SubtractiveShadowColor;
 
 float4x4 _InvCameraViewProj;
 float4 _ScaledScreenParams;
+int _MSAASampleCount;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;

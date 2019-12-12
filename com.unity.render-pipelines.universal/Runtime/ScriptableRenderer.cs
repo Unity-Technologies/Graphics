@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
             context.SetupCameraProperties(camera, stereoEnabled);
             ExecuteBlock(RenderPassBlock.ColorGrading, blockRanges, context, ref renderingData, /*RenderPass*/ false);
 
-
+            //Depth prepass
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData, /*RenderPass*/ true); // switching these two blocks make the camera flip (maybe cause of setrendertargets???)
 
             // Override time values from when `SetupCameraProperties` were called.
@@ -390,7 +390,6 @@ namespace UnityEngine.Rendering.Universal
             int endIndex = blockRanges[blockIndex + 1];
 
             int depthAttachmentIdx = 0;
-            bool isDepthOnly = true;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
@@ -463,7 +462,6 @@ namespace UnityEngine.Rendering.Universal
             }
             context.EndRenderPass();
             descriptors.Dispose();
-            isDepthOnly = true;
             attachmentList.Clear();
             if (submit)
                 context.Submit();

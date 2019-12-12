@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
 
         public AttachmentDescriptor targetDescriptor;
 
-        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1};
+        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1, identifier = BuiltinRenderTextureType.CameraTarget };
 
         public RenderTargetIdentifier identifier { set; get; }
 

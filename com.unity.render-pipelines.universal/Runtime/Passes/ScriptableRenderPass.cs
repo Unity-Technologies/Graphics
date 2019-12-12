@@ -124,6 +124,11 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
         }
 
+        public virtual void ConfigureResolveTarget(RenderTargetIdentifier id)
+        {
+            m_ColorAttachmentDescriptor.ConfigureResolveTarget(id);
+        }
+
         public virtual void ConfigureInputAttachment(AttachmentDescriptor input)
         {
             hasInputAttachment = true;

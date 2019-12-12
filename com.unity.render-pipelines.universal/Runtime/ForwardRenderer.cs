@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
+        RenderTargetHandle m_MsaaResolveTarget;
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
@@ -119,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_DrawSkyboxPass);
-               // EnqueuePass(m_RenderTransparentForwardPass);
+                EnqueuePass(m_RenderTransparentForwardPass);
                 return;
             }
 
@@ -215,11 +216,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DepthPrepass.Setup(desc, m_DepthTexture);
                 m_DepthPrepass.Configure(cmd, desc);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 SetBlockDescriptor(RenderPassBlock.BeforeRendering, desc.width, desc.height, 1);
                 EnqueuePass(m_DepthPrepass);
             }
 
             m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+
+            if (desc.msaaSamples > 1)
+            {
+                m_MsaaResolveTarget.Init("_ResolveTarget");
+                cmd.GetTemporaryRT(m_MsaaResolveTarget.id, desc.width, desc.height, 0, FilterMode.Point, desc.graphicsFormat);
+                m_RenderOpaqueForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
+            }
 
             if (resolveShadowsInScreenSpace)
             {
@@ -240,10 +250,14 @@ namespace UnityEngine.Rendering.Universal
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {
                 m_DrawSkyboxPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment);
+                if (desc.msaaSamples > 1)
+                    m_DrawSkyboxPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
             m_RenderTransparentForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            if (desc.msaaSamples > 1)
+                m_RenderTransparentForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
@@ -300,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                        m_FinalBlitPass.Setup(cameraTargetDescriptor, desc.msaaSamples == 1 ? m_ActiveCameraColorAttachment : m_MsaaResolveTarget);
                         m_FinalBlitPass.ConfigureColorAttachment(RenderTargetHandle.CameraTarget);
                         EnqueuePass(m_FinalBlitPass);
                     }
@@ -330,7 +344,7 @@ namespace UnityEngine.Rendering.Universal
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
 
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, desc.msaaSamples == 1 ? m_ActiveCameraColorAttachment : m_MsaaResolveTarget);
                     m_FinalBlitPass.ConfigureColorAttachment(RenderTargetHandle.CameraTarget);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
