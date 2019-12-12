@@ -6,7 +6,7 @@ using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>Data container to be used with Renderer class</summary>
-    public class RenderingData : IDisposable
+    class RenderingData : IDisposable
     {
         /// <summary>
         /// Internally set to true when the given RenderTexture <see cref="output"/> was not the good size regarding <see cref="viewPort"/> and needed to be recreated
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>Basic renderer to draw scene in texture</summary>
-    public class Renderer
+    class Renderer
     {
         /// <summary>Use pixel perfect</summary>
         public bool pixelPerfect { get; set; }
@@ -51,19 +51,19 @@ namespace UnityEditor.Rendering.LookDev
 
         /// <summary>Init for rendering</summary>
         /// <param name="data">The data to use</param>
-        public void BeginRendering(RenderingData data)
+        public void BeginRendering(RenderingData data, IDataProvider dataProvider)
         {
-            data.stage.SetGameObjectVisible(true);
+            data.stage.OnBeginRendering(dataProvider);
             data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
         }
 
         /// <summary>Finish to render</summary>
         /// <param name="data">The data to use</param>
-        public void EndRendering(RenderingData data)
+        public void EndRendering(RenderingData data, IDataProvider dataProvider)
         {
             data.stage.camera.enabled = false;
-            data.stage.SetGameObjectVisible(false);
+            data.stage.OnEndRendering(dataProvider);
         }
 
         bool CheckWrongSizeOutput(RenderingData data)

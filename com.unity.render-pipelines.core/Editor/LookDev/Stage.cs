@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class handling object of the scene with isolation from other scene based on culling
     /// </summary>
-    public class Stage : IDisposable
+    class Stage : IDisposable
     {
         const int k_PreviewCullingLayerIndex = 31; //Camera.PreviewCullingLayer; //TODO: expose or reflection
 
@@ -206,7 +206,7 @@ namespace UnityEditor.Rendering.LookDev
         /// True: make them visible.
         /// False: hide them.
         /// </param>
-        public void SetGameObjectVisible(bool visible)
+        void SetGameObjectVisible(bool visible)
         {
             foreach (GameObject go in m_GameObjects)
             {
@@ -223,6 +223,18 @@ namespace UnityEditor.Rendering.LookDev
                 renderer.enabled = visible;
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
                 light.enabled = visible;
+        }
+
+        public void OnBeginRendering(IDataProvider dataProvider)
+        {
+            SetGameObjectVisible(true);
+            dataProvider.OnBeginRendering(runtimeInterface);
+        }
+
+        public void OnEndRendering(IDataProvider dataProvider)
+        {
+            SetGameObjectVisible(false);
+            dataProvider.OnEndRendering(runtimeInterface);
         }
 
         private bool disposedValue = false; // To detect redundant calls
