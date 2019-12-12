@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_FrameAllAfterLayout;
 
         bool m_ProTheme;
-        string m_PrevPath;
+        string m_PrevPath = Application.dataPath;
 
         MessageManager m_MessageManager;
         MessageManager messageManager
@@ -363,12 +363,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
 
                 // The asset's name needs to be removed from the path, otherwise SaveFilePanel assumes it's a folder
-                int lastIndex = pathAndFile.LastIndexOf("/");
-                string path;
-                if (lastIndex > 0)
-                    path = pathAndFile.Remove(lastIndex);
-                else
-                    path = pathAndFile;
+                string path = Path.GetDirectoryName(pathAndFile);
 
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
                 var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
@@ -404,8 +399,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ToSubGraph()
         {
             var graphView = graphEditorView.graphView;
-
-            if (m_PrevPath == null || m_PrevPath.Length == 0) m_PrevPath = Application.dataPath;
 
             var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "", m_PrevPath);
             path = path.Replace(Application.dataPath, "Assets");
@@ -684,8 +677,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
                 AssetDatabase.ImportAsset(path);
 
-            // Store path for next time
-            m_PrevPath = path;
+            m_PrevPath = path; // Store path for next time
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
