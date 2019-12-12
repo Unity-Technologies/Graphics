@@ -13,15 +13,12 @@ At the top of the window, there is an information box that shows you the current
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
-| **Default Scene Prefab**                   | Set the default Prefab that Unity instantiates in a new Scene when you select **File > New Scene**. To instantly create a Scene Asset with this template, go to **Assets > Create** and click **HD Template Scene**. |
-| **Default DXR Scene Prefab**               | Set the default Prefab that Unity instantiates in a new Scene that uses ray tracing. |
 | **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.html) in the **LocalPackage** folder of your HDRP Project. |
 
 ### Populating the default resources folder
 
 When you click **Populate/Reset**, HDRP generates the following Assets:
 
-- **DefaultSceneRoot**: The Prefab that Unity instantiates in each new HDRP template Scene.
 - **DefautRenderingSettings**: The default [Volume Profile](Volume-Profile.html) that the template Scene uses to render visual elements like shadows, fog, and the sky.
 - **DefautPostprocessingSettings**: The default [Volume Profile](Volume-Profile.html) that the template Scene uses for post-processing effects.
 - **HDRenderPipellineAsset**: The [HDRP Asset](HDRP-Asset.html) that Unity uses to configure HDRP settings for the Unity Project.
@@ -52,8 +49,9 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **- Assigned**                   | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.html) to the **Scriptable Render Pipeline Settings** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 | **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.html#GeneralProperties) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.html#GeneralProperties)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
+| **- SRP Batcher** | Scriptable Render Pipeline  Batcher must be enabled. This check is only for updating old project. <br />Press the **Fix** button to update your old project and use it. |
 | **- Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.html) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **Default Scene Prefab**         | Checks to make sure you have assigned something to **Default Scene Prefab** in this wizard.<br />Press the **Fix** button to open a pop-up that allows you to either assign a Prefab or create and assign a new one. |
+| **Default Volume Profile** | Check that a required default Volume Profile is assigned to the used default HDRP Asset.<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 
 <a name="VRTab"></a>
 
