@@ -1874,7 +1874,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 float x = m_ShapeRadius * softnessScale;
                 float x2 = x * x;
                 softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
-                softness = Mathf.Clamp(softness, 0.0f, 4.0f);
                 softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
                 softness /= 100.0f;
             }
