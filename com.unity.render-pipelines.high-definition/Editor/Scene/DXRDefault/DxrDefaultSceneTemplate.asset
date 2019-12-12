@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d32e6f3b458a398408021103754dd893, type: 3}
+  m_Name: DxrDefaultSceneTemplate
+  m_EditorClassIdentifier: 
+  templateScene: {fileID: 102900000, guid: 38bc46608ec3c0b46b846ff8d9d74a42, type: 3}
+  templateName: HDRP DXR Basic
+  description: 'Basic scene for Hight-Definition Render Pipeline using DXR.
+
+
+    This
+    only contains basic settings, a camera, a sun (Directional Light) and a sky.'
+  preview: {fileID: 2800000, guid: 6e947a5b5afe6d141ac80454d09fe15b, type: 3}
+  dependencies:
+  - dependency: {fileID: 11400000, guid: 42034e2547ecb3e45a60335e0f2c71d5, type: 2}
+    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
+    instantiationMode: 1
+  - dependency: {fileID: 11400000, guid: cbe82249cb113134c8c0c91461d5f7ee, type: 2}
+    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: f20112bdeec2e8d4d9f80e8390e37263, type: 3}
+    instantiationMode: 1
+  - dependency: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
+    instantiationMode: 1
+  - dependency: {fileID: 2800000, guid: 188dfe7e559f13248ba2c41eb5a59328, type: 3}
+    instantiationMode: 1
+  templatePipeline: {fileID: 11500000, guid: 90991a6a2aded9347932cefc99cd07db, type: 3}
+  addToDefaults: 1

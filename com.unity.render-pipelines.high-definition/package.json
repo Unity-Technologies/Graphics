@@ -10,7 +10,7 @@
     "com.unity.shadergraph": "8.0.0",
     "com.unity.visualeffectgraph": "8.0.0",
     "com.unity.render-pipelines.high-definition-config": "8.0.0",
-    "com.unity.scene-template": "1.0.0-preview.6"
+    "com.unity.scene-template": "1.0.0-preview.7"
   },
   "keywords": [
     "graphics",
