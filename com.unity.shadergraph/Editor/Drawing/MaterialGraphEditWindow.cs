@@ -408,7 +408,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
 
-                if (newPath != path)
+                if (newPath != pathAndFile)
                 {
                     if (!string.IsNullOrEmpty(newPath))
                     {
