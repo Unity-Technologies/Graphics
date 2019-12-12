@@ -14,7 +14,8 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    public class EnvironmentLibrary : BaseEnvironmentLibrary
+    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Environment-Library" + Documentation.endURL)]
+    public class EnvironmentLibrary : ScriptableObject
     {
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();
