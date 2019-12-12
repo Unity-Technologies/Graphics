@@ -253,6 +253,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fog affect transparent on HD unlit master node
 - Fixed custom post processes re-ordering not saved.
 - Fixed NPE when using scalable settings
+- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
