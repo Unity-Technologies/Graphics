@@ -288,6 +288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
 - Hide unused LOD settings in Quality Settings legacy window.
+- Replace HDRP new scene system by using SceneTemplate package.
 
 ## [7.1.1] - 2019-09-05
 
