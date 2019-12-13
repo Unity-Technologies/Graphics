@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.Operator
         public class OutputPropertiesCommon
         {
             [Tooltip("Outputs the position projected on the depth buffer of the selected Camera in world space.")]
-            public Vector3 position = Vector3.zero;
+            public Position position = Vector3.zero;
         }
 
         public class OutputPropertiesCull
@@ -125,6 +125,11 @@ namespace UnityEditor.VFX.Operator
 
                 return properties;
             }
+        }
+
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            return VFXCoordinateSpace.World;
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
