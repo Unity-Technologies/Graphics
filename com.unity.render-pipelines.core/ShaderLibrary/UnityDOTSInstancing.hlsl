@@ -56,7 +56,7 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  3, uint3)
 DEFINE_DOTS_LOAD_INSTANCE_VECTOR(uint,  4, uint4)
 
 // TODO: Other matrix sizes
-float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata)
+float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
     // TODO: Remove this transpose, do it on CPU side
@@ -66,6 +66,7 @@ float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata)
         asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16)),
         asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16))));
 }
+float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata) { return LoadDOTSInstancedData_float4x4(metadata); }
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
