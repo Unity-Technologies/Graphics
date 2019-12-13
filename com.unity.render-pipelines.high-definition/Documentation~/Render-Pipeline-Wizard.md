@@ -49,9 +49,9 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **- Assigned**                   | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.html) to the **Scriptable Render Pipeline Settings** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 | **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.html#GeneralProperties) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.html#GeneralProperties)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **- SRP Batcher** | Scriptable Render Pipeline  Batcher must be enabled. This check is only for updating old project. <br />Press the **Fix** button to update your old project and use it. |
+| **- SRP Batcher** | Checks to make sure that your Project uses the Scriptable Render Pipeline Batcher. This check is only for updating old Projects. <br />Press the **Fix** button to enable the Scriptable Render Pipeline Batcher in your Project. |
 | **- Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.html) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **Default Volume Profile** | Check that a required default Volume Profile is assigned to the used default HDRP Asset.<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
+| **Default Volume Profile** | Checks to make sure that you have assigned a default Volume Profile for the default HDRP Asset to use.<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 
 <a name="VRTab"></a>
 
