@@ -214,17 +214,17 @@ All_{{ project.name }}_{{ editor.version }}:
     
   {% endfor %}
   {% endfor %}
-  {% if editor.version == "fast-trunk" %}
-  triggers:
-    changes:
-      only:
-        - "com.unity.render-pipelines.high-definition-config/**/*"
-        - "com.unity.render-pipelines.high-definition/**/*"
-        - "com.unity.testing.hdrp/**/*"
-        - "TestProjects/HDRP*/**/*"
-      except:
-        - "**/*.md"
-  {% endif %}
+  # {% if editor.version == "fast-trunk" %}
+  # triggers:
+    # changes:
+      # only:
+        # - "com.unity.render-pipelines.high-definition-config/**/*"
+        # - "com.unity.render-pipelines.high-definition/**/*"
+        # - "com.unity.testing.hdrp/**/*"
+        # - "TestProjects/HDRP*/**/*"
+      # except:
+        # - "**/*.md"
+  # {% endif %}
 
 {% endfor %}   
 {% endfor %}
