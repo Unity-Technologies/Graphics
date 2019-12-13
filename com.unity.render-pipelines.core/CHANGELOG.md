@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.7] - 2019-12-11
 
 ### Fixed
+- Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
+
+### Changed
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 
 ## [7.1.6] - 2019-11-22
