@@ -458,7 +458,37 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(unity_LODFade)
+    UNITY_DOTS_INSTANCED_PROP(unity_RenderingLayer)
+    UNITY_DOTS_INSTANCED_PROP(unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP(unity_DynamicLightmapST)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAr)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAg)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAb)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBr)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBg)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBb)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHC)
+    UNITY_DOTS_INSTANCED_PROP(unity_ProbesOcclusion)
+    UNITY_DOTS_INSTANCED_PROP(unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP(unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END
+
+// Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
+#define unity_LODFade           UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
+#define unity_RenderingLayer    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
+#define unity_LightmapST        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
+#define unity_DynamicLightmapST UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
+#define unity_SHAr              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
+#define unity_SHAg              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
+#define unity_SHAb              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
+#define unity_SHBr              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
+#define unity_SHBg              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
+#define unity_SHBb              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
+#define unity_SHC               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
+#define unity_ProbesOcclusion   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
+#define unity_MatrixPreviousM   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
+#define unity_MatrixPreviousMI  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
 #endif
 
 // Define View/Projection matrix macro
