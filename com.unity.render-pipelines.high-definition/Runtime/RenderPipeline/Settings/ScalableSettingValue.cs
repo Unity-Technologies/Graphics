@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The <see cref="@override"/> value if <see cref="useOverride"/> is <c>true</c> is returned
         /// Otherwise the level value of <paramref name="source"/> for <see cref="level"/> is returned.
         /// </returns>
-        public T Value(ScalableSetting<T> source) => m_UseOverride ? m_Override : source[m_Level];
+        public T Value(ScalableSetting<T> source) => m_UseOverride || source == null ? m_Override : source[m_Level];
 
         /// <summary>Copy the values of this instance to <paramref name="target"/>.</summary>
         /// <param name="target">The target of the copy. Must not be null.</param>

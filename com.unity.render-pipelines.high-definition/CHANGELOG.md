@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.7] - 2019-12-11
 
+### Added
+- Added a check in the custom post process template to throw an error if the default shader is not found.
+
 ### Fixed
 - Fixed rendering errors when enabling debug modes with custom passes
 - Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
@@ -33,7 +36,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the vibility of ray tracing related methods.
 - Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
 - Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
 - Fixed exposure management for the path tracer
+- Fixed AxF material UI containing two advanced options settings.
+- Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
+- Fixed issue that clamped PCSS softness too early and not after distance scale.
+- Fixed fog affect transparent on HD unlit master node
+- Fixed custom post processes re-ordering not saved.
+- Fixed NPE when using scalable settings
+- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
 
 ## [7.1.6] - 2019-11-22
 

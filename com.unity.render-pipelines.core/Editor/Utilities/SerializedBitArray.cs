@@ -289,7 +289,7 @@ namespace UnityEditor.Rendering
         /// <param name="bitIndex">The index</param>
         /// <returns>Value at the index</returns>
         abstract protected bool GetBitAt_Internal(uint bitIndex);
-        
+
         /// <summary>Set the bit at given index</summary>
         /// <param name="bitIndex">The index</param>
         /// <param name="value">The value</param>
@@ -300,9 +300,9 @@ namespace UnityEditor.Rendering
             SetBitAt_Internal(bitIndex, value);
         }
 
-        /// <summary>Does the bit at given index have multiple different values?</summary>
+        /// <summary>Set the bit at given index</summary>
         /// <param name="bitIndex">The index</param>
-        /// <returns>True: Multiple different value</returns>
+        /// <param name="value">The value</param>
         abstract protected void SetBitAt_Internal(uint bitIndex, bool value);
 
         /// <summary>Sync again every serializedProperty</summary>
@@ -332,12 +332,21 @@ namespace UnityEditor.Rendering
         public SerializedBitArray8(SerializedProperty serializedProperty) : base(serializedProperty, 8u)
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
 
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get8(bitIndex, (byte)m_Data.intValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
@@ -360,12 +369,21 @@ namespace UnityEditor.Rendering
         public SerializedBitArray16(SerializedProperty serializedProperty) : base(serializedProperty, 16u)
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
 
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get16(bitIndex, (ushort)m_Data.intValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
@@ -388,12 +406,21 @@ namespace UnityEditor.Rendering
         public SerializedBitArray32(SerializedProperty serializedProperty) : base(serializedProperty, 32u)
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => (HasMultipleDifferentValuesBitwise(m_Data) & (1 << (int)bitIndex)) != 0;
 
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get32(bitIndex, (uint)m_Data.intValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
@@ -425,12 +452,21 @@ namespace UnityEditor.Rendering
         public SerializedBitArray64(SerializedProperty serializedProperty) : base(serializedProperty, 64u)
             => m_Data = m_SerializedProperty.FindPropertyRelative("data");
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => HasBitMultipleDifferentValue_For64Bits("data", m_Data, bitIndex);
 
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get64(bitIndex, (ulong)m_Data.longValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
@@ -466,18 +502,27 @@ namespace UnityEditor.Rendering
             m_Data2 = m_SerializedProperty.FindPropertyRelative("data2");
         }
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => bitIndex < 64u
                 ? HasBitMultipleDifferentValue_For64Bits("data1", m_Data1, bitIndex)
                 : HasBitMultipleDifferentValue_For64Bits("data2", m_Data2, bitIndex - 64u);
 
 
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get128(
                 bitIndex,
                 (ulong)m_SerializedProperty.FindPropertyRelative("data1").longValue,
                 (ulong)m_SerializedProperty.FindPropertyRelative("data2").longValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
@@ -522,6 +567,9 @@ namespace UnityEditor.Rendering
             m_Data4 = m_SerializedProperty.FindPropertyRelative("data4");
         }
 
+        /// <summary>Say if the properties have differente values</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => bitIndex < 128u
                 ? bitIndex < 64u
@@ -530,7 +578,10 @@ namespace UnityEditor.Rendering
                 : bitIndex < 192u
                     ? HasBitMultipleDifferentValue_For64Bits("data3", m_Data3, bitIndex - 128u)
                     : HasBitMultipleDifferentValue_For64Bits("data4", m_Data4, bitIndex - 192u);
-        
+
+        /// <summary>Get the value at index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <returns>Value at the index</returns>
         protected override bool GetBitAt_Internal(uint bitIndex)
             => BitArrayUtilities.Get256(
                 bitIndex,
@@ -539,6 +590,9 @@ namespace UnityEditor.Rendering
                 (ulong)m_SerializedProperty.FindPropertyRelative("data3").longValue,
                 (ulong)m_SerializedProperty.FindPropertyRelative("data4").longValue);
 
+        /// <summary>Set the bit at given index</summary>
+        /// <param name="bitIndex">The index</param>
+        /// <param name="value">The value</param>
         protected override void SetBitAt_Internal(uint bitIndex, bool value)
         {
             foreach (var property in GetOrInitializeSerializedProperties())
