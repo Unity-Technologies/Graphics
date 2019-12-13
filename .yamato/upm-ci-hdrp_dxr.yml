@@ -10,7 +10,7 @@ platforms:
     flavor: b1.large
 #  - name: Linux
 #    type: Unity::VM::GPU
-#    image: cds-ops/ubuntu-18.04-base:latest
+#    image: cds-ops/ubuntu-18.04-base:stable
 #    flavor: b1.large
 # Not sure if Linux supports DXR
 testplatforms:
@@ -70,6 +70,16 @@ win_apis:
 
 All_{{ project.name }}:
   name: All {{ project.name }} CI
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:stable
+    flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
+  commands:
+    - dir
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
