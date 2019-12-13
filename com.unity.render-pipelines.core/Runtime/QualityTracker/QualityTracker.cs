@@ -3,15 +3,18 @@ using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
-
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering
 {
 
     [ExecuteInEditMode]
     public class QualityTracker : MonoBehaviour
     {
+        public static RenderPipelineAsset GetCurrentRenderPipeline()
+        {
+            return QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
+        }
+
 #if UNITY_EDITOR
         private int lastQualityLevel = -1;
 

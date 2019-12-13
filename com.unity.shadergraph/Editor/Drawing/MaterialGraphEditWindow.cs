@@ -110,11 +110,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView = null;
                 m_ColorSpace = PlayerSettings.colorSpace;
             }
-
-            if (GraphicsSettings.renderPipelineAsset != m_RenderPipelineAsset)
+            RenderPipelineAsset currentRenderpipelineAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
+            if (currentRenderpipelineAsset != m_RenderPipelineAsset)
             {
                 graphEditorView = null;
-                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                m_RenderPipelineAsset = currentRenderpipelineAsset;
             }
 
             if (EditorGUIUtility.isProSkin != m_ProTheme)
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         assetName = asset.name.Split('/').Last()
                     };
                     m_ColorSpace = PlayerSettings.colorSpace;
-                    m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                    m_RenderPipelineAsset = currentRenderpipelineAsset;
                     graphObject.Validate();
                 }
 
@@ -625,7 +625,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             try
             {
                 m_ColorSpace = PlayerSettings.colorSpace;
-                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                m_RenderPipelineAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
 
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
                 if (asset == null)

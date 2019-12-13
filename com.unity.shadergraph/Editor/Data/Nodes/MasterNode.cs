@@ -28,6 +28,10 @@ namespace UnityEditor.ShaderGraph
 
         public abstract string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
         public abstract bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
+
+        public abstract bool IsCurrentPipelineCompatible();
+
+
         public abstract int GetPreviewPassIndex();
 
         public VisualElement CreateSettingsElement()
@@ -81,7 +85,8 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var subShader in m_SubShaders)
             {
-                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                RenderPipelineAsset currentPipelineAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
+                if (subShader.IsPipelineCompatible(currentPipelineAsset))
                     return subShader;
             }
             return null;
@@ -116,10 +121,10 @@ namespace UnityEditor.ShaderGraph
             using (finalShader.BlockScope())
             {
                 SubShaderGenerator.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
-
+                RenderPipelineAsset currentPipeline = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
                 foreach (var subShader in m_SubShaders)
                 {
-                    if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                    if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(currentPipeline))
                         finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
                 }
 
@@ -133,10 +138,16 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var subShader in m_SubShaders)
             {
-                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                if (subShader.IsPipelineCompatible(renderPipelineAsset))
                     return true;
             }
             return false;
+        }
+
+        public sealed override bool IsCurrentPipelineCompatible()
+        {
+            RenderPipelineAsset currentAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset qualityAsset ? qualityAsset : GraphicsSettings.renderPipelineAsset;
+            return IsPipelineCompatible(currentAsset);
         }
 
         public sealed override int GetPreviewPassIndex()

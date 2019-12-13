@@ -14,10 +14,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         #region Default Settings
         internal static HDRenderPipelineAsset defaultAsset
-            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
+            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
 
         internal static HDRenderPipelineAsset currentAsset
-            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
+            => QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is HDRenderPipelineAsset hdrpQualityAsset ? hdrpQualityAsset : (!(QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel()) is RenderPipelineAsset) && QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null);
 
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile

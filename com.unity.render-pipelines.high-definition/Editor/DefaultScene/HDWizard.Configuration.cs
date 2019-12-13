@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsHdrpAssetUsedCorrect()
-            => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+            => QualityTracker.GetCurrentRenderPipeline() != null && QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset;
         void FixHdrpAssetUsed(bool fromAsync)
         {
             if (ObjectSelector.opened)

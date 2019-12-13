@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignDefaultVolumeProfile()
         {
-            if (!(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset))
+            if (!(QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset hdrpAsset))
                 return null;
 
             return GetOrAssignDefaultVolumeProfile(hdrpAsset);
@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignLookDevVolumeProfile()
         {
-            if (!(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset))
+            if (!(QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset hdrpAsset))
                 return null;
 
             return GetOrAssignLookDevVolumeProfile(hdrpAsset);

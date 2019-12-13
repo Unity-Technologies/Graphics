@@ -179,6 +179,11 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
+        public override bool IsCurrentPipelineCompatible()
+        {
+            return true;
+        }
+
         public override int GetPreviewPassIndex()
         {
             return 0;

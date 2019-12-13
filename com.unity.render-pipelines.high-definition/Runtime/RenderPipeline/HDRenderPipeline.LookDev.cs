@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volume.priority = float.MaxValue;
 
 #if UNITY_EDITOR
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdrpAsset = QualityTracker.GetCurrentRenderPipeline() as HDRenderPipelineAsset;
             VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
             volume.sharedProfile = profile;
 

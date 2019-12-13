@@ -1,9 +1,8 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering
 {
 
 	[CreateAssetMenu(fileName = "MaterialRoot", menuName = "QualityTracker/MaterialRoot", order = 1)]

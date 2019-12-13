@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Get the assigned HDRP assets
                 m_HDRPAssets = new List<HDRPAssetLocations>();
-                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp)
+                if (QualityTracker.GetCurrentRenderPipeline() is HDRenderPipelineAsset hdrp)
                     m_HDRPAssets.Add(new HDRPAssetLocations(true, hdrp));
 
                 var qualityLevelCount = QualitySettings.names.Length;
