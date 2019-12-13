@@ -265,7 +265,16 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             cameraData.camera = camera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+            cameraData.isXRMultipass = false;
+            cameraData.numberOfXRPasses = 1;
 
+#if ENABLE_VR
+            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
+            {
+                cameraData.numberOfXRPasses = 2;
+                cameraData.isXRMultipass = true;
+            }
+#endif
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
