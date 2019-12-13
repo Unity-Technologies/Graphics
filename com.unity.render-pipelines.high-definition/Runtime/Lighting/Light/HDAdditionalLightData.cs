@@ -1375,10 +1375,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
-        // temporary matrix that stores the previous light transform
+        // temporary matrix that stores the previous light data
         [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
+        [System.NonSerialized] internal int previousScreenSpaceShadowIndex;
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex;
+        [System.NonSerialized] internal int screenSpaceShadowIndex;
 
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
@@ -1792,7 +1794,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // zBuffer param to reconstruct depth position (for transmission)
             float f = legacyLight.range;
             float n = shadowNearPlane;
-            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/n*f, 1.0f/f);
+            shadowRequest.zBufferParam = new Vector4((f-n)/n, 1.0f, (f-n)/(n*f), 1.0f/f);
             shadowRequest.worldTexelSize = 2.0f / shadowRequest.deviceProjectionYFlip.m00 / viewportSize.x * Mathf.Sqrt(2.0f);
             shadowRequest.normalBias = normalBias;
 
@@ -1872,7 +1874,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 float x = m_ShapeRadius * softnessScale;
                 float x2 = x * x;
                 softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
-                softness = Mathf.Clamp(softness, 0.0f, 4.0f);
                 softness *= (shadowRequest.atlasViewport.width / 512);  // Make it resolution independent whereas the baseline is 512
                 softness /= 100.0f;
             }

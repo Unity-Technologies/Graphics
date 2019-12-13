@@ -8,6 +8,8 @@
 #pragma kernel CopyHistoryColor                     COPY_HISTORY=CopyHistoryColor 
 #pragma kernel CopyHistorySingleArray               COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
 
+#pragma only_renderers d3d11
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -32,7 +34,7 @@ TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
 TEXTURE2D_X(_HistoryNormalBufferTexture);
 // Buffer that stores the result of the validation pass of the history
-RW_TEXTURE2D_X(uint, _ValidationBufferRW);
+RW_TEXTURE2D_X(float, _ValidationBufferRW);
 
 // The maximal world space distance
 #define MAX_WORLD_SPACE_DISTANCE 0.75
@@ -87,8 +89,9 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
     // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    float3 viewWS = normalize(-posInputs.positionWS);
     float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
-    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, -GetViewForwardDir()));
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
     float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Is it too far from the current position?
@@ -116,7 +119,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
 // Validation buffer used for temporal accumulation.
 // TODO: This should be changed to a non RW buffer declaration, but currently, we cannot declare a specific type for non RW Texture2D_X
-RW_TEXTURE2D_X(uint, _ValidationBuffer);
+RW_TEXTURE2D_X(float, _ValidationBuffer);
 // Buffer that holds the history signal values
     #ifdef HISTORY_IS_ARRAY
 TEXTURE2D_ARRAY(_HistoryBuffer);
@@ -188,7 +191,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float accumulationFactor = 0.0;
 
     // If we found no history pixel
-    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)] != 1)
+    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)] != 1.0)
     {
         // We only take the current value
         accumulationFactor = 0.0;

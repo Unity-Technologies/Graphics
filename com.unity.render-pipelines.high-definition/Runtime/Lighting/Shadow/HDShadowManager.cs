@@ -142,9 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
-            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
-            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
+            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
@@ -535,6 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
+            data.zBufferParam = shadowRequest.zBufferParam;
             if (atlas.HasBlurredEVSM())
             {
                 data.shadowFilterParams0 = shadowRequest.evsmParams;

@@ -47,7 +47,7 @@ win_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    model: rtx2080
+    #model: rtx2080
     {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor}}

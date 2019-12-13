@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         public bool isStereoEnabled;
+        internal int numberOfXRPasses;
+        internal bool isXRMultipass;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;

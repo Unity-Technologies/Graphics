@@ -289,6 +289,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HDInstance = hdInstance;
             m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
             m_AnimatedMaterialsEnabled = CoreUtils.AreAnimatedMaterialsEnabled(camera.camera);
+            if (camera.NeedTAAResetHistory())
+            {
+                ResetHistory();
+            }
 
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
@@ -864,6 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
         }
 
@@ -1722,6 +1727,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int mipCount = Mathf.Clamp(iterations, 1, k_MaxBloomMipCount);
             var mipSizes = stackalloc Vector2Int[mipCount];
 
+            // Thresholding
+            // A value of 0 in the UI will keep energy conservation
+            const float k_Softness = 0.5f;
+            float lthresh = Mathf.GammaToLinearSpace(m_Bloom.threshold.value);
+            float knee = lthresh * k_Softness + 1e-5f;
+            var threshold = new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
+
             // Prepare targets
             // We could have a single texture with mips but because we can't bind individual mips as
             // SRVs right now we have to ping-pong between buffers and make the code more
@@ -1770,7 +1782,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeShader cs;
             int kernel;
 
-            if (m_Bloom.prefilter.value)
             {
                 var size = mipSizes[0];
                 cs = m_Resources.shaders.bloomPrefilterCS;
@@ -1779,23 +1790,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsUp[0]); // Use m_BloomMipsUp as temp target
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomThreshold, threshold);
                 DispatchWithGuardBands(cs, kernel, size);
 
                 cs = m_Resources.shaders.bloomBlurCS;
                 kernel = cs.FindKernel("KMain"); // Only blur
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_BloomMipsUp[0]);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                DispatchWithGuardBands(cs, kernel, size);
-            }
-            else
-            {
-                var size = mipSizes[0];
-                cs = m_Resources.shaders.bloomBlurCS;
-                kernel = cs.FindKernel("KMainDownsample");
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                 DispatchWithGuardBands(cs, kernel, size);
@@ -1883,6 +1884,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomTint, (Vector4)tint);
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomBicubicParams, new Vector4(bloomSize.x, bloomSize.y, 1f / bloomSize.x, 1f / bloomSize.y));
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomDirtScaleOffset, dirtTileOffset);
+            cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomThreshold, threshold);
         }
 
         #endregion

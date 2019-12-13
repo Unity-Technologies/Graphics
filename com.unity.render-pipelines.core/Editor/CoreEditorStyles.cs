@@ -2,14 +2,20 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>Class containing style definition</summary>
     public static class CoreEditorStyles
     {
+        /// <summary>Style for a small checkbox</summary>
         public static readonly GUIStyle smallTickbox;
+        /// <summary>Style for a small checkbox in mixed state</summary>
         public static readonly GUIStyle smallMixedTickbox;
+        /// <summary>Style for a minilabel button</summary>
         public static readonly GUIStyle miniLabelButton;
 
         static readonly Texture2D paneOptionsIconDark;
         static readonly Texture2D paneOptionsIconLight;
+
+        /// <summary> PaneOption icon </summary>
         public static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
 
         static CoreEditorStyles()
