@@ -352,16 +352,16 @@ All_{{ project.name }}_{{ editor.version }}:
     
   {% endfor %}
   {% endfor %}
-  {% if editor.version == "fast-trunk" %}
-  triggers:
-    changes:
-      only:
-        - "com.unity.visualeffectgraph/**/*"
-        - "com.unity.testing.visualeffectgraph/**/*"
-        - "TestProjects/VisualEffectGraph*/**/*"
-      except:
-        - "**/*.md"
-  {% endif %}
+  # {% if editor.version == "fast-trunk" %}
+  # triggers:
+    # changes:
+      # only:
+        # - "com.unity.visualeffectgraph/**/*"
+        # - "com.unity.testing.visualeffectgraph/**/*"
+        # - "TestProjects/VisualEffectGraph*/**/*"
+      # except:
+        # - "**/*.md"
+  # {% endif %}
 
 {% endfor %}
 {% endfor %}

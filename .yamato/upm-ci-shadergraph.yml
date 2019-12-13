@@ -354,16 +354,16 @@ All_{{ project.name }}_{{ editor.version }}:
     
   {% endfor %}
   {% endfor %}
-  {% if editor.version == "fast-trunk" %}
-  triggers:
-    changes:
-      only:
-        - "com.unity.shadergraph/**/*"
-        - "TestProjects/ShaderGraph*/**/*"
-        - "com.unity.render-pipelines.universal/Editor/ShaderGraph/*"
-      except:
-        - "**/*.md"
-  {% endif %}
+  # {% if editor.version == "fast-trunk" %}
+  # triggers:
+    # changes:
+      # only:
+        # - "com.unity.shadergraph/**/*"
+        # - "TestProjects/ShaderGraph*/**/*"
+        # - "com.unity.render-pipelines.universal/Editor/ShaderGraph/*"
+      # except:
+        # - "**/*.md"
+  # {% endif %}
 
 {% endfor %}    
 {% endfor %}
