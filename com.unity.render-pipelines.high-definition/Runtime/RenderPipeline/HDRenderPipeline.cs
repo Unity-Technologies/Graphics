@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal enum StencilBitMask
         {
             Clear                           = 0,    // 0x0
-            LightingMask                    = 3,    // 0x7  - 2 bit - Lifetime: GBuffer/Forward - SSSSS
+            LightingMask                    = 3,    // 0x3  - 2 bit - Lifetime: GBuffer/Forward - SSSSS
             // Free slot 4
             // Note: If required, the usage Decals / DecalsForwardOutputNormalBuffer could be fit at same location as LightingMask as they have a non overlapped lifetime
             Decals                          = 8,    // 0x8  - 1 bit - Lifetime: DBuffer - Patch normal buffer   (This bit is cleared to 0 after Patch normal buffer)
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetMaxScreenSpaceShadows()
         {
-            return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows : 0;
+            return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -649,6 +649,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 editableMaterialRenderQueue = false
                 // Enlighten is deprecated in 2019.3 and above
                 , enlighten = false
+                , overridesLODBias = true
+                , overridesMaximumLODLevel = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -665,15 +667,15 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsDeviceType unsupportedDeviceType;
             if (!IsSupportedPlatform(out unsupportedDeviceType))
             {
-                CoreUtils.DisplayUnsupportedAPIMessage(unsupportedDeviceType.ToString());
+                HDUtils.DisplayUnsupportedAPIMessage(unsupportedDeviceType.ToString());
 
                 // Display more information to the users when it should have use Metal instead of OpenGL
                 if (SystemInfo.graphicsDeviceType.ToString().StartsWith("OpenGL"))
                 {
                     if (SystemInfo.operatingSystem.StartsWith("Mac"))
-                        CoreUtils.DisplayUnsupportedMessage("Use Metal API instead.");
+                        HDUtils.DisplayUnsupportedMessage("Use Metal API instead.");
                     else if (SystemInfo.operatingSystem.StartsWith("Windows"))
-                        CoreUtils.DisplayUnsupportedMessage("Use Vulkan API instead.");
+                        HDUtils.DisplayUnsupportedMessage("Use Vulkan API instead.");
                 }
 
                 return false;
@@ -1186,7 +1188,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
                     var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetRTHandleScale(stencilBufferSize));
+                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
                 }
             }
             );
@@ -1778,6 +1780,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (HDAdditionalLightData lightData in m_ScreenSpaceShadowsUnion)
             {
                 lightData.previousTransform = lightData.transform.localToWorldMatrix;
+                lightData.previousScreenSpaceShadowIndex = lightData.screenSpaceShadowIndex;
             }
         }
 
@@ -1996,17 +1999,17 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
                      VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
             {
-                    // Update the light clusters that we need to update
-                    BuildRayTracingLightCluster(cmd, hdCamera);
+                // Update the light clusters that we need to update
+                BuildRayTracingLightCluster(cmd, hdCamera);
 
-                    // We only request the light cluster if we are gonna use it for debug mode
-                    if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
-                    {
-                        HDRaytracingLightCluster lightCluster = RequestLightCluster();
-                        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                    }
+                // We only request the light cluster if we are gonna use it for debug mode
+                if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
+                {
+                    HDRaytracingLightCluster lightCluster = RequestLightCluster();
+                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                }
 
-                    RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
+                RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
             }
             else
             {
@@ -2619,58 +2622,63 @@ namespace UnityEngine.Rendering.HighDefinition
                 QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
                 QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
 
-            DecalSystem.CullRequest decalCullRequest = null;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
-            {
-                // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
-                DecalSystem.instance.CurrentCamera = camera;
-                DecalSystem.instance.BeginCull(decalCullRequest);
-            }
+                DecalSystem.CullRequest decalCullRequest = null;
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                {
+                    // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
+                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
+                    DecalSystem.instance.CurrentCamera = camera;
+                    DecalSystem.instance.BeginCull(decalCullRequest);
+                }
 
-            // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
-            var hdProbeCullState = new HDProbeCullState();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
-                hdProbeCullState = HDProbeSystem.PrepareCull(camera);
+                // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
+                var hdProbeCullState = new HDProbeCullState();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
+                    hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
-            // We need to set the ambient probe here because it's passed down to objects during the culling process.
-            skyManager.SetupAmbientProbe(hdCamera);
+                // We need to set the ambient probe here because it's passed down to objects during the culling process.
+                skyManager.SetupAmbientProbe(hdCamera);
 
-            using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
-                cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+                using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
+                {
+                    cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+                }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-            {
-                using (new ProfilingSample(null, "CustomPass.Cull", CustomSamplerId.CustomPassCullResultsCull.GetSampler()))
-                    cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
-            }
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                {
+                    using (new ProfilingSample(null, "CustomPass.Cull", CustomSamplerId.CustomPassCullResultsCull.GetSampler()))
+                    {
+                        cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
+                    }
+                }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
-                HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
-            else
-                cullingResults.hdProbeCullingResults = default;
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
+                    HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
+                else
+                    cullingResults.hdProbeCullingResults = default;
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
-            {
-                    using (new ProfilingSample(null, "DBufferPrepareDrawData",
-                        CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
-                    DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
-            }
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                {
+                        using (new ProfilingSample(null, "DBufferPrepareDrawData",
+                            CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
+                        {
+                            DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
+                        }
+                }
 
-            if (decalCullRequest != null)
-            {
-                decalCullRequest.Clear();
-                GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
-            }
+                if (decalCullRequest != null)
+                {
+                    decalCullRequest.Clear();
+                    GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
+                }
 
-            return true;
-
+                return true;
             }
             finally
             {
                 QualitySettings.lodBias = initialLODBias;
                 QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-        }
+            }
         }
 
         void RenderGizmos(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, GizmoSubset gizmoSubset)
@@ -2977,7 +2985,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     rayTracingOpaqueRendererList,
                                     rayTracingTransparentRendererList
                                     );
-        }
+            }
 
             return depthPrepassParameters.shouldRenderMotionVectorAfterGBuffer;
         }
@@ -3037,7 +3045,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
                 {
                     // We can call DBufferNormalPatch after RenderDBuffer as it only affect forward material and isn't affected by RenderGBuffer
-                    // This reduce lifteime of stencil bit
+                    // This reduce lifetime of stencil bit
                     DBufferNormalPatch(PrepareDBufferNormalPatchParameters(hdCamera), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), cmd, renderContext);
                 }
             }
@@ -3746,7 +3754,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            if (usesRaytracedReflections)
             {
                 hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
@@ -3768,6 +3777,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 	hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
             	}
 			}
+            cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
 
             PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.ScreenSpaceReflections);
         }

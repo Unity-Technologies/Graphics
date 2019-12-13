@@ -37,7 +37,7 @@ BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Nor
 AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
 
 You can see here on this diagram where the custom passes are injected inside an HDRP frame.
-![](Images/HDRP-frame-graph-diagram.jpg)
+![](Images/HDRP-frame-graph-diagram.png)
 
 ## Custom Pass List
 
@@ -310,6 +310,10 @@ class Outline : CustomPass
     public Color        outlineColor = Color.black;
     public float        threshold = 1;
 
+    // To make sure the shader will ends up in the build, we keep it's reference in the custom pass
+    [SerializeField, HideInInspector]
+    Shader                  outlineShader;
+
     Material                fullscreenOutline;
     MaterialPropertyBlock   outlineProperties;
     ShaderTagId[]           shaderTags;
@@ -317,7 +321,8 @@ class Outline : CustomPass
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
-        fullscreenOutline = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Outline"));
+        outlineShader = Shader.Find("Hidden/Outline");
+        fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
         outlineProperties = new MaterialPropertyBlock();
 
         // List all the materials that will be replaced in the frame
@@ -415,6 +420,8 @@ Shader "Hidden/Outline"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float4 color = float4(0.0, 0.0, 0.0, 0.0);

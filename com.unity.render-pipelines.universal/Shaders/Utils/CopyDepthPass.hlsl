@@ -24,7 +24,7 @@ Varyings vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.uv = input.uv;
+    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     return output;
 }

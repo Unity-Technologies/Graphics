@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Since 2019.3, use ProbeCapturePositionSettings.NewDefault() instead.")]
         public static readonly ProbeCapturePositionSettings @default = default;
         /// <summary>Default value.</summary>
+        /// <returns>The default value.</returns>
         public static ProbeCapturePositionSettings NewDefault() => new ProbeCapturePositionSettings(
             Vector3.zero, Quaternion.identity,
             Vector3.zero, Quaternion.identity,
@@ -76,6 +77,12 @@ namespace UnityEngine.Rendering.HighDefinition
             this.influenceToWorld = influenceToWorld;
         }
 
+        /// <summary>
+        /// Compute the probe capture settings from an HDProbe and a reference transform.
+        /// </summary>
+        /// <param name="probe">The probe to extract settings from.</param>
+        /// <param name="reference">The reference transform. Use <c>null</c> when no reference is available.</param>
+        /// <returns>The probe capture position settings.</returns>
         public static ProbeCapturePositionSettings ComputeFrom(HDProbe probe, Transform reference)
         {
             var referencePosition = Vector3.zero;
@@ -99,6 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
+        /// <summary>
+        /// Compute the probe capture settings from an HDProbe and a reference position.
+        /// The position will be mirrored based on the mirror position of the probe.
+        /// </summary>
+        /// <param name="probe">The probe to extract settings from.</param>
+        /// <param name="referencePosition">The reference position to use.</param>
+        /// <returns>The probe capture position setting.</returns>
         public static ProbeCapturePositionSettings ComputeFromMirroredReference(
             HDProbe probe, Vector3 referencePosition
         )
@@ -118,6 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return positionSettings;
         }
 
+        /// <summary>
+        /// Compute a hash based on the settings' values
+        /// </summary>
+        /// <returns></returns>
         public Hash128 ComputeHash()
         {
             var h = new Hash128();

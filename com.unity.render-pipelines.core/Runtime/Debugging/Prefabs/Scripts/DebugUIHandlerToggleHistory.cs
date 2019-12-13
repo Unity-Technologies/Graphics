@@ -3,6 +3,9 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for toggle with history widget.
+    /// </summary>
     public class DebugUIHandlerToggleHistory : DebugUIHandlerToggle
     {
         Toggle[] historyToggles;
@@ -30,6 +33,9 @@ namespace UnityEngine.Rendering.UI
             base.SetWidget(widget);
         }
 
+        /// <summary>
+        /// Update the label.
+        /// </summary>
         protected override void UpdateValueLabel()
         {
             base.UpdateValueLabel();

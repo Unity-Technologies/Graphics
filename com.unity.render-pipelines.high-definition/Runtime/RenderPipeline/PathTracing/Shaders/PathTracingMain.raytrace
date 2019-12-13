@@ -66,7 +66,7 @@ void RayGen()
     uint sampleCount = _RaytracingFrameIndex;
     if (sampleCount >= _RaytracingNumSamples)
     {
-        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz, 1.0);
+        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz * GetCurrentExposureMultiplier(), 1.0);
         return;
     }
 
@@ -107,7 +107,7 @@ void RayGen()
     // Add a little convergence cue to our result
     AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
 
-    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
+    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
 }
 
 // This should never be called, return magenta just in case
