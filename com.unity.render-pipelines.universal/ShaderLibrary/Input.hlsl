@@ -42,7 +42,7 @@ struct InputData
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
-#define _InvCameraViewProj unity_MatrixInvVP
+float4x4 _InvCameraViewProj;
 float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
@@ -67,7 +67,11 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
 #define UNITY_MATRIX_VP    unity_MatrixVP
-#define UNITY_MATRIX_I_VP  unity_MatrixInvVP
+#if defined(USING_STEREO_MATRICES)
+#define UNITY_MATRIX_I_VP  unity_MatrixInvVP // only defined in stereo-mode
+#else
+#define UNITY_MATRIX_I_VP  _InvCameraViewProj // Technically incorrect as per-pass matrix is a different set from camera set matrix.
+#endif
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
