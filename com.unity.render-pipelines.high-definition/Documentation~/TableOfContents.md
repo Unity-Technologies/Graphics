@@ -1,5 +1,7 @@
 * [High Definition Render Pipeline](index)
-* [Features List](HDRP-Features)
+* Features
+  * [Features List](HDRP-Features)
+  * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
@@ -62,12 +64,12 @@
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
-    * [Emission](Emission-Node)
-    * [Baked GI](Baked-GI-Node)
-    * [Diffusion Profile](Diffusion-Profile-Node)
-    * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node)
-    * [Exposure](Exposure-Node)
-    * [HD Scene Color](HD-Scene-Color-Node)
+    * [Emission](SGNode-Emission)
+    * [Baked GI](SGNode-Baked-GI)
+    * [Diffusion Profile](SGNode-Diffusion-Profile)
+    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
+    * [Exposure](SGNode-Exposure)
+    * [HD Scene Color](SGNode-HD-Scene-Color)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)

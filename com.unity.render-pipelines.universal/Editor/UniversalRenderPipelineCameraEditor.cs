@@ -924,11 +924,11 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataSO.Update();
             selectedDepthOption = (CameraOverrideOption)m_AdditionalCameraDataRenderDepthProp.intValue;
             Rect controlRectDepth = EditorGUILayout.GetControlRect(true);
+
             // Need to check if post processing is added and active.
             // If it is we will set the int pop to be 1 which is ON and gray it out
             bool defaultDrawOfDepthTextureUI = true;
-            var propValue = (int)selectedDepthOption;
-            if ((propValue == 2 && !m_UniversalRenderPipeline.supportsCameraDepthTexture) || propValue == 0)
+            if (m_AdditionalCameraDataRenderPostProcessing.boolValue)
             {
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, 0, Styles.displayedDepthTextureOverride, Styles.additionalDataOptions);
@@ -936,7 +936,7 @@ namespace UnityEditor.Rendering.Universal
                 defaultDrawOfDepthTextureUI = false;
             }
 
-            if(defaultDrawOfDepthTextureUI)
+            if (defaultDrawOfDepthTextureUI)
             {
                 EditorGUI.BeginProperty(controlRectDepth, Styles.requireDepthTexture, m_AdditionalCameraDataRenderDepthProp);
                 EditorGUI.BeginChangeCheck();
