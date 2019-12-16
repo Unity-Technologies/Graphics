@@ -84,9 +84,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             bottomRight = Map(bottomRight);
             color = Map(color);
 
-            float colorLuma = Luminance(color);
-            float averageLuma = Luminance(average);
-            float nudge = lerp(4.0, 0.25, saturate(motionVecLength * 100.0)) * abs(averageLuma - colorLuma);
+            float3 nudge = lerp(4.0, 0.25, saturate(motionVecLength * 100.0)) * abs(color - average);
 
             float3 minimum = min(bottomRight, topLeft) - nudge;
             float3 maximum = max(topLeft, bottomRight) + nudge;
@@ -102,6 +100,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
             // Blend color & history
             // Feedback weight from unbiased luminance diff (Timothy Lottes)
+            float colorLuma = Luminance(color);
             float historyLuma = Luminance(history);
             float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
             float weight = 1.0 - diff;

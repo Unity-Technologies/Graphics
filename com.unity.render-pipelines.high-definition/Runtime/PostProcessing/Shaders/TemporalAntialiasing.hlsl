@@ -1,6 +1,11 @@
+#ifndef TEMPORAL_ANTIALIASING_HLSL
+#define TEMPORAL_ANTIALIASING_HLSL
+
 #define HDR_MAPUNMAP        1
+
 #define CLIP_AABB           1
 #define RADIUS              0.75
+
 #define FEEDBACK_MIN        0.96
 #define FEEDBACK_MAX        0.91
 #define SHARPEN             1
@@ -120,7 +125,9 @@ float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)
     // This is actually `distance`, however the keyword is reserved
     float3 offset = color - center;
     
-    float3 ts = abs(extents) / max(abs(offset), 1e-4);
+    float3 ts = abs(extents) / max(abs(offset), 1e-8);
     float t = saturate(Min3(ts.x, ts.y,  ts.z));
     return center + offset * t;
 }
+
+#endif
