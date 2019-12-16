@@ -377,12 +377,12 @@ namespace UnityEditor.VFX
             {
                 if (!isLitShader && shaderGraph.lit)
                 {
-                    Debug.LogError("You must use a lit vfx master node with a lit output");
+                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
                     return false;
                 }
                 if (isLitShader && !shaderGraph.lit)
                 {
-                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
+                    Debug.LogError("You must use a lit vfx master node with a lit output");
                     return false;
                 }
 

@@ -4895,8 +4895,8 @@ MonoBehaviour:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: Outputs the particle position projected on the depth buffer of the
-        selected Camera.
+      m_Tooltip: Outputs the position projected on the depth buffer of the selected
+        Camera in world space.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 1
@@ -5445,8 +5445,8 @@ MonoBehaviour:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: Outputs the particle position projected on the depth buffer of the
-        selected Camera.
+      m_Tooltip: Outputs the position projected on the depth buffer of the selected
+        Camera in world space.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 1
@@ -5960,8 +5960,8 @@ MonoBehaviour:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: Outputs the particle position projected on the depth buffer of the
-        selected Camera.
+      m_Tooltip: Outputs the position projected on the depth buffer of the selected
+        Camera in world space.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 1

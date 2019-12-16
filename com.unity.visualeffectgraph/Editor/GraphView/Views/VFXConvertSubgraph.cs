@@ -202,6 +202,21 @@ namespace UnityEditor.VFX.UI
 
             }
 
+            void CopyPasteOperators(Dictionary<VFXNodeController,VFXNodeController> targetNodes)
+            {
+                List<VFXNodeController> sourceOperatorAndParameters = m_SourceControllers.OfType<VFXNodeController>().Where(t=>!(t is VFXBlockController)).ToList();
+                object result = VFXCopy.Copy(sourceOperatorAndParameters, m_Rect);
+
+                List<VFXNodeController> targetOperatorAndParameters = new List<VFXNodeController>();
+                VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, targetOperatorAndParameters);
+
+                foreach (var st in sourceOperatorAndParameters.Zip(targetOperatorAndParameters, (s, t)=>new { source = s, target = t }))
+                {
+                    targetNodes[st.source] = st.target;
+                }
+
+            }
+
             void SetupTargetParameters()
             {
                 // Change each parameter created by copy paste ( and therefore a parameter copied ) to exposed
@@ -287,14 +302,28 @@ namespace UnityEditor.VFX.UI
 
                 var otherSourceControllers = m_SourceControllers.OfType<VFXNodeController>().Where(t => !(t is VFXBlockController)).ToList();
 
+                Dictionary<VFXNodeController,VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
+                CopyPasteOperators(targetControllers);
+                
                 //Create lost links between nodes and blocks
                 foreach(var edge in m_SourceController.dataEdges.Where(t=> otherSourceControllers.Contains(t.output.sourceNode) && m_SourceBlockControllers.Contains(t.input.sourceNode)))
                 {
-                    var outputNode = m_TargetControllers[m_SourceControllers.IndexOf(edge.output.sourceNode)];
+                    var outputNode = targetControllers[edge.output.sourceNode];
                     var output = outputNode.outputPorts.First(t => t.path == edge.output.path);
 
                     var inputBlock = m_TargetBlocks[m_SourceBlockControllers.IndexOf(edge.input.sourceNode as VFXBlockController)];
                     var input = inputBlock.inputPorts.First(t => t.path == edge.input.path);
+
+                    m_TargetController.CreateLink(input, output);
+                }
+                //Create lost links between nodes
+                foreach(var edge in m_SourceController.dataEdges.Where(t=> otherSourceControllers.Contains(t.output.sourceNode) && otherSourceControllers.Contains(t.input.sourceNode)))
+                {
+                    var outputNode = targetControllers[edge.output.sourceNode];
+                    var output = outputNode.outputPorts.First(t => t.path == edge.output.path);
+
+                    var inputNode = targetControllers[edge.input.sourceNode];
+                    var input = inputNode.inputPorts.First(t => t.path == edge.input.path);
 
                     m_TargetController.CreateLink(input, output);
                 }
