@@ -39,7 +39,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void CompileExpressionContext(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options, VFXDeviceTarget target)
+        private void CompileExpressionContext(  IEnumerable<VFXContext> contexts,
+                                                VFXExpressionContextOption options,
+                                                VFXDeviceTarget target,
+                                                VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
         {
             var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
@@ -60,10 +63,29 @@ namespace UnityEditor.VFX
             expressionContext.Compile();
 
             foreach (var exp in expressionContext.RegisteredExpressions)
-                if (!expressionsToReduced.ContainsKey(exp)) //TODOPAUL (could compile twice the same branch, it's now expected)
-                    expressionsToReduced.Add(exp, expressionContext.GetReduced(exp));
+            {
+                var reduced = expressionContext.GetReduced(exp);
+                if (expressionsToReduced.ContainsKey(exp))
+                {
+                    if (reduced != expressionsToReduced[exp])
+                        throw new InvalidOperationException("Unexpected diverging expression reduction");
+                    continue;
+                }
+                expressionsToReduced.Add(exp, reduced);
+            }
 
-            m_Expressions.UnionWith(expressionContext.BuildAllReduced());
+            var allReduced = expressionContext.BuildAllReduced();
+            if (forbiddenFlags != VFXExpression.Flags.None)
+            {
+                var check = allReduced.Any(e => e.IsAny(forbiddenFlags));
+                if (check)
+                {
+                    //TODO: Provide an error when feedback is possible
+                    throw new InvalidOperationException("Invalid expression usage while compiling");
+                }
+            }
+
+            m_Expressions.UnionWith(allReduced);
 
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
@@ -140,9 +162,20 @@ namespace UnityEditor.VFX
 
                 var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
-                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.PatchReadToEventAttribute, VFXDeviceTarget.CPU);
-                CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
-                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
+                CompileExpressionContext(   spawnerContexts,
+                                            options | VFXExpressionContextOption.PatchReadToEventAttribute,
+                                            VFXDeviceTarget.CPU,
+                                            VFXExpression.Flags.NotCompilableOnCPU);
+
+                CompileExpressionContext(   otherContexts,
+                                            options,
+                                            VFXDeviceTarget.CPU,
+                                            VFXExpression.Flags.NotCompilableOnCPU | VFXExpression.Flags.PerSpawn);
+
+                CompileExpressionContext(   contexts,
+                                            options | VFXExpressionContextOption.GPUDataTransformation,
+                                            VFXDeviceTarget.GPU,
+                                            VFXExpression.Flags.PerSpawn);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
