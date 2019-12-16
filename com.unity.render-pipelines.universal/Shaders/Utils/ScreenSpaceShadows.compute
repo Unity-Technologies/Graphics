@@ -173,7 +173,7 @@ void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
     }
 
-#if defined(SHADER_API_GLCORE) || (defined(SHADER_API_GLES3) && defined(GLES3_1_AEP))
+#if UNITY_REVERSED_Z
     // reverse depth on OpenGL
     deviceDepth = deviceDepth * 2.0 - 1.0;
 #endif
@@ -210,7 +210,8 @@ void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
     }
 
-    uint3 posQ = (uint3)posP - uint3(0, 0, _VoxelZBias);
+    uint3 posQ = (uint3)posP;
+    posP.z -= _VoxelZBias;
 
 #if NEAREST_SAMPLE
     uint2 result;

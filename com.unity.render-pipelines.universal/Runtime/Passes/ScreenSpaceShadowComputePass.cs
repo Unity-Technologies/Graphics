@@ -129,25 +129,25 @@ namespace UnityEngine.Rendering.Universal
 
         private int GetComputeShaderKernel(bool useCascades, bool softShadows)
         {
+            if (_screenSpaceVxShadowCS == null)
+                return -1;
+
             int kernel = -1;
 
-            if (_screenSpaceVxShadowCS != null)
-            {
-                string blendModeName;
-                if (_mainLightDynamicShadows && useCascades)
-                    blendModeName = "BlendCascadeShadows";
-                else if (_mainLightDynamicShadows)
-                    blendModeName = "BlendDynamicShadows";
-                else
-                    blendModeName = "NoBlend";
+            string blendModeName;
+            if (_mainLightDynamicShadows && useCascades)
+                blendModeName = "BlendCascadeShadows";
+            else if (_mainLightDynamicShadows)
+                blendModeName = "BlendDynamicShadows";
+            else
+                blendModeName = "NoBlend";
 
-                string filteringName = "Nearest";
-                filteringName = softShadows ? "Soft" : "Hard";
+            string filteringName = "Nearest";
+            filteringName = softShadows ? "Soft" : "Hard";
 
-                string kernelName = blendModeName + filteringName;
+            string kernelName = blendModeName + filteringName;
 
-                kernel = _screenSpaceVxShadowCS.FindKernel(kernelName);
-            }
+            kernel = _screenSpaceVxShadowCS.FindKernel(kernelName);
 
             return kernel;
         }
@@ -166,8 +166,10 @@ namespace UnityEngine.Rendering.Universal
             var projMatrix = gpuProj;
             var viewProjMatrix = projMatrix * viewMatrix;
 
+            var vxShadowMapsContainer = VxShadowMapsManager.Instance.Container;
+
             int beginOffset = (int)(MainDirVxShadowMap.bitset & 0x3FFFFFFF);
-            int voxelZBias = MainDirVxShadowMap.ZBias;
+            int voxelZBias = vxShadowMapsContainer.ZBias;
             float voxelUpBias = 1 * (MainDirVxShadowMap.VolumeScale / MainDirVxShadowMap.VoxelResolutionInt);
 
             var shadowData = new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f);
@@ -192,6 +194,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static bool ComputeShadowsInScreenSpace(LightData lightData)
         {
+            if (VxShadowMapsManager.Instance.Container == null)
+                return false;
+
             DirectionalVxShadowMap dirVxShadowMap = null;
 
             var shadowLightIndex = lightData.mainLightIndex;
@@ -208,14 +213,6 @@ namespace UnityEngine.Rendering.Universal
             MainDirVxShadowMap = dirVxShadowMap;
 
             return dirVxShadowMap != null ? true : false;
-        }
-
-        public static void Prepare(CommandBuffer cmd, bool isOpaquePass, ShadowData shadowData)
-        {
-            if (MainDirVxShadowMap == null)
-                return;
-
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowInScreenSpace, isOpaquePass);
         }
     }
 }
