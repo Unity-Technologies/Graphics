@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix exception when compiling an asset with a turbulence block in absolute mode
 - Fixed GetCustomAttribute that was locked to Current
 - Shader compilation now works when using view direction in shader graph
+- Depth Position and Collision blocks now work correctly in local space systems
 
 ## [7.1.6] - 2019-11-22
 ### Added
