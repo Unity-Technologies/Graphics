@@ -52,7 +52,7 @@ To do so, you can:
 
 When you’ve added the Visual Effect Graph Asset to you Hierarchy, Unity attaches the Asset to a [Visual Effect Component](VisualEffectComponent.md), which references the Asset. 
 ## Editing a Visual Effect Graph
-To edit Visual Effect Graph Assets in the  [Visual Effect Graph Window](VisualEffectGraphWindow.md) :
+To edit Visual Effect Graph Assets in the  [Visual Effect Graph window](VisualEffectGraphWindow.md) :
 
 * Open the Visual Effect Graph window (menu: __Window___ &gt; __Visual Effects__) with an empty graph. This prompts you to open a Visual Effect Graph Asset.
 * Select an existing Visual Effect Graph Asset, and click the __Edit__ button in the Inspector. This opens the Visual Effect Graph window with the graph contained in this Asset.
@@ -67,17 +67,17 @@ To preview an effect, you can:
 This lets you edit parameters directly in the Scene, see the lighting on your effect, and use the [Target GameObject Panel](VisualEffectGraphWindow.md#target-visual-effect-gameobject) features for the specific target instance of your effect.
 
 ## Manipulating Graph Elements
-When you open an Asset inside the Visual Effect Graph Window, you can see and edit the graph for that specific Asset.
+When you open an Asset inside the Visual Effect Graph window, you can see and edit the graph for that specific Asset.
 
-A Visual Effect Graph contains [Operator Nodes](Operators.md) and [Blocks](Blocks.md). Each node is in charge of processing its input properties. You can link nodes together to perform a series of calculations. All nodes end up connecting into a block (or a context) : A block defines an operation on an effect, based on its input properties. 
+A Visual Effect Graph contains [Operator Nodes](Operators.md) and [Blocks](Blocks.md). Each Node is in charge of processing its input properties. You can link Nodes together to perform a series of calculations. All Nodes end up connecting into a Block (or a context) : A Block defines an operation on an effect, based on its input properties. 
 
-When you link several blocks together, these form a context. For more information about nodes, blocks, and contexts in the Visual Effect Graph, see [Graph Logic](GraphLogicAndPhilosophy.md). 
+When you link several Blocks together, these form a context. For more information about Nodes, Blocks, and contexts in the Visual Effect Graph, see [Graph Logic](GraphLogicAndPhilosophy.md). 
 
-Every change you make to a graph has immediate consequences on the behavior of your effect, and you can preview the changes in real time. Every time you add, remove, or connect a node, the graph recompiles all the elements that have changed, and restarts the effect. However, changing values (for example, editing a curve) does not make Unity recompile anything and affects the simulation in real time.
-To add nodes, you can either:
+Every change you make to a graph has immediate consequences on the behavior of your effect, and you can preview the changes in real time. Every time you add, remove, or connect a Node, the graph recompiles all the elements that have changed, and restarts the effect. However, changing values (for example, editing a curve) does not make Unity recompile anything and affects the simulation in real time.
+To add Nodes, you can either:
 
 * Right-click in the graph, and select __Create Node__.
 * Press the spacebar on your keyboard.
 * Click and drag an edge from an existing port, and release the click in an empty space.
 
-When you do any of the above actions, the __Create Node__ menu appears. Here, you can see the nodes, blocks, and contexts that are compatible with that specific location in the graph.
+When you do any of the above actions, the __Create Node__ menu appears. Here, you can see the Nodes, Blocks, and contexts that are compatible with that specific location in the graph.
