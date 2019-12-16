@@ -42,7 +42,7 @@ struct InputData
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
-float4x4 _InvCameraViewProj;
+#define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
@@ -67,11 +67,7 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   unity_CameraInvProjection // workaround: technically per-pass matrix set is different from camera matrix set
 #define UNITY_MATRIX_VP    unity_MatrixVP
-#if defined(USING_STEREO_MATRICES)
-#define UNITY_MATRIX_I_VP  unity_MatrixInvVP // only defined in stereo-mode
-#else
-#define UNITY_MATRIX_I_VP  _InvCameraViewProj // incorrect: _InvCameraViewProj applies platform-specific z adjustments (reversed-z and [0,1] range), while unity_MatrixInvVP does not.
-#endif
+#define UNITY_MATRIX_I_VP  unity_MatrixInvVP
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
