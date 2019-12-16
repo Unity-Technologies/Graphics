@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: reading the depth buffer with a compute shader will cause it to decompress in place.
                     // On console, to preserve the depth test performance, we must NOT decompress the 'm_CameraDepthStencilBuffer' in place.
                     // We should call decompressDepthSurfaceToCopy() and decompress it to 'm_CameraDepthBufferMipChain'.
-                    m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new Rendering.RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight));
+                    m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight));
                     // Depth texture is now ready, bind it.
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
                 }
@@ -1226,7 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // We selecting a camera in the editor, we have a preview that is drawn.
                     // For legacy reasons, Unity will render all preview cameras when rendering the GameView
                     // Actually, we don't need this here because we call explicitly Camera.Render when we
-                    // need a preview rendering.
+                    // need a preview
                     //
                     // This is an issue, because at some point, you end up with 2 cameras to render:
                     // - Main Camera (game view)
