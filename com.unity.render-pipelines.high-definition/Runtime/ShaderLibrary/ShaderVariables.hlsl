@@ -257,6 +257,7 @@ CBUFFER_START(UnityGlobal)
     int  _FrameCount;
 
     float _ProbeExposureScale;
+    int  _UseRayTracedReflections;
 
 CBUFFER_END
 

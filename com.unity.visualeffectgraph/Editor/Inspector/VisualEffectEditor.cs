@@ -120,13 +120,19 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+            OnDisableWithoutResetting();
+        }
+        
+        protected void OnDisableWithoutResetting()
+        {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            
             s_AllEditors.Remove(this);
         }
 
@@ -498,10 +504,13 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-
             GUILayout.Label("Show Bounds", GUILayout.Width(192));
-
             VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Show Event Tester", GUILayout.Width(192));
+            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, GUILayout.Width(18));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -521,7 +530,7 @@ namespace UnityEditor.VFX
 
         protected virtual void OnSceneViewGUI(SceneView sv)
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target,SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
 
         private VisualEffectAsset m_asset;

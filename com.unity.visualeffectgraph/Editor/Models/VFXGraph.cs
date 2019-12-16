@@ -100,9 +100,10 @@ namespace UnityEditor.VFX
 
     class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
-
         public static bool HasVFXExtension(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath))
+                return false;
             return filePath.EndsWith(VisualEffectResource.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension)
                 || filePath.EndsWith(VisualEffectSubgraphOperator.Extension);
@@ -247,6 +248,10 @@ namespace UnityEditor.VFX
 
         public VFXParameterInfo[] m_ParameterInfo;
 
+        private VFXSystemNames m_SystemNames = new VFXSystemNames();
+
+        public VFXSystemNames systemNames { get { return m_SystemNames; } }
+
         public void BuildParameterInfo()
         {
             m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
@@ -285,6 +290,7 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
+            m_SystemNames.Sync(this);
             m_ExpressionGraphDirty = true;
             m_ExpressionValuesDirty = true;
             m_DependentDirty = true;
@@ -345,6 +351,8 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
+            systemNames.Sync(this);
+
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
@@ -384,6 +392,10 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             m_saved = false;
+
+            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+                m_SystemNames.Sync(this);
+
             base.OnInvalidate(model, cause);
 
             if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
@@ -391,14 +403,15 @@ namespace UnityEditor.VFX
                 BuildParameterInfo();
             }
 
+
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
                 UpdateSubAssets();
-                if( model == this)
+                if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
             }
 
-            if( cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
+            if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
             }
@@ -541,7 +554,6 @@ namespace UnityEditor.VFX
                     {
                         if( block is VFXSubgraphBlock)
                         {
-
                             var subgraphBlock = block as VFXSubgraphBlock;
                             if (subgraphBlock.subgraph != null)
                                 RecurseSubgraphRecreateCopy(subgraphBlock.subgraph.GetResource().GetOrCreateGraph());
@@ -557,11 +569,60 @@ namespace UnityEditor.VFX
             }
         }
 
+        void RecurseSubgraphPatchInputExpression(IEnumerable<VFXModel> children)
+        {
+            foreach (var child in children)
+            {
+                if (child is VFXSubgraphContext)
+                {
+                    var subgraphContext = child as VFXSubgraphContext;
+                    subgraphContext.PatchInputExpressions();
+                }
+                else if (child is VFXContext)
+                {
+                    foreach (var block in child.children)
+                    {
+                        if (block is VFXSubgraphBlock)
+                        {
+                            var subgraphBlock = block as VFXSubgraphBlock;
+                            subgraphBlock.PatchInputExpressions();
+                        }
+                    }
+                }
+                else if (child is VFXSubgraphOperator operatorChild)
+                {
+                    operatorChild.ResyncSlots(false);
+                    operatorChild.UpdateOutputExpressions();
+                }
+            }
+            foreach (var child in children)
+            {
+                if (child is VFXSubgraphContext)
+                {
+                    var subgraphContext = child as VFXSubgraphContext;
+                    if (subgraphContext.subgraph != null && subgraphContext.subChildren != null)
+                        RecurseSubgraphPatchInputExpression(subgraphContext.subChildren);
+                }
+                else if (child is VFXContext)
+                {
+                    foreach (var block in child.children)
+                    {
+                        if (block is VFXSubgraphBlock)
+                        {
+                            var subgraphBlock = block as VFXSubgraphBlock;
+                            if (subgraphBlock.subgraph != null && subgraphBlock.subChildren != null)
+                                RecurseSubgraphPatchInputExpression(subgraphBlock.subChildren);
+                        }
+                    }
+                }
+            }
+        }
+
         void SubgraphDirty(VisualEffectObject subgraph)
         {
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
-                RecurseSubgraphRecreateCopy(this);
+                PrepareSubgraphs();
                 compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
                 m_ExpressionGraphDirty = false;
 
@@ -569,7 +630,13 @@ namespace UnityEditor.VFX
             }
         }
 
-
+        private void PrepareSubgraphs()
+        {
+            Profiler.BeginSample("PrepareSubgraphs");
+            RecurseSubgraphRecreateCopy(this);
+            RecurseSubgraphPatchInputExpression(this.children);
+            Profiler.EndSample();
+        }
 
         IEnumerable<VFXGraph> GetAllGraphs<T>() where T : VisualEffectObject
         {
@@ -614,7 +681,7 @@ namespace UnityEditor.VFX
                 if (considerGraphDirty)
                 {
                     BuildSubgraphDependencies();
-                    RecurseSubgraphRecreateCopy(this);
+                    PrepareSubgraphs();
 
                     ComputeDataIndices();
 
@@ -633,7 +700,7 @@ namespace UnityEditor.VFX
             else if(m_ExpressionGraphDirty && !preventRecompilation)
             {
                 BuildSubgraphDependencies();
-                RecurseSubgraphRecreateCopy(this);
+                PrepareSubgraphs();
                 m_ExpressionGraphDirty = false;
             }
             if(!preventDependencyRecompilation && m_DependentDirty)
@@ -677,6 +744,9 @@ namespace UnityEditor.VFX
         private VFXGraphCompiledData m_CompiledData;
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderValidation = false;
+
+        [NonSerialized]
+        public Action<VFXGraph> onRuntimeDataChanged;
 
         [SerializeField]
         protected bool m_saved = false;

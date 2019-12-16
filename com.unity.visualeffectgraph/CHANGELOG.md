@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-11-18
 ### Added
+- Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
 - Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
 - Octagon & Triangle support for planar distortion output
@@ -19,8 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New quad distortion output for particle strips
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
+- Naming for particles system and spawn context
 
 ### Fixed
+- Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
@@ -40,14 +43,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
-- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
 - Fix shader interpolants with shader graph and particle strips
 - SpawnIndex attribute is now working correctly in Initialize context
 - Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
 - Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
 - Subgraph operators appear on drag edge on graph.
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 - Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- subgraph block into subgraph context no longer forget parameter values.
+- Fix exception when compiling an asset with a turbulence block in absolute mode
+- Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
+- Fix for destroying selected component corrupt "Play Controls" window
+- Depth Position and Collision blocks now work correctly in local space systems
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -221,7 +221,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             if (m_Version != Version.Last)
-                TryToUpgrade();
+            {
+                // We delay the upgrade of the diffusion profile because ni the OnEnable we are still
+                // in the import of the current diffusion profile, so we can't create new assets of the same
+                // type from here otherwise it will freeze the editor in an infinite import loop.
+                // Thus we delay the upgrade of one editor frame so the import of this asset is finished.
+                UnityEditor.EditorApplication.delayCall += TryToUpgrade;
+            }
+
             UnityEditor.Rendering.HighDefinition.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
 #endif
         }

@@ -225,7 +225,8 @@ namespace  UnityEditor.VFX.UI
 
         void OnFocus()
         {
-            graphView.OnFocus();
+            if(graphView != null) // OnFocus can be somehow called before OnEnable
+                graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }
