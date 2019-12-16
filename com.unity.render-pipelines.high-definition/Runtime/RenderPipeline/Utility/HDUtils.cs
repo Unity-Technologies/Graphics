@@ -71,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
