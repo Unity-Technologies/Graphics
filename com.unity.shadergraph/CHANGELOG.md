@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
-- Fixed a bug where, a majority of the time, redo inside Shader Graph didn't work.
+- Fixed a bug where the redo functionality in Shader Graph often didn't work.
 
 ### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
