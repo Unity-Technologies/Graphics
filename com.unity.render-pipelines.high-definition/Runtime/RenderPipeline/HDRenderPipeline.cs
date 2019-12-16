@@ -2076,9 +2076,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         => m_AmbientOcclusionSystem.Dispatch(c, a.hdCamera, a.frameCount);
                 }
 
-                if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_FrameCount);
-
                 using (new ProfilingSample(cmd, "Render shadow maps", CustomSamplerId.RenderShadowMaps.GetSampler()))
                 {
                     // This call overwrites camera properties passed to the shader system.
@@ -2131,6 +2128,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         BuildGPULightLists(hdCamera, cmd);
                     }
                 }
+
+                if (!hdCamera.frameSettings.SSAORunsAsync())
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_FrameCount);
 
                 // Run the contact shadows here as they the light list
                 using (new ProfilingSample(cmd, "Dispatch Contact Shadows", CustomSamplerId.ContactShadows.GetSampler()))
