@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
                 var check = allReduced.Any(e => e.IsAny(forbiddenFlags));
                 if (check)
                 {
-                    //TODO: Provide an error when feedback is possible
+                    //TODO: Provide an error in GUI when feedback is possible
                     throw new InvalidOperationException("Invalid expression usage while compiling");
                 }
             }
