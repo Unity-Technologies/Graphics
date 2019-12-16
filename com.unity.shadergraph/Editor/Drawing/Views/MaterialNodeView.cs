@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 contents.Add(m_PreviewFiller);
 
-                SetPreviewExpandedStateOnSelection(node.previewExpanded);
+                UpdatePreviewExpandedState(node.previewExpanded);
             }
 
             // Add port input container, which acts as a pixel cache for all port inputs
