@@ -27,7 +27,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+        //ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades); //seongdae;oneMainShadow
+        ShaderKeyword m_ScreenSpaceShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen); //seongdae;oneMainShadow
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_Lightmap = new ShaderKeyword("LIGHTMAP_ON");
@@ -75,8 +76,12 @@ namespace UnityEditor.Rendering.Universal
                 if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows))
                     return true;
 
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                //seongdae;oneMainShadow
+                if (compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadows))
                     return true;
+                //if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                    //return true;
+                //seongdae;oneMainShadow
             }
 
             bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
@@ -123,8 +128,12 @@ namespace UnityEditor.Rendering.Universal
 
             if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
             {
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                //seongdae;oneMainShadow
+                if (compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadows))
                     return true;
+                //if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                    //return true;
+                //seongdae;oneMainShadow
             }
 
             return false;
@@ -136,8 +145,12 @@ namespace UnityEditor.Rendering.Universal
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
 
-            if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+            //seongdae;oneMainShadow
+            if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadows))
                 return true;
+            //if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                //return true;
+            //seongdae;oneMainShadow
 
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;

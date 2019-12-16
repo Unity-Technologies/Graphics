@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
+        [SerializeField] bool m_ScreenSpaceShadowsSupported = false; //seongdae;oneMainShadow
         [SerializeField] bool m_SoftShadowsSupported = false;
 
         // Advanced settings
@@ -549,6 +550,13 @@ namespace UnityEngine.Rendering.Universal
             get { return m_ShadowNormalBias; }
             set { m_ShadowNormalBias = ValidateShadowBias(value); }
         }
+
+        //seongdae;oneMainShadow
+        public bool supportsScreenSpaceShadows
+        {
+            get { return m_ScreenSpaceShadowsSupported; }
+        }
+        //seongdae;oneMainShadow
 
         public bool supportsSoftShadows
         {

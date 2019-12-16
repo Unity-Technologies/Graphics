@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            bool receiveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve; //seongdae;oneMainShadow
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
             // Depth prepass is generated in the following cases:
@@ -145,6 +146,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             bool requiresDepthPrepass = isSceneViewCamera;
             requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
+            requiresDepthPrepass |= receiveShadowsInScreenSpace; //seongdae;oneMainShadow
 
             // The copying of depth should normally happen after rendering skybox.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -204,6 +206,14 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
             }
+
+            //seongdae;oneMainShadow
+            if (receiveShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+                EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
+            //seongdae;oneMainShadow
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 
