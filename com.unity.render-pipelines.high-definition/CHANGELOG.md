@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NPE when using scalable settings
 - Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
 - Fixed a bug in dxr due to depth history begin overriden too soon
+- Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
 
 ## [7.1.6] - 2019-11-22
 
