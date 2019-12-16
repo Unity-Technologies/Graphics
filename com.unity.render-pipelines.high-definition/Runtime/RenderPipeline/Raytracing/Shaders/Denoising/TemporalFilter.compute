@@ -37,7 +37,7 @@ TEXTURE2D_X(_HistoryNormalBufferTexture);
 RW_TEXTURE2D_X(float, _ValidationBufferRW);
 
 // The maximal world space distance
-#define MAX_WORLD_SPACE_DISTANCE 0.75
+#define MAX_WORLD_SPACE_DISTANCE 0.1
 #define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
 float _PixelSpreadAngleTangent;
 float _HistoryValidity;
@@ -53,7 +53,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
-    if ( depth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -191,7 +191,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float accumulationFactor = 0.0;
 
     // If we found no history pixel
-    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)] != 1.0)
+    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)] < 1.0)
     {
         // We only take the current value
         accumulationFactor = 0.0;

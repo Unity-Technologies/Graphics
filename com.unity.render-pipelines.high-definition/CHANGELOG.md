@@ -254,6 +254,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom post processes re-ordering not saved.
 - Fixed NPE when using scalable settings
 - Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
+- Fixed a bug due to depth history begin overriden too soon
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -294,6 +295,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
 - Hide unused LOD settings in Quality Settings legacy window.
+- Reduced the constrained distance for temporal reprojection of ray tracing denoising
 
 ## [7.1.1] - 2019-09-05
 
