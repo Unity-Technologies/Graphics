@@ -76,6 +76,19 @@ CBUFFER_END
 
 #define OutputLogEnabled        _DebugFlags.x
 
+float4 _ViewportSubsection;  // cluster display
+
+float2 ClusterDisplayLocalToGlobalUV(float2 uv)
+{
+    uv.y = 1 - uv.y; // flip y
+    return uv * _ViewportSubsection.zw + _ViewportSubsection.xy;
+}
+
+float2 ClusterDisplayGlobalToLocalUV(float2 uv)
+{
+    return (uv - _ViewportSubsection.xy) / _ViewportSubsection.zw;
+}
+
 float2 DistortUV(float2 uv)
 {
     // Lens distortion
@@ -99,7 +112,6 @@ float2 DistortUV(float2 uv)
             uv = uv + ruv * (ru - 1.0);
         }
     }
-
     return uv;
 }
 
@@ -114,17 +126,18 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 uvDistorted = DistortUV(uv);
     float3 color = 0.0;
 
-    // Chromatic aberration    
+    // Chromatic aberration
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
     if (VARIANT & UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION)
     {
-        float2 coords = 2.0 * uv - 1.0;
+        float2 uvGlobal = ClusterDisplayLocalToGlobalUV(uv);
+        float2 coords = 2.0 * uvGlobal - 1.0;
         float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
         float2 diff = end - uv;
         int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
         float2 delta = diff / samples;
-        float2 pos = uv;
+        float2 pos = (uv);
         float3 sum = 0.0, filterSum = 0.0;
 
         for (int i = 0; i < samples; i++)
@@ -174,7 +187,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         UNITY_BRANCH
         if (VignetteMode == 0u) // Procedural
         {
-            float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
+            float2 d = abs(ClusterDisplayLocalToGlobalUV(uvDistorted) - VignetteCenter) * VignetteIntensity;
             d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
             d = pow(saturate(d), VignetteRoundness);
             float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);

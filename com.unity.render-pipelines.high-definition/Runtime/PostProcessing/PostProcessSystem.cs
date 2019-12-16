@@ -8,6 +8,11 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
+    public static class ClusterBridge
+    {
+        static public Vector4 ViewportSubsection; // static for easy testing
+    }
+
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
     sealed class PostProcessSystem
@@ -389,6 +394,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
+                    // wip cluster display
+                    cmd.SetGlobalVector(HDShaderIDs._ViewportSubsection, ClusterBridge.ViewportSubsection);
+
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
                     // filtering and can't use clamp sampler and the likes
@@ -1700,7 +1708,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the scene is less than 50% of 900p, then we operate on full res, since it's going to be cheap anyway and this might improve quality in challenging situations.
             // Also we switch to bilinear upsampling as it goes less wide than bicubic and due to our border/RTHandle handling, going wide on small resolution
-            // where small mips have a strong influence, might result problematic. 
+            // where small mips have a strong influence, might result problematic.
             if (camera.actualWidth < 800 || camera.actualHeight < 450)
             {
                 scaleW = 1.0f;

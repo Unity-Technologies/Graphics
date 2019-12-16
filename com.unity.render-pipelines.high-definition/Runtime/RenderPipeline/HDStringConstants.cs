@@ -73,6 +73,9 @@ namespace UnityEngine.Rendering.HighDefinition
     // TODO: Would be nice to clean this up at some point
     static class HDShaderIDs
     {
+        // WIP Cluster Display
+        public static readonly int _ViewportSubsection = Shader.PropertyToID("_ViewportSubsection");
+
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");
@@ -615,7 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
         public static readonly int _ReflectionFilterMapping         = Shader.PropertyToID("_ReflectionFilterMapping");
-        
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
