@@ -243,6 +243,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled, eyeIndex);
+            UniversalRenderPipeline.SetupPerCameraShaderConstants(context, renderingData.cameraData, stereoEnabled, eyeIndex);
 
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.

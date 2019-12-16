@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
         public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
+        const string k_SetupCameraShaderConstantsTag = "Setup Per Camera Shader Constants";
 
         public static float maxShadowBias
         {
@@ -200,7 +201,6 @@ namespace UnityEngine.Rendering.Universal
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
-            SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
             if (renderer == null)
@@ -565,9 +565,12 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-        static void SetupPerCameraShaderConstants(CameraData cameraData)
+        internal static void SetupPerCameraShaderConstants(ScriptableRenderContext context, CameraData cameraData, bool stereoEnabled, int eyeIndex)
         {
             Camera camera = cameraData.camera;
+
+            // Get a command buffer...
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetupCameraShaderConstantsTag);
 
             float scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
             float scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
@@ -575,13 +578,17 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
             float cameraWidth = (float)cameraData.camera.pixelWidth;
             float cameraHeight = (float)cameraData.camera.pixelHeight;
-            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            cmd.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
 
-            Matrix4x4 projMatrix = camera.projectionMatrix;
-            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            Matrix4x4 projMatrix = stereoEnabled ? camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex) : camera.projectionMatrix;
+            Matrix4x4 viewMatrix = stereoEnabled ? camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex) : camera.worldToCameraMatrix;
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-            Shader.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
+            cmd.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
+
+            // Execute and release the command buffer...
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
 
