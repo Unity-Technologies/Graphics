@@ -14,7 +14,7 @@
 // Options
 // --------------------------------------------
 
-// Integral type 
+// Integral type
 #define INTEGRAL_UNIFORM 0
 #define INTEGRAL_COSINE 1
 #define INTEGRAL_TYPE INTEGRAL_COSINE
@@ -38,7 +38,7 @@ float IntegrateArcUniform(float horizon1, float horizon2)
 
 float IntegrateArcCosWeighted(float horzion1, float horizon2, float n, float cosN)
 {
-    float h1 = horzion1 * 2.0; 
+    float h1 = horzion1 * 2.0;
     float h2 = horizon2 * 2.0;
     float sinN = sin(n);
     return 0.25 * ((-cos(h1 - n) + cosN + h1 * sinN) + (-cos(h2 - n) + cosN + h2 * sinN));
@@ -48,7 +48,7 @@ float UpdateHorizon(float maxH, float candidateH, float distSq)
 {
     float falloff = saturate((1.0 - (distSq * _AOInvRadiusSq)));
 
-    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO: Thickness heuristic here.
+    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : lerp(maxH, candidateH, 0.03f);        // TODO: Thickness heuristic here.
 }
 
 // --------------------------------------------
@@ -119,7 +119,7 @@ float3 GetNormalVS(float4 normalBufferData)
 
 float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, float rayOffset, float rayStep, int mipModifier)
 {
-    float maxHorizon = -1.0f;  // cos(pi) 
+    float maxHorizon = -1.0f;  // cos(pi)
     float t = rayOffset * rayStep + rayStep;
 
     const uint startWithLowerRes = min(max(0, _AOStepCount / 2 - 2), 3);
@@ -174,7 +174,8 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
     float step = max(1, fovCorrectedradiusSS * _AOInvStepCountPlusOne);
 
-#ifdef TEMPORAL
+// Note: We unroll here for Metal to work around a Metal shader compiler crash
+#if defined(TEMPORAL) || defined(SHADER_API_METAL)
     [unroll]
 #endif
     for (int i = 0; i < dirCount; ++i)
@@ -186,7 +187,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         // the output.
         float2 negDir = -dir + 1e-30;
 
-        // Find horizons 
+        // Find horizons
         float2 maxHorizons;
         maxHorizons.x = HorizonLoop(positionVS, V, rayStart, dir, offset, step, 0);
         maxHorizons.y = HorizonLoop(positionVS, V, rayStart, negDir, offset, step, 0);
@@ -194,7 +195,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         // We now can transform normal data into normal in view space (latency from read should have been hidden as much as possible)
         float3 normalVS = GetNormalVS(normalBufferData);
 
-        // Integrate horizons 
+        // Integrate horizons
         float3 sliceN = normalize(cross(float3(dir.xy, 0.0f), V.xyz));
         float3 projN = normalVS - sliceN * dot(normalVS, sliceN);
         float projNLen = length(projN);
@@ -219,4 +220,4 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     _AOPackedData[COORD_TEXTURE2D_X(dispatchThreadId.xy)] =  PackAOOutput(saturate(integral), currDepth);
-} 
+}

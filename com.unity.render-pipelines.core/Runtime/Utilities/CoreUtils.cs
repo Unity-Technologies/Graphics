@@ -148,30 +148,50 @@ namespace UnityEngine.Rendering
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
         }
 
-        // Render Target Management.
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
+        // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
+        private static int FixupDepthSlice(int depthSlice, RTHandle buffer)
         {
+            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
+                depthSlice = 0;
+
+            return depthSlice;
+        }
+
+        private static int FixupDepthSlice(int depthSlice, CubemapFace cubemapFace)
+        {
+            if (depthSlice == -1 && cubemapFace != CubemapFace.Unknown)
+                depthSlice = 0;
+
+            return depthSlice;
+        }
+
+        // Render Target Management.
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
+            depthSlice = FixupDepthSlice(depthSlice, cubemapFace);
             cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
@@ -240,10 +260,7 @@ namespace UnityEngine.Rendering
         // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
-            // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
-            // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
-            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
-                depthSlice = 0;
+            depthSlice = FixupDepthSlice(depthSlice, buffer);
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
         }
@@ -302,7 +319,7 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
-            cmd.SetRenderTarget(colorBuffers, depthBuffer);
+            cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
             SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
         }
 
@@ -643,7 +660,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
+
+                    // Post-processing is disabled in scene view if either showImageEffects is disabled or we are
+                    // rendering in wireframe mode.
+                    if (sv.camera == camera &&
+                        (sv.sceneViewState.showImageEffects && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
                     {
                         enabled = true;
                         break;

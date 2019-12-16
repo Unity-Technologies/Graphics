@@ -159,10 +159,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
 
-            // TODO: We need an alternate (more efficient) code path if the light has a shadowIntensity of 0
             if (shadowIntensity > 0)
             {
-                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier());
+                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...

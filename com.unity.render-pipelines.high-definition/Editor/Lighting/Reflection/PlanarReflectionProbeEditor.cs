@@ -102,6 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
+            // Draw a preview of the captured texture from the planar reflection
+
             // Get the exposure texture used in this scene view
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
                 return;
@@ -115,8 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (p.texture == null)
                 return;
 
-            var factor = k_PreviewHeight / p.texture.height;
-            var previewSize = new Rect(p.texture.width * factor, k_PreviewHeight, 0, 0);
+            var previewWidth = k_PreviewHeight;
+            var previewSize = new Rect(previewWidth, k_PreviewHeight + EditorGUIUtility.singleLineHeight + 2, 0, 0);
             
             if (Event.current.type == EventType.Layout
                 || !firstDraw && Event.current.type == EventType.Repaint)
@@ -127,18 +129,42 @@ namespace UnityEditor.Rendering.HighDefinition
                 var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
                 firstDraw = false;
 
+                // The aspect ratio of the capture texture may not be the aspect of the texture
+                // So we need to stretch back the texture to the aspect used during the capture
+                // to give users a non distorded preview of the capture.
+                // Here we compute a centered rect that has the correct aspect for the texture preview.
                 var c = new Rect(cameraRect);
-
-                c.width = p.texture.width * factor;
-                c.height = k_PreviewHeight;
+                c.y += EditorGUIUtility.singleLineHeight + 2;
+                if (p.renderData.aspect > 1)
+                {
+                    c.width = k_PreviewHeight;
+                    c.height = k_PreviewHeight / p.renderData.aspect;
+                    c.y += (k_PreviewHeight - c.height) * 0.5f;
+                }
+                else
+                {
+                    c.width = k_PreviewHeight * p.renderData.aspect;
+                    c.height = k_PreviewHeight;
+                    c.x += (k_PreviewHeight - c.width) * 0.5f;
+                }
 
                 // Setup the material to draw the quad with the exposure texture
                 var material = GUITextureBlit2SRGBMaterial;
                 material.SetTexture("_Exposure", exposureTex);
                 Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, material, -1);
 
-                var fovRect = new Rect(c.x + 5, c.y + 2, c.width - 10, EditorGUIUtility.singleLineHeight);
-                GUI.TextField(fovRect, $"FOV: {p.renderData.fieldOfView:F2}°");
+                // We now display the FoV and aspect used during the capture of the planar reflection
+                var fovRect = new Rect(cameraRect);
+                fovRect.x += 5;
+                fovRect.y += 2;
+                fovRect.width -= 10;
+                fovRect.height = EditorGUIUtility.singleLineHeight;
+                var width = fovRect.width;
+                fovRect.width = width * 0.5f;
+                GUI.TextField(fovRect, $"F: {p.renderData.fieldOfView:F2}°");
+                fovRect.x += width * 0.5f;
+                fovRect.width = width * 0.5f;
+                GUI.TextField(fovRect, $"A: {p.renderData.aspect:F2}");
             }
         }
 
@@ -198,7 +224,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var proxyToWorld = probe.proxyToWorld;
             var settings = probe.settings;
-            var mirrorPosition = proxyToWorld.MultiplyPoint(settings.proxySettings.mirrorPositionProxySpace);
+
+            // When a user creates a new mirror, the capture position is at the exact position of the mirror mesh.
+            // We need to offset slightly the gizmo to avoid a Z-fight in that case, as it looks like a bug
+            // for users discovering the planar reflection.
+            var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace + Vector3.up * 0.001f;
+
+            var mirrorPosition = proxyToWorld.MultiplyPoint(mirrorPositionProxySpace);
             var mirrorRotation = proxyToWorld.rotation * settings.proxySettings.mirrorRotationProxySpace * Quaternion.Euler(0, 180, 0);
             var renderData = probe.renderData;
 
@@ -261,17 +293,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.proxyMirrorPositionProxySpace
-                    | ProbeSettingsFields.proxyMirrorRotationProxySpace,
+                | ProbeSettingsFields.proxyMirrorRotationProxySpace
+                | ProbeSettingsFields.lightingRangeCompression,
             camera = new CameraSettingsOverride()
         };
-
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride
-        {
-            probe = ProbeSettingsFields.none,
-            camera = new CameraSettingsOverride()
-        };
-
-        public ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
 
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings => new ProbeSettingsOverride
         {
@@ -284,23 +309,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 camera = CameraSettingsFields.none
             }
         };
-        public ProbeSettingsOverride displayedAdvancedCustomSettings => new ProbeSettingsOverride()
-        {
-            probe = ProbeSettingsFields.lightingRangeCompression,
-            camera = new CameraSettingsOverride
-            {
-                camera = CameraSettingsFields.none
-            }
-        };
-
-        public ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
-
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCustomSettings => new ProbeSettingsOverride();
+        
         Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
         static readonly HDProbeUI.ToolBar[] k_Toolbars =
         {
             HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.Blend,
-            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation
+            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation,
+            HDProbeUI.ToolBar.ShowChromeGizmo
         };
         HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_Toolbars;
 

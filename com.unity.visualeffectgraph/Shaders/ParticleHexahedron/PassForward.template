@@ -67,7 +67,8 @@ Pass
 	o.rimSettings = float4(rimColor.rgb,rimCoef);
 #endif
 	${VFXEnd}
-				
+
+	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag

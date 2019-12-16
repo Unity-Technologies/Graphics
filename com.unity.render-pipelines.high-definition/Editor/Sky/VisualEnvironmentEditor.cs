@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
 
             var staticLightingSky = SkyManager.GetStaticLightingSky();
-            if ((SkyAmbientMode)m_SkyAmbientMode.value.enumValueIndex == SkyAmbientMode.Static)
+            if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)
             {
                 if (staticLightingSky == null)
                     EditorGUILayout.HelpBox("Current Static Lighting Sky use None of profile None.", MessageType.Info);

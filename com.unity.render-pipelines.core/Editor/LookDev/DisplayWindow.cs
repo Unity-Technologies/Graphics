@@ -196,6 +196,9 @@ namespace UnityEditor.Rendering.LookDev
 
             titleContent = Style.k_WindowTitleAndIcon;
 
+            // /!\ be sure to have a minSize that will allow a non negative sized viewport even with side panel open
+            this.minSize = new Vector2(600, 400);
+
             rootVisualElement.styleSheets.Add(
                 AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss));
 

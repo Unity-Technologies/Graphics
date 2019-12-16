@@ -237,7 +237,7 @@ Shader "HDRP/LayeredLit"
 
         // Following are builtin properties
 
-        [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
+        [Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
@@ -395,36 +395,45 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
     // We can only have 64 shader_feature_local
-    #pragma shader_feature _NORMALMAP0              // Non-local
-    #pragma shader_feature _NORMALMAP1              // Non-local
-    #pragma shader_feature _NORMALMAP2              // Non-local
-    #pragma shader_feature _NORMALMAP3              // Non-local
-    #pragma shader_feature _MASKMAP0                // Non-local
-    #pragma shader_feature _MASKMAP1                // Non-local
-    #pragma shader_feature _MASKMAP2                // Non-local
-    #pragma shader_feature _MASKMAP3                // Non-local
-    #pragma shader_feature _BENTNORMALMAP0          // Non-local
-    #pragma shader_feature _BENTNORMALMAP1          // Non-local
-    #pragma shader_feature _BENTNORMALMAP2          // Non-local
-    #pragma shader_feature _BENTNORMALMAP3          // Non-local
-    #pragma shader_feature _EMISSIVE_COLOR_MAP      // Non-local
-    #pragma shader_feature _ENABLESPECULAROCCLUSION // Non-local
-    #pragma shader_feature _DETAIL_MAP0             // Non-local
-    #pragma shader_feature _DETAIL_MAP1             // Non-local
-    #pragma shader_feature _DETAIL_MAP2             // Non-local
-    #pragma shader_feature _DETAIL_MAP3             // Non-local
-    #pragma shader_feature _HEIGHTMAP0              // Non-local
-    #pragma shader_feature _HEIGHTMAP1              // Non-local
-    #pragma shader_feature _HEIGHTMAP2              // Non-local
-    #pragma shader_feature _HEIGHTMAP3              // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2    // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3    // Non-local
-    #pragma shader_feature _THICKNESSMAP0           // Non-local
-    #pragma shader_feature _THICKNESSMAP1           // Non-local
-    #pragma shader_feature _THICKNESSMAP2           // Non-local
-    #pragma shader_feature _THICKNESSMAP3           // Non-local
+    #pragma shader_feature _NORMALMAP0                                  // Non-local
+    #pragma shader_feature _NORMALMAP1                                  // Non-local
+    #pragma shader_feature _NORMALMAP2                                  // Non-local
+    #pragma shader_feature _NORMALMAP3                                  // Non-local
+    #pragma shader_feature _MASKMAP0                                    // Non-local
+    #pragma shader_feature _MASKMAP1                                    // Non-local
+    #pragma shader_feature _MASKMAP2                                    // Non-local
+    #pragma shader_feature _MASKMAP3                                    // Non-local
+    #pragma shader_feature _BENTNORMALMAP0                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP1                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP2                              // Non-local
+    #pragma shader_feature _BENTNORMALMAP3                              // Non-local
+    #pragma shader_feature _EMISSIVE_COLOR_MAP                          // Non-local
+
+    // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
+    // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
+    // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
+    #ifdef _ENABLESPECULAROCCLUSION
+    #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #endif
+
+    #pragma shader_feature _DETAIL_MAP0                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP1                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP2                                 // Non-local
+    #pragma shader_feature _DETAIL_MAP3                                 // Non-local
+    #pragma shader_feature _HEIGHTMAP0                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP1                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP2                                  // Non-local
+    #pragma shader_feature _HEIGHTMAP3                                  // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2                        // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3                        // Non-local
+    #pragma shader_feature _THICKNESSMAP0                               // Non-local
+    #pragma shader_feature _THICKNESSMAP1                               // Non-local
+    #pragma shader_feature _THICKNESSMAP2                               // Non-local
+    #pragma shader_feature _THICKNESSMAP3                               // Non-local
 
     #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE

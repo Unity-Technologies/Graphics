@@ -58,8 +58,9 @@ namespace UnityEditor.Rendering.Universal
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
-
+#pragma warning disable 618
         public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && settings.isBakedOrMixed; } }
+#pragma warning restore 618
         public bool showLightBounceIntensity { get { return true; } }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
@@ -160,14 +161,16 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
+            if (SceneView.lastActiveSceneView != null )
+            {
 #if UNITY_2019_1_OR_NEWER
-            var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
+                var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
 #else
-            var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
+                var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
 #endif
-
-            if (SceneView.lastActiveSceneView != null && !sceneLighting)
-                EditorGUILayout.HelpBox(s_Styles.DisabledLightWarning.text, MessageType.Warning);
+                if (!sceneLighting)
+                    EditorGUILayout.HelpBox(s_Styles.DisabledLightWarning.text, MessageType.Warning);
+            }
 
             serializedObject.ApplyModifiedProperties();
         }

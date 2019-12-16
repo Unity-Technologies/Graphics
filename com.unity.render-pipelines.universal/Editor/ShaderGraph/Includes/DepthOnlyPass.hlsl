@@ -1,4 +1,4 @@
-﻿#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
+#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
 #define SG_DEPTH_ONLY_PASS_INCLUDED
 
 PackedVaryings vert(Attributes input)
@@ -7,7 +7,6 @@ PackedVaryings vert(Attributes input)
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(packedOutput);
     return packedOutput;
 }
 

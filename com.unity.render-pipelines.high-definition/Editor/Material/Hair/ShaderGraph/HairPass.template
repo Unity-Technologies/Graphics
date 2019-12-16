@@ -27,7 +27,7 @@ Pass
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
 
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    $LodCrossFade: #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _DOUBLESIDED_ON
@@ -302,8 +302,7 @@ $include("SharedCode.template.hlsl")
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-        LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+        LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 #endif
 
 #ifdef _DOUBLESIDED_ON

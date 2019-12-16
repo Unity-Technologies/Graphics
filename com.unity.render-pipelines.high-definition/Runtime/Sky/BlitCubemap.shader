@@ -6,6 +6,7 @@ Shader "Hidden/BlitCubemap" {
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+            #pragma editor_sync_compilation
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5

@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPrepassWithDeferredRendering = 1 << 22,
         OpaqueObjects = 1 << 24,
         TransparentObjects = 1 << 25,
-        RealtimePlanarReflection = 1 << 26,
 
         // Async settings
         AsyncCompute = 1 << 23,
@@ -181,7 +180,6 @@ namespace UnityEngine.Rendering.HighDefinition
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.Postprocess, oldFrameSettingsFormat.enablePostprocess);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.OpaqueObjects, oldFrameSettingsFormat.enableOpaqueObjects);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.TransparentObjects, oldFrameSettingsFormat.enableTransparentObjects);
-            newFrameSettingsFormat.SetEnabled(FrameSettingsField.RealtimePlanarReflection, oldFrameSettingsFormat.enableRealtimePlanarReflection);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.MSAA, oldFrameSettingsFormat.enableMSAA);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.ExposureControl, oldFrameSettingsFormat.enableExposureControl);
             newFrameSettingsFormat.SetEnabled(FrameSettingsField.AsyncCompute, oldFrameSettingsFormat.enableAsyncCompute);
@@ -279,9 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         case ObsoleteFrameSettingsOverrides.TransparentObjects:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.TransparentObjects] = true;
                             break;
-                        case ObsoleteFrameSettingsOverrides.RealtimePlanarReflection:
-                            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.RealtimePlanarReflection] = true;
-                            break;
                         case ObsoleteFrameSettingsOverrides.MSAA:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA] = true;
                             break;
@@ -367,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
         
         internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
@@ -375,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
 
         internal static void MigrateToNoReflectionSettings(ref FrameSettings cameraFrameSettings)
@@ -383,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, true);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, false);
         }
 
         internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)

@@ -1,4 +1,4 @@
-using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(AmbientOcclusion))]
-    class AmbientOcclusionEditor : VolumeComponentEditor
+    class AmbientOcclusionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_StepCount;
@@ -36,20 +36,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<AmbientOcclusion>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
-            m_StepCount = Unpack(o.Find(x => x.stepCount));
+            m_StepCount = Unpack(o.Find("m_StepCount"));
             m_Radius = Unpack(o.Find(x => x.radius));
-            m_FullResolution = Unpack(o.Find(x => x.fullResolution));
-            m_MaximumRadiusInPixels = Unpack(o.Find(x => x.maximumRadiusInPixels));
+            m_FullResolution = Unpack(o.Find("m_FullResolution"));
+            m_MaximumRadiusInPixels = Unpack(o.Find("m_MaximumRadiusInPixels"));
 
             m_TemporalAccumulation = Unpack(o.Find(x => x.temporalAccumulation));
-            m_DirectionCount = Unpack(o.Find(x => x.directionCount));
+            m_DirectionCount = Unpack(o.Find("m_DirectionCount"));
             m_BlurSharpness = Unpack(o.Find(x => x.blurSharpness));
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
             m_GhostingAdjustement = Unpack(o.Find(x => x.ghostingReduction));
-            m_BilateralUpsample = Unpack(o.Find(x => x.bilateralUpsample));
+            m_BilateralUpsample = Unpack(o.Find("m_BilateralUpsample"));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
@@ -68,16 +70,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-#if ENABLE_RAYTRACING
+            // If the current pipeline supports ray tracing, display first the ray tracing checkbox
+            bool raytracingSupported = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported;
+            if (raytracingSupported)
             PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
-#endif
 
             // Shared attributes
             PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
-#if ENABLE_RAYTRACING
-            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
+            if (raytracingSupported && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
@@ -90,20 +93,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             else
-#endif
             {
+
                 PropertyField(m_Radius, EditorGUIUtility.TrTextContent("Radius", "Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses."));
+
+                base.OnInspectorGUI(); // Quality Setting
+                GUI.enabled = useCustomValue;
                 PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));
                 PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "The effect runs at full resolution. This increases quality, but also decreases performance significantly."));
                 PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
+                GUI.enabled = true;
 
-
-                
                 PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts."));
+                EditorGUI.indentLevel++;
                 if(!m_TemporalAccumulation.value.boolValue)
                 {
+                    GUI.enabled = useCustomValue;
                     PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
-                    if(m_DirectionCount.value.intValue > 3)
+                    GUI.enabled = true;
+                    if (m_DirectionCount.value.intValue > 3)
                     {
                         EditorGUILayout.HelpBox("Performance will be seriously impacted by high direction count.", MessageType.Warning, wide: true);
                     }
@@ -112,10 +120,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
-                    if(isInAdvancedMode && !m_FullResolution.value.boolValue)
+                    if (isInAdvancedMode && !m_FullResolution.value.boolValue)
+                    {
+                        GUI.enabled = useCustomValue;
                         PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
+                        GUI.enabled = true;
+                    }
                 }
-
+                EditorGUI.indentLevel--;
             }
         }
     }

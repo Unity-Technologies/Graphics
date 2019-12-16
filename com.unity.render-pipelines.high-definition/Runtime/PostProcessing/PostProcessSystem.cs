@@ -1694,8 +1694,19 @@ namespace UnityEngine.Rendering.HighDefinition
         unsafe void DoBloom(CommandBuffer cmd, HDCamera camera, RTHandle source, ComputeShader uberCS, int uberKernel)
         {
             var resolution = m_Bloom.resolution;
+            var highQualityFiltering = m_Bloom.highQualityFiltering;
             float scaleW = 1f / ((int)resolution / 2f);
             float scaleH = 1f / ((int)resolution / 2f);
+
+            // If the scene is less than 50% of 900p, then we operate on full res, since it's going to be cheap anyway and this might improve quality in challenging situations.
+            // Also we switch to bilinear upsampling as it goes less wide than bicubic and due to our border/RTHandle handling, going wide on small resolution
+            // where small mips have a strong influence, might result problematic. 
+            if (camera.actualWidth < 800 || camera.actualHeight < 450)
+            {
+                scaleW = 1.0f;
+                scaleH = 1.0f;
+                highQualityFiltering = false;
+            }
 
             if (m_Bloom.anamorphic.value)
             {
@@ -1807,7 +1818,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Upsample & combine
             cs = m_Resources.shaders.bloomUpsampleCS;
-            kernel = cs.FindKernel(m_Bloom.highQualityFiltering ? "KMainHighQ" : "KMainLowQ");
+            kernel = cs.FindKernel(highQualityFiltering ? "KMainHighQ" : "KMainLowQ");
 
             float scatter = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
 
@@ -2392,14 +2403,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region User Post Processes
 
-        internal void DoUserBeforeTransparent(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        internal void DoUserAfterOpaqueAndSky(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
         {
             if (!camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                 return;
 
             RTHandle source = colorBuffer;
 
-            using (new ProfilingSample(cmd, "Custom Post Processes Before Transparent", CustomSamplerId.CustomPostProcessBeforeTransparent.GetSampler()))
+            using (new ProfilingSample(cmd, "Custom Post Processes Before Transparent", CustomSamplerId.CustomPostProcessAfterOpaqueAndSky.GetSampler()))
             {
                 bool needsBlitToColorBuffer = false;
                 foreach (var typeString in HDRenderPipeline.currentAsset.beforeTransparentCustomPostProcesses)

@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -376,11 +375,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IDIntermediateBuffer0, indirectDiffuseHistoryLF, m_IDIntermediateBuffer1, singleChannel: false);
                 diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_IDIntermediateBuffer1 , m_IDIntermediateBuffer0, settings.secondDenoiserRadius.value, singleChannel: false, halfResolutionFilter: settings.halfResolutionDenoiser.value);
             }
-            else
-            {
-                HDUtils.BlitCameraTexture(cmd, m_IDIntermediateBuffer1, m_IDIntermediateBuffer0);
-            }
         }
     }
-#endif
 }

@@ -25,6 +25,8 @@ There are properties on the master node as well as properties on the Materials t
 
 ![](Images/MasterNodeHair1.png)
 
+The following table describes the input ports on an Hair Master node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html).
+
 | **Property**                              | **Type** | **Stage** | **Description**                                              |
 | ----------------------------------------- | -------- | --------- | ------------------------------------------------------------ |
 | **Position**                              | Vector 3 | Vertex    | The vertex position of the hair card or spline.              |
@@ -70,9 +72,9 @@ To view these properties, click the cog icon in the top right of the master node
 | **- Use Shadow Threshold**       | Enable this setting to set another threshold value for alpha clipping shadows. |
 | **Receive Decals**               | Enable this setting to allow HDRP to draw decals on this Material’s surface. |
 | **Receive SSR**                  | Enable this setting to make HDRP include this Material when it processes the screen space reflection pass. |
-| **Add Precomputed** **Velocity** | Enable this setting to use precomputed velocity information stored in the Alembic file. |
+| **Add Precomputed Velocity** | Enable this setting to use precomputed velocity information stored in an Alembic file. |
 | **Geometric Specular AA**        | Enable this setting to make HDRP perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry to remove specular artifacts. For more information about the feature and for the list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.html). |
-| **Specular Occlusion Mode**      | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**:Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
+| **Specular Occlusion Mode**      | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
 | **Override Baked GI**            | Enable this setting to expose two baked GI [input ports](#InputPorts). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
 | **Depth Offset**                 | Enable this setting to expose the DepthOffset [InputPort](#InputPorts) which you can use to increase the depth value of the fragment and push it away from the Camera. You can use this to reduce the flat appearance of hair cards. |
 | **Use Light Facing Normal**      | Enable this setting to make the hair normals always face towards light. This mimics the behavior of hair. |
@@ -85,7 +87,7 @@ These properties are in the **Exposed Properties** section of the Inspector and 
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Emission**                           | Enable this setting to make the emission color affect global illumination. |
 | **- Global Illumination**              | Use the drop-down to choose how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 | **Motion Vector For Vertex Animation** | Enable this setting to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |

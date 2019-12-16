@@ -65,10 +65,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader autodeskInteractiveTransparent;
         }
 
+        [Serializable, ReloadGroup]
+        public sealed class LookDevResources
+        {
+            [Reload("Editor/RenderPipelineResources/DefaultLookDevProfile.asset")]
+            public VolumeProfile defaultLookDevVolumeProfile;
+        }
+
         public ShaderResources shaders;
         public MaterialResources materials;
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
+        public LookDevResources lookDev;
     }
 
 
