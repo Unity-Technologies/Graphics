@@ -12,10 +12,10 @@ namespace UnityEngine.Rendering
         {
             if (src.width < tileSize || src.height < tileSize)
             {
-                main = RectInt.zero;
-                topRow = RectInt.zero;
-                rightCol = RectInt.zero;
-                topRight = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                topRow = new RectInt(0, 0, 0, 0);
+                rightCol = new RectInt(0, 0, 0, 0);
+                topRight = new RectInt(0, 0, 0, 0);
                 return false;
             }
 
@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering
         {
             if (src.height < tileSize)
             {
-                main = RectInt.zero;
-                other = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                other = new RectInt(0, 0, 0, 0);
                 return false;
             }
 
@@ -98,8 +98,8 @@ namespace UnityEngine.Rendering
         {
             if (src.width < tileSize)
             {
-                main = RectInt.zero;
-                other = RectInt.zero;
+                main = new RectInt(0, 0, 0, 0);
+                other = new RectInt(0, 0, 0, 0);
                 return false;
             }
 

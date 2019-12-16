@@ -39,12 +39,19 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
+        /// <summary>Edit Menu priority 1</summary>
         public const int editMenuPriority1 = 320;
+        /// <summary>Edit Menu priority 2</summary>
         public const int editMenuPriority2 = 331;
+        /// <summary>Edit Menu priority 3</summary>
         public const int editMenuPriority3 = 342;
+        /// <summary>Asset Create Menu priority 1</summary>
         public const int assetCreateMenuPriority1 = 230;
+        /// <summary>Asset Create Menu priority 2</summary>
         public const int assetCreateMenuPriority2 = 241;
+        /// <summary>Asset Create Menu priority 3</summary>
         public const int assetCreateMenuPriority3 = 300;
+        /// <summary>Game Object Menu priority</summary>
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;

@@ -65,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Build a RenderGraphResource from a RenderGraphMutableResource.
         /// </summary>
         /// <param name="handle">Other render graph resource.</param>
+        /// <returns>New RenderGraphResource handle.</returns>
         public static implicit operator RenderGraphResource(RenderGraphMutableResource handle)
         {
             return new RenderGraphResource(handle);
