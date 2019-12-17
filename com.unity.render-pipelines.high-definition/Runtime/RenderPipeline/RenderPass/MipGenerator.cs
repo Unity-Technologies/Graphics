@@ -10,6 +10,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_ColorPyramidPSMat;
         MaterialPropertyBlock m_PropertyBlock;
 
+        Shader m_DownsampleAndFirstMipPS;
+        Material m_DownsampleAndFirstMipMat;
+        MaterialPropertyBlock m_DownsampleDepthPropertyBlock;
+
         int m_DepthDownsampleKernel;
 
         int[] m_SrcOffset;

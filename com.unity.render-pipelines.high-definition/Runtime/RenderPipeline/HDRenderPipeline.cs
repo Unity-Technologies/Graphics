@@ -3851,14 +3851,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Downsample Depth Buffer for Low Res Transparency", CustomSamplerId.DownsampleDepth.GetSampler()))
             {
-                CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetLowResDepthBuffer());
                 cmd.SetViewport(new Rect(0, 0, hdCamera.actualWidth * 0.5f, hdCamera.actualHeight * 0.5f));
+
+                m_DownsampleDepthMaterial.SetVector(HDShaderIDs._DstOffset, new Vector4(m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].x,
+                                                                                        m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y, 0.0f, 0.0f));
                 // TODO: Add option to switch modes at runtime
-                if(settings.checkerboardDepthBuffer)
+                if (settings.checkerboardDepthBuffer)
                 {
                     m_DownsampleDepthMaterial.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
                 }
+
+                CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetLowResDepthBuffer());
+                cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetDepthTexture());
                 cmd.DrawProcedural(Matrix4x4.identity, m_DownsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
+                cmd.ClearRandomWriteTargets();
             }
         }
 
