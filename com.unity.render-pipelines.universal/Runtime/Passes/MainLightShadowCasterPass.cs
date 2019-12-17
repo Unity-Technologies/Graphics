@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
                 //CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1); //seongdae;oneMainShadow
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, shadowData.requiresScreenSpaceShadowResolve); //seongdae;oneMainShadow
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
 
                 SetupMainLightShadowReceiverConstants(cmd, shadowLight, softShadows);

@@ -13,8 +13,9 @@
         #define MAIN_LIGHT_CALCULATE_SHADOWS
 
         //#if !defined(_MAIN_LIGHT_SHADOWS_CASCADE) //seongdae;oneMainShadow
-        //    #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR //seongdae;oneMainShadow
-        //#endif //seongdae;oneMainShadow
+        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) //seongdae;oneMainShadow
+            #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
+        #endif
     #endif
 
     #if defined(_ADDITIONAL_LIGHT_SHADOWS)
@@ -230,8 +231,12 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 #endif
 
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-    half4 shadowParams = GetMainLightShadowParams();
+    half4 shadowParams = GetMainLightShadowParams();;
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) //seongdae;oneMainShadow
+    return SampleScreenSpaceShadowmap(shadowCoord, shadowParams); //seongdae;oneMainShadow
+#else //seongdae;oneMainShadow
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+#endif //seongdae;oneMainShadow
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
@@ -257,11 +262,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
-#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) //seongdae;oneMainShadow
-    return SampleScreenSpaceShadowmap(shadowCoord, shadowParams); //seongdae;oneMainShadow
-#else //seongdae;oneMainShadow
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
-#endif //seongdae;oneMainShadow
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
