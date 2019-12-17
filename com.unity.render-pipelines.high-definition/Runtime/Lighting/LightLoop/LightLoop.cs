@@ -1437,14 +1437,22 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
+            // Area lights require 2 slots
+            bool enoughSlots = (lightData.lightType == GPULightType.Rectangle) ? (screenSpaceChannelSlot + 1) < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots
+                                                                                : screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                && screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots
+                && enoughSlots
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
-                // Keep track of the shadow map (for indirect lighting and transparents)
-                lightData.shadowIndex = shadowIndex;
-                additionalLightData.shadowIndex = shadowIndex;
-                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                // Rectangle area lights require 2 consecutive slots. Meaning if (screenSpaceChannelSlot%4 ==3), we'll need to skip a slot
+                // so that the area shadow gets the first two slots of the next following texture
+                if (lightData.lightType == GPULightType.Rectangle)
+                {
+                    if (screenSpaceChannelSlot%4 == 3)
+                    {
+                        screenSpaceChannelSlot++;
+                    }
+                }
 
                 // Keep track of the screen space shadow data
                 lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
@@ -1452,15 +1460,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 m_ScreenSpaceShadowsUnion.Add(additionalLightData);
+
+                additionalLightData.screenSpaceShadowSlot = lightData.screenSpaceShadowIndex;
+                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+
                 screenSpaceShadowIndex++;
-                screenSpaceChannelSlot++;
+                if (lightData.lightType == GPULightType.Rectangle)
+                    screenSpaceChannelSlot+=2;
+                else
+                    screenSpaceChannelSlot++;
+
+
             }
-            else
-            {
-                // fix up shadow information
-                lightData.shadowIndex = shadowIndex;
-                additionalLightData.shadowIndex = shadowIndex;
-            }
+
+            lightData.shadowIndex = shadowIndex;
+            // Keep track of the shadow map (for indirect lighting and transparents)
+            additionalLightData.shadowIndex = shadowIndex;
 
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);

@@ -649,8 +649,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 editableMaterialRenderQueue = false
                 // Enlighten is deprecated in 2019.3 and above
                 , enlighten = false
-                , overridesLODBias = true
-                , overridesMaximumLODLevel = true
+                //, overridesLODBias = true
+                //, overridesMaximumLODLevel = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1781,6 +1781,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lightData.previousTransform = lightData.transform.localToWorldMatrix;
                 lightData.previousScreenSpaceShadowIndex = lightData.screenSpaceShadowIndex;
+                lightData.previousScreenSpaceShadowSlot = lightData.screenSpaceShadowSlot;
             }
         }
 

@@ -94,6 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[] xrWorldSpaceCameraPosViewOffset = new Vector4[ShaderConfig.s_XrMaxViews];
         Vector4[] xrPrevWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
 
+        // Ray Tracing Specific
+        internal int[] shadowHistoryIdentification = null;
+
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
         int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
@@ -276,6 +279,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Otherwise, previous frame view constants will be wrong.
         public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
+            // Make sure that the shadow history identification array is allocated and is at the right size
+            if (shadowHistoryIdentification == null || shadowHistoryIdentification.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
+            {
+                shadowHistoryIdentification = new int[hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots];
+            }
+            
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
