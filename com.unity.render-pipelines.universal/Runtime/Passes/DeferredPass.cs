@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         DeferredLights m_DeferredLights;
 
-        public DeferredPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, DeferredLights deferredLights)
+        public DeferredPass(RenderPassEvent evt, DeferredLights deferredLights)
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;

@@ -18,8 +18,9 @@ namespace UnityEngine.Rendering.Universal
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
 
         FilteringSettings m_FilteringSettings;
+        RenderStateBlock m_RenderStateBlock;
 
-        public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
+        public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             base.renderPassEvent = evt;
 
@@ -32,7 +33,15 @@ namespace UnityEngine.Rendering.Universal
 
             m_HasDepthPrepass = false;
 
-            m_FilteringSettings = new FilteringSettings(renderQueueRange);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+
+            if (stencilState.enabled)
+            {
+                m_RenderStateBlock.stencilReference = stencilReference;
+                m_RenderStateBlock.mask = RenderStateMask.Stencil;
+                m_RenderStateBlock.stencilState = stencilState;
+            }
         }
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
@@ -97,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
                     context.StartMultiEye(camera, eyeIndex);
                 }
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
             }
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
