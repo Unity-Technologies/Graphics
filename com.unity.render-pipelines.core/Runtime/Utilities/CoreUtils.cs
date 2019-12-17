@@ -39,12 +39,19 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
+        /// <summary>Edit Menu priority 1</summary>
         public const int editMenuPriority1 = 320;
+        /// <summary>Edit Menu priority 2</summary>
         public const int editMenuPriority2 = 331;
+        /// <summary>Edit Menu priority 3</summary>
         public const int editMenuPriority3 = 342;
+        /// <summary>Asset Create Menu priority 1</summary>
         public const int assetCreateMenuPriority1 = 230;
+        /// <summary>Asset Create Menu priority 2</summary>
         public const int assetCreateMenuPriority2 = 241;
+        /// <summary>Asset Create Menu priority 3</summary>
         public const int assetCreateMenuPriority3 = 300;
+        /// <summary>Game Object Menu priority</summary>
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
@@ -311,6 +318,73 @@ namespace UnityEngine.Rendering
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
             ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        // Explicit load and store actions
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, loadAction, storeAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
+        {
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, Color.clear);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RenderTargetIdentifier.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag)
+        {
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, Color.clear);
         }
 
         private static void SetViewportAndClear(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor)

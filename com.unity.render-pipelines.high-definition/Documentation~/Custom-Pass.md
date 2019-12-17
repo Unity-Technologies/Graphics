@@ -310,6 +310,10 @@ class Outline : CustomPass
     public Color        outlineColor = Color.black;
     public float        threshold = 1;
 
+    // To make sure the shader will ends up in the build, we keep it's reference in the custom pass
+    [SerializeField, HideInInspector]
+    Shader                  outlineShader;
+
     Material                fullscreenOutline;
     MaterialPropertyBlock   outlineProperties;
     ShaderTagId[]           shaderTags;
@@ -317,7 +321,8 @@ class Outline : CustomPass
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
-        fullscreenOutline = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Outline"));
+        outlineShader = Shader.Find("Hidden/Outline");
+        fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
         outlineProperties = new MaterialPropertyBlock();
 
         // List all the materials that will be replaced in the frame

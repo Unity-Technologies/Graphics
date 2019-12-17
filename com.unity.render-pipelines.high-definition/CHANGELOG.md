@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-11-18
+## [Unreleased]
 
 ### Added
 - Ray tracing support for VR single-pass
@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
-- Added the support of skinned mesh renderers for ray tracing effects
+- Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
+- Added a check in the custom post process template to throw an error if the default shader is not found.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -227,11 +228,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only tracing rays if the point is inside the range for point lights
 - Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
 - Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
-- Fix an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
 - Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
-- Fix recursive ray tracing not working anymore after intermediate buffer refactor.
-- Fix ray traced shadow denoising not working (history rejected all the time).
+- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
+- Fixed ray traced shadow denoising not working (history rejected all the time).
 - Fixed shader warning on xbox one
+- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
+- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
+- Fixed missing distortion inputs in Lit and Unlit material UI.
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed ray traced reflection exposure issue.
+- Fixed issue with TAA history not initialising corretly scale factor for first frame
+- Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
+- Fixed issue with History not reset when chaning antialiasing mode on camera
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed ray tracing reflection denoiser not applied in tier 1
+- Fixed the vibility of ray tracing related methods.
+- Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
+- Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
+- Fixed exposure management for the path tracer
+- Fixed AxF material UI containing two advanced options settings.
+- Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
+- Fixed issue that clamped PCSS softness too early and not after distance scale.
+- Fixed fog affect transparent on HD unlit master node
+- Fixed custom post processes re-ordering not saved.
+- Fixed NPE when using scalable settings
+- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
+- Fixed a bug due to depth history begin overriden too soon
+- Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
+- Fixed corruption of AO in baked probes.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -271,7 +297,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
-- Changed the ownership of temporary ray tracing buffers to reduce the memory footprint.
+- Hide unused LOD settings in Quality Settings legacy window.
+- Reduced the constrained distance for temporal reprojection of ray tracing denoising
 - Removed the "slice distribution uniformity" parameter.
 - Improved the noise used by the volumetric lighting system.
 

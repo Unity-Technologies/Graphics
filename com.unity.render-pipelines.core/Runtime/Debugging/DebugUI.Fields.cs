@@ -49,10 +49,9 @@ namespace UnityEngine.Rendering
             }
 
             /// <summary>
-            /// Function used to validate the value when updating the field.
+            /// Get the value of the field.
             /// </summary>
-            /// <param name="value">Input value.</param>
-            /// <returns>Validated value.</returns>
+            /// <returns>Value of the field.</returns>
             object IValueField.GetValue()
             {
                 return GetValue();

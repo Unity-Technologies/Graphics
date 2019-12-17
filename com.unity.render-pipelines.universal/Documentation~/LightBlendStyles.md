@@ -2,7 +2,7 @@
 
 ![](images\image_38.png)
 
-__Blend Styles__ determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal RP 2D Asset can currently contain a total of four different Light Blend Styles, starting with the 'Default' Blend Style being available.
+__Blend Styles__ determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal Render Pipeline (URP) 2D Asset can currently contain a total of four different Light Blend Styles, starting with the 'Default' Blend Style being available.
 
 | **Property**             | **Function**                                                 |
 | ------------------------ | ------------------------------------------------------------ |

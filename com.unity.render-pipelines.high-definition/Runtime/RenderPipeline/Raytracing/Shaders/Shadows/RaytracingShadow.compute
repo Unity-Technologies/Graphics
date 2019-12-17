@@ -4,7 +4,8 @@
 #pragma kernel RaytracingPointShadowSample
 #pragma kernel RaytracingSpotShadowSample
 #pragma kernel ClearShadowTexture
-#pragma kernel OutputShadowTexture
+#pragma kernel OutputShadowTexture OUTPUT_SHADOW_TEXTURE=OutputShadowTexture
+#pragma kernel OutputColorShadowTexture OUTPUT_SHADOW_TEXTURE=OutputColorShadowTexture COLOR_SHADOW
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
@@ -38,6 +39,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalCone.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 
+#pragma only_renderers d3d11
+// #pragma enable_d3d11_debug_symbols
+
 // Tile size of this compute
 #define RAYTRACING_SHADOW_TILE_SIZE 8
 
@@ -53,7 +57,6 @@ RW_TEXTURE2D_X(float2, _RaytracedAreaShadowSample);
 RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
-RW_TEXTURE2D_X(float, _ScreenSpaceShadowsTextureRW);
 
 // Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -364,7 +367,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }
 
-RW_TEXTURE2D_X(float, _RaytracedDirectionalShadowIntegration);
+RW_TEXTURE2D_X(float4, _RaytracedDirectionalShadowIntegration);
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -576,9 +579,11 @@ void RaytracingSpotShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
 
 // Slot in which a shadow texture should be copied
 int _RaytracingShadowSlot;
+float4 _RaytracingChannelMask;
+RWTexture2DArray<float4>     _ScreenSpaceShadowsTextureRW;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void OutputShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -587,5 +592,17 @@ void OutputShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Offset shadow slot based on XR setup
     uint shadowSlot = INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot);
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
+
+    // Fetch the previous stored values 
+    float4 previousShadowValues = _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)];
+
+#if defined(COLOR_SHADOW)
+    // If this is a color shadow, then it is must be stored in the first three channels, override those but keeping the previous value in w
+    previousShadowValues.xyz = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].xyz;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = previousShadowValues;
+#else
+    // Otherwise we only override the channel we are interested in
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * previousShadowValues 
+                                                                    + _RaytracingChannelMask * _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
+#endif
 }

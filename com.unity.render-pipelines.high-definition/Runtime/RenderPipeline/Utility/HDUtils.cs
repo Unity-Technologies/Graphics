@@ -71,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -742,7 +741,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public static void DisplayUnsupportedMessage(string msg)
+        internal static void DisplayUnsupportedMessage(string msg)
         {
             Debug.LogError(msg);
 
