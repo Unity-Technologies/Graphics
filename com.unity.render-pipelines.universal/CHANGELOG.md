@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with deleting shader passes in the custom renderer features list [case 1201664](https://issuetracker.unity3d.com/issues/urp-remove-button-is-not-activated-in-shader-passes-list-after-creating-objects-from-renderer-features-in-urpassets-renderer)
 - Fixed an issue that caused errors if you disabled the VR Module when building a project.
 - Fixed an issue where particles had dark outlines when blended together [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+- Fixed an issue where the default TerrainLit Material was outdated, which caused the default Terrain to use per-vertex normals instead of per-pixel normals.
 
 ## [7.1.6] - 2019-11-22
 
