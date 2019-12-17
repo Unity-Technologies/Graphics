@@ -480,6 +480,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             //Check SetAttribute State while delaying
+            Assert.AreEqual(spawnerState.loopState, VFXSpawnerLoopState.DelayingBeforeLoop);
             Assert.IsTrue(spawnerState.vfxEventAttribute.HasVector3("color"));
 
             var actualColor = spawnerState.vfxEventAttribute.GetVector3("color");
