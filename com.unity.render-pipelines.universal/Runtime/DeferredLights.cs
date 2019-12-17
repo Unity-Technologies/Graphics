@@ -383,6 +383,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 out prePunctualLights,
                 out m_stencilVisLights,
                 ref renderingData.lightData.visibleLights,
+                renderingData.lightData.additionalLightsCount != 0,
                 renderingData.cameraData.camera.worldToCameraMatrix,
                 renderingData.cameraData.camera.orthographic,
                 renderingData.cameraData.camera.nearClipPlane
@@ -767,10 +768,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         void PrecomputeLights(out NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights,
                               out NativeArray<ushort> stencilVisLights,
                               ref NativeArray<VisibleLight> visibleLights,
+                              bool hasAdditionalLights,
                               Matrix4x4 view,
                               bool isOrthographic,
                               float zNear)
         {
+            if (!hasAdditionalLights)
+            {
+                prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                stencilVisLights = new NativeArray<ushort>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                return;
+            }
+
             const int lightTypeCount = (int)LightType.Disc + 1;
 
             // number of supported lights rendered by the TileDeferred system, for each light type (Spot, Directional, Point, Area, Rectangle, Disc, plus one slot at the end)
