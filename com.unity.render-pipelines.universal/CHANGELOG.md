@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the null check when `UniversalRenderPipelineLightEditor.cs` tries to access `SceneView.lastActiveSceneView`.
 - Fixed an issue where the 'Depth Texture' drop down was incorrectly disabled in the Camera Inspector. 
 - Fixed an issue that caused errors if you disabled the VR Module when building a project.
+- Fixed an issue where the default TerrainLit Material was outdated, which caused the default Terrain to use per-vertex normals instead of per-pixel normals.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
