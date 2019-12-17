@@ -39,7 +39,12 @@ namespace UnityEditor.Rendering
         /// <summary> Abstraction that have the Draw hability </summary>
         public interface IDrawer
         {
-            void Draw(TData p, Editor owner);
+            /// <summary>
+            /// The draw function
+            /// </summary>
+            /// <param name="serializedProperty">The SerializedProperty to draw</param>
+            /// <param name="owner">The editor handling this draw call</param>
+            void Draw(TData serializedProperty, Editor owner);
         }
 
         /// <summary>Delegate that must say if this is enabled for drawing</summary>
@@ -117,9 +122,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Conditioned drawer that will draw something depending of the return of the switch
         /// </summary>
-        /// <param name="@switch">Chose witch drawing to use</param>
-        /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
-        /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
+        /// <param name="switch">Chose witch drawing to use</param>
+        /// <param name="drawIfTrue">This will be draw if the <see cref="switch"/> is true</param>
+        /// <param name="drawIfFalse">This will be draw if the <see cref="switch"/> is false</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer TernaryConditional(Enabler @switch, IDrawer drawIfTrue, IDrawer drawIfFalse)
             => new TernaryConditionalDrawerInternal(@switch, drawIfTrue.Draw, drawIfFalse.Draw);
@@ -127,9 +132,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Conditioned drawer that will draw something depending of the return of the switch
         /// </summary>
-        /// <param name="@switch">Chose witch drawing to use</param>
-        /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
-        /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
+        /// <param name="switch">Chose witch drawing to use</param>
+        /// <param name="drawIfTrue">This will be draw if the <see cref="switch"/> is true</param>
+        /// <param name="drawIfFalse">This will be draw if the <see cref="switch"/> is false</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer TernaryConditional(Enabler @switch, ActionDrawer drawIfTrue, ActionDrawer drawIfFalse)
             => new TernaryConditionalDrawerInternal(@switch, drawIfTrue, drawIfFalse);
