@@ -301,6 +301,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hide unused LOD settings in Quality Settings legacy window.
 - Reduced the constrained distance for temporal reprojection of ray tracing denoising
 - Removed shadow near plane from the Directional Light Shadow UI.
+- Improved the performances of custom pass culling.
 
 ## [7.1.1] - 2019-09-05
 
