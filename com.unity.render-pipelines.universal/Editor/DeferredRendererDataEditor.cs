@@ -55,9 +55,11 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
             EditorGUILayout.Space();
 
+            /* // Currently not supported for deferred renderer.
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
             EditorGUILayout.Space();
+            */
 
             serializedObject.ApplyModifiedProperties();
 
