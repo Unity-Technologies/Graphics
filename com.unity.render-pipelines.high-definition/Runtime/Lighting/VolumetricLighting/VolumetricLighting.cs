@@ -372,17 +372,20 @@ namespace UnityEngine.Rendering.HighDefinition
         static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
         {
             var fog = VolumeManager.instance.stack.GetComponent<Fog>();
-            
-            switch (preset)
+            int k = ((int)Time.time/2)%4;
+            int v =  (int)(Mathf.Pow(2,k));
+         //    Debug.Log(" k = "+ k +" v = "+v );
+             switch (preset)
             {
                      case VolumetricLightingPreset.Medium:
-                    Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*8  );
-
-                    return fog.volumetricFogResolution.value * 8;
+                  //   Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*8  );
+                        return v*8;
+                //    return fog.volumetricFogResolution.value * 8;
               
                 case VolumetricLightingPreset.High:
-                    Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*4  );
-  return fog.volumetricFogResolution.value * 4;
+                return v*4;
+                //    Debug.Log("ComputeVBufferTileSize "+fog.volumetricFogResolution.value*4  );
+               //     return fog.volumetricFogResolution.value * 4;
                  
                 case VolumetricLightingPreset.Off:
                     return 0;
