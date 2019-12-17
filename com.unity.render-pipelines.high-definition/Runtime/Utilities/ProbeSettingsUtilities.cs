@@ -24,10 +24,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ref ProbeCapturePositionSettings probePosition,         // In parameter
             ref CameraSettings cameraSettings,                      // InOut parameter
             ref CameraPositionSettings cameraPosition,              // InOut parameter
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
-            cameraSettings = settings.camera;
+            cameraSettings = settings.cameraSettings;
             // Compute the modes for each probe type
             PositionMode positionMode;
             bool useReferenceTransformAsNearClipPlane;
@@ -39,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ApplyPlanarFrustumHandling(
                         ref settings, ref probePosition,
                         ref cameraSettings, ref cameraPosition,
-                        referenceFieldOfView
+                        referenceFieldOfView, referenceAspect
                     );
                     break;
                 case ProbeSettings.ProbeType.ReflectionProbe:
@@ -89,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref cameraSettings, ref cameraPosition
                 );
             }
+
+            // Propagate the desired custom exposure
+            cameraSettings.probeRangeCompressionFactor = settings.lighting.rangeCompressionFactor;
 
             // Frame Settings Overrides
             switch (settings.mode)
@@ -154,13 +158,15 @@ namespace UnityEngine.Rendering.HighDefinition
             ref ProbeCapturePositionSettings probePosition,         // In parameter
             ref CameraSettings cameraSettings,                      // InOut parameter
             ref CameraPositionSettings cameraPosition,              // InOut parameter
-            float referenceFieldOfView
+            float referenceFieldOfView, float referenceAspect
         )
         {
             const float k_MaxFieldOfView = 170;
 
             var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
             var mirrorPosition = proxyMatrix.MultiplyPoint(settings.proxySettings.mirrorPositionProxySpace);
+
+            cameraSettings.frustum.aspect = referenceAspect;
 
             switch (settings.frustum.fieldOfViewMode)
             {
@@ -205,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             var sourceProjection = Matrix4x4.Perspective(
-                cameraSettings.frustum.fieldOfView,
+                HDUtils.ClampFOV(cameraSettings.frustum.fieldOfView),
                 cameraSettings.frustum.aspect,
                 cameraSettings.frustum.nearClipPlane,
                 cameraSettings.frustum.farClipPlane

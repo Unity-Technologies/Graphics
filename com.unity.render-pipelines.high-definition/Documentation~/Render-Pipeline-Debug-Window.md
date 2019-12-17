@@ -3,6 +3,7 @@
 The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
 
 - [Decals](#DecalsPanel)
+- [Display Stats](#StatsPanel)
 - [Material](#MaterialPanel)
 - [Lighting](#LightingPanel)
 - [Rendering](#RenderingPanel)
@@ -14,11 +15,11 @@ The Render Pipeline Debug window.
 
 ## Using the Render Pipeline Debug window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at run time in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
-### Navigation at run time
+### Navigation at runtime
 
 To change the current active item:
 
@@ -48,6 +49,27 @@ The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.h
 | ----------------- | ------------------------------------------------------------ |
 | **Display Atlas** | Enable the checkbox to display the decal atlas for a Camera in the top left of that Camera's view. |
 | **Mip Level**     | Use the slider to select the mip level for the decal atlas. The higher the mip level, the blurrier the decal atlas. |
+
+<a name="StatsPanel"></a>
+
+## Display Stats panel
+
+The **display stats** panel is only visible in play mode and can be used to debug performance issues in your project.  
+| **Debug Option**  | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| **Frame Rate** | Shows the frame rate in frames per second for the current camera view. |
+| **Frame Time** | Shows the total frame time for the current camera view. |
+| **RT Mode** | If ray tracing is enabled, shows the ray tracing Tier used during rendering.  |
+| **Count Rays** | Enable the checkbox to count the number of traced rays per effect (In MRays / frame) |
+| **Ambient Occlusion** | The number of rays that were traced for Ambient Occlusion (AO) computations, when RT AO is enabled   |
+| **Shadows Directional** | The number of rays that were traced for directional lights, when RT shadows are enabled  |
+| **Shadows Area** | The number of rays that were traced towards area lights, when RT shadows are enabled  |
+| **Shadows Point/Spot** | The number of rays that were traced towards punctual (point/spot) lights, when RT shadows are enabled  |
+| **Reflection Forward** | The number of rays that were traced for reflection computations using forward shading |
+| **Reflection Deferred** | The number of rays that were traced for reflection computations using deferred shading |
+| **Diffuse GI Forward** | The number of rays that were traced for diffuse Global Illumination (GI) computations using forward shading |
+| **Diffuse GI Deferred** | The number of rays that were traced for diffuse Global Illumination (GI) computations using deferred shading |
+| **Recursive** | The number of rays that were traced for diffuse Global Illumination (GI) computations when recursive RT is enabled |
 
 <a name="MaterialPanel"></a>
 
@@ -91,14 +113,14 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Lighting Debug Mode**              | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
 | **Light Hierarchy Debug Mode**       | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
 | **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
-| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
 | **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
-| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
 | **- Albedo**                         | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
-| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene when you use any of the **Debug Modes**. |
-| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene. |
+| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene. |
 | **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
-| **Override Emissive Color**          | Enable the checkbox to override the emissive color  for the entire Scene when you use any of the **Debug Modes**. |
+| **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
 | **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
 | **Tile/Cluster Debug**               | Use the drop-down to select an internal HDRP lighting structure to visualize on screen.**None**: Select this option to turn off this debug feature.**Tile**: Select this option to show an overlay of each lighting tile, and the number of lights in them.**Cluster**: Select this option to show an overlay of each lighting cluster that intersects opaque geometry, and the number of lights in them.**Material Feature Variants**: Select this option to show the index of the lighting Shader variant that HDRP uses for a tile. You can find variant descriptions in the *lit.hlsl* file. |
 | **- Tile/Cluster Debug By Category** | Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for. The options include [Light Types](Light-Component.html), [Decals](Decal-Projector.html), and [Density Volumes](Density-Volumes.html).This property only appears when you select **Tile** or **Cluster** from the **Tile/Cluster Debug** drop-down. |
@@ -127,7 +149,7 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 | **- Range Threshold 1**       | Set the second split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
 | **- Range Threshold 2**       | Set the third split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
 | **- Range Threshold 3**       | Set the final split for the intensity range.This property only appears when you enable the **False Color Mode** checkbox. |
-| **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](MSAA.html). |
+| **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](Anti-Aliasing.html#MSAA). |
 | **Freeze Camera for Culling** | Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it. |
 | **XR Debug Mode**             | Use the drop-down to select which XR debug information to view in the **Game** window.**None**: Select this option to disable **XR Debug Mode**.**Composite**: Select this option to composite four tiles in the **Game** window. HDRP renders these tiles with multi-pass and single-pass instancing so you can debug the rendering path. |
 | **- Display Borders**         | Enable the checkbox to render a red line at the border between the tiles. This property only appears when you select **Composite** from the **XR Debug Mode** drop-down. |

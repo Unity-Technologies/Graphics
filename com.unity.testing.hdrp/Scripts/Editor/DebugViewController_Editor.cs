@@ -25,7 +25,7 @@ public class DebugViewController_Editor : Editor
     {
         //base.OnInspectorGUI();
 
-        if ( ( (UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset ) != null ) // avoid displaying the following if the assigned RP is not a HDRP
+        if ( ( (UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline) != null ) // avoid displaying the following if the assigned RP is not a HDRP
         {
             int i_settingType = s_settingType.intValue;//= (int) (target as DebugViewController).settingType;
 

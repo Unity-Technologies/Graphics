@@ -8,7 +8,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
 
 CBUFFER_START(UnityPhysicallyBasedSky)
-    // All the distance-related entries use km and 1/km units.
+    // All the distance-related entries use SI units (meter, 1/meter, etc).
     float  _PlanetaryRadius;
     float  _RcpPlanetaryRadius;
     float  _AtmosphericDepth;
@@ -28,12 +28,22 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelExtinction;
 
     float3 _AirSeaLevelScattering;
-    float  _AerosolSeaLevelScattering;
-
-    float3 _GroundAlbedo;
     float  _IntensityMultiplier;
 
+    float3 _AerosolSeaLevelScattering;
+    float  _ColorSaturation;
+
+    float3 _GroundAlbedo;
+    float  _AlphaSaturation;
+
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+    float  _AlphaMultiplier;
+
+    float3 _HorizonTint;
+    float  _HorizonZenithShiftPower;
+
+    float3 _ZenithTint;
+    float  _HorizonZenithShiftScale;
 CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);
@@ -63,7 +73,7 @@ float AirPhase(float LdotV)
     return RayleighPhaseFunction(-LdotV);
 }
 
-float AerosolScatter(float height)
+float3 AerosolScatter(float height)
 {
     return _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff);
 }
@@ -98,13 +108,13 @@ float2 IntersectSphere(float sphereRadius, float cosChi,
     // t^2 + 2 * dot(r_o, r_d) + dot(r_o, r_o) - R^2 = 0
     //
     // Solve: t^2 + (2 * b) * t + c = 0, where
-    // b = -r * cosChi,
+    // b = r * cosChi,
     // c = r^2 - R^2.
     //
     // t = (-2 * b + sqrt((2 * b)^2 - 4 * c)) / 2
     // t = -b + sqrt(b^2 - c)
-    // t = -b + sqrt((r * cosChi)^2 + R^2 - r^2)
-    // t = -b + r * sqrt((cosChi)^2 + (R/r)^2 - 1)
+    // t = -b + sqrt((r * cosChi)^2 - (r^2 - R^2))
+    // t = -b + r * sqrt((cosChi)^2 - 1 + (R/r)^2)
     // t = -b + r * sqrt(d)
     // t = r * (-cosChi + sqrt(d))
     //
@@ -155,9 +165,9 @@ float UnmapQuadraticHeight(float v)
 
 float ComputeCosineOfHorizonAngle(float r)
 {
-    float R        = _PlanetaryRadius;
-    float sinHoriz = R * rcp(r);
-    return -sqrt(saturate(1 - sinHoriz * sinHoriz));
+    float R      = _PlanetaryRadius;
+    float sinHor = R * rcp(r);
+    return -sqrt(saturate(1 - sinHor * sinHor));
 }
 
 // We use the parametrization from "Outdoor Light Scattering Sample Update" by E. Yusov.

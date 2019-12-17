@@ -11,7 +11,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     public class Renderer2DData : ScriptableRendererData
     {
@@ -24,44 +24,40 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         bool m_UseDepthStencilBuffer = true;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/Light2D-Shape-Volumetric.shader")]
         Shader m_ShapeLightVolumeShader = null;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/Light2D-Point.shader")]
         Shader m_PointLightShader = null;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/Light2D-Point-Volumetric.shader")]
         Shader m_PointLightVolumeShader = null;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/Utils/Blit.shader")]
         Shader m_BlitShader = null;
 
-        [SerializeField]
-        Shader m_ShadowShader = null;
-
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/ShadowGroup2D.shader")]
         Shader m_ShadowGroupShader = null;
 
-        [SerializeField]
+        [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
-
 
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
-        internal Shader shadowShader => m_ShadowShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
         internal PostProcessData postProcessData => m_PostProcessData;
@@ -72,8 +68,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
             return new Renderer2D(this);
@@ -118,15 +114,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
                 m_LightBlendStyles[i].renderTextureScale = 1.0f;
             }
-
-            m_ShapeLightShader = Shader.Find("Hidden/Light2D-Shape");
-            m_ShapeLightVolumeShader = Shader.Find("Hidden/Light2D-Shape-Volumetric");
-            m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
-            m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
-            m_BlitShader = Shader.Find("Hidden/Universal Render Pipeline/Blit");
-            m_ShadowShader = Shader.Find("Hidden/Shadow2D");
-            m_ShadowGroupShader = Shader.Find("Hidden/ShadowGroup2D");
-            m_RemoveSelfShadowShader = Shader.Find("Hidden/Shadow2DRemoveSelf");
         }
 
         protected override void OnEnable()
@@ -153,12 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch { }
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
 

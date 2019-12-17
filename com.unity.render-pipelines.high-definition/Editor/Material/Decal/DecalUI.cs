@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Decal materials (does not include ShaderGraphs)
     /// </summary>
-    class DecalUI : HDShaderGUI
+    class DecalUI : ShaderGUI
     {
         [Flags]
         enum Expandable : uint
@@ -210,7 +210,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
+        //protected override void SetupMaterialKeywordsAndPassInternal(Material material)
+        void SetupMaterialKeywordsAndPassInternal(Material material)
         {
             SetupMaterialKeywordsAndPass(material);
         }

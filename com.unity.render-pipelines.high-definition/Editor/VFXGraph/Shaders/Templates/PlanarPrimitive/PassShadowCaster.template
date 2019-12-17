@@ -42,31 +42,29 @@ Pass
 
 ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 
-// Needed for HDRP
-#define SHADERPASS SHADERPASS_SHADOWS
-		
+	${VFXPassShadowDefine}
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
 	
-    ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
-    
+	${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
-    #ifdef VFX_SHADERGRAPH
-    
-        ${VFXAdditionalInterpolantsPreparation}
-        
-        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-        
-        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-    #else
+	#ifdef VFX_SHADERGRAPH
+	
+		${VFXAdditionalInterpolantsPreparation}
+
+		${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+
+		float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+	#else
 		float alpha = VFXGetFragmentColor(i).a;
-        #if HDRP_USE_BASE_COLOR_MAP_ALPHA
-                alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
-        #endif
-    #endif
+		#if HDRP_USE_BASE_COLOR_MAP_ALPHA
+				alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
+		#endif
+	#endif
 		VFXClipFragmentColor(alpha,i);
 
 		return 0;

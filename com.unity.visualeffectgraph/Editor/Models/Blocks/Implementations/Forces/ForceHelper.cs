@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Block
     {
         public class DragProperties
         {
-            [Min(0.0f), Tooltip("Drag coefficient. The higher the drag, the more the force will have influence over the particle velocity")]
+            [Min(0.0f), Tooltip("Sets the drag coefficient. Higher drag leads to a stronger force influence over the particle velocity.")]
             public float Drag = 1.0f;
         }
 

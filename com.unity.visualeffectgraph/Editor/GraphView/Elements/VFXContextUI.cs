@@ -599,8 +599,9 @@ namespace UnityEditor.VFX.UI
                 case VFXDataType.SpawnEvent:
                     return VFXView.LoadImage("Execution");
                 case VFXDataType.Particle:
-                case VFXDataType.ParticleStrip: // TODO Add an icon
                     return VFXView.LoadImage("Particles");
+                case VFXDataType.ParticleStrip:
+                    return VFXView.LoadImage("ParticleStrips");
             }
             return null;
         }

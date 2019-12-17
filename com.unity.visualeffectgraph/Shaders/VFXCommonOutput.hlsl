@@ -117,6 +117,24 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     #endif
 }
 
+float3 VFXGetPositionRWS(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
+float3 VFXGetPositionAWS(float3 posWS)
+{
+#if VFX_LOCAL_SPACE
+    return GetAbsolutePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
     #if USE_FOG && defined(VFX_VARYING_POSCS)

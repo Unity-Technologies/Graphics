@@ -36,6 +36,9 @@ RW_TEXTURE2D_X(uint, _ValidationBufferRW);
 
 // The maximal world space distance
 #define MAX_WORLD_SPACE_DISTANCE 0.75
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+float _PixelSpreadAngleTangent;
+float _HistoryValidity;
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -74,7 +77,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
     // Fetch the depth of the history pixel, check if valid
     float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord).r;
-    if ( historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    if ( historyDepth == UNITY_RAW_FAR_CLIP_VALUE || _HistoryValidity == 0.0f)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -83,8 +86,13 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Compute the world space position (from previous frame)
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
+    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, -GetViewForwardDir()));
+    float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
     // Is it too far from the current position?
-    if (length(historyPositionWS - posInputs.positionWS) > MAX_WORLD_SPACE_DISTANCE)
+    if (length(historyPositionWS - posInputs.positionWS) > maxRadius)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -96,7 +104,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     DecodeFromNormalBuffer(historyNormal, uint2(0,0), historyNormalData);
     
     // Is its normal too different from the current normal?
-    if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.25)
+    if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.65)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -129,7 +137,7 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
 // Index of the shadow in the arrays
-int _DenoisingArraySlot;
+int _DenoisingHistorySlot;
 
 #ifndef OUTPUT_IS_ARRAY
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
@@ -164,7 +172,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     #if SINGLE_CHANNEL
     float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
     #if HISTORY_IS_ARRAY
-    float2 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingArraySlot)).xy;
+    float2 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot)).xy;
     #else
     float2 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord).xy;
     #endif
@@ -213,7 +221,7 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #if SINGLE_CHANNEL
     #if OUTPUT_IS_ARRAY
-    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingArraySlot))] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
+    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
     #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
     #endif

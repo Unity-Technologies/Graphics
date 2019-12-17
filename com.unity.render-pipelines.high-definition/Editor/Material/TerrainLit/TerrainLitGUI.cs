@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindMaterialProperties(props);
             using (var changed = new EditorGUI.ChangeCheckScope())
@@ -89,6 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty enableHeightBlend;
         const string kEnableHeightBlend = "_EnableHeightBlend";
+        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
         // Height blend
         MaterialProperty heightTransition = null;
@@ -147,8 +148,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
+
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
         }
-        
+
         static public bool TextureHasAlpha(Texture2D inTex)
         {
             if (inTex != null)
