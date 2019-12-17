@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed corruption of AO in baked probes.
 - Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
 - Removed shadow near plane from the Directional Light Shadow UI.
+- Fixed performance issue with performances of custom pass culling.
 
 ## [7.1.6] - 2019-11-22
 
