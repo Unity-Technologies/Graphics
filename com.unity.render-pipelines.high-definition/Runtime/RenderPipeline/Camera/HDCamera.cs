@@ -240,6 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
+        internal string cameraName => m_AdditionalCameraData?.cameraName ?? "HDRenderPipeline::Render Camera";
+
         public HDCamera(Camera cam)
         {
             camera = cam;

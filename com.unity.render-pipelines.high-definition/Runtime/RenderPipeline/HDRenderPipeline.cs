@@ -1714,9 +1714,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         using (new ProfilingSample(
                             cmd,
-                            // Warning: accessing .name here allocate 48B of garbage each frame.
-                            // HDUtils.ComputeCameraName(renderRequest.hdCamera.camera.name),
-                            "HDRenderPipeline::Render Camera",
+                            renderRequest.hdCamera.cameraName,
                             CustomSamplerId.HDRenderPipelineRender.GetSampler())
                         )
                         {
