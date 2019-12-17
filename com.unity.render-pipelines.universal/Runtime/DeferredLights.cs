@@ -311,10 +311,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            float yInversionFactor = SystemInfo.graphicsUVStartsAtTop ? -1.0f : 1.0f;
-            // TODO There is an inconsistency in UniversalRP where the screen is already y-inverted. Why?
-            yInversionFactor *= -1.0f;
-
             Matrix4x4 proj;
             Matrix4x4 view;
 
@@ -331,20 +327,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 view = renderingData.cameraData.camera.worldToCameraMatrix;
             }
 
-            // Go to pixel coordinates for xy coordinates, z goes to texture space [0.0; 1.0].
+            proj = GL.GetGPUProjectionMatrix(proj, false);
+
+            // xy coordinates in range [-1; 1] go to pixel coordinates.
             Matrix4x4 toScreen = new Matrix4x4(
                 new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.5f * yInversionFactor * m_RenderHeight, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, 0.5f, 0.0f),
-                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.5f, 1.0f)
+                new Vector4(0.0f, 0.5f * m_RenderHeight, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.0f, 1.0f)
             );
-            Matrix4x4 toReversedZ = new Matrix4x4(
-                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, SystemInfo.usesReversedZBuffer ? 1.0f : 0.0f, 1.0f)
-            );
-            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toReversedZ * toScreen * proj * view);
+            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * proj * view);
             cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
         }
 
