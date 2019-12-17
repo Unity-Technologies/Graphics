@@ -3,7 +3,7 @@
 
 #define GRA_HLSL_5 1
 #define GRA_ROW_MAJOR 1
-#define GRA_TEXTURE_ARRAY_SUPPORT 1
+#define GRA_TEXTURE_ARRAY_SUPPORT 0
 #define GRA_PACK_RESOLVE_OUTPUT 0
 #if SHADER_API_PSSL
 #define GRA_NO_UNORM 1
@@ -152,7 +152,7 @@ StackInfo PrepareVTLod_##stackName(float2 uv, float mip) \
 #define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
-TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
+TEXTURE2D(stackName##_c##layerIndex);\
 SAMPLER(sampler##stackName##_c##layerIndex);\
 \
 float4 SampleVT_##layerSamplerName(StackInfo info)\
@@ -174,7 +174,7 @@ float4 SampleVT_##layerSamplerName(StackInfo info)\
 	grCB.streamingTextureBuffer = textureParamBlock;\
 \
 	GraniteCacheTexture cache;\
-	cache.TextureArray = stackName##_c##layerIndex;\
+	cache.Texture = stackName##_c##layerIndex;\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\
@@ -204,7 +204,7 @@ float4 SampleVTLod_##layerSamplerName(StackInfo info)\
 	grCB.streamingTextureBuffer = textureParamBlock;\
 \
 	GraniteCacheTexture cache;\
-	cache.TextureArray = stackName##_c##layerIndex;\
+	cache.Texture = stackName##_c##layerIndex;\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\
