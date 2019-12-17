@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering
 {
     using UnityObject = UnityEngine.Object;
 
+    /// <summary>Utility class for Editor</summary>
     public static class CoreEditorUtils
     {
         class Styles
@@ -366,7 +367,7 @@ namespace UnityEditor.Rendering
         /// <param name="title"> The title of the header </param>
         /// <param name="state"> The state of the header </param>
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
-        /// <param name="hasMoreOption"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
+        /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the sub foldout header</returns>
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
@@ -817,7 +818,7 @@ namespace UnityEditor.Rendering
             return data;
         }
 
-        /// <summaryCreate a game object</summary>
+        /// <summary>Create a game object</summary>
         /// <param name="parent">The parent</param>
         /// <param name="name">The wanted name (can be updated with a number if a sibling with same name exist</param>
         /// <param name="types">Required component on this object in addition to Transform</param>

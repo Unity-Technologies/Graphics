@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering
     /// </summary>
     public interface IDebugData
     {
+        /// <summary>Get the reset callback for this DebugData</summary>
+        /// <returns>The reset callback</returns>
         Action GetReset();
         //Action GetLoad();
         //Action GetSave();
