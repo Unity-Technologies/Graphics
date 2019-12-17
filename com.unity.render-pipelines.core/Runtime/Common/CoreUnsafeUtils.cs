@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TKey">Key</typeparam>
         public interface IKeyGetter<TValue, TKey>
         {
+            /// <summary>Getter</summary>
+            /// <param name="v">The value</param>
+            /// <returns>The key</returns>
             TKey Get(ref TValue v);
         }
 

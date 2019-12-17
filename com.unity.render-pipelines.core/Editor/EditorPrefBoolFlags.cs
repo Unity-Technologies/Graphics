@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Explicit conversion operator to the underlying type</summary>
         /// <param name="v">The EditorPrefBoolFlags to convert</param>
+        /// <returns>The converted value</returns>
         public static explicit operator T(EditorPrefBoolFlags<T> v) => v.value;
         /// <summary>Or operator between a EditorPrefBoolFlags and a value</summary>
         /// <param name="l">The EditorPrefBoolFlags</param>
