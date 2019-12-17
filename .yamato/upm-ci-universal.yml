@@ -1,8 +1,8 @@
 editors:
   - version: 2019.3
-    cmd: -r e7d24982307c
+    cmd: -r 91ce257d2cfc
   - version: fast-2019.3
-    cmd: -r e7d24982307c --fast
+    cmd: -r 91ce257d2cfc --fast
 platforms:
   - name: Win
     type: Unity::VM::GPU
