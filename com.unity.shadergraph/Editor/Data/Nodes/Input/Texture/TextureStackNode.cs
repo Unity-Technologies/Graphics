@@ -56,14 +56,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SampleTextureStackNodeBase(int numSlots)
+        bool isProcedural = false;
+        public SampleTextureStackNodeBase(int numSlots, bool proc = false)
         {
+            isProcedural = proc;
             if (numSlots > 4)
             {
                 throw new System.Exception("Maximum 4 slots supported");
             }
             this.numSlots = numSlots;
-            name = "Sample Texture Stack " + numSlots;
+            name = "Sample Texture Stack " + numSlots + (proc ? " Procedural" : "");
 
             UpdateNodeAfterDeserialization();
         }
@@ -80,7 +82,8 @@ namespace UnityEditor.ShaderGraph
                 TextureInputIds[i] = UVInputId + 1 + numSlots + i;
 
                 usedSlots.Add(OutputSlotIds[i]);
-                usedSlots.Add(TextureInputIds[i]);
+                if (!isProcedural)
+                    usedSlots.Add(TextureInputIds[i]);
             }
 
             FeedbackSlotId = UVInputId + 1 + numSlots * 2;
@@ -110,7 +113,7 @@ namespace UnityEditor.ShaderGraph
 
         public static void ValidatNodes(GraphData d)
         {
-            ValidatNodes(d.GetNodes<SampleTextureStackNodeBase>());       
+            ValidatNodes(d.GetNodes<SampleTextureStackNodeBase>());
         }
 
         public static void ValidatNodes(IEnumerable<SampleTextureStackNodeBase> nodes)
@@ -119,6 +122,7 @@ namespace UnityEditor.ShaderGraph
 
             foreach (SampleTextureStackNodeBase node in nodes)
             {
+                if (node.isProcedural) continue;
                 for (int i = 0; i < node.numSlots; i++)
                 {
                     string value = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
@@ -142,10 +146,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            for (int i = 0; i < numSlots; i++)
+            if (!isProcedural)
             {
-                var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputIds[i]);
-                textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+                for (int i = 0; i < numSlots; i++)
+                {
+                    var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputIds[i]);
+                    textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+                }
             }
             base.ValidateNode();
         }
@@ -160,7 +167,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
             // only generate code for connected outputs
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = isProcedural ? "MyPVT" : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
             bool anyConnected = false;
             for (int i = 0; i < numSlots; i++)
@@ -186,7 +193,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (IsSlotConnected(OutputSlotIds[i]))
                 {
-                    var id = GetSlotValue(TextureInputIds[i], generationMode);
+                    var id = isProcedural ? $"pvt_l{i}" : GetSlotValue(TextureInputIds[i], generationMode);
                     string resultLayer = string.Format("$precision4 {1} = SampleStack({0}_info, {2});"
                             , stackName
                             , GetVariableNameForSlot(OutputSlotIds[i])
@@ -232,11 +239,11 @@ namespace UnityEditor.ShaderGraph
             List<string> slotNames = new List<string>();
             for (int i = 0; i < numSlots; i++)
             {
-                var id = GetSlotValue(TextureInputIds[i], generationMode);
+                var id = isProcedural ? $"pvt_l{i}" : GetSlotValue(TextureInputIds[i], generationMode);
                 slotNames.Add(id);
             }
 
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = isProcedural ? "MyPVT" : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
             // Add texture stack attributes to any connected textures
             int found = 0;
@@ -395,6 +402,29 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_TextureTypes[2] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+    }
+
+    [Title("Input", "Texture", "Sample Texture Stack Procedural")]
+    class SampleTextureStackProcedural : SampleTextureStackNodeBase
+    {
+        public SampleTextureStackProcedural() : base(1, true)
+        { }
+
+        [EnumControl("Type 1")]
+        public TextureType textureType
+        {
+            get { return m_TextureTypes[0]; }
+            set
+            {
+                if (m_TextureTypes[0] == value)
+                    return;
+
+                m_TextureTypes[0] = value;
                 Dirty(ModificationScope.Graph);
 
                 ValidateNode();
