@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/001_SimpleCube.unity
+    guid: dfa5f8f5a0903714880fa38c3b4eb953
   m_configObjects: {}
