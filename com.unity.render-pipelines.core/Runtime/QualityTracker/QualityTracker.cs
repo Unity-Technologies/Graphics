@@ -91,6 +91,9 @@ namespace UnityEngine.Rendering
                     List<string> materialRootFolders = new List<string>();
                     foreach (var materialRoot in level.MaterialAssetRoots)
                     {
+                        if (materialRoot == null)
+                            continue;
+
                         string assetPathRoot = materialRoot.GetAssetPath();
                         if (string.IsNullOrEmpty(assetPathRoot))
                             continue;
