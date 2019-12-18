@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float probeCustomFixedExposure = 1.0f;
 
-        [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
+        [SerializeField]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
         public FrameSettingsRenderType defaultFrameSettings;

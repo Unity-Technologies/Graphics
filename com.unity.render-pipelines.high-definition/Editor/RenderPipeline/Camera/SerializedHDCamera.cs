@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 );
 
             probeLayerMask = serializedAdditionalDataObject.Find((HDCamera d) => d.probeLayerMask);
-            allowDynamicResolution = serializedAdditionalDataObject.Find((HDCamera d) => d.allowDynamicResolution);
+            allowDynamicResolution = serializedAdditionalDataObject.Find((HDCamera d) => d.allowDynamicResolutionHD);
 
             baseCameraSettings = new CameraEditor.Settings(serializedObject);
             baseCameraSettings.OnEnable();

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] HDPhysicalCamera physicalParameters;
         [SerializeField] HDCamera.FlipYMode flipYMode;
         [SerializeField] bool fullscreenPassthrough;
-        [SerializeField] bool allowDynamicResolution;
+        [SerializeField] bool allowDynamicResolution; //renamed allowDynamicResolutionHD in HDCamera due to inheritence and serialisation conflict
         [SerializeField] bool customRenderingSettings;
         [SerializeField] bool invertFaceCulling;
         [SerializeField] LayerMask probeLayerMask;
