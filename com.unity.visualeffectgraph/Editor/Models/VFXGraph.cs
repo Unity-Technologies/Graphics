@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
+
         static void OnAddResourceDependencies(VisualEffectResource resource)
         {
              if( resource != null)
@@ -688,13 +689,16 @@ namespace UnityEditor.VFX
         {
             if (! GetResource().isSubgraph)
             {
+                SanitizeGraph();
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
-
                 ComputeDataIndices();
 
                 compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                
             }
+            m_ExpressionGraphDirty = false;
+            m_ExpressionValuesDirty = false;
         }
 
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)

@@ -16,6 +16,19 @@ namespace UnityEditor.VFX
         {
             public uint Count = 0;
         }
+        void RefreshPointCacheObject()
+        {
+            if (Asset == null && !object.ReferenceEquals(Asset, null))
+            {
+                string assetPath = AssetDatabase.GetAssetPath(Asset.GetInstanceID());
+                
+                var newPointCache = AssetDatabase.LoadAssetAtPath<PointCacheAsset>(assetPath);
+                if( newPointCache != null )
+                {
+                    Asset = newPointCache;
+                }
+            }
+        }
 
         public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
@@ -28,6 +41,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                RefreshPointCacheObject();
                 if (Asset != null)
                 {
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Point Count"));
@@ -39,6 +53,7 @@ namespace UnityEditor.VFX
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            RefreshPointCacheObject();
             VFXExpression[] expressions = new VFXExpression[Asset.surfaces.Length + 1];
             expressions[0] = VFXValue.Constant((uint)Asset.PointCount);
 

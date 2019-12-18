@@ -48,6 +48,13 @@ namespace UnityEditor.VFX
             base.OnEnable();
             shader = ((VFXDataMesh)GetData()).shader;
         }
+            
+        public override bool SetupCompilation()
+        {
+            shader = ((VFXDataMesh)GetData()).shader;
+
+            return true;
+        }
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {

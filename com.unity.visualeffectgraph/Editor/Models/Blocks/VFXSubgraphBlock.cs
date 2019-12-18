@@ -20,6 +20,17 @@ namespace UnityEditor.VFX
         public VisualEffectSubgraphBlock subgraph
         {
             get {
+ 
+                if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
+                
+                    var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(assetPath);
+                    if( newSubgraph != null )
+                    {
+                        m_Subgraph = newSubgraph;
+                    }
+                }
 
                 if(! isValid )
                     return null;
@@ -31,9 +42,8 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
-            if (m_Subgraph != null)
-                m_Subgraph.GetResource().GetOrCreateGraph().GetImportDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph,null))
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }

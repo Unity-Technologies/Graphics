@@ -65,11 +65,19 @@ namespace UnityEditor.VFX
 
         public VisualEffectSubgraphOperator subgraph
         {
-            get { return m_Subgraph; }
-        }
-
-        public VFXSubgraphOperator()
-        {
+            get {
+                if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
+                
+                    var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(assetPath);
+                    if( newSubgraph != null )
+                    {
+                        m_Subgraph = newSubgraph;
+                    }
+                }
+                return m_Subgraph;
+            }
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Operator"; } }
@@ -100,7 +108,7 @@ namespace UnityEditor.VFX
         {
             base.GetSourceDependentAssets(dependencies);
 
-            if (m_Subgraph != null)
+            if (!object.ReferenceEquals(m_Subgraph,null))
             {
                 dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
             }
@@ -130,7 +138,7 @@ namespace UnityEditor.VFX
         {
             if (m_Subgraph == null)
                 return Enumerable.Empty<VFXParameter>();
-            VFXGraph graph = m_Subgraph.GetResource().GetOrCreateGraph();
+            VFXGraph graph = subgraph.GetResource().GetOrCreateGraph();
             return VFXSubgraphUtility.GetParameters(graph.children,predicate);
         }
 
@@ -146,7 +154,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            if (m_Subgraph == null)
+            if (subgraph == null)
                 return new VFXExpression[0];
             VFXGraph graph = m_Subgraph.GetResource().GetOrCreateGraph();
 
