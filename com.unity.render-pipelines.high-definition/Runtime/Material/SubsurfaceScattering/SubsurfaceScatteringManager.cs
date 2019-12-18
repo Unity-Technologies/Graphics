@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
         }
 
-        void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
+        void PushSubsurfaceScatteringGlobalParams(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             UpdateCurrentDiffusionProfileSettings();
 
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle sssBuffer;
         }
 
-        SubsurfaceScatteringParameters PrepareSubsurfaceScatteringParameters(HDCamera hdCamera)
+        SubsurfaceScatteringParameters PrepareSubsurfaceScatteringParameters(HDCameraInfo hdCamera)
         {
             var parameters = new SubsurfaceScatteringParameters();
 
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
+        void RenderSubsurfaceScattering(HDCameraInfo hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
             RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle depthTextureRT)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))

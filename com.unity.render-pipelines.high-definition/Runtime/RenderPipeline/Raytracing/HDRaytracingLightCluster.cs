@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightVolumeGPUArray.SetData(m_LightVolumesCPUArray);
         }
 
-        void EvaluateClusterVolume(HDCamera hdCamera)
+        void EvaluateClusterVolume(HDCameraInfo hdCamera)
         {
             var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
@@ -403,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        void BuildLightData(CommandBuffer cmd, HDCameraInfo hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If no lights, exit
             if (rayTracingLights.lightCount == 0)
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightDataGPUArray.SetData(m_LightDataCPUArray);
         }
 
-        void BuildEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights lights)
+        void BuildEnvLightData(CommandBuffer cmd, HDCameraInfo hdCamera, HDRayTracingLights lights)
         {
             int totalReflectionProbes = lights.reflectionProbeArray.Count;
             if (totalReflectionProbes == 0)
@@ -673,7 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnvLightDataGPUArray.SetData(m_EnvLightDataCPUArray);
         }
 
-        public void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera)
+        public void EvaluateClusterDebugView(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             ComputeShader lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
             if (lightClusterDebugCS == null) return;
@@ -782,7 +782,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return;
         }
 
-        public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        public void EvaluateLightClusters(CommandBuffer cmd, HDCameraInfo hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If there is no lights to process or no environment not the shader is missing
             if (rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())

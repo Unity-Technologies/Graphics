@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
+            public void AllocateResolutionDependentBuffers(HDCameraInfo hdCamera, int width, int height, int viewCount, int maxLightOnScreen)
             {
                 var nrTilesX = (width + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTilesY = (height + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
-        public Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
+        public Matrix4x4 GetWorldToViewMatrix(HDCameraInfo hdCamera, int viewIndex)
         {
             var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
 
@@ -632,32 +632,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_TotalLightCount > 0;
         }
 
-        static int GetNumTileBigTileX(HDCamera hdCamera)
+        static int GetNumTileBigTileX(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.x, LightDefinitions.s_TileSizeBigTile);
         }
 
-        static int GetNumTileBigTileY(HDCamera hdCamera)
+        static int GetNumTileBigTileY(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeBigTile);
         }
 
-        static int GetNumTileFtplX(HDCamera hdCamera)
+        static int GetNumTileFtplX(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.x, LightDefinitions.s_TileSizeFptl);
         }
 
-        static int GetNumTileFtplY(HDCamera hdCamera)
+        static int GetNumTileFtplY(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeFptl);
         }
 
-        static int GetNumTileClusteredX(HDCamera hdCamera)
+        static int GetNumTileClusteredX(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.x, LightDefinitions.s_TileSizeClustered);
         }
 
-        static int GetNumTileClusteredY(HDCamera hdCamera)
+        static int GetNumTileClusteredY(HDCameraInfo hdCamera)
         {
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCaches.NewFrame();
         }
 
-        bool LightLoopNeedResize(HDCamera hdCamera, TileAndClusterData tileAndClusterData)
+        bool LightLoopNeedResize(HDCameraInfo hdCamera, TileAndClusterData tileAndClusterData)
         {
             return tileAndClusterData.lightList == null || tileAndClusterData.tileList == null || tileAndClusterData.tileFeatureFlags == null ||
                 tileAndClusterData.AABBBoundsBuffer == null || tileAndClusterData.convexBoundsBuffer == null || tileAndClusterData.lightVolumeDataBuffer == null ||
@@ -929,7 +929,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
-        void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
+        void LightLoopAllocResolutionDependentBuffers(HDCameraInfo hdCamera, int width, int height)
         {
             m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
             m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
@@ -943,7 +943,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // For light culling system, we need non oblique projection matrices
-        static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
+        static Matrix4x4 CameraProjectionNonObliqueLHS(HDCameraInfo camera)
         {
             // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
             // We need to flip it to work with transforms
@@ -1078,7 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal bool GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, GPULightType gpuLightType, VisibleLight light,
+        internal bool GetDirectionalLightData(CommandBuffer cmd, HDCameraInfo hdCamera, GPULightType gpuLightType, VisibleLight light,
             Light lightComponent, HDAdditionalLightData additionalLightData, int lightIndex, int shadowIndex,
             DebugDisplaySettings debugDisplaySettings, int sortedIndex, bool isPhysicallyBasedSkyActive, ref int screenSpaceShadowIndex, ref int screenSpaceShadowslot)
         {
@@ -1224,7 +1224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
+        internal bool GetLightData(CommandBuffer cmd, HDCameraInfo hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
         {
@@ -1664,7 +1664,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
+        internal bool GetEnvLightData(CommandBuffer cmd, HDCameraInfo hdCamera, HDProbe probe, DebugDisplaySettings debugDisplaySettings, ref EnvLightData envLightData)
         {
             Camera camera = hdCamera.camera;
 
@@ -1893,7 +1893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowManager.GetShadowRequestCount();
         }
 
-        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCamera hdCamera)
+        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCameraInfo hdCamera)
         {
             // Note we are using hdCamera.shadowMaxDistance instead of the value coming from the volume stack.
             // Check comment on hdCamera.shadowMaxDistance for more info.
@@ -2014,7 +2014,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Return true if BakedShadowMask are enabled
-        bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
+        bool PrepareLightsForGPU(CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
@@ -2819,7 +2819,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
-        BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
+        BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCameraInfo hdCamera)
         {
             BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
@@ -2937,7 +2937,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
+        void BuildGPULightListsCommon(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Build Light List"))
             {
@@ -2959,7 +2959,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd)
+        void BuildGPULightLists(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
@@ -2969,7 +2969,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushLightLoopGlobalParams(globalParams, cmd);
         }
 
-        void BindLightDataParameters(HDCamera hdCamera, CommandBuffer cmd)
+        void BindLightDataParameters(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             var globalParams = PrepareLightDataGlobalParameters(hdCamera);
             PushLightDataGlobalParams(globalParams, cmd);
@@ -3000,13 +3000,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct LightDataGlobalParameters
         {
-            public HDCamera                 hdCamera;
+            public HDCameraInfo                 hdCamera;
             public LightList                lightList;
             public LightLoopTextureCaches   textureCaches;
             public LightLoopLightData       lightData;
         }
 
-        LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCamera hdCamera)
+        LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCameraInfo hdCamera)
         {
             LightDataGlobalParameters parameters = new LightDataGlobalParameters();
             parameters.hdCamera = hdCamera;
@@ -3018,12 +3018,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct ShadowGlobalParameters
         {
-            public HDCamera hdCamera;
+            public HDCameraInfo hdCamera;
             public HDShadowManager shadowManager;
             public int sunLightIndex;
         }
 
-        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
+        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCameraInfo hdCamera)
         {
             ShadowGlobalParameters parameters = new ShadowGlobalParameters();
             parameters.hdCamera = hdCamera;
@@ -3036,12 +3036,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct LightLoopGlobalParameters
         {
-            public HDCamera                 hdCamera;
+            public HDCameraInfo                 hdCamera;
             public TileAndClusterData       tileAndClusterData;
             public float                    clusterScale;
         }
 
-        LightLoopGlobalParameters PrepareLightLoopGlobalParameters(HDCamera hdCamera)
+        LightLoopGlobalParameters PrepareLightLoopGlobalParameters(HDCameraInfo hdCamera)
         {
             LightLoopGlobalParameters parameters = new LightLoopGlobalParameters();
             parameters.hdCamera = hdCamera;
@@ -3141,7 +3141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCamera hdCamera)
+        void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCameraInfo hdCamera)
         {
             // kick off the shadow jobs here
             m_ShadowManager.RenderShadows(renderContext, cmd, cullResults, hdCamera);
@@ -3157,7 +3157,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
         }
 
-        void SetContactShadowsTexture(HDCamera hdCamera, RTHandle contactShadowsRT, CommandBuffer cmd)
+        void SetContactShadowsTexture(HDCameraInfo hdCamera, RTHandle contactShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderContactShadow())
             {
@@ -3169,7 +3169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
         // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
-        void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, ref int contactShadowMask, ref float rayTracingShadowFlag)
+        void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCameraInfo hdCamera, ref int contactShadowMask, ref float rayTracingShadowFlag)
         {
             contactShadowMask = 0;
             rayTracingShadowFlag = 0.0f;
@@ -3208,7 +3208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              depthTextureParameterName;
         }
 
-        ContactShadowsParameters PrepareContactShadowsParameters(HDCamera hdCamera, float firstMipOffsetY)
+        ContactShadowsParameters PrepareContactShadowsParameters(HDCameraInfo hdCamera, float firstMipOffsetY)
         {
             var parameters = new ContactShadowsParameters();
 
@@ -3289,7 +3289,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderContactShadows(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderContactShadows(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             // if there is no need to compute contact shadows, we just quit
             if (!WillRenderContactShadow())
@@ -3328,7 +3328,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material             regularLightingMat;
         }
 
-        DeferredLightingParameters PrepareDeferredLightingParameters(HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        DeferredLightingParameters PrepareDeferredLightingParameters(HDCameraInfo hdCamera, DebugDisplaySettings debugDisplaySettings)
         {
             var parameters = new DeferredLightingParameters();
 
@@ -3386,7 +3386,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return resources;
         }
 
-        void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDeferredLighting(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
                 return;

@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTargets       currentRenderTarget;
         CustomPassVolume    owner;
         SharedRTManager     currentRTManager;
-        HDCamera            currentHDCamera;
+        HDCameraInfo            currentHDCamera;
 
         /// <summary>
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
-        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRTManager = rtManager;
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
         }
 
-        internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
+        internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCameraInfo hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
 
         // Hack to cleanup the custom pass when it is unexpectedly destroyed, which happens every time you edit
         // the UI because of a bug with the SerializeReference attribute.
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool IsMSAAEnabled(HDCamera hdCamera)
+        bool IsMSAAEnabled(HDCameraInfo hdCamera)
         {
             // if MSAA is enabled and the current injection point is before transparent.
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cullingParameters">Aggregate the parameters in this property (use |= for masks fields, etc.)</param>
         /// <param name="hdCamera">The camera where the culling is being done</param>
-        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
+        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCameraInfo camera) {}
 
         /// <summary>
         /// Called when your pass needs to be executed by a camera
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="camera"></param>
         /// <param name="cullingResult"></param>
-        protected abstract void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
+        protected abstract void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult);
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cmd"></param>
         /// <param name="hdCamera"></param>
-        protected void ResolveMSAAColorBuffer(CommandBuffer cmd, HDCamera hdCamera)
+        protected void ResolveMSAAColorBuffer(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             if (!isExecuting)
                 throw new Exception("ResolveMSAAColorBuffer can only be called inside the CustomPass.Execute function");

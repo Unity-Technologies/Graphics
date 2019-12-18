@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource sssBuffer;
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer,
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphMutableResource colorBuffer,
             in LightingBuffers lightingBuffers, RenderGraphResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))

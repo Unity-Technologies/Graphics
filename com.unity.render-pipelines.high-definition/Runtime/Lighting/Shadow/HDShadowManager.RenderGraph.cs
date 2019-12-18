@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCameraInfo hdCamera, CullingResults cullResults)
         {
             var result = new ShadowResult();
             // Avoid to do any commands if there is no shadow to draw

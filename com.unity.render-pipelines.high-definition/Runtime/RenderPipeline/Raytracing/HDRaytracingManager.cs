@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("An object has both transparent and opaque submeshes. This may cause performance issues");
         }
 
-        internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
+        internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             ScreenSpaceReflection reflSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
             GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();

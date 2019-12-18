@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
         }
 
-        public RenderGraphResource Render(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthPyramid, RenderGraphResource motionVectors, int frameCount)
+        public RenderGraphResource Render(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource depthPyramid, RenderGraphResource motionVectors, int frameCount)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 

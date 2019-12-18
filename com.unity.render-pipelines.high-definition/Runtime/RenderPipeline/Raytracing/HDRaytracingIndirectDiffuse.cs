@@ -41,14 +41,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_IndirectDiffuseBuffer;
         }
 
-        bool ValidIndirectDiffuseState(HDCamera hdCamera)
+        bool ValidIndirectDiffuseState(HDCameraInfo hdCamera)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
             return !(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !settings.rayTracing.value);
         }
 
-        void RenderIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
+        void RenderIndirectDiffuse(HDCameraInfo hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // If we are not supposed to evaluate the indirect diffuse term, quit right away
             if (!ValidIndirectDiffuseState(hdCamera))
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IndirectDiffuseBuffer, FullScreenDebugMode.RayTracedGlobalIllumination);
         }
 
-        DeferredLightingRTParameters PrepareIndirectDiffuseDeferredLightingRTParameters(HDCamera hdCamera)
+        DeferredLightingRTParameters PrepareIndirectDiffuseDeferredLightingRTParameters(HDCameraInfo hdCamera)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        void RenderIndirectDiffuseT1(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
+        void RenderIndirectDiffuseT1(HDCameraInfo hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BindRayTracedIndirectDiffuseData(CommandBuffer cmd, HDCamera hdCamera
+        void BindRayTracedIndirectDiffuseData(CommandBuffer cmd, HDCameraInfo hdCamera
                                                     , RayTracingShader indirectDiffuseShader
                                                     , GlobalIllumination settings, LightCluster lightClusterSettings, RayTracingSettings rtSettings
                                                     , RTHandle outputLightingBuffer, RTHandle outputHitPointBuffer)
@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
         }
 
-        void RenderIndirectDiffuseT2(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
+        void RenderIndirectDiffuseT2(HDCameraInfo hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DenoiseIndirectDiffuseBuffer(HDCamera hdCamera, CommandBuffer cmd, GlobalIllumination settings)
+        void DenoiseIndirectDiffuseBuffer(HDCameraInfo hdCamera, CommandBuffer cmd, GlobalIllumination settings)
         {
             // Grab the high frequency history buffer
             RTHandle indirectDiffuseHistoryHF = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)

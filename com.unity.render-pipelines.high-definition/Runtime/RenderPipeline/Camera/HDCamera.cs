@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool hasPersistentHistory = false;
 
         // Event used to override HDRP rendering for this particular camera.
-        public event Action<ScriptableRenderContext, HDCamera> customRender;
+        public event Action<ScriptableRenderContext, HDCameraInfo> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
 
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraData.clearColorMode = ClearColorMode.None;
         }
 
-        public void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        public void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCameraInfo hdCamera)
         {
             if (customRender != null)
             {
@@ -523,7 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
         {
-            HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
+            HDCameraInfo hdCamera = HDCameraInfo.GetOrCreate(m_Camera);
             if ((type & BufferAccessType.Color) != 0)
                 return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
             else if ((type & BufferAccessType.Depth) != 0)

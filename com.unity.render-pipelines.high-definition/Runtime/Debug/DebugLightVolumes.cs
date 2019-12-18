@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct RenderLightVolumesParameters
         {
-            public HDCamera         hdCamera;
+            public HDCameraInfo         hdCamera;
             public CullingResults   cullResults;
             public Material         debugLightVolumeMaterial;
             public ComputeShader    debugLightVolumeCS;
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D        colorGradientTexture;
         }
 
-        public RenderLightVolumesParameters PrepareLightVolumeParameters(HDCamera hdCamera, LightingDebugSettings lightDebugSettings, CullingResults cullResults)
+        public RenderLightVolumesParameters PrepareLightVolumeParameters(HDCameraInfo hdCamera, LightingDebugSettings lightDebugSettings, CullingResults cullResults)
         {
             var parameters = new RenderLightVolumesParameters();
 
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, parameters.debugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
         }
 
-        public void RenderLightVolumes(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, LightingDebugSettings lightDebugSettings, RTHandle finalRT)
+        public void RenderLightVolumes(CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullResults, LightingDebugSettings lightDebugSettings, RTHandle finalRT)
         {
             using (new ProfilingSample(cmd, "Display Light Volumes"))
             {

@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class BuiltinSkyParameters
     {
-        public HDCamera                 hdCamera;
+        public HDCameraInfo                 hdCamera;
         public Matrix4x4                pixelCoordToViewDirMatrix;
         public Vector3                  worldSpaceCameraPos;
         public Matrix4x4                viewMatrix;
@@ -198,12 +198,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateCurrentSkySettings(HDCamera hdCamera)
+        public void UpdateCurrentSkySettings(HDCameraInfo hdCamera)
         {
             hdCamera.UpdateCurrentSky(this);
         }
 
-        public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
+        public void SetGlobalSkyData(CommandBuffer cmd, HDCameraInfo hdCamera)
         {
             if (IsCachedContextValid(hdCamera.lightingSky))
             {
@@ -312,12 +312,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        public bool IsLightingSkyValid(HDCamera hdCamera)
+        public bool IsLightingSkyValid(HDCameraInfo hdCamera)
         {
             return hdCamera.lightingSky.IsValid();
         }
 
-        public bool IsVisualSkyValid(HDCamera hdCamera)
+        public bool IsVisualSkyValid(HDCameraInfo hdCamera)
         {
             return hdCamera.visualSky.IsValid();
         }
@@ -364,12 +364,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture GetSkyReflection(HDCamera hdCamera)
+        public Texture GetSkyReflection(HDCameraInfo hdCamera)
         {
             return GetReflectionTexture(hdCamera.lightingSky);
         }
 
-        internal void SetupAmbientProbe(HDCamera hdCamera)
+        internal void SetupAmbientProbe(HDCameraInfo hdCamera)
         {
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, SkyUpdateContext skyContext, Light sunLight, bool updateRequired, bool updateAmbientProbe, SkyAmbientMode ambientMode, int frameIndex, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCameraInfo hdCamera, SkyUpdateContext skyContext, Light sunLight, bool updateRequired, bool updateAmbientProbe, SkyAmbientMode ambientMode, int frameIndex, CommandBuffer cmd)
         {
             if (skyContext.IsValid())
             {
@@ -705,7 +705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
+        public void UpdateEnvironment(HDCameraInfo hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
             m_CurrentFrameIndex = frameIndex;
 
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCameraInfo hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             m_BuiltinParameters.hdCamera = hdCamera;
             m_BuiltinParameters.commandBuffer = cmd;
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.skySettings = skyContext.skySettings;
         }
 
-        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        public void PreRenderSky(HDCameraInfo hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
@@ -791,7 +791,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        public void RenderSky(HDCameraInfo hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
@@ -832,7 +832,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
+        public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCameraInfo hdCamera,
                                                       RTHandle colorBuffer,
                                                       RTHandle volumetricLighting,
                                                       RTHandle intermediateBuffer,
@@ -899,7 +899,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Texture2D ExportSkyToTexture(Camera camera)
         {
-            var hdCamera = HDCamera.GetOrCreate(camera);
+            var hdCamera = HDCameraInfo.GetOrCreate(camera);
 
             if (!hdCamera.visualSky.IsValid() || !IsCachedContextValid(hdCamera.visualSky))
             {

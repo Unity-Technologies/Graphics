@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // For the initial allocation, no suballocation happens (the texture is full size).
-        VBufferParameters ComputeVBufferParameters(HDCamera hdCamera)
+        VBufferParameters ComputeVBufferParameters(HDCameraInfo hdCamera)
         {
             Vector3Int viewportResolution = ComputeVBufferResolution(volumetricLightingPreset, hdCamera.actualWidth, hdCamera.actualHeight);
 
@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          controller.sliceDistributionUniformity.value);
         }
 
-        internal void InitializeVBufferParameters(HDCamera hdCamera)
+        internal void InitializeVBufferParameters(HDCameraInfo hdCamera)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.vBufferParams[1] = parameters;
         }
 
-        internal void InitializeVolumetricLightingHistoryPerCamera(HDCamera hdCamera, int bufferCount)
+        internal void InitializeVolumetricLightingHistoryPerCamera(HDCameraInfo hdCamera, int bufferCount)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void DeinitializeVolumetricLightingPerCameraData(HDCamera hdCamera)
+        internal void DeinitializeVolumetricLightingPerCameraData(HDCameraInfo hdCamera)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -337,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This function relies on being called once per camera per frame.
         // The results are undefined otherwise.
-        internal void UpdateVolumetricLightingPerCameraData(HDCamera hdCamera)
+        internal void UpdateVolumetricLightingPerCameraData(HDCameraInfo hdCamera)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
-        void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        void PushVolumetricLightingGlobalParams(HDCameraInfo hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
             {
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                  m_LightingBufferHandle);
         }
 
-        DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
+        DensityVolumeList PrepareVisibleDensityVolumeList(HDCameraInfo hdCamera, CommandBuffer cmd, float time)
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
@@ -578,7 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[]      pixelCoordToViewDirWS;
         }
 
-        VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera)
+        VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCameraInfo hdCamera)
         {
             var parameters = new VolumeVoxelizationParameters();
 
@@ -652,7 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.voxelizationCS, parameters.voxelizationKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }
 
-        void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd)
+        void VolumeVoxelizationPass(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
@@ -720,7 +720,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[]      pixelCoordToViewDirWS;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
+        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCameraInfo hdCamera, int frameIndex)
         {
             var parameters = new VolumetricLightingParameters();
 
@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        void VolumetricLightingPass(HDCameraInfo hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;

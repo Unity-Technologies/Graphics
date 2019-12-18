@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Execute the pass with the fullscreen setup
         /// </summary>
         /// <param name="cmd"></param>
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult)
         {
             if (fullscreenPassMaterial != null)
             {

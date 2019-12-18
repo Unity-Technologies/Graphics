@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0;
         }
 
-        bool NeedClearColorBuffer(HDCamera hdCamera)
+        bool NeedClearColorBuffer(HDCameraInfo hdCamera)
         {
             if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
                 // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        Color GetColorBufferClearColor(HDCamera hdCamera)
+        Color GetColorBufferClearColor(HDCameraInfo hdCamera)
         {
             Color clearColor = hdCamera.backgroundColorHDR;
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public XRPass xr;
         }
 
-        internal static void StartXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StartXRSinglePass(RenderGraph renderGraph, HDCameraInfo hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void StopXRSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
+        internal static void StopXRSinglePass(RenderGraph renderGraph, HDCameraInfo hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -108,10 +108,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class EndCameraXRPassData
         {
-            public HDCamera hdCamera;
+            public HDCameraInfo hdCamera;
         }
 
-        void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
+        void EndCameraXR(RenderGraph renderGraph, HDCameraInfo hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
@@ -130,11 +130,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderOcclusionMeshesPassData
         {
-            public HDCamera hdCamera;
+            public HDCameraInfo hdCamera;
             public RenderGraphMutableResource depthBuffer;
         }
 
-        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphMutableResource depthBuffer)
         {
             if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
@@ -156,11 +156,11 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct XRSinglePassScope : System.IDisposable
     {
         readonly RenderGraph m_RenderGraph;
-        readonly HDCamera m_HDCamera;
+        readonly HDCameraInfo m_HDCamera;
 
         bool m_Disposed;
 
-        public XRSinglePassScope(RenderGraph renderGraph, HDCamera hdCamera)
+        public XRSinglePassScope(RenderGraph renderGraph, HDCameraInfo hdCamera)
         {
             m_RenderGraph = renderGraph;
             m_HDCamera = hdCamera;

@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
+        protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCameraInfo hdCamera)
         {
             cullingParameters.cullingMask |= (uint)(int)layerMask;
         }
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="camera"></param>
         /// <param name="cullingResult"></param>
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult)
         {
             var shaderPasses = GetShaderTagIds();
             if (overrideMaterial != null)

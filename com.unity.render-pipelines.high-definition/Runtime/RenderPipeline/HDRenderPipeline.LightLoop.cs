@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int gBufferCount;
         }
 
-        void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
+        void BuildGPULightList(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
             {
@@ -92,14 +92,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PushGlobalCameraParamPassData
         {
-            public HDCamera    hdCamera;
+            public HDCameraInfo    hdCamera;
             public float       time;
             public float       lastTime;
             public int         frameCount;
 
         }
 
-        void PushGlobalCameraParams(RenderGraph renderGraph, HDCamera hdCamera)
+        void PushGlobalCameraParams(RenderGraph renderGraph, HDCameraInfo hdCamera)
         {
             using (var builder = renderGraph.AddRenderPass<PushGlobalCameraParamPassData>("Push Global Camera Parameters", out var passData))
             {
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCameraInfo hdCamera, CullingResults cullResults)
         {
             var result = m_ShadowManager.RenderShadows(m_RenderGraph, hdCamera, cullResults);
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         LightingOutput RenderDeferredLighting(  RenderGraph                 renderGraph,
-                                                HDCamera                    hdCamera,
+                                                HDCameraInfo                    hdCamera,
                                                 RenderGraphMutableResource  colorBuffer,
                                                 RenderGraphResource         depthStencilBuffer,
                                                 RenderGraphResource         depthPyramidTexture,
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         RenderGraphResource RenderSSR(  RenderGraph         renderGraph,
-                                        HDCamera            hdCamera,
+                                        HDCameraInfo            hdCamera,
                                         RenderGraphResource normalBuffer,
                                         RenderGraphResource motionVectorsBuffer,
                                         RenderGraphResource depthPyramid,
@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDShadowManager              shadowManager;
         }
 
-        RenderGraphResource RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthTexture, int firstMipOffsetY)
+        RenderGraphResource RenderContactShadows(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource depthTexture, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
                 return renderGraph.ImportTexture(TextureXR.GetClearTexture(), HDShaderIDs._ContactShadowTexture);
@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         RenderGraphResource VolumeVoxelizationPass( RenderGraph         renderGraph,
-                                                    HDCamera            hdCamera,
+                                                    HDCameraInfo            hdCamera,
                                                     ComputeBuffer       visibleVolumeBoundsBuffer,
                                                     ComputeBuffer       visibleVolumeDataBuffer,
                                                     ComputeBuffer       bigTileLightListBuffer)
@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer                bigTileLightListBuffer;
         }
 
-        RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricLightingEnabled(hdCamera))
             {

@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
     // not used during a frame.
-    public class HDCamera
+    public class HDCameraInfo
     {
         public struct ViewConstants
         {
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ? m_AdditionalCameraData.probeCustomFixedExposure
             : 1.0f;
 
-        static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
+        static Dictionary<(Camera, int), HDCameraInfo> s_Cameras = new Dictionary<(Camera, int), HDCameraInfo>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
 
         HDAdditionalCameraData m_AdditionalCameraData = null; // Init in Update
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
-        public HDCamera(Camera cam)
+        public HDCameraInfo(Camera cam)
         {
             camera = cam;
 
@@ -833,13 +833,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera GetOrCreate(Camera camera, int xrMultipassId = 0)
+        public static HDCameraInfo GetOrCreate(Camera camera, int xrMultipassId = 0)
         {
-            HDCamera hdCamera;
+            HDCameraInfo hdCamera;
 
             if (!s_Cameras.TryGetValue((camera, xrMultipassId), out hdCamera))
             {
-                hdCamera = new HDCamera(camera);
+                hdCamera = new HDCameraInfo(camera);
                 s_Cameras.Add((camera, xrMultipassId), hdCamera);
             }
 

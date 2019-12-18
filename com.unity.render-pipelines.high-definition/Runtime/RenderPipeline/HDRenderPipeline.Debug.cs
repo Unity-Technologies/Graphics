@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         RenderGraphMutableResource RenderDebug( RenderGraph                 renderGraph,
-                                                HDCamera                    hdCamera,
+                                                HDCameraInfo                    hdCamera,
                                                 RenderGraphMutableResource  colorBuffer,
                                                 RenderGraphMutableResource  depthBuffer,
                                                 RenderGraphResource         depthPyramidTexture,
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings frameSettings;
         }
 
-        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, RenderGraphMutableResource output)
+        void RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCameraInfo hdCamera, RenderGraphMutableResource output)
         {
             if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.IsDebugGBufferEnabled() && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
             {

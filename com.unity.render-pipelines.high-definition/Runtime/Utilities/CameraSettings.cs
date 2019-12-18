@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="hdCamera">The camera to extract from</param>
         /// <returns>The CameraSettings</returns>
-        public static CameraSettings From(HDCamera hdCamera)
+        public static CameraSettings From(HDCameraInfo hdCamera)
         {
             var settings = NewDefault();
             settings.culling.cullingMask = hdCamera.camera.cullingMask;
