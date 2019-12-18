@@ -130,8 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
-    [RequireComponent(typeof(Camera))]
-    public partial class HDCamera : MonoBehaviour, IFrameSettingsHistoryContainer
+    public partial class HDCamera : Camera, IFrameSettingsHistoryContainer
     {
         public enum FlipYMode
         {
@@ -166,8 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // If the user overrides the projection matrix with an oblique one
         // He must also provide a callback to get the equivalent non oblique for the culling
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
-
-        Camera m_Camera;
 
         public enum ClearColorMode
         {
@@ -220,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool fullscreenPassthrough = false;
 
         [Tooltip("Allows dynamic resolution on buffers linked to this camera.")]
-        public bool allowDynamicResolution = false;
+        public bool allowDynamicResolutionHD = false;
 
         [Tooltip("Allows you to override the default settings for this Renderer.")]
         public bool customRenderingSettings = false;
@@ -292,8 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// using UnityEngine.Rendering.HighDefinition.Attributes;
         ///
         /// [ExecuteAlways]
-        /// [RequireComponent(typeof(Camera))]
-        /// [RequireComponent(typeof(HDAdditionalCameraData))]
+        /// [RequireComponent(typeof(HDCamera))]
         /// public class SetupAOVCallbacks : MonoBehaviour
         /// {
         ///     private static RTHandle m_ColorRT;
@@ -318,8 +314,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ///         if (m_LightingProperty != LightingProperty.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_LightingProperty);
         ///
-        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
-        ///         add.SetAOVRequests(
+        ///         var hdCam = GetComponent&lt;HDCamera&gt;();
+        ///         hdCam.SetAOVRequests(
         ///             new AOVRequestBuilder()
         ///                 .Add(
         ///                     aovRequest,
@@ -342,8 +338,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnDisable()
         ///     {
-        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
-        ///         add.SetAOVRequests(null);
+        ///         var hdCam = GetComponent&lt;HDCamera&gt;();
+        ///         hdCam.SetAOVRequests(null);
         ///     }
         ///
         ///     void OnValidate()
@@ -431,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
                 m_CameraRegisterName = name;
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
+                if (cameraType != CameraType.Preview && cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
                 }
@@ -445,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
+                if (cameraType != CameraType.Preview && cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
@@ -459,12 +455,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
-            m_Camera = GetComponent<Camera>();
-            if (m_Camera == null)
-                return;
-
-            m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
-            m_Camera.allowHDR = false;
+            base.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
+            base.allowHDR = false;
 
             RegisterDebug();
 
@@ -523,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
         {
-            HDCameraInfo hdCamera = HDCameraInfo.GetOrCreate(m_Camera);
+            HDCameraInfo hdCamera = HDCameraInfo.GetOrCreate(this);
             if ((type & BufferAccessType.Color) != 0)
                 return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
             else if ((type & BufferAccessType.Depth) != 0)
