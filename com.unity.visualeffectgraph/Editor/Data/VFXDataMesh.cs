@@ -18,12 +18,10 @@ namespace UnityEditor.VFX
             get {
                 if (m_Shader == null && !object.ReferenceEquals(m_Shader, null))
                 {
-                    string assetPath = AssetDatabase.GetAssetPath(m_Shader.GetInstanceID());
-                
-                    var newShader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+                    var newShader = EditorUtility.InstanceIDToObject(m_Shader.GetInstanceID());
                     if( newShader != null )
                     {
-                        m_Shader = newShader;
+                        m_Shader = (Shader)newShader;
                     }
                 }
 

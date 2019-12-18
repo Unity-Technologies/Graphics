@@ -137,6 +137,7 @@ namespace UnityEditor.VFX
         public abstract void SetContent(object value);
 
         private Mode m_Mode;
+        protected object m_Content;
     }
 
     class VFXValue<T> : VFXValue
@@ -149,7 +150,7 @@ namespace UnityEditor.VFX
             return flags;
         }
 
-        public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
+        public VFXValue(object content = null, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
@@ -165,7 +166,7 @@ namespace UnityEditor.VFX
 
         public T Get()
         {
-            return m_Content;
+            return (T)m_Content;
         }
 
         public override object GetContent()
@@ -179,16 +180,25 @@ namespace UnityEditor.VFX
                 throw new InvalidOperationException("Cannot set content of an immutable value");
 
             m_Content = default(T);
-
-            if (value == null || (value is Object && !(value as Object))) //if object is a deleted asset, value == null will be false, but cast to Object will return null
+            if (value == null )
             {
+                return;
+            }
+
+            if( value != null && (value is Object) && (value as Object) == null)
+            {
+                m_Content = value as Object;
                 return;
             }
 
             var fromType = value.GetType();
             var toType = typeof(T);
-
+            
             if (typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
+            {
+                m_Content = (T)value;
+            }
+            else if (typeof(Mesh).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
             {
                 m_Content = (T)value;
             }
@@ -211,7 +221,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private T m_Content;
 
         private static VFXValueType ToValueType()
         {
