@@ -138,6 +138,9 @@ namespace UnityEngine.Rendering
 
     /// <summary>
     /// Generic pool without collection checks.
+    /// This class is an alternative for the GenericPool for object that allocate memory when they are being compared.
+    /// It is the case for the CullingResult class from Unity, and because of this in HDRP HDCullingResults generates garbage whenever we use ==, .Equals or ReferenceEquals.
+    /// This pool doesn't do any of these comparison because we don't check if the stack already contains the element before releasing it.
     /// </summary>
     /// <typeparam name="T">Type of the objects in the pull.</typeparam>
     public static class UnsafeGenericPool<T>
