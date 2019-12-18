@@ -205,12 +205,21 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="camera">The camera to render from.</param>
         /// <param name="width"> width of the image to be rendered</param>
         /// <param name="height"> height of the image to be rendered</param>
-        public static void AllocatesMemory(Camera camera, int width, int height)
+        public static void AllocatesMemory(Camera camera, ImageComparisonSettings settings = null)
         {
             if (camera == null)
                 throw new ArgumentNullException(nameof(camera));
+            
+            if (settings == null)
+                settings = new ImageComparisonSettings();
 
-            var rt = RenderTexture.GetTemporary(width, height, 24);
+            int width = settings.TargetWidth;
+            int height = settings.TargetHeight;
+
+            var defaultFormat = (settings.UseHDR) ? SystemInfo.GetGraphicsFormat(DefaultFormat.HDR) : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, defaultFormat, 24);
+
+            var rt = RenderTexture.GetTemporary(desc);
             try
             {
                 camera.targetTexture = rt;
@@ -218,31 +227,22 @@ namespace UnityEngine.TestTools.Graphics
                 // Render the first frame at this resolution (Alloc are allowed here)
                 camera.Render();
 
-                var renderLoopSampler = Sampler.Get("UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal()");
-                var recorder = renderLoopSampler.GetRecorder();
+                var gcAllocRecorder = Recorder.Get("GC.Alloc");
+                gcAllocRecorder.FilterToCurrentThread();
 
-                if (!recorder.isValid)
-                    Debug.Log("Error !");
-
-                // var gcAllocRecorder = Recorder.Get("GC.Alloc");
-                // gcAllocRecorder.FilterToCurrentThread();
                 Profiler.BeginSample("GraphicTests_GC_Alloc_Check");
                 {
-                    recorder.enabled = true;
+                    gcAllocRecorder.enabled = true;
                     camera.Render();
-                    recorder.enabled = false;
+                    gcAllocRecorder.enabled = false;
                 }
                 Profiler.EndSample();
 
-                // var sampler = renderLoopSampler.Get("GC.Alloc");
-                Debug.Log("alloc count: " + recorder.sampleBlockCount);
+                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
 
-                // Note: Currently there are some allocs between the Camera.Render and the begining of the render pipeline rendering.
-                // Because of that, we can't enable this test.
-                // int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
-
-                // if (allocationCountOfRenderPipeline > 0)
-                    // throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
+                // There are 2 GC.Alloc overhead for calling Camera.CustomRender
+                if (allocationCountOfRenderPipeline > 2)
+                    throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
 
                 camera.targetTexture = null;
             }

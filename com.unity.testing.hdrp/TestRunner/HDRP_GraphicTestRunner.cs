@@ -65,7 +65,7 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
 
             if (settings.checkMemoryAllocation)
             {
@@ -73,7 +73,7 @@ public class HDRP_GraphicTestRunner
                 bool allocatesMemory = false;
                 try
                 {
-                    ImageAssert.AllocatesMemory(camera, 512, 512); // 512 used for height and width to render
+                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings); // 512 used for height and width to render
                 }
                 catch (AssertionException)
                 {
