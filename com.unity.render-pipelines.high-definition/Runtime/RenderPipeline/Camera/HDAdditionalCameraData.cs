@@ -3,34 +3,74 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDAdditionalCameraData : IVersionable<HDAdditionalCameraData.Version>
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(Camera))]
+    public class HDAdditionalCameraData : MonoBehaviour, IVersionable<HDAdditionalCameraData.Version>
     {
-        /// <summary>
-        /// Define migration versions of the HDAdditionalCameraData
-        /// </summary>
-        protected enum Version
+        #region Datas
+
+#pragma warning disable 414 // Field never used
+#pragma warning disable 649 // Field never assigned
+        // before component merge datas (HDAdditionalData part)
+        [SerializeField] HDCamera.ClearColorMode clearColorMode;
+        [SerializeField] Color backgroundColorHDR;
+        [SerializeField] bool clearDepth;
+        [SerializeField] LayerMask volumeLayerMask;
+        [SerializeField] Transform volumeAnchorOverride;
+        [SerializeField] HDCamera.AntialiasingMode antialiasing;
+        [SerializeField] HDCamera.SMAAQualityLevel SMAAQuality;
+        [SerializeField] bool dithering;
+        [SerializeField] bool stopNaNs;
+        [SerializeField] float taaSharpenStrength;
+        [SerializeField] HDPhysicalCamera physicalParameters;
+        [SerializeField] HDCamera.FlipYMode flipYMode;
+        [SerializeField] bool fullscreenPassthrough;
+        [SerializeField] bool allowDynamicResolution;
+        [SerializeField] bool customRenderingSettings;
+        [SerializeField] bool invertFaceCulling;
+        [SerializeField] LayerMask probeLayerMask;
+        [SerializeField] bool hasPersistentHistory;
+
+        [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
+        FrameSettings m_RenderingPathCustomFrameSettings;
+        [SerializeField] FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+        [SerializeField] FrameSettingsRenderType defaultFrameSettings;
+
+
+        // legacy component datas (HDAdditionalData part)
+        [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
+        int m_ObsoleteRenderingPath;
+        [SerializeField]
+        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
+#pragma warning disable 618 // Type or member is obsolete
+        ObsoleteFrameSettings m_ObsoleteFrameSettings;
+#pragma warning restore 618
+#pragma warning restore 649
+#pragma warning disable 414
+
+        #endregion
+
+        #region Migration
+
+        enum Version
         {
-            /// <summary>Version Step.</summary>
             None,
-            /// <summary>Version Step.</summary>
             First,
-            /// <summary>Version Step.</summary>
             SeparatePassThrough,
-            /// <summary>Version Step.</summary>
             UpgradingFrameSettingsToStruct,
-            /// <summary>Version Step.</summary>
             AddAfterPostProcessFrameSetting,
-            /// <summary>Version Step.</summary>
             AddFrameSettingSpecularLighting, // Not used anymore
-            /// <summary>Version Step.</summary>
             AddReflectionSettings,
-            /// <summary>Version Step.</summary>
             AddCustomPostprocessAndCustomPass,
+            MergeHDAdditionalCameraDataIntoHDCamera
         }
 
         [SerializeField, FormerlySerializedAs("version")]
         Version m_Version;
-
+        
+        Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+            
         static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SeparatePassThrough, (HDAdditionalCameraData data) =>
             {
@@ -56,34 +96,34 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #pragma warning disable 618 // Type or member is obsolete
                 if (data.m_ObsoleteFrameSettings != null)
-                    FrameSettings.MigrateFromClassVersion(ref data.m_ObsoleteFrameSettings, ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
+                    FrameSettings.MigrateFromClassVersion(ref data.m_ObsoleteFrameSettings, ref data.m_RenderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
 #pragma warning restore 618
             }),
-            MigrationStep.New(Version.AddAfterPostProcessFrameSetting, (HDAdditionalCameraData data) =>
-            {
-                FrameSettings.MigrateToAfterPostprocess(ref data.renderingPathCustomFrameSettings);
-            }),
-            MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data) =>
-                FrameSettings.MigrateToDefaultReflectionSettings(ref data.renderingPathCustomFrameSettings)
+            MigrationStep.New(Version.AddAfterPostProcessFrameSetting, (HDAdditionalCameraData data)
+                => FrameSettings.MigrateToAfterPostprocess(ref data.m_RenderingPathCustomFrameSettings)
             ),
-            MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data) =>
+            MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data)
+                => FrameSettings.MigrateToDefaultReflectionSettings(ref data.m_RenderingPathCustomFrameSettings)
+            ),
+            MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data)
+                => FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.m_RenderingPathCustomFrameSettings)
+            ),
+            MigrationStep.New(Version.MergeHDAdditionalCameraDataIntoHDCamera, (HDAdditionalCameraData data) =>
             {
-                FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.renderingPathCustomFrameSettings);
+                //TODO: migration
+                //1 - Create a temporary GameObject with a HDCamera
+                //2 - Copy the Camera values on this GameObject into the HDCamera
+                //3 - Copy the HDAdditionalCameraData values into the HDCamera
+                //4 - Prepare a delegate call that will do:
+                //    i   - Remove this HDAdditionalCameraData from this GameObject
+                //    ii  - Remove the Camera from this GameObject
+                //    iii - Copy the HDCamera component on this GameObject
+                //    iv  - Destroy the temporary GameObject
             })
         );
 
-        Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+        #endregion
 
         void Awake() => k_Migration.Migrate(this);
-
-#pragma warning disable 649 // Field never assigned
-        [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
-        int m_ObsoleteRenderingPath;
-        [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
-#pragma warning disable 618 // Type or member is obsolete
-        ObsoleteFrameSettings m_ObsoleteFrameSettings;
-#pragma warning restore 618
-#pragma warning restore 649
     }
 }
