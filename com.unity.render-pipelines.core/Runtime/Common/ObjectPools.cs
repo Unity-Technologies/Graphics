@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering
         {
             m_ActionOnGet = actionOnGet;
             m_ActionOnRelease = actionOnRelease;
+            m_CollectionCheck = collectionCheck;
         }
 
         /// <summary>

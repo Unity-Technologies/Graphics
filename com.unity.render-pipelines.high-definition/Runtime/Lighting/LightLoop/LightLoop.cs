@@ -2989,12 +2989,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
+            HDAdditionalLightData add = null;
+
             // Light reference can be null for particle lights.
-            var add = light != null ? light.GetComponent<HDAdditionalLightData>() : null;
+            if (light != null)
+                light.TryGetComponent<HDAdditionalLightData>(out add);
+
             if (add == null)
-            {
                 add = HDUtils.s_DefaultHDAdditionalLightData;
-            }
+
             return add;
         }
 
@@ -3028,7 +3031,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowGlobalParameters parameters = new ShadowGlobalParameters();
             parameters.hdCamera = hdCamera;
             parameters.shadowManager = m_ShadowManager;
-            HDAdditionalLightData sunLightData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<HDAdditionalLightData>() : null;
+            HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
             parameters.sunLightIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
             return parameters;
