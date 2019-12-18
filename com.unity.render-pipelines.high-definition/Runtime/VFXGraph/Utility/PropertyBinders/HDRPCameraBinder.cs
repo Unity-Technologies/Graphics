@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
     [VFXBinder("HDRP/HDRP Camera")]
     public class HDRPCameraBinder : VFXBinderBase
     {
-        public HDAdditionalCameraData AdditionalData;
+        public HDCamera AdditionalData;
         Camera m_Camera;
 
         [VFXPropertyBinding("UnityEditor.VFX.CameraType"), SerializeField]
@@ -56,10 +56,10 @@ namespace UnityEngine.VFX.Utility
             m_ColorBuffer = CameraProperty + "_colorBuffer";
         }
 
-        void RequestHDRPBuffersAccess(ref HDAdditionalCameraData.BufferAccess access)
+        void RequestHDRPBuffersAccess(ref HDCamera.BufferAccess access)
         {
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Color);
-            access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Depth);
+            access.RequestAccess(HDCamera.BufferAccessType.Color);
+            access.RequestAccess(HDCamera.BufferAccessType.Depth);
         }
 
         protected override void OnEnable()
@@ -106,8 +106,8 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
-            var color = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Color);
+            var depth = AdditionalData.GetGraphicsBuffer(HDCamera.BufferAccessType.Depth);
+            var color = AdditionalData.GetGraphicsBuffer(HDCamera.BufferAccessType.Color);
 
             if (depth == null && color == null)
                 return;

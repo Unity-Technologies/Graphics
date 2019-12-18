@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     bufferClearing = new CameraSettings.BufferClearing
                     {
                         backgroundColorHDR = RandomUtilities.RandomColor(i),
-                        clearColorMode = RandomUtilities.RandomEnumIndex<HDAdditionalCameraData.ClearColorMode>(i),
+                        clearColorMode = RandomUtilities.RandomEnumIndex<HDCamera.ClearColorMode>(i),
                         clearDepth = RandomUtilities.RandomBool(i)
                     },
                     culling = new CameraSettings.Culling
@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 cam.ApplySettings(settings);
                 cam.ApplySettings(position);
 
-                var add = cam.GetComponent<HDAdditionalCameraData>();
+                var add = cam.GetComponent<HDCamera>();
                 Assert.True(add != null && !add.Equals(null));
 
                 // Position

@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
+    public partial class HDCamera : MonoBehaviour, IFrameSettingsHistoryContainer
     {
         public enum FlipYMode
         {
@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool isEditorCameraPreview { get; set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
-        public void CopyTo(HDAdditionalCameraData data)
+        public void CopyTo(HDCamera data)
         {
             data.clearColorMode = clearColorMode;
             data.backgroundColorHDR = backgroundColorHDR;
@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        public static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        public static void InitDefaultHDAdditionalCameraData(HDCamera cameraData)
         {
             var camera = cameraData.gameObject.GetComponent<Camera>();
 

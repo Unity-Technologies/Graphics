@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCamera.AntialiasingMode;
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
@@ -2244,13 +2244,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             switch(camera.SMAAQuality)
             {
-                case HDAdditionalCameraData.SMAAQualityLevel.Low:
+                case HDCamera.SMAAQualityLevel.Low:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_LOW");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.Medium:
+                case HDCamera.SMAAQualityLevel.Medium:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_MEDIUM");
                     break;
-                case HDAdditionalCameraData.SMAAQualityLevel.High:
+                case HDCamera.SMAAQualityLevel.High:
                     m_SMAAMaterial.EnableKeyword("SMAA_PRESET_HIGH");
                     break;
                 default:

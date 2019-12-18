@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         struct LookDevDataForHDRP
         {
-            public HDAdditionalCameraData additionalCameraData;
+            public HDCamera additionalCameraData;
             public HDAdditionalLightData additionalLightData;
             public VisualEnvironment visualEnvironment;
             public HDRISky sky;
@@ -19,8 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Camera camera = SRI.camera;
             camera.allowHDR = true;
 
-            var additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
-            additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
+            var additionalCameraData = camera.gameObject.AddComponent<HDCamera>();
+            additionalCameraData.clearColorMode = HDCamera.ClearColorMode.Color;
             additionalCameraData.clearDepth = true;
             additionalCameraData.backgroundColorHDR = camera.backgroundColor;
             additionalCameraData.volumeAnchorOverride = camera.transform;
@@ -91,14 +91,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sky.cubemap == null)
             {
                 data.visualEnvironment.skyType.Override((int)0); //Skytype.None do not really exist
-                data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
+                data.additionalCameraData.clearColorMode = HDCamera.ClearColorMode.Color;
             }
             else
             {
                 data.visualEnvironment.skyType.Override((int)SkyType.HDRI);
                 data.sky.hdriSky.Override(sky.cubemap);
                 data.sky.rotation.Override(sky.longitudeOffset);
-                data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
+                data.additionalCameraData.clearColorMode = HDCamera.ClearColorMode.Sky;
             }
         }
 
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Color oldBackgroundColor = data.additionalCameraData.backgroundColorHDR;
             var oldClearMode = data.additionalCameraData.clearColorMode;
             data.additionalCameraData.backgroundColorHDR = Color.white;
-            data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
+            data.additionalCameraData.clearColorMode = HDCamera.ClearColorMode.Color;
             data.additionalLightData.intensity = 1f;
             debugDisplaySettings.SetShadowDebugMode(ShadowMapDebugMode.SingleShadow);
             SRI.camera.targetTexture = output;

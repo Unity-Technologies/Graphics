@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         RenderTexture m_PreviewTexture;
         Camera m_PreviewCamera;
-        HDAdditionalCameraData m_PreviewAdditionalCameraData;
+        HDCamera m_PreviewAdditionalCameraData;
 
         void OnEnable()
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
             m_PreviewCamera.enabled = false;
             m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
-            m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
+            m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDCamera>();
             // Say that we are a camera editor preview and not just a regular preview
             m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
         }
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public void RemoveComponent(Camera camera)
         {
             Undo.SetCurrentGroupName("Remove HD Camera");
-            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            var additionalCameraData = camera.GetComponent<HDCamera>();
             if (additionalCameraData)
             {
                 Undo.DestroyObjectImmediate(additionalCameraData);
@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Assert.IsNotNull(go);
 
             Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
+            HDCamera cameraAdditionalData = go.GetComponent<HDCamera>();
 
             Assert.IsNotNull(camera);
             Assert.IsNotNull(cameraAdditionalData);

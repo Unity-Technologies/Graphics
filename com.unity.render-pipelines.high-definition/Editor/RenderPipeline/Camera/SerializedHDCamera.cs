@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             projectionMatrixMode = serializedObject.FindProperty("m_projectionMatrixMode");
 
-            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
+            var additionals = CoreEditorUtils.GetAdditionalData<HDCamera>(serializedObject.targetObjects, HDCamera.InitDefaultHDAdditionalCameraData);
             serializedAdditionalDataObject = new SerializedObject(additionals);
 
             var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
@@ -64,25 +64,25 @@ namespace UnityEditor.Rendering.HighDefinition
             barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
             anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
 
-            antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
-            SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
-            taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
-            dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
-            stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
-            clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
-            backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
-            passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);
-            customRenderingSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.customRenderingSettings);
-            clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
-            volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
-            volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
+            antialiasing = serializedAdditionalDataObject.Find((HDCamera d) => d.antialiasing);
+            SMAAQuality = serializedAdditionalDataObject.Find((HDCamera d) => d.SMAAQuality);
+            taaSharpenStrength = serializedAdditionalDataObject.Find((HDCamera d) => d.taaSharpenStrength);
+            dithering = serializedAdditionalDataObject.Find((HDCamera d) => d.dithering);
+            stopNaNs = serializedAdditionalDataObject.Find((HDCamera d) => d.stopNaNs);
+            clearColorMode = serializedAdditionalDataObject.Find((HDCamera d) => d.clearColorMode);
+            backgroundColorHDR = serializedAdditionalDataObject.Find((HDCamera d) => d.backgroundColorHDR);
+            passThrough = serializedAdditionalDataObject.Find((HDCamera d) => d.fullscreenPassthrough);
+            customRenderingSettings = serializedAdditionalDataObject.Find((HDCamera d) => d.customRenderingSettings);
+            clearDepth = serializedAdditionalDataObject.Find((HDCamera d) => d.clearDepth);
+            volumeLayerMask = serializedAdditionalDataObject.Find((HDCamera d) => d.volumeLayerMask);
+            volumeAnchorOverride = serializedAdditionalDataObject.Find((HDCamera d) => d.volumeAnchorOverride);
             frameSettings = new SerializedFrameSettings(
                 serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
-                serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
+                serializedAdditionalDataObject.Find((HDCamera d) => d.renderingPathCustomFrameSettingsOverrideMask)
                 );
 
-            probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
-            allowDynamicResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDynamicResolution);
+            probeLayerMask = serializedAdditionalDataObject.Find((HDCamera d) => d.probeLayerMask);
+            allowDynamicResolution = serializedAdditionalDataObject.Find((HDCamera d) => d.allowDynamicResolution);
 
             baseCameraSettings = new CameraEditor.Settings(serializedObject);
             baseCameraSettings.OnEnable();

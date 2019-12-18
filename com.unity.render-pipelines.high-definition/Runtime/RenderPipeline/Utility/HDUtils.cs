@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDAdditionalLightData</summary>
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
-        static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        static public HDCamera s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDCamera>.instance; } }
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (camera.cameraType == CameraType.Preview)
             {
-                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                camera.TryGetComponent<HDCamera>(out var additionalCameraData);
                 return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
 
             }
@@ -729,12 +729,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        internal static HDCamera TryGetAdditionalCameraDataOrDefault(Camera camera)
         {
             if (camera == null || camera.Equals(null))
                 return s_DefaultHDAdditionalCameraData;
 
-            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+            if (camera.TryGetComponent<HDCamera>(out var hdCamera))
                 return hdCamera;
 
             return s_DefaultHDAdditionalCameraData;

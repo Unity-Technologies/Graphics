@@ -51,8 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         ref FrameSettings GetData(Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
+            if (obj is HDCamera)
+                return ref (obj as HDCamera).renderingPathCustomFrameSettings;
             if (obj is HDProbe)
                 return ref (obj as HDProbe).frameSettings;
             if (obj is HDRenderPipelineAsset)
@@ -72,8 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         FrameSettingsOverrideMask? GetMask(Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
+            if (obj is HDCamera)
+                return (obj as HDCamera).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
             if (obj is HDRenderPipelineAsset)

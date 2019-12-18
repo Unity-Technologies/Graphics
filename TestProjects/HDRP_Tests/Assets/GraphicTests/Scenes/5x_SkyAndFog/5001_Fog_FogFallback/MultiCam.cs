@@ -17,7 +17,7 @@ public class MultiCam : MonoBehaviour
     RenderTexture smallRT;
 
     Camera targetCam;
-    HDAdditionalCameraData hdCam;
+    HDCamera hdCam;
 
     public Renderer displayObject;
     public string displayTextureProperty = "_UnlitColorMap";
@@ -87,7 +87,7 @@ public class MultiCam : MonoBehaviour
         if (targetCam == null) targetCam = GetComponent<Camera>();
         if (targetCam == null) return;
 
-        if (hdCam == null) hdCam = GetComponent<HDAdditionalCameraData>();
+        if (hdCam == null) hdCam = GetComponent<HDCamera>();
 
         var previousTargetTexture = targetCam.targetTexture;
         targetCam.targetTexture = smallRT;

@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCamera.AntialiasingMode;
 
     // This holds all the matrix data we need for rendering, including data from the previous frame
     // (which is the main reason why we need to keep them around for a minimum of one frame).
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
         }
 
-        public HDAdditionalCameraData.ClearColorMode clearColorMode
+        public HDCamera.ClearColorMode clearColorMode
         {
             get
             {
@@ -166,11 +166,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (camera.clearFlags == CameraClearFlags.Skybox)
-                    return HDAdditionalCameraData.ClearColorMode.Sky;
+                    return HDCamera.ClearColorMode.Sky;
                 else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                    return HDAdditionalCameraData.ClearColorMode.Color;
+                    return HDCamera.ClearColorMode.Color;
                 else // None
-                    return HDAdditionalCameraData.ClearColorMode.None;
+                    return HDCamera.ClearColorMode.None;
             }
         }
 
@@ -188,13 +188,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public HDAdditionalCameraData.FlipYMode flipYMode
+        public HDCamera.FlipYMode flipYMode
         {
             get
             {
                 if (m_AdditionalCameraData != null)
                     return m_AdditionalCameraData.flipYMode;
-                return HDAdditionalCameraData.FlipYMode.Automatic;
+                return HDCamera.FlipYMode.Automatic;
             }
         }
 
@@ -203,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
         private bool m_NeedTAAResetHistory = false;
 
-        public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
+        public HDCamera.SMAAQualityLevel SMAAQuality { get; private set; } = HDCamera.SMAAQualityLevel.Medium;
 
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static Dictionary<(Camera, int), HDCameraInfo> s_Cameras = new Dictionary<(Camera, int), HDCameraInfo>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
 
-        HDAdditionalCameraData m_AdditionalCameraData = null; // Init in Update
+        HDCamera m_AdditionalCameraData = null; // Init in Update
 
         BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
 
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
+            camera.TryGetComponent<HDCamera>(out m_AdditionalCameraData);
 
             m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
@@ -654,7 +654,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool needFallback = true;
                     if (mainCamera != null)
                     {
-                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
+                        var mainCamAdditionalData = mainCamera.GetComponent<HDCamera>();
                         if (mainCamAdditionalData != null)
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;

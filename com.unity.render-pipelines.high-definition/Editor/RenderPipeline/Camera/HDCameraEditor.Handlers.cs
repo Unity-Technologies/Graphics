@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_PreviewCamera.CopyFrom(c);
             EditorUtility.CopySerialized(c, m_PreviewCamera);
-            var cameraData = c.GetComponent<HDAdditionalCameraData>();
+            var cameraData = c.GetComponent<HDCamera>();
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
             // We need to explicitly reset the camera type here
             // It is probably a CameraType.Game, because we copied the source camera's properties.

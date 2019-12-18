@@ -338,8 +338,8 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
-                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
-                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                if (!camera.TryGetComponent<HDCamera>(out _))
+                    camera.gameObject.AddComponent<HDCamera>();
             }
         }
 

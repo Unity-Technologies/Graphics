@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ObsoleteCaptureSettingsOverrides overrides;
 
         /// <summary>Obsolete</summary>
-        public HDAdditionalCameraData.ClearColorMode clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
+        public HDCamera.ClearColorMode clearColorMode = HDCamera.ClearColorMode.Sky;
         /// <summary>Obsolete</summary>
         [ColorUsage(true, true)]
         public Color backgroundColorHDR = new Color32(6, 18, 48, 0);

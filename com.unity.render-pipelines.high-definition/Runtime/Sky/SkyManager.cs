@@ -794,7 +794,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RenderSky(HDCameraInfo hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
-            if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
+            if (skyContext.IsValid() && hdCamera.clearColorMode == HDCamera.ClearColorMode.Sky)
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {

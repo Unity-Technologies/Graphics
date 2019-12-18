@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 m_ToClean = go;
                 var cam = go.AddComponent<Camera>();
 
-                var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
+                var add = cam.GetComponent<HDCamera>() ?? cam.gameObject.AddComponent<HDCamera>();
                 Assert.True(add != null && !add.Equals(null));
 
                 add.renderingPathCustomFrameSettings = fs;
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 m_ToClean = go;
                 var cam = go.AddComponent<Camera>();
 
-                var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
+                var add = cam.GetComponent<HDCamera>() ?? cam.gameObject.AddComponent<HDCamera>();
                 Assert.True(add != null && !add.Equals(null));
 
                 add.renderingPathCustomFrameSettings = fs;
