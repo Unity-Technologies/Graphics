@@ -33,7 +33,7 @@ In order to create a custom event, create an event using the **Create Node** men
 
 ## EventAttribute Payloads
 
-Event Attribute payloads are attributes attached on one event. You can set these attributes in Visual Effect Graph using the **Set [Attribute] Event Attribute>** blocks in Spawn Contexts, but you can also attach them to events sent from the scene using the [Component API](ComponentAPI.md#event-attributes) .
+Event Attribute payloads are attributes attached on one event. You can set these attributes in Visual Effect Graph using the **Set [Attribute] Event Attribute>** Blocks in Spawn Contexts, but you can also attach them to events sent from the scene using the [Component API](ComponentAPI.md#event-attributes) .
 
 EventAttribute Payloads are attributes that will implicitly travel through the graph from Events, through Spawn Systems, and that can be caught in Initialize Contexts using **Get Source Attribute Operators** and **Inherit [Attribute] Blocks**
 
@@ -49,13 +49,13 @@ GPU Events is an **Experimental feature** of Visual Effect Graph : It enables pa
 
 ![](Images/GPUEvent.png)
 
-GPU Events are Event Contexts that relies on Data sent from other Systems, for instance when a particle dies, or other conditions. The following Update blocks can send GPU Event Data:
+GPU Events are Event Contexts that relies on Data sent from other Systems, for instance when a particle dies, or other conditions. The following Update Blocks can send GPU Event Data:
 
 * **Trigger Event On Die** :  Spawns N Particles on another system when a particle dies
 * **Trigger Event Rate** : Spawn N Particles per second (or per distance travelled), based on a particle from a system
 * **Trigger Event Always** :  Spawns N Particles every Frame.
 
-These blocks connect to a **GPUEvent** Context. This context does not handle any blocks but instead connects to a Initialize Context of a child system.
+These Blocks connect to a **GPUEvent** Context. This context does not handle any Blocks but instead connects to a Initialize Context of a child system.
 
 In order to gather data from the parent particle, the child system must refer to [Source Attributes](Attributes.md) in its Initialize Context, by using **Get Source Attribute Operator**, or **Inherit Attribute Block**,as shown as in the example above : The child System inherits the source position of the particle that created it, and inherits roughly 50% of its speed.
 
