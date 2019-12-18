@@ -1508,8 +1508,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         camera.targetTexture = visibleProbe.realtimeTexture;
                         camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                         camera.gameObject.SetActive(false);
+
                         // Warning: accessing Object.name generate 48B of garbage at each frame here
-                        camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                        // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                        // Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
+                        camera.name = visibleProbe.probeName[j];
+
                         camera.ApplySettings(cameraSettings[j]);
                         camera.ApplySettings(cameraPositionSettings[j]);
                         camera.cameraType = CameraType.Reflection;

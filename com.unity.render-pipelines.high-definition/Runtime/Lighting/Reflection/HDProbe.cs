@@ -120,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTexture m_RealtimeTexture;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest;
+        // Array of names that will be used in the Render Loop to name the probes in debug
+        internal string[] probeName = new string[6];
 
         internal bool requiresRealtimeUpdate
         {
@@ -361,13 +363,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
+        void UpdateProbeName()
+        {
+            // TODO: ask if this is ok: 
+            if (settings.type == ProbeSettings.ProbeType.PlanarProbe)
+            {
+                for (int i = 0; i < 6; i++)
+                    probeName[i] = $"Reflection Probe RenderCamera ({name}: {(CubemapFace)i})";
+            }
+            else
+            {
+                probeName[0] = $"Planar Probe RenderCamera ({name})";
+            }
+        }
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
             PrepareCulling();
             HDProbeSystem.RegisterProbe(this);
+            UpdateProbeName();
+
+#if UNITY_EDITOR
+            // Moving the garbage outside of the render loop:
+            UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
+#endif
         }
-        void OnDisable() => HDProbeSystem.UnregisterProbe(this);
+        void OnDisable()
+        {
+            HDProbeSystem.UnregisterProbe(this);
+            UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+        }
 
         void OnValidate()
         {
