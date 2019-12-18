@@ -95,8 +95,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ParallaxCorrection = EditorGUIUtility.TrTextContent("Influence Volume as Proxy Volume");
             public static readonly GUIContent Weight = EditorGUIUtility.TrTextContent("Weight");
 
-            public static readonly GUIContent[] LightmapBakeTypeTitles = { EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Mixed"), EditorGUIUtility.TrTextContent("Baked") };
-            public static readonly int[] LightmapBakeTypeValues = { (int)LightmapBakeType.Realtime, (int)LightmapBakeType.Mixed, (int)LightmapBakeType.Baked };
+            public static readonly GUIContent[] LightTypeTitles = { EditorGUIUtility.TrTextContent("Spot"), EditorGUIUtility.TrTextContent("Directional"), EditorGUIUtility.TrTextContent("Point"), EditorGUIUtility.TrTextContent("Area") };
+            public static readonly int[] LightTypeValues = { (int)HDLightType.Spot, (int)HDLightType.Directional, (int)HDLightType.Point, (int)HDLightType.Area };
         }
 
         public override LightingExplorerTab[] GetContentTabs()
@@ -182,7 +182,46 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),                                  // 0: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                               // 1: Name
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Type, "m_Type", 100),                                           // 2: Type
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Type, "m_Type", 100, (r, prop, dep) =>                          // 2: Type
+                {
+                    if(!TryGetAdditionalLightData(prop, out var lightData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    HDLightType lightType = lightData.type;
+
+                    EditorGUI.BeginProperty(r, GUIContent.none, prop);
+                    EditorGUI.BeginChangeCheck();
+                    lightType = (HDLightType)EditorGUI.IntPopup(r, (int)lightType, HDStyles.LightTypeTitles, HDStyles.LightTypeValues);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightData.type = lightType;
+                    }
+                    EditorGUI.EndProperty();
+                
+                }, (lprop, rprop) =>
+                {
+                    TryGetAdditionalLightData(lprop, out var lLightData);
+                    TryGetAdditionalLightData(rprop, out var rLightData);
+
+                    if (IsNullComparison(lLightData, rLightData, out var order))
+                        return order; 
+
+                    return ((int)lLightData.type).CompareTo((int)rLightData.type);
+
+                }, (target, source) => 
+                {
+                    TryGetAdditionalLightData(target, out var tLightData);
+                    TryGetAdditionalLightData(source, out var sLightData);
+
+                    if (!tLightData || !sLightData)
+                        return; 
+
+                    tLightData.type = sLightData.type;
+                }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Mode, "m_Lightmapping", 90),                                    // 3: Mixed mode
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Range, "m_Range", 60),                                         // 4: Range
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Color, HDStyles.Color, "m_Color", 60),                                         // 5: Color
