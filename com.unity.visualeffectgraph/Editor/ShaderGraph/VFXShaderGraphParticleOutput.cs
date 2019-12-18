@@ -20,10 +20,6 @@ namespace UnityEditor.VFX
 
         public void OnBeforeSerialize()
         {
-            if (shaderGraph != null)
-                shadergraphGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph));
-            else
-                shadergraphGUID = null;
         }
 
         public void OnAfterDeserialize()
@@ -33,16 +29,13 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
-            if (!string.IsNullOrEmpty(shadergraphGUID))
-                shaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(AssetDatabase.GUIDToAssetPath(shadergraphGUID));
         }
 
-        public override void AddDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
-            base.AddDependentAssets(dependencies);
-
-            if( shaderGraph != null)
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph)));
+            base.GetImportDependentAssets(dependencies);
+            if( ! object.ReferenceEquals(shaderGraph,null))
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID())));
         }
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
@@ -156,6 +149,8 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
 
+                if (shaderGraph == null && !object.ReferenceEquals(shaderGraph, null))
+                    shaderGraph = (ShaderGraphVfxAsset)EditorUtility.InstanceIDToObject(shaderGraph.GetInstanceID());
 
                 if (shaderGraph != null)
                 {

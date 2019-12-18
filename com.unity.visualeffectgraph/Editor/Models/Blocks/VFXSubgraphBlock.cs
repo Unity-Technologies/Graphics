@@ -28,12 +28,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void AddDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
-            base.AddDependentAssets(dependencies);
+            base.GetImportDependentAssets(dependencies);
 
             if (m_Subgraph != null)
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
+                m_Subgraph.GetResource().GetOrCreateGraph().GetImportDependentAssets(dependencies);
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }

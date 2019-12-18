@@ -829,12 +829,12 @@ namespace UnityEditor.VFX
                 m_Graph.CollectDependencies(models,false);
 
                 var resource = m_Graph.GetResource();
-                resource.ClearDependencies();
+                resource.ClearSourceDependencies();
 
-                HashSet<string> dependencies = new HashSet<string>();
+                HashSet<string> sourceDependencies = new HashSet<string>();
                 foreach(VFXModel model in models.Where(t=> t is IVFXSlotContainer))
                 {
-                    model.AddDependentAssets(dependencies);
+                    model.GetSourceDependentAssets(sourceDependencies);
                 }
 
                 var contexts = models.OfType<VFXContext>().ToArray();
@@ -926,7 +926,7 @@ namespace UnityEditor.VFX
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 7 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, dependencies);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
                 VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
@@ -985,8 +985,8 @@ namespace UnityEditor.VFX
                 resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode,compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
 
-                foreach (var dep in dependencies)
-                    resource.AddDependency(dep);
+                foreach (var dep in sourceDependencies)
+                    resource.AddSourceDependency(dep);
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)
                 {

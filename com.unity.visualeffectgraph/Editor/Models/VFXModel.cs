@@ -68,11 +68,16 @@ namespace UnityEditor.VFX
         public virtual void OnUnknownChange()
         {
         }
-
-        public virtual void AddDependentAssets(HashSet<string> dependencies)
+        public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
+        {
+        }
+        public virtual void GetImportDependentAssets(HashSet<string> dependencies)
         {
             var monoScript = MonoScript.FromScriptableObject(this);
             dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+
+            foreach(var child in children)
+                child.GetImportDependentAssets(dependencies);
         }
 
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)

@@ -35,9 +35,9 @@ namespace UnityEditor.VFX
         }
 
 
-        public override void AddDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
-            base.AddDependentAssets(dependencies);
+            base.GetImportDependentAssets(dependencies);
 
             if( m_customType != null)
             {

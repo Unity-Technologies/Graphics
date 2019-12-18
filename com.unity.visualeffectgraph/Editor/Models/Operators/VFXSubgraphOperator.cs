@@ -96,9 +96,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void AddDependentAssets(HashSet<string> dependencies)
+        public override void GetSourceDependentAssets(HashSet<string> dependencies)
         {
-            base.AddDependentAssets(dependencies);
+            base.GetSourceDependentAssets(dependencies);
 
             if (m_Subgraph != null)
             {

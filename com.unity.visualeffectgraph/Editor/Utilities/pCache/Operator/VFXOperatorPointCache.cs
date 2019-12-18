@@ -17,6 +17,13 @@ namespace UnityEditor.VFX
             public uint Count = 0;
         }
 
+        public override void GetImportDependentAssets(HashSet<string> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+
+            dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Asset.GetInstanceID())));
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get

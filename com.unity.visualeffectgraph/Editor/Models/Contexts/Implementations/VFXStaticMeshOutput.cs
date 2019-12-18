@@ -60,9 +60,9 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public override void AddDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<string> dependencies)
         {
-            base.AddDependentAssets(dependencies);
+            base.GetImportDependentAssets(dependencies);
 
             if (shader != null)
                 dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shader)));
