@@ -11,6 +11,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Utilities/DiscreteSampling.hlsl"
+
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -1621,7 +1623,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             }
         #endif
         }
-
     }
 
     float  shadow = 1.0;
@@ -1658,7 +1659,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lighting.diffuse *= shadowColor;
     lighting.specular *= shadowColor;
 #endif
-
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
@@ -1786,12 +1786,287 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
 
+void SampleGGXPDF(    real    roughness,
+                      real3   N,
+                      real3   V,
+                      real3   L,
+                  out real    VdotH,
+                  //out real    NdotL,
+                  out real    weightOverPdf)
+{
+    real3 H = normalize(V + L);
+
+    real NdotH = dot(N, H);
+
+    real3 NdotL = dot(N, L);
+    real3 NdotV = dot(N, V);
+    //real3
+    VdotH = dot(V, H);
+
+    // Importance sampling weight for each sample
+    // pdf = D(H) * (N.H) / (4 * (L.H))
+    // weight = fr * (N.L) with fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
+    // weight over pdf is:
+    // weightOverPdf = F(H) * G(V, L) * (L.H) / ((N.H) * (N.V))
+    // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
+    // Remind (L.H) == (V.H)
+    // F is apply outside the function
+
+    real Vis = V_SmithJointGGX(NdotL, NdotV, roughness);
+    weightOverPdf = 4.0*Vis*NdotL*VdotH/NdotH;
+}
+
+#ifdef RAYTRACING_ENABLED
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+
+//int _RaytracingFrameIndex;
+
+float GetBNDSequenceSample22(uint2 pixelCoord, uint sampleIndex, uint sampleDimension)
+{
+    // wrap arguments
+    pixelCoord = pixelCoord & 127;
+    sampleIndex = sampleIndex & 255;
+    sampleDimension = sampleDimension & 255;
+
+    // xor index based on optimized ranking
+    uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0f), 0, 255);
+
+    // fetch value in sequence
+    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0f), 0, 255);
+
+    // If the dimension is optimized, xor sequence value based on optimized scrambling
+    uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    value = value ^ clamp((uint)(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)] * 256.0f), 0, 255);
+
+    // convert to float and return
+    return (0.5f + value) / 256.0f;
+}
+
+float GetSample22(uint2 coord, uint index, uint samplesCount, uint dim)
+{
+    // If we go past the number of stored samples per dim, just shift all to the next pair of dimensions
+    dim += (index/samplesCount)*2;
+
+    return GetBNDSequenceSample22(coord, index, dim);
+}
+
+float3 ImportanceSingleSampleSkyTexture(
+    LightLoopContext lightLoopContext, PositionInputs posInput, float3x3 localToWorld,
+    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, float roughness,
+    int sliceIndex, uint sampleIdx, uint samplesCount)
+{
+//    //float2 xi0 = Hammersley2dSeq(sampleIdx, samplesCount);
+//    float2 xi = Hammersley2dSeq(sampleIdx, samplesCount);
+//    //float2 xi  = float2(
+//    //                ConstructFloat(int(4096.f*xi0.x*_Time.y)),
+//    //                ConstructFloat(int(4096.f*xi0.y*_Time.y))
+//    //                );
+//
+//    float v = SAMPLE_TEXTURE2D_LOD(_SkyTextureMarginalRows, s_linear_clamp_sampler, float2(0.0f, xi.x), 0).x;
+//    float u = SAMPLE_TEXTURE2D_LOD(_SkyTextureMarginalCols, s_linear_clamp_sampler, float2(xi.y,    v), 0).x;
+//
+//    //float2 PackNormalOctQuadEncode(float3 n)
+//    float3 L = normalize(UnpackNormalOctQuadEncode(float2(u, v)));
+//    //float3 L = RWS;
+//    //float3 L = viewWS;
+//
+//    float3 H = normalize(viewWS + L);
+//
+//    //float VdotH = dot(viewWS, H);
+//
+//    //float3 L = 2.0*VdotH*H - viewWS;
+//
+//    //if (NdotL > 0.0f)
+//    //{
+//        real weightOverPdf;
+//        real VdotH;
+//        SampleGGXPDF(   roughness,
+//                        normalWS,
+//                        viewWS,
+//                        L,
+//                        VdotH,
+//                        weightOverPdf);
+//
+//        //real3 localL = -localV + 2.0 * VdotH * localH;
+//            //reflect(-normalize(viewWS), normalize(normalWS));
+//
+//        float  NdotL = max(dot(normalWS, L), 0.0f);
+//
+//        float FweightOverPdf = F_Schlick(fresnel0, VdotH)*weightOverPdf;
+//
+//        float3 val  = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, L, sliceIndex, 0).rgb;
+//        float  coef = dot(val, float3(1.0f, 1.0f, 1.0f)/3.0f);
+//
+//        //return float4(FweightOverPdf*SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, L, sliceIndex, 0).rgb, FweightOverPdf);
+//        return float4(val*coef, coef);
+//    //}
+//    //else
+//    //{
+//    //    return float4(0, 0, 0, 0);
+//    //}
+
+    float rnd = ConstructFloat(int(4096.0f*_Time.y));
+    float3 acc = float3(0.0, 0.0, 0.0);
+    //float2 xi = Hammersley2dSeq(sampleIdx, samplesCount);
+
+    uint  currentDepth  = 1;
+    uint  rayCount      = samplesCount;
+    uint2 pixelCoord    = posInput.positionSS;
+
+    //int globalSampleIndex = _RaytracingFrameIndex*rayCount;
+    int globalSampleIndex = _SkyFrameIndex*rayCount;
+
+    float3 xi;// = 0.0;
+    xi.x = GetSample22(pixelCoord, globalSampleIndex/*sampleIdx*//*rayCount*/, samplesCount, 0);
+    xi.y = GetSample22(pixelCoord, globalSampleIndex/*sampleIdx*//*rayCount*/, samplesCount, 1);
+    xi.z = GetSample22(pixelCoord, globalSampleIndex/*sampleIdx*//*rayCount*/, samplesCount, 2);
+    //xi.y = ConstructFloat(int(4096.0f*_Time.y + 4096.0f));
+    //xi.z = GetSample22(pixelCoord, rayCount, 4*currentDepth + 2);
+
+    rnd = xi.z;
+
+// && rnd > roughness)
+    float  NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
+    if (true)
+    //if (rnd > roughness)
+    //if (rnd > 0.5f)
+    {
+        real3 L;
+        real  VdotH;
+        real  NdotL;
+        real  weightOverPdf;
+
+        ImportanceSampleGGX(xi,
+                            V,
+                            localToWorld,
+                            roughness,
+                            NdotV,
+                            L,
+                            VdotH,
+                            NdotL,
+                            weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            // Fresnel component is apply here as describe in ImportanceSampleGGX function
+            float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH)*weightOverPdf;
+
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
+
+            acc += FweightOverPdf*val.rgb;
+        }
+    }
+    else
+    {
+        float v = SAMPLE_TEXTURE2D_LOD(_SkyTextureMarginalRows, s_linear_clamp_sampler, float2(0.0f, xi.x), 0).x;
+        float u = SAMPLE_TEXTURE2D_LOD(_SkyTextureMarginalCols, s_linear_clamp_sampler, float2(xi.y,    v), 0).x;
+
+        float3 L = normalize(UnpackNormalOctQuadEncode(float2(u, v)));
+
+        //L = mul(L, localToWorld);
+
+        float  NdotL = ClampNdotV(dot(bsdfData.normalWS, L));
+
+        float3 H = normalize(L + V);
+
+        //float VdotH;
+        //real  weightOverPdf;
+
+        //if (NdotL < 0.001 /*|| !IsAbove(mtlData, outgoingDir)*/)
+        //    return false;
+
+        float NdotH = dot(bsdfData.normalWS, L);
+        float VdotH = dot(V, H);
+
+        float D = D_GGX(NdotH, bsdfData.roughnessT);
+        float pdf = D*NdotH/(4.0*VdotH);
+
+        //if (pdf < 0.001)
+        //    return false;
+
+        float NdotV = dot(bsdfData.normalWS, V);
+        float3 F = F_Schlick(bsdfData.fresnel0, NdotV);
+        float Vg = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughnessT);
+
+        float3 value =
+            //1.0f;
+            F*D*Vg*NdotL;
+
+        if (NdotL > 0.0)
+        {
+            acc += value*SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, L, sliceIndex, 0).rgb;
+        }
+
+        //if (NdotL > 0.0)
+        //{
+        //    // Fresnel component is apply here as describe in ImportanceSampleGGX function
+        //    float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH)*weightOverPdf;
+        //
+        //    float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
+        //
+        //    acc += FweightOverPdf*val.rgb;
+        //}
+    }
+
+    return acc;
+}
+
+float BalanceHeuristic(int nf, float fPdf, int ng, float gPdf)
+{
+    return            (nf * fPdf)
+           / //-------------------------
+                (nf * fPdf + ng * gPdf);
+}
+
+float3 ImportanceSampleSkyTexture(
+    LightLoopContext lightLoopContext, PositionInputs posInput,
+    float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, float roughness,
+    int sliceIndex, uint samplesCount)
+{
+    float3 sum = 0.0f;
+
+    float3x3 localToWorld;
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    {
+        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    }
+    else
+    {
+        // We do not have a tangent frame unless we use anisotropic GGX.
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
+    }
+
+    for (uint i = 0; i < samplesCount; ++i)
+    {
+        float3 value = ImportanceSingleSampleSkyTexture(lightLoopContext, posInput, localToWorld,
+                                                        V, preLightData, lightData, bsdfData, roughness,
+                                                        sliceIndex, i, samplesCount);
+        sum += value.rgb;
+    }
+
+    return sum.rgb/float(samplesCount);
+}
+#endif // RAYTRACING_ENABLED
+
+/*
+LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+    int influenceShapeType, int GPUImageBasedLightingType,
+    inout float hierarchyWeight
+*/
+
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
-IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
-                                    int influenceShapeType, int GPUImageBasedLightingType,
-                                    inout float hierarchyWeight)
+IndirectLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+    int influenceShapeType, int GPUImageBasedLightingType,
+    inout float hierarchyWeight)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
@@ -1811,12 +2086,23 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // TODO: Do refraction reference (is it even possible ?)
     // TODO: handle clear coat
 
-
 //    #ifdef USE_DIFFUSE_LAMBERT_BRDF
 //    envLighting += IntegrateLambertIBLRef(lightData, V, bsdfData);
 //    #else
 //    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 //    #endif
+
+#elif defined(RAYTRACING_ENABLED)
+
+    const uint sampleIdx    = 0;
+    const uint samplesCount = 16;
+    const uint sliceIndex   = 0;
+
+    float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+
+    envLighting = ImportanceSampleSkyTexture(lightLoopContext, posInput,
+                                             V, preLightData, lightData, bsdfData, roughness,
+                                             sliceIndex, samplesCount);
 
 #else
 

@@ -1,7 +1,10 @@
+#ifndef UNITY_SHADER_VARIABLES_RAYTRACING_INCLUDED
+#define UNITY_SHADER_VARIABLES_RAYTRACING_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRayTracingManager.cs.hlsl"
 
 // The target acceleration acceleration structure should only be defined for non compute shaders
-#ifndef SHADER_STAGE_COMPUTE
+#if !defined(SHADER_STAGE_COMPUTE) && defined(RAYTRACING_ENABLED)
 RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
 #endif
 float                                   _RaytracingRayBias;
@@ -21,3 +24,5 @@ float                                   _RaytracingCameraNearPlane;
 uint                                    _RaytracingDiffuseRay;
 int                                     _RaytracingPreExposition;
 RW_TEXTURE2D_ARRAY(uint,                _RayCountTexture);
+
+#endif // UNITY_SHADER_VARIABLES_RAYTRACING_INCLUDED

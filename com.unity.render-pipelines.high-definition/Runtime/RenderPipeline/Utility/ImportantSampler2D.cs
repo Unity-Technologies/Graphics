@@ -1,4 +1,4 @@
-#define DUMP_IMAGE 0
+#define DUMP_IMAGE
 
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering
     {
         Texture2D       m_CFDinv; // Cumulative Function Distribution Inverse
 
-        RTHandle m_InvCDFFull;
-        RTHandle m_InvCDFRows;
+        public RTHandle m_InvCDFFull;
+        public RTHandle m_InvCDFRows;
         RTHandle m_OutDebug;
 
 #if DUMP_IMAGE
@@ -42,12 +42,17 @@ namespace UnityEngine.Rendering
 
         public void Init(RTHandle pdfDensity, CommandBuffer cmd)
         {
-            ParallelOperation._Idx = 0;
-            _Idx = 0;
             // Rescale pdf between 0 & 1
-            RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+            RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, //slices:(int)Mathf.Log(1024.0f, 2.0f),
+                //useMipMap:pdfDensity.rt.useMipMap, autoGenerateMips:true,
+                colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+            //RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, slices:(int)Mathf.Log(1024.0f, 2.0f),
+            //    useMipMap:pdfDensity.rt.useMipMap, autoGenerateMips:true,
+            //    colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
             cmd.CopyTexture(pdfDensity, pdfCopy);
 #if DUMP_IMAGE
+            ParallelOperation._Idx = 0;
+            _Idx = 0;
             cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "___PDFCopy");
@@ -314,10 +319,12 @@ namespace UnityEngine.Rendering
             int numTilesX = (samples.rt.width + (8 - 1))/8;
 
             cmd.DispatchCompute(importanceSample2D, kernel, numTilesX, 1, 1);
+#if DUMP_IMAGE
             cmd.RequestAsyncReadback(samples, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "Samples");
             });
+#endif
 
             return samples;
         }

@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CubeToOct;
         bool preValue = false;
 
+        public ImportantSampler2D m_ImportanceSampler = null;
+
         public HDRISkyRenderer()
         {
         }
@@ -92,50 +94,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 preValue = hdriSky.rectLightShadow.value;
                 int size = 1024;
-                ImportantSampler2D sampler = new ImportantSampler2D();
+                //m_OctMap = RTHandles.Alloc(size, size, slices:(int)Mathf.Log((float)size, 2.0f), useMipMap:true, autoGenerateMips: false,
+                //                           colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                //                           enableRandomWrite: true);
                 m_OctMap = RTHandles.Alloc(size, size,
                                            colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
                                            enableRandomWrite: true);
-                //builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, m_OctMap, m_CubeToOct);
                 m_CubeToOct.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
                 Graphics.Blit(Texture2D.whiteTexture, m_OctMap, m_CubeToOct);
-                //builtinParams.commandBuffer.RequestAsyncReadback(m_OctMap, delegate (AsyncGPUReadbackRequest request)
-                //{
-                //    if (!request.hasError)
-                //    {
-                //        Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                //        float[] copy = new float[result.Length];
-                //        result.CopyTo(copy);
-                //        byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                //        string path = @"C:\UProjects\CubeToOctahedral.exr";
-                //        if (System.IO.File.Exists(path))
-                //        {
-                //            System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                //            System.IO.File.Delete(path);
-                //        }
-                //        System.IO.File.WriteAllBytes(path, bytes0);
-                //    }
-                //});
-                //Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
-                //RenderTexture.active = m_OctMap;
-                //octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
-                //octBack.Apply();
-                //RenderTexture.active = null;
-                //byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-                //System.IO.File.WriteAllBytes(@"C:\UProjects\CubeToOct.exr", bytes);
-                //CoreUtils.Destroy(octBack);
 
-                sampler.Init(m_OctMap, builtinParams.commandBuffer);
-                //octBack = new Texture2D(sampler.m_Temp0.width, sampler.m_Temp0.height, TextureFormat.RGBAFloat, false);
-                //RenderTexture.active = sampler.m_Temp0;
-                //octBack.ReadPixels(new Rect(0.0f, 0.0f, sampler.m_Temp0.width, sampler.m_Temp0.height), 0, 0);
-                //octBack.Apply();
-                //RenderTexture.active = null;
-                //CoreUtils.Destroy(octBack);
-                //
-                //byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-                //
-                //System.IO.File.WriteAllBytes(@"C:\UProjects\005\Assets\Sum1.exr", bytes);
+                if (m_ImportanceSampler == null)
+                    m_ImportanceSampler = new ImportantSampler2D();
+                m_ImportanceSampler.Init(m_OctMap, builtinParams.commandBuffer);
             }
 
             if (hdriSky.enableBackplate.value == false)

@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture GetReflectionTexture(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
-        {
+            {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxBSDFCubemapArray;
@@ -718,7 +718,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd)
+        static int skyIdx = 0;
+        public void UpdateEnvironment(HDCamera hdCamera, Light sunLight, int frameIndex, CommandBuffer cmd, BlueNoise blueNoise)
         {
             m_CurrentFrameIndex = frameIndex;
 
@@ -745,6 +746,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
+            SkyType type = (SkyType)VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyType.value;
+            if (type == SkyType.HDRI)
+            {
+                if (hdCamera.lightingSky.IsValid() && IsCachedContextValid(hdCamera.lightingSky))
+                {
+                    ref var context = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
+                    context.lastFrameUsed = m_CurrentFrameIndex;
+                    RTHandle invCDFRows = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFRows;
+                    RTHandle invCDFCols = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFFull;
+
+                    if (invCDFRows != null)
+                        cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalRows, invCDFRows);
+                    if (invCDFCols != null)
+                        cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalCols, invCDFCols);
+
+                    cmd.SetGlobalInt(HDShaderIDs._SkyFrameIndex, skyIdx++);
+
+                    blueNoise.BindDitheredRNGData1SPP(cmd);
+                }
+            }
             float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
 

@@ -211,8 +211,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
-        public static readonly int _SkyTexture = Shader.PropertyToID("_SkyTexture");
-        public static readonly int _SkyTextureMipCount = Shader.PropertyToID("_SkyTextureMipCount");
+        public static readonly int _SkyTexture              = Shader.PropertyToID("_SkyTexture");
+        public static readonly int _SkyTextureMipCount      = Shader.PropertyToID("_SkyTextureMipCount");
+        public static readonly int _SkyTextureMarginalRows  = Shader.PropertyToID("_SkyTextureMarginalRows");
+        public static readonly int _SkyTextureMarginalCols  = Shader.PropertyToID("_SkyTextureMarginalCols");
+        public static readonly int _SkyFrameIndex           = Shader.PropertyToID("_SkyFrameIndex");
 
         public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
         public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
