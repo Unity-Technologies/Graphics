@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
         readonly Stack<T> m_Stack = new Stack<T>();
         readonly UnityAction<T> m_ActionOnGet;
         readonly UnityAction<T> m_ActionOnRelease;
-        readonly bool m_CollectionCheck;
+        readonly bool m_CollectionCheck = true;
 
         /// <summary>
         /// Number of objects in the pool.

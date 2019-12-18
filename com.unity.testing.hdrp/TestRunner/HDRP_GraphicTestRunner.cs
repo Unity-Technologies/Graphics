@@ -67,20 +67,21 @@ public class HDRP_GraphicTestRunner
             // Standard Test
             ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
 
-#if CHECK_ALLOCATIONS_WHEN_RENDERING
-            // Does it allocate memory when it renders what's on camera?
-            bool allocatesMemory = false;
-            try
+            if (settings.checkMemoryAllocation)
             {
-                ImageAssert.AllocatesMemory(camera, 512, 512); // 512 used for height and width to render
+                // Does it allocate memory when it renders what's on camera?
+                bool allocatesMemory = false;
+                try
+                {
+                    ImageAssert.AllocatesMemory(camera, 512, 512); // 512 used for height and width to render
+                }
+                catch (AssertionException)
+                {
+                    allocatesMemory = true;
+                }
+                if (allocatesMemory)
+                    Assert.Fail("Allocated memory when rendering what is on camera");
             }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on camera");
-#endif
         }
         else
         {
