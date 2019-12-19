@@ -264,9 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings.stepCount
                 );
 
-            float[] rotations = { 60.0f, 300.0f, 180.0f, 240.0f, 120.0f, 0.0f };
-            float[] offsets = { 0.0f, 0.5f, 0.25f, 0.75f };
-
             parameters.aoParams1 = new Vector4(
                 settings.intensity.value,
                 1.0f / (settings.radius.value * settings.radius.value),
