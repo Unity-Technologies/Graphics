@@ -192,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     HDLightType lightType = lightData.type;
 
+                    EditorGUI.BeginProperty(r, GUIContent.none, prop);
                     EditorGUI.BeginChangeCheck();
                     lightType = (HDLightType)EditorGUI.IntPopup(r, (int)lightType, HDStyles.LightTypeTitles, HDStyles.LightTypeValues);
 
@@ -200,6 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light type");
                         lightData.type = lightType;
                     }
+                    EditorGUI.EndProperty();
                 }, (lprop, rprop) =>
                 {
                     TryGetAdditionalLightData(lprop, out var lLightData);
