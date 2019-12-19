@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void ProcessPreviewMaterial(Material Material) {}
     }
-    
+
     [Serializable]
     abstract class MasterNode<T> : MasterNode
         where T : class, ISubShader
@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
             var shaderProperties = new PropertyCollector();
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
-                
+
                 configuredTextures = shaderProperties.GetConfiguredTexutres();
                 return ShaderGraphImporter.k_ErrorShader;
             }

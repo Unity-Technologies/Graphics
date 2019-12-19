@@ -6,6 +6,7 @@ using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
+using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
@@ -18,7 +19,7 @@ namespace UnityEditor.Graphing
 
     static class NodeUtils
     {
-        public static string docURL = "https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master/com.unity.shadergraph/Documentation%7E/";
+        static string NodeDocSuffix = "-Node";
 
         public static void SlotConfigurationExceptionIfBadConfiguration(AbstractMaterialNode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
@@ -81,7 +82,7 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
             IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
@@ -176,9 +177,9 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static string GetDocumentationString(AbstractMaterialNode node)
+        public static string GetDocumentationString(string pageName)
         {
-            return $"{docURL}{node.name.Replace(" ", "-")}"+"-Node.md";
+            return Documentation.GetPageLink(pageName.Replace(" ", "-") + NodeDocSuffix);
         }
 
         static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();
