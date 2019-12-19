@@ -877,7 +877,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     reflectionData.Update();
-                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane"), GUIContent.none);
+                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane"), GUIContent.none);
                     reflectionData.ApplyModifiedProperties();
                 }, (lprop, rprop) =>
                 {
@@ -887,7 +887,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane").floatValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FarClip, "m_FarClip", 60, (r, prop, dep) =>                        // 5: Far clip
                 {
@@ -898,7 +898,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     reflectionData.Update();
-                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane"), GUIContent.none);
+                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane"), GUIContent.none);
                     reflectionData.ApplyModifiedProperties();
                 }, (lprop, rprop) =>
                 {
@@ -908,7 +908,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane").floatValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ParallaxCorrection, "m_BoxProjection", 215, (r, prop, dep) =>   // 6. Use Influence volume as proxy
                 {
