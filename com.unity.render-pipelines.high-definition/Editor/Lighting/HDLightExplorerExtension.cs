@@ -688,13 +688,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.IsPrefab, "m_Intensity", 120, (r, prop, dep) =>               // 21: Prefab
                 {
                     if (!TryGetLightPrefabData(prop, out var isPrefab, out var prefabRoot))
-                    {
                         return;
-                    }
 
                     if (isPrefab)
                     {
-                        EditorGUI.ObjectField(r, prefabRoot, typeof(GameObject), false);
+                        using (new EditorGUI.DisabledScope(true))
+                        {
+                            EditorGUI.ObjectField(r, prefabRoot, typeof(GameObject), false);
+                        }
                     }
                 }, (lprop, rprop) =>
                 {
