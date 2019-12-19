@@ -453,13 +453,96 @@ class VisualEffectAssetEditor : Editor
 
         GUI.enabled = AssetDatabase.IsOpenForEdit(this.target, StatusQueryOptions.UseCachedIfPossible);
 
+        VFXUpdateMode initialUpdateMode = (VFXUpdateMode)0;
+        bool? initialFixedDeltaTime = null;
+        bool? initialProcessEveryFrame = null;
+        bool? initialIgnoreGameTimeScale= null;
+        if (resourceUpdateModeProperty.hasMultipleDifferentValues)
+        {
+            var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects
+                                                .Select(o => new SerializedObject(o)
+                                                .FindProperty(resourceUpdateModeProperty.propertyPath))
+                                                .ToArray(); //N.B.: This will create garbage
+            var allDeltaTime = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
+                                                            .Distinct();
+            var allProcessEveryFrame = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ProcessEveryFrame) == VFXUpdateMode.ProcessEveryFrame)
+                                                                    .Distinct();
+            var allIgnoreScale = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale)
+                                                             .Distinct();
+            if (allDeltaTime.Count() == 1)
+                initialFixedDeltaTime = !allDeltaTime.First();
+            if (allProcessEveryFrame.Count() == 1)
+                initialProcessEveryFrame = allProcessEveryFrame.First();
+            if (allIgnoreScale.Count() == 1)
+                initialIgnoreGameTimeScale = allIgnoreScale.First();
+        }
+        else
+        {
+            initialUpdateMode = (VFXUpdateMode)resourceUpdateModeProperty.intValue;
+            initialFixedDeltaTime = !((initialUpdateMode & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime);
+            initialProcessEveryFrame = (initialUpdateMode & VFXUpdateMode.ProcessEveryFrame) == VFXUpdateMode.ProcessEveryFrame;
+            initialIgnoreGameTimeScale = (initialUpdateMode & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale;
+        }
+
         EditorGUI.BeginChangeCheck();
-        EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
-        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode", "Specifies whether particles are updated using a fixed timestep (Fixed Delta Time), or in a frame-rate independent manner (Delta Time)."), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
+        EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
+        bool newFixedDeltaTime = EditorGUILayout.Toggle("Fixed Delta Time", initialFixedDeltaTime ?? false);
+        bool newProcessEveryFrame = false;
+        EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
+        if (initialFixedDeltaTime.HasValue && initialFixedDeltaTime.Value || resourceUpdateModeProperty.hasMultipleDifferentValues)
+            newProcessEveryFrame = EditorGUILayout.Toggle("Process Every Frame", initialProcessEveryFrame ?? false);
+        EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
+        bool newIgnoreTimeScale = EditorGUILayout.Toggle("Ignore Game Time Scale", initialIgnoreGameTimeScale ?? false);
+
         if (EditorGUI.EndChangeCheck())
         {
-            resourceUpdateModeProperty.intValue = (int)newUpdateMode;
-            resourceObject.ApplyModifiedProperties();
+            if (!resourceUpdateModeProperty.hasMultipleDifferentValues)
+            {
+                var newUpdateMode = (VFXUpdateMode)0;
+                if (!newFixedDeltaTime)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.DeltaTime;
+                if (newProcessEveryFrame)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.ProcessEveryFrame;
+                if (newIgnoreTimeScale)
+                    newUpdateMode = newUpdateMode | VFXUpdateMode.IgnoreTimeScale;
+
+                resourceUpdateModeProperty.intValue = (int)newUpdateMode;
+                resourceObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects.Select(o => new SerializedObject(o).FindProperty(resourceUpdateModeProperty.propertyPath));
+                foreach (var property in resourceUpdateModeProperties)
+                {
+                    var updateMode = (VFXUpdateMode)property.intValue;
+
+                    if (initialFixedDeltaTime.HasValue)
+                    {
+                        if (!newFixedDeltaTime)
+                            updateMode = updateMode | VFXUpdateMode.DeltaTime;
+                        else
+                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                    }
+                    else
+                    {
+                        if (newFixedDeltaTime)
+                            updateMode = updateMode & ~VFXUpdateMode.DeltaTime;
+                    }
+
+                    if (newProcessEveryFrame)
+                        updateMode = updateMode | VFXUpdateMode.ProcessEveryFrame;
+                    else if (initialProcessEveryFrame.HasValue)
+                        updateMode = updateMode & ~VFXUpdateMode.ProcessEveryFrame;
+                    
+                    if (newIgnoreTimeScale)
+                        updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
+                    else if (initialIgnoreGameTimeScale.HasValue)
+                        updateMode = updateMode & ~VFXUpdateMode.IgnoreTimeScale;
+
+                    property.intValue = (int)updateMode;
+                    property.serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
 
         EditorGUILayout.BeginHorizontal();
