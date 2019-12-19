@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
-        public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
+        public HDPhysicalCamera physicalParameters { get; private set; }
 
         public IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdrp.UpdateVolumetricBufferParams(this, ignoreVolumeStack);
 
-            UpdateVolumeParameters();
+            UpdateVolumeAndPhysicalParameters();
 
             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
@@ -638,14 +638,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateVolumeParameters()
+        void UpdateVolumeAndPhysicalParameters()
         {
             volumeAnchor = null;
             volumeLayerMask = -1;
+            physicalParameters = null;
+
             if (m_AdditionalCameraData != null)
             {
                 volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
                 volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
+                physicalParameters = m_AdditionalCameraData.physicalParameters;
             }
             else
             {
@@ -659,11 +662,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool needFallback = true;
                     if (mainCamera != null)
                     {
-                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
-                        if (mainCamAdditionalData != null)
+                        if (mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
                             volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
+                            physicalParameters = mainCamAdditionalData.physicalParameters;
                             needFallback = false;
                         }
                     }
@@ -678,6 +681,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             // Remove lighting override mask and layer 31 which is used by preview/lookdev
                             volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
+
+                        // No fallback for the physical camera as we can't assume anything in this regard
+                        // Kept at null so the exposure will just use the default physical camera values
                     }
                 }
             }
