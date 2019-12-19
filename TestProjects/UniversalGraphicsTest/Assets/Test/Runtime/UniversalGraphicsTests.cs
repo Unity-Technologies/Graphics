@@ -63,7 +63,7 @@ public class UniversalGraphicsTests
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         try
         {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings); // 512 used for height and width to render
+            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
         }
         catch (AssertionException)
         {

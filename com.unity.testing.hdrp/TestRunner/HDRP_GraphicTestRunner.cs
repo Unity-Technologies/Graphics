@@ -73,7 +73,7 @@ public class HDRP_GraphicTestRunner
                 bool allocatesMemory = false;
                 try
                 {
-                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings); // 512 used for height and width to render
+                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings);
                 }
                 catch (AssertionException)
                 {
