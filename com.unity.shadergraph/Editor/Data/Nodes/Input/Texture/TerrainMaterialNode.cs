@@ -126,17 +126,17 @@ namespace UnityEditor.ShaderGraph
 
         string GetTerrainAlbedoLayerName()
         {
-            return "Albedo";
+            return "AlbedoSlot";
         }
 
         string GetTerrainNormalLayerName()
         {
-            return "Normal";
+            return "NormalSlot";
         }
 
         string GetTerrainSpecularLayerName()
         {
-            return "Specular";
+            return "MaskSlot";
         }
 
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (IsSlotConnected(NormalOutputId))
                 {
-                    string normal = string.Format("$precision3 {0} = {3}({1}_info, {2});"
+                    string normal = string.Format("$precision3 {0} = {3}({1}_info, {2}) * 2.0f - 1.0f;"
                             , GetVariableNameForSlot(NormalOutputId)
                             , stackName
                             , GetTerrainNormalLayerName()
@@ -218,16 +218,16 @@ namespace UnityEditor.ShaderGraph
 
                     if (IsSlotConnected(AmbientOcclusionOutputId))
                     {
-                        string smoothness = string.Format("$precision {0} = specularSample.y;"
+                        string ao = string.Format("$precision {0} = specularSample.y;"
                                 , GetVariableNameForSlot(AmbientOcclusionOutputId));
-                        sb.AppendLine(smoothness);
+                        sb.AppendLine(ao);
                     }
 
                     if (IsSlotConnected(MetallicOutputId))
                     {
-                        string smoothness = string.Format("$precision {0} = specularSample.z;"
+                        string metallic = string.Format("$precision {0} = specularSample.z;"
                                 , GetVariableNameForSlot(MetallicOutputId));
-                        sb.AppendLine(smoothness);
+                        sb.AppendLine(metallic);
                     }
                 }
             }

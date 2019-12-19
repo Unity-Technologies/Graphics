@@ -12,13 +12,18 @@ namespace UnityEditor.ShaderGraph
     {
         public const int WorldPosInputId = 0;
         public const int MipLevelInputId = 1;
+
         public const int WorldHeightOutputId = 2;
         public const int FeedbackSlotId = 3;
+        public const int HeightAboveTerrainOutputId = 4;
+        public const int WorldPositionOutputId = 5;
 
         const string WorldPosInputName = "Position";
         const string MipLevelInputName = "MipLevel";
         const string WorldHeightOutputName = "TerrainHeight";
         const string FeedbackSlotName = "Feedback";
+        const string WorldPositionOutputName = "TerrainPosition";
+        const string HeightAboveTerrainOutputName = "HeightAboveTerrain";
 
         [SerializeField]
         bool useFeedback = true;
@@ -57,6 +62,8 @@ namespace UnityEditor.ShaderGraph
             if (explicitMip)
                 usedSlots.Add(MipLevelInputId);
             usedSlots.Add(WorldHeightOutputId);
+            usedSlots.Add(HeightAboveTerrainOutputId);
+            usedSlots.Add(WorldPositionOutputId);
             usedSlots.Add(FeedbackSlotId);
 
             // Create slots
@@ -65,6 +72,8 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
 
             AddSlot(new Vector1MaterialSlot(WorldHeightOutputId, WorldHeightOutputName, WorldHeightOutputName, SlotType.Output, 0.0f));
+            AddSlot(new Vector1MaterialSlot(HeightAboveTerrainOutputId, HeightAboveTerrainOutputName, HeightAboveTerrainOutputName, SlotType.Output, 0.0f));
+            AddSlot(new Vector3MaterialSlot(WorldPositionOutputId, WorldPositionOutputName, WorldPositionOutputName, SlotType.Output, Vector3.zero));
 
             // hidden feedback slot         TODO: do we let the user disable this slot, when we don't want to use terrain feedback?
             var slot = new Vector4MaterialSlot(FeedbackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
@@ -118,7 +127,10 @@ namespace UnityEditor.ShaderGraph
 
             string stackName = GetTerrainHeightStackName();
 
-            bool outputConnected = IsSlotConnected(WorldHeightOutputId);
+            bool heightOutputConnected = IsSlotConnected(WorldHeightOutputId);
+            bool heightAboveOutputConnected = IsSlotConnected(HeightAboveTerrainOutputId);
+            bool positionOutputConnected = IsSlotConnected(WorldPositionOutputId);
+            bool outputConnected = heightOutputConnected || heightAboveOutputConnected || positionOutputConnected;
             bool feedbackConnected = IsSlotConnected(FeedbackSlotId);
 
             if (outputConnected || feedbackConnected)
@@ -143,12 +155,30 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultLayer = string.Format("$precision {1} = {3}({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
+                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId
                         , explicitMip ? "SampleStack_Lod" : "SampleStack");
-                sb.AppendLine(resultLayer);
+                sb.AppendLine(resultHeight);
+            }
+
+            if (heightAboveOutputConnected)
+            {
+                string resultDelta = string.Format("$precision {0} = {1} - {2}.y;"
+                        , GetVariableNameForSlot(HeightAboveTerrainOutputId)
+                        , GetVariableNameForSlot(WorldHeightOutputId)
+                        , GetSlotValue(WorldPosInputId, generationMode));
+                sb.AppendLine(resultDelta);
+            }
+
+            if (positionOutputConnected)
+            {
+                string resultPos = string.Format("$precision3 {0} = $precision3({2}.x, {1}, {2}.z);"
+                        , GetVariableNameForSlot(WorldPositionOutputId)
+                        , GetVariableNameForSlot(WorldHeightOutputId)
+                        , GetSlotValue(WorldPosInputId, generationMode));
+                sb.AppendLine(resultPos);
             }
 
             if (feedbackConnected && !explicitMip)      // TODO can we do feedback for explicit mip?  maybe, as long as it's pixel shader...
