@@ -14,7 +14,8 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    {   "m_expressionOp",
+                    {
+                        "m_expressionOp",
                         new object[]
                         {
                             VFXExpressionOperation.FrameIndex,

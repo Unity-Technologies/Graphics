@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         public static readonly VFXExpression FrameIndex = new VFXBuiltInExpression(VFXExpressionOperation.FrameIndex);
         public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOperation.TotalTime);
         public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.DeltaTime);
+        public static readonly VFXExpression UnscaledDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.UnscaledDeltaTime);
         public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOperation.SystemSeed);
         public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOperation.LocalToWorld);
         public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOperation.WorldToLocal);
