@@ -12,15 +12,14 @@ namespace UnityEditor.ShaderGraph
     class StackShaderProperty : AbstractShaderProperty<int>
     {
         [SerializeField]
-        private bool m_Modifiable = false;
-
-        [SerializeField]
         internal bool m_Batchable = false;
 
         public StackShaderProperty()
         {
             displayName = "Stack";
             slotNames = new List<string>();
+            slotNames.Add("Dummy");
+            generatePropertyBlock = true;
         }
 
         public override PropertyType propertyType
@@ -35,12 +34,12 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool isRenamable
         {
-            get { return true; }
+            get { return false; }
         }
 
         internal override bool isExposable
         {
-            get { return true; }
+            get { return false; }
         }
 
         public List<string> slotNames;
@@ -60,12 +59,13 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetPropertyBlockString()
         {
-            return ""; //A stack only has variables declared in the actual shader not in the shaderlab wrapper code
+            return "";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            // This node needs to generate some properties both in batched as in unbatched mode
+            // This just emits a define which declares several property variables. We split here over things that fit in a constant buffer
+            // (i.e. float arrays) and thing that don't (texture samplers).
             int numSlots = slotNames.Count;
 
             if (referenceName.EndsWith("_cb"))

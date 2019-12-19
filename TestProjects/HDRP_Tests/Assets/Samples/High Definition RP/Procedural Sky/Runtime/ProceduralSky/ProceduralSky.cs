@@ -1,6 +1,8 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Sky/Procedural Sky")]
+    [VolumeComponentMenu("Sky/Procedural Sky (Deprecated)")]
     [SkyUniqueID((int)SkyType.Procedural)]
     public class ProceduralSky : SkySettings
     {
@@ -16,11 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorParameter groundColor = new ColorParameter(new Color(0.369f, 0.349f, 0.341f, 1.0f));
         [Tooltip("When enabled, HDRP displays the sun disk.")]
         public BoolParameter enableSunDisk = new BoolParameter(true);
-
-        public override SkyRenderer CreateRenderer()
-        {
-            return new ProceduralSkyRenderer(this);
-        }
 
         public override int GetHashCode()
         {
@@ -39,5 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return hash;
         }
+
+        public override System.Type GetSkyRendererType() { return typeof(ProceduralSkyRenderer); }
     }
 }

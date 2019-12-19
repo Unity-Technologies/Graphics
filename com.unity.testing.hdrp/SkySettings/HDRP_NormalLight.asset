@@ -28,20 +28,21 @@ MonoBehaviour:
   m_Name: HDRISky
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 1
     m_Value: 0.1
     min: 0
     max: 360
   skyIntensityMode:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 2
   exposure:
     m_OverrideState: 1
     m_Value: 0
   multiplier:
     m_OverrideState: 1
-    m_Value: 1.5
+    m_Value: 1.25
     min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
@@ -76,9 +77,13 @@ MonoBehaviour:
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 1
+  skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 0
   fogType:
     m_OverrideState: 1
     m_Value: 0

@@ -106,10 +106,49 @@ namespace UnityEditor.TestTools.Graphics
 
             var sceneIndex = 0;
             var totalScenes = EditorBuildSettings.scenes.Length;
-            
-            foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+
+            string[] filterGUIDs = AssetDatabase.FindAssets("t:TestFilters");
+
+            List<TestFilters> filters = new List<TestFilters>();
+            foreach (var filterGUID in filterGUIDs)
+            {
+                string filterPath = AssetDatabase.GUIDToAssetPath(filterGUID);
+                filters.Add(AssetDatabase.LoadAssetAtPath(filterPath, typeof(TestFilters)) as TestFilters);
+            }
+            // Disabling scenes directly in EditorBuildSettings.scenes does not work
+            // As a solution - disabling scenes in temporary variable and then assigning it back to EditorBuildSettings.scenes
+            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
+
+            foreach ( EditorBuildSettingsScene scene in scenes)
             {
                 if (!scene.enabled) continue;
+
+                if (filters.Count > 0)
+                {
+                    // Right now leaving only single filter available per project.
+                    var filtersForScene = filters.First().filters.Where(f => AssetDatabase.GetAssetPath(f.FilteredScene) == scene.path);
+                    bool enableScene = true;
+                    string filterReasons = "";
+
+                    foreach (var filter in filtersForScene)
+                    {
+                        if ((filter.BuildPlatform == buildPlatform || filter.BuildPlatform == BuildTarget.NoTarget) &&
+                            (filter.GraphicsDevice == graphicsDevices.First() || filter.GraphicsDevice == GraphicsDeviceType.Null) &&
+                            (filter.ColorSpace == colorSpace || filter.ColorSpace == ColorSpace.Uninitialized))
+                        {
+                            // Adding reasons in case when same test is ignored several times
+                            filterReasons += filter.Reason + "\n";
+                            enableScene = false;
+                        }
+                    }
+                    scene.enabled = enableScene;
+                    if (!enableScene)
+                    {
+                        Debug.Log(string.Format("Removed scene {0} from build settings because {1}", Path.GetFileNameWithoutExtension(scene.path), filterReasons));
+                        continue;
+                    }
+                }
+
 
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
@@ -125,9 +164,9 @@ namespace UnityEditor.TestTools.Graphics
                     Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
-
+#pragma warning disable 618
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
-                    
+#pragma warning restore 618
                     EditorUtility.DisplayProgressBar($"Baking Test Scenes {(sceneIndex + 1).ToString()}/{totalScenes.ToString()}", $"Baking {sceneAsset.name}", ((float)sceneIndex / totalScenes));
 
                     Lightmapping.Bake();
@@ -143,6 +182,7 @@ namespace UnityEditor.TestTools.Graphics
             }
             
             EditorUtility.ClearProgressBar();
+            EditorBuildSettings.scenes = scenes;
 
             if (!IsBuildingForEditorPlaymode)
                 new CreateSceneListFileFromBuildSettings().Setup();
@@ -218,7 +258,9 @@ ReflectionProbe-*";
 
                     EditorSceneManagement.EditorSceneManager.OpenScene(scenePath, EditorSceneManagement.OpenSceneMode.Single);
                     EditorSceneManagement.EditorSceneManager.SetActiveScene( EditorSceneManagement.EditorSceneManager.GetSceneAt(0) );
+#pragma warning disable 618
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
+#pragma warning restore 618
                     EditorSceneManagement.EditorSceneManager.SaveScene( EditorSceneManagement.EditorSceneManager.GetSceneAt(0) );
                 }
 

@@ -2,7 +2,7 @@
 
 Camera-relative rendering allows the High Definition Render Pipeline (HDRP) to render distant GameObjects (with large world space coordinates) in a more robust and numerically stable way compared to the built-in render pipeline.
 
-Absolute precision of floating point numbers decreases as  numbers become larger. This means that GameObject coordinates become increasingly less precise the further the GameObject is from the origin of the Scene. The Mesh faces of distant GameObjects that are close to one another may appear in the same place and produce z-fighting artifacts. To fix this issue, camera-relative rendering replaces the world origin with the position of the Camera.
+Absolute precision of floating point numbers decreases as numbers become larger. This means that GameObject coordinates become increasingly less precise the further the GameObject is from the origin of the Scene. The Mesh faces of distant GameObjects that are close to one another may appear in the same place and produce z-fighting artifacts. To fix this issue, camera-relative rendering replaces the world origin with the position of the Camera.
 
 ## Using Camera-relative rendering
 

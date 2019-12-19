@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Cube Output"; } }
+        public override string name { get { return "Output Particle Cube"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleBasicCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
@@ -57,6 +57,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
         protected override IEnumerable<string> filteredOutSettings
@@ -66,7 +67,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "colorMappingMode";
+                yield return "colorMapping";
             }
         }
     }

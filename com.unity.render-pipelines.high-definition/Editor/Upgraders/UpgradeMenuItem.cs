@@ -8,6 +8,8 @@ using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEngine.SceneManagement;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -30,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
             kZTestDepthEqualForOpaque,
             kAlphaCutoffEnabled,
-            "_TransparentSortPriority", "_UseShadowThreshold",
+            kTransparentSortPriority, "_UseShadowThreshold",
             kDoubleSidedEnable, kDoubleSidedNormalMode,
             kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting
         };
@@ -92,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         "Update material " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
-                    
+
                     if (HDShaderUtils.IsHDRPShader(mat.shader))
                     {
                         // We don't handle embed material as we can't rewrite fbx files
@@ -151,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void UpgradeSceneMaterials()
         {
 #pragma warning disable 618
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             // For each loaded materials
             foreach (var mat in Resources.FindObjectsOfTypeAll<Material>())
             {
@@ -186,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Materials BlendStates (Scene)")]
         static public void UpgradeAllShaderGraphMaterialBlendStatesScene()
         {
-            var materials = Resources.FindObjectsOfTypeAll< Material >();
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
 
             foreach (var mat in materials)
             {
@@ -194,6 +196,42 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!string.IsNullOrEmpty(path))
                     UpdateMaterial_ShaderGraphRenderStates(path, mat);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes")]
+        static public void FixWarningGameObjectSceneIDMapIsMissingInLoadedScenes()
+        {
+            var rootCache = new List<GameObject>();
+            for (var i = 0; i < SceneManager.sceneCount; ++i)
+                FixWarningGameObjectSceneIDMapIsMissingFor(SceneManager.GetSceneAt(i), rootCache);
+        }
+
+        static void FixWarningGameObjectSceneIDMapIsMissingFor(Scene scene, List<GameObject> rootCache)
+        {
+            Assert.IsTrue(scene.isLoaded);
+
+            var roots = rootCache ?? new List<GameObject>();
+            roots.Clear();
+            scene.GetRootGameObjects(roots);
+            for (var i = roots.Count - 1; i >= 0; --i)
+            {
+                if (roots[i].name == "SceneIDMap")
+                {
+                    if (roots[i].GetComponent<SceneObjectIDMapSceneAsset>() == null)
+                    {
+                        // This gameObject must have SceneObjectIDMapSceneAsset
+                        // If not, then Unity can't find the component.
+                        // We can remove it, it will be regenerated properly by rebaking
+                        // the probes.
+                        //
+                        // This happens for scene with baked probes authored before renaming
+                        // the HDRP's namespaces without the 'Experiemental' prefix.
+                        // The serialization used this path explicitly, thus the Unity serialization
+                        // system lost the reference to the MonoBehaviour
+                        Object.DestroyImmediate(roots[i]);
+                    }
+                }
             }
         }
     }

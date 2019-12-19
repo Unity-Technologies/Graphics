@@ -13,6 +13,7 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -61,8 +62,8 @@ namespace UnityEngine.TestTools.Graphics
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
             int dummyRenderedFrameCount = 1;
 
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, 24);
-            desc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
+            var defaultFormat = (settings.UseHDR) ? SystemInfo.GetGraphicsFormat(DefaultFormat.HDR) : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, defaultFormat, 24);
 
             var rt = RenderTexture.GetTemporary(desc);
             Texture2D actual = null;
@@ -80,12 +81,12 @@ namespace UnityEngine.TestTools.Graphics
 					// only proceed the test on the last rendered frame
 					if (dummyRenderedFrameCount == i)
 					{
-						actual = new Texture2D(width, height, format, false);
+                        actual = new Texture2D(width, height, format, false);
                         RenderTexture dummy = null;
 
                         if (settings.UseHDR)
                         {
-                            desc.colorFormat = RenderTextureFormat.Default;
+                            desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                             dummy = RenderTexture.GetTemporary(desc);
                             UnityEngine.Graphics.Blit(rt, dummy);
                         }
@@ -229,7 +230,7 @@ namespace UnityEngine.TestTools.Graphics
                 // Note: Currently there are some allocs between the Camera.Render and the begining of the render pipeline rendering.
                 // Because of that, we can't enable this test.
                 int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
-                
+
                 if (allocationCountOfRenderPipeline > 0)
                     throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
 

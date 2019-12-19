@@ -11,9 +11,8 @@
 /com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
 # Shader Graph
-/com.unity.shadergraph/ @Unity-Technologies/shader-graph
+/com.unity.shadergraph/ @Unity-Technologies/shader-graph @Unity-Technologies/gfx-qa-bellevue
 /com.unity.shadergraph/CHANGELOG.md @Unity-Technologies/gfx-docs
-/com.unity.shadergraph/Documentation~/ @Unity-Technologies/gfx-docs
 
 # Test systems
 /.yamato/ @Unity-Technologies/gfx-sdets

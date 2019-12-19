@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The cylinder used for the volume calculation.")]
+            [Tooltip("Sets the cylinder used for the volume calculation.")]
             public Cylinder cylinder = new Cylinder();
         }
 
         public class OutputProperties
         {
-            [Tooltip("The volume of the cylinder.")]
+            [Tooltip("Outputs the volume of the cylinder.")]
             public float volume;
         }
 

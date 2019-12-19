@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -107,6 +108,38 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(liveIds);
         }
 
+        public static void ValidatNodes(GraphData d)
+        {
+            ValidatNodes(d.GetNodes<SampleTextureStackNodeBase>());       
+        }
+
+        public static void ValidatNodes(IEnumerable<SampleTextureStackNodeBase> nodes)
+        {
+            List<KeyValuePair<string, string>> slotNames = new List<KeyValuePair<string, string>>();
+
+            foreach (SampleTextureStackNodeBase node in nodes)
+            {
+                for (int i = 0; i < node.numSlots; i++)
+                {
+                    string value = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
+                    string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
+
+                    // Check if there is already a slot with the same value
+                    int found = slotNames.FindIndex(elem => elem.Key == value);
+                    if (found >= 0)
+                    {
+                        // Add a validation error, values need to be unique
+                        node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{value}' shares it's input with another stack input '{slotNames[found].Value}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                    }
+                    else
+                    {
+                        // Save it for checking against other slots
+                        slotNames.Add(new KeyValuePair<string, string>(value, name));
+                    }
+                }
+            }
+        }
+
         public override void ValidateNode()
         {
             for (int i = 0; i < numSlots; i++)
@@ -205,17 +238,19 @@ namespace UnityEditor.ShaderGraph
 
             string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
-            // Add attributes to any connected textures
+            // Add texture stack attributes to any connected textures
             int found = 0;
             foreach (var prop in properties.properties.OfType<Texture2DShaderProperty>())
             {
+                int layerIdx = 0;
                 foreach (var inputTex in slotNames)
                 {
                     if (string.Compare(inputTex, prop.referenceName) == 0)
                     {
-                        prop.textureStack = stackName;
+                        prop.textureStack = stackName + "(" + layerIdx + ")" ;
                         found++;
                     }
+                    layerIdx++;
                 }
             }
 

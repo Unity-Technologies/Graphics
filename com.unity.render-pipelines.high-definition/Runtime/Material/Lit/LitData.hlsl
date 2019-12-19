@@ -172,8 +172,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-    LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+    LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 #endif
 
 #ifdef _DOUBLESIDED_ON
@@ -202,6 +201,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+
+    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        // Both uses and modifies 'surfaceData.normalWS'.
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+    }
+#endif
+
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
     GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
@@ -209,33 +221,22 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     bentNormalWS = surfaceData.normalWS;
 #endif
 
-    surfaceData.geomNormalWS = input.tangentToWorld[2];
-
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
-#if defined(_BENTNORMALMAP) && defined(_ENABLESPECULAROCCLUSION)
+#if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
     #ifdef SPECULAR_OCCLUSION_USE_SPTD
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
     #else
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-    #endif
-#elif defined(_MASKMAP)
+#endif
+    // Don't do spec occ from Ambient if there is no mask mask
+#elif defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#else
-    surfaceData.specularOcclusion = 1.0;
 #endif
 
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
-
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-    }
-#endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA

@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Test
             var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Update).First();
             var updateContext = m_ViewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
 
-            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Output).First();
+            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Output && t.model.name.Contains("Particle")).First();
             var outputContext = m_ViewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc);
 
             m_ViewController.ApplyChanges();

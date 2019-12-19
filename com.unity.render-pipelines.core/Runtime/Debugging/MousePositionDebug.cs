@@ -115,13 +115,8 @@ namespace UnityEngine.Rendering
         public void Build()
         {
 #if UNITY_EDITOR
-#if UNITY_2019_1_OR_NEWER
             UnityEditor.SceneView.duringSceneGui -= OnSceneGUI;
             UnityEditor.SceneView.duringSceneGui += OnSceneGUI;
-#else
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-            UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
-#endif
             // Disabled as it cause error: GameViewEventCatcher is only use for SSR debugging currently so comment this code and uncomment it if you want to debug SSR
             //GameViewEventCatcher.Build();
 #endif
@@ -130,11 +125,7 @@ namespace UnityEngine.Rendering
         public void Cleanup()
         {
 #if UNITY_EDITOR
-#if UNITY_2019_1_OR_NEWER
             UnityEditor.SceneView.duringSceneGui -= OnSceneGUI;
-#else
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-#endif
             // Disabled as it cause error: GameViewEventCatcher is only use for SSR debugging currently so comment this code and uncomment it if you want to debug SSR
             //GameViewEventCatcher.Cleanup();
 #endif

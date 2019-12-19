@@ -87,6 +87,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         {
             // Transmission through thick objects does not support shadowing
             // from directional lights. It will use the 'baked' transmittance value.
+            lightColor *= _DirectionalTransmissionMultiplier;
         }
         else
 #endif
@@ -94,7 +95,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
             float shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
         }
 
         // Simulate a sphere/disk light with this hack.
@@ -182,7 +183,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         {
             // This code works for both surface reflection and thin object transmission.
             float shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 #ifdef DEBUG_DISPLAY
             // The step with the attenuation is required to avoid seeing the screen tiles at the end of lights because the attenuation always falls to 0 before the tile ends.
