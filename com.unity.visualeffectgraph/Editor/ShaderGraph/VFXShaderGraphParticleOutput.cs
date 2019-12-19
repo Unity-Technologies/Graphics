@@ -328,19 +328,19 @@ namespace UnityEditor.VFX
                             switch (tex.texture.dimension)
                             {
                                 case TextureDimension.Tex2D:
-                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex3D:
-                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Cube:
-                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex2DArray:
-                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.CubeArray:
-                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                             }
                         }

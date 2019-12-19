@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXTexture2DArrayValue(null, mode);
+            return new VFXTexture2DArrayValue(0, mode);
         }
     }
 }
