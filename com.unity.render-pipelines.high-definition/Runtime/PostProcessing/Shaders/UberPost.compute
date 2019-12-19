@@ -76,23 +76,30 @@ CBUFFER_END
 
 #define OutputLogEnabled        _DebugFlags.x
 
-float4 _ViewportSubsection;  // cluster display
+// float3x3 would actually be enough
+float4x4 _ScreenSpaceLocalToGlobal;
+float4x4 _ScreenSpaceGlobalToLocal; // _ScreenSpaceLocalToGlobal inverse
 
-float2 ClusterDisplayLocalToGlobalUV(float2 uv)
+float2 ScreenSpaceLocalToGlobal(float2 uv)
 {
-    return uv * _ViewportSubsection.zw + _ViewportSubsection.xy;
+    //return uv * _ViewportSubsection.zw + _ViewportSubsection.xy;
+    float4 globalUV = mul(_ScreenSpaceLocalToGlobal, float4(uv, 1, 1));
+    return globalUV.xy / globalUV.z;
 }
 
-float2 ClusterDisplayGlobalToLocalUV(float2 uv)
+float2 ScreenSpaceGlobalToLocal(float2 uv)
 {
-    return (uv - _ViewportSubsection.xy) / _ViewportSubsection.zw;
+    //return (uv - _ViewportSubsection.xy) / _ViewportSubsection.zw;
+    float4 localUV = mul(_ScreenSpaceGlobalToLocal, float4(uv, 1, 1));
+    return localUV.xy / localUV.z;
 }
 
-// TODO below macro will depend on whether or not cluster rendering is used
-#define LOCAL_TO_GLOBAL_UV(uv) (ClusterDisplayLocalToGlobalUV(uv))
-#define GLOBAL_TO_LOCAL_UV(uv) (ClusterDisplayGlobalToLocalUV(uv))
-// performs a computation in global UV space then return the result in local coords
-#define WITH_GLOBAL_UV(func, uv) (ClusterDisplayGlobalToLocalUV(func(ClusterDisplayLocalToGlobalUV(uv))))
+// TODO below macro will depend on whether or not cluster rendering is used,
+// if not, no-op
+#define SCREEN_SPACE_GLOBAL(uv) (ScreenSpaceLocalToGlobal(uv))
+#define SCREEN_SPACE_LOCAL(uv) (ScreenSpaceGlobalToLocal(uv))
+// performs a computation in global screen space space then return the result in local screen space
+#define WITH_GLOBAL_SCREEN_SPACE(func, uv) (ScreenSpaceGlobalToLocal(func(ScreenSpaceLocalToGlobal(uv))))
 
 float2 DistortUV(float2 uv)
 {
@@ -128,22 +135,15 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
-    float2 uvDistorted = WITH_GLOBAL_UV(DistortUV, uv);
-    //float2 uvDistorted = DistortUV(uv);
-
+    float2 uvDistorted = WITH_GLOBAL_SCREEN_SPACE(DistortUV, uv);
     float3 color = 0.0;
-
-    //float2 globalUV = LOCAL_TO_GLOBAL_UV(uv);
-    //color = float3(globalUV + uv, 0) / 2;
-    //_OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;
-    //return;
 
     // Chromatic aberration
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
     if (VARIANT & UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION)
     {
-        float2 uvGlobal = LOCAL_TO_GLOBAL_UV(uv);
+        float2 uvGlobal = SCREEN_SPACE_GLOBAL(uv);
         float2 coords = 2.0 * uvGlobal - 1.0;
         float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
         float2 diff = end - uv;
@@ -155,7 +155,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         for (int i = 0; i < samples; i++)
         {
             float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(WITH_GLOBAL_UV(DistortUV, pos)), 0.0).xyz;
+            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(WITH_GLOBAL_SCREEN_SPACE(DistortUV, pos)), 0.0).xyz;
             float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
             sum += s * filter;
@@ -188,7 +188,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
             // UVs for the dirt texture should be DistortUV(uv * DirtScale + DirtOffset) but
             // considering we use a cover-style scale on the dirt texture the difference isn't massive
             // so we chose to save a few ALUs here instead in case lens distortion is active
-            float2 dirtUV = LOCAL_TO_GLOBAL_UV(uvDistorted * DirtScale + DirtOffset);
+            float2 dirtUV = SCREEN_SPACE_GLOBAL(uvDistorted * DirtScale + DirtOffset);
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, dirtUV, 0.0).xyz;
             color += bloom * dirt * DirtIntensity;
         }
@@ -200,7 +200,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         UNITY_BRANCH
         if (VignetteMode == 0u) // Procedural
         {
-            float2 d = abs(LOCAL_TO_GLOBAL_UV(uvDistorted) - VignetteCenter) * VignetteIntensity;
+            float2 d = abs(SCREEN_SPACE_GLOBAL(uvDistorted) - VignetteCenter) * VignetteIntensity;
             d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
             d = pow(saturate(d), VignetteRoundness);
             float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);

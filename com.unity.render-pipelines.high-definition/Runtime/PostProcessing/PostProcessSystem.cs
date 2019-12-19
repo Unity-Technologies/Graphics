@@ -8,10 +8,10 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
-    public static class ClusterBridge
+    /*public static class ClusterBridge
     {
         static public Vector4 ViewportSubsection; // static for easy testing
-    }
+    }*/
 
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
@@ -395,7 +395,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_PostProcessEnabled)
                 {
                     // wip cluster display
-                    cmd.SetGlobalVector(HDShaderIDs._ViewportSubsection, ClusterBridge.ViewportSubsection);
+                    cmd.SetGlobalMatrix(HDShaderIDs._ScreenSpaceLocalToGlobal, camera.globalScreenSpaceMatrix);
+                    cmd.SetGlobalMatrix(HDShaderIDs._ScreenSpaceGlobalToLocal, camera.globalScreenSpaceMatrix.inverse);
 
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear

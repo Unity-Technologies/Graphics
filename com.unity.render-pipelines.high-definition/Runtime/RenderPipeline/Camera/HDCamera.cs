@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
         public Rect      finalViewport;
 
+        // viewport subsection for tiled displays
+        public Matrix4x4 globalScreenSpaceMatrix;
+
         public RTHandleProperties historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
 
         public bool colorPyramidHistoryIsValid = false;
@@ -323,10 +326,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();
+                    globalScreenSpaceMatrix = xr.GetGlobalScreenSpaceMatrix();
                 }
                 else
                 {
                     finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                    globalScreenSpaceMatrix = Matrix4x4.identity;
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);

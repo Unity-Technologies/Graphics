@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Used by test framework and to enable debug features
         internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
 
+        static readonly Rect k_UnitRect = new Rect(0, 0, 1, 1);
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
         internal static List<string> passDebugInfos = new List<string>(8);
@@ -414,6 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
                     viewport = camera.pixelRect,
+                    globalScreenSpaceMatrix = Matrix4x4.identity,
                     textureArraySlice = -1
                 };
 
