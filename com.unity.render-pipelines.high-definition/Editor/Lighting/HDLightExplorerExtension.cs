@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (!tLightData || !sLightData)
                         return; 
 
-                    Undo.RecordObject(tLightData, "Changed light type");
+                    Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed light type");
                     tLightData.type = sLightData.type;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Mode, "m_Lightmapping", 90),                                    // 3: Mixed mode
