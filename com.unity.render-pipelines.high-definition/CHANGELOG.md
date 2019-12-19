@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added hability to name LightLayers in HDRenderPipelineAsset
 - Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
+- Added path tracing support for refraction and internal reflections.
 - Added non temporal version of SSAO.
 - Added more detailed ray tracing stats in the debug window
 - Added Disc area light (bake only)
@@ -117,7 +118,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
 - Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
 - Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
-- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present. 
+- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present.
 - Fixed issue causing planar probes to disappear if there is no light in the scene.
 - Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
 - Fixed an issue with fog volume component upgrade not working properly
@@ -232,14 +233,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Physically Based Sky below ground
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
-- Optimize Shadow RT load on Tile based architecture platforms. 
+- Optimize Shadow RT load on Tile based architecture platforms.
 - Improved quality of SSAO.
 - Moved RequestShadowMapRendering() back to public API.
 - Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
 - Added SceneSelection pass for TerrainLit shader.
 - Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
 - The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
-- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
+- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias.
 - Fix the default stencil values when a material is created from a SSS ShaderGraph.
 - Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
 - Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
