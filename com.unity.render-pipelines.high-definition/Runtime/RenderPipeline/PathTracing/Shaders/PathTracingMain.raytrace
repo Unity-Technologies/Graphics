@@ -51,7 +51,7 @@ void Miss(inout RayIntersection rayIntersection : SV_RayPayload)
     uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
 
     rayIntersection.color = !currentDepth || currentDepth >= _RaytracingMinRecursion ?
-        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0) : 0.0;
+        SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0) * GetCurrentExposureMultiplier() : 0.0;
 }
 
 [shader("raygeneration")]
