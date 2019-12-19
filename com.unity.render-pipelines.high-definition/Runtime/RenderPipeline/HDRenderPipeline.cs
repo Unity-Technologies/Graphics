@@ -1162,13 +1162,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDCamera.CleanUnused();
 
                     if (newTime > m_Time)
+                    {
                         m_FrameCount++;
-                    else
-                        m_FrameCount = 0;
-
-                    // Make sure (m_Time > m_LastTime).
-                    m_LastTime = (newTime > m_Time) ? m_Time : 0;
-                    m_Time     = newTime;
+                        m_LastTime = m_Time;
+                        m_Time = newTime;
+                    }
                 }
             }
 
