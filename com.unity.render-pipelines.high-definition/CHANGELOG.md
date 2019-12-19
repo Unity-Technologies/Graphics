@@ -261,6 +261,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
 - Fixed issue that caused Distortion UI to appear in Lit.
 - Fixed several issues with decal duplicating when editing them.
+- Fixed initialization of volumetric buffer params (1204159)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
