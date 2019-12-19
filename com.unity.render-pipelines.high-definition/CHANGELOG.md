@@ -260,6 +260,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed corruption of AO in baked probes.
 - Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
 - Fixed issue that caused Distortion UI to appear in Lit.
+- Fixed several issues with decal duplicating when editing them.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
