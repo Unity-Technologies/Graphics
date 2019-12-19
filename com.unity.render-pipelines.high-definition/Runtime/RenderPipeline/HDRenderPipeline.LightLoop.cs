@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ComputeBuffer       visibleVolumeDataBuffer,
                                                     ComputeBuffer       bigTileLightListBuffer)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
                 {
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
