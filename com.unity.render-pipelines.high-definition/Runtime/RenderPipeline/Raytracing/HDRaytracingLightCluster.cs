@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-    class HDRaytracingLightCluster
+    internal class HDRaytracingLightCluster
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
@@ -499,6 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.up = light.transform.up;
                 lightData.right = light.transform.right;
 
+                lightData.boxLightSafeExtent = 1.0f;
                 if (lightData.lightType == GPULightType.ProjectorBox)
                 {
                     // Rescale for cookies and windowing.
@@ -574,22 +575,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = -1;
 
-                if (light.cookie != null)
+
+                if (light != null && light.cookie != null)
                 {
                     // TODO: add texture atlas support for cookie textures.
-                    // TODO: why not using GPULightData here too?
                     switch (lightType)
                     {
                         case HDLightType.Spot:
                             lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                         case HDLightType.Point:
-                        case HDLightType.Area:
                             lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                     }
                 }
-                // TODO: why not using GPULightData here too?
                 else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
                 {
                     // Projectors lights must always have a cookie texture.

@@ -40,7 +40,7 @@ When using Mesh baking mode. The window displays the following Mesh Baking prope
 
 After Setting a Mesh into the Mesh Property, The following UI becomes visible:
 
-* **Save to pCache file...** (Button): Clicking this button will prompt you a Save File dialog in order to save the computed point cache to an asset.
+* **Save to pCache file...** (Button): Clicking this button will prompt you a Save File dialog in order to save the computed point cache to an Asset.
 * **Mesh Statistics** (Group): Statistics about the Geometry File
   * Vertices : the vertex count
   * Triangles : the triangle count
@@ -68,7 +68,7 @@ When using Texture baking mode. The window displays the following Mesh Baking pr
 
 After Setting a Texture into the Mesh Property, The following UI becomes visible:
 
-- **Save to pCache file...** (Button): Clicking this button will prompt you a Save File dialog in order to save the computed point cache to an asset.
+- **Save to pCache file...** (Button): Clicking this button will prompt you a Save File dialog in order to save the computed point cache to an Asset.
 - **Texture Statistics** (Group): Statistics about the Texture File
   - Width: the width (in pixels) of the texture
   - Height: the height (in pixels) of the texture

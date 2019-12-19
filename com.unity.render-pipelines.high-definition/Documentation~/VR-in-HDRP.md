@@ -18,7 +18,7 @@ If you encounter an issue with a specific feature, you can disable it in your Pr
 
 ## Resolution Control
 There are multiple methods that you can use to control the resolution of your render targets in HDRP, but be aware that HDRP does not support every method available in standard Unity using the built-in render pipeline. [XRSettings.renderViewportScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-renderViewportScale.html) has no effect in HDRP and generates a warning if you use it. Use one of the following methods instead:
-* **Dynamic Resolution**: You can use the [dynamic resolution system](Dynamic-Resolution.md) to change the resolution at run time. This is the best method to use if you want to change the resolution at run time.
+* **Dynamic Resolution**: You can use the [dynamic resolution system](Dynamic-Resolution.md) to change the resolution at runtime. This is the best method to use if you want to change the resolution at runtime.
 * **Eye Texture**: You can set the device back-buffer resolution by changing [XRSettings.eyeTextureResolutionScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-eyeTextureResolutionScale.html). This is a resource intensive operation that reallocates all render targets.
 
 

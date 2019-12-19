@@ -19,7 +19,7 @@ The HDRP Default Settings tab is part of the Project Settings window. To get to 
 
 ## Frame Settings
 
-[Frame Settings](Frame-Settings.html) control the rendering passes that Cameras make at run time. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.html).
+[Frame Settings](Frame-Settings.html) control the rendering passes that Cameras make at runtime. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.html).
 
 ## Volume Components
 
