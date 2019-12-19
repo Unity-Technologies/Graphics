@@ -211,10 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ((int)lLightData.type).CompareTo((int)rLightData.type);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed light type");
@@ -265,10 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ((float)lLightData.intensity).CompareTo((float)rLightData.intensity);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed light intensity");
@@ -302,10 +296,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ((int)lLightData.lightUnit).CompareTo((int)rLightData.lightUnit);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed light unit");
@@ -349,10 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return (lLightData.useContactShadow.useOverride ? -1 : (int)lLightData.useContactShadow.level).CompareTo(rLightData.useContactShadow.useOverride ? -1 : (int)rLightData.useContactShadow.level);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed contact shadows");
@@ -409,10 +397,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lEnabled.CompareTo(rEnabled);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
@@ -454,10 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ((int)lLightData.shadowResolution.level).CompareTo((int)rLightData.shadowResolution.level);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed contact shadow resolution");
@@ -517,10 +499,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lResolution.CompareTo(rResolution);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
@@ -561,10 +540,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lLightData.affectDiffuse.CompareTo(rLightData.affectDiffuse);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed affects diffuse");
@@ -598,10 +574,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lLightData.affectSpecular.CompareTo(rLightData.affectSpecular);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed affects specular");
@@ -635,10 +608,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lLightData.fadeDistance.CompareTo(rLightData.fadeDistance);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed light fade distance");
@@ -672,10 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return lLightData.shadowFadeDistance.CompareTo(rLightData.shadowFadeDistance);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed light shadow fade distance");
@@ -712,10 +679,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ((int)lLightData.lightlayersMask).CompareTo((int)rLightData.lightlayersMask);
                 }, (target, source) => 
                 {
-                    TryGetAdditionalLightData(target, out var tLightData);
-                    TryGetAdditionalLightData(source, out var sLightData);
-
-                    if (!tLightData || !sLightData)
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
                     Undo.RecordObject(tLightData, "Changed light layer");
