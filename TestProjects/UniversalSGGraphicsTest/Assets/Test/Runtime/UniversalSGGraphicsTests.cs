@@ -7,7 +7,7 @@ using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 
-public class UniversalGraphicsTests
+public class UniversalSGGraphicsTests
 {
 #if UNITY_ANDROID
     static bool wasFirstSceneRan = false;
@@ -28,8 +28,8 @@ public class UniversalGraphicsTests
         yield return null;
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        var settings = Object.FindObjectOfType<UniversalSGGraphicsTestSettings>();
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalSGGraphicsTestSettings");
 
         Scene scene = SceneManager.GetActiveScene();
 

@@ -3,5 +3,4 @@
 --- !u!1386491679 &1
 PresetManager:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_DefaultPresets: {}
+  m_DefaultList: []

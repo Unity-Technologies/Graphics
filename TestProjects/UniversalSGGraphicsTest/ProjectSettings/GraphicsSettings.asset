@@ -36,6 +36,9 @@ GraphicsSettings:
   - {fileID: 15106, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 16000, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 17000, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
   m_PreloadedShaders: []
   m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000,
     type: 0}
@@ -45,7 +48,58 @@ GraphicsSettings:
   m_TransparencySortAxis: {x: 0, y: 0, z: 1}
   m_DefaultRenderingPath: 1
   m_DefaultMobileRenderingPath: 1
-  m_TierSettings: []
+  m_TierSettings:
+  - serializedVersion: 5
+    m_BuildTarget: 7
+    m_Tier: 0
+    m_Settings:
+      standardShaderQuality: 1
+      renderingPath: 1
+      hdrMode: 2
+      realtimeGICPUUsage: 25
+      useReflectionProbeBoxProjection: 0
+      useReflectionProbeBlending: 0
+      useHDR: 0
+      useDetailNormalMap: 0
+      useCascadedShadowMaps: 0
+      prefer32BitShadowMaps: 0
+      enableLPPV: 0
+      useDitherMaskForAlphaBlendedShadows: 0
+    m_Automatic: 0
+  - serializedVersion: 5
+    m_BuildTarget: 7
+    m_Tier: 1
+    m_Settings:
+      standardShaderQuality: 1
+      renderingPath: 1
+      hdrMode: 2
+      realtimeGICPUUsage: 25
+      useReflectionProbeBoxProjection: 0
+      useReflectionProbeBlending: 0
+      useHDR: 0
+      useDetailNormalMap: 0
+      useCascadedShadowMaps: 0
+      prefer32BitShadowMaps: 0
+      enableLPPV: 0
+      useDitherMaskForAlphaBlendedShadows: 0
+    m_Automatic: 0
+  - serializedVersion: 5
+    m_BuildTarget: 7
+    m_Tier: 2
+    m_Settings:
+      standardShaderQuality: 1
+      renderingPath: 1
+      hdrMode: 2
+      realtimeGICPUUsage: 25
+      useReflectionProbeBoxProjection: 0
+      useReflectionProbeBlending: 0
+      useHDR: 0
+      useDetailNormalMap: 0
+      useCascadedShadowMaps: 0
+      prefer32BitShadowMaps: 0
+      enableLPPV: 0
+      useDitherMaskForAlphaBlendedShadows: 0
+    m_Automatic: 0
   m_LightmapStripping: 0
   m_FogStripping: 0
   m_InstancingStripping: 0
@@ -59,6 +113,6 @@ GraphicsSettings:
   m_FogKeepExp: 1
   m_FogKeepExp2: 1
   m_AlbedoSwatchInfos: []
-  m_LightsUseLinearIntensity: 0
+  m_LightsUseLinearIntensity: 1
   m_LightsUseColorTemperature: 0
   m_LogWhenShaderIsCompiled: 0

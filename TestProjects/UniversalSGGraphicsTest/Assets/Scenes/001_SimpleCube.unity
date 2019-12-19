@@ -135,8 +135,8 @@ GameObject:
   - component: {fileID: 380492253}
   - component: {fileID: 380492251}
   - component: {fileID: 380492250}
-  - component: {fileID: 380492252}
   - component: {fileID: 380492255}
+  - component: {fileID: 380492252}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -169,15 +169,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 380492249}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20f198885badb1f4fa1e65869995ff82, type: 3}
+  m_Script: {fileID: 11500000, guid: 9d8af06545bcdc143ac702c61310cd3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
     TargetWidth: 512
     TargetHeight: 512
-    PerPixelCorrectnessThreshold: 0
-    AverageCorrectnessThreshold: 0
+    PerPixelCorrectnessThreshold: 0.005
+    AverageCorrectnessThreshold: 0.001
     UseHDR: 0
+  WaitFrames: 0
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0
