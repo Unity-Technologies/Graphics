@@ -846,6 +846,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.mode").intValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.mode").intValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.mode").intValue = sReflectionData.FindProperty("m_ProbeSettings.mode").intValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Shape, "m_Mode", 70, (r, prop, dep) =>                              // 3: Shape
                 {
@@ -867,6 +875,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.influence.m_Shape").intValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.influence.m_Shape").intValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.influence.m_Shape").intValue = sReflectionData.FindProperty("m_ProbeSettings.influence.m_Shape").intValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.NearClip, "m_NearClip", 65, (r, prop, dep) =>                      // 4: Near clip
                 {
@@ -888,6 +904,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane").floatValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FarClip, "m_FarClip", 60, (r, prop, dep) =>                        // 5: Far clip
                 {
@@ -909,6 +933,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane").floatValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ParallaxCorrection, "m_BoxProjection", 215, (r, prop, dep) =>   // 6. Use Influence volume as proxy
                 {
@@ -930,6 +962,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue = sReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_Mode", 60, (r, prop, dep) =>                            // 7: Weight
                 {
@@ -951,6 +991,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         return order; 
 
                     return lReflectionData.FindProperty("m_ProbeSettings.lighting.weight").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.lighting.weight").floatValue);
+                }, (target, source) => 
+                {
+                    if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                        return;
+
+                    tReflectionData.Update();
+                    tReflectionData.FindProperty("m_ProbeSettings.lighting.weight").floatValue = sReflectionData.FindProperty("m_ProbeSettings.lighting.weight").floatValue;
+                    tReflectionData.ApplyModifiedProperties();
                 }),
             };
         }
