@@ -238,10 +238,10 @@ namespace UnityEngine.TestTools.Graphics
                 }
                 Profiler.EndSample();
 
-                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
-
                 // There are 2 GC.Alloc overhead for calling Camera.CustomRender
-                if (allocationCountOfRenderPipeline > 2)
+                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount - 2;
+
+                if (allocationCountOfRenderPipeline > 0)
                     throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
 
                 camera.targetTexture = null;
