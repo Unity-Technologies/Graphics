@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default value.</summary>
-        [Obsolete("Since 2019.3, use CameraSettings.cameraSettingsNonAlloc instead.")]
+        [Obsolete("Since 2019.3, use CameraSettings.defaultCameraSettingsNonAlloc instead.")]
         public static readonly CameraSettings @default = default;
         /// <summary>Default value.</summary>
         /// <returns>The default value and allocate ~250B of garbage.</returns>
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeRangeCompressionFactor = 1.0f
         };
 
-        public static readonly CameraSettings cameraSettingsNonAlloc = NewDefault();
+        public static readonly CameraSettings defaultCameraSettingsNonAlloc = NewDefault();
 
         /// <summary>
         /// Extract the CameraSettings from an HDCamera
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The CameraSettings</returns>
         public static CameraSettings From(HDCamera hdCamera)
         {
-            var settings = cameraSettingsNonAlloc;
+            var settings = defaultCameraSettingsNonAlloc;
             settings.culling.cullingMask = hdCamera.camera.cullingMask;
             settings.culling.useOcclusionCulling = hdCamera.camera.useOcclusionCulling;
             settings.culling.sceneCullingMaskOverride = HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
