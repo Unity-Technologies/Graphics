@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(lightData, "Changed light type");
+                        Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light type");
                         lightData.type = lightType;
                     }
                 }, (lprop, rprop) =>
