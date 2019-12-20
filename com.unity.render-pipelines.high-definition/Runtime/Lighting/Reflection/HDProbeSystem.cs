@@ -123,6 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return target;
         }
 
+        public static void Cleanup() => s_Instance.Dispose();
+
         static Texture CreateAndSetRenderTargetIfRequired(HDProbe probe, ProbeSettings.Mode targetMode)
         {
             var settings = probe.settings;
