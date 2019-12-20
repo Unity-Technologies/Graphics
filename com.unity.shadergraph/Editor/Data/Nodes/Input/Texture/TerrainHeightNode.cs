@@ -165,10 +165,10 @@ namespace UnityEditor.ShaderGraph
 
             if (heightAboveOutputConnected)
             {
-                string resultDelta = string.Format("$precision {0} = {1} - {2}.y;"
+                string resultDelta = string.Format("$precision {0} = {1}.y - {2};"
                         , GetVariableNameForSlot(HeightAboveTerrainOutputId)
-                        , GetVariableNameForSlot(WorldHeightOutputId)
-                        , GetSlotValue(WorldPosInputId, generationMode));
+                        , GetSlotValue(WorldPosInputId, generationMode)
+                        , GetVariableNameForSlot(WorldHeightOutputId));
                 sb.AppendLine(resultDelta);
             }
 
