@@ -9,6 +9,8 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractDistortionOutput : VFXAbstractParticleOutput
     {
+        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) { }
+
         public enum DistortionMode
         {
             ScreenSpace,

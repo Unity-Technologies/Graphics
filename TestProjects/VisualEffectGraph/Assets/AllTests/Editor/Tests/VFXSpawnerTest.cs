@@ -304,7 +304,7 @@ namespace UnityEditor.VFX.Test
         */
 
         [UnityTest]
-        public IEnumerator CreateCustomSpawnerAndComponent()
+        public IEnumerator Create_CustomSpawner_And_Component()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
@@ -348,14 +348,15 @@ namespace UnityEditor.VFX.Test
             camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
-            while (vfxComponent.culled && --maxFrame > 0)
+            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            vfxComponent.Simulate(0.5f);
+            while ((spawnerState.playing == false || spawnerState.deltaTime == 0.0f) && --maxFrame > 0)
             {
                 yield return null;
+                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
             }
             Assert.IsTrue(maxFrame > 0);
-            yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
             Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifetime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);

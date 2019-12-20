@@ -96,6 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -283,7 +284,8 @@ MonoBehaviour:
     TargetHeight: 540
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
-  WaitFrames: 0
+    UseHDR: 0
+  WaitFrames: 15
 --- !u!114 &1379357033
 MonoBehaviour:
   m_ObjectHideFlags: 0

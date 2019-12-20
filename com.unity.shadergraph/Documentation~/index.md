@@ -6,7 +6,7 @@ Shader Graph enables you to build shaders visually. Instead of writing code, you
 
 For an introduction to Shader Graph, see [Getting Started](Getting-Started.md).
 
-Shader Graph is available through the Package Manger window in Unity versions 2018.1 and higher. If you install a prebuilt Scriptable Render Pipeline (SRP) such as the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.lightweight@latest) (URP) or the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Unity automatically installs Shader Graph in your project.
+Shader Graph is available through the Package Manger window in Unity versions 2018.1 and higher. If you install a prebuilt Scriptable Render Pipeline (SRP) such as the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) or the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Unity automatically installs Shader Graph in your project.
 
 Avoid installing or updating Shader Graph independently of the prebuilt SRP packages. Shader Graph builds shaders that are compatible with the URP and HDRP, but they are not compatible with the built-in renderer.
 

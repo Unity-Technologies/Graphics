@@ -38,12 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Expandable  m_ExpandableBit;
         int         m_LayerIndex;
 
-        MaterialUIBlockList transparencyBlocks = new MaterialUIBlockList
-        {
-            new RefractionUIBlock(kMaxLayerCount),
-            new DistortionUIBlock(),
-        };
-
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";

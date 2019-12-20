@@ -13,8 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         public const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
+        /// <summary>Default HDAdditionalReflectionData</summary>
         static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        /// <summary>Default HDAdditionalLightData</summary>
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        /// <summary>Default HDAdditionalCameraData</summary>
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         static Texture3D m_ClearTexture3D;
@@ -68,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -124,15 +126,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap)
+        /// <summary>Get the aspect ratio of a projection matrix.</summary>
+        /// <param name="matrix"></param>
+        /// <returns></returns>
+        public static float ProjectionMatrixAspect(in Matrix4x4 matrix)
+            => -matrix.m11 / matrix.m00;
+
+        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
+            aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+
             // Compose the view space version first.
             // V = -(X, Y, Z), s.t. Z = 1,
             // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
             // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
 
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-            float aspectRatio = screenSize.x * screenSize.w;
 
             // Compose the matrix.
             float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
@@ -729,6 +738,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hdCamera;
 
             return s_DefaultHDAdditionalCameraData;
+        }
+
+
+        internal static void DisplayUnsupportedMessage(string msg)
+        {
+            Debug.LogError(msg);
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                sv.ShowNotification(new GUIContent(msg));
+#endif
+        }
+
+        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        {
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            string currentPlatform = buildTarget.ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void DisplayUnsupportedXRMessage()
+        {
+            string msg = "AR/VR devices are not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
         }
     }
 }

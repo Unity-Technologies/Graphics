@@ -1,4 +1,4 @@
-* [Visual Effect Graph](Index.md) 
+* [Visual Effect Graph](index.md) 
 * [Getting Started](GettingStarted.md) 
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md) 
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md) 

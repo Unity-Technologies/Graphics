@@ -45,14 +45,23 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
 
+        [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
+        public BoolParameter filter = new BoolParameter(false);
+
         public static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
+        public static bool IsVolumetricFogEnabled(HDCamera hdCamera, bool ignoreVolumeStack = false)
         {
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && VolumeManager.instance.stack.GetComponent<Fog>().enableVolumetricFog.value;
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
+
+            bool a = fog.enableVolumetricFog.value || ignoreVolumeStack;
+            bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
+            bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
+
+            return a && b && c;
         }
 
         public static bool IsPBRFogEnabled(HDCamera hdCamera)

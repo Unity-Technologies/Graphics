@@ -19,6 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Prepare the culling phase by settings the appropriate values to the legacy reflection probe component.
+        /// The culling system is driven by the legacy probe's values.
+        /// </summary>
         public override void PrepareCulling()
         {
             base.PrepareCulling();
