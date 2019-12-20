@@ -14,6 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 add = HDUtils.s_DefaultHDAdditionalLightData;
             }
 
+            Cookie cookie;
+            LightmapperUtils.Extract(light, out cookie);
+            lightDataGI.cookieID    = cookie.instanceID;
+            lightDataGI.cookieScale = cookie.scale;
+
             // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
             Color cct = new Color(1.0f, 1.0f, 1.0f);
 #if UNITY_EDITOR
@@ -67,8 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (lightType)
             {
                 case HDLightType.Directional:
-                    lightDataGI.cookieID = light.cookie ? light.cookie.GetInstanceID() : 0;
-                    lightDataGI.cookieScale = 1.0f;
                     lightDataGI.orientation = light.transform.rotation;
                     lightDataGI.position = light.transform.position;
                     lightDataGI.range = 0.0f;
@@ -82,6 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
+                    lightDataGI.coneAngle = cookie.sizes.x;
+                    lightDataGI.innerConeAngle = cookie.sizes.y;
                     break;
 
                 case HDLightType.Spot:
@@ -91,8 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 SpotLight spot;
                                 spot.instanceID = light.GetInstanceID();
-                                spot.cookieID = light.cookie ? light.cookie.GetInstanceID() : 0;
-                                spot.cookieScale = 1.0f;
                                 spot.shadow = light.shadows != LightShadows.None;
                                 spot.mode = lightMode;
 #if UNITY_EDITOR
@@ -109,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 spot.innerConeAngle = light.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
                                 spot.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                                 spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
-                                lightDataGI.Init(ref spot);
+                                lightDataGI.Init(ref spot, ref cookie);
                                 lightDataGI.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
                             }
                             break;
@@ -118,8 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 SpotLightPyramidShape pyramid;
                                 pyramid.instanceID = light.GetInstanceID();
-                                pyramid.cookieID = light.cookie ? light.cookie.GetInstanceID() : 0;
-                                pyramid.cookieScale = 1.0f;
                                 pyramid.shadow = light.shadows != LightShadows.None;
                                 pyramid.mode = lightMode;
                                 pyramid.position = light.transform.position;
@@ -130,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 pyramid.angle = light.spotAngle * Mathf.Deg2Rad;
                                 pyramid.aspectRatio = add.aspectRatio;
                                 pyramid.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-                                lightDataGI.Init(ref pyramid);
+                                lightDataGI.Init(ref pyramid, ref cookie);
                             }
                             break;
 
@@ -138,8 +139,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 SpotLightBoxShape box;
                                 box.instanceID = light.GetInstanceID();
-                                box.cookieID = light.cookie ? light.cookie.GetInstanceID() : 0;
-                                box.cookieScale = 1.0f;
                                 box.shadow = light.shadows != LightShadows.None;
                                 box.mode = lightMode;
                                 box.position = light.transform.position;
@@ -149,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 box.range = light.range;
                                 box.width = add.shapeWidth;
                                 box.height = add.shapeHeight;
-                                lightDataGI.Init(ref box);
+                                lightDataGI.Init(ref box, ref cookie);
                             }
                             break;
 
@@ -160,8 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
 
                 case HDLightType.Point:
-                    lightDataGI.cookieID = light.cookie ? light.cookie.GetInstanceID() : 0;
-                    lightDataGI.cookieScale = 1.0f;
                     lightDataGI.orientation = light.transform.rotation;
                     lightDataGI.position = light.transform.position;
                     lightDataGI.range = light.range;
@@ -182,8 +179,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (add.areaLightShape)
                     {
                         case AreaLightShape.Rectangle:
-                            lightDataGI.cookieID = add.areaLightCookie ? add.areaLightCookie.GetInstanceID() : 0;
-                            lightDataGI.cookieScale = 1.0f;
                             lightDataGI.orientation = light.transform.rotation;
                             lightDataGI.position = light.transform.position;
                             lightDataGI.range = light.range;
