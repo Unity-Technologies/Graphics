@@ -55,6 +55,13 @@ namespace UnityEditor.VFX
             public VFXCompilationMode compilMode;
         }
 
+        private static VFXExpressionObjectValueContainerDesc<T> CreateObjectValueDesc<T>(VFXExpression exp, int expIndex)
+        {
+            var desc = new VFXExpressionObjectValueContainerDesc<T>();
+            desc.instanceID = exp.Get<int>();
+            return desc;
+        }
+
         private static VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
         {
             var desc = new VFXExpressionValueContainerDesc<T>();
@@ -114,12 +121,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray:
-                            value = CreateValueDesc<Texture>(exp, i);
+                            value = CreateObjectValueDesc<Texture>(exp, i);
                             break;
                         case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
-                        case VFXValueType.Mesh: value = CreateValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
