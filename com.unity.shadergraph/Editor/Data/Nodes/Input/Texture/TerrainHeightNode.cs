@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
                 string result;
                 if (explicitMip)
                 {
-                    result = string.Format("StackInfo {0}_info = PrepareStack_Lod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
+                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
                             , stackName
                             , GetSlotValue(WorldPosInputId, generationMode)
                             , GetSlotValue(MipLevelInputId, generationMode));
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId
-                        , explicitMip ? "SampleStack_Lod" : "SampleStack");
+                        , explicitMip ? "SampleStackLod" : "SampleStack");
                 sb.AppendLine(resultHeight);
             }
 

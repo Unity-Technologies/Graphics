@@ -118,7 +118,7 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 	translationTable.Texture = stackName##_transtab;\
 	translationTable.Sampler = sampler##stackName##_transtab;\
 \
-	StackInfo info;\
+	StackInfo info = (StackInfo) 0;\
     GR_LOOKUP(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
 	return info;\
 } \
@@ -144,7 +144,7 @@ StackInfo PrepareVTLod_##stackName(float2 uv, float mip) \
 	translationTable.Texture = stackName##_transtab;\
 	translationTable.Sampler = sampler##stackName##_transtab;\
 \
-	StackInfo info;\
+    StackInfo info = (StackInfo) 0;\
     GR_LOOKUP_LOD(grCB, translationTable, uv, mip, info.lookupDataLod, info.resolveOutput);\
 	return info;\
 }
