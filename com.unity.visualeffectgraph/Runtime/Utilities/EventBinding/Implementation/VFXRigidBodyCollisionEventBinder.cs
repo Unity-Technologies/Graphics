@@ -1,3 +1,4 @@
+#if VFX_HAS_PHYSICS
 using System.Collections;
 using System.Collections.Generic;
 
@@ -28,3 +29,4 @@ namespace UnityEngine.VFX.Utility
         }
     }
 }
+#endif
