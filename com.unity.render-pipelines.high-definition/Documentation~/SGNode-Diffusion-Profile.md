@@ -1,13 +1,13 @@
 # Diffusion Profile Node
 
-Provide an input for a diffusion profile asset.
+The Diffusion Profile Node allows you to sample a [Diffusion Profile](Diffusion-Profile.html) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](Diffusion-Profile.html).
 
 ## Output port
 
-| name | type | description |
-|--- | --- | --- |
-| Out | float | A unique float that is used in the Shader to identify the diffusion profile. |
+| name | **Direction** | type | description |
+|--- | --- | --- | --- |
+| **Out** | Output | float | Outputs a unique float that the Shader uses to identify the Diffusion Profile. |
 
-See the [Diffusion Profile Documentation](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Diffusion-Profile) for more detail.
+The output of this Node is a float value that represents a Diffusion Profile. The Shader can use this value to find settings for the Diffusion Profile Asset that this value represents.
 
-Warning: the output is treated as a float but it's content is used to find the diffusion profile settings associated with the asset so if you modify it's value you'll loose the profile effect. Even though you can enable / disable the diffusion profile by multiplying by 1 or 0, it allow you to use multiple diffusion profile for certain part of your Shader graph. Also please note that the blending between diffusion profiles is not supported (because only one evaluation of diffusion profile per pixel is allowed).
+If you modify the output value, the Shader can no longer use it to find the settings for the Diffusion Profile Asset. You can use this behavior to enable and disable Diffusion Profiles in your Shader Graph. To disable a Diffusion Profile, multiply the output by **0**. To enable a Diffusion Profile, multiply the output by **1**. This allows you to use multiple Diffusion Profiles in different parts of your Shader Graph. Be aware that the High Definition Render Pipeline (HDRP) does not support blending between Diffusion Profiles. This is because HDRP can only evaluate a single Diffusion Profile per pixel.
