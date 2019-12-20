@@ -18,7 +18,7 @@ struct LightLoopContext
     
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;    // combined fade factor of all contact shadows 
-    real shadowValue;          // Stores the value of the cascade shadow map
+    DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
 };
 
 //-----------------------------------------------------------------------------
@@ -377,7 +377,15 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask,
     return 1.0 - occluded * lerp(lightLoopContext.contactShadowFade, 1.0, rayTracedShadow) * _ContactShadowOpacity;
 }
 
-float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)
+float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
 {
-    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex)).x;
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
+}
+
+float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
+{
+    float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
+    return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx; 
 }

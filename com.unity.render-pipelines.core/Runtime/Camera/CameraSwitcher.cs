@@ -2,9 +2,15 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Utility component allowing users to setup many different static camera and cycle through their positions using the Debug Window.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Camera-Switcher" + Documentation.endURL)]
     public class CameraSwitcher : MonoBehaviour
     {
+        /// <summary>
+        /// List of target cameras.
+        /// </summary>
         public Camera[] m_Cameras;
 
         private int m_CurrentCameraIndex = -1;

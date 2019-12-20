@@ -8,5 +8,8 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true
+    "allowUnsafeCode": true,
+	"defineConstraints": [
+		"UNITY_INCLUDE_TESTS"
+		]	
 }

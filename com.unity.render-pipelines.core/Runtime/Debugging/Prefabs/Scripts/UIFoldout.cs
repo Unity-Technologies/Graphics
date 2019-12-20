@@ -2,13 +2,18 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>Foldout in the DebugMenu</summary>
     [ExecuteAlways]
     public class UIFoldout : Toggle
     {
+        /// <summary>Contents inside the toggle</summary>
         public GameObject content;
+        /// <summary>Arror in state opened</summary>
         public GameObject arrowOpened;
+        /// <summary>Arror in state closed</summary>
         public GameObject arrowClosed;
 
+        /// <summary>Start of this GameObject lifecicle</summary>
         protected override void Start()
         {
             base.Start();
@@ -24,11 +29,16 @@ namespace UnityEngine.Rendering.UI
 
 #pragma warning restore 108,114
 
+        /// <summary>Change the state of this foldout</summary>
+        /// <param name="state">The new State</param>
         public void SetState(bool state)
         {
             SetState(state, true);
         }
 
+        /// <summary>Change the state of this foldout</summary>
+        /// <param name="state">The new State</param>
+        /// <param name="rebuildLayout">If True, the layout will be rebuild</param>
         public void SetState(bool state, bool rebuildLayout)
         {
             if (arrowOpened == null || arrowClosed == null || content == null)

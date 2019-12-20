@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering
         }
     }
 
-    public sealed class DebugWindow : EditorWindow
+    sealed class DebugWindow : EditorWindow
     {
         static readonly GUIContent k_ResetButtonContent = new GUIContent("Reset");
         //static readonly GUIContent k_SaveButtonContent = new GUIContent("Save");
