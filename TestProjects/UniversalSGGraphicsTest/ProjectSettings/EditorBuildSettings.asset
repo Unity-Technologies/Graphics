@@ -53,4 +53,28 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: 59493873936c0d94fa665b5f87d88ebd
+  - enabled: 1
+    path: Assets/Scenes/023_Lighting_Mixed_Indirect.unity
+    guid: 9becfeb24996334499eba0aec82e7ec5
+  - enabled: 1
+    path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
+    guid: 32bfda323950f304dbb968c44956c11b
+  - enabled: 1
+    path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
+    guid: d788d77f671b1f143a28286819cdb8f6
+  - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene.unity
+    guid: de7cbb98bf89184438f603c7d1581105
+  - enabled: 1
+    path: Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity
+    guid: c66b72fb12e73604fbee1f2ec4576f3b
+  - enabled: 1
+    path: Assets/Scenes/032_Shader_GlossyEnvironmentColor.unity
+    guid: 8eb3eba8f80274848897bf6544f66841
+  - enabled: 1
+    path: Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
+    guid: 6b6d7071c09c6674289ad19522d6fd6d
+  - enabled: 1
+    path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
+    guid: 94162c2379efdeb48b29a3a2f8657286
   m_configObjects: {}
