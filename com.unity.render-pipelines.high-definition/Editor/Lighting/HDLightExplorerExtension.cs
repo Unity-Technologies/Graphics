@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     intensity = EditorGUI.FloatField(r, intensity);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(lightData, "Changed light intensity");
+                        Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light intensity");
                         lightData.intensity = intensity;
                     }
                 }, (lprop, rprop) =>
@@ -267,7 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                         return; 
 
-                    Undo.RecordObject(tLightData, "Changed light intensity");
+                    Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, tLightData }, "Changed light intensity");
                     tLightData.intensity = sLightData.intensity;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Unit, "m_Intensity", 70, (r, prop, dep) =>                      // 9: Unit
@@ -870,7 +870,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.nearClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue);
                 }, (target, source) => 
                 {
                     if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
@@ -899,7 +899,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.camera.frustum.farClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue);
                 }, (target, source) => 
                 {
                     if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
