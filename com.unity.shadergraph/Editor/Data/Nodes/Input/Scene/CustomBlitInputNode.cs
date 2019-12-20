@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Custom Blit")]
-    sealed class CustomBlitInputNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireCameraOpaqueTexture
+    sealed class CustomBlitInputNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
     {
         public enum InputTextureType
         {
@@ -23,6 +23,12 @@ namespace UnityEditor.ShaderGraph
             Sample,
             Load
         }
+
+        const int kUvInputSlotId = 0;
+        const string kUvInputSlotName = "UV";
+
+        const int kColorOutputSlotId = 1;
+        const string kColorOutputSlotName = "Output";
 
         [SerializeField]
         InputTextureType m_InputTextureType = InputTextureType.SceneColor;
@@ -59,78 +65,25 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-            AddSlot(new ScreenPositionMaterialSlot(1, "UV", "UV", ScreenSpaceType.Default, ShaderStageCapability.Fragment));
+            AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default, ShaderStageCapability.Fragment));
+            AddSlot(new Vector4MaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
+
+            RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kColorOutputSlotId});
         }
         
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            string result = string.Format("$precision4 {0} = SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT({1}.xy);", GetVariableNameForSlot(0), GetVariableNameForSlot(1));
+            string uv = GetSlotValue(kUvInputSlotId, generationMode);
+            string result = string.Format("$precision4 {0} = SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT({1}.xy);", GetVariableNameForSlot(0), uv);
             sb.AppendLine(result);
         }
-            /*
-            protected override MethodInfo GetFunctionToConvert()
-            {
-                return GetType().GetMethod(string.Format("Unity_CustomBlitInput_{0}", GetCurrentInputTextureType()), BindingFlags.Static | BindingFlags.NonPublic);
-            }
+           
+        public bool RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
+        {
+            return true;
+        }
 
-            static string Unity_CustomBlitInput_SceneColor(
-                [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-                [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
-            {
-                Out = Vector4.one;
-                return
-                    @"{
-                        Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);
-                    }
-                    ";
-            }
-            static string Unity_CustomBlitInput_CustomColor(
-                [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-                [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
-            {
-                Out = Vector4.one;
-                return
-                    @"{
-                        Out = SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(UV.xy);
-                    }
-                    ";
-            }
-            static string Unity_CustomBlitInput_SceneDepth(
-                [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-                [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
-            {
-                Out = Vector4.one;
-                return
-                    @"{
-                        Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
-                    }
-                    ";
-            }
-            static string Unity_CustomBlitInput_CustomDepth(
-                [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-                [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
-            {
-                Out = Vector4.one;
-                return
-                    @"{
-                        Out = SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(UV.xy);
-                    }
-                    ";
-            }
-            static string Unity_CustomBlitInput_Normal(
-                [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-                [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
-            {
-                Out = Vector4.one;
-                return
-                    @"{
-                        Out = SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(UV.xy);
-                    }
-                    ";
-            }
-            */
-            public bool RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             return true;
         }
