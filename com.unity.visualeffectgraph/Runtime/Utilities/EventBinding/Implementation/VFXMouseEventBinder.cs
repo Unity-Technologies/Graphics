@@ -71,5 +71,4 @@ namespace UnityEngine.VFX.Utility
         }
     }
 }
-
 #endif
