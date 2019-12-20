@@ -10,9 +10,9 @@ Note: The executed HLSL code for this [Node](Node.md) is defined per **Render Pi
 
 NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md).
 
-#### Unity Pipelines Supported
-- HD Render Pipeline
-- Lightweight Render Pipeline
+#### Unity Render Pipelines Support
+- High Definition Render Pipeline
+- Universal Render Pipeline
 
 ## Ports
 

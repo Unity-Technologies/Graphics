@@ -27,6 +27,16 @@ namespace UnityEngine.Rendering.HighDefinition
         MissingMesh = 0x10
     }
 
+    internal enum InternalRayTracingBuffers
+    {
+        Distance,
+        Direction,
+        R0,
+        RG0,
+        RGBA0,
+        RGBA1
+    }
+
     class HDRayTracingLights
     {
         // The list of non-directional lights in the sub-scene
@@ -71,23 +81,51 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
-        public void InitRayTracingManager()
+        // Ray Direction/Distance buffers
+        RTHandle m_RayTracingDirectionBuffer;
+        RTHandle m_RayTracingDistanceBuffer;
+
+        // Set of intermediate textures that will be used by ray tracing effects
+        RTHandle m_RayTracingIntermediateBufferR0;
+        RTHandle m_RayTracingIntermediateBufferRG0;
+        RTHandle m_RayTracingIntermediateBufferRGBA0;
+        RTHandle m_RayTracingIntermediateBufferRGBA1;
+
+        internal void InitRayTracingManager()
         {
             // Init the denoisers
-            m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
-            m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
-            m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
-            m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager);
+            m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+            m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+            m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+            m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
 
             // Init the ray count manager
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
 
             // Build the light cluster
             m_RayTracingLightCluster.Initialize(this);
+
+            // Allocate the direction and instance buffers
+            m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
+            m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
+        
+            // Allocate the intermediate buffers
+            m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
+            m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
+            m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
+            m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
         }
 
-        public void ReleaseRayTracingManager()
+        internal void ReleaseRayTracingManager()
         {
+            RTHandles.Release(m_RayTracingDistanceBuffer);
+            RTHandles.Release(m_RayTracingDirectionBuffer);
+
+            RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            RTHandles.Release(m_RayTracingIntermediateBufferRG0);
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
+
             m_RayTracingLightCluster.ReleaseResources();
             m_ReflectionDenoiser.Release();
             m_TemporalFilter.Release();
@@ -110,9 +148,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (materialArray == null) return AccelerationStructureStatus.NullMaterial;
 
             // For every sub-mesh/sub-material let's build the right flags
-            currentRenderer.TryGetComponent(out MeshFilter meshFilter);
-            if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
-            int numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+            int numSubMeshes = 1;
+            if (!(currentRenderer.GetType() == typeof(SkinnedMeshRenderer)))
+            {
+                currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                if (meshFilter == null || meshFilter.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+            }
+            else
+            {
+                SkinnedMeshRenderer skinnedMesh = (SkinnedMeshRenderer)currentRenderer;
+                if (skinnedMesh.sharedMesh == null) return AccelerationStructureStatus.MissingMesh;
+                numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
+            }
 
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
@@ -186,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (rayTracedShadow)
             {
                 // Raise the shadow casting flag if needed
-                instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
+                instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
             }
 
             if (aoEnabled && !materialIsOnlyTransparent)
@@ -228,7 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // return the status
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
-        public void BuildRayTracingAccelerationStructure()
+
+        internal void BuildRayTracingAccelerationStructure()
         {
             // Clear all the per frame-data
             m_RayTracingRendererReference.Clear();
@@ -437,7 +486,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             ;
         }
-        
 
         internal BlueNoise GetBlueNoiseManager()
         {
@@ -477,6 +525,27 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool GetRayTracingClusterState()
         {
             return m_ValidRayTracingCluster;
+        }
+
+        internal RTHandle GetRayTracingBuffer(InternalRayTracingBuffers bufferID)
+        {
+            switch (bufferID)
+            {
+                case InternalRayTracingBuffers.Distance:
+                    return m_RayTracingDistanceBuffer;
+                case InternalRayTracingBuffers.Direction:
+                    return m_RayTracingDirectionBuffer;
+                case InternalRayTracingBuffers.R0:
+                    return m_RayTracingIntermediateBufferR0;
+                case InternalRayTracingBuffers.RG0:
+                    return m_RayTracingIntermediateBufferRG0;
+                case InternalRayTracingBuffers.RGBA0:
+                    return m_RayTracingIntermediateBufferRGBA0;
+                case InternalRayTracingBuffers.RGBA1:
+                    return m_RayTracingIntermediateBufferRGBA1;
+                default:
+                    return null;
+            }
         }
 
         static internal float GetPixelSpreadTangent(float fov, int width, int height)

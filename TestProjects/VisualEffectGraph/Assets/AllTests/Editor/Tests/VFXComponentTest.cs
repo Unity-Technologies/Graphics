@@ -1045,7 +1045,8 @@ namespace UnityEditor.VFX.Test
 
             var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
                 .Where(e => e != VFXValueType.Spline
-                    &&  e != VFXValueType.None).ToArray();
+                        &&  e != VFXValueType.Buffer //TODO : Remove this when Buffer as exposed property is possible
+                        &&  e != VFXValueType.None).ToArray();
             foreach (var parameter in VFXLibrary.GetParameters())
             {
                 var newInstance = parameter.CreateInstance();

@@ -629,10 +629,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingReflectionMinSmoothness   = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingIncludeSky            = Shader.PropertyToID("_RaytracingIncludeSky");
-
+        public static readonly int _UseRayTracedReflections         = Shader.PropertyToID("_UseRayTracedReflections");
+        
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
-        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
+        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot"); 
+        public static readonly int _RaytracingChannelMask           = Shader.PropertyToID("_RaytracingChannelMask");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
         public static readonly int _RaytracedAreaShadowSample       = Shader.PropertyToID("_RaytracedAreaShadowSample");
         public static readonly int _RaytracedAreaShadowIntegration = Shader.PropertyToID("_RaytracedAreaShadowIntegration");
@@ -649,6 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _RaytracingSpotAngle             = Shader.PropertyToID("_RaytracingSpotAngle");
         public static readonly int _RaytracedDirectionalShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalShadowIntegration");
+        public static readonly int _RaytracedDirectionalColorShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalColorShadowIntegration");
         public static readonly int _DirectionalLightAngle            = Shader.PropertyToID("_DirectionalLightAngle");
 
         // Ambient occlusion
@@ -744,6 +747,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputLowTexture                = Shader.PropertyToID("_InputLowTexture");
         public static readonly int _InputHighTexture               = Shader.PropertyToID("_InputHighTexture");
         public static readonly int _BloomBicubicParams             = Shader.PropertyToID("_BloomBicubicParams");
+        public static readonly int _BloomThreshold                 = Shader.PropertyToID("_BloomThreshold");
 
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");

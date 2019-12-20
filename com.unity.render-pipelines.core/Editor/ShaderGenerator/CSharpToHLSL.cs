@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    public class CSharpToHLSL
+    class CSharpToHLSL
     {
         public static bool GenerateHLSL(System.Type type, GenerateHLSL attribute, out string shaderSource)
         {

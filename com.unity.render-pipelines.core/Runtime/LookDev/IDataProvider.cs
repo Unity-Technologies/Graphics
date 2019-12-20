@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.LookDev
         /// <summary>Notify the SRP that sky have changed in LookDev</summary>
         /// <param name="camera">The camera of the LookDev's scene</param>
         /// <param name="sky">The new Sky informations</param>
-        /// <param name="shadow">The new Shadow information</param>
         /// <param name="stage">Access element of the LookDev's scene</param>
         void UpdateSky(Camera camera, Sky sky, StageRuntimeInterface stage);
 
@@ -35,6 +34,18 @@ namespace UnityEngine.Rendering.LookDev
         /// <param name="output">The computed ShadowMask</param>
         /// <param name="stage">Access element of the LookDev's scene</param>
         void GetShadowMask(ref RenderTexture output, StageRuntimeInterface stage);
+
+        /// <summary>
+        /// Callback called at the beginning of LookDev rendering.
+        /// </summary>
+        /// <param name="stage">Access element of the LookDev's scene</param>
+        void OnBeginRendering(StageRuntimeInterface stage);
+
+        /// <summary>
+        /// Callback called at the beginning of LookDev rendering.
+        /// </summary>
+        /// <param name="stage">Access element of the LookDev's scene</param>
+        void OnEndRendering(StageRuntimeInterface stage);
     }
 
     /// <summary>
@@ -42,8 +53,11 @@ namespace UnityEngine.Rendering.LookDev
     /// </summary>
     public struct Sky
     {
+        /// <summary>The cubemap representing this sky</summary>
         public Cubemap cubemap;
+        /// <summary>The longitude offset to rotate this cubemap</summary>
         public float longitudeOffset;
+        /// <summary>The sky exposure</summary>
         public float exposure;
     }
 
@@ -54,6 +68,10 @@ namespace UnityEngine.Rendering.LookDev
         System.Func<Camera> m_GetCamera;
         System.Func<Light> m_GetSunLight;
 
+        /// <summary>Construct a StageRuntimeInterface</summary>
+        /// <param name="AddGameObject">Callback to call when adding a GameObject</param>
+        /// <param name="GetCamera">Callback to call for getting the Camera</param>
+        /// <param name="GetSunLight">Callback to call for getting the sun Light</param>
         public StageRuntimeInterface(
             System.Func<bool, GameObject> AddGameObject,
             System.Func<Camera> GetCamera,
