@@ -1263,7 +1263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cameraPositionSettings.Clear();
                     skipClearCullingResults.Clear();
 
-                    var cullingResults = GenericPool<HDCullingResults>.Get();
+                    var cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                     cullingResults.Reset();
 
                     // Try to compute the parameters of the request or skip the request
@@ -1286,7 +1286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                                 {
-                                    GenericPool<HDCullingResults>.Release(cullingResults);
+                                    UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                                     cullingResults = req.cullingResults;
                                     skipClearCullingResults.Add(req.index);
                                     needCulling = false;
@@ -1310,7 +1310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Submit render context and free pooled resources for this request
                         UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
                         renderContext.Submit();
-                        GenericPool<HDCullingResults>.Release(cullingResults);
+                        UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                         UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                         continue;
                     }
@@ -1508,14 +1508,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         camera.targetTexture = visibleProbe.realtimeTexture;
                         camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                         camera.gameObject.SetActive(false);
+
                         // Warning: accessing Object.name generate 48B of garbage at each frame here
-                        camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                        // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                        // Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
+                        camera.name = visibleProbe.probeName[j];
+
                         camera.ApplySettings(cameraSettings[j]);
                         camera.ApplySettings(cameraPositionSettings[j]);
                         camera.cameraType = CameraType.Reflection;
                         camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
 
-                        var _cullingResults = GenericPool<HDCullingResults>.Get();
+                        var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                         _cullingResults.Reset();
 
                         if (!(TryCalculateFrameParameters(
@@ -1532,7 +1536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Skip request and free resources
                             Object.Destroy(camera);
-                            GenericPool<HDCullingResults>.Release(_cullingResults);
+                            UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
                             continue;
                         }
                         HDAdditionalCameraData hdCam;
@@ -1714,15 +1718,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         using (new ProfilingSample(
                             cmd,
-                            // Warning: accessing .name here allocate 48B of garbage each frame.
-                            // HDUtils.ComputeCameraName(renderRequest.hdCamera.camera.name),
-                            "HDRenderPipeline::Render Camera",
+                            renderRequest.hdCamera.cameraName,
                             CustomSamplerId.HDRenderPipelineRender.GetSampler())
                         )
                         {
                             cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                             UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.NewDefault());
+                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                             cmd.SetInvertCulling(false);
                             UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                         }
@@ -1747,7 +1749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (!skipClearCullingResults.Contains(renderRequest.index))
                             {
                                 renderRequest.cullingResults.decalCullResults?.Clear();
-                                GenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+                                UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
                             }
                         }
 

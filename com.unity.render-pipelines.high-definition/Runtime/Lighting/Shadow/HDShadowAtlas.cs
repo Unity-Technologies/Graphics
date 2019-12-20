@@ -552,7 +552,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return (m_BlurAlgorithm == BlurAlgorithm.EVSM) && m_AtlasMoments[0] != null;
         }
 
-        static void EVSMBlurMoments( RenderShadowsParameters parameters,
+        // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
+        // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
+        static readonly Vector4[] evsmBlurWeights = {
+            new Vector4(0.1531703f, 0.1448929f, 0.1226492f, 0.0929025f),
+            new Vector4(0.06297021f, 0.0f, 0.0f, 0.0f),
+        };
+
+        unsafe static void EVSMBlurMoments( RenderShadowsParameters parameters,
                                             RTHandle atlasRenderTexture,
                                             RTHandle[] momentAtlasRenderTextures,
                                             CommandBuffer cmd)
@@ -565,21 +572,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 int blurMomentsKernel = shadowBlurMomentsCS.FindKernel("Blur");
                 int copyMomentsKernel = shadowBlurMomentsCS.FindKernel("CopyMoments");
 
-                Vector4[] blurWeights = new Vector4[2];
-
-                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
-                // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
-                blurWeights[0].x = 0.1531703f;
-                blurWeights[0].y = 0.1448929f;
-                blurWeights[0].z = 0.1226492f;
-                blurWeights[0].w = 0.0929025f;
-                blurWeights[1].x = 0.06297021f;
-
                 cmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._DepthTexture, atlasRenderTexture);
-                cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, blurWeights);
+                cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, evsmBlurWeights);
 
                 // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
-                int[] finalAtlasTexture = new int[parameters.shadowRequests.Count];
+                var finalAtlasTexture = stackalloc int[parameters.shadowRequests.Count];
 
                 int requestIdx = 0;
                 foreach (var shadowRequest in parameters.shadowRequests)
