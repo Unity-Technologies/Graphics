@@ -65,7 +65,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
             
             Varyings Vert(Attributes IN)
             {
-                Varyings output;
+                Varyings output = (Varyings) 0;
                 
                 output.clipPos = TransformWorldToHClip(IN.positionOS.xyz);
                 
@@ -147,7 +147,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
             
             Varyings Vert(Attributes IN)
             {
-                Varyings output;
+                Varyings output = (Varyings)0;
                 
                 output.clipPos = TransformWorldToHClip(IN.positionOS.xyz);
                 
