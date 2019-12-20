@@ -63,6 +63,17 @@ Shader "HDRP/AxF"
         _CarPaint2_CTCoeffs("_CarPaint2_CTCoeffs", Vector) = (1,1,1,1)
         _CarPaint2_CTSpreads("_CarPaint2_CTSpreads", Vector) = (1,1,1,1)
 
+        // x = diffuse indirect (SH probe), y = specular indirect (env./cubemap probe), z = ltc, w = ssr
+        _LightTypeDimmers("_LightTypeDimmers", Vector) = (1,1,1,1)
+        // Specular Indirect (environments) sampling mode quality parameter:
+        // Positive values = FIS, negative values = IS, +- 0,1,2,3,4
+        // See _AXF_ENV_SAMPLING_MODE_ON: keyword set when quality != 0
+        //
+        _EnvSamplingModeQuality("_EnvSamplingModeQuality", Int) = 0
+        _EnvSamplingFilteringAmount("_EnvSamplingFilteringAmount", Range(0.0, 1.0)) = 1.0
+        // TODO
+        _LTCSamplingModeQuality("_LTCSamplingModeQuality", Int) = 0
+
 //      [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
@@ -124,6 +135,7 @@ Shader "HDRP/AxF"
     // Variant
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
+    #pragma shader_feature_local _AXF_ENV_SAMPLING_MODE_ON
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DOUBLESIDED_ON

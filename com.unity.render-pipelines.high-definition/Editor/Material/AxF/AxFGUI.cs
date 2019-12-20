@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // AxF material keywords
         static string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
+        static string               m_EnvSamplingModeQualityText = "_EnvSamplingModeQuality";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
@@ -56,9 +57,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             AxfBrdfType   BRDFType = (AxfBrdfType)material.GetFloat(m_AxF_BRDFTypeText);
 
+            // Sampling is just for car paint for now:
+            //bool envSamplingModeEnabled = (BRDFType == AxfBrdfType.CAR_PAINT) && material.HasProperty(m_EnvSamplingModeQualityText) && (material.GetFloat(m_EnvSamplingModeQualityText) != 0.0f);
+            bool envSamplingModeEnabled = material.HasProperty(m_EnvSamplingModeQualityText) && (material.GetFloat(m_EnvSamplingModeQualityText) != 0.0f);
+
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+            CoreUtils.SetKeyword(material, "_AXF_ENV_SAMPLING_MODE_ON", envSamplingModeEnabled);
 
             // Keywords for opt-out of decals and SSR:
             bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;

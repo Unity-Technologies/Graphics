@@ -12,6 +12,10 @@ namespace UnityEditor.Rendering.HighDefinition
     // We don't reuse the other surface option ui block, AxF is too different
     class AxfSurfaceInputsUIBlock : MaterialUIBlock
     {
+        public class Config
+        {
+            public static bool s_ShowAdvanced = true;
+        }
         public class Styles
         {
             public const string header = "Surface Inputs";
@@ -48,6 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    CarPaintIORText = new GUIContent("IOR");
 
+            public static GUIContent    CarPaintCTDiffuseText = new GUIContent("Diffuse coeff");
+            public static GUIContent    CarPaintLobeCountText = new GUIContent("CT Lobes count");
+            public static GUIContent    CarPaintCTF0sText = new GUIContent("CT Lobes F0s");
+            public static GUIContent    CarPaintCTCoeffsText = new GUIContent("CT Lobes coeffs");
+            public static GUIContent    CarPaintCTSpreadsText = new GUIContent("CT Lobes spreads");
+
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Generic
 
@@ -58,6 +68,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    supportDecalsText = new GUIContent("Enable Decal", "Specify whether the material can receive decals.");
             public static GUIContent    receivesSSRText = new GUIContent("Receives SSR", "Specify whether the material can receive screen space reflection.");
+
+            // Misc advanced:
+            public const string advancedHeader = "Advanced Per Material Shading Controls";
+
+            public static GUIContent    lightTypeDimmersText  = new GUIContent("Light Type Dimmers", "indirect diffuse (SH), indirect specular (IBL), LTC, SSR.");
+            public static GUIContent    envSamplingModeQualityText  = new GUIContent("Env. Sampling Mode Quality", "0 disabled, up to 4");
+            public static GUIContent    envSamplingFilteringAmountText = new GUIContent("Env. Sampling Filtering Amount", "0 to 1");
+            public static GUIContent    ltcSamplingModeQualityText  = new GUIContent("Area Lights Sampling Mode Quality", "0 disabled, up to 4");
+            public static GUIContent    ltcFlakeModeText  = new GUIContent("Area Lights Flake Mode", "Area Lights Flake Mode");
+            public static GUIContent    ltcBRDFColorModeText  = new GUIContent("Area Lights BRDFColor Mode", "Area Lights BRDFColor Mode");
+            public static GUIContent    environmentModeText =  new GUIContent("Environment Mode", "Environment Mode");
+
         }
 
         static readonly string[]    AxfBrdfTypeNames = Enum.GetNames(typeof(AxfBrdfType));
@@ -115,6 +137,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string               m_FlagsText = "_Flags";
         MaterialProperty  m_Flags;
+
+        // Other advanced controls:
+        static string               m_LightTypeDimmersText = "_LightTypeDimmers";
+        MaterialProperty  m_LightTypeDimmers;
+
+        static string               m_EnvSamplingModeQualityText = "_EnvSamplingModeQuality";
+        MaterialProperty  m_EnvSamplingModeQuality;
+
+        static string               m_EnvSamplingFilteringAmountText = "_EnvSamplingFilteringAmount";
+        MaterialProperty  m_EnvSamplingFilteringAmount;
+
+        static string               m_LTCSamplingModeQualityText = "_LTCSamplingModeQuality";
+        MaterialProperty  m_LTCSamplingModeQuality;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // SVBRDF Parameters
@@ -187,6 +222,17 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_CarPaint2_ClearcoatIORText = "_CarPaint2_ClearcoatIOR";
         MaterialProperty  m_CarPaint2_ClearcoatIOR;
 
+        static string               m_CarPaint2_CTDiffuseText = "_CarPaint2_CTDiffuse";
+        MaterialProperty  m_CarPaint2_CTDiffuse;
+        static string               m_CarPaint2_LobeCountText = "_CarPaint2_LobeCount";
+        MaterialProperty  m_CarPaint2_LobeCount;
+        static string               m_CarPaint2_CTF0sText = "_CarPaint2_CTF0s";
+        MaterialProperty  m_CarPaint2_CTF0s;
+        static string               m_CarPaint2_CTCoeffsText = "_CarPaint2_CTCoeffs";
+        MaterialProperty  m_CarPaint2_CTCoeffs;
+        static string               m_CarPaint2_CTSpreadsText = "_CarPaint2_CTSpreads";
+        MaterialProperty  m_CarPaint2_CTSpreads;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Clearcoat
         static string               m_ClearcoatColorMapText = "_SVBRDF_ClearcoatColorMap";
@@ -225,6 +271,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AxF_BRDFType = FindProperty(m_AxF_BRDFTypeText);
 
             m_Flags = FindProperty(m_FlagsText);
+
+            m_LightTypeDimmers = FindProperty(m_LightTypeDimmersText);
+            m_EnvSamplingModeQuality = FindProperty(m_EnvSamplingModeQualityText);
+            m_EnvSamplingFilteringAmount = FindProperty(m_EnvSamplingFilteringAmountText);
+            m_LTCSamplingModeQuality = FindProperty(m_LTCSamplingModeQualityText);
 
             //////////////////////////////////////////////////////////////////////////
             // SVBRDF
@@ -267,6 +318,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CarPaint2_ClearcoatIOR = FindProperty(m_CarPaint2_ClearcoatIORText);
 
+            m_CarPaint2_CTDiffuse = FindProperty(m_CarPaint2_CTDiffuseText);
+            m_CarPaint2_LobeCount = FindProperty(m_CarPaint2_LobeCountText);
+            m_CarPaint2_CTF0s = FindProperty(m_CarPaint2_CTF0sText);
+            m_CarPaint2_CTCoeffs = FindProperty(m_CarPaint2_CTCoeffsText);
+            m_CarPaint2_CTSpreads = FindProperty(m_CarPaint2_CTSpreadsText);
+
             //////////////////////////////////////////////////////////////////////////
             // Clearcoat
             m_ClearcoatColorMap = FindProperty(m_ClearcoatColorMapText);
@@ -289,6 +346,70 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // https://stackoverflow.com/questions/15967240/fastest-implementation-of-log2int-and-log2float
+        // http://aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
+        public static int NumBitsSet(uint x)
+        {
+            x -= ((x >> 1) & 0x55555555);
+            x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
+            x = (((x >> 4) + x) & 0x0f0f0f0f);
+            x += (x >> 8);
+            x += (x >> 16);
+            return (int)(x & 0x0000003f);
+        }
+        public static uint FloorLog2(uint x)
+        {
+            x |= (x >> 1);
+            x |= (x >> 2);
+            x |= (x >> 4);
+            x |= (x >> 8);
+            x |= (x >> 16);
+            return (uint)(NumBitsSet(x) - 1);
+        }
+
+        public static uint GenFlags(bool anisotropy = false, bool clearcoat = false, bool clearcoatRefraction = false, bool useHeightMap = false, bool brdfColorDiagonalClamp = false,
+                                    bool honorMinRoughness = false,
+                                    bool ltcPseudoRefraction = false,
+                                    uint ltcFlakeMode = 0, uint ltcBRDFColorMode = 0,
+                                    uint environmentMode = 0)
+        {
+            uint flags = 0;
+            flags |= anisotropy ? (uint) AxF.FeatureFlags.AxfAnisotropy : 0U;
+            flags |= clearcoat ? (uint) AxF.FeatureFlags.AxfClearCoat : 0U;
+            flags |= clearcoatRefraction ? (uint) AxF.FeatureFlags.AxfClearCoatRefraction : 0U;
+            flags |= useHeightMap ? (uint) AxF.FeatureFlags.AxfUseHeightMap : 0U;
+            flags |= brdfColorDiagonalClamp ? (uint) AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
+            flags |= honorMinRoughness ? (uint) AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
+            flags |= ltcPseudoRefraction ? (uint) AxF.FeatureFlags.AxfLtcPseudoRefraction : 0U;
+            flags |= ( (ltcFlakeMode & ((1U<<AxF.AxFDefinitions.s_AxfLtcFlakeModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcFlakeMode));
+            flags |= ( (ltcBRDFColorMode & ((1U<<AxF.AxFDefinitions.s_AxfLtcBRDFColorModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcBRDFColorMode));
+            //uint envModeMask = ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1);
+            //int envModeOffset = (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode);
+            //environmentMode = environmentMode & envModeMask;
+            //flags |= (environmentMode << envModeOffset);
+            flags |= ( (environmentMode & ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode));
+            return flags;
+        }
+
+        public static void ExtractFlags(uint flags,
+                                        out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+                                        out bool honorMinRoughness,
+                                        out bool ltcPseudoRefraction,
+                                        out uint ltcFlakeMode, out uint ltcBRDFColorMode,
+                                        out uint environmentMode)
+        {
+            anisotropy             = (flags & (uint)AxF.FeatureFlags.AxfAnisotropy) != 0;
+            clearcoat              = (flags & (uint)AxF.FeatureFlags.AxfClearCoat) != 0;
+            clearcoatRefraction    = (flags & (uint)AxF.FeatureFlags.AxfClearCoatRefraction) != 0;
+            useHeightMap           = (flags & (uint)AxF.FeatureFlags.AxfUseHeightMap) != 0;
+            brdfColorDiagonalClamp = (flags & (uint)AxF.FeatureFlags.AxfBRDFColorDiagonalClamp) != 0;
+            honorMinRoughness      = (flags & (uint)AxF.FeatureFlags.AxfHonorMinRoughness) != 0;
+            ltcPseudoRefraction    = (flags & (uint)AxF.FeatureFlags.AxfLtcPseudoRefraction) != 0;
+            ltcFlakeMode           = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcFlakeMode)) & ((1U<<AxF.AxFDefinitions.s_AxfLtcFlakeModeNumbits)-1);
+            ltcBRDFColorMode       = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcBRDFColorMode)) & ((1U<<AxF.AxFDefinitions.s_AxfLtcBRDFColorModeNumbits)-1);
+            environmentMode        = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode)) & ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1);
+        }
+
         void DrawAxfSurfaceOptionsGUI()
         {
             materialEditor.ShaderProperty(m_MaterialTilingU, "Material Tiling U");
@@ -298,6 +419,26 @@ namespace UnityEditor.Rendering.HighDefinition
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
             m_AxF_BRDFType.floatValue = (float)AxF_BRDFType;
 
+            // Extract flag:
+            uint flags = (uint)m_Flags.floatValue;
+            bool anisotropy;
+            bool clearcoat;
+            bool clearcoatRefraction;
+            bool useHeightMap;
+            bool brdfColorDiagonalClamp;
+            bool honorMinRoughness;
+            bool ltcPseudoRefraction;
+            uint ltcFlakeMode;
+            uint ltcBRDFColorMode;
+            uint environmentMode;
+
+            ExtractFlags(flags,
+                         out anisotropy, out clearcoat, out clearcoatRefraction, out useHeightMap, out brdfColorDiagonalClamp,
+                         out honorMinRoughness,
+                         out ltcPseudoRefraction,
+                         out ltcFlakeMode, out ltcBRDFColorMode,
+                         out environmentMode);
+
             switch (AxF_BRDFType)
             {
                 case AxfBrdfType.SVBRDF:
@@ -306,7 +447,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ++EditorGUI.indentLevel;
 
                     // Read as compact flags
-                    uint    flags = (uint)m_Flags.floatValue;
+                    //uint    flags = (uint)m_Flags.floatValue;
                     uint    BRDFType = (uint)m_SVBRDF_BRDFType.floatValue;
                     uint    BRDFVariants = (uint)m_SVBRDF_BRDFVariants.floatValue;
 
@@ -345,8 +486,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap);
 
                     // Displacement
-                    bool    useDisplacementMap = EditorGUILayout.Toggle("Enable Displacement Map", (flags & 8) != 0);
-                    if (useDisplacementMap)
+                    useHeightMap = EditorGUILayout.Toggle("Enable Displacement Map", useHeightMap);
+                    if (useHeightMap)
                     {
                         ++EditorGUI.indentLevel;
                         materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap);
@@ -355,8 +496,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Anisotropy
-                    bool    isAnisotropic = EditorGUILayout.Toggle("Is Anisotropic", (flags & 1) != 0);
-                    if (isAnisotropic)
+                    anisotropy = EditorGUILayout.Toggle("Is Anisotropic", anisotropy);
+                    if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
                         materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap);
@@ -364,29 +505,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Clearcoat
-                    bool    hasClearcoat = EditorGUILayout.Toggle("Enable Clearcoat", (flags & 2) != 0);
-                    bool    clearcoatUsesRefraction = (flags & 4) != 0;
-                    if (hasClearcoat)
+                    clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
+                    if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
-                        clearcoatUsesRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatUsesRefraction);
-                        if (clearcoatUsesRefraction)
-                        {
-                            ++EditorGUI.indentLevel;
-                            materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap);
-                            --EditorGUI.indentLevel;
-                        }
+                        clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
+                        // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
+                        // is given by a scalar value.
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap);
                         --EditorGUI.indentLevel;
                     }
-
-                    // Write back as compact flags
-                    flags = 0;
-                    flags |= isAnisotropic ? 1U : 0U;
-                    flags |= hasClearcoat ? 2U : 0U;
-                    flags |= clearcoatUsesRefraction ? 4U : 0U;
-                    flags |= useDisplacementMap ? 8U : 0U;
 
                     BRDFType = 0;
                     BRDFType |= (uint)diffuseType;
@@ -398,7 +528,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     BRDFVariants |= ((uint)blinnVariant) << 4;
 
 //                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
-                    m_Flags.floatValue = (float)flags;
                     m_SVBRDF_BRDFType.floatValue = (float)BRDFType;
                     m_SVBRDF_BRDFVariants.floatValue = (float)BRDFVariants;
 
@@ -411,11 +540,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                     ++EditorGUI.indentLevel;
 
-                    // Read as compact flags
-                    uint    flags = (uint)m_Flags.floatValue;
-
-                    bool    isAnisotropic = false;
-                    bool    useDisplacementMap = false;
+                    useHeightMap = false;
 
                     // Expand as user-friendly UI
 
@@ -423,8 +548,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.TexturePropertySingleLine(Styles.BRDFColorMapText, m_CarPaint2_BRDFColorMap);
                     m_CarPaint2_BRDFColorMapScale.floatValue = EditorGUILayout.FloatField(Styles.BRDFColorMapScaleText, m_CarPaint2_BRDFColorMapScale.floatValue);
 
-                    bool    brdfColorUseDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", (flags & 16) != 0);
-                    if (brdfColorUseDiagonalClamp)
+                    brdfColorDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", brdfColorDiagonalClamp);
+                    if (brdfColorDiagonalClamp)
                     {
                         ++EditorGUI.indentLevel;
                         m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
@@ -440,45 +565,70 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     materialEditor.TexturePropertySingleLine(Styles.thetaFI_sliceLUTMapText, m_CarPaint2_FlakeThetaFISliceLUTMap);
 
-                    // m_CarPaint_maxThetaI = FindProperty( m_CarPaint_maxThetaIText, props );
-                    // m_CarPaint_numThetaF = FindProperty( m_CarPaint_numThetaFText, props );
-                    // m_CarPaint_numThetaI = FindProperty( m_CarPaint_numThetaIText, props );
+                    //m_CarPaint2_FlakeMaxThetaI = FindProperty(m_CarPaint2_FlakeMaxThetaIText);
+                    //m_CarPaint2_FlakeNumThetaF = FindProperty(m_CarPaint2_FlakeNumThetaFText);
+                    //m_CarPaint2_FlakeNumThetaI = FindProperty(m_CarPaint2_FlakeNumThetaIText);
 
+                    m_CarPaint2_CTDiffuse.floatValue = EditorGUILayout.FloatField(Styles.CarPaintCTDiffuseText, m_CarPaint2_CTDiffuse.floatValue);
+                    m_CarPaint2_LobeCount.floatValue = Mathf.Floor(Mathf.Clamp(EditorGUILayout.FloatField(Styles.CarPaintLobeCountText, m_CarPaint2_LobeCount.floatValue), 0f, 3f));
+                    m_CarPaint2_CTF0s.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTF0sText, m_CarPaint2_CTF0s.vectorValue);
+                    m_CarPaint2_CTCoeffs.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTCoeffsText, m_CarPaint2_CTCoeffs.vectorValue);
+                    m_CarPaint2_CTSpreads.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTSpreadsText, m_CarPaint2_CTSpreads.vectorValue);
+                    materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
 
                     // Clearcoat
-                    bool    hasClearcoat = EditorGUILayout.Toggle("Enable Clearcoat", (flags & 2) != 0);
-                    bool    clearcoatUsesRefraction = (flags & 4) != 0;
-                    if (hasClearcoat)
+                    clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
+                    if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
 //                        materialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
-//                        if ( clearcoatUsesRefraction ) {
-                        {
-                            ++EditorGUI.indentLevel;
-//                            materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
-                            m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
-                            --EditorGUI.indentLevel;
-                        }
+//                        materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
+                        m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                         --EditorGUI.indentLevel;
-                        clearcoatUsesRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatUsesRefraction);
+                        clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                     }
 
-                    // Write back as compact flags
-                    flags = 0;
-                    flags |= isAnisotropic ? 1U : 0U;
-                    flags |= hasClearcoat ? 2U : 0U;
-                    flags |= clearcoatUsesRefraction ? 4U : 0U;
-                    flags |= useDisplacementMap ? 8U : 0U;
-                    flags |= brdfColorUseDiagonalClamp ? 16U : 0U;
-
 //                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
-                    m_Flags.floatValue = (float)flags;
 
                     --EditorGUI.indentLevel;
                     break;
                 }
             }
-        }
+
+            // Draw other advanced options:
+            if (Config.s_ShowAdvanced)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(Styles.advancedHeader);
+                EditorGUILayout.Space();
+
+                ++EditorGUI.indentLevel;
+
+                honorMinRoughness = EditorGUILayout.Toggle("Honor Min Roughness", honorMinRoughness);
+                ltcPseudoRefraction = EditorGUILayout.Toggle("Area Lights Pseudo Refraction", ltcPseudoRefraction);
+                //ltcFlakeMode = EditorGUILayout.IntField(Styles.ltcFlakeModeText, ltcFlakeMode);
+                //ltcBRDFColorMode = EditorGUILayout.IntField(Styles.ltcBRDFColorModeText, ltcBRDFColorMode);
+                environmentMode = (uint) EditorGUILayout.IntField(Styles.environmentModeText, (int)environmentMode);
+
+                m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, -4, 4);
+                //m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntField(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue);
+                //materialEditor.ShaderProperty(m_EnvSamplingModeQuality, Styles.envSamplingModeQualityText);
+                materialEditor.ShaderProperty(m_EnvSamplingFilteringAmount, Styles.envSamplingFilteringAmountText);
+                //m_LTCSamplingModeQuality.intValue = EditorGUILayout.IntField(Styles.ltcSamplingModeQualityText, m_LTCSamplingModeQuality.intValue);
+
+                m_LightTypeDimmers.vectorValue = EditorGUILayout.Vector4Field(Styles.lightTypeDimmersText, m_LightTypeDimmers.vectorValue);
+
+                --EditorGUI.indentLevel;
+            }
+
+            // Finally write back flags:
+            flags = GenFlags(anisotropy, clearcoat, clearcoatRefraction, useHeightMap, brdfColorDiagonalClamp,
+                             honorMinRoughness,
+                             ltcPseudoRefraction,
+                             ltcFlakeMode, ltcBRDFColorMode,
+                             environmentMode);
+            m_Flags.floatValue = (float)flags;
+        }//DrawAxfSurfaceOptionsGUI
     }
 }

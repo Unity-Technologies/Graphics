@@ -127,7 +127,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Finalize tangent space
     surfaceData.tangentWS = input.tangentToWorld[0];
-    if (_Flags & 1) // IsAnisotropic
+    if (HasAnisotropy())
     {
         float3 tangentTS = float3(1, 0, 0);
         // We will keep anisotropyAngle in surfaceData for now for debug info, register will be freed
