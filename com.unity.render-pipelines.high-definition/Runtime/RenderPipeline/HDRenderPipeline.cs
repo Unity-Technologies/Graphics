@@ -806,6 +806,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupLightLoop();
 
+            HDProbeSystem.Cleanup();
+
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
