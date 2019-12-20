@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2019-11-20
 
-### Added 
+### Added
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
 - Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
@@ -39,8 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
-- Added a check in the custom post process template to throw an error if the default shader is not found.
 - Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
+- Added a check in the custom post process template to throw an error if the default shader is not found.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -220,6 +220,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed init of debug for FrameSettingsHistory on SceneView camera
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
+- Fixed TerrainLitGUI when per-pixel normal property is not present.
 - Fixed rendering errors when enabling debug modes with custom passes
 - Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
 - Fixing a bug whith histories when n>4 for ray traced shadows
@@ -259,6 +260,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
 - Fixed corruption of AO in baked probes.
 - Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
+- Fixed issue that caused Distortion UI to appear in Lit.
+- Fixed several issues with decal duplicating when editing them.
+- Fixed initialization of volumetric buffer params (1204159)
+- Fixed an issue where frame count was incorrectly reset for the game view, causing temporal processes to fail.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -302,6 +307,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the constrained distance for temporal reprojection of ray tracing denoising
 - Removed shadow near plane from the Directional Light Shadow UI.
 - Improved the performances of custom pass culling.
+- The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
 
 ## [7.1.1] - 2019-09-05
 
