@@ -11,8 +11,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [Flags]
     public enum DepthAccess
     {
+        ///<summary>Read Access.</summary>
         Read = 1 << 0,
+        ///<summary>Write Access.</summary>
         Write = 1 << 1,
+        ///<summary>Read and Write Access.</summary>
         ReadWrite = Read | Write,
     }
 
@@ -21,9 +24,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public ref struct RenderGraphContext
     {
+        ///<summary>Scriptable Render Context used for rendering.</summary>
         public ScriptableRenderContext      renderContext;
+        ///<summary>Command Buffer used for rendering.</summary>
         public CommandBuffer                cmd;
+        ///<summary>Render Graph pooll used for temporary data.</summary>
         public RenderGraphObjectPool        renderGraphPool;
+        ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
         public RenderGraphResourceRegistry  resources;
     }
 
@@ -32,8 +39,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphExecuteParams
     {
+        ///<summary>Rendering width.</summary>
         public int         renderingWidth;
+        ///<summary>Rendering height.</summary>
         public int         renderingHeight;
+        ///<summary>Number of MSAA samples.</summary>
         public MSAASamples msaaSamples;
     }
 
@@ -81,6 +91,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public class RenderGraph
     {
+        ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
         internal abstract class RenderPass
@@ -180,6 +191,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         #region Public Interface
 
+        /// <summary>
+        /// Returns true if rendering with Render Graph is enabled.
+        /// </summary>
         public bool enabled { get { return m_DebugParameters.enableRenderGraph; } }
 
         // TODO: Currently only needed by SSAO to sample correctly depth texture mips. Need to figure out a way to hide this behind a proper formalization.

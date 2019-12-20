@@ -209,8 +209,8 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var injectionPoint in injectionPoints)
                 GetActivePassVolume(injectionPoint)?.AggregateCullingParameters(ref cullingParameters, hdCamera);
 
-            // If we don't have anything to cull or the pass have the same culling mask than the camera, we don't have to re-do the culling
-            if (cullingParameters.cullingMask != 0 || cullingParameters.cullingMask == hdCamera.camera.cullingMask)
+            // If we don't have anything to cull or the pass is asking for the same culling layers than the camera, we don't have to re-do the culling
+            if (cullingParameters.cullingMask != 0 && (cullingParameters.cullingMask & hdCamera.camera.cullingMask) != cullingParameters.cullingMask)
                 result = renderContext.Cull(ref cullingParameters);
 
             return result;
