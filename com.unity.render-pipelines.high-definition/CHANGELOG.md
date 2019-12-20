@@ -309,6 +309,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed shadow near plane from the Directional Light Shadow UI.
 - Improved the performances of custom pass culling.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
+- Ray tracing reflection temporal filtering is now done in pre-exposed space
 
 ## [7.1.1] - 2019-09-05
 
