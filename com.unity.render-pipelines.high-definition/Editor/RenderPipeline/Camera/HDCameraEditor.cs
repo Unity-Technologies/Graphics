@@ -55,5 +55,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return m_PreviewTexture;
         }
+
+        [MenuItem("CONTEXT/Camera/Convert to HDCamera", isValidateFunction: true, priority: -100)]
+        static bool IsConvertCameraToHDCameraValid()
+            => HDRenderPipeline.currentAsset != null;
+        
+        [MenuItem("CONTEXT/Camera/Convert to HDCamera", isValidateFunction: false, priority: -100)]
+        static void ConvertCameraToHDCamera(MenuCommand command)
+            => HDCamera.ConvertCameraToHDCamera(command.context as Camera);
     }
 }

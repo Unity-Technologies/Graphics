@@ -772,5 +772,27 @@ namespace UnityEngine.Rendering.HighDefinition
             string msg = "AR/VR devices are not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
+
+        internal class DoNotCopyAttribute : Attribute { }
+
+        internal static void RuntimeCopyComponentValue(Component src, Component dst)
+        {
+            const System.Reflection.BindingFlags bindingFlags =
+                System.Reflection.BindingFlags.Instance
+                | System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.NonPublic;
+            System.Reflection.FieldInfo[] srcFields = src.GetType().GetFields(bindingFlags);
+            System.Reflection.FieldInfo[] dstFields = dst.GetType().GetFields(bindingFlags);
+            foreach (System.Reflection.FieldInfo srcField in srcFields)
+            {
+                if (srcField.GetCustomAttributes(typeof(DoNotCopyAttribute), false).Length > 0)
+                    continue;
+
+                Debug.Log($"Search {srcField.Name}");
+                System.Reflection.FieldInfo dstField = dstFields.First(f => f.Name == srcField.Name);
+                Debug.Log($"Copy {srcField.Name} -> {dstField.Name}");
+                dstField.SetValue(dst, srcField.GetValue(src));
+            }
+        }
     }
 }

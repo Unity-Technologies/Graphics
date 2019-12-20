@@ -26,7 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] HDPhysicalCamera physicalParameters;
         [SerializeField] HDCamera.FlipYMode flipYMode;
         [SerializeField] bool fullscreenPassthrough;
-        [SerializeField] bool allowDynamicResolution; //renamed allowDynamicResolutionHD in HDCamera due to inheritence and serialisation conflict
+        [FormerlySerializedAs("allowDynamicResolution")]
+        [SerializeField] bool allowDynamicResolutionHD; //renamed allowDynamicResolutionHD in HDCamera due to inheritence and serialisation conflict
         [SerializeField] bool customRenderingSettings;
         [SerializeField] bool invertFaceCulling;
         [SerializeField] LayerMask probeLayerMask;
@@ -40,10 +41,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // legacy component datas (HDAdditionalData part)
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
+        [HDUtils.DoNotCopy]
         int m_ObsoleteRenderingPath;
         [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
 #pragma warning disable 618 // Type or member is obsolete
+        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
+        [HDUtils.DoNotCopy]
         ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618
 #pragma warning restore 649
@@ -67,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("version")]
+        [HDUtils.DoNotCopy]
         Version m_Version;
         
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
@@ -108,18 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data)
                 => FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.m_RenderingPathCustomFrameSettings)
             ),
-            MigrationStep.New(Version.MergeHDAdditionalCameraDataIntoHDCamera, (HDAdditionalCameraData data) =>
-            {
-                //TODO: migration
-                //1 - Create a temporary GameObject with a HDCamera
-                //2 - Copy the Camera values on this GameObject into the HDCamera
-                //3 - Copy the HDAdditionalCameraData values into the HDCamera
-                //4 - Prepare a delegate call that will do:
-                //    i   - Remove this HDAdditionalCameraData from this GameObject
-                //    ii  - Remove the Camera from this GameObject
-                //    iii - Copy the HDCamera component on this GameObject
-                //    iv  - Destroy the temporary GameObject
-            })
+            MigrationStep.New(Version.MergeHDAdditionalCameraDataIntoHDCamera, (HDAdditionalCameraData data)
+                => HDCamera.ConvertCameraToHDCamera(data.GetComponent<Camera>())
+            )
         );
 
         #endregion

@@ -331,15 +331,16 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Camera Data\" (if not present)")]
-        static void AddAdditionalCameraData()
+        static void ConvertCameraToHDCamera()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
 
             foreach (var camera in cameras)
             {
-                // Do not add a component if there already is one.
-                if (!camera.TryGetComponent<HDCamera>(out _))
-                    camera.gameObject.AddComponent<HDCamera>();
+                if (camera is HDCamera)
+                    continue;
+
+                HDCamera.ConvertCameraToHDCamera(camera);
             }
         }
 
