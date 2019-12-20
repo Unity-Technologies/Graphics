@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
-                    lightDataGI.coneAngle = cookie.sizes.x;
-                    lightDataGI.innerConeAngle = cookie.sizes.y;
+                    lightDataGI.coneAngle = add.shapeWidth;
+                    lightDataGI.innerConeAngle = add.shapeHeight;
                     break;
 
                 case HDLightType.Spot:
