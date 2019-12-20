@@ -2,12 +2,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CanEditMultipleObjects]
-    [CustomEditor(typeof(HDCamera))]
+    [CustomEditor(typeof(HDAdditionalCameraData))]
     class HDAdditionalCameraDataEditor : Editor
     {
-        public override void OnInspectorGUI()
-        {
-        }
+        public override void OnInspectorGUI() { }
     }
 }

@@ -5,26 +5,23 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(HDCamera))]
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
         SerializedHDCamera m_SerializedCamera;
 
         RenderTexture m_PreviewTexture;
-        Camera m_PreviewCamera;
-        HDCamera m_PreviewAdditionalCameraData;
+        HDCamera m_PreviewCamera;
 
         void OnEnable()
         {
             m_SerializedCamera = new SerializedHDCamera(serializedObject);
 
-            m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
+            m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(HDCamera)).GetComponent<HDCamera>();
             m_PreviewCamera.enabled = false;
-            m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
-            m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDCamera>();
-            // Say that we are a camera editor preview and not just a regular preview
-            m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
+            m_PreviewCamera.cameraType = CameraType.Preview;
+            m_PreviewCamera.isEditorCameraPreview = true;
         }
 
         void OnDisable()
@@ -41,9 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             m_SerializedCamera.Update();
-
             HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
-
             m_SerializedCamera.Apply();
         }
 
@@ -59,43 +54,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_PreviewTexture.Create();
             }
             return m_PreviewTexture;
-        }
-    }
-    
-    [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
-    class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
-    {
-        //The call is delayed to the dispatcher to solve conflict with other SRP
-        public void RemoveComponent(Camera camera)
-        {
-            Undo.SetCurrentGroupName("Remove HD Camera");
-            var additionalCameraData = camera.GetComponent<HDCamera>();
-            if (additionalCameraData)
-            {
-                Undo.DestroyObjectImmediate(additionalCameraData);
-            }
-            Undo.DestroyObjectImmediate(camera);
-        }
-        
-        [MenuItem("CONTEXT/Camera/Reset", false, 0)]
-        static void ResetCamera(MenuCommand menuCommand)
-        {
-            GameObject go = ((Camera)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Camera camera = go.GetComponent<Camera>();
-            HDCamera cameraAdditionalData = go.GetComponent<HDCamera>();
-
-            Assert.IsNotNull(camera);
-            Assert.IsNotNull(cameraAdditionalData);
-
-            Undo.SetCurrentGroupName("Reset HD Camera");
-            Undo.RecordObjects(new UnityEngine.Object[] { camera, cameraAdditionalData }, "Reset HD Camera");
-            camera.Reset();
-            // To avoid duplicating init code we copy default settings to Reset additional data
-            // Note: we can't call this code inside the HDAdditionalCameraData, thus why we don't wrap it in a Reset() function
-            HDUtils.s_DefaultHDAdditionalCameraData.CopyTo(cameraAdditionalData);
         }
     }
 }
