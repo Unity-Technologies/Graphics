@@ -1162,11 +1162,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDCamera.CleanUnused();
 
                     if (newTime > m_Time)
-                    {
                         m_FrameCount++;
-                        m_LastTime = m_Time;
-                        m_Time = newTime;
-                    }
+                    else
+                        m_FrameCount = 0;
+
+                    // Make sure (m_Time > m_LastTime).
+                    m_LastTime = (newTime > m_Time) ? m_Time : 0;
+                    m_Time     = newTime;
                 }
             }
 
@@ -2193,7 +2195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderForwardEmissive(cullingResults, hdCamera, renderContext, cmd);
 
                 RenderSky(hdCamera, cmd);
-
+                
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 SendGeometryGraphicsBuffers(cmd, hdCamera);
 

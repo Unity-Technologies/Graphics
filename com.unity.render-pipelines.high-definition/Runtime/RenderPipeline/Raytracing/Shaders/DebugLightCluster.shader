@@ -245,5 +245,4 @@ Shader "Hidden/HDRP/DebugLightCluster"
             ENDHLSL
         }
     }
-    Fallback Off
 }

@@ -53,15 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricFogEnabled(HDCamera hdCamera, bool ignoreVolumeStack = false)
+        public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
         {
-            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
-
-            bool a = fog.enableVolumetricFog.value || ignoreVolumeStack;
-            bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
-            bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
-
-            return a && b && c;
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && VolumeManager.instance.stack.GetComponent<Fog>().enableVolumetricFog.value;
         }
 
         public static bool IsPBRFogEnabled(HDCamera hdCamera)
