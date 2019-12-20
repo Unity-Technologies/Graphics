@@ -30,6 +30,20 @@
 #define DirectionalShadowType float
 #endif
 
+#ifdef SHADER_STAGE_RAY_TRACING
+#define ALPHA_TEST_RAY_TRACING_DECLARE bool alphaTestResult;
+#define ALPHA_TEST_RAY_TRACING_PARAM , out bool alphaTestResult
+#define ALPHA_TEST_RAY_TRACING_ARGS , alphaTestResult
+#define ALPHA_TEST_RAY_TRACING_RETURN_IF if (!alphaTestResult) return false;
+#define ALPHA_TEST_RAY_TRACING_RETURN return true;
+#else
+#define ALPHA_TEST_RAY_TRACING_DECLARE
+#define ALPHA_TEST_RAY_TRACING_PARAM
+#define ALPHA_TEST_RAY_TRACING_ARGS
+#define ALPHA_TEST_RAY_TRACING_RETURN_IF
+#define ALPHA_TEST_RAY_TRACING_RETURN
+#endif
+
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)

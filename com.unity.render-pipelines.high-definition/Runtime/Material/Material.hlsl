@@ -106,8 +106,11 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
 //-----------------------------------------------------------------------------
 
 // This function must be use instead of clip instruction. It allow to manage in which case the clip is perform for optimization purpose
-void DoAlphaTest(float alpha, float alphaCutoff)
+void DoAlphaTest(float alpha, float alphaCutoff ALPHA_TEST_RAY_TRACING_PARAM)
 {
+#ifdef SHADER_STAGE_RAY_TRACING
+    alphaTestResult = alpha < alphaCutoff;
+#else
     // For Deferred:
     // If we have a prepass, we  may want to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
     // For Forward Opaque:
@@ -115,9 +118,10 @@ void DoAlphaTest(float alpha, float alphaCutoff)
     // For Forward Transparent
     // Also no alpha test for light transport
     // Note: If SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST or SHADERPASS_FORWARD_BYPASS_ALPHA_TEST are used, it mean that we must use ZTest depth equal for the pass (Need to use _ZTestDepthEqualForOpaque property).
-#if !defined(SHADERPASS_FORWARD_BYPASS_ALPHA_TEST) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+    #if !defined(SHADERPASS_FORWARD_BYPASS_ALPHA_TEST) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
     clip(alpha - alphaCutoff);
-#endif
+    #endif
+#endif // SHADER_STAGE_RAY_TRACING
 }
 
 //-----------------------------------------------------------------------------

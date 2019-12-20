@@ -3,15 +3,19 @@
 //-------------------------------------------------------------------------------------
 
 // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+#ifndef SHADER_STAGE_RAY_TRACING
 #define SURFACE_GRADIENT
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
+#endif
 
 //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SPTDistribution.hlsl"
 //#define SPECULAR_OCCLUSION_USE_SPTD
@@ -166,10 +170,16 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionRWS, input.tangentToWorld[2].xyz, layerTexCoord);
 }
 
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
+#endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
+#ifdef SHADER_STAGE_RAY_TRACING
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+#else
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+#endif
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
@@ -187,18 +197,27 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
 
+#ifdef SHADER_STAGE_RAY_TRACING
+    // In case we are doing ray tracing, depth offset make no sense
+    float depthOffset = 0.0;
+#else
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
 
-#ifdef _DEPTHOFFSET_ON
+    #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
-#endif
+    #endif
+#endif // SHADER_STAGE_RAY_TRACING
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
     // so it allow us to correctly deal with detail normal map and optimize the code for the layered shaders
     float3 normalTS;
     float3 bentNormalTS;
     float3 bentNormalWS;
-    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
+
+    ALPHA_TEST_RAY_TRACING_DECLARE
+    float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS ALPHA_TEST_RAY_TRACING_ARGS);
+    ALPHA_TEST_RAY_TRACING_RETURN_IF
+
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = input.tangentToWorld[2];
@@ -244,11 +263,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #if defined(DEBUG_DISPLAY)
+    #ifndef SHADER_STAGE_RAY_TRACING
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
+    #endif
 
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
@@ -257,8 +278,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+
+    ALPHA_TEST_RAY_TRACING_RETURN
 }
 
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"
+#endif
 
 #endif // #ifndef LAYERED_LIT_SHADER

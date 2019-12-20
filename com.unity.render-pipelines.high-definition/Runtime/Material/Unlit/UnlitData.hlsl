@@ -4,20 +4,28 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
+#ifdef SHADER_STAGE_RAY_TRACING
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+#else
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+#endif
 {
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
     surfaceData.color = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).rgb * _UnlitColor.rgb;
     float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a * _UnlitColor.a;
 
 #ifdef _ALPHATEST_ON
-    DoAlphaTest(alpha, _AlphaCutoff);
+    ALPHA_TEST_RAY_TRACING_DECLARE
+    DoAlphaTest(alpha, _AlphaCutoff ALPHA_TEST_RAY_TRACING_ARGS);
+    ALPHA_TEST_RAY_TRACING_RETURN_IF
 #endif
 
     // Builtin Data
@@ -28,6 +36,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0.xy, _EmissiveColorMap)).rgb * _EmissiveColor;
 #else
     builtinData.emissiveColor = _EmissiveColor;
+#endif
+
+    // Following code is specific to raytracing to allow to remove the emissive contributoin of the material and thus avoid double lighting in reflection.
+#if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER
+    builtinData.emissiveColor *= _IncludeIndirectLighting;
+#elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_PATH_TRACING
+    if (rayCone.spreadAngle < 0.0)
+    {
+        builtinData.emissiveColor *= _IncludeIndirectLighting;
+    }
 #endif
 
     // Inverse pre-expose using _EmissiveExposureWeight weight
@@ -47,4 +65,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);
     }
 #endif
+
+    ALPHA_TEST_RAY_TRACING_RETURN
 }
