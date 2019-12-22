@@ -37,12 +37,14 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             GetResolveDimensions(ref width, ref height);
 
-            if (width != m_Resolver.CurrentWidth || width != m_Resolver.CurrentHeight)
+            if (lowresResolver != null && (width != lowresResolver.referenceSize.x || height != lowresResolver.referenceSize.y))
             {
                 RTHandles.Release(lowresResolver);
+                lowresResolver = null;
             }
-            lowresResolver = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
 
+            if (lowresResolver == null)
+                lowresResolver = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
 
             m_Resolver.Init((uint)width, (uint)height);
         }
