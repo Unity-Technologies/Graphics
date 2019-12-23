@@ -19,8 +19,6 @@ After you add a **Procedural Sky** override, you must set the Volume to use **Pr
 
 ## Properties
 
-![](Images/Override-ProceduralSky1.png)
-
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
 | **Enable Sun Disk**       | Enable the checkbox to make HDRP display the sun disk defined by the **Sky Size**, **Sun Size Convergence**, **Exposure**, and **Multiplier** . |

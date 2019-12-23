@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Enable Shadow Matte", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Shadow Matte", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -367,7 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
         void ChangeEnableShadowMatte(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Enable Shadow Matte");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Shadow Matte");
             ToggleData td = m_Node.enableShadowMatte;
             td.isOn = evt.newValue;
             m_Node.enableShadowMatte = td;
