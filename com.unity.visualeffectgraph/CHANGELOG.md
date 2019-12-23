@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GetCustomAttribute that was locked to Current
 - Shader compilation now works when using view direction in shader graph
 - Depth Position and Collision blocks now work correctly in local space systems
+- Filter out Direction type on inconsistent operator [Case 1201681](https://issuetracker.unity3d.com/product/unity/issues/guid/1201681/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
