@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
             return new ForwardRenderer(this);
         }
 
-        internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
+        public LayerMask opaqueLayerMask => m_OpaqueLayerMask;
 
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 

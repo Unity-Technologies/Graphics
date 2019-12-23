@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    internal class SceneViewDepthCopyPass : ScriptableRenderPass
+    public class SceneViewDepthCopyPass : ScriptableRenderPass
     {
         private RenderTargetHandle source { get; set; }
 

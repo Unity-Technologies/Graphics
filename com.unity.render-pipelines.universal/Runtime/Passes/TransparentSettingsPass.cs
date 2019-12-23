@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Universal
     /// Applies relevant settings before rendering transparent objects
     /// </summary>
 
-    internal class TransparentSettingsPass : ScriptableRenderPass
+    public class TransparentSettingsPass : ScriptableRenderPass
     {
         bool m_shouldReceiveShadows;
 
