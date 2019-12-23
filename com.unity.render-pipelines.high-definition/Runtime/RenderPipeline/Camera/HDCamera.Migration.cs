@@ -19,6 +19,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //void Awake() => k_Migration.Migrate(this);
         
+        internal static void ConvertCameraToHDCamera(Camera camera)
+        {
+            if (camera == null || camera is HDCamera)
+                return;
+
+            GameObject refGO = camera.gameObject;
+
+#if UNITY_EDITOR
+            UnityEditor.Undo.SetCurrentGroupName("Convert Camera to HDCamera");
+#endif
+
+            //1 - Create a temporary GameObject into the HDCamera
+            HDCamera tmpHDCam = new GameObject("Temporary for creating HDCamera in place of Camera", new[] { typeof(HDCamera) }).GetComponent<HDCamera>();
+
+            //2 - Copy the Camera values on this GameObject into the HDCamera
+            tmpHDCam.CopyFrom(camera); //copy camera state
+
+            //3 - Copy the HDAdditionalCameraData values into the HDCamera if any available
+            HDAdditionalCameraData additionalData = camera.GetComponent<HDAdditionalCameraData>();
             if (additionalData != null)
                 HDUtils.RuntimeCopyComponentValue(additionalData, tmpHDCam);
 
@@ -40,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 refGO.AddComponent<HDCamera>();
 #endif
+            result.CopyFrom(tmpHDCam); //copy camera state
             HDUtils.RuntimeCopyComponentValue(tmpHDCam, result);
 
             //6 - Destroy temporary GameObject

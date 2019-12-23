@@ -775,6 +775,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal class DoNotCopyAttribute : Attribute { }
 
+        //This will copy every field assuming they have the same name between the two composant.
+        //This will ignore the field that have [DoNotCopy] attribute.
+        //This will not copy field transfered in c++ that are only accessible by serialization (see if the class have a copy function)
         internal static void RuntimeCopyComponentValue(Component src, Component dst)
         {
             const System.Reflection.BindingFlags bindingFlags =
@@ -787,10 +790,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (srcField.GetCustomAttributes(typeof(DoNotCopyAttribute), false).Length > 0)
                     continue;
-
-                Debug.Log($"Search {srcField.Name}");
+                
                 System.Reflection.FieldInfo dstField = dstFields.First(f => f.Name == srcField.Name);
-                Debug.Log($"Copy {srcField.Name} -> {dstField.Name}");
                 dstField.SetValue(dst, srcField.GetValue(src));
             }
         }
