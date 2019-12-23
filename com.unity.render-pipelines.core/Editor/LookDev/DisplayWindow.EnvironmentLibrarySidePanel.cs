@@ -9,11 +9,13 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>Interface that must implement the EnvironmentLibrary view to communicate with the data management</summary>
     public interface IEnvironmentDisplayer
     {
+        /// <summary>Repaint the UI</summary>
         void Repaint();
-        
+
+        /// <summary>Callback on Environment change in the Library</summary>
         event Action<EnvironmentLibrary> OnChangingEnvironmentLibrary;
     }
-    
+
     partial class DisplayWindow : IEnvironmentDisplayer
     {
         static partial class Style

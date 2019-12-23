@@ -3,9 +3,14 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for unsigned integer widget.
+    /// </summary>
     public class DebugUIHandlerUIntField : DebugUIHandlerWidget
     {
+        /// <summary>Name of the indirect uint field.</summary>
         public Text nameLabel;
+        /// <summary>Value of the indirect uint field.</summary>
         public Text valueLabel;
         DebugUI.UIntField m_Field;
 
@@ -17,6 +22,12 @@ namespace UnityEngine.Rendering.UI
             UpdateValueLabel();
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             nameLabel.color = colorSelected;
@@ -24,17 +35,28 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             ChangeValue(fast, 1);
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             ChangeValue(fast, -1);

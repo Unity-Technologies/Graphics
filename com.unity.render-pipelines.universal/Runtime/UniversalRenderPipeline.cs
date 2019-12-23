@@ -267,11 +267,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isXRMultipass = false;
             cameraData.numberOfXRPasses = 1;
 
+#if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
             {
                 cameraData.numberOfXRPasses = 2;
                 cameraData.isXRMultipass = true;
             }
+#endif
 
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)

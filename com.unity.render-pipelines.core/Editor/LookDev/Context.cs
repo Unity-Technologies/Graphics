@@ -8,7 +8,9 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public enum ViewIndex
     {
+        /// <summary>First view</summary>
         First,
+        /// <summary>Second view</summary>
         Second
     };
 
@@ -17,8 +19,11 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public enum ViewCompositionIndex
     {
+        /// <summary>First view</summary>
         First = ViewIndex.First,
+        /// <summary>Second view</summary>
         Second = ViewIndex.Second,
+        /// <summary>Composite view (Several view on screen)</summary>
         Composite
     };
 
@@ -29,10 +34,15 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public enum Layout
     {
+        /// <summary>First view display fully</summary>
         FullFirstView,
+        /// <summary>Second view display fully</summary>
         FullSecondView,
+        /// <summary>First and second views displayed splitted horizontally</summary>
         HorizontalSplit,
+        /// <summary>First and second views displayed splitted vertically</summary>
         VerticalSplit,
+        /// <summary>First and second views displayed with stacking and orientation customizable  split</summary>
         CustomSplit
     }
 
@@ -41,8 +51,11 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public enum SidePanel
     {
+        /// <summary>No side panel</summary>
         None = -1,
+        /// <summary>Environment side panel</summary>
         Environment,
+        /// <summary>Debug side panel</summary>
         Debug,
     }
 
@@ -51,8 +64,11 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public enum TargetDebugView
     {
+        /// <summary>First Debug view</summary>
         First,
+        /// <summary>Both Debug view</summary>
         Both,
+        /// <summary>Second Debug view</summary>
         Second
     };
 
@@ -120,12 +136,8 @@ namespace UnityEditor.Rendering.LookDev
                 EditorApplication.update += SynchronizeCameraStates;
         }
 
-        /// <summary>Update the environment used.</summary>
-        /// <param name="environmentOrCubemapAsset">
-        /// The new <see cref="Environment"/> to use.
-        /// Or the <see cref="Cubemap"/> to use to build a new one.
-        /// Other types will raise an ArgumentException.
-        /// </param>
+        /// <summary>Update the environment library used.</summary>
+        /// <param name="library">The new EnvironmentLibrary</param>
         public void UpdateEnvironmentLibrary(EnvironmentLibrary library)
         {
             m_EnvironmentLibraryGUID = "";
@@ -182,6 +194,7 @@ namespace UnityEditor.Rendering.LookDev
 
 
         private bool disposedValue = false; // To detect redundant calls
+        /// <summary>Disposable behaviour</summary>
         void IDisposable.Dispose()
         {
             if (!disposedValue)
@@ -402,7 +415,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>Display shadows in view.</summary>
         public bool shadow = true;
 
-        /// <summary>Debug mode displayed. -1 means none.</summary
+        /// <summary>Debug mode displayed. -1 means none.</summary>
         public int viewMode = -1;
 
         ///// <summary>Display the debug grey balls</summary>

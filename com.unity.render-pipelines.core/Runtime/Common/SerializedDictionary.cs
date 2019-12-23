@@ -10,6 +10,11 @@ namespace UnityEngine.Rendering
     // Example:
     //   public sealed class MyDictionary : SerializedDictionary<KeyType, ValueType> {}
     //
+    /// <summary>
+    /// Serialized Dictionary
+    /// </summary>
+    /// <typeparam name="K">Key Type</typeparam>
+    /// <typeparam name="V">Value Type</typeparam>
     [Serializable]
     public class SerializedDictionary<K, V> : Dictionary<K, V>, ISerializationCallbackReceiver
     {
@@ -19,6 +24,9 @@ namespace UnityEngine.Rendering
         [SerializeField]
         List<V> m_Values = new List<V>();
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             m_Keys.Clear();
@@ -31,6 +39,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// OnAfterDeserialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             for (int i = 0; i < m_Keys.Count; i++)

@@ -2,7 +2,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "UberPostFeatures.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -38,6 +39,7 @@ CBUFFER_START(cb0)
     float4 _DistortionParams2;
     float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: enabled
     float4 _BloomParams;
+    float4 _BloomThreshold;
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
@@ -155,7 +157,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _RTHandleScale.xy, _BloomBicubicParams, _RTHandleScale.xy, unity_StereoEyeIndex).xyz;
         #endif
 
-        color = lerp(color, bloom * BloomTint, BloomIntensity);
+        float3 thresholdedColor = QuadraticThreshold(color, _BloomThreshold.x, _BloomThreshold.yzw);
+        color = lerp(color, (color - thresholdedColor) + (bloom * BloomTint), BloomIntensity);
 
         UNITY_BRANCH
         if (DirtEnabled)

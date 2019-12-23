@@ -21,7 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, features: litSurfaceFeatures),
             new DetailInputsUIBlock(MaterialUIBlock.Expandable.Detail),
-            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
+            // We don't want distortion in Lit
+            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
