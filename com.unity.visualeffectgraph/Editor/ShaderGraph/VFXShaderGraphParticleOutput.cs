@@ -377,12 +377,12 @@ namespace UnityEditor.VFX
             {
                 if (!isLitShader && shaderGraph.lit)
                 {
-                    Debug.LogError("You must use a lit vfx master node with a lit output");
+                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
                     return false;
                 }
                 if (isLitShader && !shaderGraph.lit)
                 {
-                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
+                    Debug.LogError("You must use a lit vfx master node with a lit output");
                     return false;
                 }
 
@@ -490,7 +490,7 @@ namespace UnityEditor.VFX
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
-                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
                                     callSG.builder.AppendLine("INSG.WorldSpaceViewDirection = V;");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)

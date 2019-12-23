@@ -273,6 +273,13 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (serialized.type)
             {
                 case HDLightType.Directional:
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serialized.angularDiameter, s_Styles.angularDiameter);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.angularDiameter.floatValue = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
+                        serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue;
+                    }
                     break;
 
                 case HDLightType.Point:
@@ -438,7 +445,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUI.BeginChangeCheck();
             {
-                EditorGUILayout.PropertyField(serialized.angularDiameter,  s_Styles.angularDiameter);
                 EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
 
                 using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
@@ -457,8 +463,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 // Clamp the value and also affect baked shadows.
-                serialized.angularDiameter.floatValue               = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
-                serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue;
                 serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
                 serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
                 serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
@@ -739,7 +743,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // The texture type is stored in the texture importer so we need to get it:
             TextureImporter texImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(cookie)) as TextureImporter;
-            
+
             if (texImporter != null && texImporter.textureType == TextureImporterType.Cookie)
             {
                 using (new EditorGUILayout.HorizontalScope())

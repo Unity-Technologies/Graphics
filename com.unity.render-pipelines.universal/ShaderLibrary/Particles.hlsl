@@ -63,8 +63,10 @@ half3 AlphaModulate(half3 albedo, half alpha)
 {
 #if defined(_ALPHAMODULATE_ON)
     return lerp(half3(1.0h, 1.0h, 1.0h), albedo, alpha);
-#else
+#elif defined(_ALPHAPREMULTIPLY_ON)
     return albedo * alpha;
+#else
+    return albedo;
 #endif
 }
 

@@ -19,7 +19,7 @@ To create a Visual Effect Activation Track, drag and drop a GameObject that cont
 
 Once the track is created, you can add **Visual Effect Activation Clips** to the track by right clicking the track workspace, then select Add Visual Effect Activation Clip from the Context Menu.
 
-Selecting the Clip will display its properties in inspector:
+Selecting the Clip will display its properties in Inspector:
 
 ![](Images/TimelineVisualEffectActivationClipInspector.png)
 

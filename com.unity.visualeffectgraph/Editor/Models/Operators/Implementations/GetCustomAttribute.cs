@@ -10,10 +10,13 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Attribute", experimental = true)]
     class GetCustomAttribute : VFXOperator
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, Tooltip("Specifies the name of the custom attribute to use.")]
         public string attribute = "CustomAttribute";
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [VFXSetting, Tooltip("Specifies which version of the parameter to use. It can return the current value, or the source value derived from a GPU event or a spawn attribute.")]
+        public VFXAttributeLocation location = VFXAttributeLocation.Current;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies the type of the custom attribute to use.")]
         public CustomAttributeUtility.Signature AttributeType = CustomAttributeUtility.Signature.Float;
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
@@ -46,7 +49,7 @@ namespace UnityEditor.VFX
         {
             var attribute = currentAttribute;
  
-            var expression = new VFXAttributeExpression(attribute, VFXAttributeLocation.Current);
+            var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }
     }
