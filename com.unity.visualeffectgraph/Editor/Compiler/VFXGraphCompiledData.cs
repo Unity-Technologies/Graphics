@@ -207,7 +207,7 @@ namespace UnityEditor.VFX
             eventAttributeDescs.AddRange(listWithOffset);
         }
 
-        private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList,ref SubgraphInfos subgraphContexts)
+        private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList, ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
             var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t=>t)).Select(t=>t.context).Distinct().ToList();
@@ -226,9 +226,9 @@ namespace UnityEditor.VFX
             return contextList;
         }
 
-        private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext,ref SubgraphInfos subgraphContexts)
+        private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext, ref SubgraphInfos subgraphContexts)
         {
-            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init).ToList();
+            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent).ToList();
             var spawnerList = CollectContextParentRecursively(initContext, ref subgraphContexts);
             return spawnerList.Where(o => o.contextType == VFXContextType.Spawner).Reverse().ToArray();
         }
@@ -800,7 +800,7 @@ namespace UnityEditor.VFX
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progesses ) in an empty graph.
+            // Prevent doing anything ( and especially showing progresses) in an empty graph.
             if (m_Graph.children.Count() < 1)
             {
                 // Cleaning
@@ -901,8 +901,7 @@ namespace UnityEditor.VFX
 
                 subgraphInfos.contextEffectiveInputLinks = new Dictionary<VFXContext, List<VFXContextLink>[]>();
 
-                ComputeEffectiveInputLinks(ref subgraphInfos, compilableContexts.OfType<VFXBasicInitialize>());
-
+                ComputeEffectiveInputLinks(ref subgraphInfos, compilableContexts.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent));
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating Attribute layouts", 6 / nbSteps);
                 foreach (var data in compilableData)
