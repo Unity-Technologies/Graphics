@@ -53,8 +53,12 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_SampleSceneColor(uv)
 #endif
 
-#ifndef SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT
-    #define SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(uv) shadergraph_LoadCustomBlitInput(uv)
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR
+    #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_LoadCustomSceneColor(uv)
+#endif
+
+#ifndef SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR
+    #define SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR(uv, s) shadergraph_SampleCustomSceneColor(uv, s)
 #endif
 
 #ifndef SHADERGRAPH_BAKED_GI
@@ -95,7 +99,12 @@ float3 shadergraph_SampleSceneColor(float2 uv)
     return 0;
 }
 
-float4 shadergraph_LoadCustomBlitInput(float2 uv)
+float4 shadergraph_LoadCustomSceneColor(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_SampleCustomSceneColor(float2 uv, SAMPLER(s))
 {
     return 0;
 }

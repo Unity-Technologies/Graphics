@@ -96,7 +96,7 @@ SAMPLER(sampler_CameraDepthTexture);
 TEXTURE2D_X(_ColorPyramidTexture);
 
 // for custom blit shaders
-TEXTURE2D_X(_CustomBlitInput);
+TEXTURE2D_X(_CustomSceneColor);
 
 // Custom pass buffer
 TEXTURE2D_X(_CustomDepthTexture);
@@ -335,11 +335,6 @@ float LoadCustomDepth(uint2 pixelCoords)
 float SampleCustomDepth(float2 uv)
 {
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
-}
-
-float4 LoadCustomBlitInput(float2 uv)
-{
-    return LOAD_TEXTURE2D_X(_CustomBlitInput, uv);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

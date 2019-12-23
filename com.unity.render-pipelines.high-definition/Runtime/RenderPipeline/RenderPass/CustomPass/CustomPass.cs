@@ -107,16 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
-
-        public RTHandle currentColorBuffer
-        {
-            get
-            {
-                bool msaa = IsMSAAEnabled(currentHDCamera);
-                var cameraColorBuffer = msaa ? currentRenderTarget.cameraColorMSAABuffer : currentRenderTarget.cameraColorBuffer;
-                return cameraColorBuffer;                
-            }
-        }
+       
 
         internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
         {
@@ -174,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             bool msaa = IsMSAAEnabled(currentHDCamera);
-            var cameraColorBuffer = currentColorBuffer; 
+            var cameraColorBuffer = msaa ? currentRenderTarget.cameraColorMSAABuffer : currentRenderTarget.cameraColorBuffer;
             var cameraDepthBuffer = currentRTManager.GetDepthStencilBuffer(msaa);
 
             RTHandle colorBuffer = (targetColorBuffer == TargetBuffer.Custom) ? currentRenderTarget.customColorBuffer.Value : cameraColorBuffer;

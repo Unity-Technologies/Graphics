@@ -5,7 +5,8 @@
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
-#define SHADERGRAPH_LOAD_CUSTOM_BLIT_INPUT(uv) shadergraph_HDLoadCustomBlitInput(uv)
+#define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_HDLoadCustomSceneColor(uv)
+#define SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR(uv, s) shadergraph_HDSampleCustomSceneColor(uv, s)
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
@@ -24,9 +25,16 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
     return float3(0, 0, 0);
 }
 
-float4 shadergraph_HDLoadCustomBlitInput(float2 uv)
+float4 shadergraph_HDLoadCustomSceneColor(float2 uv)
 {
-    return LoadCustomBlitInput(uv);
+    return LOAD_TEXTURE2D_X(_CustomSceneColor, uv);
+}
+
+float4 shadergraph_HDSampleCustomSceneColor(float2 uv, SAMPLER(s))
+{
+    float width, height, elements;
+    _CustomSceneColor.GetDimensions(width, height, elements);
+    return SAMPLE_TEXTURE2D_X(_CustomSceneColor, s, uv / float2(width, height));
 }
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
