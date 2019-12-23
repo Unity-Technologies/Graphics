@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDAdditionalLightData</summary>
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
-        static public HDCamera s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDCamera>.instance; } }
+        static public HDCamera s_DefaultHDCamera { get { return ComponentSingleton<HDCamera>.instance; } }
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
             // Go to next line if it goes outside the screen.
-            if ( (x + overlayWidth) > hdCamera.actualWidth)
+            if ((x + overlayWidth) > hdCamera.actualWidth)
             {
                 x = 0.0f;
                 y -= s_OverlayLineHeight;
@@ -296,15 +296,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
-        {
-            if (camera.cameraType == CameraType.Preview)
-            {
-                camera.TryGetComponent<HDCamera>(out var additionalCameraData);
-                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
-
-            }
-            return false;
-        }
+            => camera.cameraType == CameraType.Preview
+            && !(camera is HDCamera hdCam && hdCam.isEditorCameraPreview);
 
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
@@ -572,15 +565,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static Vector4 ConvertGUIDToVector4(string guid)
         {
             Vector4 vector;
-            byte[]  bytes = new byte[16];
+            byte[] bytes = new byte[16];
 
             for (int i = 0; i < 16; i++)
                 bytes[i] = byte.Parse(guid.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
 
             unsafe
             {
-                fixed (byte * b = bytes)
-                    vector = *(Vector4 *)b;
+                fixed (byte* b = bytes)
+                    vector = *(Vector4*)b;
             }
 
             return vector;
@@ -591,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             unsafe
             {
-                byte * v = (byte *)&vector;
+                byte* v = (byte*)&vector;
                 for (int i = 0; i < 16; i++)
                     sb.Append(v[i].ToString("x2"));
                 var guidBytes = new byte[16];
@@ -712,7 +705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (camera.scene.IsValid())
                 return EditorSceneManager.GetSceneCullingMask(camera.scene);
 
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -720,9 +713,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return SceneCullingMasks.GameViewObjects;
             }
-            #else
+#else
             return 0;
-            #endif
+#endif
 #else
             return 0;
 #endif
@@ -732,12 +725,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDCamera TryGetAdditionalCameraDataOrDefault(Camera camera)
         {
             if (camera == null || camera.Equals(null))
-                return s_DefaultHDAdditionalCameraData;
+                return s_DefaultHDCamera;
 
-            if (camera.TryGetComponent<HDCamera>(out var hdCamera))
+            if (camera is HDCamera hdCamera)
                 return hdCamera;
 
-            return s_DefaultHDAdditionalCameraData;
+            return s_DefaultHDCamera;
         }
 
 
