@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Scene", "Custom Color")]
+    [Title("Input", "Scene", "Custom Scene Color")]
     class CustomSceneColorNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
     {
         public enum SamplingType

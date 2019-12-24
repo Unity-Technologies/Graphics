@@ -61,6 +61,10 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR(uv, s) shadergraph_SampleCustomSceneColor(uv, s)
 #endif
 
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH
+    #define SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH(uv) shadergraph_LoadCustomSceneColor(uv)
+#endif
+
 #ifndef SHADERGRAPH_BAKED_GI
     #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #endif
@@ -100,6 +104,11 @@ float3 shadergraph_SampleSceneColor(float2 uv)
 }
 
 float4 shadergraph_LoadCustomSceneColor(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadCustomSceneDepth(float2 uv)
 {
     return 0;
 }
