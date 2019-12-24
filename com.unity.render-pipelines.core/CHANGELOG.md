@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
+- Add api documentation for TextureCombiner.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev minimal window size.
 - Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
 - Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
+- Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
 
 ## [7.1.1] - 2019-09-05
 

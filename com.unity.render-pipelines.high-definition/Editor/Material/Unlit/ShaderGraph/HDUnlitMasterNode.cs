@@ -384,7 +384,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 validSlots.Add(slots[i]);
             }
-            return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            var slotRequirements = validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+
+            return slotRequirements | (transparencyFog.isOn ? NeededCoordinateSpace.World : 0);
         }
 
          public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

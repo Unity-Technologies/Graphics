@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
 
         void SampleCopyChannel(
             CommandBuffer cmd,
-            Rendering.RectInt rect,
+            RectInt rect,
             int _source,
             RenderTargetIdentifier source,
             int _target,
@@ -29,12 +29,12 @@ namespace UnityEngine.Rendering
             int kernel8,
             int kernel1)
         {
-            Rendering.RectInt main, topRow, rightCol, topRight;
+            RectInt main, topRow, rightCol, topRight;
             unsafe
             {
-                Rendering.RectInt* dispatch1Rects = stackalloc Rendering.RectInt[3];
+                RectInt* dispatch1Rects = stackalloc RectInt[3];
                 int dispatch1RectCount = 0;
-                Rendering.RectInt dispatch8Rect = Rendering.RectInt.zero;
+                RectInt dispatch8Rect = new RectInt(0, 0, 0, 0);
 
                 if (TileLayoutUtils.TryLayoutByTiles(
                     rect,
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
-        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RTHandle source, RTHandle target, Rendering.RectInt rect)
+        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RTHandle source, RTHandle target, RectInt rect)
         {
             Debug.Assert(source.rt.volumeDepth == target.rt.volumeDepth);
             SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, source.rt.volumeDepth, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);

@@ -1,15 +1,28 @@
 namespace UnityEngine.Rendering
 {
     // Has to be kept in sync with PhysicalCamera.hlsl
+
+    /// <summary>
+    /// A set of color manipulation utilities.
+    /// </summary>
     public static class ColorUtils
     {
-        // An analytical model of chromaticity of the standard illuminant, by Judd et al.
-        // http://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D
-        // Slightly modifed to adjust it with the D65 white point (x=0.31271, y=0.32902).
+        /// <summary>
+        /// An analytical model of chromaticity of the standard illuminant, by Judd et al.
+        /// http://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D
+        /// Slightly modifed to adjust it with the D65 white point (x=0.31271, y=0.32902).
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static float StandardIlluminantY(float x) => 2.87f * x - 3f * x * x - 0.27509507f;
 
-        // CIE xy chromaticity to CAT02 LMS.
-        // http://en.wikipedia.org/wiki/LMS_color_space#CAT02
+        /// <summary>
+        /// CIE xy chromaticity to CAT02 LMS.
+        /// http://en.wikipedia.org/wiki/LMS_color_space#CAT02
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public static Vector3 CIExyToLMS(float x, float y)
         {
             float Y = 1f;
@@ -23,6 +36,12 @@ namespace UnityEngine.Rendering
             return new Vector3(L, M, S);
         }
 
+        /// <summary>
+        /// Converts white balancing parameter to LMS coefficients.
+        /// </summary>
+        /// <param name="temperature">A temperature offset, in range [-100;100].</param>
+        /// <param name="tint">A tint offset, in range [-100;100].</param>
+        /// <returns>LMS coefficients.</returns>
         public static Vector3 ColorBalanceToLMSCoeffs(float temperature, float tint)
         {
             // Range ~[-1.5;1.5] works best
@@ -40,6 +59,13 @@ namespace UnityEngine.Rendering
             return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
         }
 
+        /// <summary>
+        /// Pre-filters shadows, midtones and highlights trackball values for shader use.
+        /// </summary>
+        /// <param name="inShadows">A color used for shadows.</param>
+        /// <param name="inMidtones">A color used for midtones.</param>
+        /// <param name="inHighlights">A color used for highlights.</param>
+        /// <returns>The three input colors pre-filtered for shader use.</returns>
         public static (Vector4, Vector4, Vector4) PrepareShadowsMidtonesHighlights(in Vector4 inShadows, in Vector4 inMidtones, in Vector4 inHighlights)
         {
             float weight;
@@ -77,6 +103,13 @@ namespace UnityEngine.Rendering
             return (shadows, midtones, highlights);
         }
 
+        /// <summary>
+        /// Pre-filters lift, gamma and gain trackball values for shader use.
+        /// </summary>
+        /// <param name="inLift">A color used for lift.</param>
+        /// <param name="inGamma">A color used for gamma.</param>
+        /// <param name="inGain">A color used for gain.</param>
+        /// <returns>The three input colors pre-filtered for shader use.</returns>
         public static (Vector4, Vector4, Vector4) PrepareLiftGammaGain(in Vector4 inLift, in Vector4 inGamma, in Vector4 inGain)
         {
             var lift = inLift;
@@ -117,6 +150,13 @@ namespace UnityEngine.Rendering
             return (lift, gamma, gain);
         }
 
+        /// <summary>
+        /// Pre-filters colors used for the split toning effect.
+        /// </summary>
+        /// <param name="inShadows">A color used for shadows.</param>
+        /// <param name="inHighlights">A color used for highlights.</param>
+        /// <param name="balance">The balance between the shadow and highlight colors, in range [-100;100].</param>
+        /// <returns>The two input colors pre-filtered for shader use.</returns>
         public static (Vector4, Vector4) PrepareSplitToning(in Vector4 inShadows, in Vector4 inHighlights, float balance)
         {
             // As counter-intuitive as it is, to make split-toning work the same way it does in
@@ -132,16 +172,29 @@ namespace UnityEngine.Rendering
             return (shadows, highlights);
         }
 
-        // RGB in linear space with sRGB primaries and D65 white point
+        /// <summary>
+        /// Returns the luminance of the specified color. The input is considered to be in linear
+        /// space with sRGB primaries and a D65 white point.
+        /// </summary>
+        /// <param name="color">The color to compute the luminance for.</param>
+        /// <returns>A luminance value.</returns>
         public static float Luminance(in Color color) => color.r * 0.2126729f + color.g * 0.7151522f + color.b * 0.072175f;
 
-        // References:
-        // "Moving Frostbite to PBR" (Sébastien Lagarde & Charles de Rousiers)
-        //   https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
-        // "Implementing a Physically Based Camera" (Padraic Hennessy)
-        //   https://placeholderart.wordpress.com/2014/11/16/implementing-a-physically-based-camera-understanding-exposure/
+        /// <summary>
+        /// Computes an exposure value (EV100) from physical camera settings.
+        /// </summary>
+        /// <param name="aperture">The camera aperture.</param>
+        /// <param name="shutterSpeed">The camera exposure time.</param>
+        /// <param name="ISO">The camera sensor sensitivity.</param>
+        /// <returns>An exposure value, in EV100.</returns>
         public static float ComputeEV100(float aperture, float shutterSpeed, float ISO)
         {
+            // References:
+            // "Moving Frostbite to PBR" (Sébastien Lagarde & Charles de Rousiers)
+            //   https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
+            // "Implementing a Physically Based Camera" (Padraic Hennessy)
+            //   https://placeholderart.wordpress.com/2014/11/16/implementing-a-physically-based-camera-understanding-exposure/
+
             // EV number is defined as:
             //   2^ EV_s = N^2 / t and EV_s = EV_100 + log2 (S /100)
             // This gives
@@ -152,6 +205,11 @@ namespace UnityEngine.Rendering
             return Mathf.Log((aperture * aperture) / shutterSpeed * 100f / ISO, 2f);
         }
 
+        /// <summary>
+        /// Converts an exposure value (EV100) to a linear multiplier.
+        /// </summary>
+        /// <param name="EV100">The exposure value to convert, in EV100.</param>
+        /// <returns>A linear multiplier.</returns>
         public static float ConvertEV100ToExposure(float EV100)
         {
             // Compute the maximum luminance possible with H_sbs sensitivity
@@ -164,12 +222,22 @@ namespace UnityEngine.Rendering
             return 1f / maxLuminance;
         }
 
+        /// <summary>
+        /// Converts a linear multiplier to an exposure value (EV100).
+        /// </summary>
+        /// <param name="exposure">A linear multiplier.</param>
+        /// <returns>An exposure value, in EV100.</returns>
         public static float ConvertExposureToEV100(float exposure)
         {
             const float k = 1f / 1.2f;
             return -Mathf.Log(exposure / k, 2f);
         }
 
+        /// <summary>
+        /// Computes an exposure value (EV100) from an average luminance value.
+        /// </summary>
+        /// <param name="avgLuminance">An average luminance value.</param>
+        /// <returns>An exposure value, in EV100.</returns>
         public static float ComputeEV100FromAvgLuminance(float avgLuminance)
         {
             // We later use the middle gray at 12.7% in order to have
@@ -182,11 +250,27 @@ namespace UnityEngine.Rendering
             return Mathf.Log(avgLuminance * 100f / K, 2f);
         }
 
-        // Compute the required ISO to reach the target EV100
+        /// <summary>
+        /// Computes the required ISO to reach <paramref name="targetEV100"/>.
+        /// </summary>
+        /// <param name="aperture">The camera aperture.</param>
+        /// <param name="shutterSpeed">The camera exposure time.</param>
+        /// <param name="targetEV100">The target exposure value (EV100) to reach.</param>
+        /// <returns>The required sensor sensitivity (ISO).</returns>
         public static float ComputeISO(float aperture, float shutterSpeed, float targetEV100) => ((aperture * aperture) * 100f) / (shutterSpeed * Mathf.Pow(2f, targetEV100));
 
+        /// <summary>
+        /// Converts a color value to its 32-bit hexadecimal representation.
+        /// </summary>
+        /// <param name="c">The color to convert.</param>
+        /// <returns>A 32-bit hexadecimal representation of the color.</returns>
         public static uint ToHex(Color c) => ((uint)(c.a * 255) << 24) | ((uint)(c.r * 255) << 16) | ((uint)(c.g * 255) << 8) | (uint)(c.b * 255);
 
+        /// <summary>
+        /// Converts a 32-bit hexadecimal value to a color value.
+        /// </summary>
+        /// <param name="hex">A 32-bit hexadecimal value.</param>
+        /// <returns>A color value.</returns>
         public static Color ToRGBA(uint hex) => new Color(((hex >> 16) & 0xff) / 255f, ((hex >>  8) & 0xff) / 255f, (hex & 0xff) / 255f, ((hex >> 24) & 0xff) / 255f);
     }
 }

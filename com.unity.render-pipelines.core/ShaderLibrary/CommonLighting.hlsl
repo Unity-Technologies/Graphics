@@ -323,6 +323,23 @@ real3 ComputeShadowColor(real shadow, real3 shadowTint, real penumbraFlag)
                 penumbraFlag);
 
 }
+
+// This is the same method as the one above. Simply the shadow is a real3 to support colored shadows.
+real3 ComputeShadowColor(real3 shadow, real3 shadowTint, real penumbraFlag)
+{
+    // The origin expression is
+    // lerp(real3(1.0, 1.0, 1.0) - ((1.0 - shadow) * (real3(1.0, 1.0, 1.0) - shadowTint))
+    //            , shadow * lerp(shadowTint, lerp(shadowTint, real3(1.0, 1.0, 1.0), shadow), shadow)
+    //            , penumbraFlag);
+    // it has been simplified to this
+    real3 invTint = real3(1.0, 1.0, 1.0) - shadowTint;
+    real3 shadow3 = shadow * shadow * shadow;
+    return lerp(real3(1.0, 1.0, 1.0) - ((1.0 - shadow) * invTint)
+                , shadow3 * invTint + shadow * shadowTint,
+                penumbraFlag);
+
+}
+
 //-----------------------------------------------------------------------------
 // Helper functions
 //--------------------------------------------------------------------------- --
