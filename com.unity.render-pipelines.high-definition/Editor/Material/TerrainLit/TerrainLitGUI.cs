@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
 
-            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            int specOcclusionMode = material.HasProperty(kSpecularOcclusionMode) ? material.GetInt(kSpecularOcclusionMode) : 0;
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
         }
 
