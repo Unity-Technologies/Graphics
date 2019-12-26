@@ -152,13 +152,16 @@ namespace UnityEditor.VFX.Test
 
             /* waiting for culling (simulating big delay between each frame) */
             int maxFrame = 512;
-            VFXSpawnerState spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            VFXSpawnerState spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             float sleepTimeInSeconds = maxTimeStep * 5.0f;
             while (--maxFrame > 0 && spawnerState.deltaTime != maxTimeStep)
             {
                 System.Threading.Thread.Sleep((int)(sleepTimeInSeconds * 1000.0f));
                 yield return null;
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             }
             Assert.IsTrue(maxFrame > 0);
             if (graph.visualEffectResource.updateMode == VFXUpdateMode.FixedDeltaTime)

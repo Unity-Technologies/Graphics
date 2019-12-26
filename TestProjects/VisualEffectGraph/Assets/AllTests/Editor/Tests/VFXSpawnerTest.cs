@@ -127,7 +127,10 @@ namespace UnityEditor.VFX.Test
                 yield return null; //wait for exactly one more update if visible
 
                 //Default event state is supposed to be "OnPlay"
-                var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                var spawnNames = new List<string>();
+                vfxComponent.GetSpawnSystemNames(spawnNames);
+
+                var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 Assert.AreEqual(0.0, spawnerState.spawnCount);
 
                 var editor = Editor.CreateEditor(graph.GetResource().asset);
@@ -137,7 +140,7 @@ namespace UnityEditor.VFX.Test
                 editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 GameObject.DestroyImmediate(editor);
                 yield return null;
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
                 Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
 
@@ -145,14 +148,14 @@ namespace UnityEditor.VFX.Test
                 setPropertyInitialEventName.Invoke(vfxComponent, new object[] { "OnPlay" });
                 vfxComponent.Reinit(); //Automatic while changing it through serialized property, here, it's a runtime behavior
                 yield return null;
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 Assert.AreEqual(0.0, spawnerState.spawnCount);
 
                 //Try setting the correct value
                 setPropertyInitialEventName.Invoke(vfxComponent, new object[] { initialEventName });
                 vfxComponent.Reinit();
                 yield return null;
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
                 Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
 
@@ -179,7 +182,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+            var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
 
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
@@ -238,21 +243,24 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
             vfxComponent.SendEvent("Custom_Start");
             for (int i = 0; i < 16; ++i) yield return null;
 
-            spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
 
             vfxComponent.SendEvent("Custom_Stop");
             for (int i = 0; i < 16; ++i) yield return null;
 
-            spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
@@ -348,12 +356,15 @@ namespace UnityEditor.VFX.Test
             camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             vfxComponent.Simulate(0.5f);
             while ((spawnerState.playing == false || spawnerState.deltaTime == 0.0f) && --maxFrame > 0)
             {
                 yield return null;
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             }
             Assert.IsTrue(maxFrame > 0);
 
@@ -469,12 +480,15 @@ namespace UnityEditor.VFX.Test
             }
             Assert.IsTrue(maxFrame > 0);
 
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             //Catching sleeping state
             maxFrame = 512;
             while (--maxFrame > 0 && spawnerState.totalTime < delayValue / 10.0f)
             {
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
@@ -541,13 +555,16 @@ namespace UnityEditor.VFX.Test
             }
             Assert.IsTrue(maxFrame > 0);
 
-            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            var spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
 
             //Sleeping state
             maxFrame = 512;
             while (--maxFrame > 0)
             {
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 if (spawnerState.totalTime < delayValue)
                     Assert.AreEqual(0.0f, spawnerState.spawnCount);
                 else
@@ -560,7 +577,7 @@ namespace UnityEditor.VFX.Test
             maxFrame = 512;
             while (--maxFrame > 0)
             {
-                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                spawnerState = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                 if (spawnerState.spawnCount == spawnCountValue)
                     break;
                 yield return null;
@@ -697,8 +714,13 @@ namespace UnityEditor.VFX.Test
 
             var log = new StringBuilder();
             log.AppendLine(DebugSpawnerStateHeader() + " & " + DebugSpawnerStateHeader());
-            var state_A = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
-            var state_B = VisualEffectUtility.GetSpawnerState(vfxComponent, 1u);
+
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+            Assert.AreEqual(2u, spawnNames.Count);
+
+            var state_A = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
+            var state_B = vfxComponent.GetSpawnSystemInfo(spawnNames[1]);
             var aliveParticleCount = vfxComponent.aliveParticleCount;
             for (int i = 0; i < 115; ++i)
             {
@@ -721,8 +743,8 @@ namespace UnityEditor.VFX.Test
                 maxFrame = 512;
                 while (state_A.totalTime == lastTime && --maxFrame > 0) //Ignore frame without vfxUpdate
                 {
-                    state_A = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
-                    state_B = VisualEffectUtility.GetSpawnerState(vfxComponent, 1u);
+                    state_A = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
+                    state_B = vfxComponent.GetSpawnSystemInfo(spawnNames[1]);
                     aliveParticleCount = vfxComponent.aliveParticleCount;
                     yield return null;
                 }
@@ -887,7 +909,11 @@ namespace UnityEditor.VFX.Test
             vfxComponent.Reinit();
             var log = new StringBuilder();
             log.AppendLine(DebugSpawnerStateHeader());
-            var state = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+
+            var state = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
             var aliveParticleCount = vfxComponent.aliveParticleCount;
             for (int i = 0; i < 150; ++i)
             {
@@ -910,7 +936,7 @@ namespace UnityEditor.VFX.Test
                 maxFrame = 512;
                 while (state.totalTime == lastTime && --maxFrame > 0) //Ignore frame without vfxUpdate
                 {
-                    state = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+                    state = vfxComponent.GetSpawnSystemInfo(spawnNames[0]);
                     aliveParticleCount = vfxComponent.aliveParticleCount;
                     yield return null;
                 }
@@ -983,7 +1009,9 @@ namespace UnityEditor.VFX.Test
             }
             Assert.IsTrue(maxFrame > 0);
 
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0u).loopIndex < 3 /* arbitrary loop count */)
+            var spawnNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnNames);
+            while (vfxComponent.GetSpawnSystemInfo(spawnNames[0]).loopIndex < 3 /* arbitrary loop count */)
             {
                 yield return null;
             }

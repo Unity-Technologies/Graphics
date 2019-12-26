@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
 using UnityEditor.VFX.Block.Test;
+using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
@@ -210,9 +211,12 @@ namespace UnityEditor.VFX.Test
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
 
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f)
+            var spawnSystemName = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnSystemName);
+            Assert.AreEqual(1u, spawnSystemName.Count);
+
+            while (vfxComponent.GetSpawnSystemInfo(spawnSystemName[0]).totalTime < 1.0f)
             {
                 yield return null;
             }
@@ -221,7 +225,7 @@ namespace UnityEditor.VFX.Test
             vfxComponent.enabled = true;
             yield return null;
 
-            Assert.IsTrue(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f);
+            Assert.IsTrue(vfxComponent.GetSpawnSystemInfo(spawnSystemName[0]).totalTime < 1.0f);
         }
 
         [UnityTest]
@@ -238,7 +242,12 @@ namespace UnityEditor.VFX.Test
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+
+            var systemNames = new List<string>();
+            vfxComponent.GetSpawnSystemNames(systemNames);
+            Assert.AreEqual(1u, systemNames.Count);
+            vfxComponent.GetParticleSystemNames(systemNames);
+            Assert.AreEqual(1u, systemNames.Count);
 
             yield return null;
         
@@ -255,7 +264,11 @@ namespace UnityEditor.VFX.Test
             Debug.unityLogger.logEnabled = false;
             graph.RecompileIfNeeded();
             Debug.unityLogger.logEnabled = true;
-            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
+
+            vfxComponent.GetSpawnSystemNames(systemNames);
+            Assert.AreEqual(0u, systemNames.Count);
+            vfxComponent.GetParticleSystemNames(systemNames);
+            Assert.AreEqual(0u, systemNames.Count);
         }
 
         [UnityTest]
@@ -544,11 +557,14 @@ namespace UnityEditor.VFX.Test
             }
             Assert.AreEqual(expectedValue.x, vfx.GetVector2(exposedName).x); Assert.AreEqual(expectedValue.y, vfx.GetVector2(exposedName).y);
 
+            var spawnNames = new List<string>();
+            vfx.GetSpawnSystemNames(spawnNames);
+
             float spawnerLimit = 1.8f; //Arbitrary enough large time
             int maxFrameCount = 1024;
             while (maxFrameCount-- > 0)
             {
-                var spawnerState = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                var spawnerState = vfx.GetSpawnSystemInfo(spawnNames[0]); 
                 if (spawnerState.totalTime > spawnerLimit)
                     break;
                 yield return null;
@@ -583,7 +599,7 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
-            var spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+            var spawnerStateFinal = vfx.GetSpawnSystemInfo(spawnNames[0]);
             Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
             Assert.IsTrue(vfx.HasVector2(exposedName));
             Assert.AreEqual(expectedValue.x, vfx.GetVector2(exposedName).x); Assert.AreEqual(expectedValue.y, vfx.GetVector2(exposedName).y);
@@ -609,7 +625,7 @@ namespace UnityEditor.VFX.Test
                 GameObject.DestroyImmediate(editor);
 
                 yield return null;
-                spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                spawnerStateFinal = vfx.GetSpawnSystemInfo(spawnNames[0]);
 
                 Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
                 Assert.IsTrue(vfx.HasVector2(exposedName));
