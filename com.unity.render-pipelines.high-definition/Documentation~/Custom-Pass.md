@@ -1,27 +1,32 @@
-# Custom Pass
+# Custom render passes
 
-HDRP Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal.
+The High Definition Render Pipeline (HDRP) allows you to define custom render passes that inject Shaders and C# at certain points inside the render loop. This means that you can draw objects, process full screen passes, or read camera buffers such as the depth, color, or normal buffers.
 
-Here is an example of what can be achieved using custom passes:
-<!-- TODO: move this to a local doc page about custom pass samples in HDRP -->
-[![TIPS_Effect_Size](Images/TIPS_Effect_Size.gif)](https://github.com/alelievr/HDRP-Custom-Passes)
+Below is an example of what you can achieve with custom render passes:
+![](Images/TIPS_Effect_Size.gif)
 
-## Workflow with volumes
+## Workflow with Volumes
 
-Custom Passes have been implemented through a volume system, but note that it's different from the builtin [Volumes system](Volumes.md) in HDRP due to different design reason and usage. Therefore you can note these major differences:  
+HDRP implements custom render passes through a volume system, but note that this is different to HDRP's standard [Volume system](Volumes.html). The implementation uses the **Custom Pass Volume** component to define the custom pass and properties relating to it. The normal Volume system and custom render pass volume system have the following differences:
 
-- Custom Pass Volumes are can't be blend like standard volumes, you can only have a fade
-- In case of overlap of multiple volumes with the same injection point, the smallest (in term of bounding volume) will be executed, all the others are ignored
-- The data of the custom passes are saved in the volume GameObject in itself, not in an asset in the project
+- You can not blend between custom render pass volumes like you can with standard Volumes. You can only fade the effect in and out.
+- If multiple volumes with the same injection point overlap, HDRP executes the smallest (in term of bounding volume) and ignores all others.
+- HDRP saves data for a custom render pass on the volume GameObject itself. HDRP saves data for a standard Volume as an Asset in your Unity Project.
 
-Like in volumes, there is two modes for the custom pass volume: `Local` and `Global`. The `Local` mode uses colliders attached to the GameObject where the custom pass is to define a zone where the effect will be executed. `Global` volumes are executed everywhere in your scene.  
-Additionally you have a `fade` system that allow you to smooth the transition between your normal rendering and the custom custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
-Because we give the full control over what can be done in the custom passes, the fading must be manually included in your effects. To help you, there is a builtin variable `_FadeValue` in the shader and `CustomPass.fadeValue` in the C# that contains a value between 0 and 1 representing how far the camera is from the collider bounding volume. If you want more details about the fading in script, you can [jump to the scripting API tag](#ScriptingAPI).
+Like in standard Volumes, there are two modes for custom render passes:
 
-Here you can see an example of a custom pass with a box collider (solid transparent box) and the fade radius is represented by the wireframe cube.
+* **Local**: Local custom render passes define bounds. When a Camera enters these bounds, HDRP processes the custom render pass for that Camera. To define the bounds, Custom Pass Volumes use Colliders attached to the Custom Pass Volume component.
+
+* **Global**: HDRP processes Global custom render passes for Cameras everywhere in your Scene.
+
+The Custom Pass Volume component also includes the **Fade** feature that allow you to smooth the transition between normal rendering and the custom render pass. To control the distance of the fade, use the **Fade Radius** property on the Custom Pass Volume component. The Custom Pass Volume defines the radius in meters and does not scale it regardless of the GameObject's Transform.
+
+To give you full control over custom render passes, you must implement fading manually in your effects. To do this, use `_FadeValue` in your Shader and `CustomPass.fadeValue` in the C#. These values are both between **0** and **1** and represent how far the Camera is from the Collider bounding volume. For more information about fading in scripts, see [Scripting API](#ScriptingAPI).
+
+Below you can see an example of a custom render pass volume that uses a Box Collider. In the Scene view, Unity represents the bounds of this example volume as a semi-transparent green box and the fade radius as the surrounding wireframe box.
 ![CustomPassVolumeBoxCollider](Images/CustomPassVolumeBox_Collider.png)
 
-> **NOTE**: You can stack multiple custom pass volumes but only one per injection point can be executed, the one that will be executed is the smallest currently overlapping collider extent (without the fade radius). It means that global volumes are lower priority than local ones.
+**Note**: You can stack multiple Custom Pass Volumes, but HDRP can only execute one per injection point. The one that HDRP executes is the one with the smallest currently overlapping bounding area (not including the fade radius). This means that HDRP defines global volumes as lower priority than local volumes.
 
 ## Injection Points
 
@@ -186,6 +191,8 @@ Here is the list of all the defines you can enable
 ```
 
 Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
+
+<a name="ScriptingAPI"></a>
 
 ## Scripting API
 
