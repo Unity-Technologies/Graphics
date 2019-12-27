@@ -5,73 +5,75 @@ The High Definition Render Pipeline (HDRP) allows you to define custom render pa
 Below is an example of what you can achieve with custom render passes:
 ![](Images/TIPS_Effect_Size.gif)
 
-## Workflow with Volumes
+## Custom render pass volume
 
 HDRP implements custom render passes through a volume system, but note that this is different to HDRP's standard [Volume system](Volumes.html). The implementation uses the **Custom Pass Volume** component to define the custom pass and properties relating to it. The normal Volume system and custom render pass volume system have the following differences:
 
 - You can not blend between custom render pass volumes like you can with standard Volumes. You can only fade the effect in and out.
 - If multiple volumes with the same injection point overlap, HDRP executes the smallest (in term of bounding volume) and ignores all others.
-- HDRP saves data for a custom render pass on the volume GameObject itself. HDRP saves data for a standard Volume as an Asset in your Unity Project.
+- HDRP saves data for a custom render pass on the volume GameObject itself. HDRP saves data for a standard Volume as an Asset in your Unity Project (see [Volume Profile](Volume-Profile.html).
 
-Like in standard Volumes, there are two modes for custom render passes:
+Like in standard Volumes, there are two modes for custom render pass volumes:
 
-* **Local**: Local custom render passes define bounds. When a Camera enters these bounds, HDRP processes the custom render pass for that Camera. To define the bounds, Custom Pass Volumes use Colliders attached to the Custom Pass Volume component.
+* **Local**: Local custom render passes define bounds. When a Camera enters these bounds, HDRP processes the custom render pass for that Camera. To define the bounds, the Custom Pass Volume component uses a Collider attached to the same GameObject.
 
 * **Global**: HDRP processes Global custom render passes for Cameras everywhere in your Scene.
 
 The Custom Pass Volume component also includes the **Fade** feature that allow you to smooth the transition between normal rendering and the custom render pass. To control the distance of the fade, use the **Fade Radius** property on the Custom Pass Volume component. The Custom Pass Volume defines the radius in meters and does not scale it regardless of the GameObject's Transform.
 
-To give you full control over custom render passes, you must implement fading manually in your effects. To do this, use `_FadeValue` in your Shader and `CustomPass.fadeValue` in the C#. These values are both between **0** and **1** and represent how far the Camera is from the Collider bounding volume. For more information about fading in scripts, see [Scripting API](#ScriptingAPI).
+To give you full control over custom render passes, you must implement fading manually in your effects. To do this, use `_FadeValue` in the Shader and `CustomPass.fadeValue` in the C# script. These values are both between **0** and **1** and represent how far the Camera is from the Collider bounding volume. For more information about fading in scripts, see [Scripting API](#ScriptingAPI).
 
 Below you can see an example of a custom render pass volume that uses a Box Collider. In the Scene view, Unity represents the bounds of this example volume as a semi-transparent green box and the fade radius as the surrounding wireframe box.
-![CustomPassVolumeBoxCollider](Images/CustomPassVolumeBox_Collider.png)
+![](Images/CustomPassVolumeBox_Collider.png)
 
 **Note**: You can stack multiple Custom Pass Volumes, but HDRP can only execute one per injection point. The one that HDRP executes is the one with the smallest currently overlapping bounding area (not including the fade radius). This means that HDRP defines global volumes as lower priority than local volumes.
 
 ## Injection Points
 
-Custom passes can be injected at 6 different places. Note that these injection points **don't tell you exactly where you pass will be executed**, the only guarantee we give is that a certain list of buffers will be available for **Read** or **Write** and will contain a certain subset of objects rendered before your pass. Unlike Universal Render Pipeline, we don't give you the guarantee that your passes will be executed before or after any HDRP internal operation (also due to our async rendering). However we guarantee that the injection points will be triggered from top to bottom in this order in a frame:
+You can inject custom render passes at six different places. HDRP does not tell you exactly where it executes the custom pass, but it does guarantee that a certain list of buffers are available in each injection point to **Read** from or **Write** to. Each buffer contains a certain subset of objects that HDRP has rendered before your custom render pass. Unlike with the Universal Render Pipeline, HDRP does not guarantee that it executes your pass before or after any HDRP internal operation (due to its async rendering). However, HDRP does guarantee that it executes the injection points from top to bottom in the following order in a frame:
 
 Name | Available Buffers | Description
 --- | --- | ---
-BeforeRendering | Depth (Write) | Just after the depth clear, you can write to the depth buffer so Z-Tested opaque objects won't be rendered. It's useful to mask a part of the rendering. Here you can also clear the buffer you allocated or the `Custom Buffer`
-AfterOpaqueDepthAndNormal | Depth (Read \| Write), Normal + roughness (Read \| Write) | Buffers will contain all opaque objects. Here you can modify the normal, roughness and depth buffer, it will be taken in account in the lighting and the depth pyramid. Note that normals and roughness are in the same buffer, you can use `DecodeFromNormalBuffer` and `EncodeIntoNormalBuffer` functions to read/write normal and roughness data.
-BeforePreRefraction | Color (no pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers will contain all opaque objects plus the sky. Use this point to render any transparent objects that you want to be in the refraction (they, will end up in the color pyramid we use for refraction when drawing transparent objects).
-BeforeTransparent | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Here you can sample the color pyramid we use for transparent refraction. It's useful to do some blur effects but note that all objects rendered at this point won't be in the color pyramid. You can also draw some transparent objects here that needs to refract the scene (like water for example).
-BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers contains all objects in the frame in HDR.
-AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
+**BeforeRendering** | **Depth** (Write) | Executes the render pass straight after HDRP clears the depth buffer. This allows you to write to the depth buffer so HDRP does not render depth-tested opaque GameObjects. This is useful if you want to mask a part of the screen. Here you can also clear the buffer you allocated or the `Custom Buffer`. 
+**AfterOpaqueDepthAndNormal** | **Depth** (Read \| Write), **Normal + roughness** (Read \| Write) | Buffers for this injection point contain every opaque GameObject. Here you can modify the normal, roughness, and depth buffer. HDRP takes this into account in the lighting and the depth pyramid. **Note**: normals and roughness are in the same buffer. To read and write normal and roughness data, use `DecodeFromNormalBuffer` and `EncodeIntoNormalBuffer`. 
+**BeforePreRefraction** | **Color** (no pyramid \| Read \| Write), **Depth** (Read \| Write), **Normal + roughness** (Read) | Buffers for this injection point contain all opaque GameObjects and the sky. Use this point to render any transparent GameObjects that you want to be in the refraction. They end up in the color pyramid that HDRP uses for refraction when it draws transparent GameObjects. 
+**BeforeTransparent** | **Color** (Pyramid \| Read \| Write), **Depth** (Read \| Write), **Normal + roughness** (Read) | Here you can sample the color pyramid that HDRP uses for transparent refraction. This is useful for some blur effects, but note that every GameObject that you render at this point will not be in the color pyramid. Here, you can also draw transparent GameObjects that need to refract the Scene. For example, water. 
+**BeforePostProcess** | **Color** (Pyramid \| Read \| Write), **Depth** (Read \| Write), **Normal + roughness** (Read) | Buffers for this injection point contain every GameObject in the frame in HDR. 
+**AfterPostProcess** | **Color** (Read \| Write), **Depth** (Read) | Buffers for this injection point are in after post-process mode. The depth buffer here is jittered which means that you can not draw depth-tested GameObjects without having artifacts. 
 
-You can see here on this diagram where the custom passes are injected inside an HDRP frame.
+The diagram below shows where HDRP injects the custom passes within a frame.
 ![](Images/HDRP-frame-graph-diagram.png)
 
 ## Custom Pass List
 
-The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure then. There are two custom passes that are builtin to HDRP, the FullScreen and the DrawRenderers custom pass.  
-In this screenshot, you can see a FullScreen render pass:
+The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure them. There are two custom render passes that are built-in to HDRP, the **FullScreen** and the **DrawRenderers** custom render pass.  
+Below, you can see an example of a **FullScreen** render pass:
 
-![FullScreenCustomPass_Inspector](Images/FullScreenCustomPass_Inspector.png)
+![](Images/FullScreenCustomPass_Inspector.png)
 
-There are some settings that you will find by default on every custom pass, here are their significations:
+There are some settings that are on every custom render pass. See the list below:
 
 Name | Description
 --- | ---
-Name | name of the pass, it will be used as the name of the profiling marker for debugging
-Target color buffer | The target buffer where the color will be written
-Target depth buffer | The target buffer where the depth and stencil will be written and tested
-Clear flags | When the render targets above are bound for rendering, how do you want them to be cleared
+**Name** | The name of the pass. HDRP uses this as the name of the profiling marker for debugging. 
+**Target Color Buffer** | The target buffer where HDRP writes the color to. 
+**Target Depth Buffer** | The target buffer where HDRP writes and tests depth and stencil. 
+**Clear Flags** | Defines how HDRP clears the the **Target Color Buffer** and **Target Depth Buffer**. 
 
-> **Note:** by default the target buffers are set to the camera buffers but you can also select the custom buffer. It is another buffer allocated by HDRP where you can put everything you want, you can then sample it in custom pass shaders. You can choose the format of the custom buffer in the HDRP asset settings under the **Rendering** section.
+**Note:** by default, HDRP sets the target buffers to the Camera buffers, but you can also select the custom buffer. This is a buffer that HDRP allocates where you can put anything you want. You can then sample it in your custom render pass Shaders. You can choose the format of the custom buffer in the HDRP Asset. This is in the **Rendering** section.
 
 ![CustomPass_BufferFormat_Asset](Images/CustomPass_BufferFormat_Asset.png)
 
-> In the HDRP asset you can also disable the the custom passes, that will disable the custom buffer allocation as well. Additionally, in the frame settings you can choose whether or not to render custom passes, note that it will not affect the custom buffer allocation.
+You can also disable custom passes in the HDRP Asset. If you do this, HDRP does not allocate the custom buffer. Additionally, in a Camera's [Frame Settings](Frame-Settings.html), you can choose whether or not to render custom render passes. If you disable custom render passes in Frame Settings, this does not affect custom buffer allocation.
 
-### FullScreen Custom Pass
+### FullScreen custom render pass
 
-When you add a FullScreen pass, it will be rendered with the **FullScreen Material** provided in the field in the UI. To create a material compatible with the FullScreen pass, first you need to create a shader using the menu **Create/Shader/HDRP/Custom FullScreen Pass** and the right click above this shader and create a new Material.  
-Then when you add the material to the field `FullScreen Material` field in the inspector you'll see a dropdown called `Pass Name` that allow you to choose which pass of the shader will be used to draw the FullScreen quad, this is especially useful if you want to do multiple variants of one effect and switch between them.
+When you create a **FullScreen** custom render pass, HDRP renders it with the **FullScreen Material** that you specify in the Custom Pass Volume component. To create and assign a Material compatible with the FullScreen pass:
 
-Now that the custom pass is setup, you can start to edit the shader of the FullScreen Material. By default in the template you have a `FullScreenPass` function where you'll add your code:
+1. Go to **Create > Shader > HDRP**, right click on **Custom FullScreen Pass** and create a new Material.
+2. Now set the new Material to the **FullScreen Material** property in the Inspector.
+3. When you assign a Material, the Custom Pass Volume exposes the **Pass Name** property. Use this drop-down to select which pass of the Shader HDRP uses to draw the full screen effect. This is useful if you want to do multiple variants of one effect and switch between them.
+4. Now that the custom render pass is set up, you can edit the Shader of the full screen Material. In the Shader template, the **FullScreenPass** function is where you should add your code:
 
 ```HLSL
 float4 FullScreenPass(Varyings varyings) : SV_Target
@@ -93,7 +95,7 @@ float4 FullScreenPass(Varyings varyings) : SV_Target
 }
 ```
 
-In this snippet, we fetch a lot of useful input data that you might need in your effect like the depth, the view direction, position in world space, ect. By default we also uses the `_FadeValue` variable which will affect the effect if there is fade radius set on the custom pass volume.
+This example uses input data like depth, view direction, and position in world space. This example also implements fading. You can see the example effect uses **_FadeValue** which changes depending on the **Fade Radius** on the Custom Pass Volume.
 
 |  ⚠️ **WARNING**: There are some gotchas that you need to be aware of when writing FullScreen Shaders |
 | ---  |
