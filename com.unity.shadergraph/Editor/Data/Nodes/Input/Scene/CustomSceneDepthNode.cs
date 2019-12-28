@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph
     [Title("Input", "Scene", "Custom Scene Depth")]
     class CustomSceneDepthNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireCameraOpaqueTexture, IMayRequireScreenPosition
     {
+        public enum DepthSamplingMode
+        {
             Linear01,
             Raw,
             Eye
@@ -18,8 +20,8 @@ namespace UnityEditor.ShaderGraph
         const int kUvInputSlotId = 0;
         const string kUvInputSlotName = "ScreenPosition";
       
-        const int kColorOutputSlotId = 1;
-        const string kDepthOutputSlotName = "Output";
+        const int kDepthOutputSlotId = 1;
+        const string kDepthOutputSlotName = "Depth";
 
         [SerializeField]
         DepthSamplingMode m_SamplingMode = DepthSamplingMode.Linear01;
@@ -49,35 +51,33 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(kColorOutputSlotId, kDepthOutputSlotName, kDepthOutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(kDepthOutputSlotId, kDepthOutputSlotName, kDepthOutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
           
-            RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kColorOutputSlotId});
+            RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kDepthOutputSlotId });
         }
         
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         { 
             string result = string.Empty;
-          
-            sb.AppendLine(result);
             switch (m_SamplingMode)
             {
                 case DepthSamplingMode.Linear01:
                 {
-                    result = string.Format("$precision1 {0} = Linear01Depth(SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy), _ZBufferParams);", GetVariableNameForSlot(kColorOutputSlotId),
+                    result = string.Format("$precision1 {0} = Linear01Depth(SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy), _ZBufferParams);", GetVariableNameForSlot(kDepthOutputSlotId),
                         GetSlotValue(kUvInputSlotId, generationMode));
                     break;
                 }
 
                 case DepthSamplingMode.Raw:
                 {
-                    result = string.Format("$precision1 {0} = SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy);", GetVariableNameForSlot(kColorOutputSlotId),
+                    result = string.Format("$precision1 {0} = SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy);", GetVariableNameForSlot(kDepthOutputSlotId),
                         GetSlotValue(kUvInputSlotId, generationMode));
                     break;
                 }
 
                 case DepthSamplingMode.Eye:
                 {
-                    result = string.Format("$precision1 {0} = LinearEyeDepth(SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy), _ZBufferParams);", GetVariableNameForSlot(kColorOutputSlotId),
+                    result = string.Format("$precision1 {0} = LinearEyeDepth(SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH({1}.xy), _ZBufferParams);", GetVariableNameForSlot(kDepthOutputSlotId),
                         GetSlotValue(kUvInputSlotId, generationMode));
                     break;
                 }

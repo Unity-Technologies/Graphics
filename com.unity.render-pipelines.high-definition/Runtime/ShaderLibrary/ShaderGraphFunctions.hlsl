@@ -8,6 +8,7 @@
 #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_HDLoadCustomSceneColor(uv)
 #define SHADERGRAPH_SAMPLE_CUSTOM_SCENE_COLOR(uv, s) shadergraph_HDSampleCustomSceneColor(uv, s)
 #define SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH(uv) shadergraph_HDLoadCustomSceneDepth(uv)
+#define SHADERGRAPH_LOAD_SCENE_NORMAL(uv) shadergraph_HDLoadSceneNormal(uv)
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
@@ -41,6 +42,13 @@ float4 shadergraph_HDSampleCustomSceneColor(float2 uv, SAMPLER(s))
 float shadergraph_HDLoadCustomSceneDepth(float2 uv)
 {
     return LOAD_TEXTURE2D_X(_CustomDepthTexture, uv).r;
+}
+
+float3 shadergraph_HDLoadSceneNormal(float2 uv)
+{
+    NormalData normalData;
+    DecodeFromNormalBuffer(uv, normalData);
+    return normalize(normalData.normalWS);
 }
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)

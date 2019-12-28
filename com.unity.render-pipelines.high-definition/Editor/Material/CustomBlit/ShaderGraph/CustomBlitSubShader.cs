@@ -47,7 +47,20 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {         
+            {
+                CustomBlitMasterNode customBlitMasterNode = node as CustomBlitMasterNode;
+                switch (customBlitMasterNode.blendType)
+                {
+                    case CustomBlitMasterNode.BlendType.None:
+                        pass.BlendOpOverride = "Blend Off";
+                        break;
+                    case CustomBlitMasterNode.BlendType.Multiply:
+                        pass.BlendOpOverride = "Blend SrcAlpha OneMinusSrcAlpha";
+                        break;
+                    case CustomBlitMasterNode.BlendType.Add:
+                        pass.BlendOpOverride = "Blend One One";
+                        break;
+                }
             }
         };
 
@@ -90,7 +103,20 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {         
+            {
+                CustomBlitMasterNode customBlitMasterNode = node as CustomBlitMasterNode;
+                switch(customBlitMasterNode.blendType)
+                {
+                    case CustomBlitMasterNode.BlendType.None:
+                        pass.BlendOpOverride = "Blend Off";
+                        break;
+                    case CustomBlitMasterNode.BlendType.Multiply:
+                        pass.BlendOpOverride = "Blend SrcAlpha OneMinusSrcAlpha";
+                        break;
+                    case CustomBlitMasterNode.BlendType.Add:
+                        pass.BlendOpOverride = "Blend One One";
+                        break;
+                }
             }
         };
        

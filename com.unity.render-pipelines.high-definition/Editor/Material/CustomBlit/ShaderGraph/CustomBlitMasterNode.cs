@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseColor = 1 << BaseColorSlotId
         }
 
-        const SlotMask CustomBlitParameter = SlotMask.BaseColor ;
+        const SlotMask CustomBlitParameter = SlotMask.BaseColor;
         
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -53,6 +53,30 @@ namespace UnityEditor.Rendering.HighDefinition
         public override string documentationURL
         {
             get { return null; }
+        }
+
+        public enum BlendType
+        {
+            None,
+            Add,
+            Multiply
+        }
+
+        [SerializeField]
+        BlendType m_BlendType;
+
+        public BlendType blendType
+        {
+            get { return m_BlendType; }
+            set
+            {
+                if (m_BlendType == value)
+                    return;
+
+                m_BlendType = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

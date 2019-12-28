@@ -24,10 +24,28 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
+        void ChangeBlendType(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.blendType, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Blend Type Change");
+            m_Node.blendType = (CustomBlitMasterNode.BlendType)evt.newValue;
+        }
+
         public CustomBlitSettingsView(CustomBlitMasterNode node)
         {
             m_Node = node;
-            PropertySheet ps = new PropertySheet();                       
+            int indentLevel = 0;
+            PropertySheet ps = new PropertySheet();
+            ps.Add(new PropertyRow(CreateLabel("Blend Type", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(CustomBlitMasterNode.BlendType.None), (field) =>
+                {
+                    field.value = m_Node.blendType;
+                    field.RegisterValueChangedCallback(ChangeBlendType);
+                });
+            });
             Add(ps);
         }     
     }
