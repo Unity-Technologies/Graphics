@@ -77,4 +77,34 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: 94162c2379efdeb48b29a3a2f8657286
+  - enabled: 1
+    path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
+    guid: b67264a965234a441a3bcc194e709ec5
+  - enabled: 1
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
+    guid: e8e613910573a3e4e991d95e08bc3e5b
+  - enabled: 1
+    path: Assets/Scenes/046_Camera_OpaqueTexture.unity
+    guid: d152c309b43880c4baf1a7598c060166
+  - enabled: 1
+    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
+    guid: ec2985cb3eccad544a49fddf554b42d0
+  - enabled: 1
+    path: Assets/Scenes/054_Lighting_Attenuation.unity
+    guid: 76aa86cd4d9b37447afb9ecf46ce49a1
+  - enabled: 1
+    path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
+    guid: 817cbd8774788f54f965b82e3a50fcb8
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights.unity
+    guid: e7e3b437bba51fe4780c5d86504c5899
+  - enabled: 1
+    path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
+    guid: 590d2897adecdba41b90871a3ea23983
+  - enabled: 1
+    path: Assets/Scenes/070_2D_Forward_Shader_Compatibility_2D.unity
+    guid: 436456899536b314395b7ba33099e1aa
+  - enabled: 1
+    path: Assets/Scenes/105_TransparentReceiveShadows.unity
+    guid: 9de3f0f62ce5e15408ddb79bb03e373e
   m_configObjects: {}

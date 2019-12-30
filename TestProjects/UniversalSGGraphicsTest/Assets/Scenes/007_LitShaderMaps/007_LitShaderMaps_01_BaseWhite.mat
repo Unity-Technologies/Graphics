@@ -10,7 +10,7 @@ Material:
   m_Name: 007_LitShaderMaps_01_BaseWhite
   m_Shader: {fileID: -6465566751694194690, guid: b9004635995a2a248952a0679e311a09,
     type: 3}
-  m_ShaderKeywords: _SPECULARHIGHLIGHTS_OFF
+  m_ShaderKeywords: _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

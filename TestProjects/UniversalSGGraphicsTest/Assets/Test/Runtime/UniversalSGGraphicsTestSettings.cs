@@ -6,9 +6,9 @@ public class UniversalSGGraphicsTestSettings : GraphicsTestSettings
 
     public UniversalSGGraphicsTestSettings()
     {
-        ImageComparisonSettings.TargetWidth = 512;
-        ImageComparisonSettings.TargetHeight = 512;
-        ImageComparisonSettings.AverageCorrectnessThreshold = 0.005f;
-        ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.001f;
+        ImageComparisonSettings.TargetWidth = 640;
+        ImageComparisonSettings.TargetHeight = 360;
+        ImageComparisonSettings.AverageCorrectnessThreshold = 0.001f;
+        ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.005f;
     }
 }
