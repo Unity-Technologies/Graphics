@@ -4,6 +4,8 @@
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleHalfRes HALF_RESOLUTION
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleFullRes
 
+#pragma only_renderers d3d11
+
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING
@@ -20,8 +22,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-
-#pragma only_renderers d3d11
 
 // Tile size of this compute
 #define RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE 8

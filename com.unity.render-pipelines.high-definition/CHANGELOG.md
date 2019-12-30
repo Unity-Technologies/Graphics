@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added "Celestial Body" controls to the Directional Light
 - Added new parameters to the Physically Based Sky
 - Added Reflections to the DXR Wizard
+- Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
+- Added a check in the custom post process template to throw an error if the default shader is not found.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -218,6 +220,50 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed init of debug for FrameSettingsHistory on SceneView camera
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
+- Fixed TerrainLitGUI when per-pixel normal property is not present.
+- Fixed rendering errors when enabling debug modes with custom passes
+- Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
+- Fixing a bug whith histories when n>4 for ray traced shadows
+- Fixing wrong behavior in ray traced shadows for mesh renderers if their cast shadow is shadow only or double sided
+- Only tracing rays for shadow if the point is inside the code for spotlight shadows
+- Only tracing rays if the point is inside the range for point lights
+- Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
+- Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
+- Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
+- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
+- Fixed ray traced shadow denoising not working (history rejected all the time).
+- Fixed shader warning on xbox one
+- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
+- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
+- Fixed missing distortion inputs in Lit and Unlit material UI.
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed ray traced reflection exposure issue.
+- Fixed issue with TAA history not initialising corretly scale factor for first frame
+- Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
+- Fixed issue with History not reset when chaning antialiasing mode on camera
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed ray tracing reflection denoiser not applied in tier 1
+- Fixed the vibility of ray tracing related methods.
+- Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
+- Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
+- Fixed exposure management for the path tracer
+- Fixed AxF material UI containing two advanced options settings.
+- Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
+- Fixed issue that clamped PCSS softness too early and not after distance scale.
+- Fixed fog affect transparent on HD unlit master node
+- Fixed custom post processes re-ordering not saved.
+- Fixed NPE when using scalable settings
+- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
+- Fixed a bug due to depth history begin overriden too soon
+- Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
+- Fixed corruption of AO in baked probes.
+- Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
+- Fixed issue that caused Distortion UI to appear in Lit.
+- Fixed several issues with decal duplicating when editing them.
+- Fixed initialization of volumetric buffer params (1204159)
+- Fixed an issue where frame count was incorrectly reset for the game view, causing temporal processes to fail.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -257,6 +303,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
 - Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
 - Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
+- Hide unused LOD settings in Quality Settings legacy window.
+- Reduced the constrained distance for temporal reprojection of ray tracing denoising
+- Removed shadow near plane from the Directional Light Shadow UI.
+- Improved the performances of custom pass culling.
+- The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
+- Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 
 ## [7.1.1] - 2019-09-05
 

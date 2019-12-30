@@ -13,8 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         public const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
+        /// <summary>Default HDAdditionalReflectionData</summary>
         static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        /// <summary>Default HDAdditionalLightData</summary>
         static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        /// <summary>Default HDAdditionalCameraData</summary>
         static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         static Texture3D m_ClearTexture3D;
@@ -68,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -736,6 +738,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hdCamera;
 
             return s_DefaultHDAdditionalCameraData;
+        }
+
+
+        internal static void DisplayUnsupportedMessage(string msg)
+        {
+            Debug.LogError(msg);
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                sv.ShowNotification(new GUIContent(msg));
+#endif
+        }
+
+        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        {
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            string currentPlatform = buildTarget.ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void DisplayUnsupportedXRMessage()
+        {
+            string msg = "AR/VR devices are not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
         }
     }
 }

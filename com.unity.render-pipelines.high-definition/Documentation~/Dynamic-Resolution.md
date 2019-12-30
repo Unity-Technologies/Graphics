@@ -1,8 +1,9 @@
 # Dynamic resolution
 
-Dynamic resolution reduces the workload on the GPU, which helps maintain a stable target frame rate. The High Definition Render Pipeline (HDRP) uses software dynamic resolution to lower the resolution of the render targets that the main rendering passes use.
+Dynamic resolution reduces the workload on the GPU, which helps maintain a stable target frame rate. The High Definition Render Pipeline (HDRP) uses dynamic resolution to lower the resolution of the render targets that the main rendering passes use. HDRP will use hardware dynamic resolution when supported by the platform, otherwise it will use a software version.
 
 To use dynamic resolution in your Project, you must enable dynamic resolution in your [HDRP Asset)(HDRP-Asset.html). In the Inspector for your HDRP Asset, navigate to **Rendering** **> Dynamic Resolution** and enable the **Enable** checkbox. For information on how to customize the rest of the HDRP Asset’s global dynamic resolution properties, see the dynamic resolution section of the [HDRP Asset documentation](HDRP-Asset.html#DynamicResolution).
+Moreover, each camera that needs to perform dynamic resolution needs to have the checkbox **General > Allow Dynamic Resolution** set on the camera component.
 
 When you enable dynamic resolution, HDRP allocates render targets to accommodate the maximum resolution possible. Then, HDRP rescales the viewport accordingly, so it can render at varying resolutions. At the end of each frame, HDRP upscales the result of the scaled rendering to match the back buffer resolution. To do this, HDRP uses the method defined in the **Upscale Filter**. 
 
@@ -10,7 +11,12 @@ When you enable dynamic resolution, HDRP allocates render targets to accommodate
 
 ## Using dynamic resolution
 
-Dynamic resolution is not automatic, so you need to manually call the `HDDynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)` function. This function is in the `UnityEngine.Rendering.HighDefinition` namespace.
+Dynamic resolution is not automatic, so you need to manually call the `DynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)` function. 
+
+The policy type can be one of the following:
+
+- `DynamicResScalePolicyType.ReturnsPercentage`:  The DynamicResolutionHandler expects the `scaler` to return a screen percentage value. The value set will be clamped between the minimum and maximum percentage set in the HDRP Asset.
+- `DynamicResScalePolicyType.ReturnsMinMaxLerpFactor`:  The DynamicResolutionHandler expects the `scaler` to return a factor `t` that is the [0 ... 1] range and that will be used as a lerp factor between the minimum and maximum screen percentages set in the HDRP asset.
 
 The example below shows how to call this function. In a real production environment, you would call this function depending on the performance of your application.
 
@@ -25,7 +31,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 public class DynamicRes : MonoBehaviour
 
@@ -87,7 +93,7 @@ public class DynamicRes : MonoBehaviour
 
 ​        // Binds the dynamic resolution policy defined above.
 
-​        HDDynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale, DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
+​        DynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale, DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
 
 ​    }
 

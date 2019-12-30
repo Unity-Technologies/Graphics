@@ -100,16 +100,16 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 
 ### DrawRenderers Custom Pass
 
-This pass will allow you to draw a subset of objects that are currently visible on the camera (you can't draw anything that the camera don't see, so if you want to render objects only in a custom pass and not in a camera, using layers for example, that's not possible).  
+This pass will allow you to draw a subset of objects that are in the camera view (result of the camera culling).  
 Here is how the inspector for the DrawRenderers pass looks like:
 
 ![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)
 
 Filters allow you to select which objects will be rendered, you have the queue which all you to select which kind of materials will be rendered (transparent, opaque, etc.) and the layer which is the GameObject layer.
 
-By default, you'll see that the objects that passes the filters are rendered with a pink shader, to fix that, you need to assign a material compatible with this pass. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
+By default, the objects are displayed with their material, you can override the material of everything in this custom pass by assigning a material in the `Material` slot. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
 
-> **Note that Lit Shaders aren't supported by this pass as they may required multiple passes to be rendered**
+> **Note that Lit Shaders aren't supported on every injection point as they require the lighting data to be ready.**
 
 The pass name is also used to select which pass of the shader we will render, on a ShaderGraph or an HDRP unlit material it is useful because the default pass is the `SceneSelectionPass` and the pass used to render the object is `ForwardOnly`. You might also want to use the `DepthForwardOnly` pass if you want to only render the depth of the object.
 
@@ -184,6 +184,8 @@ Here is the list of all the defines you can enable
 #define VARYINGS_NEED_COLOR
 #define VARYINGS_NEED_CULLFACE
 ```
+
+Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
 
 ## Scripting API
 
@@ -270,6 +272,18 @@ You can retrieve the `CustomPassVolume` in script using [GetComponent](https://d
 
 You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
 
+### Other API functions
+
+Sometimes you want to render objects only in a custom pass and not in the camera. To achieve this, you disable the layer of your objects in the camera culling mask, but it also means that the cullingResult you receive in the `Execute` function won't contain this object (because by default this cullingResult is the camera cullingResult). To overcome this issue, you can override this function in the CustomPass class:
+
+```CSharp
+protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
+```
+
+it will allow you to add more layers / custom culling option to the cullingResult you receive in the `Execute` function.
+
+> **⚠️ WARNING: Opaque objects may not be visible** if they are rendered only during the custom pass, because we assume that they already are in the depth pre-pass, we set the `Depth Test` to `Depth Equal`. Because of this you may need to override the `Depth Test` to `Less Equal` using the `depthState` property of the [RenderStateBlock](https://docs.unity3d.com/ScriptReference/Rendering.RenderStateBlock.html).
+
 ## Example: Glitch Effect (without code)
 
 To apply a glitch effect on top of objects, we can use ShaderGraph with custom passes:
@@ -310,6 +324,10 @@ class Outline : CustomPass
     public Color        outlineColor = Color.black;
     public float        threshold = 1;
 
+    // To make sure the shader will ends up in the build, we keep it's reference in the custom pass
+    [SerializeField, HideInInspector]
+    Shader                  outlineShader;
+
     Material                fullscreenOutline;
     MaterialPropertyBlock   outlineProperties;
     ShaderTagId[]           shaderTags;
@@ -317,7 +335,8 @@ class Outline : CustomPass
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
-        fullscreenOutline = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Outline"));
+        outlineShader = Shader.Find("Hidden/Outline");
+        fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
         outlineProperties = new MaterialPropertyBlock();
 
         // List all the materials that will be replaced in the frame
@@ -415,6 +434,8 @@ Shader "Hidden/Outline"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float4 color = float4(0.0, 0.0, 0.0, 0.0);

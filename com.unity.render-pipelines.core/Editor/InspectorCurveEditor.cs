@@ -5,6 +5,10 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     // A good chunk of this class is recycled from Post-processing v2 and could use a cleaning pass
+
+    /// <summary>
+    /// A custom curve editor made to be embedded in the inspector instead of a separate window.
+    /// </summary>
     public sealed class InspectorCurveEditor
     {
         enum EditMode
@@ -20,14 +24,44 @@ namespace UnityEditor.Rendering
             Out
         }
 
+        /// <summary>
+        /// A structure holding settings used for the curve editor.
+        /// </summary>
         public struct Settings
         {
+            /// <summary>
+            /// The boundaries of the curve.
+            /// </summary>
             public Rect bounds;
+
+            /// <summary>
+            /// The visual padding used when rendering the curve in the inspector.
+            /// </summary>
             public RectOffset padding;
+
+            /// <summary>
+            /// The color to use when a curve is selected.
+            /// </summary>
             public Color selectionColor;
+
+            /// <summary>
+            /// The distance in pixels to check for curve selection on mouse click.
+            /// </summary>
             public float curvePickingDistance;
+
+            /// <summary>
+            /// The distance to clamp keys at compared to the previous and next keys.
+            /// </summary>
             public float keyTimeClampingDistance;
 
+            /// <summary>
+            /// Default settings.
+            /// - <see cref="bounds"/> are set to (0, 0, 1, 1).
+            /// - <see cref="padding"/> is set to (0, 0, 0, 0).
+            /// - <see cref="selectionColor"/> is set to yellow.
+            /// - <see cref="curvePickingDistance"/> is set to 6 pixels.
+            /// - <see cref="keyTimeClampingDistance"/> is set to 1e-4.
+            /// </summary>
             public static Settings defaultSettings => new Settings
             {
                 bounds = new Rect(0f, 0f, 1f, 1f),
@@ -38,19 +72,74 @@ namespace UnityEditor.Rendering
             };
         }
 
+        /// <summary>
+        /// A structure holding the state of a single curve in the editor.
+        /// </summary>
         public struct CurveState
         {
+            /// <summary>
+            /// Is the curve visible?
+            /// </summary>
             public bool visible;
+
+            /// <summary>
+            /// Is the curve editable?
+            /// </summary>
             public bool editable;
+
+            /// <summary>
+            /// The minimum allowed number of points on the curve.
+            /// </summary>
             public uint minPointCount;
+
+            /// <summary>
+            /// A constant value to use when the curve doesn't have any point.
+            /// </summary>
             public float zeroKeyConstantValue;
+
+            /// <summary>
+            /// The color used to draw the curve.
+            /// </summary>
             public Color color;
+
+            /// <summary>
+            /// The visual thickness of the curve.
+            /// </summary>
             public float width;
+
+            /// <summary>
+            /// The visual thickness of the curve handles.
+            /// </summary>
             public float handleWidth;
+
+            /// <summary>
+            /// Should the handles be visible on non-editable curves?
+            /// </summary>
             public bool showNonEditableHandles;
+
+            /// <summary>
+            /// Should the handles only be visible when the curve is selected?
+            /// </summary>
             public bool onlyShowHandlesOnSelection;
+
+            /// <summary>
+            /// Does this curve loop in the defined boudaries?
+            /// </summary>
             public bool loopInBounds;
 
+            /// <summary>
+            /// Default curve state.
+            /// - <see cref="visible"/> is set to true.
+            /// - <see cref="editable"/> is set to true.
+            /// - <see cref="minPointCount"/> is set to 2.
+            /// - <see cref="zeroKeyConstantValue"/> is set to 0.
+            /// - <see cref="color"/> is set to white.
+            /// - <see cref="width"/> is set to 2.
+            /// - <see cref="handleWidth"/> is set to 2.
+            /// - <see cref="showNonEditableHandles"/> is set to true.
+            /// - <see cref="onlyShowHandlesOnSelection"/> is set to false.
+            /// - <see cref="loopInBounds"/> is set to false.
+            /// </summary>
             public static CurveState defaultState => new CurveState
             {
                 visible = true,
@@ -66,12 +155,32 @@ namespace UnityEditor.Rendering
             };
         }
 
+        /// <summary>
+        /// A structure holding the state of the current selection.
+        /// </summary>
         public struct Selection
         {
+            /// <summary>
+            /// A reference to the serialized <c>AnimationCurve</c>.
+            /// </summary>
             public SerializedProperty curve;
+
+            /// <summary>
+            /// The currently selected key index, or -1 if none is selected.
+            /// </summary>
             public int keyframeIndex;
+
+            /// <summary>
+            /// The key itself, or <c>null</c> if none is selected.
+            /// </summary>
             public Keyframe? keyframe;
 
+            /// <summary>
+            /// Creates a new selection state.
+            /// </summary>
+            /// <param name="curve">A reference to the serialized curve.</param>
+            /// <param name="keyframeIndex">The currently selected key index, or -1 if none is selected.</param>
+            /// <param name="keyframe">The key itself, or <c>null</c> if none is selected.</param>
             public Selection(SerializedProperty curve, int keyframeIndex, Keyframe? keyframe)
             {
                 this.curve = curve;
@@ -108,6 +217,9 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// The current settings used for the curve editor.
+        /// </summary>
         public readonly Settings settings;
 
         readonly Dictionary<SerializedProperty, CurveState> m_Curves;
@@ -121,26 +233,47 @@ namespace UnityEditor.Rendering
 
         bool m_Dirty;
 
+        /// <summary>
+        /// Creates a curve editor with default settings.
+        /// </summary>
+        /// <seealso cref="Settings.defaultSettings"/>
         public InspectorCurveEditor()
             : this(Settings.defaultSettings) { }
 
+        /// <summary>
+        /// Creates a curve editor with the given settings.
+        /// </summary>
+        /// <param name="settings">The settings to use to create the curve editor.</param>
         public InspectorCurveEditor(Settings settings)
         {
             this.settings = settings;
             m_Curves = new Dictionary<SerializedProperty, CurveState>();
         }
 
+        /// <summary>
+        /// Adds an arbitrary number of serialized curves to the editor.
+        /// </summary>
+        /// <param name="curves">The curves to add.</param>
         public void Add(params SerializedProperty[] curves)
         {
             foreach (var curve in curves)
                 Add(curve, CurveState.defaultState);
         }
 
+        /// <summary>
+        /// Adds a serialized curve to the editor.
+        /// </summary>
+        /// <param name="curve">The curve to add.</param>
         public void Add(SerializedProperty curve)
         {
             Add(curve, CurveState.defaultState);
         }
 
+        /// <summary>
+        /// Adds a serialized curve to the editor with a given state.
+        /// </summary>
+        /// <param name="curve">The curve to add.</param>
+        /// <param name="state">The state to use for the curve.</param>
         public void Add(SerializedProperty curve, CurveState state)
         {
             // Make sure the property is in fact an AnimationCurve
@@ -154,16 +287,28 @@ namespace UnityEditor.Rendering
             m_Curves.Add(curve, state);
         }
 
+        /// <summary>
+        /// Removes a single curve from the editor.
+        /// </summary>
+        /// <param name="curve">The curve to remove.</param>
         public void Remove(SerializedProperty curve)
         {
             m_Curves.Remove(curve);
         }
 
+        /// <summary>
+        /// Removes all the curve from the editor.
+        /// </summary>
         public void RemoveAll()
         {
             m_Curves.Clear();
         }
 
+        /// <summary>
+        /// Grabs the state for a given curve.
+        /// </summary>
+        /// <param name="curve">The curve to grab the state from.</param>
+        /// <returns>The state of the curve.</returns>
         public CurveState GetCurveState(SerializedProperty curve)
         {
             if (!m_Curves.TryGetValue(curve, out var state))
@@ -172,6 +317,11 @@ namespace UnityEditor.Rendering
             return state;
         }
 
+        /// <summary>
+        /// Sets the state for a given curve.
+        /// </summary>
+        /// <param name="curve">The curve to set the state of.</param>
+        /// <param name="state">The state to set for the curve.</param>
         public void SetCurveState(SerializedProperty curve, CurveState state)
         {
             if (!m_Curves.ContainsKey(curve))
@@ -180,6 +330,10 @@ namespace UnityEditor.Rendering
             m_Curves[curve] = state;
         }
 
+        /// <summary>
+        /// Gets the current selection.
+        /// </summary>
+        /// <returns>The current selection.</returns>
         public Selection GetSelection()
         {
             Keyframe? key = null;
@@ -196,6 +350,12 @@ namespace UnityEditor.Rendering
             return new Selection(m_SelectedCurve, m_SelectedKeyframeIndex, key);
         }
 
+        /// <summary>
+        /// Sets a key for a given curve.
+        /// </summary>
+        /// <param name="curve">The curve to modify.</param>
+        /// <param name="keyframeIndex">The index of the key to set.</param>
+        /// <param name="keyframe">The new keyframe to put at the index.</param>
         public void SetKeyframe(SerializedProperty curve, int keyframeIndex, Keyframe keyframe)
         {
             var animCurve = curve.animationCurveValue;
@@ -203,6 +363,11 @@ namespace UnityEditor.Rendering
             SaveCurve(curve, animCurve);
         }
 
+        /// <summary>
+        /// Draws the curve editor. This is meant to be called in your custom editors.
+        /// </summary>
+        /// <param name="rect">The rectangle to draw into.</param>
+        /// <returns><c>true</c> if the user modified the curve, <c>false</c> otherwise.</returns>
         public bool OnGUI(Rect rect)
         {
             if (Event.current.type == EventType.Repaint)
