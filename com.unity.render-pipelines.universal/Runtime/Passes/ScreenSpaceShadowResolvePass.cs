@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
+            deformableRenderPass = DeformableRenderPass.ScreenSpaceShadowResolvePass; //seongdae;new-crp
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;

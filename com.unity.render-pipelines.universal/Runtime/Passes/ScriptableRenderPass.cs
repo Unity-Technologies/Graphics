@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.Universal
         BeforeRenderingPostProcessing = 550,
         AfterRenderingPostProcessing = 600,
         AfterRendering = 1000,
+
+        DeformBuiltinRenderPass = 1050, //seongdae;new-crp
     }
 
     /// <summary>
@@ -33,6 +35,15 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
     {
+        //seongdae;new-crp
+        public DeformableRenderPass deformableRenderPass;
+        public bool deformable
+        {
+            get => deformableRenderPass != DeformableRenderPass.Invariable;
+            private set { }
+        }
+        //seongdae;new-crp
+
         public RenderPassEvent renderPassEvent { get; set; }
 
         public RenderTargetIdentifier colorAttachment
@@ -67,6 +78,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderPass()
         {
+            deformableRenderPass = DeformableRenderPass.Invariable; //seongdae;new-crp
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;

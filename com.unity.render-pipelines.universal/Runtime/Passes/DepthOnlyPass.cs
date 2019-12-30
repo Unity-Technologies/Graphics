@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
+            deformableRenderPass = DeformableRenderPass.DepthPrepass; //seongdae;new-crp
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
         }

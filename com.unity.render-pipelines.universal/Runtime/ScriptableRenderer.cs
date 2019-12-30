@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.Universal
 
         const int k_RenderPassBlockCount = 4;
 
+        DeformingRenderPass[] m_DeformingRenderPass = new DeformingRenderPass[10]; //seongdae;new-crp
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
@@ -285,13 +286,43 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
+        //seongdae;new-crp
+        public void AttachPreRenderPass(DeformableRenderPass deformable, ScriptableRenderPass pass)
+        {
+            if (deformable == DeformableRenderPass.Invariable)
+                return;
+
+            int index = (int)deformable;
+            m_DeformingRenderPass[index].PreRenderPass = pass;
+        }
+        public void AttachPostRenderPass(DeformableRenderPass deformable, ScriptableRenderPass pass)
+        {
+            if (deformable == DeformableRenderPass.Invariable)
+                return;
+
+            int index = (int)deformable;
+            m_DeformingRenderPass[index].PostRenderPass = pass;
+        }
+        public void SwitchRenderPass(DeformableRenderPass deformable, ScriptableRenderPass pass)
+        {
+            if (deformable == DeformableRenderPass.Invariable)
+                return;
+
+            int index = (int)deformable;
+            m_DeformingRenderPass[index].Switchable = pass;
+        }
+        //seongdae;new-crp
+
         /// <summary>
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
         public void EnqueuePass(ScriptableRenderPass pass)
         {
-            m_ActiveRenderPassQueue.Add(pass);
+            //seongdae;new-crp
+            if (pass.renderPassEvent <= RenderPassEvent.AfterRendering)
+                m_ActiveRenderPassQueue.Add(pass);
+            //seongdae;new-crp
         }
 
         /// <summary>
@@ -367,6 +398,15 @@ namespace UnityEngine.Rendering.Universal
             m_FirstCameraRenderPassExecuted = false;
             m_InsideStereoRenderBlock = false;
             m_ActiveRenderPassQueue.Clear();
+
+            //seongdae;new-crp
+            for (int i = 0; i < 10; ++i)
+            {
+                m_DeformingRenderPass[i].PreRenderPass = null;
+                m_DeformingRenderPass[i].PostRenderPass = null;
+                m_DeformingRenderPass[i].Switchable = null;
+            }
+            //seongdae;new-crp
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
@@ -385,6 +425,11 @@ namespace UnityEngine.Rendering.Universal
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, int eyeIndex)
         {
+            //seongdae;new-crp
+            int deformableIndex = (int)renderPass.deformableRenderPass;
+            renderPass = SwitchRenderPassIfNeeded(deformableIndex, renderPass);
+            //seongdae;new-crp
+
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
@@ -435,8 +480,37 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
+            ExecureBeforeRenderPass(deformableIndex, context, ref renderingData); //seongdae;new-crp
             renderPass.Execute(context, ref renderingData);
+            ExecuteAfterRenderPass(deformableIndex, context, ref renderingData); //seongdae;new-crp
         }
+
+        //seongdae;new-crp
+        void ExecureBeforeRenderPass(int deformableIndex, ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var preRenderPass = m_DeformingRenderPass[deformableIndex].PreRenderPass;
+
+            if (preRenderPass != null)
+                preRenderPass.Execute(context, ref renderingData);
+        }
+        void ExecuteAfterRenderPass(int deformableIndex, ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var postRenderPass = m_DeformingRenderPass[deformableIndex].PostRenderPass;
+
+            if (postRenderPass != null)
+                postRenderPass.Execute(context, ref renderingData);
+        }
+
+        ScriptableRenderPass SwitchRenderPassIfNeeded(int deformableIndex, ScriptableRenderPass renderPass)
+        {
+            var switchable = m_DeformingRenderPass[deformableIndex].Switchable;
+
+            if (switchable != null)
+                renderPass = switchable;
+
+            return renderPass;
+        }
+        //seongdae;new-crp
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
         {

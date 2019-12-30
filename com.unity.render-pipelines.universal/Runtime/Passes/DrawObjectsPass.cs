@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
+            deformableRenderPass = opaque ?
+                DeformableRenderPass.RenderOpaqueForwardPass :
+                DeformableRenderPass.RenderTransparentForwardpass; //seongdae;new-crp
             m_ProfilerTag = profilerTag;
             m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
             m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
