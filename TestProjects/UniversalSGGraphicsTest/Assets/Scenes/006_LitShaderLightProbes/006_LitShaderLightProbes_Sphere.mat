@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 006_LitShaderLightProbes_Sphere
-  m_Shader: {fileID: -6465566751694194690, guid: c6f836c30da650043a112c493b4367a6,
+  m_Shader: {fileID: -6465566751694194690, guid: a3a5159375fcb9244b0f8e77012e8074,
     type: 3}
   m_ShaderKeywords: _GLOSSINESS_FROM_BASE_ALPHA _SPECULAR_COLOR
   m_LightmapFlags: 4
