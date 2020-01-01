@@ -46,14 +46,21 @@ The diagram below shows where HDRP injects the custom passes within a frame.
 
 ## Custom Pass List
 
-The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure them. There are two custom render passes that are built-in to HDRP, the **FullScreen** and the **DrawRenderers** custom render pass.  
+The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list. This allows you to add new custom pass effects and configure them. There are two custom render passes that are built-in to HDRP: 
+
+* **FullScreen** 
+
+* **DrawRenderers**
+
 Below, you can see an example of a **FullScreen** render pass:
 
 ![](Images/FullScreenCustomPass_Inspector.png)
 
-There are some settings that are on every custom render pass. See the list below:
+Every custom render pass contains the following set of base properties:
 
-Name | Description
+<a name="CustomRenderPassBaseProperties"></a>
+
+Property | Description
 --- | ---
 **Name** | The name of the pass. HDRP uses this as the name of the profiling marker for debugging. 
 **Target Color Buffer** | The target buffer where HDRP writes the color to. 
@@ -62,18 +69,48 @@ Name | Description
 
 **Note:** by default, HDRP sets the target buffers to the Camera buffers, but you can also select the custom buffer. This is a buffer that HDRP allocates where you can put anything you want. You can then sample it in your custom render pass Shaders. You can choose the format of the custom buffer in the HDRP Asset. This is in the **Rendering** section.
 
-![CustomPass_BufferFormat_Asset](Images/CustomPass_BufferFormat_Asset.png)
+![](Images/CustomPass_BufferFormat_Asset.png)
 
-You can also disable custom passes in the HDRP Asset. If you do this, HDRP does not allocate the custom buffer. Additionally, in a Camera's [Frame Settings](Frame-Settings.html), you can choose whether or not to render custom render passes. If you disable custom render passes in Frame Settings, this does not affect custom buffer allocation.
+If you do not want to use custom render passes in your Project, you can disable them in the HDRP Asset. If you do this, HDRP does not allocate the custom buffer. Additionally, in a Camera's [Frame Settings](Frame-Settings.html), you can choose whether or not to render custom render passes. If you disable custom render passes in Frame Settings, this does not affect custom buffer allocation.
 
 ### FullScreen custom render pass
+
+The FullScreen render pass allows you to process full screen effects for Cameras in your Scene.
+
+#### Using the FullScreen custom render pass
 
 When you create a **FullScreen** custom render pass, HDRP renders it with the **FullScreen Material** that you specify in the Custom Pass Volume component. To create and assign a Material compatible with the FullScreen pass:
 
 1. Go to **Create > Shader > HDRP**, right click on **Custom FullScreen Pass** and create a new Material.
 2. Now set the new Material to the **FullScreen Material** property in the Inspector.
 3. When you assign a Material, the Custom Pass Volume exposes the **Pass Name** property. Use this drop-down to select which pass of the Shader HDRP uses to draw the full screen effect. This is useful if you want to do multiple variants of one effect and switch between them.
-4. Now that the custom render pass is set up, you can edit the Shader of the full screen Material. In the Shader template, the **FullScreenPass** function is where you should add your code:
+4. Now that the custom render pass is set up, you can edit the Shader of the full screen Material. In the Shader template, add your code in the **FullScreenPass** function. For an example on how to do this, see [FullScreen example](#FullScreenExample).
+
+**Warning**, when you write full screen Shaders, be aware of the following:
+
+* **You cannot read and write to the same render target**. For example, you cannot sample the camera color, modify it, and then write the result back to the camera color buffer. To do this, you have to use two render passes with a secondary buffer.
+* **Depending on which injection point and what settings you use, the contents of the depth buffer changes**. When you use [temporal anti-aliasing](Anti-Aliasing.html#TAA), HDRP jitters the depth buffer. This means that, if you use the **AfterPostProcess** injection point, GameObjects that need depth cause wobbling. Also, the depth buffer never contains transparent GameObjects that write depth.
+* **You can only sample the camera color with lods in the BeforePostProcess and AfterPostProcess injection point**. If you call `CustomPassSampleCameraColor` during an injection point before either of these, it returns black.
+* **Chaining a DrawRenderers render pass with a FullScreen render pass**. In multi-pass setups where you draw GameObjects in the camera color buffer and then read the camer buffer during a FullScreen custom render pass, you can not see GameObjects you drew in passes before your FullScreen render pass. This is unless you use the **BeforeTransparent** injection point.
+* **Multi-sample anti-aliasing (MSAA)**: When you use [MSAA](Anti-Aliasing.html#MSAA), make sure to enable **Fetch Color Buffer**. This is because this boolean determines whether or not can can use the color buffer in the custom render pass or not.
+
+##### Properties
+
+The FullScreen custom render pass contains the following properties alongside the custom render pass [base properties](#CustomRenderPassBaseProperties):
+
+![](Images/FullScreenCustomPass_Inspector.png)
+
+| **Property**            | **Description**                                              |
+| ----------------------- | ------------------------------------------------------------ |
+| **Fetch Color Buffer**  | Enable this checkbox if your custom render pass samples/fetches the Camera's color buffer. |
+| **FullScreen Material** | The Material that HDRP uses to render the full screen effect. |
+| - **Pass Name**         | Specifies which pass of the Shader that HDRP uses to draw the full screen effect. |
+
+<a name="FullScreenExample"></a>
+
+#### FullScreen example
+
+This example uses input data like depth, view direction, and position in world space. This example also implements fading. You can see the example effect uses **_FadeValue** which changes depending on the **Fade Radius** on the Custom Pass Volume component.
 
 ```HLSL
 float4 FullScreenPass(Varyings varyings) : SV_Target
@@ -95,30 +132,41 @@ float4 FullScreenPass(Varyings varyings) : SV_Target
 }
 ```
 
-This example uses input data like depth, view direction, and position in world space. This example also implements fading. You can see the example effect uses **_FadeValue** which changes depending on the **Fade Radius** on the Custom Pass Volume.
+### DrawRenderers custom render pass
 
-|  ⚠️ **WARNING**: There are some gotchas that you need to be aware of when writing FullScreen Shaders |
-| ---  |
-| **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
-| **The Depth buffer might not contains what you expect**. The depth buffer never contains transparent that writes depth and it is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
-| **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
-| **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
-| **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
+The DrawRenderers render pass allows you to draw a subset of GameObjects in the Camera's view.
 
-### DrawRenderers Custom Pass
+#### Using the DrawRenderers custom render pass
 
-This pass will allow you to draw a subset of objects that are in the camera view (result of the camera culling).  
-Here is how the inspector for the DrawRenderers pass looks like:
+To define the subset of GameObjects that a custom render pass draws, use the **Queue** and **Layer Mask** properties under the **Filters** fold-out.
 
-![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)
+By default, the render pass draws each GameObject with the GameObject's own Material. You can also override the Material that the render pass uses to draw each GameObject. To define how the render pass draws the subset of GameObjects, use the **Material**, **Pass Name**, and **Sorting** properties under the **Overrides** fold-out. For the **Material**, you can use multiple types of Shader:
 
-Filters allow you to select which objects will be rendered, you have the queue which all you to select which kind of materials will be rendered (transparent, opaque, etc.) and the layer which is the GameObject layer.
+* [Unlit Shader](Unlit-Shader.html).
+* [Unlit Master Node](Master-Node-Unlit.html).
+* Custom Unlit Shaders. To create an Unlit Shader compatible with custom render passes, select **Create > Shader > HDRP > Custom Renderers Pass**.
 
-By default, the objects are displayed with their material, you can override the material of everything in this custom pass by assigning a material in the `Material` slot. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
+**Note**: Not every injection point supports Lit Shaders because lighting data is not ready at every injection point.
 
-> **Note that Lit Shaders aren't supported on every injection point as they require the lighting data to be ready.**
+##### Properties
 
-The pass name is also used to select which pass of the shader we will render, on a ShaderGraph or an HDRP unlit material it is useful because the default pass is the `SceneSelectionPass` and the pass used to render the object is `ForwardOnly`. You might also want to use the `DepthForwardOnly` pass if you want to only render the depth of the object.
+The DrawRenderers custom render pass contains the following properties alongside the custom render pass [base properties](#CustomRenderPassBaseProperties):
+
+![](Images/CustomPassDrawRenderers_Inspector.png)
+
+| **Property**      | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| **Filters**       |                                                              |
+| - **Queue**       | Specifies what type of Materials to render (transparent, opaque, everything). |
+| - **Layer Mask**  | Specifies which pass of the Shader HDRP uses                 |
+| **Overrides**     |                                                              |
+| - **Material**    | The Material that HDRP uses to render the GameObjects in this render pass. |
+| - - **Pass Name** | Specifies which pass of the Shader that HDRP uses. The default pass is the **SceneSelectionPass** and the pass that HDRP uses to render GameObjects is **ForwardOnly**. If you want to only render the GameObject's depth, use the **DepthForwardOnly**. |
+| - **Sorting**     |                                                              |
+
+
+
+#### Advanced effects
 
 To create advanced effects, you can use the **Custom Renderers Pass** shader that will create an unlit one pass HDRP shader and inside the `GetSurfaceAndBuiltinData` function you will be able ot put your fragment shader code:
 
