@@ -162,6 +162,20 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
+                    //Hack to revert (output yamato result)
+                    if (testCase.ScenePath.Contains("101"))
+                    {
+                        var basePath = "C:/build/output/Unity-Technologies/ScriptableRenderPipeline/TestProjects/VisualEffectGraph_LWRP/test-results/";
+                        string guid = Guid.NewGuid().ToString("N").Substring(0, 4);
+                        var outputPath = System.IO.Path.Combine(basePath, "101_Hack_" + guid + ".png");
+                        if (!Directory.Exists(basePath))
+                        {
+                            Directory.CreateDirectory(basePath);
+                        }
+                        byte[] bytes = actual.EncodeToPNG();
+                        File.WriteAllBytes(outputPath, bytes);
+                    }
+
                     var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = 5e-4f };
                     if (testSettingsInScene != null)
                     {
