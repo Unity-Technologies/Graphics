@@ -48,7 +48,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             EditorUtility.ClearProgressBar();
         }
 
-        var bundlePath = "VFX_Bundle_Test";
+        var basePath = "C:/build/output/Unity-Technologies/ScriptableRenderPipeline/TestProjects/VisualEffectGraph_LWRP/test-results/";
+        var bundlePath = System.IO.Path.Combine(basePath, "VFX_Bundle_Test");
         if (!Directory.Exists(bundlePath))
         {
             Directory.CreateDirectory(bundlePath);

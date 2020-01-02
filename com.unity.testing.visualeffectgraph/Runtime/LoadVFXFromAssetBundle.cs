@@ -9,7 +9,8 @@ namespace Unity.Testing.VisualEffectGraph
     {
         void Start()
         {
-            var path = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "VFX_Bundle_Test");
+            var basePath = "C:/build/output/Unity-Technologies/ScriptableRenderPipeline/TestProjects/VisualEffectGraph_LWRP/test-results/";
+            var path = System.IO.Path.Combine(basePath, "VFX_Bundle_Test");
             var assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(path, "vfx_in_assetbundle"));
 
             var asset = assetBundle.LoadAsset("Packages/com.unity.testing.visualeffectgraph/AssetBundle/VFX_In_AssetBundle.prefab") as GameObject;
