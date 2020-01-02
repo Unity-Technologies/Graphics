@@ -36,12 +36,11 @@ namespace UnityEditor.VFX
 
         }
 
-        public override void GetSourceDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
-            base.GetSourceDependentAssets(dependencies);
-
+            base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph,null))
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         void GraphParameterChanged(VFXGraph graph)

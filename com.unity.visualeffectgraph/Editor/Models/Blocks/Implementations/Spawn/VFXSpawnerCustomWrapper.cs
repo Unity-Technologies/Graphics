@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
         }
 
 
-        public override void GetImportDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
 
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
                 var function = ScriptableObject.CreateInstance(m_customType);
                 var monoScript = MonoScript.FromScriptableObject(function);
                 if( monoScript != null)
-                    dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+                    dependencies.Add(monoScript.GetInstanceID());
             }
         }
 

@@ -689,6 +689,21 @@ namespace UnityEditor.VFX
         {
             if (! GetResource().isSubgraph)
             {
+
+                // Don't pursue the compile if one of the depenendecy is not yet loaded
+                // which happen at first import with .pcache
+                HashSet<int> dependentAsset = new HashSet<int>();
+                GetImportDependentAssets(dependentAsset);
+
+                foreach(var instanceID in dependentAsset)
+                {
+                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    {
+                        Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
+                        return;
+                    }
+                }
+
                 SanitizeGraph();
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
@@ -804,11 +819,11 @@ namespace UnityEditor.VFX
         {
             visualEffectResource.ClearImportDependencies();
             
-            HashSet<string> dependentAsset = new HashSet<string>();
+            HashSet<int> dependentAsset = new HashSet<int>();
             GetImportDependentAssets(dependentAsset);
 
             foreach (var dep in dependentAsset)
-                visualEffectResource.AddImportDependency(dep);
+                visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
         }
 
         private VisualEffectResource m_Owner;

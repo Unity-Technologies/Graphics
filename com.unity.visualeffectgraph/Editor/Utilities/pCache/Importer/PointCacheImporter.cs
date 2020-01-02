@@ -81,6 +81,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         {
             try
             {
+                Debug.Log("Importing PointCache:" + ctx.assetPath);
                 PCache pcache = PCache.FromFile(ctx.assetPath);
 
                 PointCacheAsset cache = ScriptableObject.CreateInstance<PointCacheAsset>();

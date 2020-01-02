@@ -16,34 +16,22 @@ namespace UnityEditor.VFX
         {
             public uint Count = 0;
         }
-        void RefreshPointCacheObject()
-        {
-            if (Asset == null && !object.ReferenceEquals(Asset, null))
-            {
-                string assetPath = AssetDatabase.GetAssetPath(Asset.GetInstanceID());
-                
-                var newPointCache = AssetDatabase.LoadAssetAtPath<PointCacheAsset>(assetPath);
-                if( newPointCache != null )
-                {
-                    Asset = newPointCache;
-                }
-            }
-        }
 
-        public override void GetImportDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
 
-            dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Asset.GetInstanceID())));
+            dependencies.Add(Asset.GetInstanceID());
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                RefreshPointCacheObject();
-                if (Asset != null)
+                if (!object.ReferenceEquals(Asset,null))
                 {
+                    if (Asset == null)
+                        Asset = EditorUtility.InstanceIDToObject(Asset.GetInstanceID()) as PointCacheAsset;
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Point Count"));
                     foreach (var surface in Asset.surfaces)
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(Texture2D), "AttributeMap : " + surface.name));
@@ -53,7 +41,6 @@ namespace UnityEditor.VFX
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            RefreshPointCacheObject();
             VFXExpression[] expressions = new VFXExpression[Asset.surfaces.Length + 1];
             expressions[0] = VFXValue.Constant((uint)Asset.PointCount);
 

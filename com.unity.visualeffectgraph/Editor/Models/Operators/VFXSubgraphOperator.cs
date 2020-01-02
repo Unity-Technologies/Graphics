@@ -103,15 +103,11 @@ namespace UnityEditor.VFX
                 }
             }
         }
-
-        public override void GetSourceDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
-            base.GetSourceDependentAssets(dependencies);
-
+            base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph,null))
-            {
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
-            }
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
@@ -136,6 +132,8 @@ namespace UnityEditor.VFX
 
         IEnumerable<VFXParameter> GetParameters(Func<VFXParameter, bool> predicate)
         {
+            if( m_Subgraph == null && ! object.ReferenceEquals(m_Subgraph,null))
+                m_Subgraph = EditorUtility.InstanceIDToObject(m_Subgraph.GetInstanceID()) as VisualEffectSubgraphOperator;
             if (m_Subgraph == null)
                 return Enumerable.Empty<VFXParameter>();
             VFXGraph graph = subgraph.GetResource().GetOrCreateGraph();

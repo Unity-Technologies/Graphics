@@ -70,8 +70,10 @@ namespace UnityEditor.VFX
         }
         public virtual void GetSourceDependentAssets(HashSet<string> dependencies)
         {
+            foreach(var child in children)
+                child.GetSourceDependentAssets(dependencies);
         }
-        public virtual void GetImportDependentAssets(HashSet<string> dependencies)
+        public virtual void GetImportDependentAssets(HashSet<int> dependencies)
         {
             //var monoScript = MonoScript.FromScriptableObject(this);
             //dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));

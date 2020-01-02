@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Texture2DArray))]
-    class VFXSlotTexture2DArray : VFXSlot
+    class VFXSlotTexture2DArray : VFXSlotObject
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {

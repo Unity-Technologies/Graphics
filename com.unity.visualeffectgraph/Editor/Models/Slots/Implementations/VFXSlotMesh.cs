@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Mesh))]
-    class VFXSlotMesh : VFXSlot
+    class VFXSlotMesh : VFXSlotObject
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {

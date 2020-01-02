@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Cubemap))]
-    class VFXSlotTextureCube : VFXSlot
+    class VFXSlotTextureCube : VFXSlotObject
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {

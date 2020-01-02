@@ -36,11 +36,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void GetImportDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
             if( ! object.ReferenceEquals(shaderGraph,null))
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID())));
+                dependencies.Add(shaderGraph.GetInstanceID());
         }
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)

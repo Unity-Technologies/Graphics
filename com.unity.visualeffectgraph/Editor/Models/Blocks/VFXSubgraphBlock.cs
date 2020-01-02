@@ -39,11 +39,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void GetImportDependentAssets(HashSet<string> dependencies)
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(m_Subgraph,null))
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }
@@ -62,6 +62,8 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    if( m_Subgraph == null && ! object.ReferenceEquals(m_Subgraph,null))
+                        m_Subgraph = EditorUtility.InstanceIDToObject(m_Subgraph.GetInstanceID()) as VisualEffectSubgraphBlock;
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
