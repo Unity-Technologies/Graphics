@@ -13,24 +13,16 @@ namespace UnityEditor.VFX
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphBlock m_Subgraph;
-        
+
+        [NonSerialized]
         VFXModel[] m_SubChildren;
+
+        [NonSerialized]
         VFXBlock[] m_SubBlocks;
 
         public VisualEffectSubgraphBlock subgraph
         {
             get {
- 
-                if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
-                {
-                    string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
-                
-                    var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(assetPath);
-                    if( newSubgraph != null )
-                    {
-                        m_Subgraph = newSubgraph;
-                    }
-                }
 
                 if(! isValid )
                     return null;

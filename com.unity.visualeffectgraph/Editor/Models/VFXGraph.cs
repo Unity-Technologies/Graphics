@@ -436,7 +436,7 @@ namespace UnityEditor.VFX
                 EditorUtility.SetDirty(this);
             }
 
-            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
+            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged || cause == VFXModel.InvalidationCause.kConnectionChanged)
             {
                 m_ExpressionGraphDirty = true;
                 m_DependentDirty = true;
@@ -637,10 +637,7 @@ namespace UnityEditor.VFX
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
                 PrepareSubgraphs();
-                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-                m_ExpressionGraphDirty = false;
-
-                m_ExpressionValuesDirty = false;
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
 

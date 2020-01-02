@@ -74,6 +74,11 @@ namespace UnityEditor.VFX
             ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
         }
 
+        private void SetObjectValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
+        {
+            ((VFXExpressionObjectValueContainerDesc<T>)desc).instanceID = exp.Get<int>();
+        }
+
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
         {
             if (m_ExpressionGraph == null)
@@ -1054,12 +1059,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray:
-                            SetValueDesc<Texture>(desc, exp);
+                            SetObjectValueDesc<Texture>(desc, exp);
                             break;
                         case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
-                        case VFXValueType.Mesh: SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }

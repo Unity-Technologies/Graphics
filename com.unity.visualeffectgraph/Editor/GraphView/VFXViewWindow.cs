@@ -260,13 +260,6 @@ namespace  UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
-
-                            // Unity sometimes forget to call the OnPreProcess asset, in that case compile the graph ourself and reimport
-                            if (graph.IsExpressionGraphDirty())
-                            {
-                                graph.RecompileIfNeeded(false, true);
-                                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
-                            }
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
