@@ -132,27 +132,40 @@ float GTAOFastAcos(float x)
 // --------------------------------------------
 // Output functions
 // --------------------------------------------
-uint PackAOOutput(float AO, float depth)
+float PackAOOutput(float AO, float depth)
 {
-     // 24 depth,  8 bit AO
+     // 23 depth,  8 bit AO.
+    // Note: we keep the 1st bit empty as some issues arise with the asfloat(asuint()) combination. 
     uint packedVal = 0;
     packedVal = BitFieldInsert(0x000000ff, UnpackInt(AO, 8), packedVal);
-    packedVal = BitFieldInsert(0xffffff00, UnpackInt(depth, 24) << 8, packedVal);
-    return packedVal;
+    uint depthAsUint = UnpackInt(depth, 23) << 8;
+    depthAsUint = depthAsUint == 0x7f800000 ? 0x7f800100 : depthAsUint; // Slightly modify depth to avoid a NaN bit pattern that can be a problem when sampling texture as float and converting back.
+    packedVal = BitFieldInsert(0x7fffff00, depthAsUint, packedVal);
+
+    // We need to output as float as gather4 on an integer texture is not always supported.
+    return asfloat(packedVal);
 }
 
-void UnpackData(uint data, out float AO, out float depth)
+void UnpackData(float data, out float AO, out float depth)
 {
-    AO = UnpackUIntToFloat(data, 0, 8);
-    depth = UnpackUIntToFloat(data, 8, 24);
+    // 23 depth,  8 bit AO.
+    // Note: we keep the 1st bit empty as some issues arise with the asfloat(asuint()) combination. 
+    AO = UnpackUIntToFloat(asuint(data), 0, 8);
+    depth = UnpackUIntToFloat(asuint(data), 8, 23);
 }
 
-void UnpackGatheredData(uint4 data, out float4 AOs, out float4 depths)
+void UnpackGatheredData(float4 data, out float4 AOs, out float4 depths)
 {
     UnpackData(data.x, AOs.x, depths.x);
     UnpackData(data.y, AOs.y, depths.y);
     UnpackData(data.z, AOs.z, depths.z);
     UnpackData(data.w, AOs.w, depths.w);
+}
+
+void GatherAOData(TEXTURE2D_X_FLOAT(_AODataSource), float2 UV, out float4 AOs, out float4 depths)
+{
+    float4 data = GATHER_TEXTURE2D_X(_AODataSource, s_point_clamp_sampler, UV);
+    UnpackGatheredData(data, AOs, depths);
 }
 
 float OutputFinalAO(float AO)
