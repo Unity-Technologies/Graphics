@@ -411,5 +411,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.RayTracing, true);
         }
+
+        internal static void MigrateToSeparateColorGradingAndTonemapping(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Tonemapping, true);
+        }
     }
 }

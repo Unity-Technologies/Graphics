@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_LensDistortionFS;
         bool m_VignetteFS;
         bool m_ColorGradingFS;
+        bool m_TonemappingFS;
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
@@ -332,6 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
             m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
@@ -2007,7 +2009,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeSplitToning(out var splitShadows, out var splitHighlights);
 
             // Setup lut builder compute & grab the kernel we need
-            var tonemappingMode = m_Tonemapping.mode.value;
+            var tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
             var builderCS = m_Resources.shaders.lutBuilder3DCS;
             string kernelName = "KBuild_NoTonemap";
 
@@ -2081,6 +2083,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / m_LutSize, m_LutSize - 1f, m_Tonemapping.lutContribution.value, 0f));
             }
 
+            // Misc parameters
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f));
+
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
@@ -2095,7 +2100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, m_ColorGradingFS ? 1f : 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
