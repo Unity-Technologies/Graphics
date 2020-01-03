@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         FilteringSettings m_FilteringSettings;
         RenderObjects.CustomCameraSettings m_CameraSettings;
         string m_ProfilerTag;
+        ProfilingSampler m_ProfilingSampler;
 
         public Material overrideMaterial { get; set; }
         public int overrideMaterialPassIndex { get; set; }
@@ -42,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
         {
             m_ProfilerTag = profilerTag;
+            m_ProfilingSampler = new ProfilingSampler(profilerTag);
             this.renderPassEvent = renderPassEvent;
             this.renderQueueType = renderQueueType;
             this.overrideMaterial = null;
@@ -81,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             float cameraAspect = (float) camera.pixelWidth / (float) camera.pixelHeight;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingSample(cmd, m_ProfilerTag))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

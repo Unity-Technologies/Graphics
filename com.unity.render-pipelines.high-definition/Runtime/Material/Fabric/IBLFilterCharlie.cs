@@ -37,42 +37,42 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture source, RenderTexture target,
             Matrix4x4[] worldToViewMatrices)
         {
-            int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
-            if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapCharlie)))
             {
-                Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
-                return;
-            }
+                int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
+                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+                {
+                    Debug.LogWarning("RenderCubemapCharlieConvolution: Cubemap size is too small for Charlie convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
+                    return;
+                }
 
-            // Solid angle associated with a texel of the cubemap.
-            float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
+                // Solid angle associated with a texel of the cubemap.
+                float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
 
-            // Copy the first mip
-            using (new ProfilingSample(cmd, "Copy Original Mip"))
-            {
+                // Copy the first mip
                 for (int f = 0; f < 6; f++)
                 {
                     cmd.CopyTexture(source, f, 0, target, f, 0);
                 }
-            }
 
-            var props = new MaterialPropertyBlock();
-            props.SetTexture("_MainTex", source);
-            props.SetFloat("_InvOmegaP", invOmegaP);
+                var props = new MaterialPropertyBlock();
+                props.SetTexture("_MainTex", source);
+                props.SetFloat("_InvOmegaP", invOmegaP);
 
-            for (int mip = 0; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
-            {
-                props.SetFloat("_Level", mip);
-
-                for (int face = 0; face < 6; ++face)
+                for (int mip = 0; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
                 {
-                    var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
-                    var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
+                    props.SetFloat("_Level", mip);
 
-                    props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+                    for (int face = 0; face < 6; ++face)
+                    {
+                        var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
+                        var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
 
-                    CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
-                    CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
+                        props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
+                    }
                 }
             }
         }

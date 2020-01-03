@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
+            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
