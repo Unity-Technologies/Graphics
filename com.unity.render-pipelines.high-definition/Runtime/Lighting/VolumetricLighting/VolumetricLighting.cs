@@ -514,7 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return densityVolumes;
 
-            using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleDensityVolumeList)))
             {
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset   = Vector3.zero;// World-origin-relative
@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
 
-            using (new ProfilingSample(cmd, "Volume Voxelization"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumeVoxelization)))
             {
                 var parameters = PrepareVolumeVoxelizationParameters(hdCamera);
                 VolumeVoxelizationPass(parameters, m_DensityBufferHandle, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList, cmd);
@@ -806,9 +806,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle outputBuffer, RTHandle inputBuffer, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Volumetric Lighting Filtering"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLightingFiltering)))
             {
-
                 // The shader defines GROUP_SIZE_1D = 8.
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingFeedback, inputBuffer);  // Read
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingIntegral, outputBuffer); // Write
@@ -827,9 +826,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
-            using (new ProfilingSample(cmd, "Volumetric Lighting"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
             {
-
                 // It is safe to request these RTs even if they have not been allocated.
                 // The system will return NULL in that case.
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
