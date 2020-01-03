@@ -315,7 +315,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = ComputeVBufferParameters(hdCamera);
 
             // Double-buffer. I assume the cost of copying is negligible (don't want to use the frame index).
-            hdCamera.vBufferParams[1] = hdCamera.vBufferParams[0];
+            // Handle case of first frame. When we are on the first frame, we reuse the value of original frame.
+            if (hdCamera.vBufferParams[0].viewportSize.x == 0.0f && hdCamera.vBufferParams[0].viewportSize.y == 0.0f)
+            {
+                hdCamera.vBufferParams[1] = parameters;
+            }
+            else
+            {
+                hdCamera.vBufferParams[1] = hdCamera.vBufferParams[0];
+            }
             hdCamera.vBufferParams[0] = parameters;
         }
 
@@ -414,9 +422,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector3Int(w, h, d);
         }
 
-        void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float dimmer, float anisotropy)
+        void SetPreconvolvedAmbientLightProbe(HDCamera hdCamera, CommandBuffer cmd, float dimmer, float anisotropy)
         {
-            SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
+            SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_SkyManager.GetAmbientProbe(hdCamera));
                                  probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, dimmer);
             ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZH, anisotropy);
             SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZH));
@@ -443,7 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<Fog>();
 
-            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
+            SetPreconvolvedAmbientLightProbe(hdCamera, cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
             var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
@@ -468,6 +476,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
                 historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
+
+                // Handle case of first frame. When we are on the first frame, we reuse the value of original frame.
+                if (historyBufferSize.x == 0.0f && historyBufferSize.y == 0.0f)
+                {
+                    historyBufferSize = sharedBufferSize;
+                }
             }
 
             var cvp = currFrameParams.viewportSize;
