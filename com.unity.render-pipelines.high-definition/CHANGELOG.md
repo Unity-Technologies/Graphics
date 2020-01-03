@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Reflections to the DXR Wizard
 - Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
 - Added a check in the custom post process template to throw an error if the default shader is not found.
+- Exposed the debug overlay ratio in the debug menu.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -221,6 +222,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed init of debug for FrameSettingsHistory on SceneView camera
 - Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
 - Fix Wizard load when none selected for RenderPipelineAsset
+- Fixed TerrainLitGUI when per-pixel normal property is not present.
 - Fixed rendering errors when enabling debug modes with custom passes
 - Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
 - Fixing a bug whith histories when n>4 for ray traced shadows
@@ -264,6 +266,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed several issues with decal duplicating when editing them.
 - Fixed initialization of volumetric buffer params (1204159)
 - Fixed an issue where frame count was incorrectly reset for the game view, causing temporal processes to fail.
+- Fixed Culling group was not disposed error.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -308,6 +311,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed shadow near plane from the Directional Light Shadow UI.
 - Improved the performances of custom pass culling.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
+- Ray tracing reflection temporal filtering is now done in pre-exposed space
 
 ## [7.1.1] - 2019-09-05
 

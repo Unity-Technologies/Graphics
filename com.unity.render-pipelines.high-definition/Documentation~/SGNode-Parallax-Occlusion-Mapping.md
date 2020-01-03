@@ -1,22 +1,17 @@
 # Parallax Occlusion Mapping Node
 
-The parallax occlusion mapping (POM) node is used to create parallax effects which displace the UVs and depth to create the illusion of depth inside a material.
+The Parallax Occlusion Mapping (POM) Node allows you to create a parallax effect that displaces a Material's UVs and depth to create the illusion of depth inside a Material.
 
-## Input port
+## Ports
 
-| Name | Type | Description |
-| --- | --- | --- |
-| Heightmap | Texture2D | Texture used to sample the depth of the displacement. |
-| Heightmap Sampler | Sampler State | Sampler used to perform the sampling on the Heightmap. |
-| Amplitude | Float | Multiplier applied to the height of the Heightmap in centimeter. |
-| Steps | Float | Number of steps performed by the linear search of the algorithm. |
-| UVs | Vector2 | UVs used to sample the texture. |
-| Lod | Float | Lod of the Heightmap to use for the sampling. |
-| Lod Threshold | Float | Equivalent of the `Fading Mip Level Start` option in the HDRP Lit Material, controls the Heightmap mip level where the POM effect begin to disappear. |
-
-## Output port
-
-| Name | Type | Description |
-| --- | --- | --- |
-| Depth Offset | Float | Offset to apply to the depth buffer for POM. Connect to depth offset on the Master node to enable effects relying on depth buffer such as shadows and SSAO. |
-| Parallax UVs | Vector2 | UVs after adding the parallax offset.
+| Name | **Direction** | Type | Description |
+| --- | --- | --- | --- |
+| **Heightmap** | Input | Texture2D | The Texture that specifies the depth of the displacement. |
+| **Heightmap Sampler** | Input | Sampler State | The Sampler to sample **Heightmap** with. |
+| **Amplitude** | Input | Float | A multiplier to apply to the height of the Heightmap (in centimeters). |
+| **Steps** | Input | Float | The number of steps that the linear search of the algorithm performs. |
+| **UVs** | Input | Vector2 | The UVs that the sampler uses to sample the Texture. |
+| **Lod** | Input | Float | The level of detail to use to sample **Heightmap**. |
+| **Lod Threshold** | Input | Float | The **Heightmap** mip level where the POM effect begins to fade out. This is equivalent to the **Fading Mip Level Start** property in the High Definition Render Pipeline's (HDRP) [Lit Material](Lit-Shader.html). |
+| **Depth Offset** | Output |Float | The offset to apply to the depth buffer to produce the illusion of depth. To enable effects that rely on the depth buffer, such as shadows and screen space ambient occlusion, connect this output to the **Depth Offset** on the Master Node. |
+| **Parallax UVs** | Output| Vector2 | The UVs after adding the parallax offset. |
