@@ -1,38 +1,47 @@
-using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal enum CustomSamplerId
+    internal enum HDProfileId
     {
         PushGlobalParameters,
-        CopySetDepthBuffer,
         CopyDepthBuffer,
+        CopyDepthInTargetTexture,
         HTileForSSS,
-        Forward,
         RenderSSAO,
-        ResolveSSAO,
         ResolveStencilBuffer,
+        HorizonSSAO,
+        DenoiseSSAO,
+        UpSampleSSAO,
         ScreenSpaceShadows,
         BuildLightList,
         ContactShadows,
-        BlitToFinalRT,
+        BlitToFinalRTDevBuildOnly,
         Distortion,
         ApplyDistortion,
-        DepthPrepass,
+        DepthPrepassForward,
+        DepthPrepassDeferredForDecals,
+        DepthPrepassDeferred,
+        DepthPrepassDeferredIncomplete,
         TransparentDepthPrepass,
         GBuffer,
+        GBufferDebug,
         DBufferRender,
         DBufferPrepareDrawData,
         DBufferNormal,
-        DecalsForwardEmissive,
         DisplayDebugDecalsAtlas,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
-        BlitDebugViewMaterialDebug,
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
-        ForwardPassName,
+        ForwardEmissive,
+        ForwardOpaque,
+        ForwardOpaqueDebug,
+        ForwardTransparent,
+        ForwardTransparentDebug,
+        ForwardPreRefraction,
+        ForwardPreRefractionDebug,
         ForwardTransparentDepthPrepass,
         RenderForwardError,
         TransparentDepthPostpass,
@@ -43,54 +52,89 @@ namespace UnityEngine.Rendering.HighDefinition
         PostProcessing,
         AfterPostProcessing,
         RenderDebug,
+        DisplayLightVolume,
         ClearBuffers,
         ClearDepthStencil,
         ClearSssLightingBuffer,
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
-        ClearHTile,
         ClearHDRTarget,
         ClearGBuffer,
         ClearSsrBuffers,
-        HDRenderPipelineRender,
+        HDRenderPipelineRenderCamera,
+        HDRenderPipelineRenderAOV,
         CullResultsCull,
         CustomPassCullResultsCull,
-        CopyDepth,
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
         Gizmos,
+        RenderWireFrame,
+        PushToColorPicker,
+        ResolveMSAAColor,
+        ResolveMSAADepth,
+        ConvolveReflectionProbe,
+        ConvolvePlanarReflectionProbe,
+        PreIntegradeWardCookTorrance,
+        FilterCubemapCharlie,
+        FilterCubemapGGX,
+
+        UpdateSkyEnvironmentConvolution,
+        RenderSkyToCubemap,
+        UpdateSkyEnvironment,
+        UpdateSkyAmbientProbe,
+        PreRenderSky,
+        RenderSky,
+        OpaqueAtmosphericScattering,
+        InScatteredRadiancePrecomputation,
+
+        VolumeVoxelization,
+        VolumetricLighting,
+        VolumetricLightingFiltering,
+        PrepareVisibleDensityVolumeList,
 
         RaytracingBuildCluster,
         RaytracingCullLights,
         RaytracingIntegrateReflection,
         RaytracingFilterReflection,
         RaytracingAmbientOcclusion,
-        RaytracingFilterAO,
+        RaytracingFilterAmbientOcclusion,
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
         RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
-        RaytracingDebug,
+        RaytracingDebugOverlay,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
         PushLightDataGlobalParameters,
 
         // Profile sampler for shadow
-        RenderShadowMaps,
         PushShadowGlobalParameters,
+        RenderShadowMaps,
+        RenderMomentShadowMaps,
+        RenderPunctualShadowMaps,
+        RenderDirectionalShadowMaps,
+        RenderAreaShadowMaps,
+        RenderEVSMShadowMaps,
+        RenderEVSMShadowMapsBlur,
+        RenderEVSMShadowMapsCopyToAtlas,
 
         // Profile sampler for tile pass
-        TPPushGlobalParameters,
-        TPTiledLightingDebug,
-        TPScreenSpaceShadows,
-        TPTileSettingsEnableTileAndCluster,
-        TPForwardPass,
-        TPDisplayShadows,
-        TPRenderDeferredLighting,
+        LightLoopPushGlobalParameters,
+        TileClusterLightingDebug,
+        DisplayShadows,
+
+        RenderDeferredLightingCompute,
+        RenderDeferredLightingComputeAsPixel,
+        RenderDeferredLightingSinglePass,
+        RenderDeferredLightingSinglePassMRT,
 
         // Misc
         VolumeUpdate,
+        XROcclusionMesh,
+        XRMirrorView,
+        XRCustomMirrorView,
+        XRDepthCopy,
 
         // Low res transparency
         DownsampleDepth,
@@ -100,7 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Post-processing
         AlphaCopy,
         StopNaNs,
-        Exposure,
+        FixedExposure,
+        DynamicExposure,
         TemporalAntialiasing,
         DepthOfField,
         DepthOfFieldKernel,
@@ -117,6 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
         MotionBlurTileNeighbourhood,
+        MotionBlurTileScattering,
         MotionBlurKernel,
         PaniniProjection,
         Bloom,
@@ -128,29 +174,5 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
-
-        Max
-    }
-
-    internal static class HDCustomSamplerExtension
-    {
-        static CustomSampler[] s_Samplers;
-
-        public static CustomSampler GetSampler(this CustomSamplerId samplerId)
-        {
-            // Lazy init
-            if (s_Samplers == null)
-            {
-                s_Samplers = new CustomSampler[(int)CustomSamplerId.Max];
-
-                for (int i = 0; i < (int)CustomSamplerId.Max; i++)
-                {
-                    var id = (CustomSamplerId)i;
-                    s_Samplers[i] = CustomSampler.Create("C#_" + id);
-                }
-            }
-
-            return s_Samplers[(int)samplerId];
-        }
     }
 }

@@ -286,4 +286,16 @@ namespace UnityEngine.Rendering.Universal
 #endif
         };
     }
+
+    internal enum URPProfileId
+    {
+        StopNaNs,
+        SMAA,
+        GaussianDepthOfField,
+        BokehDepthOfField,
+        MotionBlur,
+        PaniniProjection,
+        UberPostProcess,
+        Bloom,
+    }
 }

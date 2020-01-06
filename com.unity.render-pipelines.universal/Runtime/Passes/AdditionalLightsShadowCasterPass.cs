@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_SupportsBoxFilterForShadows;
         const string m_ProfilerTag = "Render Additional Shadows";
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
@@ -276,7 +277,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool additionalLightHasSoftShadows = false;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingSample(cmd, m_ProfilerTag))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_AdditionalShadowCastingLightIndices.Count;

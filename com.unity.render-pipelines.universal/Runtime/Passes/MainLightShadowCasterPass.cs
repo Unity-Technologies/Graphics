@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Vector4[] m_CascadeSplitDistances;
 
         const string m_ProfilerTag = "Render Main Shadowmap";
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
@@ -160,7 +161,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingSample(cmd, m_ProfilerTag))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 
