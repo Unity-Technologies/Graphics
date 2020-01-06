@@ -228,7 +228,6 @@ namespace UnityEngine.Rendering.Universal
 
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name : k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-            using (new ProfilingScope(cmd, _CameraProfilingSampler))
             var compositionPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ false);
             foreach (XRPass compPass in compositionPasses)
             {
@@ -240,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerCameraShaderConstants(cameraData);
 
 
-                using (new ProfilingSample(cmd, tag))
+                using (new ProfilingScope(cmd, _CameraProfilingSampler))
                 {
                     renderer.Clear();
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);

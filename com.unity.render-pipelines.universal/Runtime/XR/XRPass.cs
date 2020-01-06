@@ -123,6 +123,11 @@ namespace UnityEngine.Rendering.Universal
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
+        const string k_XRCustomMirrorTag = "XR Custom Mirror View";
+        static ProfilingSampler _XRCustomMirrorProfilingSampler = new ProfilingSampler(k_XRCustomMirrorTag);
+        const string k_XROcclusionTag = "XR Occlusion Mesh";
+        static ProfilingSampler _XROcclusionProfilingSampler = new ProfilingSampler(k_XROcclusionTag);
+
         internal static XRPass Create(XRPassCreateInfo createInfo)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
@@ -265,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
             // Callback for custom mirror view
             if (customMirrorView != null)
             {
-                using (new ProfilingSample(cmd, "XR Custom Mirror View"))
+                using (new ProfilingScope(cmd, _XRCustomMirrorProfilingSampler))
                 {
                     customMirrorView(this, cmd, camera.targetTexture, camera.pixelRect);
                 }
@@ -276,7 +281,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
-                using (new ProfilingSample(cmd, "XR Occlusion Mesh"))
+                using (new ProfilingScope(cmd, _XROcclusionProfilingSampler))
                 {
                     Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 

@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering.Universal
         internal static List<string> passDebugInfos = new List<string>(8);
         internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
 #endif
+        const string k_XRMirrorTag = "XR Mirror View";
+        static ProfilingSampler _XRMirrorProfilingSampler = new ProfilingSampler(k_XRMirrorTag);
 
         internal XRSystem()
         {
@@ -362,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
             if (!mirrorViewMaterial)
                 return;
 
-            using (new ProfilingSample(cmd, "XR Mirror View"))
+            using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
