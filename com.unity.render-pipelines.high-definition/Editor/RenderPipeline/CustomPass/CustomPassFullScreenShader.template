@@ -41,7 +41,7 @@ Shader "FullScreen/#SCRIPTNAME#"
 
         // Load the camera color buffer at the mip 0 if we're not at the before rendering injection point
         if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
-            color = float4(CustomPassSampleCameraColor(posInput.positionNDC.xy, 0), 1);
+            color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
         // Add your custom pass code here
 

@@ -3,11 +3,17 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for Bitfield widget.
+    /// </summary>
     public class DebugUIHandlerBitField : DebugUIHandlerWidget
     {
+        /// <summary>Name of the widget.</summary>
         public Text nameLabel;
+        /// <summary>Value toggle.</summary>
         public UIFoldout valueToggle;
 
+        /// <summary>Toggles for the bitfield.</summary>
         public List<DebugUIHandlerIndirectToggle> toggles;
 
         DebugUI.BitField m_Field;
@@ -60,6 +66,12 @@ namespace UnityEngine.Rendering.UI
             m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, intValue));
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             if (fromNext || valueToggle.isOn == false)
@@ -82,26 +94,44 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             valueToggle.isOn = true;
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             valueToggle.isOn = false;
         }
 
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
         public override void OnAction()
         {
             valueToggle.isOn = !valueToggle.isOn;
         }
 
+        /// <summary>
+        /// Next implementation.
+        /// </summary>
+        /// <returns>Next widget UI handler, parent if there is none.</returns>
         public override DebugUIHandlerWidget Next()
         {
             if (!valueToggle.isOn || m_Container == null)

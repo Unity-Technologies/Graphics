@@ -47,6 +47,7 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_RenderCameraTag = "Render Camera";
         const string k_SetupCameraShaderConstantsTag = "Setup Per Camera Shader Constants";
+        static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
 
         public static float maxShadowBias
         {
@@ -211,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
 
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-            using (new ProfilingSample(cmd, tag))
+            using (new ProfilingScope(cmd, _CameraProfilingSampler))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -266,11 +267,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isXRMultipass = false;
             cameraData.numberOfXRPasses = 1;
 
+#if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
             {
                 cameraData.numberOfXRPasses = 2;
                 cameraData.isXRMultipass = true;
             }
+#endif
 
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)

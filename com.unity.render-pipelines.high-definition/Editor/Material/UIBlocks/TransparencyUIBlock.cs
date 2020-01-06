@@ -22,21 +22,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public class Styles
         {
-            public const string header = "Refraction Inputs";
+            public const string header = "Transparency Inputs";
         }
 
-        Expandable  m_ExpandableBit;
-        Features    m_Features;
-
-        MaterialUIBlockList transparencyBlocks = new MaterialUIBlockList
-        {
-            new RefractionUIBlock(1)    // This block will not be used in by a layered shader so we can safely set the layer count to 1
-        };
+        Expandable          m_ExpandableBit;
+        Features            m_Features;
+        MaterialUIBlockList m_TransparencyBlocks;
 
         public TransparencyUIBlock(Expandable expandableBit, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
+
+            m_TransparencyBlocks = new MaterialUIBlockList(parent);
+            if ((features & Features.Refraction) != 0)
+                m_TransparencyBlocks.Add(new RefractionUIBlock(1));  // This block will not be used in by a layered shader so we can safely set the layer count to 1
+            if ((features & Features.Distortion) != 0)
+                m_TransparencyBlocks.Add(new DistortionUIBlock());
         }
 
         public override void LoadMaterialProperties() {}
@@ -51,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (header.expanded)
                 {
-                    transparencyBlocks.OnGUI(materialEditor, properties);
+                    m_TransparencyBlocks.OnGUI(materialEditor, properties);
                 }
             }
         }

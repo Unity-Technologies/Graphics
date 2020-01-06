@@ -111,13 +111,13 @@ namespace UnityEngine.Rendering.HighDefinition
             depthDecodingParams = ComputeLogarithmicDepthDecodingParams(nearDist, farDist, c);
         }
 
-        public Vector4 ComputeUvScaleAndLimit(Vector2Int bufferSize)
+        internal Vector4 ComputeUvScaleAndLimit(Vector2Int bufferSize)
         {
             // The slice count is fixed for now.
             return HDUtils.ComputeUvScaleAndLimit(new Vector2Int(viewportSize.x, viewportSize.y), bufferSize);
         }
 
-        public float ComputeLastSliceDistance(int sliceCount)
+        internal float ComputeLastSliceDistance(int sliceCount)
         {
             float d = 1.0f - 0.5f / sliceCount;
             float ln2 = 0.69314718f;
@@ -281,19 +281,46 @@ namespace UnityEngine.Rendering.HighDefinition
                                          controller.sliceDistributionUniformity.value);
         }
 
-        internal void InitializeVolumetricLightingPerCameraData(HDCamera hdCamera, int bufferCount)
+        internal void ReinitializeVolumetricBufferParams(HDCamera hdCamera, bool ignoreVolumeStack)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+            bool fog  = Fog.IsVolumetricFogEnabled(hdCamera, ignoreVolumeStack);
+            bool init = hdCamera.vBufferParams != null;
+
+            if (fog ^ init)
+            {
+                if (init)
+                {
+                    // Deinitialize.
+                    hdCamera.vBufferParams = null;
+                }
+                else
+                {
+                    // Initialize.
+                    // Start with the same parameters for both frames. Then update them one by one every frame.
+                    var parameters = ComputeVBufferParameters(hdCamera);
+                    hdCamera.vBufferParams = new VBufferParameters[2];
+                    hdCamera.vBufferParams[0] = parameters;
+                    hdCamera.vBufferParams[1] = parameters;
+                }
+            }
+        }
+
+        // This function relies on being called once per camera per frame.
+        // The results are undefined otherwise.
+        internal void UpdateVolumetricBufferParams(HDCamera hdCamera, bool ignoreVolumeStack)
+        {
+            if (!Fog.IsVolumetricFogEnabled(hdCamera, ignoreVolumeStack))
                 return;
 
-            // Start with the same parameters for both frames. Then update them one by one every frame.
-            var parameters            = ComputeVBufferParameters(hdCamera);
-            hdCamera.vBufferParams    = new VBufferParameters[2];
+            var parameters = ComputeVBufferParameters(hdCamera);
+
+            // Double-buffer. I assume the cost of copying is negligible (don't want to use the frame index).
+            hdCamera.vBufferParams[1] = hdCamera.vBufferParams[0];
             hdCamera.vBufferParams[0] = parameters;
-            hdCamera.vBufferParams[1] = parameters;
+        }
 
-            hdCamera.volumetricHistoryIsValid = false;
-
+        internal void AllocateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
+        {
             RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 frameIndex &= 1; // 0 or 1
@@ -311,38 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     );
             }
 
-            if (bufferCount != 0)
-            {
-                hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting, HistoryBufferAllocatorFunction, bufferCount);
-            }
-        }
-
-        internal void DeinitializeVolumetricLightingPerCameraData(HDCamera hdCamera)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            hdCamera.vBufferParams = null;
-
-            hdCamera.volumetricHistoryIsValid = false;
-
-            // Cannot free the history buffer from within this function.
-        }
-
-        // This function relies on being called once per camera per frame.
-        // The results are undefined otherwise.
-        internal void UpdateVolumetricLightingPerCameraData(HDCamera hdCamera)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            var parameters = ComputeVBufferParameters(hdCamera);
-
-            // Double-buffer. I assume the cost of copying is negligible (don't want to use the frame index).
-            hdCamera.vBufferParams[1] = hdCamera.vBufferParams[0];
-            hdCamera.vBufferParams[0] = parameters;
-
-            // Note: resizing of history buffer is automatic (handled by the BufferedRTHandleSystem).
+            hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting, HistoryBufferAllocatorFunction, bufferCount);
         }
 
         void DestroyVolumetricLightingBuffers()
@@ -438,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
                 return;
@@ -501,10 +497,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
-            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return densityVolumes;
 
-            using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleDensityVolumeList)))
             {
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset   = Vector3.zero;// World-origin-relative
@@ -648,10 +644,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
 
-            using (new ProfilingSample(cmd, "Volume Voxelization"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumeVoxelization)))
             {
                 var parameters = PrepareVolumeVoxelizationParameters(hdCamera);
                 VolumeVoxelizationPass(parameters, m_DensityBufferHandle, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList, cmd);
@@ -796,26 +792,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle outputBuffer, RTHandle inputBuffer, CommandBuffer cmd)
         {
-            // The shader defines GROUP_SIZE_1D = 8.
-            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingFeedback, inputBuffer);  // Read
-            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingIntegral, outputBuffer); // Write
-            cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLightingFiltering)))
+            {
+                // The shader defines GROUP_SIZE_1D = 8.
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingFeedback, inputBuffer);  // Read
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLightingIntegral, outputBuffer); // Write
+                cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
 
-            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLightingFeedback, outputBuffer);  // Read
-            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLightingIntegral, inputBuffer); // Write
-            cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLightingFeedback, outputBuffer);  // Read
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLightingIntegral, inputBuffer); // Write
+                cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
+            }
         }
 
         void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
 
             var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 
-            using (new ProfilingSample(cmd, "Volumetric Lighting"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
             {
-
                 // It is safe to request these RTs even if they have not been allocated.
                 // The system will return NULL in that case.
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
@@ -827,12 +825,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
             }
 
-            using (new ProfilingSample(cmd, "Volumetric Lighting Filtering"))
-            {
-                // Let's filter out volumetric buffer
-                if (parameters.filterVolume)
-                    FilterVolumetricLighting(parameters, m_DensityBufferHandle, m_LightingBufferHandle, cmd);
-            }
+            // Let's filter out volumetric buffer
+            if (parameters.filterVolume)
+                FilterVolumetricLighting(parameters, m_DensityBufferHandle, m_LightingBufferHandle, cmd);
         }
     } // class VolumetricLightingModule
 } // namespace UnityEngine.Rendering.HighDefinition
