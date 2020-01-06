@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // If there's a final post process pass after this pass.
         // If yes, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
         bool m_HasFinalPass;
-		
+
         // Some Android devices do not support sRGB backbuffer
         // We need to do the conversion manually on those
         bool m_EnableSRGBConversionIfNeeded;
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
             if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
             {
-                using (new ProfilingSample(cmd, "Stop NaN"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
                     cmd.Blit(GetSource(), BlitDstDiscardContent(cmd, GetDestination()), m_Materials.stopNaN);
                     Swap();
@@ -267,7 +267,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Anti-aliasing
             if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
             {
-                using (new ProfilingSample(cmd, "Sub-pixel Morphological Anti-aliasing"))
+
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
                     DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap();
@@ -278,10 +279,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DepthOfField.IsActive() && !cameraData.isSceneViewCamera)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
-                    ? "Gaussian Depth of Field"
-                    : "Bokeh Depth of Field";
+                    ? URPProfileId.GaussianDepthOfField
+                    : URPProfileId.BokehDepthOfField;
 
-                using (new ProfilingSample(cmd, markerName))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(markerName)))
                 {
                     DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
@@ -291,7 +292,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Motion blur
             if (m_MotionBlur.IsActive() && !cameraData.isSceneViewCamera)
             {
-                using (new ProfilingSample(cmd, "Motion Blur"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
                     DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
@@ -302,7 +303,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // and before bloom kicks in
             if (m_PaniniProjection.IsActive() && !cameraData.isSceneViewCamera)
             {
-                using (new ProfilingSample(cmd, "Panini Projection"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
                     DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
@@ -310,7 +311,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Combined post-processing stack
-            using (new ProfilingSample(cmd, "Uber"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
             {
                 // Reset uber keywords
                 m_Materials.uber.shaderKeywords = null;
@@ -319,7 +320,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool bloomActive = m_Bloom.IsActive();
                 if (bloomActive)
                 {
-                    using (new ProfilingSample(cmd, "Bloom"))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
                         SetupBloom(cmd, GetSource(), m_Materials.uber);
                 }
 
@@ -332,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Only apply dithering & grain if there isn't a final pass.
                 SetupGrain(cameraData.camera, m_Materials.uber);
                 SetupDithering(ref cameraData, m_Materials.uber);
-				
+
                 if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
@@ -1015,7 +1016,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             SetupGrain(cameraData.camera, material);
             SetupDithering(ref cameraData, material);
-			
+
             if (Display.main.requiresSrgbBlitToBackbuffer && m_EnableSRGBConversionIfNeeded)
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 

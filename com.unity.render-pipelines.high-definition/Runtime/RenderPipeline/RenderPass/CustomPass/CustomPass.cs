@@ -14,7 +14,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Name of the custom pass
         /// </summary>
-        public string           name = "Custom Pass";
+        public string name
+        {
+            get => m_Name;
+            set
+            {
+                m_Name = value;
+                m_ProfilingSampler = new ProfilingSampler(m_Name);
+            }
+        }
+        string m_Name = "Custom Pass";
+
+        internal ProfilingSampler   profilingSampler { get => m_ProfilingSampler; }
+        ProfilingSampler            m_ProfilingSampler = new ProfilingSampler("Custom Pass");
 
         /// <summary>
         /// Is the custom pass enabled or not
@@ -176,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
         }
-        
+
         /// <summary>
         /// Use this method if you want to draw objects that are not visible in the camera.
         /// For example if you disable a layer in the camera and add it in the culling parameters, then the culling result will contains your layer.

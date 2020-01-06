@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            using (new ProfilingSample(cmd, "Subsurface Scattering", CustomSamplerId.SubsurfaceScattering.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
                 var parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
                 var resources = new SubsurfaceScatteringResources();
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (parameters.needTemporaryBuffer)
                 {
                     // Clear the SSS filtering target
-                    using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearSSSFilteringTarget)))
                     {
                         CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
                     }
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't
             // create MSAA + UAV render targets.
-            using (new ProfilingSample(cmd, "HTile for SSS", CustomSamplerId.HTileForSSS.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HTileForSSS)))
             {
                 // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
                 // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.

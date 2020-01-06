@@ -1,19 +1,19 @@
 # Exposure Node
 
-Allow you to retrieve the exposure value of the current exposure or past frame.
+The Exposure Node allows you to get the Camera's exposure value from the current or previous frame.
 
 ## Output port
 
-| name | type | description |
-|--- | --- | ---|
-|Output | float | The exposure value.|
+| name | **Direction** | type | description |
+|--- | --- | --- | --- |
+|**Output** |Output | float | The exposure value.|
 
 ## Exposure Type
 
-The exposure type allow you to choose between these different exposure values:
+You can use Exposure Type to select which exposure value to get.
 | name | description |
 |--- | ---|
-| CurrentMultiplier | current camera exposure value |
-| InverseCurrentMultiplier | the inverse of the current camera exposure value |
-| PreviousMultiplier | the previous frame exposure value |
-| InversePreviousMultiplier | the inverse of the previous frame exposure value |
+| **CurrentMultiplier** | Gets the Camera's exposure value from the current frame. |
+| **InverseCurrentMultiplier** | Gets the inverse of the Camera's exposure value from the current frame. |
+| **PreviousMultiplier** | Gets the Camera's exposure value from the previous frame. |
+| **InversePreviousMultiplier** | Gets the inverse of the Camera's exposure value from the previous frame. |

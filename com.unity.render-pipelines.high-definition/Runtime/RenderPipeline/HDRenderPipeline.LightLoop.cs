@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildGPULightList(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
+            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ComputeBuffer       visibleVolumeDataBuffer,
                                                     ComputeBuffer       bigTileLightListBuffer)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
                 {
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCameraInfo hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 

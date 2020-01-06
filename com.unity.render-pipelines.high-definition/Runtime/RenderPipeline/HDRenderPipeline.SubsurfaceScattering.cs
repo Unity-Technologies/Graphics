@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, CustomSamplerId.SubsurfaceScattering.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
                 passData.parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);

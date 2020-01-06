@@ -37,8 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettings m_RenderingPathCustomFrameSettings;
         [SerializeField] FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
         [SerializeField] FrameSettingsRenderType defaultFrameSettings;
-
-
+        
         // legacy component datas (HDAdditionalData part)
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
         [HDUtils.DoNotCopy]
