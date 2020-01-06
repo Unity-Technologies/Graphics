@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed the debug overlay ratio in the debug menu.
 - Added a separate frame settings for tonemapping alongside color grading.
 - Added the receive fog option in the material UI for ShaderGraphs.
+- Added a public virtual bool in the custom post processes API to specify if a post processes should be executed in the scene view.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.

@@ -2446,16 +2446,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (customPP is IPostProcessComponent pp && pp.IsActive())
                 {
-                    var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                    CoreUtils.SetRenderTarget(cmd, destination);
+                    if (camera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                     {
-                        cmd.BeginSample(customPP.name);
-                        customPP.Render(cmd, camera, source, destination);
-                        cmd.EndSample(customPP.name);
-                    }
-                    PoolSourceGuard(ref source, destination, colorBuffer);
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        CoreUtils.SetRenderTarget(cmd, destination);
+                        {
+                            cmd.BeginSample(customPP.name);
+                            customPP.Render(cmd, camera, source, destination);
+                            cmd.EndSample(customPP.name);
+                        }
+                        PoolSourceGuard(ref source, destination, colorBuffer);
 
-                    return true;
+                        return true;
+                    }
                 }
             }
 
