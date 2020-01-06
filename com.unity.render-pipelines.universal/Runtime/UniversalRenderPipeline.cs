@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
         static internal class PerCameraBuffer
         {
             // TODO: This needs to account for stereo rendering
-            public static int _InvCameraViewProj;
+            public static int unity_MatrixInvVP;
             public static int _ScaledScreenParams;
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
         public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Composition Pass";
+        static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
 
         public static float maxShadowBias
         {
@@ -130,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
             PerFrameBuffer.unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
             PerFrameBuffer._TimeParameters = Shader.PropertyToID("_TimeParameters");
 
-            PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
+            PerCameraBuffer.unity_MatrixInvVP = Shader.PropertyToID("unity_MatrixInvVP");
             PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             PerCameraBuffer._WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -227,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
 
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name : k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-
+            using (new ProfilingScope(cmd, _CameraProfilingSampler))
             var compositionPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ false);
             foreach (XRPass compPass in compositionPasses)
             {
@@ -304,7 +305,18 @@ namespace UnityEngine.Rendering.Universal
             const float kRenderScaleThreshold = 0.05f;
             cameraData = new CameraData();
             cameraData.camera = camera;
-            
+            cameraData.isStereoEnabled = IsStereoEnabled(camera);
+            cameraData.isXRMultipass = false;
+            cameraData.numberOfXRPasses = 1;
+
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
+            {
+                cameraData.numberOfXRPasses = 2;
+                cameraData.isXRMultipass = true;
+            }
+#endif
+
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
@@ -629,11 +641,7 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
-            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+            Shader.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
         }
     }
 }

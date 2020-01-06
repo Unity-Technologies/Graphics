@@ -16,7 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; private set; }
 
         FilteringSettings m_FilteringSettings;
-        string m_ProfilerTag = "Depth Prepass";
+        const string m_ProfilerTag = "Depth Prepass";
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingSample(cmd, m_ProfilerTag))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -67,7 +68,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
                 if (cameraData.isStereoEnabled)
-                    context.StartMultiEye(camera);
+                {
+                    context.StartMultiEye(camera, eyeIndex);
+                }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 

@@ -15,9 +15,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public List<VolumeComponent> components = new List<VolumeComponent>();
 
-        // Editor only, doesn't have any use outside of it
+        /// <summary>
+        /// A dirty check used to redraw the profile inspector when something has changed. This is
+        /// currently only used in the editor.
+        /// </summary>
         [NonSerialized]
-        public bool isDirty = true;
+        public bool isDirty = true; // Editor only, doesn't have any use outside of it
 
         void OnEnable()
         {

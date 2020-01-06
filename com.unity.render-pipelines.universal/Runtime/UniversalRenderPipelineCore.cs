@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
         public SortingCriteria defaultOpaqueSortFlags;
 
         public bool isStereoEnabled;
+        internal int numberOfXRPasses;
+        internal bool isXRMultipass;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
@@ -260,5 +262,17 @@ namespace UnityEngine.Rendering.Universal
     {
         // Pure URP uses URP managed camera buffers
         internal static bool isPureURP = true;
+    }
+
+    internal enum URPProfileId
+    {
+        StopNaNs,
+        SMAA,
+        GaussianDepthOfField,
+        BokehDepthOfField,
+        MotionBlur,
+        PaniniProjection,
+        UberPostProcess,
+        Bloom,
     }
 }

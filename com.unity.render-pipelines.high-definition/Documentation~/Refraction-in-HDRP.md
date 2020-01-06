@@ -29,7 +29,7 @@ HDRP uses these techniques to calculate light refraction:
 
 To help you decide which techniques to use in your Unity Project, the following table shows the resource intensity of each technique.
 
-| **Technique**                  | **Description**                                              | **Resource intensity at run time**                           |
+| **Technique**                  | **Description**                                              | **Resource intensity at runtime**                           |
 | ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | **Screen space refractions**   | Screen space solution that captures all GameObjects in real time. | Low.                                                         |
 | **Baked Reflection Probes**    | Manually placed, local Reflection Probe that only captures static GameObjects during the baking process. | Low.                                                         |
