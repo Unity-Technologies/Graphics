@@ -133,15 +133,17 @@ namespace UnityEngine.Rendering.HighDefinition
         Vignette = 87,
         [FrameSettingsField(0, autoName: ColorGrading, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP processes color grading for Cameras using these Frame Settings.")]
         ColorGrading = 88,
-        [FrameSettingsField(0, autoName: FilmGrain, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP adds film grain to Cameras affected by a Volume containing the Film Grain override.")]
+        [FrameSettingsField(0, autoName: Tonemapping, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP processes tonemapping for Cameras using these Frame Settings.")]
+        Tonemapping = 93,
+        [FrameSettingsField(0, autoName: FilmGrain, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 18, tooltip: "When enabled, HDRP adds film grain to Cameras affected by a Volume containing the Film Grain override.")]
         FilmGrain = 89,
-        [FrameSettingsField(0, autoName: Dithering, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP processes dithering for Cameras using these Frame Settings.")]
+        [FrameSettingsField(0, autoName: Dithering, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 18, tooltip: "When enabled, HDRP processes dithering for Cameras using these Frame Settings.")]
         Dithering = 90,
-        [FrameSettingsField(0, displayedName: "Anti-aliasing", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.")]
+        [FrameSettingsField(0, displayedName: "Anti-aliasing", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 18, tooltip: "When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.")]
         Antialiasing = 91,
-        [FrameSettingsField(0, displayedName: "After Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
+        [FrameSettingsField(0, displayedName: "After Post-process", customOrderInGroup: 19, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         AfterPostprocess = 17,
-        [FrameSettingsField(0, displayedName: "Depth Test", positiveDependencies: new[] { AfterPostprocess }, customOrderInGroup: 19, tooltip: "When enabled, Cameras that don't use TAA process a depth test for Materials in the AfterPostProcess rendering pass.")]
+        [FrameSettingsField(0, displayedName: "Depth Test", positiveDependencies: new[] { AfterPostprocess }, customOrderInGroup: 20, tooltip: "When enabled, Cameras that don't use TAA process a depth test for Materials in the AfterPostProcess rendering pass.")]
         ZTestAfterPostProcessTAA = 19,
 
         // true <=> Fixed, false <=> FromQualitySettings (default)
@@ -290,6 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ChromaticAberration,
                 (uint)FrameSettingsField.Vignette,
                 (uint)FrameSettingsField.ColorGrading,
+                (uint)FrameSettingsField.Tonemapping,
                 (uint)FrameSettingsField.FilmGrain,
                 (uint)FrameSettingsField.Dithering,
                 (uint)FrameSettingsField.Antialiasing,

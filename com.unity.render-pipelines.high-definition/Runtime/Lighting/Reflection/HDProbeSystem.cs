@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Instance = new HDProbeSystemInternal();
 #if UNITY_EDITOR
             UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DisposeStaticInstance;
+            UnityEditor.EditorApplication.quitting += DisposeStaticInstance;
 #endif
         }
 
@@ -122,8 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return target;
         }
-
-        public static void Cleanup() => s_Instance.Dispose();
 
         static Texture CreateAndSetRenderTargetIfRequired(HDProbe probe, ProbeSettings.Mode targetMode)
         {
