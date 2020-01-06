@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup camera world clip planes properties
             /// * Setup HDR keyword
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
-            SetupCameraProperties(context, cmd, ref renderingData.cameraData);
+            SetupCameraProperties(context, cmd, ref renderingData.cameraData, eyeIndex);
 
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
@@ -386,10 +386,10 @@ namespace UnityEngine.Rendering.Universal
             VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
         }
 
-        internal void SetupCameraProperties(ScriptableRenderContext context, CommandBuffer cmd, ref CameraData cameraData)
+        internal void SetupCameraProperties(ScriptableRenderContext context, CommandBuffer cmd, ref CameraData cameraData, int eyeIndex)
         {
             bool stereoEnabled = cameraData.isStereoEnabled;
-            context.SetupCameraProperties(cameraData.camera, stereoEnabled);
+            context.SetupCameraProperties(cameraData.camera, stereoEnabled, eyeIndex);
             if (URPCameraMode.isPureURP)
             {
                 bool isRenderToCameraTarget = true;
