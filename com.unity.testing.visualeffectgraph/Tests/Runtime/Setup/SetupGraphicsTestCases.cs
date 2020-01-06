@@ -26,6 +26,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
     }
 
+
     public void Setup()
     {
         new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup();
@@ -48,8 +49,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             EditorUtility.ClearProgressBar();
         }
 
-        var basePath = "C:/build/output/Unity-Technologies/ScriptableRenderPipeline/TestProjects/VisualEffectGraph_LWRP/test-results/";
-        var bundlePath = System.IO.Path.Combine(basePath, "VFX_Bundle_Test");
+        var bundlePath = Unity.Testing.VisualEffectGraph.LoadVFXFromAssetBundle.GetAssetBundleBasePath();
         if (!Directory.Exists(bundlePath))
         {
             Directory.CreateDirectory(bundlePath);
