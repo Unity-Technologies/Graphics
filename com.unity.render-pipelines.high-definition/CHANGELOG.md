@@ -269,6 +269,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Culling group was not disposed error.
 - Fixed issues on some GPU that do not support gathers on integer textures.
 - Fixed an issue with ambient probe not being initialized for the first frame after a domain reload for volumetric fog.
+- Fixed the scene visibility of decal projectors and density volumes
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
