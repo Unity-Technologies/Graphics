@@ -321,6 +321,8 @@ namespace UnityEngine.Rendering.Universal
             if (!pass.overrideCameraTarget)
             {
                 pass.ConfigureTarget(m_CameraColorTarget, m_CameraDepthTarget);
+                // URP render pass is persistent across the frame&cameras, we need to make sure not override camera target so that we can build default target on a per camera basis
+                pass.overrideCameraTarget = false; 
             }
             m_ActiveRenderPassQueue.Add(pass);
         }
