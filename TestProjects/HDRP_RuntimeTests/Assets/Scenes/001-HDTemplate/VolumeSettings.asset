@@ -49,6 +49,15 @@ MonoBehaviour:
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
+  earthPreset:
+    m_OverrideState: 0
+    m_Value: 1
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378.759
@@ -56,32 +65,42 @@ MonoBehaviour:
   planetCenterPosition:
     m_OverrideState: 0
     m_Value: {x: 0, y: -6378.759, z: 0}
-  airOpacity:
+  airDensityR:
     m_OverrideState: 0
-    m_Value: {r: 0.816175, g: 0.980598, b: 0.999937, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
-  airAlbedo:
+    m_Value: 0.04534
+    min: 0
+    max: 1
+  airDensityG:
+    m_OverrideState: 0
+    m_Value: 0.10237241
+    min: 0
+    max: 1
+  airDensityB:
+    m_OverrideState: 0
+    m_Value: 0.23264056
+    min: 0
+    max: 1
+  airTint:
     m_OverrideState: 0
     m_Value: {r: 0.9, g: 0.9, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
-    showEyeDropper: 0
+    showEyeDropper: 1
   airMaximumAltitude:
     m_OverrideState: 0
     m_Value: 58.3
     min: 0
-  aerosolOpacity:
+  aerosolDensity:
     m_OverrideState: 0
-    m_Value: 0.5
+    m_Value: 0.01192826
     min: 0
     max: 1
-  aerosolAlbedo:
+  aerosolTint:
     m_OverrideState: 0
-    m_Value: 0.9
-    min: 0
-    max: 1
+    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 1
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8.3
@@ -96,27 +115,67 @@ MonoBehaviour:
     m_Value: 8
     min: 1
     max: 10
-  groundColor:
+  groundTint:
     m_OverrideState: 0
     m_Value: {r: 0.4, g: 0.25, b: 0.15, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
-  groundAlbedoTexture:
+  groundColorTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   groundEmissionTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+  groundEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   planetRotation:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0, z: 0}
   spaceEmissionTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
+  spaceEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   spaceRotation:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0, z: 0}
+  colorSaturation:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  alphaSaturation:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  alphaMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  horizonTint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 0
+  zenithTint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 0
+  horizonZenithShift:
+    m_OverrideState: 0
+    m_Value: 0
+    min: -1
+    max: 1
 --- !u!114 &-5363201201787020349
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -348,6 +407,27 @@ MonoBehaviour:
   - {fileID: -5363201201787020349}
   - {fileID: 6183804914173304172}
   - {fileID: -5354815421936960401}
+  - {fileID: 4130219936027855746}
+--- !u!114 &4130219936027855746
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a7ff42a8c5be6646ad3975f3a54c1eb, type: 3}
+  m_Name: DiffusionProfileOverride
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  diffusionProfiles:
+    m_OverrideState: 1
+    m_Value:
+    - {fileID: 11400000, guid: 6606620fa7c572543938ea60b156d5f8, type: 2}
+    - {fileID: 11400000, guid: a1b0a32ad65aa6744b77a8217c4aad7b, type: 2}
+    - {fileID: 11400000, guid: c27c3641adfa09b429bb49d2201797ae, type: 2}
 --- !u!114 &4409947794758705927
 MonoBehaviour:
   m_ObjectHideFlags: 3
