@@ -25,8 +25,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         string m_Name = "Custom Pass";
 
-        internal ProfilingSampler   profilingSampler { get => m_ProfilingSampler; }
-        ProfilingSampler            m_ProfilingSampler = new ProfilingSampler("Custom Pass");
+        internal ProfilingSampler   profilingSampler
+        {
+            get
+            {
+                if (m_ProfilingSampler == null)
+                    m_ProfilingSampler = new ProfilingSampler("Custom Pass");
+                return m_ProfilingSampler;
+            }
+        }
+        ProfilingSampler            m_ProfilingSampler;
 
         /// <summary>
         /// Is the custom pass enabled or not
