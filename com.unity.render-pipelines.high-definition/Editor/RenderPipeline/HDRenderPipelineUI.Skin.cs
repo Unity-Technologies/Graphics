@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_XrTitle = EditorGUIUtility.TrTextContent("XR");
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
         static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
+        static readonly GUIContent k_LightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
         static readonly GUIContent k_LightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
         static readonly GUIContent k_CookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
@@ -22,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SkySubTitle = EditorGUIUtility.TrTextContent("Sky");
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
         static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
-        static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
+        static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
         static readonly GUIContent k_DirectionalShadowsSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
         static readonly GUIContent k_PunctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
         static readonly GUIContent k_AreaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
@@ -47,9 +48,22 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_HighQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
         static readonly GUIContent k_MaxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
+        static readonly GUIContent k_SSAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion");
+        static readonly GUIContent k_AOStepCount = EditorGUIUtility.TrTextContent("Step Count");
+        static readonly GUIContent k_AOFullRes = EditorGUIUtility.TrTextContent("Full Resolution");
+        static readonly GUIContent k_AOMaxRadiusInPixels = EditorGUIUtility.TrTextContent("Maximum Radius in Pixels");
+        static readonly GUIContent k_AODirectionCount = EditorGUIUtility.TrTextContent("Direction Count");
+        static readonly GUIContent k_AOBilateralUpsample = EditorGUIUtility.TrTextContent("Bilateral Upsample");
+
+        static readonly GUIContent k_ContactShadowsSettingsSubTitle = EditorGUIUtility.TrTextContent("Contact Shadows");
+        static readonly GUIContent k_ContactShadowsSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
+
+        static readonly GUIContent k_SSRSettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Reflection");
+        static readonly GUIContent k_SSRMaxRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps");
+
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
-        static readonly GUIContent k_CurrentMaterialQualityLevelContent = EditorGUIUtility.TrTextContent("Current Material Quality Level", "");
+        static readonly GUIContent k_MaterialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
         static readonly GUIContent k_RenderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
         static readonly GUIContent k_RenderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
         static readonly GUIContent k_RenderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
@@ -87,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SupportTransparentBackface = EditorGUIUtility.TrTextContent("Transparent Backface", "When disabled, HDRP removes all transparent backface Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
-        static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
+        static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
         static readonly GUIContent k_RaytracingTier = EditorGUIUtility.TrTextContent("Raytracing Tier");
         static readonly GUIContent k_RayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
         static readonly GUIContent k_MaximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
@@ -120,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_MaxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
-        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probe on Screen", "Sets the maximum number of Planar and Reflection Probe HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
@@ -136,7 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent k_UseContactShadows = EditorGUIUtility.TrTextContent("Use Contact Shadows", "Use contact shadows for lights.");
         static readonly GUIContent k_SupportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
-        static readonly GUIContent k_MaxScreenSpaceShadows = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Opaque shadows requires one slot, color shadow requires three.");
+        static readonly GUIContent k_ScreenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space buffer format R8G8B8A8 or R16G16B16A16.");
         static readonly GUIContent k_MaxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
 
         static readonly GUIContent k_DrawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");
@@ -157,6 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_CheckerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
         static readonly GUIContent k_LowResTranspUpsample = EditorGUIUtility.TrTextContent("Upsample type", "The type of upsampling filter used to composite the low resolution transparency.");
 
+        static readonly GUIContent k_XRSinglePass = EditorGUIUtility.TrTextContent("Single Pass", "When enabled, XR views are rendered simultaneously and the render loop is processed only once. This setting will improve CPU and GPU performance but will use more GPU memory.");
         static readonly GUIContent k_XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");
 
         static readonly GUIContent k_LutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");

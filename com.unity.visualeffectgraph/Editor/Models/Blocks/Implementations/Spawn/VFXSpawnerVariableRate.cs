@@ -12,9 +12,9 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.VariableRateSpawner; } }
         public class InputProperties
         {
-            [Tooltip("Minimum/Maximum Spawn Rate (in number per second)")]
+            [Tooltip("Sets the minimum and maximum number of particles to be spawned per second.")]
             public Vector2 Rate = new Vector2(0, 10);
-            [Tooltip("Minimum/Maximum period used for rate interpolation")]
+            [Tooltip("Sets the minimum and maximum time period before a new spawn rate is randomly selected.")]
             public Vector2 Period = new Vector2(0, 1);
         }
 

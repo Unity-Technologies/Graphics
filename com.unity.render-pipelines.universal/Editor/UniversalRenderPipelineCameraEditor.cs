@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.Universal
         {
             SetAnimationTarget(m_ShowBGColorAnim, initialize, isSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
             SetAnimationTarget(m_ShowOrthoAnim, initialize, isSameOrthographic && camera.orthographic);
-            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || PlayerSettings.virtualRealitySupported);
+            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || XRGraphics.tryEnable);
         }
 
         void UpdateCameraTypeIntPopupData()
@@ -231,7 +231,6 @@ namespace UnityEditor.Rendering.Universal
             settings.OnEnable();
 
             // Additional Camera Data
-            m_AdditionalCameraData = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
             if (m_AdditionalCameraData == null)
             {
                 m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -925,11 +924,11 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataSO.Update();
             selectedDepthOption = (CameraOverrideOption)m_AdditionalCameraDataRenderDepthProp.intValue;
             Rect controlRectDepth = EditorGUILayout.GetControlRect(true);
+
             // Need to check if post processing is added and active.
             // If it is we will set the int pop to be 1 which is ON and gray it out
             bool defaultDrawOfDepthTextureUI = true;
-            var propValue = (int)selectedDepthOption;
-            if ((propValue == 2 && !m_UniversalRenderPipeline.supportsCameraDepthTexture) || propValue == 0)
+            if (m_AdditionalCameraDataRenderPostProcessing.boolValue)
             {
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, 0, Styles.displayedDepthTextureOverride, Styles.additionalDataOptions);
@@ -937,7 +936,7 @@ namespace UnityEditor.Rendering.Universal
                 defaultDrawOfDepthTextureUI = false;
             }
 
-            if(defaultDrawOfDepthTextureUI)
+            if (defaultDrawOfDepthTextureUI)
             {
                 EditorGUI.BeginProperty(controlRectDepth, Styles.requireDepthTexture, m_AdditionalCameraDataRenderDepthProp);
                 EditorGUI.BeginChangeCheck();
@@ -1043,6 +1042,22 @@ namespace UnityEditor.Rendering.Universal
         {
             if (m_AdditionalCameraDataSO != null)
                 EditorGUI.EndProperty();
+        }
+    }
+
+    [ScriptableRenderPipelineExtension(typeof(UniversalRenderPipelineAsset))]
+    class UniversalRenderPipelineCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
+    {
+        //The call is delayed to the dispatcher to solve conflict with other SRP
+        public void RemoveComponent(Camera camera)
+        {
+            Undo.SetCurrentGroupName("Remove Universal Camera");
+            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+            if (additionalCameraData)
+            {
+                Undo.DestroyObjectImmediate(additionalCameraData);
+            }
+            Undo.DestroyObjectImmediate(camera);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
     {
         public class InputProperties
         {
-            [Tooltip("Volume that will contain the tiled/warped particles")]
+            [Tooltip("Sets the volume which will contain the tiled/warped particles. Particles which exit the volume from one side will reappear on the opposite side.")]
             public AABox Volume = AABox.defaultValue;
         }
 

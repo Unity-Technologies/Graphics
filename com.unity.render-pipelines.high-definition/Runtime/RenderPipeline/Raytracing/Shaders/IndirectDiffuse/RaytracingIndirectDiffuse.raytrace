@@ -25,7 +25,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 // The target acceleration structure that we will evaluate the reflexion in
-Texture2D<float>                        _StencilTexture;
 TEXTURE2D_X(_DepthTexture);
 
 // Output structure of the reflection raytrace shader
@@ -74,9 +73,11 @@ void RayGenFullRes()
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
+    // Keep track of the new ray in the counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_DIFFUSE_GI_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
     
     // Generate a new sample
@@ -160,9 +161,11 @@ void RayGenIntegration()
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
 
+    // Count the number of rays that we will be traced
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_DIFFUSE_GI_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + _RaytracingNumSamples;
     }
 
     // Loop through the samples and add their contribution

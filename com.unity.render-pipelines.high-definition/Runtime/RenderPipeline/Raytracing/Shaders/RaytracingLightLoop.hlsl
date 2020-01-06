@@ -14,7 +14,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.sampleReflection = 0;
 
     // Initialize the contactShadow and contactShadowFade fields
-    InitContactShadow(posInput, context);
+    InvalidateConctactShadow(posInput, context);
     
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)

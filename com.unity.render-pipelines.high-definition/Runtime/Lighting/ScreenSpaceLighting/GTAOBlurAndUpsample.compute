@@ -171,6 +171,8 @@ float BilateralUpsample(float HiDepth, float4 LowDepths, float4 LowAO)
 [numthreads(8,8,1)]
 void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(DTid.z);
+
     float2 UV = ClampAndScaleUVForBilinear((int2(DTid.xy + GTid.xy - 2)) * _AOBufferSize.zw, _AOBufferSize.zw);
     PrefetchData(GTid.x << 1 | GTid.y << 5, UV);
     GroupMemoryBarrierWithGroupSync();
@@ -204,10 +206,13 @@ void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : 
     _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))]  = OutputFinalAO(BilateralUpsample(highDepth.w, LowDepth.wxyz, LoSSAOs.wxyz));
     _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))]   = OutputFinalAO(BilateralUpsample(highDepth.x, LowDepth.xyzw, LoSSAOs.xyzw));
 }
+
 #elif UPSAMPLE_ONLY
 [numthreads(8, 8, 1)]
 void UPSAMPLE_KERNEL(uint3 DTid : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(DTid.z);
+
     float2 UV0 = ClampAndScaleUVForBilinear(DTid.xy * _AOBufferSize.zw, _AOBufferSize.zw);
     float2 UV1 = ClampAndScaleUVForPoint(DTid.xy * 2 * _ScreenSize.zw);
 #if NEED_TEX_SPACE_GATHER
@@ -234,13 +239,16 @@ void UPSAMPLE_KERNEL(uint3 DTid : SV_DispatchThreadID)
     _OcclusionTexture[COORD_TEXTURE2D_X(OutST)] = OutputFinalAO(BilateralUpsample(highDepth.y, UnpackedDepths.yzwx, UnpackedAOs.yzwx));
     _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = OutputFinalAO(BilateralUpsample(highDepth.w, UnpackedDepths.wxyz, UnpackedAOs.wxyz));
     _OcclusionTexture[COORD_TEXTURE2D_X(OutST + int2(-1, 0))] = OutputFinalAO(BilateralUpsample(highDepth.x, UnpackedDepths.xyzw, UnpackedAOs.xyzw));
-
 #endif
 }
-#else
+
+#else // Just Blur case
+
 [numthreads(8, 8, 1)]
 void BLUR_KERNEL_NAME(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 dispatchID : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
+
     float2 UV = ClampAndScaleUVForBilinear(int2(dispatchID.xy + GTid.xy - 2) * _AOBufferSize.zw, _AOBufferSize.zw);
     PrefetchData(GTid.x << 1 | GTid.y << 5, UV);
     GroupMemoryBarrierWithGroupSync();

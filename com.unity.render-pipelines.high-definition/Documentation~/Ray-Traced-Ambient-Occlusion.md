@@ -31,7 +31,7 @@ The HDRP Asset controls which features are available in your HDRP Project. To ma
 
 Cameras use [Frame Settings](Frame-Settings.html) to decide how to render the Scene. To enable screen space ambient occlusion for your Cameras by default:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
 3. In the Lighting section, enable Screen Space Ambient Occlusion.
 
@@ -45,7 +45,7 @@ All Cameras can now process screen space ambient occlusion unless they use custo
 Ray-Traced Ambient Occlusion uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add an Ambient Occlusion override to a [Volume](Volumes.html) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to Add Override > Lighting and click on Ambient Occlusion. HDRP now applies screen space ambient occlusion to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Lighting** and click on Ambient Occlusion. HDRP now applies screen space ambient occlusion to any Camera this Volume affects.
 3. In the Inspector for the Ambient Occlusion Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate ambient occlusion. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html).
 
 ## Properties
@@ -55,6 +55,7 @@ Ray-Traced Ambient Occlusion uses the [Volume](Volumes.html) framework, so to en
 | **Ray Tracing**              | Makes HDRP use ray tracing to evaluate ambient occlusion. Enable this to expose properties that you can use to adjust the quality of ray-traced ambient occlusion. |
 | **Intensity**                | Controls the strength of the ambient occlusion effect.       |
 | **Direct Lighting Strength** | Controls how much the ambient occlusion affects direct lighting. |
+| **LayerMask**                | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**               | Controls the length of the rays that HDRP uses for ray tracing. This allows you to have smaller scale, local, ambient occlusion. |
 | **Sample Count**             | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this value increases execution time linearly. |
 | **Denoise**                  | Enables the spatio-temporal filter that HDRP uses to remove noise from the ambient occlusion. |

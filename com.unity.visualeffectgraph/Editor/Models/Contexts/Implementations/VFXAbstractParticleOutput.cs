@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
 
         public enum UVMode
         {
-            Simple,
+            Default,
             Flipbook,
             FlipbookBlend,
             ScaleAndBias,
@@ -62,39 +62,40 @@ namespace UnityEditor.VFX
         {
             Stretch,
             RepeatPerSegment,
+            Custom,
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
         protected CullMode cullMode = CullMode.Default;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether the particle is writing to the depth buffer.")]
         protected ZWriteMode zWriteMode = ZWriteMode.Default;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle rendering is affected by the depth buffer. By default, particles render if they are closer to the camera than solid objects in the scene.")]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
+        [VFXSetting, SerializeField, Tooltip("Specifies how particles are being colored in the pixel shader. They can either use the main texture, or their color and alpha can be remapped with a gradient based on the main texture values."), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
         protected ColorMappingMode colorMapping;
 
-        [VFXSetting, SerializeField, Tooltip("Determines how the particle UV are handled"), FormerlySerializedAs("flipbookMode")]
+        [VFXSetting, SerializeField, Tooltip("Specifies the UV mode used when sampling the texture on the particle. The UVs can encompass the whole particle by default, be resized and offset, or they can be segmented for use with a texture flipbook to simulate an animated texture."), FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("When enabled, transparent particles fade out when near the surface of objects writing into the depth buffer (e.g. when intersecting with solid objects in the level).")]
         protected bool useSoftParticle = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options"), Tooltip("")]
         protected int sortPriority = 0;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specified whether to use GPU sorting for transparent particles.")]
         protected SortMode sort = SortMode.Auto;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used. Indirect draw is implicit when sorting is on.")]
         protected bool indirectDraw = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will cast shadows.")]
         protected bool castShadows = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, an exposure weight slider appears in the current output. The slider can be used to control how much influence exposure control will have on the particles.")]
         protected bool useExposureWeight = false;
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
@@ -159,7 +160,7 @@ namespace UnityEditor.VFX
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
 
-            if (supportsUV && uvMode != UVMode.Simple)
+            if (supportsUV && uvMode != UVMode.Default)
             {
                 VFXNamedExpression flipBookSizeExp;
                 switch (uvMode)
@@ -220,7 +221,7 @@ namespace UnityEditor.VFX
                         yield return property;
                 }
 
-                if (supportsUV && uvMode != UVMode.Simple)
+                if (supportsUV && uvMode != UVMode.Default)
                 {
                     switch (uvMode)
                     {
@@ -272,7 +273,7 @@ namespace UnityEditor.VFX
                 else
                     yield return "IS_TRANSPARENT_PARTICLE";
 
-                if (useAlphaClipping)
+                if (hasAlphaClipping)
                     yield return "USE_ALPHA_TEST";
                 if (hasSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
@@ -303,7 +304,7 @@ namespace UnityEditor.VFX
                 if (HasIndirectDraw())
                     yield return "VFX_HAS_INDIRECT_DRAW";
 
-                if (supportsUV && uvMode != UVMode.Simple)
+                if (supportsUV && uvMode != UVMode.Default)
                 {
                     switch (uvMode)
                     {

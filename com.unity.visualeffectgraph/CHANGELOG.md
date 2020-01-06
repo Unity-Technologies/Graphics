@@ -4,7 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
+### Added
+- Tooltips for Attributes
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
+- Octagon & Triangle support for planar distortion output
+- Custom Z axis option for strip output
+- Custom Inspector for Update context, display update position/rotation instead of integration
+- Tooltips to blocks, nodes, contexts, and various menus and options
+- New operators: Exp, Log and LoadTexture
+- Duplicate with edges.
+- Right click on edge to create a interstitial node.
+- New quad distortion output for particle strips
+- New attribute for strips: particleCountInStrip
+- New options for quad strips texture mapping: swap UV and custom mapping
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
@@ -15,10 +29,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
 - Possible loss of shadergraph reference in unlit output
 - ui : toolbar item wrap instead of overlapping.
-
-### Added
-- Custom Inspector for Spawn context, delay settings are more user friendly.
-- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
+- Selection Pass for Universal and High Definition Render Pipeline
+- Copy/Paste not deserializing correctly for Particle Strip data
+- WorldPosition, AbsoluteWorldPosition & ScreenPos in shadergraph integration
+- Optimize VFXAssetEditor when externalize is activated
+- TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
+- Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
+- Sort compute on metal failing with BitonicSort128 [Case 1126095] (https://issuetracker.unity3d.com/issues/osx-unexpected-spawn-slash-capacity-results-when-sorting-is-set-to-auto-slash-on)
+- Fix alpha clipping with shader graph
+- Fix output settings correctly filtered dependeing on shader graph use or not
+- Fix some cases were normal/tangent were not passes as interpolants with shader graph
+- Make normals/tangents work in unlit output with shader graph
+- Fix shader interpolants with shader graph and particle strips
+- SpawnIndex attribute is now working correctly in Initialize context
+- Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
+- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
+- Subgraph operators appear on drag edge on graph.
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
 
 ## [7.1.1] - 2019-09-05
 ### Added

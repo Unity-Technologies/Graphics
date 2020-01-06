@@ -7,8 +7,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Defines the provider of the quality settings panel for HDRP.
+    /// </summary>
     public class QualitySettingsPanel
     {
+        /// <summary>
+        /// Instantiate the <see cref="SettingsProvider"/> used for the Quality Settings Panel for the HDRP.
+        /// </summary>
+        /// <returns></returns>
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
@@ -144,7 +151,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     makeItem = () => new HDRPAssetHeaderEntry(),
                 };
                 m_HDRPAssetList.AddToClassList("unity-quality-header-list");
+
+#if UNITY_2020_1_OR_NEWER
+                m_HDRPAssetList.onSelectionChange += OnSelectionChange;
+#else
                 m_HDRPAssetList.onSelectionChanged += OnSelectionChanged;
+#endif
 
                 headerBox.Add(m_HDRPAssetList);
 
@@ -168,7 +180,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Add(inspectorBox);
             }
 
+#if UNITY_2020_1_OR_NEWER
+            void OnSelectionChange(IEnumerable<object> obj)
+#else
             void OnSelectionChanged(List<object> obj)
+#endif
             {
                 m_InspectorTitle.text = m_HDRPAssets[m_HDRPAssetList.selectedIndex].asset.name;
             }

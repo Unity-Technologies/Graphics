@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.LookDev
                 LookDev.dataProvider.UpdateDebugMode(debugMode);
 
             renderingData.output = m_RenderTextures[index, ShadowCompositionPass.MainView];
-            m_Renderer.BeginRendering(renderingData);
+            m_Renderer.BeginRendering(renderingData, LookDev.dataProvider);
             m_Renderer.Acquire(renderingData);
 
             if (view.debug.shadow)
@@ -258,7 +258,7 @@ namespace UnityEditor.Rendering.LookDev
                 m_RenderTextures[index, ShadowCompositionPass.ShadowMask] = tmp;
             }
 
-            m_Renderer.EndRendering(renderingData);
+            m_Renderer.EndRendering(renderingData, LookDev.dataProvider);
 
             if (debugMode != -1)
                 LookDev.dataProvider.UpdateDebugMode(-1);

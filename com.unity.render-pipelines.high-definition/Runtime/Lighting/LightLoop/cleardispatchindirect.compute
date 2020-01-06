@@ -1,5 +1,5 @@
 #pragma kernel ClearDispatchIndirect
-#pragma kernel ClearDrawInstancedIndirect
+#pragma kernel ClearDrawProceduralIndirect
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
@@ -30,7 +30,7 @@ void ClearDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
 }
 
 [numthreads(NR_THREADS, 1, 1)]
-void ClearDrawInstancedIndirect(uint dispatchThreadId : SV_DispatchThreadID)
+void ClearDrawProceduralIndirect(uint dispatchThreadId : SV_DispatchThreadID)
 {
     // On iOS, we get a GPU hang/reset based upon the execution of the ClearDispatchIndirect kernel.
     // The buffer is created using the 'NUM_FEATURE_VARIANTS' constant but we're dispatching a threadgroup of 64 threads, so we are presumably going out of bounds (Metal GPU errors are not terribly descriptive, but this is a common cause).

@@ -1,7 +1,7 @@
 editors:
   - version: trunk
 platforms:
-  - name: Windows64
+  - name: Win
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
@@ -42,7 +42,7 @@ linux_apis:
 
 {% for testplatform in testplatforms %}
 {{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
+  name : {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
@@ -67,8 +67,8 @@ linux_apis:
 
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
-{{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
+{{ project.name }}_Win_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
+  name : {{ project.name }} on Win_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
@@ -101,7 +101,7 @@ linux_apis:
 #skip because we don't need a GPU to run editmode tests
 {% else %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
+  name : {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode
@@ -136,7 +136,7 @@ linux_apis:
 {% for linux_api in linux_apis %}
 # Separate block for linux, because the linux agents currently need extra configuration
 {{ project.name }}_Linux_{{ testplatform.name }}_{{ linux_api.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on Linux_{{ testplatform.name }}_{{ linux_api.name }} on version {{ editor.version }}
+  name : {{ project.name }} on Linux_{{ testplatform.name }}_{{ linux_api.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
@@ -187,7 +187,7 @@ All_{{ project.name }}:
   {% elsif platform.name == "OSX_Metal" %}
   #skip
   
-  {% elsif platform.name == "Windows64" %}
+  {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
   {% if win_api.name == "Vulkan" %}
   #skip

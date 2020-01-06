@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Utilities;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -63,9 +64,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public int  colorPyramidHistoryMipCount = 0;
-        public VBufferParameters[] vBufferParams; // Double-buffered
+        public VBufferParameters[] vBufferParams; // Double-buffered; needed even if reprojection is off
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
+
+        // We need to keep this here as culling is done before volume update. That means that culling for the light will be left with the state used by the last
+        // updated camera which is not necessarily the camera we are culling for. This should be fixed if we end up having scriptable culling, as the culling for
+        // the lights can be done after the volume update.
+        internal float shadowMaxDistance = 500.0f;
 
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
@@ -195,6 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
+        private bool m_NeedTAAResetHistory = false;
 
         public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
 
@@ -203,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
-        public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
+        public HDPhysicalCamera physicalParameters { get; private set; }
 
         public IEnumerable<AOVRequestData> aovRequests =>
             m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
@@ -233,6 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
+        internal string cameraName => m_AdditionalCameraData?.cameraName ?? "HDRenderPipeline::Render Camera";
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -251,12 +260,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
         }
 
+        internal bool NeedTAAResetHistory()
+        {
+            return m_NeedTAAResetHistory;
+        }
+
+        internal bool IsVolumetricReprojectionEnabled(bool ignoreVolumeStack = false)
+        {
+            bool a = Fog.IsVolumetricFogEnabled(this, ignoreVolumeStack);
+            bool b = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+            bool c = camera.cameraType == CameraType.Game;
+            bool d = Application.isPlaying;
+
+            return a && b && c && d;
+        }
+
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
         public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
+            bool ignoreVolumeStack = true; // Unfortunately, it is initialized after this function call
+
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
@@ -268,9 +294,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Handle memory allocation.
             {
+                // Have to do this every frame in case the settings have changed.
+                // The condition inside controls whether we perform init/deinit or not.
+                hdrp.ReinitializeVolumetricBufferParams(this, ignoreVolumeStack);
+
                 bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
-                bool isVolumetricHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && m_frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+                bool isVolumetricHistoryRequired   = IsVolumetricReprojectionEnabled(ignoreVolumeStack);
 
                 int numColorPyramidBuffersRequired = 0;
                 if (isCurrentColorPyramidRequired)
@@ -281,11 +311,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
 
                 if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                    (m_NumVolumetricBuffersAllocated   != numVolumetricBuffersRequired))
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    hdrp.DeinitializeVolumetricLightingPerCameraData(this);
+                    volumetricHistoryIsValid   = false;
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -294,14 +324,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (numColorPyramidBuffersRequired != 0)
                     {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
-                        colorPyramidHistoryIsValid = false;
                     }
 
-                    hdrp.InitializeVolumetricLightingPerCameraData(this, numVolumetricBuffersRequired, RTHandles.defaultRTHandleSystem);
+                    if (numVolumetricBuffersRequired != 0)
+                    {
+                        hdrp.AllocateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                    }
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
+                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
                 }
             }
 
@@ -323,7 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2Int nonScaledViewport = new Vector2Int(m_ActualWidth, m_ActualHeight);
             if (isMainGameView)
             {
-                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(m_ActualWidth, m_ActualHeight));
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(m_ActualWidth, m_ActualHeight));
                 m_ActualWidth = scaledSize.x;
                 m_ActualHeight = scaledSize.y;
             }
@@ -339,9 +371,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAllViewConstants();
             isFirstFrame = false;
 
-            hdrp.UpdateVolumetricLightingPerCameraData(this);
+            hdrp.UpdateVolumetricBufferParams(this, ignoreVolumeStack);
 
-            UpdateVolumeParameters();
+            UpdateVolumeAndPhysicalParameters();
 
             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
@@ -349,18 +381,31 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, m_msaaSamples);
         }
 
+        void SetupCurrentMaterialQuality(CommandBuffer cmd)
+        {
+            var asset = HDRenderPipeline.currentAsset;
+            MaterialQuality availableQualityLevels = asset.availableMaterialQualityLevels;
+            MaterialQuality currentMaterialQuality = frameSettings.materialQuality == (MaterialQuality)0 ? asset.defaultMaterialQualityLevel : frameSettings.materialQuality;
+
+            availableQualityLevels.GetClosestQuality(currentMaterialQuality).SetGlobalShaderKeywords(cmd);
+        }
+
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
-        public void BeginRender()
+        public void BeginRender(CommandBuffer cmd)
         {
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
             m_HistoryRTSystem.SwapAndSetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
+
+            SetupCurrentMaterialQuality(cmd);
         }
 
         void UpdateAntialiasing()
         {
+            AntialiasingMode previousAntialiasing = antialiasing;
+
             // Handle post-process AA
             //  - If post-processing is disabled all together, no AA
             //  - In scene view, only enable TAA if animated materials are enabled
@@ -393,6 +438,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 taaFrameIndex = 0;
                 taaJitter = Vector4.zero;
+            }
+
+            // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
+            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            {
+                m_NeedTAAResetHistory = true;
+            }
+            else
+            {
+                m_NeedTAAResetHistory = false;
             }
         }
 
@@ -529,7 +584,9 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize);
+
+            var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
 
             if (updatePreviousFrameConstants)
             {
@@ -583,14 +640,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateVolumeParameters()
+        void UpdateVolumeAndPhysicalParameters()
         {
             volumeAnchor = null;
             volumeLayerMask = -1;
+            physicalParameters = null;
+
             if (m_AdditionalCameraData != null)
             {
                 volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
                 volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
+                physicalParameters = m_AdditionalCameraData.physicalParameters;
             }
             else
             {
@@ -604,11 +664,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool needFallback = true;
                     if (mainCamera != null)
                     {
-                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
-                        if (mainCamAdditionalData != null)
+                        if (mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
                             volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
+                            physicalParameters = mainCamAdditionalData.physicalParameters;
                             needFallback = false;
                         }
                     }
@@ -621,7 +681,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
                             volumeLayerMask = -1;
                         else
-                            volumeLayerMask = (-1 & ~hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                            // Remove lighting override mask and layer 31 which is used by preview/lookdev
+                            volumeLayerMask = (-1 & ~(hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask | (1 << 31)));
+
+                        // No fallback for the physical camera as we can't assume anything in this regard
+                        // Kept at null so the exposure will just use the default physical camera values
                     }
                 }
             }
@@ -631,18 +695,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 volumeAnchor = camera.transform;
         }
 
-        public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        public void GetPixelCoordToViewDirWS(Vector4 resolution, float aspect, ref Matrix4x4[] transforms)
         {
             if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
-                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution);
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution, aspect);
                 }
             }
             else
             {
-                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution);
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution, aspect);
             }
         }
 
@@ -704,7 +775,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return proj;
         }
 
-        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution)
+        /// <summary>
+        /// Compute the matrix from screen space (pixel) to world space direction (RHS).
+        ///
+        /// You can use this matrix on the GPU to compute the direction to look in a cubemap for a specific
+        /// screen pixel.
+        /// </summary>
+        /// <param name="viewConstants"></param>
+        /// <param name="resolution">The target texture resolution.</param>
+        /// <param name="aspect">
+        /// The aspect ratio to use.
+        ///
+        /// if negative, then the aspect ratio of <paramref name="resolution"/> will be used.
+        ///
+        /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
+        /// </param>
+        /// <returns></returns>
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
@@ -720,7 +807,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
         }
 
         // Warning: different views can use the same camera!
@@ -924,6 +1011,19 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
+        
+        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
+        struct AmbientOcclusionAllocator
+        {
+            float scaleFactor;
+
+            public AmbientOcclusionAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+            }
+        }
 
         public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
@@ -931,12 +1031,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-                {
-                    return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
-                }
-
-                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, Allocator, 2);
+                var aoAlloc = new AmbientOcclusionAllocator(scaleFactor);
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
             }
@@ -1017,6 +1113,59 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
                         data.recorderCaptureActions.Current(tempRT, ctx.cmd);
                 });
+            }
+        }
+
+        // VisualSky is the sky used for rendering in the main view.
+        // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
+        // It's usually the visual sky unless a sky lighting override is setup.
+        //      Ambient Probe: Only used if Ambient Mode is set to dynamic in the Visual Environment component. Updated according to the Update Mode parameter.
+        //      (Otherwise it uses the one from the static lighting sky)
+        //      Sky Reflection Probe : Always used and updated according to the Update Mode parameter.
+        internal SkyUpdateContext   visualSky { get; private set; } = new SkyUpdateContext();
+        internal SkyUpdateContext   lightingSky { get; private set; } = null;
+        // We need to cache this here because it's need in SkyManager.SetupAmbientProbe
+        // The issue is that this is called during culling which happens before Volume updates so we can't query it via volumes in there.
+        internal SkyAmbientMode skyAmbientMode { get; private set; }
+        internal SkyUpdateContext   m_LightingOverrideSky = new SkyUpdateContext();
+
+        internal void UpdateCurrentSky(SkyManager skyManager)
+        {
+#if UNITY_EDITOR
+            if (HDUtils.IsRegularPreviewCamera(camera))
+            {
+                visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
+                lightingSky = visualSky;
+                skyAmbientMode = SkyAmbientMode.Dynamic;
+            }
+            else
+#endif
+            {
+                skyAmbientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+
+                visualSky.skySettings = SkyManager.GetSkySetting(VolumeManager.instance.stack);
+
+                // Now, see if we have a lighting override
+                // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
+                VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
+                if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
+                {
+                    SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
+                    if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                    {
+                        // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
+                        // Resetting the visual sky hash will ensure that.
+                        visualSky.skyParametersHash = -1;
+                    }
+
+                    m_LightingOverrideSky.skySettings = newSkyOverride;
+                    lightingSky = m_LightingOverrideSky;
+
+                }
+                else
+                {
+                    lightingSky = visualSky;
+                }
             }
         }
     }

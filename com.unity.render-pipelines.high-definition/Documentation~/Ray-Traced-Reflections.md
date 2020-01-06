@@ -29,7 +29,7 @@ Because this feature replaces the [Screen Space Reflection](Override-Screen-Spac
 
 Cameras use [Frame Settings](Frame-Settings.html) to decide how to render the Scene. To enable screen space reflection for your Cameras by default:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
 3. In the Lighting section, enable Screen Space Reflection.
 
@@ -43,7 +43,7 @@ All Cameras can now process screen space reflection unless they use custom [Fram
 Ray-Traced Reflections uses the [Volume](Volumes.html) framework, so to enable this feature, and modify its properties, you need to add a Screen Space Reflection override to a [Volume](Volumes.html) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to Add Override > Lighting and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
+2. In the Inspector, navigate to ****Add Override > Lighting**** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
 3. In the Inspector for the Screen Space Reflection Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html#TierTable).
 
 ## Properties
@@ -60,6 +60,7 @@ Alongside the standard properties, Unity exposes extra properties depending on t
 | **Minimum Smoothness**    | Controls the minimum smoothness value for a pixel at which HDRP processes ray-traced reflections. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.html#ReflectionHierarchy). |
 | **Smoothness Fade Start** | This feature has not been implemented yet and currently does nothing. Ray tracing in HDRP is experimental so some features have not been implemented yet. |
 | **Reflect Sky**           | Enable this feature to specify to HDRP that it should use the sky as a fall-back for ray-traced reflections when a ray doesn't find an intersection. |
+| **LayerMask**             | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**            | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky if Reflect Sky is enabled, or black if not. |
 | **Clamp Value**           | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
 | **Denoise**               | Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections. |

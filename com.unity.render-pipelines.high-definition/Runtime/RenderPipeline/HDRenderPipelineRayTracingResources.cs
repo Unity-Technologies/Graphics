@@ -5,7 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
-#if ENABLE_RAYTRACING
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
         public RayTracingShader reflectionRaytracingRT;
@@ -53,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeShader simpleDenoiserCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
         public ComputeShader diffuseDenoiserCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReflectionDenoiser.compute")]
+        public ComputeShader reflectionDenoiserCS;
 
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]
@@ -71,9 +72,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ray count
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
         public ComputeShader countTracedRays;
-#endif
 
-    #if UNITY_EDITOR
+        // Filtering for reflections
+        [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
+        public Texture2D reflectionFilterMapping;
+
+#if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]
         class RenderPipelineRayTracingResourcesEditor : UnityEditor.Editor
         {

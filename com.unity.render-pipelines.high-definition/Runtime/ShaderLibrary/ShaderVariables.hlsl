@@ -21,6 +21,15 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
+// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
+#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
+#define RAYTRACING_ENABLED (1)
+#define DirectionalShadowType float3
+#else
+#define RAYTRACING_ENABLED (0)
+#define DirectionalShadowType float
+#endif
+
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
@@ -211,20 +220,22 @@ CBUFFER_START(UnityGlobal)
     float  _HeightFogBaseHeight;
     float  _GlobalFogAnisotropy;
 
-    float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
+    float4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
     float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-    float  _Pad3;
-    float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+
+    float  _ContactShadowOpacity;
+    float4 _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
 
     // TODO: these are only used for reprojection.
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
-    float4 _VBufferPrevResolution;
-    float4 _VBufferPrevUvScaleAndLimit;
+    float4 _VBufferPrevViewportSize;
+    float4 _VBufferHistoryPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 
@@ -237,7 +248,7 @@ CBUFFER_START(UnityGlobal)
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
     float _ReplaceDiffuseForIndirect;
-    uint _EnableSkyLighting;
+    uint _EnableSkyReflection;
 
     uint _EnableSSRefraction;
 
@@ -248,6 +259,7 @@ CBUFFER_START(UnityGlobal)
     int  _FrameCount;
 
     float _ProbeExposureScale;
+    int  _UseRayTracedReflections;
 
 CBUFFER_END
 

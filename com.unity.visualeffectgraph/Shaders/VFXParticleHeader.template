@@ -4,9 +4,6 @@ ${VFXInclude("Shaders/VFXParticleCommon.template")}
 ${VFXOutputRenderState}	
 	
 HLSLINCLUDE
-#if !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)
-#define VFX_LOCAL_SPACE 1
-#endif
 
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}

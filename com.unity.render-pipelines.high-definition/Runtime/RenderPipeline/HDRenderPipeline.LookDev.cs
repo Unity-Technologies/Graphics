@@ -41,21 +41,28 @@ namespace UnityEngine.Rendering.HighDefinition
             additionalLightData.SetShadowResolution(2048);
 
             GameObject volumeGO = SRI.AddGameObject(persistent: true);
-            volumeGO.name = "SkyManagementVolume";
+            volumeGO.name = "StageVolume";
             Volume volume = volumeGO.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.priority = float.MaxValue;
-            VolumeProfile profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            volume.enabled = false;
+
+#if UNITY_EDITOR
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
             volume.sharedProfile = profile;
 
-            HDShadowSettings shadows = profile.Add<HDShadowSettings>();
-            shadows.maxShadowDistance.Override(25f);
-            shadows.cascadeShadowSplitCount.Override(2);
-
-            VisualEnvironment visualEnvironment = profile.Add<VisualEnvironment>();
+            VisualEnvironment visualEnvironment;
+            if (profile.TryGet(out visualEnvironment))
+                profile.Remove<VisualEnvironment>();
+            visualEnvironment = profile.Add<VisualEnvironment>();
             visualEnvironment.skyType.Override((int)SkyType.HDRI);
             visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
-            HDRISky sky = profile.Add<HDRISky>();
+
+            HDRISky sky;
+            if (profile.TryGet(out sky))
+                profile.Remove<HDRISky>();
+            sky = profile.Add<HDRISky>();
 
             SRI.SRPData = new LookDevDataForHDRP()
             {
@@ -65,6 +72,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 sky = sky,
                 volume = volume
             };
+#else
+            //remove unasigned warnings when building
+            SRI.SRPData = new LookDevDataForHDRP()
+            {
+                additionalCameraData = null,
+                additionalLightData = null,
+                visualEnvironment = null,
+                sky = null,
+                volume = null
+            };
+#endif
         }
 
         void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
@@ -82,6 +100,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.sky.rotation.Override(sky.longitudeOffset);
                 data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
             }
+        }
+
+        void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = true;
+        }
+
+        void IDataProvider.OnEndRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = false;
         }
 
         IEnumerable<string> IDataProvider.supportedDebugModes

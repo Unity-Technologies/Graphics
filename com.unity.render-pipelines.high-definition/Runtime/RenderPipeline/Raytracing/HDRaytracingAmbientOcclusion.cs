@@ -3,8 +3,7 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
-    class HDRaytracingAmbientOcclusion
+    internal class HDRaytracingAmbientOcclusion
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
@@ -76,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
 
-            using (new ProfilingSample(cmd, "Ray Trace Ambient Occlusion", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
                 // Grab the acceleration structure for the target camera
                 RayTracingAccelerationStructure accelerationStructure = m_RenderPipeline.RequestAccelerationStructure();
@@ -101,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject the ray-tracing sampling data
                 BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();
                 blueNoise.BindDitheredRNGData8SPP(cmd);
-                
+
                 // Value used to scale the ao intensity
                 cmd.SetRayTracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
 
@@ -116,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
             }
 
-            using (new ProfilingSample(cmd, "Filter Ambient Occlusion", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion)))
             {
                 if(aoSettings.denoise.value)
                 {
@@ -146,5 +145,4 @@ namespace UnityEngine.Rendering.HighDefinition
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.SSAO);
         }
     }
-#endif
 }

@@ -233,14 +233,21 @@ namespace UnityEditor.ShaderGraph
         
         public void Reload(HashSet<string> changedFileDependencies)
         {
-            if (asset == null || hasError)
+            if (asset == null)
             {
                 return;
             }
+
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
+
+                if (hasError)
+                {
+                    return;
+                }
+
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);

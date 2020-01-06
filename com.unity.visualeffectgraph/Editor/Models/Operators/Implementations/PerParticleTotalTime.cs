@@ -8,6 +8,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class OutputProperties
         {
+            [Tooltip("Outputs the delta time with a random per-particle offset. This is useful for preventing particles in fast simulations from receiving similar attributes when they share the same delta time.")]
             public float t = 0;
         }
 

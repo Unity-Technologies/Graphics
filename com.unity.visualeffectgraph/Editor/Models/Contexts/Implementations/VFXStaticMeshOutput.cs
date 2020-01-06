@@ -10,13 +10,13 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXStaticMeshOutput : VFXContext, IVFXSubRenderer
     {
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies the shader with which the mesh output is rendered.")]
         private Shader shader; // not serialized here but in VFXDataMesh
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the mesh output will cast shadows.")]
         protected bool castShadows = false;
 
         // IVFXSubRenderer interface
@@ -59,6 +59,20 @@ namespace UnityEditor.VFX
 
             base.OnInvalidate(model, cause);
         }
+
+        public void RefreshShader(Shader shader)
+        {
+            if( this.shader == shader)
+            {
+                //Get back the correct shader C# object after the importer created a new one with the same instance ID as the old one.
+                if (!object.ReferenceEquals(shader, null))
+                    this.shader = EditorUtility.InstanceIDToObject(shader.GetInstanceID()) as Shader;
+                var data = (VFXDataMesh)GetData();
+                data.shader = shader;
+                data.RefreshShader();
+            }
+        }
+            
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

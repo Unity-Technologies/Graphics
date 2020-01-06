@@ -50,9 +50,17 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
+            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene.");
+            Rect lineRect = EditorGUILayout.GetControlRect();
             int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
-            isGlobal = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene."), isGlobal, m_Modes);
-            m_IsGlobal.boolValue = isGlobal == 0;
+            EditorGUI.BeginProperty(lineRect, label, m_IsGlobal);
+            {
+                EditorGUI.BeginChangeCheck();
+                isGlobal = EditorGUILayout.Popup(label, isGlobal, m_Modes);
+                if (EditorGUI.EndChangeCheck())
+                    m_IsGlobal.boolValue = isGlobal == 0;
+            }
+            EditorGUI.EndProperty();
 
             if (isGlobal != 0) // Blend radius is not needed for global volumes
             {
@@ -86,7 +94,7 @@ namespace UnityEditor.Rendering
             // fields, do the layout manually instead
             int buttonWidth = showCopy ? 45 : 60;
             float indentOffset = EditorGUI.indentLevel * 15f;
-            var lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            lineRect = EditorGUILayout.GetControlRect();
             var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
             var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - buttonWidth * (showCopy ? 2 : 1), lineRect.height);
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);

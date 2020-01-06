@@ -46,7 +46,8 @@ Pass
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
 #endif
-	
+
+    ${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
