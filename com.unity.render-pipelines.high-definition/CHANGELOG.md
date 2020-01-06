@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a check in the custom post process template to throw an error if the default shader is not found.
 - Exposed the debug overlay ratio in the debug menu.
 - Added a separate frame settings for tonemapping alongside color grading.
+- Added the receive fog option in the material UI for ShaderGraphs.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
