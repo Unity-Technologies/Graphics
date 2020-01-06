@@ -6,6 +6,8 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using System.IO;
+using System;
 
 public class UniversalGraphicsTests
 {
@@ -28,7 +30,7 @@ public class UniversalGraphicsTests
         yield return null;
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-        var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
+        var settings = UnityEngine.Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
         Scene scene = SceneManager.GetActiveScene();
@@ -76,6 +78,38 @@ public class UniversalGraphicsTests
             wasFirstSceneRan = true;
         }
 #endif
+
+        //Hack to revert (output yamato result)
+        if (testCase.ScenePath.Contains("005"))
+        {
+            var desc = new RenderTextureDescriptor(640, 320, SystemInfo.GetGraphicsFormat(UnityEngine.Experimental.Rendering.DefaultFormat.LDR), 24);
+            var rt = RenderTexture.GetTemporary(desc);
+
+            foreach (var camera in cameras)
+            {
+                camera.targetTexture = rt;
+                camera.Render();
+                camera.targetTexture = null;
+            }
+
+            Texture2D actual = null;
+            actual = new Texture2D(640, 320, TextureFormat.RGB24, false);
+            RenderTexture.active = rt;
+            actual.ReadPixels(new Rect(0, 0, 640, 320), 0, 0);
+            RenderTexture.active = null;
+            actual.Apply();
+
+            var basePath = "C:/build/output/Unity-Technologies/ScriptableRenderPipeline/TestProjects/UniversalGraphicsTest/test-results/";
+            string guid = Guid.NewGuid().ToString("N").Substring(0, 4);
+            var outputPath = System.IO.Path.Combine(basePath, "005_Hack_" + guid + ".png");
+            if (!Directory.Exists(basePath))
+            {
+                Directory.CreateDirectory(basePath);
+            }
+            byte[] bytes = actual.EncodeToPNG();
+            File.WriteAllBytes(outputPath, bytes);
+        }
+
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
