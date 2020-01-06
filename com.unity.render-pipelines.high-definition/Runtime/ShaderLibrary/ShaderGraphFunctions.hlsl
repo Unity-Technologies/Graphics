@@ -10,6 +10,8 @@
 #define SHADERGRAPH_LOAD_CUSTOM_SCENE_DEPTH(uv) shadergraph_HDLoadCustomSceneDepth(uv)
 #define SHADERGRAPH_LOAD_SCENE_NORMAL(uv) shadergraph_HDLoadSceneNormal(uv)
 #define SHADERGRAPH_LOAD_SCENE_ROUGHNESS(uv) shadergraph_HDLoadSceneRoughness(uv)
+#define SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR(uv) shadergraph_HDLoadSceneMotionVector(uv)
+
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
@@ -57,6 +59,13 @@ float shadergraph_HDLoadSceneRoughness(float2 uv)
     NormalData normalData;
     DecodeFromNormalBuffer(uv, normalData);
     return normalData.perceptualRoughness;
+}
+
+float2 shadergraph_HDLoadSceneMotionVector(float2 uv)
+{
+    float2 velocity;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, uv), velocity);
+    return velocity;
 }
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)

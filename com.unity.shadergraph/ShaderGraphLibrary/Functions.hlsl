@@ -73,6 +73,22 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_LOAD_SCENE_ROUGHNESS(uv) shadergraph_LoadSceneRoughness(uv)
 #endif
 
+#ifndef SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR
+    #define SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR(uv) shadergraph_LoadSceneMotionVector(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_SCENE_SSAO
+    #define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_LoadCustomSceneSSAO(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_SSR
+    #define SHADERGRAPH_LOAD_SCENE_SSR(uv) shadergraph_LoadSceneSSR(uv)
+#endif
+
+#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_VOLUMETRIC
+    #define SHADERGRAPH_LOAD_SCENE_VOLUMETRIC(uv) shadergraph_LoadSceneVolumetric(uv)
+#endif
+
 #ifndef SHADERGRAPH_BAKED_GI
     #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #endif
@@ -127,6 +143,26 @@ float3 shadergraph_LoadSceneNormal(float2 uv)
 }
 
 float3 shadergraph_LoadSceneRoughness(float2 uv)
+{
+    return 0;
+}
+
+float2 shadergraph_LoadSceneMotionVector(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadCustomSceneSSAO(uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadSceneSSR(uv)
+{
+    return 0;
+}
+
+float4 shadergraph_LoadSceneVolumetric(uv)
 {
     return 0;
 }
