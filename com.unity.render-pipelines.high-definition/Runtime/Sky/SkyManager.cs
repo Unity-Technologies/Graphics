@@ -310,6 +310,8 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
 
+            m_StaticLightingSky.Cleanup();
+
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
 #endif
