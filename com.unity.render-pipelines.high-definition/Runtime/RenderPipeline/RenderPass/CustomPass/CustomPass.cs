@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -23,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ProfilingSampler = new ProfilingSampler(m_Name);
             }
         }
+        [SerializeField, FormerlySerializedAsAttribute("name")]
         string m_Name = "Custom Pass";
 
         internal ProfilingSampler   profilingSampler

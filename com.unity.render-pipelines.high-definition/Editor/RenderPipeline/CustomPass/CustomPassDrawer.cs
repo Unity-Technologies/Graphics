@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 		void FetchProperties(SerializedProperty property)
 		{
-			m_Name = property.FindPropertyRelative("name");
+			m_Name = property.FindPropertyRelative("m_Name");
 			m_Enabled = property.FindPropertyRelative("enabled");
 			m_TargetColorBuffer = property.FindPropertyRelative("targetColorBuffer");
 			m_TargetDepthBuffer = property.FindPropertyRelative("targetDepthBuffer");
