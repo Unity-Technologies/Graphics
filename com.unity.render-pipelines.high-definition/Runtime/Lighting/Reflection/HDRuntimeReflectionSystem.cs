@@ -11,7 +11,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will be the case when entering play mode without performing the domain reload.
         [RuntimeInitializeOnLoadMethod]
         static void Initialize()
-            => ScriptableRuntimeReflectionSystemSettings.system = k_instance;
+        {
+            if (GraphicsSettings.currentRenderPipeline is HDRenderPipeline)
+                ScriptableRuntimeReflectionSystemSettings.system = k_instance;
+        }
 
         // Note: method bool TickRealtimeProbes(); in base will create GC.Alloc due to Unity binding code
         // (bool as return type is not handled properly)
