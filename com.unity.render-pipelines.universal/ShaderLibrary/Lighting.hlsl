@@ -121,6 +121,7 @@ Light GetMainLight(float4 shadowCoord)
 // Fills a light struct given a perObjectLightIndex
 Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
+#if defined(_ADDITIONAL_LIGHTS_VERTEX) || defined(_ADDITIONAL_LIGHTS)
     // Abstraction over Light input constants
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     float4 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position;
@@ -164,6 +165,12 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 
     half probeOcclusionValue = unity_ProbesOcclusion[probeChannel];
     light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
+#endif
+
+#else
+    // Shader doesn't define _ADDITIONAL_LIGHTS_VERTEX or _ADDITIONAL_LIGHTS.
+    // We initialize an zero filled light struct.
+    Light light = (Light)0;
 #endif
 
     return light;
