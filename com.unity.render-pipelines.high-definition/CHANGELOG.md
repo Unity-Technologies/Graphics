@@ -274,6 +274,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with ambient probe not being initialized for the first frame after a domain reload for volumetric fog.
 - Fixed the scene visibility of decal projectors and density volumes
 - Fixed a leak in sky manager.
+- Fixed an issue where entering playmode while the light editor is opened would produce null reference exceptions.
+- Fixed the debug overlay overlapping the debug menu at runtime.
+- Fixed an issue with the framecount when changing scene.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -321,6 +324,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
+- Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
 
 ## [7.1.1] - 2019-09-05
 

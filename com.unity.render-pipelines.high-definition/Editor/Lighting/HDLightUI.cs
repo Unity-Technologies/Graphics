@@ -898,7 +898,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported)
                 {
                     if (lightType == HDLightType.Point
                         || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone)
@@ -1027,7 +1027,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported
+            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported
                 && serialized.contactShadows.@override.boolValue)
             {
                 EditorGUI.indentLevel++;
