@@ -108,21 +108,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (customPassDrawers.TryGetValue(pass, out drawer))
                 return drawer;
 
-            var passType = m_Volume.customPasses[listIndex].GetType();
+            var customPass = m_Volume.customPasses[listIndex];
 
             foreach (var drawerType in TypeCache.GetTypesWithAttribute(typeof(CustomPassDrawerAttribute)))
             {
                 var attr = drawerType.GetCustomAttributes(typeof(CustomPassDrawerAttribute), true)[0] as CustomPassDrawerAttribute;
-                if (attr.targetPassType == passType)
+                if (attr.targetPassType == customPass.GetType())
                 {
                     drawer = Activator.CreateInstance(drawerType) as CustomPassDrawer;
-                    drawer.SetPassType(passType);
+                    drawer.SetPass(customPass);
                     break;
                 }
-                if (attr.targetPassType.IsAssignableFrom(passType))
+                if (attr.targetPassType.IsAssignableFrom(customPass.GetType()))
                 {
                     drawer = Activator.CreateInstance(drawerType) as CustomPassDrawer;
-                    drawer.SetPassType(passType);
+                    drawer.SetPass(customPass);
                 }
             }
 

@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (m_ProfilingSampler == null)
-                    m_ProfilingSampler = new ProfilingSampler("Custom Pass");
+                    m_ProfilingSampler = new ProfilingSampler(m_Name ?? "Custom Pass");
                 return m_ProfilingSampler;
             }
         }
