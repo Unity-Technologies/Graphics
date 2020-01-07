@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph
         int numSlots;
         int[] liveIds;
 
+        protected int m_ProceduralStackID = 1;
+
         public override bool hasPreview { get { return false; } }
 
         [SerializeField]
@@ -57,7 +59,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         bool isProcedural = false;
-        public SampleTextureStackNodeBase(int numSlots, bool proc = false)
+        public SampleTextureStackNodeBase(int numSlots, bool proc = false, int nStackID = 1)
         {
             isProcedural = proc;
             if (numSlots > 4)
@@ -65,7 +67,8 @@ namespace UnityEditor.ShaderGraph
                 throw new System.Exception("Maximum 4 slots supported");
             }
             this.numSlots = numSlots;
-            name = "Sample Texture Stack " + numSlots + (proc ? " Procedural" : "");
+            m_ProceduralStackID = nStackID;
+            name = "Sample Texture Stack " + numSlots + (proc ? (" Procedural ID" + nStackID) : "");
 
             UpdateNodeAfterDeserialization();
         }
@@ -167,7 +170,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
             // only generate code for connected outputs
-            string stackName = isProcedural ? "MyPVT" : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = isProcedural ? "MyPVT" + m_ProceduralStackID : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
             bool anyConnected = false;
             for (int i = 0; i < numSlots; i++)
@@ -243,7 +246,7 @@ namespace UnityEditor.ShaderGraph
                 slotNames.Add(id);
             }
 
-            string stackName = isProcedural ? "MyPVT" : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = isProcedural ? "MyPVT" + m_ProceduralStackID : GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
             // Add texture stack attributes to any connected textures
             int found = 0;
@@ -409,11 +412,10 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    [Title("Input", "Texture", "Sample Texture Stack Procedural")]
     class SampleTextureStackProcedural : SampleTextureStackNodeBase
     {
-        public SampleTextureStackProcedural() : base(1, true)
-        { }
+        public SampleTextureStackProcedural(int nID) : base(1, true, nID)
+        {}
 
         [EnumControl("Type 1")]
         public TextureType textureType
@@ -430,6 +432,33 @@ namespace UnityEditor.ShaderGraph
                 ValidateNode();
             }
         }
+    }
+
+    // This is a hack to support multiple procedural texture stacks while the shader graph support is being completed by the Graphine team
+    [Title("Input", "Texture", "Sample Texture Stack Procedural ID1")]
+    class SampleTextureStackProcedural1 : SampleTextureStackProcedural
+    {
+        public SampleTextureStackProcedural1() : base(1)
+        { }
+    }
+
+    [Title("Input", "Texture", "Sample Texture Stack Procedural ID2")]
+    class SampleTextureStackProcedural2 : SampleTextureStackProcedural
+    {
+        public SampleTextureStackProcedural2() : base(2)
+        { }
+    }
+    [Title("Input", "Texture", "Sample Texture Stack Procedural ID3")]
+    class SampleTextureStackProcedural3 : SampleTextureStackProcedural
+    {
+        public SampleTextureStackProcedural3() : base(3)
+        { }
+    }
+    [Title("Input", "Texture", "Sample Texture Stack Procedural ID4")]
+    class SampleTextureStackProcedural4 : SampleTextureStackProcedural
+    {
+        public SampleTextureStackProcedural4() : base(4)
+        { }
     }
 
     [Title("Input", "Texture", "Sample Texture Stack 4")]
