@@ -274,6 +274,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the scene visibility of decal projectors and density volumes
 - Fixed a leak in sky manager.
 - Fixed an issue where entering playmode while the light editor is opened would produce null reference exceptions.
+- Fixed the debug overlay overlapping the debug menu at runtime.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
