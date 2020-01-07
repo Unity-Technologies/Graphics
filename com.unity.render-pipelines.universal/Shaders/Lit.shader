@@ -84,16 +84,16 @@ Shader "Universal Render Pipeline/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
-            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _OCCLUSIONMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _OCCLUSIONMAP
 
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF
-            #pragma shader_feature _SPECULAR_SETUP
+            #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
+            #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
@@ -145,7 +145,7 @@ Shader "Universal Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -175,8 +175,8 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             //--------------------------------------
             // GPU Instancing
@@ -203,13 +203,13 @@ Shader "Universal Render Pipeline/Lit"
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
 
-            #pragma shader_feature _SPECULAR_SETUP
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _SPECULAR_SETUP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
-            #pragma shader_feature _SPECGLOSSMAP
+            #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitMetaPass.hlsl"
@@ -232,8 +232,8 @@ Shader "Universal Render Pipeline/Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"

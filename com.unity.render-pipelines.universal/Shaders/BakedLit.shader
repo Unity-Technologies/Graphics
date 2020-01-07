@@ -41,8 +41,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature _ _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -154,7 +154,7 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
             // GPU Instancing
@@ -201,8 +201,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
