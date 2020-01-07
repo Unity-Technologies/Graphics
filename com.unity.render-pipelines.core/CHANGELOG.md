@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
+- Added a menu item to toggle the display of Volume gizmos in `Edit > Render Pipeline > Display Selected Volume Gizmos`. Its default shortcut is `SHIFT+ALT+V`.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Improved the look of the Volume gizmos.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
