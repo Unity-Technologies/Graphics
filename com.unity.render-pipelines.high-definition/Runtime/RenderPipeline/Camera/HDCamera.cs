@@ -831,6 +831,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HistoryRTSystem.Dispose();
                 m_HistoryRTSystem = null;
             }
+
+            if (lightingSky != null && lightingSky != visualSky)
+                lightingSky.Cleanup();
+
+            if (visualSky != null)
+                visualSky.Cleanup();
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
