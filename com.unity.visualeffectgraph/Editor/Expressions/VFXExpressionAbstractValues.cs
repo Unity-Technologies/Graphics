@@ -150,14 +150,14 @@ namespace UnityEditor.VFX
             return flags;
         }
 
-        public VFXValue(object content = null, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
+        public VFXValue(T content, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXValue<T>(m_Content, mode);
+            var copy = new VFXValue<T>(Get(), mode);
             return copy;
         }
 
@@ -176,9 +176,6 @@ namespace UnityEditor.VFX
 
         public override void SetContent(object value)
         {
-            if (ValueMode == Mode.Constant)
-                throw new InvalidOperationException("Cannot set content of an immutable value");
-
             m_Content = default(T);
             if (value == null )
             {
@@ -249,7 +246,7 @@ namespace UnityEditor.VFX
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXValue<int>(m_Content, mode);
+            var copy = new VFXObjectValue((int)m_Content, mode);
             return copy;
         }
 
