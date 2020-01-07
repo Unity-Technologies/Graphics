@@ -2,7 +2,7 @@
 
 ## Creating a Light
 
-![image alt text](images/image_7.png)
+![image alt text](Images/2D/image_7.png)
 
 Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and selecting one of the five available types:
 
@@ -14,7 +14,7 @@ Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and sel
 
 The following are the common properties used by the different Light types. 
 
-![](images/2DLightBasics.png)
+![](Images/2D/2DLightBasics.png)
 
 | Property                                                     | Function                                                     |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -38,7 +38,7 @@ The following are the common properties used by the different Light types.
 
 This property controls the way in the selected Light interacts with other rendered Lights. You can toggle between the two modes by enabling or disabling this property. The effects of both modes are shown in the examples below:
 
-| ![Alpha Blend on Overlap disabled (defaults to Additive blending) ](images\image_9.png) | ![Alpha Blend on Overlap enabled](images\image_10.png) |
+| ![Alpha Blend on Overlap disabled (defaults to Additive blending) ](Images/2D/image_9.png) | ![Alpha Blend on Overlap enabled](Images/2D/image_10.png) |
 | ------------------------------------------------------------ | ------------------------------------------------------ |
 | __Alpha Blend on Overlap__ disabled (defaults to Additive blending) | __Alpha Blend on Overlap__ enabled                     |
 
@@ -58,7 +58,7 @@ Light intensity are available to all types of Lights. Color adjusts the lights c
 
 All lights except for global lights can be toggled to use the normal maps in the sprites material. When enabled, Distance and Accuracy will be visible as new properties.
 
-| ![Use Normal Map: Disabled](images\image_11.png) | ![Use Normal Map: Disabled](images\image_12.png) |
+| ![Use Normal Map: Disabled](Images/2D/image_11.png) | ![Use Normal Map: Disabled](Images/2D/image_12.png) |
 | ------------------------------------------------ | ------------------------------------------------ |
 | __Use Normal Map: __Disabled                     | __Use Normal Map:__ Enabled                      |
 
@@ -66,7 +66,7 @@ All lights except for global lights can be toggled to use the normal maps in the
 
 Distance controls the distance between the light and the surface of the Sprite, changing the resulting lighting effect. This distance does not affect intensity, or transform the position of the Light in the Scene. The following examples show the effects of changing the Distance values.
 
-| ![Distance: 0.5](images\image_13.png) | ![Distance: 2](images\image_14.png) | ![Distance: 8](images\image_15.png) |
+| ![Distance: 0.5](Images/2D/image_13.png) | ![Distance: 2](Images/2D/image_14.png) | ![Distance: 8](Images/2D/image_15.png) |
 | ------------------------------------- | ----------------------------------- | ----------------------------------- |
 | __Distance__: 0.5                     | __Distance__: 2                     | __Distance__: 8                     |
 
@@ -84,7 +84,7 @@ The Shadow Intensity property controls the amount of light that **Shadow Caster 
 
 The slider ranges from 0 to 1. At 0, Shadow Caster 2Ds do not block any light coming from the Light source and they create no shadows. At the maximum value of 1, Shadow Caster 2Ds block all light from the Light source and create shadows at full intensity.
 
-| ![](images\ShadowIntensity0.png) | ![](images\ShadowIntensity05.png) | ![](images\ShadowIntensity100.png) |
+| ![](Images/2D/ShadowIntensity0.png) | ![](Images/2D/ShadowIntensity05.png) | ![](Images/2D/ShadowIntensity100.png) |
 | -------------------------------- | --------------------------------- | ---------------------------------- |
 | Shadow Intensity = 0.0           | Shadow Intensity = 0.5            | Shadow Intensity = 1.0             |
 
