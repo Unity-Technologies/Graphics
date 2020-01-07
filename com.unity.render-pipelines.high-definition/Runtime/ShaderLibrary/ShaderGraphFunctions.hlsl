@@ -11,6 +11,9 @@
 #define SHADERGRAPH_LOAD_SCENE_NORMAL(uv) shadergraph_HDLoadSceneNormal(uv)
 #define SHADERGRAPH_LOAD_SCENE_ROUGHNESS(uv) shadergraph_HDLoadSceneRoughness(uv)
 #define SHADERGRAPH_LOAD_SCENE_MOTIONVECTOR(uv) shadergraph_HDLoadSceneMotionVector(uv)
+#define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_HDLoadSceneSSAO(uv)
+#define SHADERGRAPH_LOAD_SCENE_SSR(uv) shadergraph_HDLoadSceneSSR(uv)
+#define SHADERGRAPH_LOAD_SCENE_VOLUMETRIC(uv) shadergraph_HDLoadSceneVolumetric(uv)
 
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
@@ -66,6 +69,21 @@ float2 shadergraph_HDLoadSceneMotionVector(float2 uv)
     float2 velocity;
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, uv), velocity);
     return velocity;
+}
+
+float4 shadergraph_HDLoadSceneSSAO(float2 uv)
+{
+    return LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, uv);
+}
+
+float4 shadergraph_HDLoadSceneSSR(float2 uv)
+{
+   return LOAD_TEXTURE2D_X(_SsrLightingTexture, uv);
+}
+
+float4 shadergraph_HDLoadSceneVolumetric(float2 uv)
+{
+    return 0;
 }
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)

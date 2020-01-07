@@ -81,7 +81,7 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_LoadCustomSceneSSAO(uv)
 #endif
 
-#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_SSR
+#ifndef SHADERGRAPH_LOAD_SCENE_SSR
     #define SHADERGRAPH_LOAD_SCENE_SSR(uv) shadergraph_LoadSceneSSR(uv)
 #endif
 
@@ -152,17 +152,17 @@ float2 shadergraph_LoadSceneMotionVector(float2 uv)
     return 0;
 }
 
-float4 shadergraph_LoadCustomSceneSSAO(uv)
+float4 shadergraph_LoadCustomSceneSSAO(float2 uv)
 {
     return 0;
 }
 
-float4 shadergraph_LoadSceneSSR(uv)
+float4 shadergraph_LoadSceneSSR(float2 uv)
 {
     return 0;
 }
 
-float4 shadergraph_LoadSceneVolumetric(uv)
+float4 shadergraph_LoadSceneVolumetric(float2 uv)
 {
     return 0;
 }
