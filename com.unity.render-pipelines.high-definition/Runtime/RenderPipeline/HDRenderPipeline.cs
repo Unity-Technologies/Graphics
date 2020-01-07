@@ -1546,7 +1546,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             )))
                         {
                             // Skip request and free resources
-                            Object.Destroy(camera);
                             UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
                             continue;
                         }
