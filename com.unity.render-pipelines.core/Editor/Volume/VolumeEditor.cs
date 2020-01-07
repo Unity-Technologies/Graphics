@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,6 +18,10 @@ namespace UnityEditor.Rendering
         Volume actualTarget => target as Volume;
 
         VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
+
+        static List<Collider> s_RecycledColliderList = new List<Collider>();
+        const string k_DisplayGizmoMenuItem = "Edit/Render Pipeline/Display Selected Volume Gizmos #&v";
+        static SavedBool s_SavedState = new SavedBool("VolumeEditor.DisplayGizmo", true);
 
         readonly GUIContent[] m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
 
@@ -197,6 +202,87 @@ namespace UnityEditor.Rendering
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        // TODO: Look into a better & more robust volume pre-visualization system
+        [DrawGizmo(GizmoType.Selected | GizmoType.Active | GizmoType.Selected)]
+        static void OnDrawSelectedGizmo(Volume volume, GizmoType gizmoType)
+        {
+            if (volume.isGlobal || !s_SavedState.value)
+                return;
+
+            var colliders = s_RecycledColliderList;
+            volume.GetComponents(colliders);
+
+            if (colliders == null)
+                return;
+
+            var t = volume.transform;
+            var scale = t.localScale;
+            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
+            Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, scale);
+            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
+
+            // Dim the skin color a bit
+            var skinColor = Gizmos.color * 0.65f;
+
+            // Draw a separate gizmo for each collider
+            foreach (var collider in colliders)
+            {
+                if (!collider.enabled)
+                    continue;
+
+                // We'll just use scaling as an approximation for volume skin. It's far from being
+                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
+                // field or at least a tesselate + push modifier on the collider's mesh to get a
+                // better approximation, but the current Gizmo system is a bit limited and because
+                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
+                // track of changes in an elegant way (which we'd need to implement a nice cache
+                // system for generated volume meshes).
+                switch (collider)
+                {
+                    case BoxCollider c:
+                        Gizmos.DrawCube(c.center, c.size);
+                        Gizmos.color = skinColor;
+                        Gizmos.DrawCube(c.center, c.size + invScale * volume.blendDistance * 2f);
+                        break;
+                    case SphereCollider c:
+                        // For sphere the only scale that is used is the transform.x
+                        Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, Vector3.one * scale.x);
+                        Gizmos.DrawSphere(c.center, c.radius);
+                        Gizmos.color = skinColor;
+                        Gizmos.DrawSphere(c.center, c.radius + invScale.x * volume.blendDistance);
+                        break;
+                    case MeshCollider c:
+                        // Only convex mesh m_Colliders are allowed
+                        if (!c.convex)
+                            c.convex = true;
+
+                        // Mesh pivot should be centered or this won't work
+                        Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, scale);
+                        Gizmos.DrawMesh(c.sharedMesh);
+                        Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, scale + invScale * volume.blendDistance * 2f);
+                        Gizmos.color = skinColor;
+                        Gizmos.DrawMesh(c.sharedMesh);
+                        break;
+                    default:
+                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel
+                        // and other m_Colliders...
+                        break;
+                }
+            }
+
+            colliders.Clear();
+        }
+
+        [MenuItem(k_DisplayGizmoMenuItem, false, CoreUtils.editMenuPriority4)]
+        static void MenuItem() => s_SavedState.value = !s_SavedState.value;
+
+        [MenuItem(k_DisplayGizmoMenuItem, true, CoreUtils.editMenuPriority4)]
+        static bool MenuItemValidate()
+        {
+            Menu.SetChecked(k_DisplayGizmoMenuItem, s_SavedState.value);
+            return true;
         }
     }
 }

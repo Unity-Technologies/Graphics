@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -131,67 +129,5 @@ namespace UnityEngine.Rendering
                 m_PreviousPriority = priority;
             }
         }
-
-#if UNITY_EDITOR
-        // TODO: Look into a better volume previsualization system
-        List<Collider> m_TempColliders;
-
-        void OnDrawGizmos()
-        {
-            if (m_TempColliders == null)
-                m_TempColliders = new List<Collider>();
-
-            var colliders = m_TempColliders;
-            GetComponents(colliders);
-
-            if (isGlobal || colliders == null)
-                return;
-
-            var scale = transform.localScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
-
-            // Draw a separate gizmo for each collider
-            foreach (var collider in colliders)
-            {
-                if (!collider.enabled)
-                    continue;
-
-                // We'll just use scaling as an approximation for volume skin. It's far from being
-                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
-                // field or at least a tesselate + push modifier on the collider's mesh to get a
-                // better approximation, but the current Gizmo system is a bit limited and because
-                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
-                // track of changes in an elegant way (which we'd need to implement a nice cache
-                // system for generated volume meshes).
-                switch (collider)
-                {
-                    case BoxCollider c:
-                        Gizmos.DrawCube(c.center, c.size);
-                        break;
-                    case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
-                        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
-                        Gizmos.DrawSphere(c.center, c.radius);
-                        break;
-                    case MeshCollider c:
-                        // Only convex mesh m_Colliders are allowed
-                        if (!c.convex)
-                            c.convex = true;
-
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
-                        break;
-                    default:
-                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                        // other m_Colliders...
-                        break;
-                }
-            }
-
-            colliders.Clear();
-        }
-#endif
     }
 }
