@@ -19,7 +19,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma vertex Vertex
             #pragma fragment Fragment
 
-            #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
+            #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
