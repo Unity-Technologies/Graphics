@@ -324,6 +324,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
 - Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
+- Disabled the refraction and transmission map keywords if the material is opaque.
 
 ## [7.1.1] - 2019-09-05
 
