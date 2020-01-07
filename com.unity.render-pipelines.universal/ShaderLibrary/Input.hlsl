@@ -39,6 +39,9 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
+#define ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(variable, define) #error #variable is only declared when #define is defined. \
+    is your shader missing a multi_compile pragma?
+
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
@@ -49,15 +52,32 @@ float4 _MainLightPosition;
 half4 _MainLightColor;
 
 half4 _AdditionalLightsCount;
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-StructuredBuffer<LightData> _AdditionalLightsBuffer;
-StructuredBuffer<int> _AdditionalLightsIndices;
+
+// FXC increases shader compilation time when using array buffers with sizes
+// This introduced a regression when we increased the light limits.
+// Here we only define the light buffers for shader variants that use it.
+#if defined(_ADDITIONAL_LIGHTS_VERTEX) || defined(_ADDITIONAL_LIGHTS)
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    StructuredBuffer<LightData> _AdditionalLightsBuffer;
+    StructuredBuffer<int> _AdditionalLightsIndices;
+    #else
+    float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
+    half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+    half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
+    half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+    half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
+    #endif
 #else
-float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    #define _AdditionalLightsBuffer ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsBuffer, _ADDITIONAL_LIGHTS)
+    #define _AdditionalLightsIndices ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsIndices, _ADDITIONAL_LIGHTS)
+    #else
+    #define _AdditionalLightsPosition ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsPosition, _ADDITIONAL_LIGHTS)
+    #define _AdditionalLightsColor ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsColor, _ADDITIONAL_LIGHTS)
+    #define _AdditionalLightsAttenuation ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsAttenuation, _ADDITIONAL_LIGHTS)
+    #define _AdditionalLightsSpotDir ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsSpotDir, _ADDITIONAL_LIGHTS)
+    #define _AdditionalLightsOcclusionProbes ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(_AdditionalLightsOcclusionProbes, _ADDITIONAL_LIGHTS)
+    #endif
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
