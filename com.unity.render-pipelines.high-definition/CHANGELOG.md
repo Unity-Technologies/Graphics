@@ -272,6 +272,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues on some GPU that do not support gathers on integer textures.
 - Fixed an issue with ambient probe not being initialized for the first frame after a domain reload for volumetric fog.
 - Fixed the scene visibility of decal projectors and density volumes
+- Fixed Custom Pass nullref due to the new Profiling Sample API changes
+- Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
