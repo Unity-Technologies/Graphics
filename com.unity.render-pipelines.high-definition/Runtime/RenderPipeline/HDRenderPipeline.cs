@@ -2266,10 +2266,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
 
-            aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
-            RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+            bool hasAfterPostProcessCustomPass = WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
 
-            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
+            aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+            RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd, !hasAfterPostProcessCustomPass);
+
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
 
             // Copy and rescale depth buffer for XR devices
             if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
@@ -3493,6 +3495,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
         }
 
+        bool WillCustomPassBeExecuted(HDCamera hdCamera, CustomPassInjectionPoint injectionPoint)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                return false;
+
+            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+
+            if (customPass == null)
+                return false;
+
+            return customPass.WillExecuteInjectionPoint(hdCamera);
+        }
+
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass))
@@ -4220,12 +4235,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier finalRT, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier finalRT, ScriptableRenderContext renderContext, CommandBuffer cmd, bool isFinalPass)
         {
             // Y-Flip needs to happen during the post process pass only if it's the final pass and is the regular game view
             // SceneView flip is handled by the editor internal code and GameView rendering into render textures should not be flipped in order to respect Unity texture coordinates convention
-            bool flipInPostProcesses = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
-            RenderTargetIdentifier destination = HDUtils.PostProcessIsFinalPass() ? finalRT : m_IntermediateAfterPostProcessBuffer;
+            bool flipInPostProcesses = HDUtils.PostProcessIsFinalPass() && isFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            RenderTargetIdentifier destination = HDUtils.PostProcessIsFinalPass() && isFinalPass ? finalRT : m_IntermediateAfterPostProcessBuffer;
+
 
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             RenderAfterPostProcess(cullResults, hdCamera, renderContext, cmd);
