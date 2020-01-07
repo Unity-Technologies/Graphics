@@ -276,6 +276,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where entering playmode while the light editor is opened would produce null reference exceptions.
 - Fixed the debug overlay overlapping the debug menu at runtime.
 - Fixed an issue with the framecount when changing scene.
+- Fixed errors that occurred when using invalid near and far clip plane values for planar reflections.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
