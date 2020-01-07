@@ -19,6 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDRenderPipelineAsset currentAsset
             => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
 
+        internal static HDRenderPipeline currentPipeline
+            => RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp ? hdrp : null;
+
+
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
             => defaultAsset?.defaultVolumeProfile;
