@@ -30,6 +30,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             this.type = type;
         }
 
+        /// <summary>
+        /// Is the resource valid?
+        /// </summary>
+        /// <returns>True if the resource is valid.</returns>
         public bool IsValid() { return type != RenderGraphResourceType.Invalid; }
     }
 
@@ -57,6 +61,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             version = other.version + 1;
         }
 
+        /// <summary>
+        /// Build a RenderGraphResource from a RenderGraphMutableResource.
+        /// </summary>
+        /// <param name="handle">Other render graph resource.</param>
+        /// <returns>New RenderGraphResource handle.</returns>
         public static implicit operator RenderGraphResource(RenderGraphMutableResource handle)
         {
             return new RenderGraphResource(handle);

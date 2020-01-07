@@ -1,5 +1,7 @@
 #pragma kernel DebugLightCluster
 
+#pragma only_renderers d3d11
+
 #define DEBUG_LIGHT_CLUSTER_TILE_SIZE 8
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

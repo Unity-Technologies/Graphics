@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
-    public enum DebugAction
+    internal enum DebugAction
     {
         EnableDebugMenu,
         PreviousDebugPanel,
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering
                 state.Update(desc);
         }
 
-        public void UpdateActions()
+        internal void UpdateActions()
         {
             for (int actionIndex = 0; actionIndex < m_DebugActions.Length; ++actionIndex)
             {
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public float GetAction(DebugAction action)
+        internal float GetAction(DebugAction action)
         {
             return m_DebugActionStates[(int)action].actionState;
         }
