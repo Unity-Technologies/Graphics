@@ -3,17 +3,15 @@
 // So in the meantime we use a Dictionary with a perf hit...
 //#define USE_UNSAFE
 
+#if UNITY_2020_1_OR_NEWER
+//#define UNITY_USE_RECORDER // Temporarily commented out until a crash is fixed in GPU profiling samplers.
+#endif
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
-// TODO: See with Julien, currently our graphic test crash if recorder a enable on test 2204 (but only when run with other test
-// in isolation, test run correctly. Commenting the 5 first PRofiling scope of the lightloop.cs file prevent the crash).
-//#if UNITY_2020_1_OR_NEWER
-#if false
-#define UNITY_USE_RECORDER
-#endif
 
 namespace UnityEngine.Rendering
 {
@@ -70,7 +68,11 @@ namespace UnityEngine.Rendering
 
         public ProfilingSampler(string name)
         {
+#if UNITY_USE_RECORDER
             sampler = CustomSampler.Create(name, true); // Event markers, command buffer CPU profiling and GPU profiling
+#else
+            sampler = CustomSampler.Create(name);
+#endif
             inlineSampler = CustomSampler.Create($"Inl_{name}"); // Profiles code "immediately"
             this.name = name;
 
@@ -103,10 +105,10 @@ namespace UnityEngine.Rendering
         {
             set
             {
-                #if UNITY_USE_RECORDER
+#if UNITY_USE_RECORDER
                 m_Recorder.enabled = value;
                 m_InlineRecorder.enabled = value;
-                #endif
+#endif
             }
         }
 
@@ -191,7 +193,11 @@ namespace UnityEngine.Rendering
             m_InlineSampler = sampler.inlineSampler;
 
             if (cmd != null)
+#if UNITY_USE_RECORDER
                 cmd.BeginSample(m_Sampler);
+#else
+                cmd.BeginSample(m_Name);
+#endif
             m_InlineSampler?.Begin();
         }
 
@@ -215,7 +221,11 @@ namespace UnityEngine.Rendering
             if (disposing)
             {
                 if (m_Cmd != null)
+#if UNITY_USE_RECORDER
                     m_Cmd.EndSample(m_Sampler);
+#else
+                    m_Cmd.EndSample(m_Name);
+#endif
                 m_InlineSampler?.End();
             }
 
