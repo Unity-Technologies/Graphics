@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation for Ward & Cook-Torrance BRDF"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PreIntegradeWardCookTorrance)))
             {
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_CookTorrance, new RenderTargetIdentifier(m_preIntegratedFGD_CookTorrance));

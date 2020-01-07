@@ -35,9 +35,14 @@ namespace UnityEngine.Rendering.Universal
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
+        public RenderTargetIdentifier[] colorAttachments
+        {
+            get => m_ColorAttachments;
+        }
+
         public RenderTargetIdentifier colorAttachment
         {
-            get => m_ColorAttachment;
+            get => m_ColorAttachments[0];
         }
 
         public RenderTargetIdentifier depthAttachment
@@ -60,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
@@ -68,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -86,8 +91,26 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
+            m_DepthAttachment = depthAttachment;
+            ConfigureTarget(colorAttachment);
+        }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <param name="depthAttachment">Depth attachment identifier.</param>
+        /// <seealso cref="Configure"/>
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
+        {
             overrideCameraTarget = true;
-            m_ColorAttachment = colorAttachment;
+
+            uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
+            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+
+            m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
         }
 
@@ -100,8 +123,21 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             overrideCameraTarget = true;
-            m_ColorAttachment = colorAttachment;
-            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                m_ColorAttachments[i] = 0;
+        }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <seealso cref="Configure"/>
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
+        {
+            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>

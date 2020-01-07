@@ -54,7 +54,7 @@ Depending on the [System Simulation Space](Systems.md#system-spaces), the value 
 
 ## Property Nodes
 
-Property Nodes are special  [Operators](Operators.md) nodes that enable accessing Graph-Wide Properties defined in the [Blackboard](Blackboard.md). Using these properties enable you reuse the same value throughout the graph at different places.
+Property Nodes are special  [Operators](Operators.md) Nodes that enable accessing Graph-Wide Properties defined in the [Blackboard](Blackboard.md). Using these properties enable you reuse the same value throughout the graph at different places.
 
 ![](Images/PropertyNodes.png)
 
@@ -62,5 +62,5 @@ Property Nodes are special  [Operators](Operators.md) nodes that enable accessin
 * You can create a Property Node :
   * By Dragging the Node from the Blackboard Panel into the Workspace.
   * By using the Create Node menu from the Right Click context menu and selecting the desired property from the Property category.
-* You can convert a Property Node to an Inline node of the same type by right-clicking the property node and selecting "Convert to Inline" 
-* Deleting a property from the blackboard will also delete all its property node instances from the graph.
+* You can convert a Property Node to an Inline Node of the same type by right-clicking the property Node and selecting "Convert to Inline" 
+* Deleting a property from the Blackboard will also delete all its property Node instances from the graph.

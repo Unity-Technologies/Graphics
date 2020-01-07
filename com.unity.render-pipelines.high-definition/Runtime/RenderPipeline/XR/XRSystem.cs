@@ -44,7 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool automatedTestRunning = false;
 
         // Used by test framework and to enable debug features
-        internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
+        internal static bool testModeEnabled = testModeEnabledInitialization;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
@@ -324,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (display == null || !display.running)
                 return;
 
-            using (new ProfilingSample(cmd, "XR Mirror View"))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRMirrorView)))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
