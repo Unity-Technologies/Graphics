@@ -4125,10 +4125,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Then overlays
                 HDUtils.ResetOverlay();
+                float debugPanelWidth = HDUtils.GetRuntimeDebugPanelWidth(debugParams.hdCamera);
                 float x = 0.0f;
                 float overlayRatio = debugParams.debugDisplaySettings.data.debugOverlayRatio;
-                float overlaySize = Math.Min(debugParams.hdCamera.actualHeight, debugParams.hdCamera.actualWidth) * overlayRatio;
+                float overlaySize = Math.Min(debugParams.hdCamera.actualHeight, debugParams.hdCamera.actualWidth - debugPanelWidth) * overlayRatio;
                 float y = debugParams.hdCamera.actualHeight - overlaySize;
+
+                // Add the width of the debug display if enabled on the camera
+                x += debugPanelWidth;
 
                 RenderSkyReflectionOverlay(debugParams, cmd, m_SharedPropertyBlock, ref x, ref y, overlaySize);
                 RenderRayCountOverlay(debugParams, cmd, ref x, ref y, overlaySize);
