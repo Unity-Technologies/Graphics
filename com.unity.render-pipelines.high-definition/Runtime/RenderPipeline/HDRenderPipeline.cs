@@ -1171,6 +1171,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_LastTime = m_Time;
                         m_Time = newTime;
                     }
+                    else if (newTime < m_Time)
+                    {
+                        m_FrameCount = 0;
+                        m_LastTime = m_Time;
+                        m_Time = newTime;
+                    }
+                    // Note: We do nothing if newTime = m_Time
                 }
             }
 
