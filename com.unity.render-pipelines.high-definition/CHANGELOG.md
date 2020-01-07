@@ -321,6 +321,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
+- Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
 
 ## [7.1.1] - 2019-09-05
 
