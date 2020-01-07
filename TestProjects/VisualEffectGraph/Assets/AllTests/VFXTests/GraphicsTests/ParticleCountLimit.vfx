@@ -346,6 +346,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -5897,7 +5898,6 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
-  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614897
@@ -11504,7 +11504,7 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 8926484042661615150}
   m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
-  shaderGUID: 1315639ec2b0425429525dd2810b4c98
+  m_ShaderName: VFX/Test/Rim
 --- !u!114 &8926484042661615172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12100,7 +12100,7 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 8926484042661615172}
   m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
-  shaderGUID: 1315639ec2b0425429525dd2810b4c98
+  m_ShaderName: VFX/Test/Rim
 --- !u!114 &8926484042661615191
 MonoBehaviour:
   m_ObjectHideFlags: 0

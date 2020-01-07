@@ -72,7 +72,11 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
 
             if (!object.ReferenceEquals(shader,null))
+            {
+                Shader shader = ((VFXDataMesh)GetData()).shader;
+
                 dependencies.Add(shader.GetInstanceID());
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -84,9 +88,7 @@ namespace UnityEditor.VFX
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask",new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), uint.MaxValue);
 
 
-                Shader copyShader = shader;
-                if (copyShader == null && !object.ReferenceEquals(copyShader, null))
-                    copyShader = EditorUtility.InstanceIDToObject(copyShader.GetInstanceID()) as Shader;
+                Shader copyShader = ((VFXDataMesh)GetData()).shader;
 
                 if (copyShader != null)
                 {

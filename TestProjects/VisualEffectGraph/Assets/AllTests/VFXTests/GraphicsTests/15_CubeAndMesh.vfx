@@ -1589,6 +1589,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114122344245984846}
   m_ParameterInfo: []
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -2152,7 +2153,7 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 114811204679409306}
   m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
-  shaderGUID: 1315639ec2b0425429525dd2810b4c98
+  m_ShaderName: VFX/Test/Rim
 --- !u!114 &114782034906201374
 MonoBehaviour:
   m_ObjectHideFlags: 1
