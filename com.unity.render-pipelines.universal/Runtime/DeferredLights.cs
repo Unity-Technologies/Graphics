@@ -246,6 +246,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Per-tile depth info texture.
         internal RenderTargetHandle m_TileDepthInfoTexture;
 
+        internal ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
+        internal ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
+        internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
+        
+
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
             m_TileDepthInfoMaterial = tileDepthInfoMaterial;
@@ -1022,7 +1027,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Now draw all tile batches.
-            using (new ProfilingSample(cmd, k_DeferredTiledPass))
+            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredTiledPass))
             {
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
                 int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
@@ -1088,7 +1093,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            using (new ProfilingSample(cmd, k_DeferredStencilPass))
+            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
@@ -1232,7 +1237,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            using (new ProfilingSample(cmd, k_DeferredFogPass))
+            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredFogPass))
             {
                 // Fog parameters and shader variant keywords are already set externally.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 5);

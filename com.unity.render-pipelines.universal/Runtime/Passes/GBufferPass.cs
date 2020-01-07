@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_HasDepthPrepass;
 
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
 
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
@@ -89,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
-            using (new ProfilingSample(gbufferCommands, "Render GBuffer"))
+            using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
