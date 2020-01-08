@@ -696,7 +696,7 @@ namespace UnityEditor.VFX
                 {
                     if (EditorUtility.InstanceIDToObject(instanceID) == null)
                     {
-                        Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
+                        //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
                         return;
                     }
                 }
