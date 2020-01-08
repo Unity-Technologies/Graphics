@@ -41,6 +41,8 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1020)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1021)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1022)
+#define DEBUGVIEW_LIT_SURFACEDATA_SKY_OCCLUSION (1023)
+#define DEBUGVIEW_LIT_SURFACEDATA_TREE_OCCLUSION (1024)
 
 //
 // UnityEngine.Rendering.HighDefinition.Lit+BSDFData:  static fields
@@ -72,6 +74,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_IOR (1074)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1075)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1076)
+#define DEBUGVIEW_LIT_BSDFDATA_SKY_OCCLUSION (1077)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+SurfaceData
 // PackingRules = Exact
@@ -98,6 +101,8 @@ struct SurfaceData
     real3 transmittanceColor;
     real atDistance;
     real transmittanceMask;
+    float skyOcclusion;
+    float treeOcclusion;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Lit+BSDFData
@@ -129,6 +134,7 @@ struct BSDFData
     real ior;
     real3 absorptionCoefficient;
     real transmittanceMask;
+    float skyOcclusion;
 };
 
 //
@@ -208,6 +214,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
             result = surfacedata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SKY_OCCLUSION:
+            result = surfacedata.skyOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TREE_OCCLUSION:
+            result = surfacedata.treeOcclusion.xxx;
             break;
     }
 }
@@ -300,6 +312,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
             result = bsdfdata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SKY_OCCLUSION:
+            result = bsdfdata.skyOcclusion.xxx;
             break;
     }
 }
