@@ -233,4 +233,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/104_BokehDepthOfField.unity
     guid: 25cb76fbf82e5924f817e3466acb803a
+  - enabled: 1
+    path: Assets/Scenes/110_StencilWithBatcher.unity
+    guid: a2062dbbc4afb47078f99290b33407b1
   m_configObjects: {}
