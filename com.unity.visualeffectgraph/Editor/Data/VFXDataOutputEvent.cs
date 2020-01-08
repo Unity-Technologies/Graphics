@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
 
             string nativeName = string.Empty;
             if (systemNames != null)
-                nativeName = systemNames.GetUniqueSystemName(this);
+                nativeName = systemNames.GetUniqueSystemName(m_Owners.First());
             else
                 throw new InvalidOperationException("system names manager cannot be null");
 
