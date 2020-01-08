@@ -42,22 +42,19 @@ public class _A : MonoBehaviour
         }
 
         var vfx = GetComponent<VisualEffect>();
-        var eventAttribute = vfx.CreateVFXEventAttribute();
-        for (uint i = 0; i < 2; ++i)
+
+        var eventList = new List<VFXEventAttribute>();
+        vfx.GetOutputEventAttribute("WIP_EXPERIMENT", eventList);
+        foreach (var eventAttribute in eventList)
         {
-            vfx.WIP_GET_OUTPUT_EVENT(eventAttribute, i);
-            var spawnCount = eventAttribute.GetFloat("spawnCount");
-            if (spawnCount >= 1.0f)
-            {
-                var instance = new LightInstance();
-                instance.light = GameObject.Instantiate(m_LightReference);
-                instance.light.GetComponent<Transform>().position = eventAttribute.GetVector3("position") + new Vector3(0.0f, 0.1f, 0.0f);
-                var c = eventAttribute.GetVector3("color");
-                instance.light.GetComponent<Light>().color = new Color(c.x, c.y, c.z);
-                instance.lifeTime = eventAttribute.GetFloat("lifetime");
-                instance.light.SetActive(true);
-                m_lights.Add(instance);
-            }
+            var instance = new LightInstance();
+            instance.light = GameObject.Instantiate(m_LightReference);
+            instance.light.GetComponent<Transform>().position = eventAttribute.GetVector3("position") + new Vector3(0.0f, 0.1f, 0.0f);
+            var c = eventAttribute.GetVector3("color");
+            instance.light.GetComponent<Light>().color = new Color(c.x, c.y, c.z);
+            instance.lifeTime = eventAttribute.GetFloat("lifetime");
+            instance.light.SetActive(true);
+            m_lights.Add(instance);
         }
     }
 }
