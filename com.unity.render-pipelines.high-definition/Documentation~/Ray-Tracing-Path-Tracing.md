@@ -18,7 +18,7 @@ The current implementation for path tracing in the High Definition Render Pipeli
 
 ## Set up path tracing
 
-Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). The only difference is that you need to set the [Ray Tracing Tier](Ray-Tracing-Getting-Started.html#TierTable) to 3. You must carry out this setup before you can add path tracing to your Scene.
+Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). Note that you need to set the [Ray Tracing Tier](Ray-Tracing-Getting-Started.html#TierTable) to 2. You must carry out this setup before you can add path tracing to your Scene.
 
 ## Add path tracing to your Scene
 
