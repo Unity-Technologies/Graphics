@@ -62,7 +62,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float cocHis = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryCoCTexture, sampler_LinearClamp, (uv - motionVector) * ScreenToTargetScaleHistory.xy, 0.0).x;
 
     // Neighborhood clamping
-    float cocMin = closest.z;
+    float cocMin = min(closest.z, 1.0f);
     float cocMax = Max3(Max3(coc0, coc1, coc2), coc3, coc4);
     cocHis = clamp(cocHis, cocMin, cocMax);
 

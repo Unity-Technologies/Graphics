@@ -952,8 +952,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)m_DepthOfField.resolution, scale, 0f, 0f));
 
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
-            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
+            int farSamples =  Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            farSamples = Mathf.Max(3, farSamples);
+            nearSamples = Mathf.Max(3, nearSamples);
+
             float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
             float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
 
@@ -1039,7 +1043,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
                     float P = m_DepthOfField.focusDistance.value;
-                    float maxCoC = (A * F) / (P - F);
+                    float maxCoC = (A * F) / Mathf.Max((P - F), 1e-5f);
 
                     kernel = cs.FindKernel("KMainPhysical");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(P, maxCoC, 0f, 0f));
