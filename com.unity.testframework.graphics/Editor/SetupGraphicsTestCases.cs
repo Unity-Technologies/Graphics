@@ -99,12 +99,8 @@ namespace UnityEditor.TestTools.Graphics
 
             // For each scene in the build settings, force build of the lightmaps if it has "DoLightmap" label.
             // Note that in the PreBuildSetup stage, TestRunner has already created a new scene with its testing monobehaviours
-
-            Scene trScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(0);
-
             string[] selectedScenes = GetSelectedScenes();
 
-            var sceneIndex = 0;
             var totalScenes = EditorBuildSettings.scenes.Length;
 
             string[] filterGUIDs = AssetDatabase.FindAssets("t:TestFilters");
@@ -115,12 +111,12 @@ namespace UnityEditor.TestTools.Graphics
                 string filterPath = AssetDatabase.GUIDToAssetPath(filterGUID);
                 filters.Add(AssetDatabase.LoadAssetAtPath(filterPath, typeof(TestFilters)) as TestFilters);
             }
-            // Disabling scenes directly in EditorBuildSettings.scenes does not work
-            // As a solution - disabling scenes in temporary variable and then assigning it back to EditorBuildSettings.scenes
-            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
 
-            foreach ( EditorBuildSettingsScene scene in scenes)
+            var sceneSetup = EditorSceneManagement.EditorSceneManager.GetSceneManagerSetup();
+
+            for (int i = 0; i < totalScenes; ++i)
             {
+                var scene = EditorBuildSettings.scenes[i];
                 if (!scene.enabled) continue;
 
                 if (filters.Count > 0)
@@ -159,33 +155,27 @@ namespace UnityEditor.TestTools.Graphics
 
                 if ( labels.Contains(bakeLabel) )
                 {
-                    EditorSceneManagement.EditorSceneManager.OpenScene(scene.path, EditorSceneManagement.OpenSceneMode.Additive);
+                    Scene currentScene = EditorSceneManagement.EditorSceneManager.OpenScene(scene.path, EditorSceneManagement.OpenSceneMode.Single);
 
-                    Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
-
-                    EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
 #pragma warning disable 618
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
 #pragma warning restore 618
-                    EditorUtility.DisplayProgressBar($"Baking Test Scenes {(sceneIndex + 1).ToString()}/{totalScenes.ToString()}", $"Baking {sceneAsset.name}", ((float)sceneIndex / totalScenes));
+                    EditorUtility.DisplayProgressBar($"Baking Test Scenes {(i + 1).ToString()}/{totalScenes.ToString()}", $"Baking {sceneAsset.name}", ((float)i / totalScenes));
 
                     Lightmapping.Bake();
 
                     EditorSceneManagement.EditorSceneManager.SaveScene( currentScene );
 
-                    EditorSceneManagement.EditorSceneManager.SetActiveScene(trScene);
-
                     EditorSceneManagement.EditorSceneManager.CloseScene(currentScene, true);
                 }
-
-                sceneIndex++;
             }
-            
+
             EditorUtility.ClearProgressBar();
-            EditorBuildSettings.scenes = scenes;
 
             if (!IsBuildingForEditorPlaymode)
                 new CreateSceneListFileFromBuildSettings().Setup();
+
+            EditorSceneManagement.EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
         }
 
         string[] GetSelectedScenes()
