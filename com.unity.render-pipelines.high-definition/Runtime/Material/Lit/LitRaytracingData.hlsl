@@ -244,8 +244,9 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
-
-    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, builtinData);
+//forest-begin: sky occlusion / Tree Occlusion
+	InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.tangentToWorld[2], input.texCoord1, input.texCoord2, 0.0 /*surfaceData.skyOcclusion*/, 0.0 /*grassOcclusion*/, 0.0 /*surfaceData.treeOcclusion*/, builtinData);
+//forest-end:
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #if _EMISSIVE_COLOR_MAP
     #ifdef USE_RAY_CONE_LOD

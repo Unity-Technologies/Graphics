@@ -1,41 +1,44 @@
 //forest-begin: sky occlusion
-
 #define SKY_OCCLUSION 1
 #if SKY_OCCLUSION
 
 // Occlusion probes
-sampler3D _OcclusionProbes;
+Texture3D _OcclusionProbes;
+SamplerState sampler_OcclusionProbes;
 float4x4 _OcclusionProbesWorldToLocal;
-sampler3D _OcclusionProbesDetail;
+Texture3D _OcclusionProbesDetail;
+SamplerState sampler_OcclusionProbesDetail;
 float4x4 _OcclusionProbesWorldToLocalDetail;
 float4 _AmbientProbeSH[7];
 
 // Grass occlusion
-sampler2D _GrassOcclusion;
+Texture2D _GrassOcclusion;
+SamplerState sampler_GrassOcclusion;
 float _GrassOcclusionAmountTerrain;
 float _GrassOcclusionAmountGrass;
 float _GrassOcclusionHeightFadeBottom;
 float _GrassOcclusionHeightFadeTop;
 float4x4 _GrassOcclusionWorldToLocal;
-sampler2D _GrassOcclusionHeightmap;
+Texture2D _GrassOcclusionHeightmap;
+SamplerState sampler_GrassOcclusionHeightmap;
 float _GrassOcclusionHeightRange;
 float _GrassOcclusionCullHeight;
 
 float SampleGrassOcclusion(float2 terrainUV)
 {
-    return lerp(1.0, tex2D(_GrassOcclusion, terrainUV).a, _GrassOcclusionAmountTerrain);
+    return lerp(1.0, _GrassOcclusion.Sample(sampler_GrassOcclusion, terrainUV).a, _GrassOcclusionAmountTerrain);
 }
 
 float SampleGrassOcclusion(float3 positionWS)
 {
     float3 pos = mul(_GrassOcclusionWorldToLocal, float4(positionWS, 1)).xyz;
-    float terrainHeight = tex2D(_GrassOcclusionHeightmap, pos.xz).a;
+    float terrainHeight = _GrassOcclusionHeightmap.Sample(sampler_GrassOcclusionHeightmap, pos.xz).a;
     float height = pos.y - terrainHeight * _GrassOcclusionHeightRange;
 
     UNITY_BRANCH
     if(height < _GrassOcclusionCullHeight)
     {
-        float xz = lerp(1.0, tex2D(_GrassOcclusion, pos.xz).a, _GrassOcclusionAmountGrass);
+        float xz = lerp(1.0, _GrassOcclusion.Sample(sampler_GrassOcclusion, pos.xz).a, _GrassOcclusionAmountGrass);
         return saturate(xz + smoothstep(_GrassOcclusionHeightFadeBottom, _GrassOcclusionHeightFadeTop, height));
 
         // alternatively:    
@@ -56,12 +59,12 @@ float SampleOcclusionProbes(float3 positionWS)
     UNITY_BRANCH
 	if(all(pos > 0) && all(pos < 1))
     {
-		occlusionProbes = tex3D(_OcclusionProbesDetail, pos).a;
+		occlusionProbes = _OcclusionProbesDetail.Sample(sampler_OcclusionProbesDetail, pos).a;
 	}
     else
     {
 		pos = mul(_OcclusionProbesWorldToLocal, float4(positionWS, 1)).xyz;
-		occlusionProbes = tex3D(_OcclusionProbes, pos).a;
+		occlusionProbes = _OcclusionProbes.Sample(sampler_OcclusionProbes, pos).a;
 	}
 
     return occlusionProbes;
