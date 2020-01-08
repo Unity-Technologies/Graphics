@@ -389,8 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphMutableResource   depthBuffer;
             public RenderGraphMutableResource   depthValuesBuffer;
             public RenderGraphMutableResource   normalBuffer;
+            public RenderGraphMutableResource   motionVectorsBuffer;
             public RenderGraphResource          depthAsColorBufferMSAA;
             public RenderGraphResource          normalBufferMSAA;
+            public RenderGraphResource          motionVectorBufferMSAA;
             public Material                     depthResolveMaterial;
             public int                          depthResolvePassIndex;
         }
@@ -418,16 +420,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
-
-                // Resolve of Motion Vectors is not implemented yet.
-                /*passData.motionVectorsBuffer*/var resolvedMotionVectors = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
+                passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
 
                 passData.normalBufferMSAA = builder.ReadTexture(output.normalBuffer);
                 passData.depthAsColorBufferMSAA = builder.ReadTexture(output.depthAsColor);
+                passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
 
                 output.resolvedNormalBuffer = passData.normalBuffer;
                 output.resolvedDepthBuffer = passData.depthBuffer;
-                output.resolvedMotionVectorsBuffer = resolvedMotionVectors;
+                output.resolvedMotionVectorsBuffer = passData.motionVectorsBuffer;
                 output.depthValuesMSAA = passData.depthValuesBuffer;
 
                 builder.SetRenderFunc(
