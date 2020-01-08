@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering
         /// <param name="storeAction">Store action.</param>
         /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor)
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor, int depthSlice = -1)
         {
             cmd.SetRenderTarget(buffer, loadAction, storeAction);
             ClearRenderTarget(cmd, clearFlag, clearColor);

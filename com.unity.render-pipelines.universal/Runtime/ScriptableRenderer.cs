@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+        TextureDimension m_CameraTargetDimension;
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
         bool m_XRRenderTargetNeedsClear = false;
@@ -104,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
-        static bool m_InsideStereoRenderBlock;
+        //static bool m_InsideStereoRenderBlock;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
@@ -151,10 +152,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
         /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
-        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
+        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, TextureDimension dimension = TextureDimension.Tex2D)
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
+            m_CameraTargetDimension  = dimension;
         }
 
         /// <summary>
@@ -285,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
                     Debug.Assert(cameraData.compositionPass.viewCount == 2, "View Count must be 2, other view count is not implemented yet!");
 
                     cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
-                    cmd.SetInstanceMultiplier((uint)cameraData.compositionPass.viewCount);
+                    cmd.SetInstanceMultiplier(2);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }
@@ -465,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
-            m_InsideStereoRenderBlock = false;      
+            //m_InsideStereoRenderBlock = false;      
             m_FirstTimeCameraColorTargetIsBound = true;
             m_FirstTimeCameraDepthTargetIsBound = true;
             
@@ -606,6 +608,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+                TextureDimension       passColorDimension  = TextureDimension.Tex2D;
 
                 // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
                 // which might be backbuffer or the framebuffer render textures.
@@ -613,6 +616,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;
+                    passColorDimension  = m_CameraTargetDimension;
                 }
 
                 ClearFlag finalClearFlag = ClearFlag.None;
@@ -668,7 +672,8 @@ namespace UnityEngine.Rendering.Universal
                 // Only setup render target if current render pass attachments are different from the active ones
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    //TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, passColorDimension);
                     UpdateGPUViewProjectionMatricies(cmd, ref cameraData, passColorAttachment == BuiltinRenderTextureType.CameraTarget);
                 }
             }
@@ -692,7 +697,7 @@ namespace UnityEngine.Rendering.Universal
         void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
         {
             context.StartMultiEye(camera, eyeIndex);
-            m_InsideStereoRenderBlock = true;
+            //m_InsideStereoRenderBlock = true;
             m_XRRenderTargetNeedsClear = true;
         }
 
@@ -701,10 +706,10 @@ namespace UnityEngine.Rendering.Universal
             context.StopMultiEye(camera);
             bool isLastPass = eyeIndex == renderingData.cameraData.numberOfXRPasses - 1;
             context.StereoEndRender(camera, eyeIndex, isLastPass);
-            m_InsideStereoRenderBlock = false;
+            //m_InsideStereoRenderBlock = false;
         }
 
-        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, TextureDimension dimension = TextureDimension.Tex2D)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
@@ -718,7 +723,6 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
         }

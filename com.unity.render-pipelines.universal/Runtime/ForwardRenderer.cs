@@ -184,11 +184,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (createColorTexture)
             {
-                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier(), cameraTargetDescriptor.dimension);
             }
             else
             {
-                ConfigureCameraTarget(cameraData.compositionPass.renderTarget, cameraData.compositionPass.renderTarget);
+                ConfigureCameraTarget(cameraData.compositionPass.renderTarget, cameraData.compositionPass.renderTarget, cameraTargetDescriptor.dimension);
             }
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
