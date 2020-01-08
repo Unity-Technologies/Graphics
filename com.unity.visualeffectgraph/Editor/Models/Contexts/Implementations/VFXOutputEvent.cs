@@ -12,6 +12,8 @@ namespace UnityEditor.VFX
         {
         }
 
+        protected override int outputFlowCount => 0;
+
         public override string name => "Output Event";
 
         public override bool CanBeCompiled()

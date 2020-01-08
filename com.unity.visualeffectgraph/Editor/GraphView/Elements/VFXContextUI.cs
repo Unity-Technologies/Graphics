@@ -165,8 +165,17 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Footer.parent == null)
                     mainContainer.Add(m_Footer);
-                m_FooterTitle.text = controller.model.outputType.ToString();
-                m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+
+                if (controller.model.outputFlowSlot.Any())
+                {
+                    m_FooterTitle.text = controller.model.outputType.ToString();
+                    m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+                }
+                else
+                {
+                    m_FooterTitle.text = string.Empty;
+                    m_FooterIcon.image = null;
+                }
                 m_FooterIcon.visible = m_FooterIcon.image != null;
             }
 
