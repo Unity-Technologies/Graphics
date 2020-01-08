@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[]                   m_SSSShapeParams;
         Vector4[]                   m_SSSTransmissionTintsAndFresnel0;
 //forest-begin: Tweakable transmission
-        Vector4[]                   transmissionDirectAndIndirectScales; //MERGE_TODO: naming scheme changed
+        Vector4[]                   transmissionDirectAndIndirectScales; //UPGRADE_TODO: naming scheme changed
 //forest-end:
         Vector4[]                   m_SSSDisabledTransmissionTintsAndFresnel0;
         Vector4[]                   m_SSSWorldScales;

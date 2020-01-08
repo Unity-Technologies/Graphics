@@ -232,7 +232,7 @@ Shader "HDRP/Lit"
 		_Tree12Width("Tree 12 Width", Range(0, 100)) = 10
 //forest-end:
 
-//forest-begin: Added vertex animation MERGE_TODO: Wind seems to have been removed
+//forest-begin: Added vertex animation UPGRADE_TODO: Wind seems to have been removed
 		[Enum(None, 0, Single Pivot Color, 3, Hierarchy Pivot, 4, Procedural Animation, 6)]
         [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0
 
