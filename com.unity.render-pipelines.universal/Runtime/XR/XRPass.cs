@@ -4,8 +4,8 @@
 // When a pass has 2+ views, single-pass will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
 //XRTODO: remove this
-#define ENABLE_VR
-#define ENABLE_XR_MODULE
+//#define ENABLE_VR
+//#define ENABLE_XR_MODULE
 using System;
 using System.Collections.Generic;
 

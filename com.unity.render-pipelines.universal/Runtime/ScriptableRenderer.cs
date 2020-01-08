@@ -256,8 +256,8 @@ namespace UnityEngine.Rendering.Universal
             // Used to render input textures like shadowmaps.
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
-           for (int eyeIndex = 0; eyeIndex < renderingData.cameraData.numberOfXRPasses; ++eyeIndex)
-           {
+            for (int eyeIndex = 0; eyeIndex < renderingData.cameraData.numberOfXRPasses; ++eyeIndex)
+            {
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
             /// * VR Camera Setup and SINGLE_PASS_STEREO props
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup HDR keyword
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             SetupCameraProperties(context, cmd, ref renderingData.cameraData, eyeIndex);
-
+            
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
@@ -277,6 +277,19 @@ namespace UnityEngine.Rendering.Universal
             if (stereoEnabled)
                 BeginXRRendering(context, camera, eyeIndex);
 
+            if (URPCameraMode.isPureURP)
+            {
+                if (cameraData.compositionPass.viewCount > 1)
+                {
+                    // Handles multi view
+                    Debug.Assert(cameraData.compositionPass.viewCount == 2, "View Count must be 2, other view count is not implemented yet!");
+
+                    cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
+                    cmd.SetInstanceMultiplier((uint)cameraData.compositionPass.viewCount);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
+            }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             var localCmd = CommandBufferPool.Get(string.Empty);
             //Triggers dispatch per camera, all global parameters should have been setup at this stage.
@@ -302,8 +315,22 @@ namespace UnityEngine.Rendering.Universal
             if (stereoEnabled)
                 EndXRRendering(context, camera, renderingData, eyeIndex);
 
+            if (URPCameraMode.isPureURP)
+            {
+                if (cameraData.compositionPass.viewCount > 1)
+                {
+                    // Handles multi view
+                    Debug.Assert(cameraData.compositionPass.viewCount == 2, "View Count must be 2, other view count is not implemented yet!");
+
+                    cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+                    cmd.SetInstanceMultiplier(1);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
+            }
+
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-           }
+            }
             //if (renderingData.resolveFinalTarget)
                 InternalFinishRendering(context);
             blockRanges.Dispose();
@@ -388,15 +415,12 @@ namespace UnityEngine.Rendering.Universal
             VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
         }
 
-        internal void SetupCameraProperties(ScriptableRenderContext context, CommandBuffer cmd, ref CameraData cameraData, int eyeIndex)
+        internal void UpdateGPUViewProjectionMatricies(CommandBuffer cmd, ref CameraData cameraData, bool isRenderToCameraBackBuffer)
         {
-            bool stereoEnabled = cameraData.isStereoEnabled;
-            context.SetupCameraProperties(cameraData.camera, stereoEnabled, eyeIndex);
             if (URPCameraMode.isPureURP)
             {
-                bool isRenderToCameraTarget = true;
                 bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+                bool isRenderToTexture = !isRenderToCameraBackBuffer || isCameraTargetIntermediateTexture;
 
                 // if contains only 1 view, setup view proj
                 if (cameraData.compositionPass.viewCount == 1)
@@ -408,12 +432,26 @@ namespace UnityEngine.Rendering.Universal
                 // camera stack goes here too?
                 else
                 {
-                    Debug.LogError("Need to set multi view camera data!");
+                    // XRTODO: compute stereo data while constructing XRPass
+                    Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
+                    Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+                    for (int i = 0; i < 2; i++)
+                    {
+                        stereoViewMatrix[i] = cameraData.compositionPass.GetViewMatrix(i);
+                        stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(cameraData.compositionPass.GetProjMatrix(i), isRenderToTexture);
+                    }
+                    RenderingUtils.SetStereoViewProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, false);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
+        }
+
+        internal void SetupCameraProperties(ScriptableRenderContext context, CommandBuffer cmd, ref CameraData cameraData, int eyeIndex)
+        {
+            bool stereoEnabled = cameraData.isStereoEnabled;
+            context.SetupCameraProperties(cameraData.camera, stereoEnabled, eyeIndex);
+            UpdateGPUViewProjectionMatricies(cmd, ref cameraData, true);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         internal void Clear()
@@ -629,7 +667,10 @@ namespace UnityEngine.Rendering.Universal
 
                 // Only setup render target if current render pass attachments are different from the active ones
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    UpdateGPUViewProjectionMatricies(cmd, ref cameraData, passColorAttachment == BuiltinRenderTextureType.CameraTarget);
+                }
             }
 
             // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states

@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
 
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name : k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-            var compositionPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ false, /*XRTODO: test mode*/ false);
+            var compositionPasses = m_XRSystem.SetupFrame(cameraData, /*XRTODO XR single pass settings in urp asset pipeline*/ true, /*XRTODO: test mode*/ false);
             foreach (XRPass compPass in compositionPasses)
             {
                 cameraData.compositionPass = compPass;
@@ -304,7 +304,6 @@ namespace UnityEngine.Rendering.Universal
             const float kRenderScaleThreshold = 0.05f;
             cameraData = new CameraData();
             cameraData.camera = camera;
-            cameraData.isStereoEnabled = IsStereoEnabled(camera);
             cameraData.isXRMultipass = false;
             cameraData.numberOfXRPasses = 1;
 

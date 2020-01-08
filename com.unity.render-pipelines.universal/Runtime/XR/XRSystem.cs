@@ -3,8 +3,8 @@
 // - the 'legacy' C++ stereo rendering path and XRSettings
 // - custom XR layout (only internal for now)
 // XRTODO: remove this
-#define ENABLE_VR
-#define ENABLE_XR_MODULE
+//#define ENABLE_VR
+//#define ENABLE_XR_MODULE
 
 using System;
 using System.Collections.Generic;
@@ -213,12 +213,17 @@ namespace UnityEngine.Rendering.Universal
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
+                // Refresh max views
+                // XRTODO: replace by dynamic render graph
+                TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
+
                 return display.running;
             }
             else
             {
                 display = null;
             }
+
 #endif
 
             return false;

@@ -130,7 +130,7 @@ CBUFFER_END
 #endif
 
 #if defined(USING_STEREO_MATRICES)
-GLOBAL_CBUFFER_START(UnityStereoGlobals)
+//GLOBAL_CBUFFER_START(UnityStereoGlobals)
 float4x4 unity_StereoMatrixP[2];
 float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
@@ -143,7 +143,7 @@ float4x4 unity_StereoCameraToWorld[2];
 
 float3 unity_StereoWorldSpaceCameraPos[2];
 float4 unity_StereoScaleOffset[2];
-GLOBAL_CBUFFER_END
+//GLOBAL_CBUFFER_END
 #endif
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)

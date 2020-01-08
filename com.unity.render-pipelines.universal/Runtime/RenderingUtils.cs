@@ -152,6 +152,46 @@ namespace UnityEngine.Rendering.Universal
             return support;
         }
 
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+
+        /// <summary>
+        /// Helper function to set all view and projection related matricies
+        /// Should be called before draw call and after cmd.SetRenderTarget 
+        /// Interal usage only, function name and signature may be subject to change
+        /// </summary>
+        /// <param name="cmd">The command buffer to queue Gfx commands to.</param>
+        /// <param name="viewMatrix">Desired view matrix to set to, array size is 2</param>
+        /// <param name="projMatrix">Desired projection matrix to set to, array size is 2.</param>
+        /// <param name="setVPOnly">Set only VP matrix if true, set V,P,IV,VP,IVP matrices otherwise.</param>
+        /// <returns>Void</c></returns>
+        internal static void SetStereoViewProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, bool setVPOnly)
+        {
+            Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
+            Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
+            for(int i = 0; i < 2; i ++)
+            {
+                viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
+                invViewProjMatrix[i] = Matrix4x4.Inverse(viewProjMatrix[i]);
+            }
+
+            if (setVPOnly)
+            {
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, viewProjMatrix);
+            }
+            else
+            {
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, invViewProjMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, viewProjMatrix);
+                // XRTODO: handle stereo IVP similar to non-xr path
+                //cmd.SetGlobalMatrix(UNITY_STEREO_MATRIX_IVP, Matrix4x4.Inverse(viewProjMatrix));
+            }
+        }
+
         internal static readonly int UNITY_MATRIX_V = Shader.PropertyToID("unity_MatrixV");
         internal static readonly int UNITY_MATRIX_IV = Shader.PropertyToID("unity_MatrixInvV");
         internal static readonly int UNITY_MATRIX_P = Shader.PropertyToID("glstate_matrix_projection");

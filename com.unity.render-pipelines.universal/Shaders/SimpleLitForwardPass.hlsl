@@ -111,7 +111,13 @@ Varyings LitPassVertexSimple(Attributes input)
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
+#ifdef UNITY_STEREO_INSTANCING_ENABLED
+    //output.normal = half4(input.instanceID,0,0,1);
+    //output.normal = half4(0, output.stereoTargetEyeIndexAsRTArrayIdx, 0, 1);
 
+    //output.positionCS = half4(1, 1, 1, 1);
+    //output.stereoTargetEyeIndexAsRTArrayIdx = 1;
+#endif
     return output;
 }
 

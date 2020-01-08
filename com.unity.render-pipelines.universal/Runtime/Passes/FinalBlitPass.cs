@@ -55,6 +55,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
+                bool isRenderToCameraTarget = true;
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+
                 if (cameraData.compositionPass.viewCount == 1)
                 {
                     // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
@@ -68,14 +72,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    Debug.LogError("Need to setup render target for multi view camera target case!");
+                    CoreUtils.SetRenderTarget(cmd, cameraData.compositionPass.renderTarget, ClearFlag.None, Color.black, 0, CubemapFace.Unknown, -1);
+                    cmd.SetViewport(cameraData.compositionPass.GetViewport(0));
+
+                    // XRTODO: compute stereo data while constructing XRPass
+                    Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
+                    Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
+                    for (int i = 0; i < 2; i++)
+                    {
+                        stereoViewMatrix[i] = Matrix4x4.identity;
+                        stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
+                    }
+
+                    RenderingUtils.SetStereoViewProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, false);
+                    //Debug.LogError("Need to setup render target for multi view camera target case!");
                 }
 
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
-                bool isRenderToCameraTarget = true;
-                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
-                bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
+                //bool isRenderToCameraTarget = true;
+                //bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                //bool isRenderToTexture = !isRenderToCameraTarget || isCameraTargetIntermediateTexture;
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 RenderingUtils.SetViewProjectionMatrices(cmd, Matrix4x4.identity, projMatrix, true);
 
