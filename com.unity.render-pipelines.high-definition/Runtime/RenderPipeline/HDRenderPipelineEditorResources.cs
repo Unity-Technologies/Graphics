@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var resources = target as HDRenderPipelineEditorResources;
                 resources.defaultScene = null;
-                resources.defaultSkyAndFogProfile = null;
-                resources.defaultPostProcessingProfile = null;
                 resources.defaultDiffusionProfileSettingsList = null;
                 resources.materials = null;
                 resources.textures = null;
