@@ -18,19 +18,27 @@
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
+#if defined(BLIT_PASS)
+    return LoadCameraDepth(uv);
+#else
 #if defined(REQUIRE_DEPTH_TEXTURE)
     return SampleCameraDepth(uv);
 #endif
     return 0;
+#endif
 }
 
 float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
-#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
+#if defined(BLIT_PASS)
+    return LOAD_TEXTURE2D_X(_ColorPyramidTexture, uv);
+#else
+#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT) 
     // We always remove the pre-exposure when we sample the scene color
 	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
+#endif
 }
 
 float4 shadergraph_HDLoadCustomSceneColor(float2 uv)
