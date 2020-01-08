@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ViewConstants mainViewConstants;
 
         public Vector4   screenSize;
+        public Vector2   globalScreenSize; // temporary terminology
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
         public Camera    camera;
@@ -60,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Rect      finalViewport;
 
         // viewport subsection for tiled displays
-        public Matrix4x4 globalScreenSpaceMatrix;
+        public Matrix4x4 globalScreenSpaceParams;
 
         public RTHandleProperties historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
 
@@ -326,12 +327,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();
-                    globalScreenSpaceMatrix = xr.GetGlobalScreenSpaceMatrix();
+                    globalScreenSpaceParams = xr.GetGlobalScreenSpaceMatrix();
                 }
                 else
                 {
                     finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-                    globalScreenSpaceMatrix = Matrix4x4.identity;
+                    globalScreenSpaceParams = Matrix4x4.identity;
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);

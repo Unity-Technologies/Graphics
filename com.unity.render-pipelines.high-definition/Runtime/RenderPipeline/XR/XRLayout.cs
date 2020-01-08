@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AddViewToPass(XRViewCreateInfo viewCreateInfo, XRPass pass)
         {
-            pass.AddView(viewCreateInfo.projMatrix, viewCreateInfo.viewMatrix, viewCreateInfo.viewport, viewCreateInfo.globalScreenSpaceMatrix, viewCreateInfo.textureArraySlice);
+            pass.AddView(viewCreateInfo.projMatrix, viewCreateInfo.viewMatrix, viewCreateInfo.viewport, viewCreateInfo.globalScreenSpaceParams, viewCreateInfo.textureArraySlice);
         }
     }
 }

@@ -74,9 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
     static class HDShaderIDs
     {
         // WIP Cluster Display
-        public static readonly int _ScreenSpaceLocalToGlobal = Shader.PropertyToID("_ScreenSpaceLocalToGlobal");
-        public static readonly int _ScreenSpaceGlobalToLocal = Shader.PropertyToID("_ScreenSpaceGlobalToLocal");
-
+        public static readonly int _GlobalScreenSpaceParams = Shader.PropertyToID("_GlobalScreenSpaceParams");
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");

@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
                     viewport = camera.pixelRect,
-                    globalScreenSpaceMatrix = Matrix4x4.identity,
+                    globalScreenSpaceParams = Matrix4x4.identity,
                     textureArraySlice = -1
                 };
 

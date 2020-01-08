@@ -76,28 +76,20 @@ CBUFFER_END
 
 #define OutputLogEnabled        _DebugFlags.x
 
-// float3x3 would actually be enough
-float4x4 _ScreenSpaceLocalToGlobal;
-float4x4 _ScreenSpaceGlobalToLocal; // _ScreenSpaceLocalToGlobal inverse
+// row 0: translation2d, scale 2d
+// row 1: global screensize (xy) and its reciprocate (zw)
+float4x4 _GlobalScreenSpaceParams;
 
-float2 ScreenSpaceLocalToGlobal(float2 uv)
-{
-    //return uv * _ViewportSubsection.zw + _ViewportSubsection.xy;
-    float4 globalUV = mul(_ScreenSpaceLocalToGlobal, float4(uv, 1, 1));
-    return globalUV.xy / globalUV.z;
-}
+float2 ScreenSpaceLocalToGlobal(float2 uv) { return uv * _GlobalScreenSpaceParams[0].zw + _GlobalScreenSpaceParams[0].xy; }
 
-float2 ScreenSpaceGlobalToLocal(float2 uv)
-{
-    //return (uv - _ViewportSubsection.xy) / _ViewportSubsection.zw;
-    float4 localUV = mul(_ScreenSpaceGlobalToLocal, float4(uv, 1, 1));
-    return localUV.xy / localUV.z;
-}
+float2 ScreenSpaceGlobalToLocal(float2 uv) { return (uv - _GlobalScreenSpaceParams[0].xy) / _GlobalScreenSpaceParams[0].zw; }
 
 // TODO below macro will depend on whether or not cluster rendering is used,
 // if not, no-op
 #define SCREEN_SPACE_GLOBAL(uv) (ScreenSpaceLocalToGlobal(uv))
 #define SCREEN_SPACE_LOCAL(uv) (ScreenSpaceGlobalToLocal(uv))
+#define ScreenSizeGlobal _GlobalScreenSpaceParams[1]
+
 // performs a computation in global screen space space then return the result in local screen space
 #define WITH_GLOBAL_SCREEN_SPACE(func, uv) (ScreenSpaceGlobalToLocal(func(ScreenSpaceLocalToGlobal(uv))))
 
@@ -147,7 +139,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 coords = 2.0 * uvGlobal - 1.0;
         float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
         float2 diff = end - uv;
-        int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
+        int samples = clamp(int(length(ScreenSizeGlobal.xy * diff / 2.0)), 3, ChromaMaxSamples);
         float2 delta = diff / samples;
         float2 pos = uv;
         float3 sum = 0.0, filterSum = 0.0;
@@ -201,7 +193,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         if (VignetteMode == 0u) // Procedural
         {
             float2 d = abs(SCREEN_SPACE_GLOBAL(uvDistorted) - VignetteCenter) * VignetteIntensity;
-            d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
+            d.x *= lerp(1.0, ScreenSizeGlobal.x / ScreenSizeGlobal.y, VignetteRounded);
             d = pow(saturate(d), VignetteRoundness);
             float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
             color *= lerp(VignetteColor, (1.0).xxx, vfactor);

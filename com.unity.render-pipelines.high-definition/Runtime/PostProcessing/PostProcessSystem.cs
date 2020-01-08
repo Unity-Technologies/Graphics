@@ -395,8 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_PostProcessEnabled)
                 {
                     // wip cluster display
-                    cmd.SetGlobalMatrix(HDShaderIDs._ScreenSpaceLocalToGlobal, camera.globalScreenSpaceMatrix);
-                    cmd.SetGlobalMatrix(HDShaderIDs._ScreenSpaceGlobalToLocal, camera.globalScreenSpaceMatrix.inverse);
+                    cmd.SetGlobalMatrix(HDShaderIDs._GlobalScreenSpaceParams, camera.globalScreenSpaceParams);
 
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
