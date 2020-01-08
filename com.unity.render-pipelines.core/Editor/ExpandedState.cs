@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Constructor will create the key to store in the EditorPref the state given generic type passed.</summary>
         /// <param name="defaultValue">If key did not exist, it will be created with this value for initialization.</param>
+        /// <param name="prefix">[Optional] Prefix scope of the key (Default is CoreRP)</param>
         public ExpandedState(TState defaultValue, string prefix = "CoreRP")
         {
             String Key = string.Format("{0}:{1}:UI_State", prefix, typeof(TTarget).Name);
@@ -25,6 +26,8 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Get or set the state given the mask.</summary>
+        /// <param name="mask">The filtering mask</param>
+        /// <returns>True: All flagged area are expended</returns>
         public bool this[TState mask]
         {
             get { return m_State.HasFlag(mask); }
@@ -32,12 +35,16 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Accessor to the expended state of this specific mask.</summary>
+        /// <param name="mask">The filtering mask</param>
+        /// <returns>True: All flagged area are expended</returns>
         public bool GetExpandedAreas(TState mask)
         {
             return m_State.HasFlag(mask);
         }
 
         /// <summary>Setter to the expended state.</summary>
+        /// <param name="mask">The filtering mask</param>
+        /// <param name="value">The expended state to set</param>
         public void SetExpandedAreas(TState mask, bool value)
         {
             m_State.SetFlag(mask, value);

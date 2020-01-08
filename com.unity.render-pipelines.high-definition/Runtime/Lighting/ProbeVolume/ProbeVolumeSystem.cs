@@ -360,12 +360,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return probeVolumes;
 
-            using (new ProfilingSample(cmd, "Prepare Probe Volume List", CustomSamplerId.PrepareProbeVolumeList.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareProbeVolumeList)))
             {
                 ClearProbeVolumeAtlasIfRequested(cmd);
 
                 Vector3 camPosition = hdCamera.camera.transform.position;
-                Vector3 camOffset   = Vector3.zero;// World-origin-relative
+                Vector3 camOffset = Vector3.zero;// World-origin-relative
 
                 if (ShaderConfig.s_CameraRelativeRendering != 0)
                 {
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_VisibleProbeVolumeDataBuffer.SetData(m_VisibleProbeVolumeData);
 
                 // Fill the struct with pointers in order to share the data with the light loop.
-                probeVolumes.bounds  = m_VisibleProbeVolumeBounds;
+                probeVolumes.bounds = m_VisibleProbeVolumeBounds;
                 probeVolumes.data = m_VisibleProbeVolumeData;
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)

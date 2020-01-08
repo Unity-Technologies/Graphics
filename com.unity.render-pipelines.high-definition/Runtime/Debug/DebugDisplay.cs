@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MaxMaterialFullScreenDebug
     }
 
+
     public class DebugDisplaySettings : IDebugData
     {
         static string k_PanelDisplayStats = "Display Stats";
@@ -72,6 +73,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool needsRefreshingCameraFreezeList = true;
 
+        List<ProfilingSampler> m_RecordedSamplers = new List<ProfilingSampler>();
+        enum DebugProfilingType
+        {
+            CPU,
+            GPU,
+            InlineCPU
+        }
+
         public class DebugData
         {
             public float debugOverlayRatio = 0.33f;
@@ -80,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int fullScreenContactShadowLightIndex = 0;
             public bool showSSSampledColor = false;
             public bool showContactShadowFade = false;
+            public bool xrSinglePassTestMode = false;
 
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
             public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -392,11 +402,65 @@ namespace UnityEngine.Rendering.HighDefinition
                 (debugLighting == DebugLightingMode.ProbeVolume || data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas);
         }
 
+        void EnableProfilingRecorders()
+        {
+            Debug.Assert(m_RecordedSamplers.Count == 0);
+
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeVoxelization));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricLighting));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardOpaque));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardTransparent));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ColorPyramid));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.DepthPyramid));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PostProcessing));
+        }
+
+        void DisableProfilingRecorders()
+        {
+            foreach (var sampler in m_RecordedSamplers)
+            {
+                sampler.enableRecording = false;
+            }
+
+            m_RecordedSamplers.Clear();
+        }
+
+        ObservableList<DebugUI.Widget> BuildProfilingSamplerList(DebugProfilingType type)
+        {
+            var result = new ObservableList<DebugUI.Widget>();
+            foreach (var sampler in m_RecordedSamplers)
+            {
+                sampler.enableRecording = true;
+                result.Add(new DebugUI.Value
+                {
+                    displayName = sampler.name,
+                    getter = () => string.Format("{0:F2}", (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime)),
+                    refreshRate = 1.0f / 5.0f
+                });
+            }
+
+            return result;
+        }
+
         void RegisterDisplayStatsDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f });
-            list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f });
+            list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
+            list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
+
+            EnableProfilingRecorders();
+            list.Add(new DebugUI.Foldout("CPU timings (Command Buffers)", BuildProfilingSamplerList(DebugProfilingType.CPU)));
+            list.Add(new DebugUI.Foldout("GPU timings", BuildProfilingSamplerList(DebugProfilingType.GPU)));
+            list.Add(new DebugUI.Foldout("Inline CPU timings", BuildProfilingSamplerList(DebugProfilingType.InlineCPU)));
+
             list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
@@ -421,6 +485,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
             }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            list.Add(new DebugUI.BoolField { displayName = "Debug XR Layout", getter = () => XRSystem.dumpDebugInfo, setter = value => XRSystem.dumpDebugInfo = value, onValueChanged = RefreshDisplayStatsDebug });
+            if (XRSystem.dumpDebugInfo)
+            {
+                Func<object> Bind<T>(Func<T, object> func, T arg) => () => func(arg);
+
+                for (int i = 0; i < XRSystem.passDebugInfos.Count; i++)
+                    list.Add(new DebugUI.Value { displayName = "", getter = Bind(XRSystem.ReadPassDebugInfo, i) });
+            }
+#endif
 
             m_DebugDisplayStatsItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
@@ -827,6 +902,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
             });
 
+            if (XRSystem.testModeEnabled)
+            {
+                widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
+            }
+
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
@@ -857,7 +937,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UnregisterDebug()
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
+
+            DisableProfilingRecorders();
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
+
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);

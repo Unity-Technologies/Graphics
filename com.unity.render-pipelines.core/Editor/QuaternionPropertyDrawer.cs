@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     [CustomPropertyDrawer(typeof(Quaternion))]
-    public class QuaternionPropertyDrawer : PropertyDrawer
+    class QuaternionPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

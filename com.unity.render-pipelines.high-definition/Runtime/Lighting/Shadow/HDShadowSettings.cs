@@ -40,6 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the maximum distance HDRP renders shadows for all Light types.")]
         public NoInterpMinFloatParameter        maxShadowDistance = new NoInterpMinFloatParameter(500.0f, 0.0f);
 
+        [Tooltip("Multiplier for thick transmission.")]
+        public ClampedFloatParameter directionalTransmissionMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
         [Tooltip("Controls the number of cascades HDRP uses for cascaded shadow maps.")]
         public NoInterpClampedIntParameter      cascadeShadowSplitCount = new NoInterpClampedIntParameter(4, 1, 4);
         [Tooltip("Sets the position of the first cascade split as a percentage of Max Distance.")]

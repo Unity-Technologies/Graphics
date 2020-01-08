@@ -160,6 +160,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Performs a rendering of a probe.
+        /// </summary>
+        /// <param name="settings">The probe settings to use.</param>
+        /// <param name="position">The probe position to use.</param>
+        /// <param name="target">The texture to render into.</param>
+        /// <param name="forceFlipY">Whether to force Y axis flipping.</param>
+        /// <param name="forceInvertBackfaceCulling">Whether to force the backface culling inversion.</param>
+        /// <param name="staticFlags">The static flags filters to use.</param>
+        /// <param name="referenceFieldOfView">The reference field of view.</param>
+        /// <param name="referenceAspect">The reference aspect.</param>
         public static void Render(
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
@@ -167,7 +178,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
             uint staticFlags = 0,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             Render(
@@ -176,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 forceFlipY,
                 forceInvertBackfaceCulling,
                 staticFlags,
-                referenceFieldOfView
+                referenceFieldOfView,
+                referenceAspect
             );
         }
 
@@ -189,18 +202,31 @@ namespace UnityEngine.Rendering.HighDefinition
             new Vector3(0, 0, 0),
             new Vector3(0, 180, 0),
         };
+        /// <summary>
+        /// Generate the camera render settings and camera position to use to render a probe.
+        /// </summary>
+        /// <param name="settings">The probe settings to use.</param>
+        /// <param name="position">The probe position to use.</param>
+        /// <param name="cameras">Will receives the camera settings.</param>
+        /// <param name="cameraPositions">Will receives the camera position settings.</param>
+        /// <param name="overrideSceneCullingMask">Override of the scene culling mask.</param>
+        /// <param name="forceFlipY">Whether to force the Y axis flipping.</param>
+        /// <param name="referenceFieldOfView">The reference field of view.</param>
+        /// <param name="referenceAspect">The reference aspect ratio.</param>
         public static void GenerateRenderingSettingsFor(
             ProbeSettings settings, ProbeCapturePositionSettings position,
             List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
             ulong overrideSceneCullingMask,
-            bool forceFlipY = false, float referenceFieldOfView = 90
+            bool forceFlipY = false,
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
                 out var cameraSettings, out var cameraPositionSettings, overrideSceneCullingMask,
-                referenceFieldOfView
+                referenceFieldOfView, referenceAspect
             );
 
             if (forceFlipY)
@@ -230,29 +256,54 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Compute the camera settings from the probe settings
+        /// </summary>
+        /// <param name="settings">The probe settings.</param>
+        /// <param name="position">The probe position.</param>
+        /// <param name="cameraSettings">The produced camera settings.</param>
+        /// <param name="cameraPositionSettings">The produced camera position.</param>
+        /// <param name="overrideSceneCullingMask">Override of the scene culling mask.</param>
+        /// <param name="referenceFieldOfView">The reference field of view.</param>
+        /// <param name="referenceAspect">The reference aspect ratio.</param>
         public static void ComputeCameraSettingsFromProbeSettings(
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
             ulong overrideSceneCullingMask,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
             cameraSettings = settings.cameraSettings;
-            cameraPositionSettings = CameraPositionSettings.@default;
+            cameraPositionSettings = CameraPositionSettings.NewDefault();
 
             // Update settings
             ProbeSettingsUtilities.ApplySettings(
                 ref settings, ref position,
                 ref cameraSettings, ref cameraPositionSettings,
-                referenceFieldOfView
+                referenceFieldOfView,
+                referenceAspect
             );
 
             cameraSettings.culling.sceneCullingMaskOverride = overrideSceneCullingMask;
         }
 
+        /// <summary>
+        /// Render a probe
+        /// </summary>
+        /// <param name="settings">The probe settings to use</param>
+        /// <param name="position">The probe position to use</param>
+        /// <param name="target">The target texture.</param>
+        /// <param name="cameraSettings">The camera settings used during the rendering</param>
+        /// <param name="cameraPositionSettings">The camera position settings used during the rendering.</param>
+        /// <param name="forceFlipY">Whether to force the Y axis flipping.</param>
+        /// <param name="forceInvertBackfaceCulling">Whether to force the backface culling inversion.</param>
+        /// <param name="staticFlags">The static flag to use during the rendering.</param>
+        /// <param name="referenceFieldOfView">The reference field of view.</param>
+        /// <param name="referenceAspect">The reference aspect ratio.</param>
         public static void Render(
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
@@ -262,13 +313,15 @@ namespace UnityEngine.Rendering.HighDefinition
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
             uint staticFlags = 0,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
-                out cameraSettings, out cameraPositionSettings, 0
+                out cameraSettings, out cameraPositionSettings, 0,
+                referenceFieldOfView, referenceAspect
             );
 
             if (forceFlipY)
@@ -280,6 +333,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Render(cameraSettings, cameraPositionSettings, target, staticFlags);
         }
 
+        /// <summary>
+        /// Create the texture used as target for a realtime reflection probe.
+        /// </summary>
+        /// <param name="cubemapSize">The cubemap size.</param>
+        /// <returns>The texture to use as reflection probe target.</returns>
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
             return new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
@@ -291,6 +349,11 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        /// <summary>
+        /// Create the texture used as target for a realtime planar reflection probe.
+        /// </summary>
+        /// <param name="planarSize">The size of the texture</param>
+        /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize)
         {
             return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
@@ -302,6 +365,11 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        /// <summary>
+        /// Create the texture target for a baked reflection probe.
+        /// </summary>
+        /// <param name="cubemapSize">The size of the cubemap.</param>
+        /// <returns>The target cubemap.</returns>
         public static Cubemap CreateReflectionProbeTarget(int cubemapSize)
         {
             return new Cubemap(cubemapSize, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);

@@ -18,11 +18,17 @@ namespace UnityEngine.Rendering.HighDefinition
             => m_AOVRequestData = aovRequestData;
 
         /// <summary>Enumerate the frame passes.</summary>
+        /// <returns>The enumerator over the values.</returns>
         public IEnumerator<AOVRequestData> GetEnumerator() =>
             (m_AOVRequestData ?? Enumerable.Empty<AOVRequestData>()).GetEnumerator();
 
+        /// <summary>Enumerate the frame passes.</summary>
+        /// <returns>The enumerator over the values.</returns>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// Dispose the collection.
+        /// </summary>
         public void Dispose()
         {
             if (m_AOVRequestData == null) return;

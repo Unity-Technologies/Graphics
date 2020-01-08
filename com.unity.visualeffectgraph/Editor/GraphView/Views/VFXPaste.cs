@@ -180,9 +180,10 @@ namespace UnityEditor.VFX.UI
             //Paste Everything else
             PasteGroupNodes(ref serializableGraph, ui);
             PasteStickyNotes(ref serializableGraph, ui);
+
+            PasteDatas(ref serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
             PasteDataEdges(ref serializableGraph);
             PasteFlowEdges(ref serializableGraph);
-            PasteDatas(ref serializableGraph);
 
             // Create all ui based on model
             viewController.LightApplyChanges();

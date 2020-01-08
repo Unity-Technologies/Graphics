@@ -240,5 +240,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
 		    return height + GetPassHeight(property);
 	    }
+
+		internal GUIContent[] GetMaterialPassNames(Material mat)
+        {
+            GUIContent[] passNames = new GUIContent[mat.passCount];
+
+            for (int i = 0; i < mat.passCount; i++)
+            {
+                string passName = mat.GetPassName(i);
+                passNames[i] = new GUIContent(string.IsNullOrEmpty(passName) ? i.ToString() : passName);
+            }
+            
+            return passNames;
+        }
     }
 }

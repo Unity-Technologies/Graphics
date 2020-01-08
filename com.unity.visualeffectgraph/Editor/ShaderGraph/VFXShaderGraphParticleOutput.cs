@@ -116,8 +116,17 @@ namespace UnityEditor.VFX
         }
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
-        public override bool exposeAlphaThreshold { get => base.exposeAlphaThreshold && shaderGraph == null; }
-        public override bool supportSoftParticles { get => base.supportSoftParticles && shaderGraph == null; }
+        public override bool exposeAlphaThreshold => base.exposeAlphaThreshold && shaderGraph == null;
+        public override bool supportSoftParticles => base.supportSoftParticles && shaderGraph == null;
+        public override bool hasAlphaClipping
+        {
+            get
+            {
+                bool noShaderGraphAlphaThreshold = shaderGraph == null && useAlphaClipping;
+                bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId);
+                return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
+            }
+        }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -187,14 +196,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected RPInfo hdrpInfo = new RPInfo
+        protected static readonly RPInfo hdrpInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
             { "Forward",new PassInfo()  { vertexPorts = new int[]{},pixelPorts = new int[]{ ShaderGraphVfxAsset.ColorSlotId, ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } },
             { "DepthOnly",new PassInfo()  { vertexPorts = new int[]{},pixelPorts = new int[]{ ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } }
         }
         };
-        protected RPInfo hdrpLitInfo = new RPInfo
+        protected static readonly RPInfo hdrpLitInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>() {
             { "GBuffer",new PassInfo()  { vertexPorts = new int[]{},pixelPorts = new int[]{ ShaderGraphVfxAsset.BaseColorSlotId, ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.MetallicSlotId, ShaderGraphVfxAsset.SmoothnessSlotId, ShaderGraphVfxAsset.EmissiveSlotId, ShaderGraphVfxAsset.NormalSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } },
@@ -225,15 +234,47 @@ namespace UnityEditor.VFX
                     yield return def;
 
                 if (shaderGraph != null)
-                {
+                {       
                     yield return "VFX_SHADERGRAPH";
                     RPInfo info = currentRP;
+
                     foreach (var port in info.allPorts)
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if (!string.IsNullOrEmpty(portInfo.referenceName))
                             yield return $"HAS_SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}";
                     }
+
+                    bool needsPosWS = false;
+
+                    // Per pass define
+                    foreach (var kvPass in graphCodes)
+                    {
+                        GraphCode graphCode = kvPass.Value;
+
+                        var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
+
+                        bool readsNormal = (graphCode.requirements.requiresNormal & ~NeededCoordinateSpace.Tangent) != 0;
+                        bool readsTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 ||
+                            (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent) != 0 ||
+                            (graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0;
+
+                        bool hasNormalPort = pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId);
+
+                        if (readsNormal || readsTangent || hasNormalPort) // needs normal
+                            yield return $"SHADERGRAPH_NEEDS_NORMAL_{kvPass.Key.ToUpper()}";
+
+                        if (readsTangent || hasNormalPort) // needs tangent
+                            yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}";
+
+                        needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
+                            graphCode.requirements.requiresScreenPosition ||
+                            graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None;
+                    }
+
+                    // TODO Put that per pass ?
+                    if (needsPosWS)
+                        yield return "VFX_NEEDS_POSWS_INTERPOLATOR";
                 }
             }
         }
@@ -330,12 +371,6 @@ namespace UnityEditor.VFX
                 }
 
                 graphCodes = currentRP.passInfos.ToDictionary(t => t.Key, t => shaderGraph.GetCode(t.Value.pixelPorts.Select(u => shaderGraph.GetOutput(u)).Where(u => !string.IsNullOrEmpty(u.referenceName)).ToArray()));
-
-                if( !isLitShader && graphCodes.Values.Any(t=> t.requirements.requiresNormal != NeededCoordinateSpace.None || t.requirements.requiresTangent != NeededCoordinateSpace.None || t.requirements.requiresBitangent != NeededCoordinateSpace.None))
-                {
-                    Debug.LogError("You can't use normal, tangent and bitangent related nodes with unlit outputs");
-                    return false;
-                }
             }
 
             return true;
@@ -369,11 +404,16 @@ namespace UnityEditor.VFX
                     {
                         GraphCode graphCode = kvPass.Value;
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"\n" + graphCode.code));
+                        var preProcess = new VFXShaderWriter();
+                        if (graphCode.requirements.requiresCameraOpaqueTexture)
+                            preProcess.WriteLine("#define REQUIRE_OPAQUE_TEXTURE");
+                        if (graphCode.requirements.requiresDepthTexture)
+                            preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
+                        preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
-
 
                         if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None)
                         {
@@ -413,47 +453,36 @@ namespace UnityEditor.VFX
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
-                        var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
-
-                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
-                            yield return new KeyValuePair<string, VFXShaderWriter>("SHADERGRAPH_HAS_NORMAL", new VFXShaderWriter("1"));
-
-                        bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
-                        if(requiresTangent)
-                            yield return new KeyValuePair<string, VFXShaderWriter>($"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}", new VFXShaderWriter("1"));
-
                         if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                         {
-                            yield return new KeyValuePair<string, VFXShaderWriter>("VFX_NEEDS_POSWS_INTERPOLATOR",new VFXShaderWriter("1"));
+                            callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
+                            callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.VFX_VARYING_POSWS);");
 
-                            callSG.builder.AppendLine("float3 WorldSpacePosition = i.posWS.xyz;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.World) != 0)
-                                callSG.builder.AppendLine("INSG.WorldSpacePosition = WorldSpacePosition;");
+                                callSG.builder.AppendLine("INSG.WorldSpacePosition = posRelativeWS;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
-                                callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObject(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.ObjectSpacePosition = TransformWorldToObject(posRelativeWS);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
-                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformPositionVFXToView(i.VFX_VARYING_POSWS);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
                                 callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
-                                callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = GetAbsolutePositionWS(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = posAbsoluteWS;");
 
                             if(graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
-
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
-                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(i.posWS);");
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
-                                    callSG.builder.AppendLine("INSG.WorldSpaceViewDirection =  V;");
+                                    callSG.builder.AppendLine("INSG.WorldSpaceViewDirection = V;");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)
                                     callSG.builder.AppendLine("INSG.ObjectSpaceViewDirection =  TransformWorldToObjectDir(V);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.View) != 0)
                                     callSG.builder.AppendLine("INSG.ViewSpaceViewDirection = TransformWorldToViewDir(V);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
-                                    callSG.builder.AppendLine(@"float3x3 tangentSpaceTransform = float3x3(normalize(tangentWS.xyz),normalize(bitangentWS.xyz),normalize(normalWS.xyz));
-INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
+                                    callSG.builder.AppendLine("INSG.TangentSpaceViewDirection = mul(tbn, V);");
                             }
 
                         }
@@ -475,14 +504,14 @@ INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
                                 if (graphCode.requirements.requiresMeshUVs.Contains(uv))
                                 {
                                     int uvi = (int)uv;
-                                    yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_UV{uvi}", new VFXShaderWriter("1"));
+                                    yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_UV{uvi}", new VFXShaderWriter("1")); // TODO put that in additionalDefines
                                     callSG.builder.AppendLine($"INSG.uv{uvi} = i.uv{uvi};");
                                 }
                             }
 
                             if( graphCode.requirements.requiresVertexColor)
                             {
-                                yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_COLOR", new VFXShaderWriter("1"));
+                                yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_COLOR", new VFXShaderWriter("1")); // TODO put that in additionalDefines
                                 callSG.builder.AppendLine($"INSG.VertexColor = i.vertexColor;");
                             }
                         }
@@ -494,6 +523,7 @@ INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
 
                         callSG.builder.AppendLine(");");
 
+                        var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
                         if (pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
                         {
                             callSG.builder.AppendLine(

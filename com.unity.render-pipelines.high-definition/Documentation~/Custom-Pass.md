@@ -23,6 +23,22 @@ Here you can see an example of a custom pass with a box collider (solid transpar
 
 > **NOTE**: You can stack multiple custom pass volumes but only one per injection point can be executed, the one that will be executed is the smallest currently overlapping collider extent (without the fade radius). It means that global volumes are lower priority than local ones.
 
+## Injection Points
+
+Custom passes can be injected at 6 different places. Note that these injection points **don't tell you exactly where you pass will be executed**, the only guarantee we give is that a certain list of buffers will be available for **Read** or **Write** and will contain a certain subset of objects rendered before your pass. Unlike Universal Render Pipeline, we don't give you the guarantee that your passes will be executed before or after any HDRP internal operation (also due to our async rendering). However we guarantee that the injection points will be triggered from top to bottom in this order in a frame:
+
+Name | Available Buffers | Description
+--- | --- | ---
+BeforeRendering | Depth (Write) | Just after the depth clear, you can write to the depth buffer so Z-Tested opaque objects won't be rendered. It's useful to mask a part of the rendering. Here you can also clear the buffer you allocated or the `Custom Buffer`
+AfterOpaqueDepthAndNormal | Depth (Read \| Write), Normal + roughness (Read \| Write) | Buffers will contain all opaque objects. Here you can modify the normal, roughness and depth buffer, it will be taken in account in the lighting and the depth pyramid. Note that normals and roughness are in the same buffer, you can use `DecodeFromNormalBuffer` and `EncodeIntoNormalBuffer` functions to read/write normal and roughness data.
+BeforePreRefraction | Color (no pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers will contain all opaque objects plus the sky. Use this point to render any transparent objects that you want to be in the refraction (they, will end up in the color pyramid we use for refraction when drawing transparent objects).
+BeforeTransparent | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Here you can sample the color pyramid we use for transparent refraction. It's useful to do some blur effects but note that all objects rendered at this point won't be in the color pyramid. You can also draw some transparent objects here that needs to refract the scene (like water for example).
+BeforePostProcess | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal + roughness (Read) | Buffers contains all objects in the frame in HDR.
+AfterPostProcess | Color(Read \| Write), Depth (Read) | Buffers are in after post process mode, it means that the depth is jittered (So you can't draw depth tested objects without having artifacts).
+
+You can see here on this diagram where the custom passes are injected inside an HDRP frame.
+![](Images/HDRP-frame-graph-diagram.png)
+
 ## Custom Pass List
 
 The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure then. There are two custom passes that are builtin to HDRP, the FullScreen and the DrawRenderers custom pass.  
@@ -77,23 +93,23 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 |  ⚠️ **WARNING**: There are some gotchas that you need to be aware of when writing FullScreen Shaders |
 | ---  |
 | **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
-| **The Depth buffer is not available everywhere and might not contains what you expect**. There is not depth buffer in before rendering, the depth buffer never contains transparent that writes depth and finally the depth buffer is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
+| **The Depth buffer might not contains what you expect**. The depth buffer never contains transparent that writes depth and it is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
 | **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
 | **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
 
 ### DrawRenderers Custom Pass
 
-This pass will allow you to draw a subset of objects that are currently visible on the camera (you can't draw anything that the camera don't see, so if you want to render objects only in a custom pass and not in a camera, using layers for example, that's not possible).  
+This pass will allow you to draw a subset of objects that are in the camera view (result of the camera culling).  
 Here is how the inspector for the DrawRenderers pass looks like:
 
 ![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)
 
 Filters allow you to select which objects will be rendered, you have the queue which all you to select which kind of materials will be rendered (transparent, opaque, etc.) and the layer which is the GameObject layer.
 
-By default, you'll see that the objects that passes the filters are rendered with a pink shader, to fix that, you need to assign a material compatible with this pass. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
+By default, the objects are displayed with their material, you can override the material of everything in this custom pass by assigning a material in the `Material` slot. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
 
-> **Note that Lit Shaders aren't supported by this pass as they may required multiple passes to be rendered**
+> **Note that Lit Shaders aren't supported on every injection point as they require the lighting data to be ready.**
 
 The pass name is also used to select which pass of the shader we will render, on a ShaderGraph or an HDRP unlit material it is useful because the default pass is the `SceneSelectionPass` and the pass used to render the object is `ForwardOnly`. You might also want to use the `DepthForwardOnly` pass if you want to only render the depth of the object.
 
@@ -169,6 +185,8 @@ Here is the list of all the defines you can enable
 #define VARYINGS_NEED_CULLFACE
 ```
 
+Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
+
 ## Scripting API
 
 To do even more complex effect, that may require more than one buffer or even `Compute Shaders`, you have a Scripting API available to extend the `CustomPass` class.  
@@ -198,6 +216,9 @@ To code your custom pass, you have three entry point:
 - `Execute` is where you'll write everything you need to be rendered during the pass.
 
 In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRenderContext](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.html) and a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html), these two classes contains everything you need to render pretty much everything but here we will focus on these two functions [ScriptableRenderContext.DrawRenderers](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.DrawRenderers.html) and [CommandBuffer.DrawProcedural](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.DrawProcedural.html).
+
+> **Important:** if the a shader is never referenced in any of your scenes it won't get built and the effect will not work when running the game outside of the editor. Either add it to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html) or put it in the **Always Included Shaders** list in `Edit -> Project Settings -> Graphics`. Be careful with this especially if you load shaders using `Shader.Find()` otherwise, you'll end up with a black screen.
+
 
 > **Pro Tips:**  
 > - To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
@@ -243,11 +264,25 @@ One of the tricky thing here is the `shaderTags`, it is a filter for which objec
 
 For the `renderQueueRange`, you can use the `GetRenderQueueRange` function in the `CustomPass` class that converts `CustomPass.RenderQueueType` (which is what you have in the ui to configure the render queue) into a `RenderQueueRange` that you can use in `RendererListDesc`.
 
+> **⚠️ WARNING: Be careful with the override material pass index:** when you call the DrawRenderers with an [override material](https://docs.unity3d.com/ScriptReference/Rendering.DrawingSettings-overrideMaterial.html), then you need to select which pass you're going to render using the override material pass index. But in build, this index can be changed after that the shader stripper removed passes from shader (like every HDRP shaders) and that will shift the pass indices in the shader and so your index will become invalid. To prevent this issue, we recommend to store the name of the pass and then use `Material.FindPass` when issuing the draw.
+
 ### Scripting the volume component
 
 You can retrieve the `CustomPassVolume` in script using [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) and access most of the things available from the UI like `isGlobal`, `fadeRadius` and `injectionPoint`.
 
 You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
+
+### Other API functions
+
+Sometimes you want to render objects only in a custom pass and not in the camera. To achieve this, you disable the layer of your objects in the camera culling mask, but it also means that the cullingResult you receive in the `Execute` function won't contain this object (because by default this cullingResult is the camera cullingResult). To overcome this issue, you can override this function in the CustomPass class:
+
+```CSharp
+protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
+```
+
+it will allow you to add more layers / custom culling option to the cullingResult you receive in the `Execute` function.
+
+> **⚠️ WARNING: Opaque objects may not be visible** if they are rendered only during the custom pass, because we assume that they already are in the depth pre-pass, we set the `Depth Test` to `Depth Equal`. Because of this you may need to override the `Depth Test` to `Less Equal` using the `depthState` property of the [RenderStateBlock](https://docs.unity3d.com/ScriptReference/Rendering.RenderStateBlock.html).
 
 ## Example: Glitch Effect (without code)
 
@@ -289,6 +324,10 @@ class Outline : CustomPass
     public Color        outlineColor = Color.black;
     public float        threshold = 1;
 
+    // To make sure the shader will ends up in the build, we keep it's reference in the custom pass
+    [SerializeField, HideInInspector]
+    Shader                  outlineShader;
+
     Material                fullscreenOutline;
     MaterialPropertyBlock   outlineProperties;
     ShaderTagId[]           shaderTags;
@@ -296,7 +335,8 @@ class Outline : CustomPass
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
-        fullscreenOutline = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Outline"));
+        outlineShader = Shader.Find("Hidden/Outline");
+        fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
         outlineProperties = new MaterialPropertyBlock();
 
         // List all the materials that will be replaced in the frame
@@ -394,6 +434,8 @@ Shader "Hidden/Outline"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float depth = LoadCameraDepth(varyings.positionCS.xy);
         PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float4 color = float4(0.0, 0.0, 0.0, 0.0);

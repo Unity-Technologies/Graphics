@@ -27,7 +27,8 @@ Pass
 #define VFX_VARYING_POSWS posWS	
 #define VFX_VARYING_SPHERECENTER sphereInfo.xyz
 #define VFX_VARYING_SPHERERADIUS sphereInfo.w
-				
+
+	${VFXPassDepthDefine}
 	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
 
 	#pragma fragment frag
