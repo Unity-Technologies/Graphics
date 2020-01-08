@@ -180,10 +180,10 @@ float GetTerrainSplat(FragInputs input, out float3 diffuse, out float smoothness
 void GetNormalAndTangentWS(FragInputs input, float3 V, float3 normalTS, inout float3 normalWS, inout float3 tangentWS)
 {
     #ifdef SURFACE_GRADIENT
-    normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
+    normalWS = SurfaceGradientResolveNormal(input.tangentToWorld[2], normalTS);
     #else
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-    normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
+	normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
     #endif
 
     // Orthonormalize the basis vectors using the Gram-Schmidt process.
@@ -225,11 +225,11 @@ SurfaceData GetSurfaceDataTerrain(FragInputs input, float3 V, inout PositionInpu
 
 	SurfaceData surfaceData;
 	ZERO_INITIALIZE(SurfaceData, surfaceData);
-	surfaceData.tangentWS = input.worldToTangent[0].xyz;
+	surfaceData.tangentWS = input.tangentToWorld[0].xyz;
 #ifdef _TERRAIN_NORMAL_MAP
 	GetNormalAndTangentWS(input, V, normalTS, surfaceData.normalWS, surfaceData.tangentWS);
 #else
-	surfaceData.normalWS = input.worldToTangent[2].xyz;
+	surfaceData.normalWS = input.tangentToWorld[2];
 #endif
     float NdotV;
     surfaceData.normalWS = GetViewReflectedNormal(surfaceData.normalWS, V, NdotV);
@@ -255,9 +255,9 @@ void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS
     posInput.positionWS  = positionWS;
 }
 
-void GetBuiltinDataTerrain(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, float grassOcclusion, out BuiltinData builtinData) 	{
-	input.texCoord1 = input.texCoord2 = input.color.xy;
-	GetBuiltinData(input, surfaceData, alpha, surfaceData.normalWS, depthOffset, grassOcclusion, builtinData);
+void GetBuiltinDataTerrain(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float depthOffset, float grassOcclusion, out BuiltinData builtinData) 	{
+	input.texCoord1 = input.texCoord2 = input.color;
+	GetBuiltinData(input, V, posInput, surfaceData, alpha, surfaceData.normalWS, depthOffset, grassOcclusion, builtinData);
 }
 
 #if SHADERPASS == SHADERPASS_GBUFFER
@@ -288,17 +288,19 @@ void TerrainSharedFrag(
 	float weight, depthOffset, grassOcclusion;
 	SurfaceData surfaceData = GetSurfaceDataTerrain(input, V, posInput, weight, depthOffset, grassOcclusion);
 	BuiltinData builtinData;
-	GetBuiltinDataTerrain(input, surfaceData, 1.f, depthOffset, grassOcclusion, builtinData);
+	GetBuiltinDataTerrain(input, V, posInput, surfaceData, 1.f, depthOffset, grassOcclusion, builtinData);
 
 
 	//---------------------------
 	// Standard frag epilogue
 	//
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-	float3 bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
+	//PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+	//float3 bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
 
-	ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.positionSS, outGBuffer);
+	//ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.positionSS, outGBuffer);
+	ENCODE_INTO_GBUFFER(surfaceData, builtinData, posInput.positionSS, outGBuffer);
+
 
 	// Custom terrain splat weighing
 	outGBuffer0 *= weight;
@@ -366,7 +368,7 @@ float4 TerrainSharedFrag(PackedVaryingsToPS packedInput) : SV_Target
 	input.texCoord0.xy = TRANSFORM_TEX(input.texCoord0.xy, _MainTex);
 	SurfaceData surfaceData = GetSurfaceDataTerrain(input, V, posInput, weight, depthOffset, grassOcclusion);
 	BuiltinData builtinData;
-	GetBuiltinDataTerrain(input, surfaceData, 1.f, depthOffset, grassOcclusion, builtinData);
+	GetBuiltinDataTerrain(input, V, posInput, surfaceData, 1.f, depthOffset, grassOcclusion, builtinData);
 
 	//---------------------------
 	// Standard frag epilogue
@@ -443,10 +445,10 @@ void TerrainSharedFrag(PackedVaryingsToPS packedInput,
     uint featureFlags = 0xFFFFFFFF;
     float3 diffuseLighting;
     float3 specularLighting;
-    BakeLightingData bakeLightingData;
-    bakeLightingData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
-    LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
-
+    //BakeLightingData bakeLightingData;
+    //bakeLightingData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
+    //LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
+	LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
     outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
 
 #ifdef _DEPTHOFFSET_ON
