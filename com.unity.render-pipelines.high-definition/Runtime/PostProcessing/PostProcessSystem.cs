@@ -952,7 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)m_DepthOfField.resolution, scale, 0f, 0f));
 
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
-            int farSamples =  Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
+            int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
             // We want at least 3 samples for both far and near
             farSamples = Mathf.Max(3, farSamples);
