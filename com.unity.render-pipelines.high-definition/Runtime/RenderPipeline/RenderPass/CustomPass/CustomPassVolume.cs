@@ -87,12 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.enabled)
-                    using (new ProfilingScope(cmd, pass.profilingSampler))
-                    {
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
-                        executed = true;
-                    }
+                if (pass != null)
+                    executed |= pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
             }
 
             return executed;

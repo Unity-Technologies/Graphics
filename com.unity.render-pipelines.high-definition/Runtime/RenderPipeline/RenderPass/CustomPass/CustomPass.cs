@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
         protected CustomPassInjectionPoint injectionPoint => owner.injectionPoint;
 
         /// <summary>
+        /// True if you want your custom pass to be executed in the scene view. False for game cameras only.
+        /// </summary>
+        protected virtual bool executeInSceneView => true;
+
+        /// <summary>
         /// Used to select the target buffer when executing the custom pass
         /// </summary>
         public enum TargetBuffer
@@ -129,28 +134,36 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
-        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
+        internal bool ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
         {
+            if (!enabled || (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView))
+                return false;
+
             this.owner = owner;
             this.currentRTManager = rtManager;
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            if (!isSetup)
+            using (new ProfilingScope(cmd, profilingSampler))
             {
-                Setup(renderContext, cmd);
-                isSetup = true;
+                if (!isSetup)
+                {
+                    Setup(renderContext, cmd);
+                    isSetup = true;
+                }
+
+                SetCustomPassTarget(cmd);
+
+                isExecuting = true;
+                Execute(renderContext, cmd, hdCamera, cullingResult);
+                isExecuting = false;
+                
+                // Set back the camera color buffer if we were using a custom buffer as target
+                if (targetDepthBuffer != TargetBuffer.Camera)
+                    CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
             }
 
-            SetCustomPassTarget(cmd);
-
-            isExecuting = true;
-            Execute(renderContext, cmd, hdCamera, cullingResult);
-            isExecuting = false;
-            
-            // Set back the camera color buffer if we were using a custom buffer as target
-            if (targetDepthBuffer != TargetBuffer.Camera)
-                CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
+            return true;
         }
 
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
