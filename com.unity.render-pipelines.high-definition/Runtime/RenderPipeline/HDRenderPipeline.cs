@@ -57,16 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         #endregion
 
-//forest-begin: Callbacks
-		public delegate void Action<T1, T2, T3, T4, T5, T6>(T1 arg, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
-
-		public static event Action<ScriptableRenderContext, Camera, FrameSettings, CommandBuffer> OnBeginCamera;
-		public static event Action<ScriptableRenderContext, HDCamera, FrameSettings/*, CommandBuffer*/> OnBeforeCameraCull;
-		public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnPrepareCamera;
-		public static event Action<ScriptableRenderContext, HDCamera, /*PostProcessLayer,*/ RTHandle, RTHandle, CommandBuffer> OnBeforeForwardOpaque;
-		public static event Action<Camera> OnAfterCameraSubmit;
-//forest-end:
-
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
@@ -1672,10 +1662,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             ref var target = ref renderRequest.target;
                             target.id = m_TemporaryTargetForCubemaps;
                         }
-//forest-begin: Prepare frame callback
-                        if(OnBeginCamera != null)
-                            OnBeginCamera(renderContext, renderRequest.hdCamera.camera, renderRequest.hdCamera.frameSettings /*MERGE-TODO: verify if correct*/, cmd);
-//forest-end:
 
                         // var aovRequestIndex = 0;
                         foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
@@ -1851,11 +1837,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             PushGlobalParams(hdCamera, cmd);
             VFXManager.ProcessCameraCommand(camera, cmd);
-
-//forest-begin: Prepare frame callback
-			if(OnPrepareCamera != null)
-				OnPrepareCamera(renderContext, hdCamera, cmd);
-//forest-end:
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -2148,10 +2129,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDeferredLighting(hdCamera, cmd);
 
-//forest-begin: Callbacks
-				if(OnBeforeForwardOpaque != null)
-					OnBeforeForwardOpaque(renderContext, hdCamera, /* UPGRADE_TODO postProcessLayer,*/ m_SharedRTManager.GetDepthTexture(), m_CameraColorBuffer, cmd);
-//forest-end:
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
