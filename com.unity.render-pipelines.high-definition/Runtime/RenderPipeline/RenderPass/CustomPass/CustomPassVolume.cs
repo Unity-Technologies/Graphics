@@ -87,8 +87,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null)
-                    executed |= pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    executed = true;
+                }
             }
 
             return executed;
@@ -104,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.enabled)
+                if (pass != null && pass.WillBeExecuted(hdCamera))
                     executed = true;
             }
 

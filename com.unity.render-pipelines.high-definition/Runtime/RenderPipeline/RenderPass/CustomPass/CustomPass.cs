@@ -134,11 +134,19 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
-        internal bool ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
+        internal bool WillBeExecuted(HDCamera hdCamera)
         {
-            if (!enabled || (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView))
+            if (!enabled)
                 return false;
 
+            if (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView)
+                return false;
+
+            return true;
+        }
+
+        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
+        {
             this.owner = owner;
             this.currentRTManager = rtManager;
             this.currentRenderTarget = targets;
@@ -162,8 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (targetDepthBuffer != TargetBuffer.Camera)
                     CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
             }
-
-            return true;
         }
 
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
