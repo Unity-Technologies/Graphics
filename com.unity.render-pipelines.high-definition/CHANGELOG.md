@@ -278,6 +278,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the framecount when changing scene.
 - Fixed errors that occurred when using invalid near and far clip plane values for planar reflections.
 - Fixed issue with motion blur sample weighting function.
+- Fix NaNs in Depth of Field on Xbox.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
