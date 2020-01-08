@@ -31,7 +31,7 @@
 #endif
 
 // Workaround for lack of multi compile in compute/ray shaders
-#if defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED) && (defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAYTRACING))
+#if defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED) && (defined(SHADER_STAGE_COMPUTE) || defined(SHADER_STAGE_RAY_TRACING))
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
