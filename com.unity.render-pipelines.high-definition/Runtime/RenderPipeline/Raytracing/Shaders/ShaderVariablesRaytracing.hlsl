@@ -7,22 +7,23 @@ RAY_TRACING_GLOBAL_RESOURCE(RaytracingAccelerationStructure, _RaytracingAccelera
 #endif
 
 RAY_TRACING_GLOBAL_CBUFFER_START(UnityRayTracingGlobals, UNITY_RAY_TRACING_GLOBAL_CBUFFER_REGISTER)
-    float                                   _RaytracingRayBias;
-    float                                   _RaytracingRayMaxLength;
-    int                                     _RaytracingNumSamples;
-    int                                     _RaytracingSampleIndex;
+    float                                   _RaytracingCameraNearPlane;
     int                                     _RaytracingMinRecursion;
     int                                     _RaytracingMaxRecursion;
-    float                                   _RaytracingIntensityClamp;
-    float                                   _RaytracingReflectionMaxDistance;
-    float                                   _RaytracingReflectionMinSmoothness;
-    int                                     _RaytracingIncludeSky;
-    int                                     _RaytracingFrameIndex;
-    float                                   _RaytracingPixelSpreadAngle;
-    int                                     _RayCountEnabled;
-    float                                   _RaytracingCameraNearPlane;
-    uint                                    _RaytracingDiffuseRay;
-    int                                     _RaytracingPreExposition;
 CBUFFER_END
+
+float                                   _RaytracingRayBias;
+float                                   _RaytracingRayMaxLength;
+int                                     _RaytracingNumSamples;
+int                                     _RaytracingSampleIndex;
+float                                   _RaytracingIntensityClamp;
+float                                   _RaytracingReflectionMaxDistance;
+float                                   _RaytracingReflectionMinSmoothness;
+int                                     _RaytracingIncludeSky;
+int                                     _RaytracingFrameIndex;
+float                                   _RaytracingPixelSpreadAngle;
+int                                     _RayCountEnabled;
+uint                                    _RaytracingDiffuseRay;
+int                                     _RaytracingPreExposition;
 
 RW_TEXTURE2D_ARRAY(uint,                _RayCountTexture);

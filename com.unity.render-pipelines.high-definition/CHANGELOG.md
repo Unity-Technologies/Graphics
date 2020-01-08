@@ -310,6 +310,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
 - Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
+- Changed a few resources used by ray tracing shaders to be global resources (used register space1) for improved CPU performance.
 
 ## [7.1.1] - 2019-09-05
 
