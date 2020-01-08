@@ -305,6 +305,12 @@ float3 SampleCameraColor(float2 uv, float lod)
     return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
 }
 
+float3 SampleCameraColor(float2 uv, SAMPLER(s), float lod)
+{
+   // return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s, uv * _RTHandleScaleHistory.xy, lod).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s, uv, lod).rgb;
+}
+
 float3 LoadCameraColor(uint2 pixelCoords)
 {
     return LoadCameraColor(pixelCoords, 0);

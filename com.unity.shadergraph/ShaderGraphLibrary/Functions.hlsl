@@ -53,6 +53,10 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_SampleSceneColor(uv)
 #endif
 
+#ifndef SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD
+    #define SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD(uv, s, lod) shadergraph_SampleSceneColorSLod(uv, s, lod)
+#endif
+
 #ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR
     #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_LoadCustomSceneColor(uv)
 #endif
@@ -85,7 +89,7 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_LOAD_SCENE_SSR(uv) shadergraph_LoadSceneSSR(uv)
 #endif
 
-#ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_VOLUMETRIC
+#ifndef SHADERGRAPH_LOAD_SCENE_VOLUMETRIC
     #define SHADERGRAPH_LOAD_SCENE_VOLUMETRIC(uv) shadergraph_LoadSceneVolumetric(uv)
 #endif
 
@@ -123,6 +127,11 @@ float shadergraph_SampleSceneDepth(float2 uv)
 }
 
 float3 shadergraph_SampleSceneColor(float2 uv)
+{
+    return 0;
+}
+
+float3 shadergraph_SampleSceneColorSLod(float2 uv, SAMPLER(s), float lod)
 {
     return 0;
 }

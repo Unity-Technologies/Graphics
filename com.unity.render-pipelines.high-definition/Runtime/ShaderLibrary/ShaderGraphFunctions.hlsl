@@ -3,6 +3,7 @@
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD(uv, s, lod) shadergraph_HDSampleSceneColorSLod(uv, s, lod)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
 #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_HDLoadCustomSceneColor(uv)
@@ -29,6 +30,15 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     // We always remove the pre-exposure when we sample the scene color
 	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
+#endif
+    return float3(0, 0, 0);
+}
+
+float3 shadergraph_HDSampleSceneColorSLod(float2 uv, SAMPLER(s), float lod)
+{
+#if (defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)) || defined(BLIT_PASS)
+    // We always remove the pre-exposure when we sample the scene color
+    return SampleCameraColor(uv, s, lod) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
 }
