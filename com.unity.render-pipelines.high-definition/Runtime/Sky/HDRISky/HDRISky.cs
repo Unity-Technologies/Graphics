@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.value.GetHashCode() : hash;
                 hash = hash * 23 + enableBackplate.value.GetHashCode();
                 hash = hash * 23 + backplateType.value.GetHashCode();
@@ -57,6 +58,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + pointLightShadow.overrideState.GetHashCode();
                 hash = hash * 23 + dirLightShadow.overrideState.GetHashCode();
                 hash = hash * 23 + rectLightShadow.overrideState.GetHashCode();
+#else
+                hash = hdriSky.value != null ? hash * 23 + hdriSky.GetHashCode() : hash;
+                hash = hash * 23 + enableBackplate.GetHashCode();
+                hash = hash * 23 + backplateType.GetHashCode();
+                hash = hash * 23 + groundLevel.GetHashCode();
+                hash = hash * 23 + scale.GetHashCode();
+                hash = hash * 23 + projectionDistance.GetHashCode();
+                hash = hash * 23 + plateRotation.GetHashCode();
+                hash = hash * 23 + plateTexRotation.GetHashCode();
+                hash = hash * 23 + plateTexOffset.GetHashCode();
+                hash = hash * 23 + blendAmount.GetHashCode();
+                hash = hash * 23 + shadowTint.GetHashCode();
+                hash = hash * 23 + pointLightShadow.GetHashCode();
+                hash = hash * 23 + dirLightShadow.GetHashCode();
+                hash = hash * 23 + rectLightShadow.GetHashCode();
+#endif
             }
 
             return hash;
