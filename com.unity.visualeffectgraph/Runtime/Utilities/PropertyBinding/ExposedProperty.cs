@@ -36,7 +36,7 @@ namespace UnityEngine.VFX.Utility
             //In Runtime, there isn't any undo/redo and SerializedObject is only available in UnityEditor namespace
             return Shader.PropertyToID(parameter.m_Name);
 #else
-            if (parameter.m_Id == 0)
+            if (parameter.m_Id == 0 && !string.IsNullOrEmpty(parameter.m_Name))
                 throw new InvalidOperationException("Unexpected constructor has been called");
 
             if (parameter.m_Id == -1)
