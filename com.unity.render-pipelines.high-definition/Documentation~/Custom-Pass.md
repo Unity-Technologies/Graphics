@@ -154,15 +154,18 @@ The DrawRenderers custom render pass contains the following properties alongside
 
 ![](Images/CustomPassDrawRenderers_Inspector.png)
 
-| **Property**      | **Description**                                              |
-| ----------------- | ------------------------------------------------------------ |
-| **Filters**       |                                                              |
-| - **Queue**       | Specifies what type of Materials to render (transparent, opaque, everything). |
-| - **Layer Mask**  | Specifies which pass of the Shader HDRP uses                 |
-| **Overrides**     |                                                              |
-| - **Material**    | The Material that HDRP uses to render the GameObjects in this render pass. |
-| - - **Pass Name** | Specifies which pass of the Shader that HDRP uses. The default pass is the **SceneSelectionPass** and the pass that HDRP uses to render GameObjects is **ForwardOnly**. If you want to only render the GameObject's depth, use the **DepthForwardOnly**. |
-| - **Sorting**     |                                                              |
+| **Property**         | **Description**                                              |
+| -------------------- | ------------------------------------------------------------ |
+| **Filters**          |                                                              |
+| - **Queue**          | Specifies what type of Materials to render (transparent, opaque, everything). |
+| - **Layer Mask**     | Specifies which pass of the Shader HDRP uses                 |
+| **Overrides**        |                                                              |
+| - **Material**       | The Material that HDRP uses to render the GameObjects in this render pass. |
+| - - **Pass Name**    | Specifies which pass of the Shader that HDRP uses. The default pass is the **SceneSelectionPass** and the pass that HDRP uses to render GameObjects is **ForwardOnly**. If you want to only render the GameObject's depth, use the **DepthForwardOnly**. |
+| - **Override Depth** |                                                              |
+| - - **Depth Test**   |                                                              |
+| - - **Write Depth**  |                                                              |
+| - **Sorting**        |                                                              |
 
 
 
