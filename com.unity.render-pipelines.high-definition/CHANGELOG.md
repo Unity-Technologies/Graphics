@@ -281,6 +281,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed motion vectors in MSAA.
 - Fixed sun flare blending (case 1205862).
 - Fixed a lot of issues related to ray traced screen space shadows.
+- Fixed memory leak caused by apply distortion material not being disposed.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

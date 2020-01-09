@@ -832,6 +832,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);
+            CoreUtils.Destroy(m_ApplyDistortionMaterial);
 
             CleanupSubsurfaceScattering();
             m_SharedRTManager.Cleanup();
