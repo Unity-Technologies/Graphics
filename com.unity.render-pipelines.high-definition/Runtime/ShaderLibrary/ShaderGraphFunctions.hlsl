@@ -27,20 +27,32 @@ float shadergraph_HDSampleSceneDepth(float2 uv)
 
 float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
+#if defined(BLIT_PASS)
+    float width, height, elements;
+    _ColorPyramidTexture.GetDimensions(width, height, elements);
+    return SampleCameraColor(uv / float2(width, height)) * GetInverseCurrentExposureMultiplier();
+#else
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     // We always remove the pre-exposure when we sample the scene color
 	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
+#endif
 }
 
 float3 shadergraph_HDSampleSceneColorSLod(float2 uv, SAMPLER(s), float lod)
 {
-#if (defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)) || defined(BLIT_PASS)
+#if defined(BLIT_PASS)
+    float width, height, elements;
+    _ColorPyramidTexture.GetDimensions(width, height, elements);
+    return SampleCameraColor(uv / float2(width, height), s, lod) * GetInverseCurrentExposureMultiplier();
+#else
+#if (defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)) 
     // We always remove the pre-exposure when we sample the scene color
     return SampleCameraColor(uv, s, lod) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
+#endif
 }
 
 float4 shadergraph_HDLoadCustomSceneColor(float2 uv)
