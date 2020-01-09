@@ -45,12 +45,10 @@ namespace UnityEditor.ShaderGraph
                 if(m_SamplingType == SamplingType.Sample)
                 {
                     RemoveSlot(kSamplerInputSlotId);
-                    RemoveSlot(kLodInputSlotId);
                 }
                 else
                 {
                     AddSlot(new SamplerStateMaterialSlot(kSamplerInputSlotId, kSamplerInputSlotName, kSamplerInputSlotName, SlotType.Input));
-                    AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
                 }
                 m_SamplingType = value;
                 Dirty(ModificationScope.Graph);
@@ -63,15 +61,16 @@ namespace UnityEditor.ShaderGraph
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default, ShaderStageCapability.Fragment));
             AddSlot(new Vector3MaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Vector3.zero, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             if (m_SamplingType == SamplingType.Sample)
             {
                 AddSlot(new SamplerStateMaterialSlot(kSamplerInputSlotId, kSamplerInputSlotName, kSamplerInputSlotName, SlotType.Input));
-                AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
+               
                 RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kColorOutputSlotId, kSamplerInputSlotId, kLodInputSlotId });
             }
             else
             {
-                RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kColorOutputSlotId });
+                RemoveSlotsNameNotMatching(new[] {kUvInputSlotId, kColorOutputSlotId, kLodInputSlotId });
             }
         }
         
@@ -80,8 +79,9 @@ namespace UnityEditor.ShaderGraph
             string result = string.Empty;
             if (m_SamplingType == SamplingType.Load)
             {
-                result = string.Format("$precision3 {0} = SHADERGRAPH_SAMPLE_SCENE_COLOR({1}.xy / _RTHandleScaleHistory.xy);", GetVariableNameForSlot(kColorOutputSlotId),
-                    GetSlotValue(kUvInputSlotId, generationMode));
+                result = string.Format("$precision3 {0} = SHADERGRAPH_LOAD_SCENE_COLOR({1}.xy, {2});", GetVariableNameForSlot(kColorOutputSlotId),
+                    GetSlotValue(kUvInputSlotId, generationMode),
+                    GetSlotValue(kLodInputSlotId, generationMode));
             }
             else
             {
@@ -103,46 +103,4 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
     }
-
-/*
-    sealed class SceneColorNode : CodeFunctionNode, IMayRequireCameraOpaqueTexture
-    {
-        const string kScreenPositionSlotName = "UV";
-        const string kOutputSlotName = "Out";
-
-        public const int ScreenPositionSlotId = 0;
-        public const int OutputSlotId = 1;
-
-        public SceneColorNode()
-        {
-            name = "Scene Color";
-            UpdateNodeAfterDeserialization();
-        }
-
-        public override bool hasPreview { get { return false; } }
-
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_SceneColor", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_SceneColor(
-            [Slot(0, Binding.ScreenPosition)] Vector4 UV,
-            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
-        {
-            Out = Vector3.one;
-            return
-                @"
-{
-    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);
-}
-";
-        }
-
-        public bool RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
-        {
-            return true;
-        }
-    }*/
 }
