@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
+    [ExecuteAlways] // for Awake to be called when we load the scene in the editor
     public class HDAdditionalCameraData : MonoBehaviour, IVersionable<HDAdditionalCameraData.Version>
     {
         #region Datas
