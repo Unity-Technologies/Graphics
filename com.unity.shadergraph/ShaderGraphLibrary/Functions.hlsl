@@ -53,8 +53,8 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_LOAD_SCENE_COLOR(uv, lod) shadergraph_LoadSceneColor(uv, lod)
 #endif
 
-#ifndef SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD
-    #define SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD(uv, s, lod) shadergraph_SampleSceneColorSLod(uv, s, lod)
+#ifndef SHADERGRAPH_SAMPLE_SCENE_COLOR
+    #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv, s, lod) shadergraph_SampleSceneColor(uv, s, lod)
 #endif
 
 #ifndef SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR
@@ -82,7 +82,7 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
 #endif
 
 #ifndef SHADERGRAPH_LOAD_SCENE_SSAO
-    #define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_LoadCustomSceneSSAO(uv)
+    #define SHADERGRAPH_LOAD_SCENE_SSAO(uv) shadergraph_LoadSceneSSAO(uv)
 #endif
 
 #ifndef SHADERGRAPH_LOAD_SCENE_SSR
@@ -131,12 +131,17 @@ float3 shadergraph_LoadSceneColor(float2 uv, float lod)
     return 0;
 }
 
-float3 shadergraph_SampleSceneColorSLod(float2 uv, SAMPLER(s), float lod)
+float3 shadergraph_SampleSceneColor(float2 uv, SAMPLER(s), float lod)
 {
     return 0;
 }
 
 float4 shadergraph_LoadCustomSceneColor(float2 uv)
+{
+    return 0;
+}
+
+float4 shadergraph_SampleCustomSceneColor(float2 uv, SAMPLER(s))
 {
     return 0;
 }
@@ -161,7 +166,7 @@ float2 shadergraph_LoadSceneMotionVector(float2 uv)
     return 0;
 }
 
-float4 shadergraph_LoadCustomSceneSSAO(float2 uv)
+float4 shadergraph_LoadSceneSSAO(float2 uv)
 {
     return 0;
 }
@@ -172,11 +177,6 @@ float4 shadergraph_LoadSceneSSR(float2 uv)
 }
 
 float4 shadergraph_LoadSceneVolumetric(float2 uv)
-{
-    return 0;
-}
-
-float4 shadergraph_SampleCustomSceneColor(float2 uv, SAMPLER(s))
 {
     return 0;
 }

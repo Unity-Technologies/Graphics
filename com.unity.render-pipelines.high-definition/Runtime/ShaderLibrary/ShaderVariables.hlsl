@@ -98,7 +98,6 @@ TEXTURE2D_X(_ColorPyramidTexture);
 // Custom pass buffer
 TEXTURE2D_X(_CustomDepthTexture);
 TEXTURE2D_X(_CustomColorTexture);
-TEXTURE2D_X(_CustomNormalTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);

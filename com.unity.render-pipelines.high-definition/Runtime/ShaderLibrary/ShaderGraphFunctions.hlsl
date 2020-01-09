@@ -3,7 +3,7 @@
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
 #define SHADERGRAPH_LOAD_SCENE_COLOR(uv, lod) shadergraph_HDLoadSceneColor(uv, lod)
-#define SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD(uv, s, lod) shadergraph_HDSampleSceneColorSLod(uv, s, lod)
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv, s, lod) shadergraph_HDSampleSceneColor(uv, s, lod)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
 #define SHADERGRAPH_LOAD_CUSTOM_SCENE_COLOR(uv) shadergraph_HDLoadCustomSceneColor(uv)
@@ -50,7 +50,7 @@ float3 shadergraph_HDLoadSceneColor(float2 uv, float lod)
 #endif
 }
 
-float3 shadergraph_HDSampleSceneColorSLod(float2 uv, SAMPLER(s), float lod)
+float3 shadergraph_HDSampleSceneColor(float2 uv, SAMPLER(s), float lod)
 {
 #if defined(BLIT_PASS)
     float width, height, elements;

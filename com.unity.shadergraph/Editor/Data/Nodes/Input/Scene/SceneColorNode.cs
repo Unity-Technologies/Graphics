@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                result = string.Format("$precision3 {0} = SHADERGRAPH_SAMPLE_SCENE_COLOR_SLOD({1}.xy, {2}, {3});", GetVariableNameForSlot(kColorOutputSlotId),
+                result = string.Format("$precision3 {0} = SHADERGRAPH_SAMPLE_SCENE_COLOR({1}.xy, {2}, {3});", GetVariableNameForSlot(kColorOutputSlotId),
                     GetSlotValue(kUvInputSlotId, generationMode),
                     GetSlotValue(kSamplerInputSlotId, generationMode),
                     GetSlotValue(kLodInputSlotId , generationMode));
