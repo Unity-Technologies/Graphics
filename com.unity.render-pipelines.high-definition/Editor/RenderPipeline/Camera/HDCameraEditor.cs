@@ -62,6 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition
         
         [MenuItem("CONTEXT/Camera/Convert to HDCamera", isValidateFunction: false, priority: -100)]
         static void ConvertCameraToHDCamera(MenuCommand command)
-            => HDCamera.ConvertCameraToHDCamera(command.context as Camera);
+            => HDCamera.ConvertCameraToHDCameraWithUndo(command.context as Camera);
     }
 }

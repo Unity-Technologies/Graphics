@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (camera is HDCamera)
                     continue;
 
-                HDCamera.ConvertCameraToHDCamera(camera);
+                HDCamera.ConvertCameraToHDCameraWithUndo(camera);
             }
         }
 
