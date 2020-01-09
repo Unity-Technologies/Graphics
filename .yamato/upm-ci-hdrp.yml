@@ -153,12 +153,22 @@ linux_apis:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
+    
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published
+    {% else %}
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}
+    
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% else %}
