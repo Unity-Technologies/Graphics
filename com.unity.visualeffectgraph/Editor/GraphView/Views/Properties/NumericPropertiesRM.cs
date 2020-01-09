@@ -108,11 +108,8 @@ namespace UnityEditor.VFX.UI
 
                 m_Slider.range = range;
             }
-            if( m_TextField != null)
-            {
-                m_TextField.tooltip = m_TextField.value.ToString();
-            }
-            m_TooltipHolder.tooltip = m_TextField.value.ToString();
+            if( m_TooltipHolder != null && m_Value != null)
+                m_TooltipHolder.tooltip = m_Value.ToString();
             base.UpdateGUI(force);
         }
 

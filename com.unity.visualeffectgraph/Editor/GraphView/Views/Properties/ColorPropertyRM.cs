@@ -61,9 +61,12 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateEnabled()
         {
+            bool enabled = propertyEnabled;
+            m_ColorField.SetEnabled(enabled);
             for (int i = 0; i < 4; ++i)
             {
-                if (propertyEnabled)
+                m_FloatFields[i].SetEnabled(enabled);
+                if (enabled)
                 {
                     if (m_TooltipHolders[i].parent != null)
                         m_TooltipHolders[i].RemoveFromHierarchy();
@@ -146,8 +149,7 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < 4; ++i)
             {
                 m_FloatFields[i].SetValueWithoutNotify(m_Value[i]);
-                m_FloatFields[i].tooltip = m_Value.r.ToString();
-                m_TooltipHolders[i].tooltip = m_FloatFields[i].tooltip;
+                m_TooltipHolders[i].tooltip = m_Value[i].ToString();
             }
         }
 

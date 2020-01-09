@@ -37,13 +37,11 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].SetEnabled(value);
                 if (value)
                 {
-                    if (m_TooltipHolders[i].parent != null)
-                        m_TooltipHolders[i].RemoveFromHierarchy();
+                    m_TooltipHolders[i].RemoveFromHierarchy();
                 }
                 else
                 {
-                    if (m_TooltipHolders[i].parent == null)
-                        m_FieldParents[i].Add(m_TooltipHolders[i]);
+                    m_FieldParents[i].Add(m_TooltipHolders[i]);
                 }
             }
         }
@@ -62,10 +60,10 @@ namespace UnityEditor.VFX.UI
                 m_Fields[i].AddToClassList("fieldContainer");
                 m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
 
-                m_FieldParents[i] = new VisualElement();
+                m_FieldParents[i] = new VisualElement{name = "FieldParent" };
                 m_FieldParents[i].Add(m_Fields[i]);
                 m_FieldParents[i].style.flexGrow = 1;
-                m_TooltipHolders[i] = new VisualElement();
+                m_TooltipHolders[i] = new VisualElement{name = "TooltipHolder" };
                 m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
                 m_TooltipHolders[i].style.top = 0;
                 m_TooltipHolders[i].style.left = 0;
@@ -114,13 +112,12 @@ namespace UnityEditor.VFX.UI
             T value = this.value;
             for (int i = 0; i < m_Fields.Length; ++i)
             {
+                float componentValue = GetValueComponent(ref value, i);
                 if (!m_Fields[i].control.HasFocus() || force)
                 {
-                    float componentValue = GetValueComponent(ref value, i);
                     m_Fields[i].SetValueWithoutNotify(componentValue);
-                    m_Fields[i].tooltip = componentValue.ToString();
-                    m_TooltipHolders[i].tooltip = m_Fields[i].tooltip;
                 }
+                m_TooltipHolders[i].tooltip = componentValue.ToString();
             }
         }
     }
