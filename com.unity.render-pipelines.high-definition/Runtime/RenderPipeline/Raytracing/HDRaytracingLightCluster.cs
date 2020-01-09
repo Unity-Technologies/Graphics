@@ -254,11 +254,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (currentLight.type != HDLightType.Area)
                     {
+                        m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
                     else
                     {
+                        m_LightVolumesCPUArray[realIndex].shape = 1;
                         m_LightVolumesCPUArray[realIndex].lightType = 1;
                         areaLightCount++;
                     }
