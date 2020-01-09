@@ -279,6 +279,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors that occurred when using invalid near and far clip plane values for planar reflections.
 - Fixed issue with motion blur sample weighting function.
 - Fixed motion vectors in MSAA.
+- Fixed sun flare blending (case 1205862).
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -328,6 +329,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
 - Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
 - Disabled the refraction and transmission map keywords if the material is opaque.
+- Keep celestial bodies outside the atmosphere.
 - Changed a few resources used by ray tracing shaders to be global resources (using register space1) for improved CPU performance.
 
 ## [7.1.1] - 2019-09-05
