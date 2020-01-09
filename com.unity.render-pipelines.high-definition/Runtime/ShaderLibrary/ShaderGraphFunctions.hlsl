@@ -26,6 +26,7 @@ float shadergraph_HDSampleSceneDepth(float2 uv)
     return SampleCameraDepth(uv);
 #endif
     return 0;
+#endif
 }
 
 float3 shadergraph_HDLoadSceneColor(float2 uv, float lod)
