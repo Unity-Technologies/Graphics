@@ -5,9 +5,14 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/RayTracingGlobalShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
 
+#if defined(RAY_TRACING_USE_GLOBAL_RESOURCES)
+RAY_TRACING_GLOBAL_CBUFFER_START(UnityPhysicallyBasedSky, UNITY_PHYSICALLY_BASED_SKY_CBUFFER_REGISTER)
+#else
 CBUFFER_START(UnityPhysicallyBasedSky)
+#endif
     // All the distance-related entries use SI units (meter, 1/meter, etc).
     float  _PlanetaryRadius;
     float  _RcpPlanetaryRadius;
