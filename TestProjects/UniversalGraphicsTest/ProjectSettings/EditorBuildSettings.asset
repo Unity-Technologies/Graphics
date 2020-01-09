@@ -233,4 +233,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/104_BokehDepthOfField.unity
     guid: 25cb76fbf82e5924f817e3466acb803a
+  - enabled: 1
+    path: Assets/Scenes/107_DepthPrepass.unity
+    guid: 12bed04065c037743845d8a5970cb5d0
+  - enabled: 1
+    path: Assets/Scenes/108_MoveCamera.unity
+    guid: 5365b5739a6ca3c40bd03dc1ee5cb3c6
   m_configObjects: {}
