@@ -17,6 +17,10 @@ To install the Procedural Sky override into a 2019.3 Project:
 
 The last step is important because, if you haven't installed the sample and load a Scene that uses a Procedural Sky, then the Procedural Sky data in the Volume is lost. Unity does not serialize this so you can close and re-open Unity to recover your settings.
 
+## Sky Intensity Mode
+
+In HDRP for 2019.3, the way sky intensity is handled has been changed. Before the change, there were two parameters: **Exposure** and **Multiplier** that we both applied to change the sky intensity. Now, there is a new combo box for users to chose between one or the other. An update script is provided in **Edit > Render Pipeline > Upgrade Sky Intensity Mode**  to upgrade the existing sky components.
+
 ## Fog
 
 HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumetric Fog Quality overrides in 2019.3 and replaced them with a single [Fog](Override-Fog.html) override. This override acts as an exponential fog with a height component by default and allows you to add additional volumetric fog. To automatically update old fog overrides to the new system, select **Edit > Render Pipeline > Upgrade Fog Volume Components**. Note that it can not safely convert all cases so you may need to upgrade some manually.
@@ -78,4 +82,9 @@ From Unity 2019.3, HDRP has an additional small package as a dependency. This is
 When you upgrade your **High Definition RP** package, Unity now upgrades each of your Materials. This means adds a version number the first time it happens so, if a HDRP Shader change occurs, Unity is able to fix your Material so that it still works correctly with the new changes.
 
 To do this, Unity opens a prompt when you begin the upgrade, asking if you want to save your Project. It keeps attempting to upgrade old files until you agree to save your Project.
+
+## Missing Script for GameObject SceneIDMap
+
+For scene with baked probes authored prior to 2019.3, you may ran into a warning concerning a missing script for a GameObject named SceneIDMap when entering play mode.
+To fix it, you can load the scene in the editor and click on "Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes".
 

@@ -9,7 +9,10 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct GlobalDecalSettings
     {
         /// <summary>Default GlobalDecalSettings</summary>
-        public static readonly GlobalDecalSettings @default = new GlobalDecalSettings()
+        [Obsolete("Since 2019.3, use GlobalDecalSettings.NewDefault() instead.")]
+        public static readonly GlobalDecalSettings @default = default;
+        /// <summary>Default GlobalDecalSettings</summary>
+        public static GlobalDecalSettings NewDefault() => new GlobalDecalSettings()
         {
             drawDistance = 1000,
             atlasWidth = 4096,

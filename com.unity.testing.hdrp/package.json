@@ -3,7 +3,7 @@
 	"displayName":"HDRP graphic tests common library",
 	"version": "1.0.0",
 	"unity": "2019.3",
-	"unityRelease": "0b4",
+	"unityRelease": "0f3",
 	"description": "Common assets library for HDRP test projects.",
 	"keywords": ["qa", "test", "testing", "tests", "graphics", "HDRP"],
 	"dependencies": {

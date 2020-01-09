@@ -4,6 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.7] - 2019-12-11
+### Fixed
+- subgraph block into subgraph context no longer forget parameter values.
+- Fix exception when compiling an asset with a turbulence block in absolute mode
+- Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
+- Depth Position and Collision blocks now work correctly in local space systems
+
+## [7.1.6] - 2019-11-22
+### Added
+- New quad distortion output for particle strips
+- New attribute for strips: particleCountInStrip
+- New options for quad strips texture mapping: swap UV and custom mapping
+
+### Fixed
+- Fix shader interpolants with shader graph and particle strips
+- SpawnIndex attribute is now working correctly in Initialize context
+- Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
+- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
+- Subgraph operators appear on drag edge on graph.
+- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
+
 ## [7.1.5] - 2019-11-15
 
 Version Updated
@@ -16,6 +39,7 @@ The version number for this package has increased due to a version update of a r
 
 ## [7.1.3] - 2019-09-19
 ### Added
+- Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
 - Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
 - Octagon & Triangle support for planar distortion output
@@ -40,6 +64,7 @@ The version number for this package has increased due to a version update of a r
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 
 ## [7.1.2] - 2019-09-19
 ### Fixed

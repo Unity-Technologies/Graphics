@@ -35,13 +35,19 @@ public class HDRP_GraphicTestRunner
 
         if (XRSystem.testModeEnabled)
         {
-            // Skip incompatible XR tests (layout set to None in the scene)
-            if (settings.xrLayout == XRLayoutOverride.None)
-                yield break;
+            if (settings.xrCompatible)
+            {
+                XRSystem.automatedTestRunning = true;
 
-            // Increase tolerance to account for slight changes due to float precision
-            settings.ImageComparisonSettings.AverageCorrectnessThreshold *= 1.5f;
-            settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= 1.5f;
+                // Increase tolerance to account for slight changes due to float precision
+                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
+                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            }
+            else
+            {
+                // Skip incompatible XR tests
+                yield break;
+            }
         }
 
         if (settings.doBeforeTest != null)
@@ -133,6 +139,12 @@ public class HDRP_GraphicTestRunner
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 

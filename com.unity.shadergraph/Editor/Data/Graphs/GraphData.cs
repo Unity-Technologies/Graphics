@@ -316,7 +316,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
-        internal delegate void SaveGraphDelegate(Shader shader);
+        internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
         public GraphData()

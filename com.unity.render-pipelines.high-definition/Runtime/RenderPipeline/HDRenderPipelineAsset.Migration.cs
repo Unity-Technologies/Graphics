@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddFrameSettingDirectSpecularLighting,
             AddCustomPostprocessAndCustomPass,
             ScalableSettingsRefactor,
+            ShadowFilteringVeryHighQualityRemoval,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -67,6 +68,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowInit.shadowResolutionArea.schemaId = ScalableSettingSchemaId.With4Levels;
                 shadowInit.shadowResolutionDirectional.schemaId = ScalableSettingSchemaId.With4Levels;
                 shadowInit.shadowResolutionPunctual.schemaId = ScalableSettingSchemaId.With4Levels;
+            }),
+            MigrationStep.New(Version.ShadowFilteringVeryHighQualityRemoval, (HDRenderPipelineAsset data) =>
+            {
+                ref var shadowInit = ref data.m_RenderPipelineSettings.hdShadowInitParams;
+                shadowInit.shadowFilteringQuality = shadowInit.shadowFilteringQuality > HDShadowFilteringQuality.High ? HDShadowFilteringQuality.High : shadowInit.shadowFilteringQuality;
             })
         );
 

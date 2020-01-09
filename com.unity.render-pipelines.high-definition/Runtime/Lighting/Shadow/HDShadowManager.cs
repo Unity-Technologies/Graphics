@@ -133,15 +133,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default HDShadowInitParameters</summary>
-        public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
+        [Obsolete("Since 2019.3, use HDShadowInitParameters.NewDefault() instead.")]
+        public static readonly HDShadowInitParameters @default = default;
+        /// <summary>Default HDShadowInitParameters</summary>
+        public static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
         {
             maxShadowRequests                   = k_DefaultMaxShadowRequests,
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
-            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
-            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
+            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
@@ -237,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Material clearMaterial = CoreUtils.CreateEngineMaterial(clearShader);
 
             // Prevent the list from resizing their internal container when we add shadow requests
-            m_ShadowDatas.Capacity = maxShadowRequests;
+            m_ShadowDatas.Capacity = Math.Max(maxShadowRequests, m_ShadowDatas.Capacity);
             m_ShadowResolutionRequests = new HDShadowResolutionRequest[maxShadowRequests];
             m_ShadowRequests = new HDShadowRequest[maxShadowRequests];
             m_CachedDirectionalShadowData = new HDDirectionalShadowData[1]; // we only support directional light shadow
@@ -532,6 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
+            data.zBufferParam = shadowRequest.zBufferParam;
             if (atlas.HasBlurredEVSM())
             {
                 data.shadowFilterParams0 = shadowRequest.evsmParams;
@@ -589,6 +593,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Create all HDShadowDatas and update them with shadow request datas
             for (int i = 0; i < m_ShadowRequestCount; i++)
             {
+                Debug.Assert(m_ShadowRequests[i] != null);
+
                 HDShadowAtlas atlas = m_Atlas;
                 if (m_ShadowRequests[i].shadowMapType == ShadowMapType.CascadedDirectional)
                 {

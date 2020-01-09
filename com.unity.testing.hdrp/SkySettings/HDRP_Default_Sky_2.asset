@@ -3,8 +3,9 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -17,8 +18,9 @@ MonoBehaviour:
 --- !u!114 &114408460862325740
 MonoBehaviour:
   m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -26,18 +28,29 @@ MonoBehaviour:
   m_Name: HDRISky
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 1
     m_Value: 200
     min: 0
     max: 360
+  skyIntensityMode:
+    m_OverrideState: 1
+    m_Value: 2
   exposure:
     m_OverrideState: 1
     m_Value: 0
   multiplier:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.16666667
     min: 0
+  upperHemisphereLuxValue:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  desiredLuxValue:
+    m_OverrideState: 0
+    m_Value: 20000
   updateMode:
     m_OverrideState: 1
     m_Value: 0
@@ -45,14 +58,18 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
     min: 0
+  includeSunInBaking:
+    m_OverrideState: 0
+    m_Value: 0
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!114 &114827887035766406
 MonoBehaviour:
   m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -60,9 +77,13 @@ MonoBehaviour:
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 1
+  skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 0
   fogType:
     m_OverrideState: 1
     m_Value: 0

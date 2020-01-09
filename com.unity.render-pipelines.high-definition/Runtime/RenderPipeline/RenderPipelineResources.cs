@@ -92,6 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
             public Shader upsampleTransparentPS;
 
+            [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
+            public ComputeShader resolveStencilCS;
+
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;
@@ -131,8 +134,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/CustomPass/DefaultRenderer.shader")]
-            public Shader defaultRendererCustomPass;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]

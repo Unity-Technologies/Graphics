@@ -289,7 +289,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     if (shader != null)
                     {
-                        GraphData.onSaveGraph(shader);
+                        GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
                     }                    
                 }
 

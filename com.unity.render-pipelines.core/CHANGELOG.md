@@ -4,10 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.7] - 2019-12-11
+
+### Fixed
+- Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
+
+### Changed
+- Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+
+## [7.1.6] - 2019-11-22
+
+### Changed
+- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
+- Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+
 ## [7.1.5] - 2019-11-15
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
+- Add api documentation for TextureCombiner.
 
 ## [7.1.4] - 2019-11-13
 
@@ -28,8 +43,14 @@ The version number for this package has increased due to a version update of a r
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
 - Only call SetDirty on an object when actually modifying it in SRP updater utility
 
+
 ### Fixed
 - Fixed compile errors for platforms with no VR support
+- Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
+- Fixed LighProbes when using LookDev.
+- Fix LookDev minimal window size.
+- Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
+- Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
 
 ## [7.1.1] - 2019-09-05
 

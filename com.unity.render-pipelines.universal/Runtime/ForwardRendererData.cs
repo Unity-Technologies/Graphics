@@ -7,7 +7,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
@@ -63,8 +63,11 @@ namespace UnityEngine.Rendering.Universal
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
-            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            if (!Application.isPlaying)
+            {
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
 #endif
             return new ForwardRenderer(this);
         }
@@ -87,12 +90,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

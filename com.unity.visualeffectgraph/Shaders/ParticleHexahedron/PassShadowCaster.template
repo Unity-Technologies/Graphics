@@ -8,6 +8,9 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
+	#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
+	#define USE_ALPHA_TEST 1
+	#endif
 	
 	struct ps_input
 	{
@@ -38,9 +41,7 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 VFXApplyShadowBias(o.VFX_VARYING_POSCS, vPosWS);
 ${VFXEnd}
 
-// Needed for HDRP
-#define SHADERPASS SHADERPASS_SHADOWS
-	
+	${VFXPassShadowDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag

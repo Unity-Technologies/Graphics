@@ -8,7 +8,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
 
 CBUFFER_START(UnityPhysicallyBasedSky)
-    // All the distance-related entries use km and 1/km units.
+    // All the distance-related entries use SI units (meter, 1/meter, etc).
     float  _PlanetaryRadius;
     float  _RcpPlanetaryRadius;
     float  _AtmosphericDepth;
@@ -28,12 +28,22 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelExtinction;
 
     float3 _AirSeaLevelScattering;
-    float  _AerosolSeaLevelScattering;
-
-    float3 _GroundAlbedo;
     float  _IntensityMultiplier;
 
+    float3 _AerosolSeaLevelScattering;
+    float  _ColorSaturation;
+
+    float3 _GroundAlbedo;
+    float  _AlphaSaturation;
+
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+    float  _AlphaMultiplier;
+
+    float3 _HorizonTint;
+    float  _HorizonZenithShiftPower;
+
+    float3 _ZenithTint;
+    float  _HorizonZenithShiftScale;
 CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);
@@ -63,7 +73,7 @@ float AirPhase(float LdotV)
     return RayleighPhaseFunction(-LdotV);
 }
 
-float AerosolScatter(float height)
+float3 AerosolScatter(float height)
 {
     return _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff);
 }

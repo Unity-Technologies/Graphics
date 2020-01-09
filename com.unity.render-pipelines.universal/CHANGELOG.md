@@ -4,8 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.7] - 2019-12-11
+
+### Fixed
+- Fixed inconsistent lighting between the forward renderer and the deferred renderer that was caused by a missing normalize operation on vertex normals on some SpeedTree shader variants.
+- Fixed issue where the Editor would crash when you used a `ForwardRendererData` preset. [case 1201052](https://issuetracker.unity3d.com/product/unity/issues/guid/1201052/)
+- Fixed an issue where Normal Map Textures didn't apply when you added them to newly-created Materials. [case 1197217](https://issuetracker.unity3d.com/product/unity/issues/guid/1197217/)
+- Fixed an issue with deleting shader passes in the custom renderer features list [case 1201664](https://issuetracker.unity3d.com/issues/urp-remove-button-is-not-activated-in-shader-passes-list-after-creating-objects-from-renderer-features-in-urpassets-renderer)
+- Fixed an issue that caused errors if you disabled the VR Module when building a project.
+- Fixed an issue where particles had dark outlines when blended together [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+
+## [7.1.6] - 2019-11-22
+
+### Fixed
+- Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
+- Fixed lazy initialization with last version of ResourceReloader
+
 ## [7.1.5] - 2019-11-15
 
+### Fixed
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
 - Fixed conflicting meta with HDRP
 
@@ -23,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.

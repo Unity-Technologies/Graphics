@@ -19,6 +19,8 @@
 // Debug
 #pragma kernel WriteShadowTextureDebug
 
+#pragma only_renderers d3d11
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -147,7 +149,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     // Blend color & history
     // Feedback weight from unbiased luminance diff (Timothy Lottes)
     float2 historyLuma = history;
-    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, float2(0.2, 0.2));
     float2 weight = 1.0 - diff;
     weight = weight * weight;
     float2 feedback = (1.0 - weight) * FEEDBACK_MIN + weight * FEEDBACK_MAX;

@@ -5,17 +5,30 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract partial class HDProbe : IVersionable<HDProbe.Version>
     {
+        /// <summary>
+        /// The version used during the migration
+        /// </summary>
         protected enum Version
         {
+            /// <summary>Version Step</summary>
             Initial,
+            /// <summary>Version Step</summary>
             ProbeSettings,
+            /// <summary>Version Step</summary>
             SeparatePassThrough,
+            /// <summary>Version Step</summary>
             UpgradeFrameSettingsToStruct,
+            /// <summary>Version Step</summary>
             AddFrameSettingSpecularLighting, // Not use anymore
+            /// <summary>Version Step</summary>
             AddReflectionFrameSetting,
+            /// <summary>Version Step</summary>
             AddFrameSettingDirectSpecularLighting,
         }
 
+        /// <summary>
+        /// The migration steps for HDProbes
+        /// </summary>
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.ProbeSettings, (HDProbe p) =>
             {
@@ -78,9 +91,11 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_HDProbeVersion; set => m_HDProbeVersion = value; }
 
         // Legacy fields for HDProbe
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_InfiniteProjection"), Obsolete("For Data Migration")]
         protected bool m_ObsoleteInfiniteProjection = true;
 
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_InfluenceVolume"), Obsolete("For Data Migration")]
         protected InfluenceVolume m_ObsoleteInfluenceVolume;
 
@@ -89,20 +104,24 @@ namespace UnityEngine.Rendering.HighDefinition
         ObsoleteFrameSettings m_ObsoleteFrameSettings = null;
 #pragma warning restore 618
 
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_Multiplier"), FormerlySerializedAs("dimmer")]
         [FormerlySerializedAs("m_Dimmer"), FormerlySerializedAs("multiplier"), Obsolete("For Data Migration")]
         protected float m_ObsoleteMultiplier = 1.0f;
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_Weight"), FormerlySerializedAs("weight")]
         [Obsolete("For Data Migration")]
         [Range(0.0f, 1.0f)]
         protected float m_ObsoleteWeight = 1.0f;
 
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_Mode"), Obsolete("For Data Migration")]
         protected ProbeSettings.Mode m_ObsoleteMode = ProbeSettings.Mode.Baked;
 
         [SerializeField, FormerlySerializedAs("lightLayers"), Obsolete("For Data Migration")]
         LightLayerEnum m_ObsoleteLightLayers = LightLayerEnum.LightLayerDefault;
 
+        /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]
         protected ObsoleteCaptureSettings m_ObsoleteCaptureSettings;
     }

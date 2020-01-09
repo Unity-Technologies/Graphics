@@ -188,8 +188,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 //forest-begin: Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
 	#if !defined(_TESSELLATION_DISPLACEMENT)
 //forest-end:
-    uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-    LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+    LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
 //forest-begin: Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
 	#endif
 //forest-end:
@@ -251,14 +250,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
-#if defined(_BENTNORMALMAP) && defined(_ENABLESPECULAROCCLUSION)
+#if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
     #ifdef SPECULAR_OCCLUSION_USE_SPTD
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
     #else
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-    #endif
-#elif defined(_MASKMAP)
+#endif
+    // Don't do spec occ from Ambient if there is no mask mask
+#elif defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 

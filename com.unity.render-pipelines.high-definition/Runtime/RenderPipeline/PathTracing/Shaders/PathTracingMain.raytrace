@@ -73,7 +73,7 @@ void RayGen()
     // Have we reached max sampling?
     if (sampleCount >= _RaytracingNumSamples && !any(velocity))
     {
-        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz, 1.0);
+        _CameraColorTextureRW[currentPixelCoord] = float4(_AccumulatedFrameTexture[currentPixelCoord].xyz * GetCurrentExposureMultiplier(), 1.0);
         return;
     }
 
@@ -116,14 +116,14 @@ void RayGen()
     else
     {
         sampleCount++;
-        rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color) / sampleCount;
+        rayIntersection.color = (_AccumulatedFrameTexture[currentPixelCoord].xyz * (sampleCount - 1) + rayIntersection.color * GetInverseCurrentExposureMultiplier()) / sampleCount;
     }
     _AccumulatedFrameTexture[currentPixelCoord] = float4(rayIntersection.color, sampleCount);
 
     // Add a little convergence cue to our result (FIXME: definitely not the right way to do it!!)
     AddConvergenceCue(currentPixelCoord, sampleCount, rayIntersection.color);
 
-    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color, 1.0);
+    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
 }
 
 [shader("closesthit")]

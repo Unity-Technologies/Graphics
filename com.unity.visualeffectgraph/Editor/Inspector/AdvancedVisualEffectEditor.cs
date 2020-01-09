@@ -131,6 +131,10 @@ namespace UnityEditor.VFX
             {
                 base.OnDisable();
             }
+            else
+            {
+                OnDisableWithoutResetting();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -310,9 +314,9 @@ namespace UnityEditor.VFX
             return context;
         }
 
-        new void OnSceneGUI()
+        protected override void OnSceneViewGUI(SceneView sv)
         {
-            base.OnSceneGUI();
+            base.OnSceneViewGUI(sv);
 
             if (m_GizmoDisplayed && m_GizmoedParameter != null)
             {

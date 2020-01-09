@@ -2,19 +2,52 @@ using static UnityEngine.Mathf;
 
 namespace UnityEngine.Rendering
 {
-    // Raw, mostly unoptimized implementation of Hable's artist-friendly tonemapping curve
-    // http://filmicworlds.com/blog/filmic-tonemapping-with-piecewise-power-curves/
+    /// <summary>
+    /// An implementation of Hable's artist-friendly tonemapping curve.
+    /// http://filmicworlds.com/blog/filmic-tonemapping-with-piecewise-power-curves/
+    /// </summary>
     public class HableCurve
     {
+        /// <summary>
+        /// Individual curve segment.
+        /// </summary>
         public class Segment
         {
+            /// <summary>
+            /// The offset of the segment on the X axis.
+            /// </summary>
             public float offsetX;
+
+            /// <summary>
+            /// The offset of the segment on the Y axis.
+            /// </summary>
             public float offsetY;
+
+            /// <summary>
+            /// The scale of the segment on the X axis.
+            /// </summary>
             public float scaleX;
+
+            /// <summary>
+            /// The scale of the segment on the Y axis.
+            /// </summary>
             public float scaleY;
+
+            /// <summary>
+            /// <c>ln(A)</c> constant in the power curve <c>y = e^(ln(A) + B*ln(x))</c>.
+            /// </summary>
             public float lnA;
+
+            /// <summary>
+            /// <c>B</c> constant in the power curve <c>y = e^(ln(A) + B*ln(x))</c>.
+            /// </summary>
             public float B;
 
+            /// <summary>
+            /// Evaluate a point on the curve.
+            /// </summary>
+            /// <param name="x">The point to evaluate.</param>
+            /// <returns>The value of the curve, at the point specified.</returns>
             public float Eval(float x)
             {
                 float x0 = (x - offsetX) * scaleX;
@@ -43,13 +76,36 @@ namespace UnityEngine.Rendering
             internal float gamma;
         }
 
+        /// <summary>
+        /// The white point.
+        /// </summary>
         public float whitePoint { get; private set; }
+
+        /// <summary>
+        /// The inverse of the white point.
+        /// </summary>
+        /// <seealso cref="whitePoint"/>
         public float inverseWhitePoint { get; private set; }
+
+        /// <summary>
+        /// The start of the linear section (middle segment of the curve).
+        /// </summary>
         public float x0 { get; private set; }
+
+        /// <summary>
+        /// The end of the linear section (middle segment of the curve).
+        /// </summary>
         public float x1 { get; private set; }
 
+
+        /// <summary>
+        /// The three segments of the curve.
+        /// </summary>
         public readonly Segment[] segments = new Segment[3];
 
+        /// <summary>
+        /// Creates a new curve.
+        /// </summary>
         public HableCurve()
         {
             for (int i = 0; i < 3; i++)
@@ -58,6 +114,11 @@ namespace UnityEngine.Rendering
             uniforms = new Uniforms(this);
         }
 
+        /// <summary>
+        /// Evaluates a point on the curve.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public float Eval(float x)
         {
             float normX = x * inverseWhitePoint;
@@ -67,6 +128,15 @@ namespace UnityEngine.Rendering
             return ret;
         }
 
+        /// <summary>
+        /// Initializes the curve.
+        /// </summary>
+        /// <param name="toeStrength">The strength of the transition between the curve's toe and the curve's mid-section. A value of 0 results in no transition and a value of 1 results in a very hard transition.</param>
+        /// <param name="toeLength">The length of the curve's toe. Higher values result in longer toes and therefore contain more of the dynamic range.</param>
+        /// <param name="shoulderStrength">The strength of the transition between the curve's midsection and the curve's shoulder. A value of 0 results in no transition and a value of 1 results in a very hard transition.</param>
+        /// <param name="shoulderLength">The amount of f-stops to add to the dynamic range of the curve. This is how much of the highlights that the curve takes into account.</param>
+        /// <param name="shoulderAngle">How much overshoot to add to the curve's shoulder.</param>
+        /// <param name="gamma">A gamma correction to the entire curve.</param>
         public void Init(float toeStrength, float toeLength, float shoulderStrength, float shoulderLength, float shoulderAngle, float gamma)
         {
             var dstParams = new DirectParams();
@@ -260,9 +330,9 @@ namespace UnityEngine.Rendering
             return g * m * Pow(m * x + b, g - 1f);
         }
 
-        //
-        // Uniform building for ease of use
-        //
+        /// <summary>
+        /// An utility class to ease the binding of curve parameters to shaders.
+        /// </summary>
         public class Uniforms
         {
             HableCurve parent;
@@ -272,18 +342,45 @@ namespace UnityEngine.Rendering
                 this.parent = parent;
             }
 
+            /// <summary>
+            /// Main curve settings, stored as <c>(inverseWhitePoint, x0, x1, 0)</c>.
+            /// </summary>
             public Vector4 curve => new Vector4(parent.inverseWhitePoint, parent.x0, parent.x1, 0f);
 
+            /// <summary>
+            /// Toe segment settings, stored as <c>(offsetX, offsetY, scaleX, scaleY)</c>.
+            /// </summary>
             public Vector4 toeSegmentA => new Vector4(parent.segments[0].offsetX, parent.segments[0].offsetY, parent.segments[0].scaleX, parent.segments[0].scaleY);
+
+            /// <summary>
+            /// Toe segment settings, stored as <c>(ln1, B, 0, 0)</c>.
+            /// </summary>
             public Vector4 toeSegmentB => new Vector4(parent.segments[0].lnA, parent.segments[0].B, 0f, 0f);
 
+            /// <summary>
+            /// Mid segment settings, stored as <c>(offsetX, offsetY, scaleX, scaleY)</c>.
+            /// </summary>
             public Vector4 midSegmentA => new Vector4(parent.segments[1].offsetX, parent.segments[1].offsetY, parent.segments[1].scaleX, parent.segments[1].scaleY);
+
+            /// <summary>
+            /// Mid segment settings, stored as <c>(ln1, B, 0, 0)</c>.
+            /// </summary>
             public Vector4 midSegmentB => new Vector4(parent.segments[1].lnA, parent.segments[1].B, 0f, 0f);
 
+            /// <summary>
+            /// Shoulder segment settings, stored as <c>(offsetX, offsetY, scaleX, scaleY)</c>.
+            /// </summary>
             public Vector4 shoSegmentA => new Vector4(parent.segments[2].offsetX, parent.segments[2].offsetY, parent.segments[2].scaleX, parent.segments[2].scaleY);
+
+            /// <summary>
+            /// Shoulder segment settings, stored as <c>(ln1, B, 0, 0)</c>.
+            /// </summary>
             public Vector4 shoSegmentB => new Vector4(parent.segments[2].lnA, parent.segments[2].B, 0f, 0f);
         }
 
+        /// <summary>
+        /// An instance of the <see cref="Uniforms"/> utility class for this curve.
+        /// </summary>
         public readonly Uniforms uniforms;
     }
 }

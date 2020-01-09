@@ -18,7 +18,7 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT || WRITE_MOTION_VECTOR_IN_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -79,6 +79,8 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
+${VFXPassForwardDefine}
+	
 #if SHADERGRAPH_NEEDS_NORMAL_FORWARD
 #define VFX_VARYING_NORMAL normal
 #endif
@@ -87,8 +89,8 @@ Pass
 #endif
 		
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
-#if VFX_SHADERGRAPH            
-    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+#if VFX_SHADERGRAPH
+	${SHADERGRAPH_PIXEL_CODE_FORWARD}
 #endif
 		
 	#pragma fragment frag
@@ -121,11 +123,12 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
-        o.color = VFXTransformFinalColor(o.color);
+		o.color = VFXTransformFinalColor(o.color);
 		
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}
 		o.outMotionVector = encodedMotionVector;
+        o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
 #endif
 		return o;
 	}
