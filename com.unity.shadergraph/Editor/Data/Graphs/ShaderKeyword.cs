@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         {
             this.displayName = keywordType.ToString();
             this.keywordType = keywordType;
-            
+
             // Add sensible default entries for Enum type
             if(keywordType == KeywordType.Enum)
             {
@@ -32,15 +32,6 @@ namespace UnityEditor.ShaderGraph
 
         public static ShaderKeyword Create(KeywordDescriptor descriptor)
         {
-            if(descriptor.entries != null)
-            {
-                for(int i = 0; i < descriptor.entries.Length; i++)
-                {
-                    if(descriptor.entries[i].id == -1)
-                        descriptor.entries[i].id = i + 1;
-                }
-            }
-
             return new ShaderKeyword()
             {
                 m_IsExposable = false,
@@ -112,7 +103,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_IsExposable = true;
 
-        internal override bool isExposable => m_IsExposable 
+        internal override bool isExposable => m_IsExposable
             && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
 
         internal override bool isRenamable => isEditable;
@@ -142,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                     // Reference name must be appended with _ON but must be removed when generating block
                     if(referenceName.EndsWith("_ON"))
                         return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
-                    else 
+                    else
                         return string.Empty;
                 default:
                     throw new ArgumentOutOfRangeException();
