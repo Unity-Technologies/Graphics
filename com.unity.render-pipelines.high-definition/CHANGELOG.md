@@ -332,6 +332,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
 - Disabled the refraction and transmission map keywords if the material is opaque.
 - Keep celestial bodies outside the atmosphere.
+- Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
 
 ## [7.1.1] - 2019-09-05
 
