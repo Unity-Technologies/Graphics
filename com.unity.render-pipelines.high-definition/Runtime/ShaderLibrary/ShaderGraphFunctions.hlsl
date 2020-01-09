@@ -31,7 +31,9 @@ float shadergraph_HDSampleSceneDepth(float2 uv)
 float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
 #if defined(BLIT_PASS)
-    return LOAD_TEXTURE2D_X(_ColorPyramidTexture, uv);
+    float width, height, elements;
+    _ColorPyramidTexture.GetDimensions(width, height, elements);
+    return SAMPLE_TEXTURE2D_X(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv / float2(width, height));
 #else
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT) 
     // We always remove the pre-exposure when we sample the scene color
