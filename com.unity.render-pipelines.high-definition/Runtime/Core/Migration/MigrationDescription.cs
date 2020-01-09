@@ -98,7 +98,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Special in prefab case
-            if (target is UnityEngine.Object && UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(target as UnityEngine.Object))
+            if (target is UnityEngine.Object unityObject
+                && !unityObject.Equals(null)
+                && UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(target as UnityEngine.Object))
             {
                 UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(target as UnityEngine.Object);
             }
