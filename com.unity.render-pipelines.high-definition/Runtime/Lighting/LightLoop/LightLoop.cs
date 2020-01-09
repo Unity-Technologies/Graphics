@@ -1224,6 +1224,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        // This function evaluates if there is currently enough screen space sahdow slots of a given light based on its light type
+        bool EnoughScreenSpaceShadowSlots(GPULightType gpuLightType, int screenSpaceChannelSlot)
+        {
+            if(gpuLightType == GPULightType.Rectangle)
+            {
+                // Area lights require two shadow slots
+                return (screenSpaceChannelSlot + 1) < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
+            }
+            else
+            {
+                return screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
+            } 
+        }
+
         internal bool GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot)
@@ -1438,29 +1452,52 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                && screenSpaceChannelSlot < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots
+                && EnoughScreenSpaceShadowSlots(lightData.lightType, screenSpaceChannelSlot)
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
-                // Keep track of the shadow map (for indirect lighting and transparents)
-                lightData.shadowIndex = shadowIndex;
-                additionalLightData.shadowIndex = shadowIndex;
-                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                if (lightData.lightType == GPULightType.Rectangle)
+                {
+                    // Rectangle area lights require 2 consecutive slots.
+                    // Meaning if (screenSpaceChannelSlot % 4 ==3), we'll need to skip a slot
+                    // so that the area shadow gets the first two slots of the next following texture
+                    if (screenSpaceChannelSlot % 4 == 3)
+                    {
+                        screenSpaceChannelSlot++;
+                    }
+                }
 
-                // Keep track of the screen space shadow data
+                // Bind the next available slot to the light
                 lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
+
+                // Keep track of the slot and screen space shadow index that was assignel to this light
+                additionalLightData.screenSpaceShadowSlot = lightData.screenSpaceShadowIndex;
+                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                
+                // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 m_ScreenSpaceShadowsUnion.Add(additionalLightData);
+
+                // increment the number of screen space shadows
                 screenSpaceShadowIndex++;
-                screenSpaceChannelSlot++;
+
+                // Based on the light type, increment the slot usage
+                if (lightData.lightType == GPULightType.Rectangle)
+                    screenSpaceChannelSlot += 2;
+                else
+                    screenSpaceChannelSlot++;
             }
             else
             {
-                // fix up shadow information
-                lightData.shadowIndex = shadowIndex;
-                additionalLightData.shadowIndex = shadowIndex;
+                // Invalidate the references in the additional light data
+                additionalLightData.screenSpaceShadowSlot = -1;
+                additionalLightData.screenSpaceShadowIndex = -1;
             }
+            
+            lightData.shadowIndex = shadowIndex;
+            // Keep track of the shadow map (for indirect lighting and transparents)
+            additionalLightData.shadowIndex = shadowIndex;
 
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
