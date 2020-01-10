@@ -170,7 +170,7 @@ void UnpackHistoryData(uint historyData, out float AO, out float depth, out floa
 RW_TEXTURE2D_X(uint, _AOOutputHistory);
 
 TEXTURE2D_X(_AOPackedBlurred);
-TEXTURE2D_X(_AOPackedHistory);
+TEXTURE2D_X_UINT(_AOPackedHistory);
 
 #if HALF_RES
 RW_TEXTURE2D_X(float, _OcclusionTexture);
