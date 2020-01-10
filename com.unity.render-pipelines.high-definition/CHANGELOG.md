@@ -298,6 +298,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom post process Cleanup function not called in some cases.
 - Fixed an issue with light list remaining in a stale state if multiple camera are present and no non-directional lights are in the scene.
 - Fixed shader warning in AO code.
+- Fixed a warning in simpledenoiser.compute
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
