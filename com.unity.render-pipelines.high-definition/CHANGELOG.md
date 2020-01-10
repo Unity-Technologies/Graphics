@@ -287,6 +287,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issues where decals on PS4 would not correctly write out the tile mask causing bits of the decal to go missing.
 - Use appropriate label width and text content so the label is completely visible
 - Fixed an issue where final post process pass would not output the default alpha value of 1.0 when using 11_11_10 color buffer format.
+- Fixed SSR issue after the MSAA Motion Vector fix.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
