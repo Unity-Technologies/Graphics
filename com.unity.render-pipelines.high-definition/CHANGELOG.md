@@ -283,6 +283,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a lot of issues related to ray traced screen space shadows.
 - Fixed memory leak caused by apply distortion material not being disposed.
 - Fixed Reflection probe incorrectly culled when moving its parent (case 1207660)
+- Fixed a nullref when upgrading the Fog volume components while the volume is opened in the inspector.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
