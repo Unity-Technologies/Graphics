@@ -293,6 +293,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with PCSS softness being incorrect for cascades different than the first one.
 - Fixed custom post process not rendering when using multiple HDRP asset in quality settings
 - Fixed probe gizmo missing id (case 1208975)
+- Fixed a warning in raytracingshadowfilter.compute
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
