@@ -45,6 +45,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
+        [SerializeField, Reload("Shaders/2D/Light2D-Global.shader")]
+        Shader m_GlobalLightShader = null;
+
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
@@ -60,8 +63,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader blitShader => m_BlitShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
-        internal PostProcessData postProcessData => m_PostProcessData;
 
+        internal Shader globalLightShader => m_GlobalLightShader;
+
+        internal PostProcessData postProcessData => m_PostProcessData;
 
         protected override ScriptableRenderer Create()
         {

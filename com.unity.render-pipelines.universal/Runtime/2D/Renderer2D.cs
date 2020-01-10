@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         ColorGradingLutPass m_ColorGradingLutPass;
         Render2DLightingPass m_Render2DLightingPass;
+        Deferred2DShadingPass m_Deferred2DShadingPass;
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
@@ -27,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
+            m_Deferred2DShadingPass = new Deferred2DShadingPass(data);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
@@ -82,6 +84,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
+
+            //m_Deferred2DShadingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
+            //EnqueuePass(m_Deferred2DShadingPass);
 
             bool requireFinalBlitPass = useOffscreenColorTexture;
             var finalBlitSourceHandle = m_ColorTargetHandle;
