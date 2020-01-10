@@ -289,6 +289,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where final post process pass would not output the default alpha value of 1.0 when using 11_11_10 color buffer format.
 - Fixed SSR issue after the MSAA Motion Vector fix.
 - Fixed an issue with PCSS on directional light if punctual shadow atlas was not allocated.
+- Fixed an issue where shadow resolution would be wrong on the first face of a baked reflection probe.
+- Fixed issue with PCSS softness being incorrect for cascades different than the first one.
+- Fixed custom post process not rendering when using multiple HDRP asset in quality settings
+- Fixed probe gizmo missing id (case 1208975)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -341,6 +345,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Keep celestial bodies outside the atmosphere.
 - Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
 - Shader use for Runtime Debug Display are now correctly stripper when doing a release build
+- Now each camera has its own Volume Stack. This allows Volume Parameters to be updated as early as possible and be ready for the whole frame without conflicts between cameras.
 
 ## [7.1.1] - 2019-09-05
 

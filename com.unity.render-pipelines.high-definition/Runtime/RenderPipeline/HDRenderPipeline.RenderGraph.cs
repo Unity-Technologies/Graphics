@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                     VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
+                     hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
             {
                 // TODO RENDERGRAPH
                 //// Update the light clusters that we need to update
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky And Fog", out var passData))
             {
-                passData.visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+                passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
                 passData.sunLight = GetCurrentSunLight();
                 passData.hdCamera = hdCamera;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);

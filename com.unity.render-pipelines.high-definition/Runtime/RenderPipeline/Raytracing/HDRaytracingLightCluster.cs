@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateClusterVolume(HDCamera hdCamera)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+            var settings = hdCamera.volumeStack.GetComponent<LightCluster>();
 
             clusterCenter = hdCamera.camera.gameObject.transform.position;
             minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -368,11 +368,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightCluster(CommandBuffer cmd)
+        void BuildLightCluster(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster)))
             {
-                var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+                var lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
                 numLightsPerCell = lightClusterSettings.maxNumLightsPercell.value;
 
                 // Make sure the Cluster buffer has the right size
@@ -810,7 +810,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CullLights(cmd);
 
             // Build the light Cluster
-            BuildLightCluster(cmd);
+            BuildLightCluster(hdCamera, cmd);
 
             // Build the light data
             BuildLightData(cmd, hdCamera, rayTracingLights);

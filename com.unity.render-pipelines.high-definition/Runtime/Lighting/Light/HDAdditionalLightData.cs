@@ -1399,17 +1399,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized] internal int screenSpaceShadowSlot;
         [System.NonSerialized] internal int screenSpaceShadowIndex;
 
-        [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
-        HDShadowSettings    m_ShadowSettings
-        {
-            get
-            {
-                if (_ShadowSettings == null)
-                    _ShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
-                return _ShadowSettings;
-            }
-        }
-
         // Runtime datas used to compute light intensity
         Light m_Light;
         internal Light legacyLight
@@ -1478,13 +1467,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        int GetShadowRequestCount()
+        int GetShadowRequestCount(HDShadowSettings shadowSettings)
         {
             HDLightType lightType = type;
             return lightType == HDLightType.Point
                 ? 6
                 : lightType == HDLightType.Directional
-                    ? m_ShadowSettings.cascadeShadowSplitCount.value
+                    ? shadowSettings.cascadeShadowSplitCount.value
                     : 1;
         }
 
@@ -1588,7 +1577,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -1642,9 +1631,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update the directional shadow atlas size
             if (type == HDLightType.Directional)
-                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
+                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount();
+            int count = GetShadowRequestCount(shadowSettings);
             bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || type == HDLightType.Directional);
 
             for (int index = 0; index < count; index++)
@@ -1680,14 +1669,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return -offset;
         }
 
-        private void UpdateDirectionalShadowRequest(HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
+        private void UpdateDirectionalShadowRequest(HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
         {
             Vector4 cullingSphere;
             float nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
             HDShadowUtils.ExtractDirectionalLightData(
-                visibleLight, viewportSize, (uint)requestIndex, m_ShadowSettings.cascadeShadowSplitCount.value,
-                m_ShadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
+                visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
+                shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
                 out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                 out shadowRequest.deviceProjection, out shadowRequest.splitData
             );
@@ -1702,17 +1691,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingSphere.z -= cameraPos.z;
             }
 
-            manager.UpdateCascade(requestIndex, cullingSphere, m_ShadowSettings.cascadeShadowBorders[requestIndex]);
+            manager.UpdateCascade(requestIndex, cullingSphere, shadowSettings.cascadeShadowBorders[requestIndex]);
         }
 
         // Must return the first executed shadow request
-        internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, out int shadowRequestCount)
+        internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
             Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
-            int count = GetShadowRequestCount();
+            int count = GetShadowRequestCount(shadowSettings);
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
 
@@ -1748,7 +1737,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If directional we still need to calculate the split data.
                     if (lightType == HDLightType.Directional)
-                        UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                        UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                 }
                 else
                 {
@@ -1777,7 +1766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             );
                             break;
                         case HDLightType.Directional:
-                            UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                            UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                             break;
                         case HDLightType.Area:
                             switch (areaLightShape)

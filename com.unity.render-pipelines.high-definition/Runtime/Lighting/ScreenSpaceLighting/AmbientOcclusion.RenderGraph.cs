@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RenderGraphResource Render(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthPyramid, RenderGraphResource motionVectors, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
             RenderGraphResource result;
             // AO has side effects (as it uses an imported history buffer)
