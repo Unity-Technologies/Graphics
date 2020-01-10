@@ -348,11 +348,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as RenderPipelineResources;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach (var field in typeof(RenderPipelineResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

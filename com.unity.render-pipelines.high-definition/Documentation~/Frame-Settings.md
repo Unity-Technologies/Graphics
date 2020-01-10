@@ -52,6 +52,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | - **Chromatic Aberration**            | Enable the checkbox to allow HDRP to add chromatic aberration to Cameras affected by a Volume containing the [Chromatic Aberration](Post-Processing-) override. |
 | - **Vignette**                        | Enable the checkbox to allow HDRP add a vignette to Cameras affected by a Volume containing the [Vignette](Post-Processing-Vignette.html) override. |
 | - **Color Grading**                   | Enable the checkbox to allow HDRP to process color grading for Cameras. |
+| - **Tonemapping**                     | Enable the checkbox to allow HDRP to process tonemapping for Cameras. |
 | - **Film Grain**                      | Enable the checkbox to allow HDRP to add film grain to Cameras affected by a Volume containing the [Film Grain](Post-Processing-Film-Grain.html) override. |
 | - **Dithering**                       | Enable the checkbox to allow HDRP to add dithering to  [Cameras](HDRP-Camera.html) that have **Dithering** enabled. |
 | - **Anti-aliasing**                   | Enable the checkbox to allow HDRP to do a post-process anti-aliasing pass for Cameras. This method that HDRP uses is the method specified in the Camera's **Anti-aliasing** drop-down. |
