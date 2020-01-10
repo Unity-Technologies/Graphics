@@ -231,37 +231,40 @@ namespace UnityEngine.Rendering.HighDefinition
             // Propagate the right mask
             instanceFlag |= materialIsOnlyTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
 
+            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
+            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
+
             if (rayTracedShadow)
             {
                 // Raise the shadow casting flag if needed
                 instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
             }
 
-            if (aoEnabled && !materialIsOnlyTransparent)
+            if (aoEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Ambient Occlusion flag if needed
                 instanceFlag |= ((aoLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.AmbientOcclusion) : 0x00;
             }
 
-            if (reflEnabled && !materialIsOnlyTransparent)
+            if (reflEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Screen Space Reflection if needed
                 instanceFlag |= ((reflLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
             }
 
-            if (giEnabled && !materialIsOnlyTransparent)
+            if (giEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((giLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
             }
 
-            if (recursiveEnabled)
+            if (recursiveEnabled && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((rrLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
             }
 
-            if (pathTracingEnabled)
+            if (pathTracingEnabled && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((ptLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.PathTracing) : 0x00;
