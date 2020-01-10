@@ -73,7 +73,16 @@ public class HDRP_GraphicTestRunner
                 bool allocatesMemory = false;
                 try
                 {
-                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings);
+                    // GC alloc from Camera.CustomRender (case 1206364)
+                    int gcAllocThreshold = 2;
+
+#if UNITY_2019_3
+                    // In case playmode tests for XR are enabled in 2019.3 we allow one GC alloc from XRSystem:120
+                    if (XRSystem.testModeEnabled)
+                        gcAllocThreshold += 1;
+#endif
+
+                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
                 }
                 catch (AssertionException)
                 {
