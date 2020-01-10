@@ -493,7 +493,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TotalLightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
-        bool m_hasRunLightListPrevFrame = false;
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
@@ -2867,14 +2866,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.runLightList = m_TotalLightCount > 0;
 
             // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state.
-            if (!parameters.runLightList && m_hasRunLightListPrevFrame)
+            // TODO: We re-run the light list building with no list since there was a problem with clearing the buffer. Need to investigate again the clear.
+            if (!parameters.runLightList && hdCamera.hasRunLightListBuildingPrevFrame)
             {
-                m_hasRunLightListPrevFrame = false;
+                hdCamera.hasRunLightListBuildingPrevFrame = false;
                 parameters.runLightList = true;
             }
             else
             {
-                m_hasRunLightListPrevFrame = parameters.runLightList;
+                hdCamera.hasRunLightListBuildingPrevFrame = parameters.runLightList;
             }
 
             // Always build the light list in XR mode to avoid issues with multi-pass
