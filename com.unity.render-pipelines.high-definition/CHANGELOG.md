@@ -336,6 +336,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled the refraction and transmission map keywords if the material is opaque.
 - Keep celestial bodies outside the atmosphere.
 - Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
+- Shader use for Runtime Debug Display are now correctly stripper when doing a release build
 
 ## [7.1.1] - 2019-09-05
 
