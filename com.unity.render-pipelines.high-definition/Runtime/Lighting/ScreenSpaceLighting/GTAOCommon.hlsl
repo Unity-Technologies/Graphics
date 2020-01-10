@@ -134,13 +134,14 @@ float GTAOFastAcos(float x)
 // --------------------------------------------
 float PackAOOutput(float AO, float depth)
 {
-     // 23 depth,  8 bit AO.
-    // Note: we keep the 1st bit empty as some issues arise with the asfloat(asuint()) combination. 
-    uint packedVal = 0;
-    packedVal = BitFieldInsert(0x000000ff, UnpackInt(AO, 8), packedVal);
-    uint depthAsUint = UnpackInt(depth, 23) << 8;
-    depthAsUint = depthAsUint == 0x7f800000 ? 0x7f800100 : depthAsUint; // Slightly modify depth to avoid a NaN bit pattern that can be a problem when sampling texture as float and converting back.
-    packedVal = BitFieldInsert(0x7fffff00, depthAsUint, packedVal);
+    uint packedDepth = f32tof16(depth) << 16;
+    uint packedAO = f32tof16(AO);
+    uint packedVal = packedAO | packedDepth;
+    // If it is a NaN we have no guarantee the sampler will keep the bit pattern, hence we invalidate the depth, meaning that the various bilateral passes will skip the sample.
+    if ((packedVal & 0x7FFFFFFF) > 0x7F800000)
+    {
+        packedVal = packedAO;
+    }
 
     // We need to output as float as gather4 on an integer texture is not always supported.
     return asfloat(packedVal);
@@ -148,10 +149,8 @@ float PackAOOutput(float AO, float depth)
 
 void UnpackData(float data, out float AO, out float depth)
 {
-    // 23 depth,  8 bit AO.
-    // Note: we keep the 1st bit empty as some issues arise with the asfloat(asuint()) combination. 
-    AO = UnpackUIntToFloat(asuint(data), 0, 8);
-    depth = UnpackUIntToFloat(asuint(data), 8, 23);
+    depth = f16tof32(asuint(data) >> 16);
+    AO = f16tof32(asuint(data));
 }
 
 void UnpackGatheredData(float4 data, out float4 AOs, out float4 depths)
