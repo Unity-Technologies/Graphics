@@ -47,6 +47,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // But we only want to update the ReflectionProbe.center property
             // So we need to restore the position after the update.
             tr.position = position;
+
+            // Force the legacy system to not update the probe
+            cubeProbe.mode = ReflectionProbeMode.Custom;
+            cubeProbe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
         }
     }
 }
