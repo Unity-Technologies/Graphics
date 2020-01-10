@@ -637,10 +637,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingIncludeSky            = Shader.PropertyToID("_RaytracingIncludeSky");
         public static readonly int _UseRayTracedReflections         = Shader.PropertyToID("_UseRayTracedReflections");
-        
+
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
-        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot"); 
+        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _RaytracingChannelMask           = Shader.PropertyToID("_RaytracingChannelMask");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
         public static readonly int _RaytracedAreaShadowSample       = Shader.PropertyToID("_RaytracedAreaShadowSample");
@@ -835,6 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
+        public static readonly int _KeepAlpha                      = Shader.PropertyToID("_KeepAlpha");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
 
         public static readonly int _MotionVecAndDepth              = Shader.PropertyToID("_MotionVecAndDepth");

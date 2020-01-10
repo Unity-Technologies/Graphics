@@ -33,6 +33,7 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _GrainTextureParams;     // x: width, y: height, zw: random offset
         float3 _DitherParams;           // x: width, y: height, z: texture_id
         float4 _UVTransform;
+        float  _KeepAlpha;
 
         struct Attributes
         {
@@ -76,6 +77,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 Frag(Varyings input) : SV_Target0
         {
+
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 positionNDC = input.texcoord;
@@ -92,7 +94,7 @@ Shader "Hidden/HDRP/FinalPass"
             float3 outColor = inputColor.rgb;
             #endif
 
-            float outAlpha = LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x;
+            float outAlpha = (_KeepAlpha == 1.0) ? LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x : 1.0;
 
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
