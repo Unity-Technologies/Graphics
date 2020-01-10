@@ -347,6 +347,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
 - Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
+- Updated macros to be compatible with the new shader preprocessor.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
 - Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
 - Disabled the refraction and transmission map keywords if the material is opaque.

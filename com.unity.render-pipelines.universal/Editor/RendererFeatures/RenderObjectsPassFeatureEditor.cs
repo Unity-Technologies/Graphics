@@ -34,9 +34,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
 		    //Camera Settings
 		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera matrices.");
-		    public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
-		    public static GUIContent positionOffset = new GUIContent("Position Offset", "This Vector acts as a relative offset for the camera.");
-		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera matrices before this pass.");
+		    public static GUIContent cameraFOV = new GUIContent("Field Of View", "The camera's view angle measured in degrees along vertical axis.");
+		    public static GUIContent positionOffset = new GUIContent("Position Offset", "Position offset to apply to the original camera's position.");
+		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera matrices after the execution of the render passes added by this feature.");
         }
 
 	    //Headers and layout
