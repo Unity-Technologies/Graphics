@@ -473,7 +473,7 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
         // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
-        if (tapCoord.x > _ScreenSize.x || tapCoord.y > _ScreenSize.y)
+        if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
             continue;
             
         // Compute the weight (skip computation for the center)
