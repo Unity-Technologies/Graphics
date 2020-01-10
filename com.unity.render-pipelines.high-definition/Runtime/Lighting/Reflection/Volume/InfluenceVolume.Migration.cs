@@ -37,7 +37,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 obsoleteOffset { get => m_ObsoleteOffset; set => m_ObsoleteOffset = value; }
 #pragma warning restore 649 //never assigned
 
+        /// <summary>Serialization callback</summary>
         public void OnBeforeSerialize() { }
+        /// <summary>Serialization callback</summary>
         public void OnAfterDeserialize() => k_Migration.Migrate(this);
     }
 }

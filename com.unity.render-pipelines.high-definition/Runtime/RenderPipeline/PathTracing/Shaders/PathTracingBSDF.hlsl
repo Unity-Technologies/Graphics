@@ -57,6 +57,30 @@ void EvaluateGGX(MaterialData mtlData,
     value = F * D * Vg * NdotL;
 }
 
+bool SampleDelta(MaterialData mtlData,
+             out float3 outgoingDir,
+             out float3 value,
+             out float pdf)
+{
+    if (IsAbove(mtlData))
+    {
+        outgoingDir = reflect(-mtlData.V, mtlData.bsdfData.normalWS);
+        float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
+        value = F_Schlick(mtlData.bsdfData.fresnel0, NdotV);
+    }
+    else // Below
+    {
+        outgoingDir = -reflect(mtlData.V, mtlData.bsdfData.normalWS);
+        float NdotV = -dot(mtlData.bsdfData.normalWS, mtlData.V);
+        value = F_FresnelDielectric(1.0 / mtlData.bsdfData.ior, NdotV);
+    }
+
+    value *= mtlData.bsdfData.transmittanceMask * DELTA_PDF;
+    pdf = DELTA_PDF;
+
+    return any(outgoingDir);
+}
+
 bool SampleLambert(MaterialData mtlData,
                    float3 inputSample,
                out float3 outgoingDir,
@@ -167,9 +191,9 @@ bool SampleDelta(MaterialData mtlData,
     }
     else // Below
     {
-        outgoingDir = refract(-mtlData.V, -mtlData.bsdfData.normalWS, mtlData.bsdfData.ior);
+        outgoingDir = -refract(mtlData.V, mtlData.bsdfData.normalWS, mtlData.bsdfData.ior);
         float NdotV = -dot(mtlData.bsdfData.normalWS, mtlData.V);
-        value = 0.95; // FIXME: proper dielectric Fresnel
+        value = 1.0 - F_FresnelDielectric(1.0 / mtlData.bsdfData.ior, NdotV);
     }
 
     value *= mtlData.bsdfData.transmittanceMask * DELTA_PDF;

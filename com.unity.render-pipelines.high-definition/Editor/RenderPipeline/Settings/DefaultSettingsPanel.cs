@@ -246,7 +246,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         foreach (var kp in ppVolumeTypeInjectionPoints)
                         {
                             if (kp.Value == injectionPoint && !customPostProcessTypes.Contains(kp.Key.AssemblyQualifiedName))
-                                menu.AddItem(new GUIContent(kp.Key.ToString()), false, () => customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName));
+                                menu.AddItem(new GUIContent(kp.Key.ToString()), false, () => {
+                                    Undo.RegisterCompleteObjectUndo(hdrpAsset, $"Added {kp.Key.ToString()} Custom Post Process");
+                                    customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName);
+                                });
                         }
 
                         if (menu.GetItemCount() == 0)
@@ -257,10 +260,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     };
                     reorderableList.onRemoveCallback = (list) =>
                     {
+                        Undo.RegisterCompleteObjectUndo(hdrpAsset, $"Removed {list.list[list.index].ToString()} Custom Post Process");
                         customPostProcessTypes.RemoveAt(list.index);
                         EditorUtility.SetDirty(hdrpAsset);
                     };
                     reorderableList.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    reorderableList.onReorderCallback = (list) => EditorUtility.SetDirty(hdrpAsset);
                 }
             }
 

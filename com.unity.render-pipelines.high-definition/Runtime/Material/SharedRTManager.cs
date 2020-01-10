@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_MotionVectorsRT = null;
         RTHandle m_CameraDepthStencilBuffer = null;
         // Needed in case passes will need to read stencil per pixel rather than per sample
-        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature. 
+        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature.
         RTHandle m_StencilBufferResolved;
         RTHandle m_CameraDepthBufferMipChain;
         RTHandle m_CameraHalfResDepthBuffer = null;
@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingSample(cmd, "ComputeDepthValues", CustomSamplerId.VolumeUpdate.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAADepth)))
                 {
                     // Grab the RTIs and set the output render targets
                     m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAColor)))
                 {
                     // Grab the RTIs and set the output render targets
                     CoreUtils.SetRenderTarget(cmd, simpleTarget);

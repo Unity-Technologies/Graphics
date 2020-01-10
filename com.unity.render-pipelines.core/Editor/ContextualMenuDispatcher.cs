@@ -37,6 +37,8 @@ namespace UnityEditor.Rendering
     public interface IRemoveAdditionalDataContextualMenu<T>
         where T : Component
     {
+        /// <summary>Remove the given component</summary>
+        /// <param name="component">The component to remove</param>
         void RemoveComponent(T component);
     }
 }

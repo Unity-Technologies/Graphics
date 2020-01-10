@@ -6,62 +6,144 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// An utility window used to list and filter a set of elements, as seen in the inspector when
+    /// clicking on the "Add Component" button.
+    /// </summary>
     [InitializeOnLoad]
     public class FilterWindow : EditorWindow
     {
+        /// <summary>
+        /// The interface to implement to populate the list or tree and traverse its elements.
+        /// </summary>
         public interface IProvider
         {
+            /// <summary>
+            /// The position of the window on screen.
+            /// </summary>
             Vector2 position { get; set; }
 
+            /// <summary>
+            /// Implement this method to populate the list or tree of elements.
+            /// </summary>
+            /// <param name="tree">The list to populate.</param>
             void CreateComponentTree(List<Element> tree);
+
+            /// <summary>
+            /// Implement this method to define the behavior when an item is selected.
+            /// </summary>
+            /// <param name="element">The selected element.</param>
+            /// <param name="addIfComponent"></param>
+            /// <returns><c>true</c> if the window should close, <c>false</c> otherwise.</returns>
             bool GoToChild(Element element, bool addIfComponent);
         }
 
+        /// <summary>
+        /// The default width for the window.
+        /// </summary>
         public static readonly float DefaultWidth = 250f;
+
+        /// <summary>
+        /// The default height for the window.
+        /// </summary>
         public static readonly float DefaultHeight = 300f;
 
         #region BaseElements
 
+        /// <summary>
+        /// An element from the filtered list or tree.
+        /// </summary>
+        /// <seealso cref="GroupElement"/>
         public class Element : IComparable
         {
+            /// <summary>
+            /// The current hierarchical level in the tree.
+            /// </summary>
             public int level;
+
+            /// <summary>
+            /// The displayed content for the element.
+            /// </summary>
             public GUIContent content;
 
+            /// <summary>
+            /// The name of the element as displayed in the UI.
+            /// </summary>
             public string name
             {
                 get { return content.text; }
             }
 
+            /// <summary>
+            /// Compares this element to another object.
+            /// </summary>
+            /// <param name="o">The object to compare to.</param>
+            /// <returns><c>true</c> if both objects are the same, <c>false</c> otherwise.</returns>
             public int CompareTo(object o)
             {
                 return name.CompareTo((o as Element).name);
             }
         }
 
+        /// <summary>
+        /// A meta element used to group several elements in the list or tree.
+        /// </summary>
+        /// <seealso cref="Element"/>
         [Serializable]
         public class GroupElement : Element
         {
+            /// <summary>
+            /// The current scroll position in the UI.
+            /// </summary>
             public Vector2 scroll;
+
+            /// <summary>
+            /// The current selected index in the group.
+            /// </summary>
             public int selectedIndex;
 
+            /// <summary>
+            /// Requests focus for the element.
+            /// </summary>
             public bool WantsFocus { get; protected set; }
 
+            /// <summary>
+            /// Returns <c>true</c> if this group and its content should appear disabled in the UI.
+            /// </summary>
             public virtual bool ShouldDisable
             {
                 get { return false; }
             }
 
+            /// <summary>
+            /// Creates a new <see cref="GroupElement"/>
+            /// </summary>
+            /// <param name="level">The group level.</param>
+            /// <param name="name">The display name for the group.</param>
             public GroupElement(int level, string name)
             {
                 this.level = level;
                 content = new GUIContent(name);
             }
 
+            /// <summary>
+            /// Handles custom keyboard events on this group.
+            /// </summary>
+            /// <param name="evt">The event.</param>
+            /// <param name="window">A reference to the parent <see cref="FilterWindow"/>.</param>
+            /// <param name="goToParent">The action to execute if a "back" action is triggered in the UI.</param>
+            /// <returns><c>true</c> if the builtin events should execute for this group, <c>false</c> otherwise.</returns>
             public virtual bool HandleKeyboard(Event evt, FilterWindow window, Action goToParent)
             {
                 return false;
             }
 
+            /// <summary>
+            /// A custom drawing method for this group.
+            /// </summary>
+            /// <param name="sFilterWindow">A reference to the parent <see cref="FilterWindow"/>.</param>
+            /// <returns><c>true</c> if the builtin drawing function should execute for this group,
+            /// <c>false</c> otherwise.</returns>
             public virtual bool OnGUI(FilterWindow sFilterWindow)
             {
                 return false;

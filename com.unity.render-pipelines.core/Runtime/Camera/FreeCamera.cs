@@ -3,14 +3,32 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Utility Free Camera component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Free-Camera" + Documentation.endURL)]
     [ExecuteAlways]
     public class FreeCamera : MonoBehaviour
     {
+        /// <summary>
+        /// Rotation speed when using a controller.
+        /// </summary>
         public float m_LookSpeedController = 120f;
+        /// <summary>
+        /// Rotation speed when using the mouse.
+        /// </summary>
         public float m_LookSpeedMouse = 10.0f;
+        /// <summary>
+        /// Movement speed.
+        /// </summary>
         public float m_MoveSpeed = 10.0f;
+        /// <summary>
+        /// Value added to the speed when incrementing.
+        /// </summary>
         public float m_MoveSpeedIncrement = 2.5f;
+        /// <summary>
+        /// Scale factor of the turbo mode.
+        /// </summary>
         public float m_Turbo = 10.0f;
 
         private static string kMouseX = "Mouse X";
