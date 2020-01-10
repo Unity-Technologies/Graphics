@@ -392,7 +392,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             HDProbeSystem.UnregisterProbe(this);
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+#endif
         }
 
         void OnValidate()
