@@ -96,11 +96,11 @@ float2 ScreenSpaceGlobalToLocal(float2 uv) { return (uv - _GlobalScreenSpacePara
 #if (VARIANT & UBERPOSTFEATUREFLAGS_GLOBAL_SCREENSPACE)
     #define SCREEN_SPACE_GLOBAL(uv) (ScreenSpaceLocalToGlobal(uv))
     #define SCREEN_SPACE_LOCAL(uv) (ScreenSpaceGlobalToLocal(uv))
-    #define ScreenSizeGlobal _GlobalScreenSpaceParams[1]
+    #define ScreenSize _GlobalScreenSpaceParams[1]
 #else
     #define SCREEN_SPACE_GLOBAL(uv) uv
     #define SCREEN_SPACE_LOCAL(uv) uv
-    #define ScreenSizeGlobal _ScreenSize
+    #define ScreenSize _ScreenSize
 #endif
 
 float2 DistortUV(float2 uv)
@@ -148,7 +148,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 coords = 2.0 * uv - 1.0;
         float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
         float2 diff = end - uv;
-        int samples = clamp(int(length(ScreenSizeGlobal.xy * diff / 2.0)), 3, ChromaMaxSamples);
+        int samples = clamp(int(length(ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
         float2 delta = diff / samples;
         float2 pos = uv;
         float3 sum = 0.0, filterSum = 0.0;
@@ -201,7 +201,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         if (VignetteMode == 0u) // Procedural
         {
             float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-            d.x *= lerp(1.0, ScreenSizeGlobal.x / ScreenSizeGlobal.y, VignetteRounded);
+            d.x *= lerp(1.0, ScreenSize.x / ScreenSize.y, VignetteRounded);
             d = pow(saturate(d), VignetteRoundness);
             float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
             color *= lerp(VignetteColor, (1.0).xxx, vfactor);
