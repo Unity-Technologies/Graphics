@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 140;
+            return 170;
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)

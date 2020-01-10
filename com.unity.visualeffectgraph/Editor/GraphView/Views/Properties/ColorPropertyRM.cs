@@ -51,12 +51,14 @@ namespace UnityEditor.VFX.UI
 
             m_MainContainer.Add(fieldContainer);
 
+            m_FloatFields[0].label.AddToClassList("first");
+
             Add(m_MainContainer);
         }
 
         public override float GetPreferredControlWidth()
         {
-            return 200;
+            return 224;
         }
 
         protected override void UpdateEnabled()
