@@ -288,6 +288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use appropriate label width and text content so the label is completely visible
 - Fixed an issue where final post process pass would not output the default alpha value of 1.0 when using 11_11_10 color buffer format.
 - Fixed SSR issue after the MSAA Motion Vector fix.
+- Fixed an issue with PCSS on directional light if punctual shadow atlas was not allocated.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
