@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="actionOnGet">Action on get.</param>
         /// <param name="actionOnRelease">Action on release.</param>
+        /// <param name="collectionCheck">True if collection integrity should be checked.</param>
         public ObjectPool(UnityAction<T> actionOnGet, UnityAction<T> actionOnRelease, bool collectionCheck = true)
         {
             m_ActionOnGet = actionOnGet;

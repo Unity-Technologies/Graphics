@@ -55,6 +55,12 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class ProfilingSampler
     {
+        /// <summary>
+        /// Get the sampler for the corresponding enumeration value.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the enumeration.</typeparam>
+        /// <param name="marker">Enumeration value.</param>
+        /// <returns>The profiling sampler for the given enumeration value.</returns>
         public static ProfilingSampler Get<TEnum>(TEnum marker)
             where TEnum : Enum
         {
@@ -66,6 +72,10 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Name of the profiling sampler.</param>
         public ProfilingSampler(string name)
         {
 #if UNITY_USE_RECORDER
@@ -167,10 +177,10 @@ namespace UnityEngine.Rendering
         ProfilingSampler() { }
     }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
     /// <summary>
     /// Scoped Profiling markers
     /// </summary>
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
     public struct ProfilingScope : IDisposable
     {
         string          m_Name;
@@ -233,13 +243,24 @@ namespace UnityEngine.Rendering
         }
 }
 #else
+    /// <summary>
+    /// Scoped Profiling markers
+    /// </summary>
     public struct ProfilingScope : IDisposable
     {
+        /// <summary>
+        /// Profiling Scope constructor
+        /// </summary>
+        /// <param name="cmd">Command buffer used to add markers and compute execution timings.</param>
+        /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
 
         }
 
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
         public void Dispose()
         {
         }
@@ -247,6 +268,9 @@ namespace UnityEngine.Rendering
 #endif
 
 
+    /// <summary>
+    /// Profiling Sampler class.
+    /// </summary>
     [System.Obsolete("Please use ProfilingScope")]
     public struct ProfilingSample : IDisposable
     {
@@ -256,6 +280,12 @@ namespace UnityEngine.Rendering
         bool m_Disposed;
         CustomSampler m_Sampler;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="name">Name of the profiling sample.</param>
+        /// <param name="sampler">Custom sampler for CPU profiling.</param>
         public ProfilingSample(CommandBuffer cmd, string name, CustomSampler sampler = null)
         {
             m_Cmd = cmd;
@@ -268,16 +298,31 @@ namespace UnityEngine.Rendering
         }
 
         // Shortcut to string.Format() using only one argument (reduces Gen0 GC pressure)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="format">Formating of the profiling sample.</param>
+        /// <param name="arg">Parameters for formating the name.</param>
         public ProfilingSample(CommandBuffer cmd, string format, object arg) : this(cmd, string.Format(format, arg))
         {
         }
 
         // Shortcut to string.Format() with variable amount of arguments - for performance critical
         // code you should pre-build & cache the marker name instead of using this
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="format">Formating of the profiling sample.</param>
+        /// <param name="args">Parameters for formating the name.</param>
         public ProfilingSample(CommandBuffer cmd, string format, params object[] args) : this(cmd, string.Format(format, args))
         {
         }
 
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
