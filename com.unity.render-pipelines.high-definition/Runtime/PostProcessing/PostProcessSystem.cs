@@ -2365,11 +2365,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,
-                m_KeepAlpha
-                ? m_AlphaTexture.rt
-                : (Texture)Texture2D.whiteTexture
-            );
+            if (m_KeepAlpha)
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, m_AlphaTexture);
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            }
+            else
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, TextureXR.GetWhiteTexture());
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 0.0f);
+            }
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY

@@ -208,6 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 var lookDevAsset = EditorDefaultSettings.GetOrAssignLookDevVolumeProfile();
+                EditorGUIUtility.labelWidth = 221;
                 var newLookDevAsset = (VolumeProfile)EditorGUILayout.ObjectField(Styles.lookDevVolumeProfileLabel, lookDevAsset, typeof(VolumeProfile), false);
                 if (lookDevAsset == null)
                 {
