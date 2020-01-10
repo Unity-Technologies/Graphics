@@ -227,7 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 // These parameters affect precomputation.
                 hash = hash * 23 + earthPreset.value.GetHashCode();
                 hash = hash * 23 + planetaryRadius.value.GetHashCode();
@@ -263,25 +262,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolAnisotropy.overrideState.GetHashCode();
 
                 hash = hash * 23 + numberOfBounces.overrideState.GetHashCode();
-#else
-                // These parameters affect precomputation.
-                hash = hash * 23 + earthPreset.GetHashCode();
-                hash = hash * 23 + planetaryRadius.GetHashCode();
-                hash = hash * 23 + groundTint.GetHashCode();
-
-                hash = hash * 23 + airMaximumAltitude.GetHashCode();
-                hash = hash * 23 + airDensityR.GetHashCode();
-                hash = hash * 23 + airDensityG.GetHashCode();
-                hash = hash * 23 + airDensityB.GetHashCode();
-                hash = hash * 23 + airTint.GetHashCode();
-
-                hash = hash * 23 + aerosolMaximumAltitude.GetHashCode();
-                hash = hash * 23 + aerosolDensity.GetHashCode();
-                hash = hash * 23 + aerosolTint.GetHashCode();
-                hash = hash * 23 + aerosolAnisotropy.GetHashCode();
-
-                hash = hash * 23 + numberOfBounces.GetHashCode();
-#endif
             }
 
             return hash;
@@ -293,7 +273,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 // These parameters do NOT affect precomputation.
                 hash = hash * 23 + sphericalMode.value.GetHashCode();
                 hash = hash * 23 + seaLevel.value.GetHashCode();
@@ -346,34 +325,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + horizonTint.overrideState.GetHashCode();
                 hash = hash * 23 + zenithTint.overrideState.GetHashCode();
                 hash = hash * 23 + horizonZenithShift.overrideState.GetHashCode();
-#else
-                // These parameters do NOT affect precomputation.
-                hash = hash * 23 + sphericalMode.GetHashCode();
-                hash = hash * 23 + seaLevel.GetHashCode();
-                hash = hash * 23 + planetCenterPosition.GetHashCode();
-                hash = hash * 23 + planetRotation.GetHashCode();
-
-                if (groundColorTexture.value != null)
-                    hash = hash * 23 + groundColorTexture.GetHashCode();
-
-                if (groundEmissionTexture.value != null)
-                    hash = hash * 23 + groundEmissionTexture.GetHashCode();
-
-                hash = hash * 23 + groundEmissionMultiplier.GetHashCode();
-
-                hash = hash * 23 + spaceRotation.GetHashCode();
-
-                if (spaceEmissionTexture.value != null)
-                    hash = hash * 23 + spaceEmissionTexture.GetHashCode();
-
-                hash = hash * 23 + spaceEmissionMultiplier.GetHashCode();
-                hash = hash * 23 + colorSaturation.GetHashCode();
-                hash = hash * 23 + alphaSaturation.GetHashCode();
-                hash = hash * 23 + alphaMultiplier.GetHashCode();
-                hash = hash * 23 + horizonTint.GetHashCode();
-                hash = hash * 23 + zenithTint.GetHashCode();
-                hash = hash * 23 + horizonZenithShift.GetHashCode();
-#endif
             }
 
             return hash;
