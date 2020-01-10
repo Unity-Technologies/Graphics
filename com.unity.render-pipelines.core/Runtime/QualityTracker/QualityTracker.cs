@@ -20,15 +20,8 @@ namespace UnityEngine.Rendering
 
         public QualityLevel[] Levels;
 
-
         public GameObject[] MaterialSceneRoots;
 
-        public enum QualityModes
-        {
-            EnableOnThisLevel = 0,
-            DisableOnThisLevel,
-            IgnoreThisLevel
-        }
 
         [System.Serializable]
         public struct QualityLevel
@@ -59,12 +52,8 @@ namespace UnityEngine.Rendering
 
         public void ActivateChildrenBasedOnLevel(int qualityLevel = -1)
         {
-
-
             if (qualityLevel < 0)
                 qualityLevel = lastQualityLevel;
-
-
 
             foreach (var level in Levels)
             {
