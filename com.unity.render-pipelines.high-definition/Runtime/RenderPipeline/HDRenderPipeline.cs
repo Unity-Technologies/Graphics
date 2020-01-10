@@ -1943,12 +1943,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
 
+            // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
             {
                 // If objects motion vectors if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
                 // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
                 RenderObjectsMotionVectors(cullingResults, hdCamera, renderContext, cmd);
+            }
+            // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
+            // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
+            bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            if (needCameraMVBeforeResolve)
+            {
                 RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
@@ -1977,9 +1984,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // See the call RenderObjectsMotionVectors() above and comment
                 RenderObjectsMotionVectors(cullingResults, hdCamera, renderContext, cmd);
-                RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
+            // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
+            if(!needCameraMVBeforeResolve)
+            {
+                RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
+            }
 
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.SceneView ||
