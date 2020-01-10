@@ -82,10 +82,10 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
-#ifdef HAS_LIGHTLOOP
-
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+
+#ifdef HAS_LIGHTLOOP
 
     // FIXME: Adjust roughness to reduce fireflies
     bsdfData.roughnessT = max(rayIntersection.maxRoughness, bsdfData.roughnessT);
@@ -208,7 +208,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     }
 
 #else // HAS_LIGHTLOOP
-    rayIntersection.color = (!currentDepth || computeDirect) ? builtinData.emissiveColor : 0.0;
+    rayIntersection.color = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 #endif
 
     // Bias the result (making it too dark), but reduces fireflies a lot
