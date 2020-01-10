@@ -2349,11 +2349,21 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
 
-        void UpdateAreaLightBounds()
+        void UpdateRectangleLightBounds()
         {
             legacyLight.useShadowMatrixOverride = false;
             legacyLight.useBoundingSphereOverride = true;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, legacyLight.range);
+            float halfWidth = m_ShapeWidth * 0.5f;
+            float halfHeight = m_ShapeHeight * 0.5f;
+            float diag = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, diag));
+        }
+
+        void UpdateTubeLightBounds()
+        {
+            legacyLight.useShadowMatrixOverride = false;
+            legacyLight.useBoundingSphereOverride = true;
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, m_ShapeWidth * 0.5f));
         }
 
         void UpdateBoxLightBounds()
@@ -2404,8 +2414,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (areaLightShape)
                     {
                         case AreaLightShape.Rectangle:
+                            UpdateRectangleLightBounds();
+                            break;
                         case AreaLightShape.Tube:
-                            UpdateAreaLightBounds();
+                            UpdateTubeLightBounds();
                             break;
                     }
                     break;
