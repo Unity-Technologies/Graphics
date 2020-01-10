@@ -21,15 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + bottom.value.GetHashCode();
-                hash = hash * 23 + top.value.GetHashCode();
-                hash = hash * 23 + middle.value.GetHashCode();
-                hash = hash * 23 + gradientDiffusion.value.GetHashCode();
-                
-                hash = hash * 23 + bottom.overrideState.GetHashCode();
-                hash = hash * 23 + top.overrideState.GetHashCode();
-                hash = hash * 23 + middle.overrideState.GetHashCode();
-                hash = hash * 23 + gradientDiffusion.overrideState.GetHashCode();
+                hash = hash * 23 + bottom.GetHashCode();
+                hash = hash * 23 + top.GetHashCode();
+                hash = hash * 23 + middle.GetHashCode();
+                hash = hash * 23 + gradientDiffusion.GetHashCode();
             }
 
             return hash;
