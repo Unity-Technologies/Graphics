@@ -100,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
+        bool m_GlobalScreenSpaceFS;
 
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
@@ -159,6 +160,15 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
+            // global screen space variants
+            PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -336,6 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_GlobalScreenSpaceFS   = frameSettings.IsEnabled(FrameSettingsField.GlobalScreenSpace);
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
@@ -635,6 +646,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
+
+            if (m_GlobalScreenSpaceFS)
+                flags |= UberPostFeatureFlags.GlobalScreenSpace;
 
             return flags;
         }

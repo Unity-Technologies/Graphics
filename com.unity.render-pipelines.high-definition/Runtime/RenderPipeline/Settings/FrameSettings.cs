@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Dithering = 90,
         [FrameSettingsField(0, displayedName: "Anti-aliasing", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.")]
         Antialiasing = 91,
+        [FrameSettingsField(0, displayedName: "Global Screen-Space", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP computes post effects in global screen space for camera using these Frame Settings.")]
+        GlobalScreenSpace = 93,
         [FrameSettingsField(0, displayedName: "After Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         AfterPostprocess = 17,
         [FrameSettingsField(0, displayedName: "Depth Test", positiveDependencies: new[] { AfterPostprocess }, customOrderInGroup: 19, tooltip: "When enabled, Cameras that don't use TAA process a depth test for Materials in the AfterPostProcess rendering pass.")]
@@ -310,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.PlanarProbe,
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.RayTracing
             }),
             lodBias = 1,
         };

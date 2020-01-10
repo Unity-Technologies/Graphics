@@ -2543,6 +2543,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.ObjectMotionVectors, false);
             }
 
+            currentFrameSettings.SetEnabled(FrameSettingsField.GlobalScreenSpace,
+                xrPass.viewCount != 0 && xrPass.GetGlobalScreenSpaceMatrix() != Matrix4x4.identity);
+
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera

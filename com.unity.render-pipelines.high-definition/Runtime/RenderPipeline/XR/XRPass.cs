@@ -108,7 +108,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
         internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
 
-        internal Matrix4x4 GetGlobalScreenSpaceMatrix(int viewIndex = 0) { return views[viewIndex].globalScreenSpaceParams; }
+        internal Matrix4x4 GetGlobalScreenSpaceMatrix(int viewIndex = 0)
+        {
+            return views[viewIndex].globalScreenSpaceParams;
+        }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
