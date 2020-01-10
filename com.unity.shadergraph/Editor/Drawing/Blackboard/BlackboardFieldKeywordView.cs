@@ -190,7 +190,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
-            var index = GetFirstUnusedID();
+            int index = GetFirstUnusedID();
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
             var displayName = GetDuplicateSafeDisplayName(index, "New");
             var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
 
@@ -219,8 +222,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return x;
             }
 
-            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are Used");
-            return 1;
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
         }
 
         private void RemoveEntry(ReorderableList list)
