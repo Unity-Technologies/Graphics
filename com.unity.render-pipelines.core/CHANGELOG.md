@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Updated macros to be compatible with the new shader preprocessor.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support

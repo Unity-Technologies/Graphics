@@ -166,10 +166,24 @@ namespace UnityEngine.Rendering.Universal
         {}
 
         /// <summary>
-        /// Cleanup any allocated data that was created during the execution of the pass.
+        /// Called upon finish rendering a camera. You can use this callback to release any resources created
+        /// by this render
+        /// pass that need to be cleanup once camera has finished rendering.
+        /// This method be called for all cameras in a camera stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
+        {}
+
+        /// <summary>
+        /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
+        /// by this render pass that need to be cleanup once all cameras in the stack have finished rendering.
+        /// This method will be called once after rendering the last camera in the camera stack.
+        /// Cameras that don't have an explicit camera stack are also considered stacked rendering.
+        /// In that case the Base camera is the first and last camera in the stack.
+        /// </summary>
+        /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
+        public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
         {}
 
         /// <summary>
