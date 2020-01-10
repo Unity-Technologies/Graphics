@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         public static readonly VFXExpression GameTotalTimeSinceSceneLoad = new VFXBuiltInExpression(VFXExpressionOperation.GameTotalTimeSinceSceneLoad);
         public static readonly VFXExpression GameTimeScale = new VFXBuiltInExpression(VFXExpressionOperation.GameTimeScale);
         public static readonly VFXExpression PlayRate = new VFXBuiltInExpression(VFXExpressionOperation.PlayRate);
-        public static readonly VFXExpression ManagerMaxDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.GameDeltaTime);
+        public static readonly VFXExpression ManagerMaxDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.ManagerMaxDeltaTime);
         public static readonly VFXExpression ManagerFixedTimeStep = new VFXBuiltInExpression(VFXExpressionOperation.ManagerFixedTimeStep);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
