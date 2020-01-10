@@ -257,33 +257,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
-
-            // Cleanup Custom Post Process
-            var defaultAsset = HDRenderPipeline.defaultAsset;
-            if (defaultAsset != null)
-            {
-                foreach (var typeString in defaultAsset.beforeTransparentCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in defaultAsset.beforePostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in defaultAsset.afterPostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-
-                void CleanupCustomPostProcess(string typeString)
-                {
-                    Type t = Type.GetType(typeString);
-
-                    if (t == null)
-                        return;
-
-                    // VolumeComponent from the stack are an additional instance of the ones from actual profile asset.
-                    // So things should not be cleaned up here (or profile would be missed) but rather in the OnDisable method
-                    // @antoinel will refactor that.
-                    //var comp = hdCamera.volumeStack.GetComponent(t) as CustomPostProcessVolumeComponent;
-                    //comp.CleanupInternal();
-                    //comp.CleanupInternal();
-                }
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
