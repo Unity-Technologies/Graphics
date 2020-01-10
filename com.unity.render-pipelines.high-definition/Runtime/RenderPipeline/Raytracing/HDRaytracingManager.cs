@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the direction and instance buffers
             m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
             m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
-        
+
             // Allocate the intermediate buffers
             m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
             m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         singleSided |= !doubleSided;
                     }
                 }
-                
+
                 // If the mesh was not valid, exclude it
                 if (!validMesh)
                 {
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
 
-        internal void BuildRayTracingAccelerationStructure()
+        internal void BuildRayTracingAccelerationStructure(HDCamera hdCamera)
         {
             // Clear all the per frame-data
             m_RayTracingRendererReference.Clear();
@@ -354,11 +354,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                             + m_RayTracingLights.hdRectLightArray.Count
                                             + m_RayTracingLights.reflectionProbeArray.Count;
 
-            AmbientOcclusion aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            ScreenSpaceReflection reflSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Status used to track the errors
             AccelerationStructureStatus status = AccelerationStructureStatus.Clear;
@@ -449,10 +449,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
         {
-            ScreenSpaceReflection reflSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value))
             {
@@ -514,7 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_DiffuseDenoiser;
         }
-        
+
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
             return m_ReflectionDenoiser;
