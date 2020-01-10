@@ -285,6 +285,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Reflection probe incorrectly culled when moving its parent (case 1207660)
 - Fixed a nullref when upgrading the Fog volume components while the volume is opened in the inspector.
 - Fix issues where decals on PS4 would not correctly write out the tile mask causing bits of the decal to go missing.
+- Fixed SSR issue after the MSAA Motion Vector fix.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
