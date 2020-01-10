@@ -276,8 +276,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (t == null)
                         return;
 
-                    var comp = VolumeManager.instance.stack.GetComponent(t) as CustomPostProcessVolumeComponent;                    comp.CleanupInternal();
-                    comp.CleanupInternal();
+                    // VolumeComponent from the stack are an additional instance of the ones from actual profile asset.
+                    // So things should not be cleaned up here (or profile would be missed) but rather in the OnDisable method
+                    // @antoinel will refactor that.
+                    //var comp = hdCamera.volumeStack.GetComponent(t) as CustomPostProcessVolumeComponent;
+                    //comp.CleanupInternal();
+                    //comp.CleanupInternal();
                 }
             }
         }
@@ -301,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
@@ -2443,7 +2447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (customPostProcessComponentType == null)
                 return false;
 
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
 
             if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
             {
