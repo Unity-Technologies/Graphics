@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.UI
                 if (m_IndeterminateLabel.parent == null)
                 {
                     field.RemoveFromHierarchy();
-                    Add(m_IndeterminateLabel);
+                    m_FieldParent.Add(m_IndeterminateLabel);
                 }
             }
             else
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.UI
                 if (field.parent == null)
                 {
                     m_IndeterminateLabel.RemoveFromHierarchy();
-                    Add(field);
+                    m_FieldParent.Add(field);
                 }
             }
         }

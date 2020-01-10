@@ -542,7 +542,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract INotifyValueChanged<U> CreateField();
 
-        VisualElement m_FieldParent;
+        protected VisualElement m_FieldParent;
         protected VisualElement m_TooltipHolder;
 
         public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
