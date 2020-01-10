@@ -272,6 +272,39 @@ You can retrieve the `CustomPassVolume` in script using [GetComponent](https://d
 
 You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
 
+### Scripting Custom Pass UI
+
+To customize the UI of custom passes, we use a similar pattern to the MonoBehaviour Editor, but the attributes are different, for example here is a part of the FullScreen Custom Pass Drawer:
+
+```CSharp
+[CustomPassDrawerAttribute(typeof(FullScreenCustomPass))]
+public class FullScreenCustomPassDrawer : CustomPassDrawer
+{
+    protected override void Initialize(SerializedProperty customPass)
+    {
+        // Initialize the local SerializedProperty you will use in your pass.
+    }
+
+    protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
+    {
+        // Draw your custom GUI using `EditorGUI` calls. Note that the Layout functions don't work here
+    }
+
+    protected override float GetPassHeight(SerializedProperty customPass)
+    {
+        // Return the number of vertical height in pixel that you used in your DoPassGUI.
+        // Can be dynamic.
+        return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * X;
+    }
+}
+```
+
+When you create a custom pass drawer, even if your DoPassGUI is empty, you'll have a default UI for all common settings to the pass (name, target buffers, clearflags). If you don't want it you can override the `commonPassUIFlags` property to remove some of them. For example here we only keep the name and the target buffer enum:
+
+```CSharp
+		protected override PassUIFlag commonPassUIFlags => PassUIFlag.Name | PassUIFlag.TargetColorBuffer;
+```
+
 ### Other API functions
 
 Sometimes you want to render objects only in a custom pass and not in the camera. To achieve this, you disable the layer of your objects in the camera culling mask, but it also means that the cullingResult you receive in the `Execute` function won't contain this object (because by default this cullingResult is the camera cullingResult). To overcome this issue, you can override this function in the CustomPass class:

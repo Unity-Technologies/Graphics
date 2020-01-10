@@ -32,13 +32,13 @@ Pass
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.EyeCinematic:             #define _MATERIAL_FEATURE_EYE_CINEMATIC 1
     $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
-    $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1
     $SpecularOcclusionCustom:           #define _SPECULAR_OCCLUSION_CUSTOM 1

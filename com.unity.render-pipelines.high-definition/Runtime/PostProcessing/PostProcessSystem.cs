@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_LensDistortionFS;
         bool m_VignetteFS;
         bool m_ColorGradingFS;
+        bool m_TonemappingFS;
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
@@ -256,29 +257,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
-
-            // Cleanup Custom Post Process
-            var currentHDRP = HDRenderPipeline.currentAsset;
-            if (currentHDRP != null)
-            {
-                foreach (var typeString in currentHDRP.beforeTransparentCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.beforePostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.afterPostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-
-                void CleanupCustomPostProcess(string typeString)
-                {
-                    Type t = Type.GetType(typeString);
-
-                    if (t == null)
-                        return;
-
-                    var comp = VolumeManager.instance.stack.GetComponent(t) as CustomPostProcessVolumeComponent;                    comp.CleanupInternal();
-                    comp.CleanupInternal();
-                }
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -300,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
@@ -332,6 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
             m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
@@ -473,7 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.beforePostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -574,7 +553,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterPP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.afterPostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -2007,7 +1986,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeSplitToning(out var splitShadows, out var splitHighlights);
 
             // Setup lut builder compute & grab the kernel we need
-            var tonemappingMode = m_Tonemapping.mode.value;
+            var tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
             var builderCS = m_Resources.shaders.lutBuilder3DCS;
             string kernelName = "KBuild_NoTonemap";
 
@@ -2081,6 +2060,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / m_LutSize, m_LutSize - 1f, m_Tonemapping.lutContribution.value, 0f));
             }
 
+            // Misc parameters
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f));
+
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
@@ -2095,7 +2077,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, m_ColorGradingFS ? 1f : 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
@@ -2360,11 +2342,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,
-                m_KeepAlpha
-                ? m_AlphaTexture.rt
-                : (Texture)Texture2D.whiteTexture
-            );
+            if (m_KeepAlpha)
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, m_AlphaTexture);
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            }
+            else
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, TextureXR.GetWhiteTexture());
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 0.0f);
+            }
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
@@ -2415,7 +2402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 bool needsBlitToColorBuffer = false;
-                foreach (var typeString in HDRenderPipeline.currentAsset.beforeTransparentCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
                     needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
 
                 if (needsBlitToColorBuffer)
@@ -2433,7 +2420,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (customPostProcessComponentType == null)
                 return false;
 
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
 
             if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
             {
@@ -2441,16 +2428,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (customPP is IPostProcessComponent pp && pp.IsActive())
                 {
-                    var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                    CoreUtils.SetRenderTarget(cmd, destination);
+                    if (camera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                     {
-                        cmd.BeginSample(customPP.name);
-                        customPP.Render(cmd, camera, source, destination);
-                        cmd.EndSample(customPP.name);
-                    }
-                    PoolSourceGuard(ref source, destination, colorBuffer);
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        CoreUtils.SetRenderTarget(cmd, destination);
+                        {
+                            cmd.BeginSample(customPP.name);
+                            customPP.Render(cmd, camera, source, destination);
+                            cmd.EndSample(customPP.name);
+                        }
+                        PoolSourceGuard(ref source, destination, colorBuffer);
 
-                    return true;
+                        return true;
+                    }
                 }
             }
 
