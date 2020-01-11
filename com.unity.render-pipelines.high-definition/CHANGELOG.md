@@ -297,7 +297,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning in raytracingshadowfilter.compute
 - Fixed issue with AO breaking with small near plane values.
 - Fixed custom post process Cleanup function not called in some cases.
-- Fixed an issue with light list remaining in a stale state if multiple camera are present and no non-directional lights are in the scene.
 - Fixed shader warning in AO code.
 - Fixed a warning in simpledenoiser.compute
 - Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
