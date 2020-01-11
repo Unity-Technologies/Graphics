@@ -71,8 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
         internal uint cameraFrameCount = 0;
 
-        internal bool hasRunLightListBuildingPrevFrame = false;
-
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
