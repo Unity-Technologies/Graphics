@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Updated macros to be compatible with the new shader preprocessor.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
 - Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
 - Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
+- Fix `WaveIsFirstLane()` to ignore helper lanes in fragment shaders on PS4.
 
 ## [7.1.1] - 2019-09-05
 

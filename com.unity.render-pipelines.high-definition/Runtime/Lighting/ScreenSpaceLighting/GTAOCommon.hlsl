@@ -132,27 +132,39 @@ float GTAOFastAcos(float x)
 // --------------------------------------------
 // Output functions
 // --------------------------------------------
-uint PackAOOutput(float AO, float depth)
+float PackAOOutput(float AO, float depth)
 {
-     // 24 depth,  8 bit AO
-    uint packedVal = 0;
-    packedVal = BitFieldInsert(0x000000ff, UnpackInt(AO, 8), packedVal);
-    packedVal = BitFieldInsert(0xffffff00, UnpackInt(depth, 24) << 8, packedVal);
-    return packedVal;
+    uint packedDepth = f32tof16(depth) << 16;
+    uint packedAO = f32tof16(AO);
+    uint packedVal = packedAO | packedDepth;
+    // If it is a NaN we have no guarantee the sampler will keep the bit pattern, hence we invalidate the depth, meaning that the various bilateral passes will skip the sample.
+    if ((packedVal & 0x7FFFFFFF) > 0x7F800000)
+    {
+        packedVal = packedAO;
+    }
+
+    // We need to output as float as gather4 on an integer texture is not always supported.
+    return asfloat(packedVal);
 }
 
-void UnpackData(uint data, out float AO, out float depth)
+void UnpackData(float data, out float AO, out float depth)
 {
-    AO = UnpackUIntToFloat(data, 0, 8);
-    depth = UnpackUIntToFloat(data, 8, 24);
+    depth = f16tof32(asuint(data) >> 16);
+    AO = f16tof32(asuint(data));
 }
 
-void UnpackGatheredData(uint4 data, out float4 AOs, out float4 depths)
+void UnpackGatheredData(float4 data, out float4 AOs, out float4 depths)
 {
     UnpackData(data.x, AOs.x, depths.x);
     UnpackData(data.y, AOs.y, depths.y);
     UnpackData(data.z, AOs.z, depths.z);
     UnpackData(data.w, AOs.w, depths.w);
+}
+
+void GatherAOData(TEXTURE2D_X_FLOAT(_AODataSource), float2 UV, out float4 AOs, out float4 depths)
+{
+    float4 data = GATHER_TEXTURE2D_X(_AODataSource, s_point_clamp_sampler, UV);
+    UnpackGatheredData(data, AOs, depths);
 }
 
 float OutputFinalAO(float AO)

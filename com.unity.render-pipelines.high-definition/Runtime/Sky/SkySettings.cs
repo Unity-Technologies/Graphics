@@ -94,6 +94,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
+                // UpdateMode and period should not be part of the hash as they do not influence rendering itself.
+                int hash = 13;
+                hash = hash * 23 + rotation.value.GetHashCode();
+                hash = hash * 23 + exposure.value.GetHashCode();
+                hash = hash * 23 + multiplier.value.GetHashCode();
+                hash = hash * 23 + desiredLuxValue.value.GetHashCode();
+                hash = hash * 23 + skyIntensityMode.value.GetHashCode();
+                hash = hash * 23 + includeSunInBaking.value.GetHashCode();
+
+                hash = hash * 23 + rotation.overrideState.GetHashCode();
+                hash = hash * 23 + exposure.overrideState.GetHashCode();
+                hash = hash * 23 + multiplier.overrideState.GetHashCode();
+                hash = hash * 23 + desiredLuxValue.overrideState.GetHashCode();
+                hash = hash * 23 + skyIntensityMode.overrideState.GetHashCode();
+                hash = hash * 23 + includeSunInBaking.overrideState.GetHashCode();
+#else
                 // UpdateMode and period should not be part of the hash as they do not influence rendering itself.
                 int hash = 13;
                 hash = hash * 23 + rotation.GetHashCode();
@@ -102,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + desiredLuxValue.GetHashCode();
                 hash = hash * 23 + skyIntensityMode.GetHashCode();
                 hash = hash * 23 + includeSunInBaking.GetHashCode();
+#endif
 
                 return hash;
             }

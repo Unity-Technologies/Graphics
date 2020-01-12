@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering
         readonly Stack<T> m_Stack = new Stack<T>();
         readonly UnityAction<T> m_ActionOnGet;
         readonly UnityAction<T> m_ActionOnRelease;
+        readonly bool m_CollectionCheck = true;
 
         /// <summary>
         /// Number of objects in the pool.
@@ -32,10 +33,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="actionOnGet">Action on get.</param>
         /// <param name="actionOnRelease">Action on release.</param>
-        public ObjectPool(UnityAction<T> actionOnGet, UnityAction<T> actionOnRelease)
+        /// <param name="collectionCheck">True if collection integrity should be checked.</param>
+        public ObjectPool(UnityAction<T> actionOnGet, UnityAction<T> actionOnRelease, bool collectionCheck = true)
         {
             m_ActionOnGet = actionOnGet;
             m_ActionOnRelease = actionOnRelease;
+            m_CollectionCheck = collectionCheck;
         }
 
         /// <summary>
@@ -92,8 +95,13 @@ namespace UnityEngine.Rendering
         /// <param name="element">Object to release.</param>
         public void Release(T element)
         {
-            if (m_Stack.Count > 0 && ReferenceEquals(m_Stack.Peek(), element))
-                Debug.LogError("Internal error. Trying to destroy object that is already released to pool.");
+#if UNITY_EDITOR // keep heavy checks in editor
+            if (m_CollectionCheck && m_Stack.Count > 0)
+            {
+                if (m_Stack.Contains(element))
+                    Debug.LogError("Internal error. Trying to destroy object that is already released to pool.");
+            }
+#endif
             if (m_ActionOnRelease != null)
                 m_ActionOnRelease(element);
             m_Stack.Push(element);
@@ -109,6 +117,39 @@ namespace UnityEngine.Rendering
     {
         // Object pool to avoid allocations.
         static readonly ObjectPool<T> s_Pool = new ObjectPool<T>(null, null);
+
+        /// <summary>
+        /// Get a new object.
+        /// </summary>
+        /// <returns>A new object from the pool.</returns>
+        public static T Get() => s_Pool.Get();
+
+        /// <summary>
+        /// Get a new PooledObject
+        /// </summary>
+        /// <param name="value">Output typed object.</param>
+        /// <returns>A new PooledObject.</returns>
+        public static ObjectPool<T>.PooledObject Get(out T value) => s_Pool.Get(out value);
+
+        /// <summary>
+        /// Release an object to the pool.
+        /// </summary>
+        /// <param name="toRelease">Object to release.</param>
+        public static void Release(T toRelease) => s_Pool.Release(toRelease);
+    }
+
+    /// <summary>
+    /// Generic pool without collection checks.
+    /// This class is an alternative for the GenericPool for object that allocate memory when they are being compared.
+    /// It is the case for the CullingResult class from Unity, and because of this in HDRP HDCullingResults generates garbage whenever we use ==, .Equals or ReferenceEquals.
+    /// This pool doesn't do any of these comparison because we don't check if the stack already contains the element before releasing it.
+    /// </summary>
+    /// <typeparam name="T">Type of the objects in the pull.</typeparam>
+    public static class UnsafeGenericPool<T>
+        where T : new()
+    {
+        // Object pool to avoid allocations.
+        static readonly ObjectPool<T> s_Pool = new ObjectPool<T>(null, null, false);
 
         /// <summary>
         /// Get a new object.

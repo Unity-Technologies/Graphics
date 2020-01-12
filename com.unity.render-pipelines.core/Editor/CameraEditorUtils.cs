@@ -3,6 +3,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Utility functions for cameras in the editor.
+    /// </summary>
     public static class CameraEditorUtils
     {
         /// <summary>Delegate that must give an initialized preview camera</summary>
