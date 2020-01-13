@@ -67,6 +67,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static public Texture2D CreateFalloffLookupTexture()
         {
+            if (s_FalloffLookupTexture != null)
+                return s_FalloffLookupTexture;
+
             const float WIDTH = 2048;
             const float HEIGHT = 192;
 

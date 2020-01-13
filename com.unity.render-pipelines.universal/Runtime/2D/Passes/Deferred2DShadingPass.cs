@@ -13,7 +13,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
     static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName };
 
     Renderer2DData m_RendererData;
-    Material m_LightMaterial;
+    Material m_GlobalLightMaterial;
+    Material m_ShapeLightMaterial;
 
     public Deferred2DShadingPass(Renderer2DData rendererData)
     {
@@ -55,8 +56,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
         for (int i = 0; i < s_SortingLayers.Length; ++i)
         {
-            string cmdSample = "Sorting Layer - " + s_SortingLayers[i].name;
-            cmd.BeginSample(cmdSample);
+            string sortingLayerName = "Sorting Layer - " + s_SortingLayers[i].name;
+            cmd.BeginSample(sortingLayerName);
 
             // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
             // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
@@ -69,7 +70,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
             CoreUtils.SetRenderTarget(cmd, s_BaseColorTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor);
 
-            cmd.EndSample(cmdSample);
+            cmd.EndSample(sortingLayerName);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
@@ -78,52 +79,93 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
 
             // Render the lights.
-            CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
+            if (m_GlobalLightMaterial == null)
+                m_GlobalLightMaterial = new Material(m_RendererData.globalLightShader);
 
-            bool anyGlobalLightDrawn = false;
+            if (m_ShapeLightMaterial == null)
+                m_ShapeLightMaterial = new Material(m_RendererData.shapeLightShader);
+
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
             var blendStyles = m_RendererData.lightBlendStyles;
+
+            // global lights
+            bool anyGlobalLightDrawn = false;
             for (int j = 0; j < blendStyles.Length; ++j)
             {
                 if (!blendStyles[j].enabled)
                     continue;
 
-                string sampleName = "Blend Style - " + blendStyles[j].name;
-                cmd.BeginSample(sampleName);
-
                 var lights = Light2D.GetLightsByBlendStyle(j);
                 foreach (var light in lights)
                 {
-                    if (light == null
-                        || !light.IsLitLayer(s_SortingLayers[i].id)
-                        || light.lightType != Light2D.LightType.Global && !light.IsLightVisible(renderingData.cameraData.camera))
-                    {
-                        continue;
-                    }
-
-                    // HACK: Remove later.
-                    if (light.lightType != Light2D.LightType.Global)
+                    if (light.lightType != Light2D.LightType.Global || !light.IsLitLayer(s_SortingLayers[i].id))
                         continue;
 
-                    if (m_LightMaterial == null)
-                        m_LightMaterial = new Material(m_RendererData.globalLightShader);
-
-                    cmd.SetGlobalColor("_LightColor", light.color);
-
-                    Mesh lightMesh = RenderingUtils.fullscreenMesh;
-                    if (lightMesh == null)
-                        continue;
-
-                    cmd.DrawMesh(lightMesh, Matrix4x4.identity, m_LightMaterial);
+                    cmd.SetGlobalColor("_LightColor", light.intensity * light.color);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_GlobalLightMaterial);
                     anyGlobalLightDrawn = true;
+                    break;
                 }
 
-                cmd.EndSample(sampleName);
+                if (anyGlobalLightDrawn)
+                    break;
             }
 
             if (!anyGlobalLightDrawn)
             {
                 cmd.SetGlobalColor("_LightColor", Color.black);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_LightMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_GlobalLightMaterial);
+            }
+
+            // non-global lights
+            for (int j = 0; j < blendStyles.Length; ++j)
+            {
+                if (!blendStyles[j].enabled)
+                    continue;
+
+                string blendStyleName = "Blend Style - " + blendStyles[j].name;
+                cmd.BeginSample(blendStyleName);
+
+                var lights = Light2D.GetLightsByBlendStyle(j);
+                foreach (var light in lights)
+                {
+                    if (light == null
+                        || light.lightType == Light2D.LightType.Global
+                        || !light.IsLitLayer(s_SortingLayers[i].id)
+                        || !light.IsLightVisible(renderingData.cameraData.camera))
+                    {
+                        continue;
+                    }
+
+                    var lightMesh = light.GetMesh();
+                    if (lightMesh == null)
+                        continue;
+
+                    cmd.SetGlobalColor("_LightColor", light.intensity * light.color);
+                    cmd.SetGlobalTexture("_FalloffLookup", Light2DLookupTexture.CreateFalloffLookupTexture());
+                    cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+                    cmd.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                    cmd.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                    cmd.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
+                    cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
+                    cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
+
+                    cmd.DisableShaderKeyword("SPRITE_LIGHT");
+                    cmd.EnableShaderKeyword("USE_ADDITIVE_BLENDING");
+
+                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    {
+                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        {
+                            cmd.EnableShaderKeyword("SPRITE_LIGHT");
+                            cmd.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
+                        }
+
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, 1);
+                    }
+                }
+
+                cmd.EndSample(blendStyleName);
             }
         }
 

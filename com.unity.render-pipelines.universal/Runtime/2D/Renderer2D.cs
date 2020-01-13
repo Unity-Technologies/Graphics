@@ -82,11 +82,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ConfigureCameraTarget(m_ColorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
 
-            m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
-            EnqueuePass(m_Render2DLightingPass);
+            //m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
+            //EnqueuePass(m_Render2DLightingPass);
 
-            //m_Deferred2DShadingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
-            //EnqueuePass(m_Deferred2DShadingPass);
+            m_Deferred2DShadingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
+            EnqueuePass(m_Deferred2DShadingPass);
 
             bool requireFinalBlitPass = useOffscreenColorTexture;
             var finalBlitSourceHandle = m_ColorTargetHandle;

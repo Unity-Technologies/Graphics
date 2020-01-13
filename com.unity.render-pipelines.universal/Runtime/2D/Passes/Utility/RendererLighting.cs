@@ -274,13 +274,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             // Light code could be combined...
                             if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                             {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial, 0, 0);
                             }
                             else if(light.lightType == Light2D.LightType.Point)
                             {
                                 Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                 Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                cmdBuffer.DrawMesh(lightMesh, matrix, lightMaterial);
+                                cmdBuffer.DrawMesh(lightMesh, matrix, lightMaterial, 0, 0);
                             }
                         }
                     }
@@ -327,13 +327,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     // Could be combined...
                                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                                     {
-                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial, 0, 0);
                                     }
                                     else if (light.lightType == Light2D.LightType.Point)
                                     {
                                         Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                         Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
+                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial, 0, 0);
                                     }
                                 }
                             }
