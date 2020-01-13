@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 
 ### Changed
-- Nodes can now have output connections to different shader stages at the same time.
+- Made changes that allow nodes to have output connections to different Shader Stages at the same time.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
