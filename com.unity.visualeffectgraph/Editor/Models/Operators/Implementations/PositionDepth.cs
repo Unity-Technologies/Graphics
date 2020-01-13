@@ -64,8 +64,8 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputPropertiesCommon
         {
-            [Tooltip("Outputs the particle position projected on the depth buffer of the selected Camera.")]
-            public Vector3 position = Vector3.zero;
+            [Tooltip("Outputs the position projected on the depth buffer of the selected Camera in world space.")]
+            public Position position = Vector3.zero;
         }
 
         public class OutputPropertiesCull
@@ -127,6 +127,11 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            return VFXCoordinateSpace.World;
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
 
@@ -142,7 +147,7 @@ namespace UnityEditor.VFX.Operator
 
             // Camera expressions
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
-            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions);
+            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
             var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;

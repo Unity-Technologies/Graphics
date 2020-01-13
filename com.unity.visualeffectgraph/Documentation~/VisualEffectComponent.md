@@ -57,7 +57,18 @@ The Play Controls window displays UI Elements that enable control over the curre
 
 ![](Images/PlayControls.png)
 
-The play Controls Window 
+The play Controls Window displays the following controls:
+
+* Stop (Button) : Resets the effect and set its state to paused.
+* Play / Pause (Button) : Toggles the paused state of the effect.
+* Step (Button) : Pauses the effect and simulates one frame.
+* Restart (Button) : Un-pauses the effect, resets it, and sends the default Play Event.
+* Rate (Int Slider) : Sets the play rate of the effect (in percent)
+* Set (Popup) : Sets a custom play rate of the effect from the menu.
+* Show Bounds (Toggle) : Toggles visibility of the bounds of the effect
+* Show Event Tester (Toggle) : Shows Event Tester Utility Window
+* Play() and Stop() Buttons : Sends the default OnPlay and OnStop event to the component.
+* (Optional) Gizmos (Popup) : Toggles the visibility of property gizmos.
 
 ## Editing Properties with Gizmos
 

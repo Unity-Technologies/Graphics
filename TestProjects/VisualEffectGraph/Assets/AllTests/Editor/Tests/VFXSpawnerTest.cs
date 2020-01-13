@@ -411,6 +411,88 @@ namespace UnityEditor.VFX.Test
         */
 
         [UnityTest]
+        public IEnumerator CreateSpawner_Set_Attribute_With_ContextDelay()
+        {
+            //This test cover an issue : 1205329
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+            var graph = MakeTemporaryGraph();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockSpawnerBurst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
+            var setSpawnEventAttribute = ScriptableObject.CreateInstance<VFXSpawnerSetAttribute>();
+            setSpawnEventAttribute.SetSettingValue("attribute", "color");
+            var colorSlot = setSpawnEventAttribute.GetInputSlot(0);
+            Assert.AreEqual(VFXValueType.Float3, colorSlot.valueType);
+
+            var expectedColor = new Vector3(0.1f, 0.2f, 0.3f);
+            colorSlot.value = expectedColor;
+            blockSpawnerBurst.GetInputSlot(0).value = 23.0f;
+
+            var inheritColor = ScriptableObject.CreateInstance<SetAttribute>();
+            inheritColor.SetSettingValue("Source", SetAttribute.ValueSource.Source);
+            inheritColor.SetSettingValue("attribute", "color");
+
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            var delayValue = 1.2f;
+            spawnerContext.SetSettingValue("delayBeforeLoop", VFXBasicSpawner.DelayMode.Constant);
+            spawnerContext.GetInputSlot(0).value = delayValue;
+
+            spawnerContext.AddChild(blockSpawnerBurst);
+            spawnerContext.AddChild(setSpawnEventAttribute);
+            spawnerInit.AddChild(inheritColor);
+
+            graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
+            spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
+
+            graph.SetCompilationMode(VFXCompilationMode.Edition);
+            graph.RecompileIfNeeded();
+
+            var gameObj = new GameObject("CreateSpawner_Set_Attribute_With_Delay");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            var cameraObj = new GameObject("CreateSpawner_Set_Attribute_With_Delay_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            //Catching sleeping state
+            maxFrame = 512;
+            while (--maxFrame > 0 && spawnerState.totalTime < delayValue / 10.0f)
+            {
+                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            //Check SetAttribute State while delaying
+            Assert.AreEqual(spawnerState.loopState, VFXSpawnerLoopState.DelayingBeforeLoop);
+            Assert.IsTrue(spawnerState.vfxEventAttribute.HasVector3("color"));
+
+            var actualColor = spawnerState.vfxEventAttribute.GetVector3("color");
+            Assert.AreEqual((double)expectedColor.x, (double)actualColor.x, 0.001);
+            Assert.AreEqual((double)expectedColor.y, (double)actualColor.y, 0.001);
+            Assert.AreEqual((double)expectedColor.z, (double)actualColor.z, 0.001);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+        }
+
+        [UnityTest]
         public IEnumerator CreateSpawner_Single_Burst_With_Delay()
         {
             //This test cover a regression : 1154292
