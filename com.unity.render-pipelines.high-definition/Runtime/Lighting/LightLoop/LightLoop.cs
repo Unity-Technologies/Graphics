@@ -340,6 +340,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer perTileLogBaseTweak;
             public ComputeBuffer globalLightListAtomic;
 
+            public bool listsAreClear = false;
+
             public void Initialize()
             {
                 globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
@@ -516,7 +518,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TotalLightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
-        bool m_hasRunLightListPrevFrame = false;
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
@@ -2601,6 +2602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isOrthographic;
             public int viewCount;
             public bool runLightList;
+            public bool clearLightLists;
             public bool enableFeatureVariants;
             public bool computeMaterialVariants;
             public bool computeLightVariants;
@@ -2916,21 +2918,17 @@ namespace UnityEngine.Rendering.HighDefinition
             s_TempScreenDimArray[1] = h;
 
             parameters.runLightList = m_TotalLightCount > 0;
-
-            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state.
-            if (!parameters.runLightList && m_hasRunLightListPrevFrame)
-            {
-                m_hasRunLightListPrevFrame = false;
-                parameters.runLightList = true;
-            }
-            else
-            {
-                m_hasRunLightListPrevFrame = parameters.runLightList;
-            }
+            parameters.clearLightLists = false;
 
             // Always build the light list in XR mode to avoid issues with multi-pass
             if (hdCamera.xr.enabled)
+            {
                 parameters.runLightList = true;
+            }
+            else if(!parameters.runLightList && !m_TileAndClusterData.listsAreClear)
+            {
+                parameters.clearLightLists = true;
+            }
 
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
@@ -3021,6 +3019,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        void ClearLightList(HDCamera camera, CommandBuffer cmd, ComputeBuffer bufferToClear)
+        {
+            // We clear them all to be on the safe side when switching pipes.
+            var cs = defaultResources.shaders.clearLightListsCS;
+            var kernel = cs.FindKernel("ClearList");
+
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._LightListToClear, bufferToClear);
+            cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
+
+            int groupSize = 64;
+            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1); 
+        }
+
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
@@ -3033,6 +3044,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
 
                 bool tileFlagsWritten = false;
+
+                if(parameters.clearLightLists && !parameters.runLightList)
+                {
+                    // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
+                    // to changes to the inner workings of the lists.
+                    // Also, we clear all the lists and to be resilient to changes in pipeline.
+                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
+                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.lightList);
+                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.perVoxelOffset);
+
+                    // No need to clear it anymore until we start and stop running light list building.
+                    m_TileAndClusterData.listsAreClear = true;
+                }
+                else if(parameters.runLightList)
+                {
+                    m_TileAndClusterData.listsAreClear = false;
+                }
 
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
                 BigTilePrepass(parameters, resources, cmd);

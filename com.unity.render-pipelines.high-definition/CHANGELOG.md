@@ -312,6 +312,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 - Fixed particle lights.
 - Improved behavior of lights and probe going over the HDRP asset limits.
+- Fixed issue triggered when last punctual light is disabled and more than one camera is used.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
