@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Spawn")]
-    class SpawnerState : VFXOperator
+    class SpawnState : VFXOperator
     {
         public override string libraryName => "Spawn Context State";
 
