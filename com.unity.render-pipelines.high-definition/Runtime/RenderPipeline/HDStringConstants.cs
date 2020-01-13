@@ -875,6 +875,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Sharpness                      = Shader.PropertyToID("Sharpness");
         public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
         public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
+
+        // BlitCubeTextureFace.shader
+        public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
+        public static readonly int _LoD                            = Shader.PropertyToID("_LoD");
+        public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
     }
 
     // Shared material property names

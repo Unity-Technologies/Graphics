@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class LTCAreaLightCookieManager
@@ -29,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int cookieResolution = (int)gLightLoopSettings.cookieSize;
             if (TextureCache2D.GetApproxCacheSizeInByte(cookieSize, cookieResolution, 1) > maxCacheSize)
                 cookieSize = TextureCache2D.GetMaxCacheSizeForWeightInByte(maxCacheSize, cookieResolution, 1);
-            m_AreaCookieTexArray.AllocTextureArray(cookieSize, cookieResolution, cookieResolution, TextureFormat.RGBA32, true);
+            m_AreaCookieTexArray.AllocTextureArray(cookieSize, cookieResolution, cookieResolution, GraphicsFormat.R8G8B8A8_SRGB, true);
 
             // Also make sure to create the engine material that is used for the filtering
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(defaultResources.shaders.filterAreaLightCookiesPS);
