@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
             public ComputeShader debugLightVolumeCS;
+            [Reload("Runtime/Debug/DebugRenderer.shader")]
+            public Shader debugRendererPS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]

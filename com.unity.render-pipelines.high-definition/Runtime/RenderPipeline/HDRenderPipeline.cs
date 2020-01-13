@@ -469,6 +469,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
+
+            HDDebugUtils.Initialize(defaultResources);
         }
 
 #if UNITY_EDITOR
@@ -905,6 +907,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             CameraCaptureBridge.enabled = false;
+
+            HDDebugUtils.Cleanup();
         }
 
 
