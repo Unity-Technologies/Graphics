@@ -175,5 +175,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
+        ContrastAdaptiveSharpen,
     }
 }
