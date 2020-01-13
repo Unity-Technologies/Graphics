@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Misc
         VolumeUpdate,
+        CustomPassVolumeUpdate,
         XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,
@@ -174,5 +175,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
+        ContrastAdaptiveSharpen,
     }
 }

@@ -81,6 +81,15 @@ namespace UnityEngine.Rendering
             return stack;
         }
 
+        /// <summary>
+        /// Destroy a Volume Stack
+        /// </summary>
+        /// <param name="stack">Volume Stack that needs to be destroyed.</param>
+        public void DestroyStack(VolumeStack stack)
+        {
+            stack.Dispose();
+        }
+
         // This will be called only once at runtime and everytime script reload kicks-in in the
         // editor as we need to keep track of any compatible component in the project
         void ReloadBaseTypes()

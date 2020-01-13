@@ -132,10 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void AllocRT(float scaleFactor)
         {
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Ambient Occlusion");
-            m_PackedDataTex = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed data");
-            m_PackedDataBlurred = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed blurred data");
+            m_PackedDataTex = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed data");
+            m_PackedDataBlurred = RTHandles.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "AO Packed blurred data");
 
-            m_FinalHalfRes = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Final Half Res AO Packed");
+            m_FinalHalfRes = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: "Final Half Res AO Packed");
         }
 
         void EnsureRTSize(AmbientOcclusion settings, HDCamera hdCamera)
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
             if (!IsActive(camera, settings))
             {
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new RenderAOParameters();
 
             // Grab current settings
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             parameters.fullResolution = settings.fullResolution;
 
             if (parameters.fullResolution)
@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderSSAO)))
@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
             else
@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, aoTexture);
             // TODO: All the push debug stuff should be centralized somewhere
