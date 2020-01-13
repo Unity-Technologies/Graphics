@@ -60,6 +60,7 @@ namespace UnityEditor.VFX
                 yield return "blendMode";
                 yield return "castShadows";
                 yield return "sort";
+                yield return "useAlphaClipping";
             }
         }
 

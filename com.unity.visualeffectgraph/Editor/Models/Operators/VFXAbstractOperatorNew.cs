@@ -104,18 +104,24 @@ namespace UnityEditor.VFX
             allowOneDimensionType = 1 << 4,
             allowSignedInteger = 1 << 5,
             allowUnsignedInteger = 1 << 6,
-            allowSpaceable = 1 << 7,
+            allowSpaceableNotNormalized= 1 << 7,
+            allowSpaceableNormalized = 1 << 8,
+
+            allowSpaceable = allowSpaceableNotNormalized | allowSpaceableNormalized,
+
             allowInteger = allowSignedInteger | allowUnsignedInteger,
             allowVectorType = allowSpaceable | allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptIntegerAndDirection = allowEverything & ~(allowInteger | allowSpaceableNormalized),
             allowEverythingExceptUnsignedInteger = allowEverything & ~allowUnsignedInteger,
             allowEverythingExceptIntegerAndVector4 = allowEverything & ~(allowInteger | allowVector4Type),
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
-        private static readonly Type[] kSpaceableType = new Type[] { typeof(Position), typeof(DirectionType), typeof(Vector) };
+        private static readonly Type[] kSpaceableNormalizedType = new Type[] { typeof(DirectionType) };
+        private static readonly Type[] kSpaceableNotNormalizedType = new Type[] { typeof(Position), typeof(Vector) };
         private static readonly Type[] kVector4Type = new Type[] { typeof(Vector4) };
         private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
         private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
@@ -131,8 +137,11 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<Type> types = kExpectedTypeOrdering;
 
-                if ((typeFilter & ValidTypeRule.allowSpaceable) != ValidTypeRule.allowSpaceable)
-                    types = types.Except(kSpaceableType);
+                if ((typeFilter & ValidTypeRule.allowSpaceableNormalized) != ValidTypeRule.allowSpaceableNormalized)
+                    types = types.Except(kSpaceableNormalizedType);
+
+                if ((typeFilter & ValidTypeRule.allowSpaceableNotNormalized) != ValidTypeRule.allowSpaceableNotNormalized)
+                    types = types.Except(kSpaceableNotNormalizedType);
 
                 if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
                     types = types.Except(kVector4Type);
