@@ -305,6 +305,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
 - Fixed caused by using gather on a UINT texture in motion blur. 
 - Fix issue with ambient occlusion breaking when dynamic resolution is active.
+- Fixed some possible NaN causes in Depth of Field.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
