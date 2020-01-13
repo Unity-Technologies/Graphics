@@ -311,6 +311,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Pass nullref due to the new Profiling Sample API changes
 - Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 - Fixed particle lights.
+- Improved behavior of lights and probe going over the HDRP asset limits.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
