@@ -32,12 +32,12 @@ Pass
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
     $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1

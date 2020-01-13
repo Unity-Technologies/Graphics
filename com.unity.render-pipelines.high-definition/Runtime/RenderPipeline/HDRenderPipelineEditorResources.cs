@@ -92,15 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as HDRenderPipelineEditorResources;
-                resources.defaultScene = null;
-                resources.defaultSkyAndFogProfile = null;
-                resources.defaultPostProcessingProfile = null;
-                resources.defaultDiffusionProfileSettingsList = null;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach(var field in typeof(HDRenderPipelineEditorResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

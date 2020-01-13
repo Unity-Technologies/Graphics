@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering.HighDefinition
     [System.Serializable]
     public class DrawRenderersCustomPass : CustomPass
     {
+        /// <summary>
+        /// HDRP Shader passes 
+        /// </summary>
         public enum ShaderPass
         {
             // Ordered by frame time in HDRP
@@ -48,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache the shaderTagIds so we don't allocate a new array each frame
         ShaderTagId[]   cachedShaderTagIDs;
 
+        /// <inheritdoc />
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
@@ -70,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        /// <inheritdoc />
         protected override void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera)
         {
             cullingParameters.cullingMask |= (uint)(int)layerMask;
@@ -126,5 +131,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
         }
+
+        /// <inheritdoc />
+        public override IEnumerable<Material> RegisterMaterialForInspector() { yield return overrideMaterial; }
     }
 }

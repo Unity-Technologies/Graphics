@@ -337,6 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
         public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
         public static readonly int _NormalTextureMS = Shader.PropertyToID("_NormalTextureMS");
+        public static readonly int _MotionVectorTextureMS = Shader.PropertyToID("_MotionVectorTextureMS");
         public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
 
         public static readonly int[] _GBufferTexture =
@@ -615,7 +616,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
         public static readonly int _HistoryValidity                 = Shader.PropertyToID("_HistoryValidity");
         public static readonly int _ReflectionFilterMapping         = Shader.PropertyToID("_ReflectionFilterMapping");
-        
+        public static readonly int _DenoisingHistorySlice           = Shader.PropertyToID("_DenoisingHistorySlice");
+        public static readonly int _DenoisingHistoryMask            = Shader.PropertyToID("_DenoisingHistoryMask");
+        public static readonly int _DenoisingHistoryMaskSn          = Shader.PropertyToID("_DenoisingHistoryMaskSn");
+        public static readonly int _DenoisingHistoryMaskUn          = Shader.PropertyToID("_DenoisingHistoryMaskUn");
+        public static readonly int _HistoryValidityBuffer           = Shader.PropertyToID("_HistoryValidityBuffer");
+        public static readonly int _ValidityOutputTextureRW         = Shader.PropertyToID("_ValidityOutputTextureRW");
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
@@ -630,10 +637,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingIncludeSky            = Shader.PropertyToID("_RaytracingIncludeSky");
         public static readonly int _UseRayTracedReflections         = Shader.PropertyToID("_UseRayTracedReflections");
-        
+
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
-        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot"); 
+        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _RaytracingChannelMask           = Shader.PropertyToID("_RaytracingChannelMask");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
         public static readonly int _RaytracedAreaShadowSample       = Shader.PropertyToID("_RaytracedAreaShadowSample");
@@ -650,8 +657,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingLightRadius           = Shader.PropertyToID("_RaytracingLightRadius");
 
         public static readonly int _RaytracingSpotAngle             = Shader.PropertyToID("_RaytracingSpotAngle");
-        public static readonly int _RaytracedDirectionalShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalShadowIntegration");
-        public static readonly int _RaytracedDirectionalColorShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalColorShadowIntegration");
+        public static readonly int _RaytracedShadowIntegration      = Shader.PropertyToID("_RaytracedShadowIntegration");
+        public static readonly int _RaytracedColorShadowIntegration = Shader.PropertyToID("_RaytracedColorShadowIntegration");
         public static readonly int _DirectionalLightAngle            = Shader.PropertyToID("_DirectionalLightAngle");
 
         // Ambient occlusion
@@ -828,6 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
+        public static readonly int _KeepAlpha                      = Shader.PropertyToID("_KeepAlpha");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
 
         public static readonly int _MotionVecAndDepth              = Shader.PropertyToID("_MotionVecAndDepth");
@@ -862,6 +870,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        // Contrast Adaptive Sharpening
+        public static readonly int _Sharpness                      = Shader.PropertyToID("Sharpness");
+        public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
+        public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
     }
 
     // Shared material property names

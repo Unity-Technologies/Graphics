@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -599,12 +600,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
-                if (e.controller is VFXContextController)
+                if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
                     if (m_ComponentBoard != null)
                     {
                         m_ComponentBoard.UpdateEventList();
                     }
+                    UpdateSystemNames();
                 }
             }
         }
@@ -670,7 +672,7 @@ namespace UnityEditor.VFX.UI
             }
 
             m_InControllerChanged = false;
-            if(change != VFXViewController.Change.dataEdge)
+            if (change != VFXViewController.Change.dataEdge)
                 UpdateSystems();
 
             if (m_UpdateUIBounds)
@@ -1937,6 +1939,20 @@ namespace UnityEditor.VFX.UI
 
         List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
 
+        public ReadOnlyCollection<VFXSystemBorder> systems
+        {
+            get { return m_Systems.AsReadOnly(); }
+        }
+
+        public void UpdateSystemNames()
+        {
+            if (m_Systems != null)
+                foreach (var system in m_Systems)
+                {
+                    system.Update();
+                }
+        }
+
         public void UpdateSystems()
         {
             while (m_Systems.Count() > controller.systems.Count())
@@ -1946,10 +1962,7 @@ namespace UnityEditor.VFX.UI
                 border.RemoveFromHierarchy();
             }
 
-            foreach(var system in m_Systems)
-            {
-                system.Update();
-            }
+            UpdateSystemNames();
 
             while (m_Systems.Count() < controller.systems.Count())
             {
@@ -1957,6 +1970,11 @@ namespace UnityEditor.VFX.UI
                 m_Systems.Add(border);
                 AddElement(border);
                 border.controller = controller.systems[m_Systems.Count() - 1];
+            }
+
+            foreach(var context in GetAllContexts())
+            {
+                context.UpdateLabel();
             }
         }
 

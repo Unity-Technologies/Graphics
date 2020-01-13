@@ -11,7 +11,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local _ DITHER
         #pragma multi_compile_local _ APPLY_AFTER_POST
 
-        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS
+        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -33,6 +33,7 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _GrainTextureParams;     // x: width, y: height, zw: random offset
         float3 _DitherParams;           // x: width, y: height, z: texture_id
         float4 _UVTransform;
+        float  _KeepAlpha;
 
         struct Attributes
         {
@@ -76,6 +77,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 Frag(Varyings input) : SV_Target0
         {
+
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 positionNDC = input.texcoord;
@@ -87,12 +89,15 @@ Shader "Hidden/HDRP/FinalPass"
 
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
+            #elif defined(CONTRASTADAPTIVESHARPEN)
+            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy);
+            float3 outColor = inputColor.rgb;
             #else
             float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS);
             float3 outColor = inputColor.rgb;
             #endif
 
-            float outAlpha = LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x;
+            float outAlpha = (_KeepAlpha == 1.0) ? LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x : 1.0;
 
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
