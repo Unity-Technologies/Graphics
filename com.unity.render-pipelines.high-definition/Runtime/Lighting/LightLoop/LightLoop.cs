@@ -237,16 +237,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 int coockieResolution = (int)lightLoopSettings.cookieSize;
                 if (TextureCache2D.GetApproxCacheSizeInByte(coockieSize, coockieResolution, 1) > k_MaxCacheSize)
                     coockieSize = TextureCache2D.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieResolution, 1);
-                cookieTexArray.AllocTextureArray(coockieSize, coockieResolution, coockieResolution, TextureFormat.RGBA32, true);
+                cookieTexArray.AllocTextureArray(coockieSize, coockieResolution, coockieResolution, GraphicsFormat.R8G8B8A8_SRGB, true);
                 cubeCookieTexArray = new TextureCacheCubemap("Cookie");
                 int coockieCubeSize = lightLoopSettings.cubeCookieTexArraySize;
                 int coockieCubeResolution = (int)lightLoopSettings.pointCookieSize;
                 if (TextureCacheCubemap.GetApproxCacheSizeInByte(coockieCubeSize, coockieCubeResolution, 1) > k_MaxCacheSize)
                     coockieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieCubeResolution, 1);
-                cubeCookieTexArray.AllocTextureArray(coockieCubeSize, coockieCubeResolution, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+                cubeCookieTexArray.AllocTextureArray(coockieCubeSize, coockieCubeResolution, GraphicsFormat.R8G8B8A8_SRGB, true, m_CubeToPanoMaterial);
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
-                TextureFormat probeCacheFormat = lightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+                GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
                 int reflectionCubeSize = lightLoopSettings.reflectionProbeCacheSize;
                 int reflectionCubeResolution = (int)lightLoopSettings.reflectionCubemapSize;
                 if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionCubeSize, reflectionCubeResolution, iBLFilterBSDFArray.Length) > k_MaxCacheSize)
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 reflectionProbeCache = new ReflectionProbeCache(defaultResources, iBLFilterBSDFArray, reflectionCubeSize, reflectionCubeResolution, probeCacheFormat, true);
 
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
-                TextureFormat planarProbeCacheFormat = lightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+                GraphicsFormat planarProbeCacheFormat = lightLoopSettings.planarReflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
                 int reflectionPlanarSize = lightLoopSettings.planarReflectionProbeCacheSize;
                 int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionTextureSize;
                 if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionPlanarSize, reflectionPlanarResolution, 1) > k_MaxCacheSize)
