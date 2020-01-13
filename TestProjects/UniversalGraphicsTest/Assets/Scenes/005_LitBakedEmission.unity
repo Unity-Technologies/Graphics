@@ -43,7 +43,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -97,9 +97,10 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 6a963d0bc4caa4faa93b9ab261a08f9f,
+  m_LightingDataAsset: {fileID: 112000000, guid: a305c694471cb5140b3a04e032fc4e6c,
     type: 2}
-  m_UseShadowmask: 0
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 6bc8862ee79bfb14ca35e9793061cb30,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -129,6 +130,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 100000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0
@@ -177,10 +182,6 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 4294967295
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
 --- !u!1 &971756569
@@ -220,6 +221,7 @@ MonoBehaviour:
     TargetHeight: 320
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
+    UseHDR: 0
   WaitFrames: 0
 --- !u!81 &971756571
 AudioListener:
@@ -352,6 +354,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &1354589633
 SphereCollider:
   m_ObjectHideFlags: 0
