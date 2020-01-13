@@ -3195,7 +3195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
 
-                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1 : 0);
 
                 // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);

@@ -2215,7 +2215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render pre refraction objects
                 RenderForwardTransparent(cullingResults, hdCamera, true, renderContext, cmd);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
                 {
                     // First resolution of the color buffer for the color pyramid
                     m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
@@ -3403,7 +3403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 transparentRange = HDRenderQueue.k_RenderQueue_TransparentWithLowRes;
             }
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
                     transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
@@ -3424,7 +3424,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderForwardTransparent(CullingResults cullResults, HDCamera hdCamera, bool preRefraction, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) && preRefraction)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && preRefraction)
             {
                 return;
             }
@@ -3795,7 +3795,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (isPreRefraction)
             {
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
                     return;
             }
             else
