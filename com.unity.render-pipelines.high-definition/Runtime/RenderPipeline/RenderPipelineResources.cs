@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
             public ComputeShader clearDispatchIndirectCS;
+            [Reload("Runtime/Lighting/LightLoop/ClearLightLists.compute")]
+            public ComputeShader clearLightListsCS;
             [Reload("Runtime/Lighting/LightLoop/builddispatchindirect.compute")]
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
