@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
-        internal string cameraName => m_AdditionalCameraData?.cameraName ?? "HDRenderPipeline::Render Camera";
+        internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         public VolumeStack volumeStack { get; private set; }
 

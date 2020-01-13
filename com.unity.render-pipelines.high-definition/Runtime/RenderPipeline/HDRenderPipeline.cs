@@ -1680,88 +1680,92 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     }
-                    // Execute render request graph, in reverse order
-                    for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
+
+                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
-                        var renderRequestIndex = renderRequestIndicesToRender[i];
-                        var renderRequest = renderRequests[renderRequestIndex];
-
-                        var cmd = CommandBufferPool.Get("");
-
-                        // TODO: Avoid the intermediate target and render directly into final target
-                        //  CommandBuffer.Blit does not work on Cubemap faces
-                        //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
-                        if (renderRequest.target.face != CubemapFace.Unknown)
+                        // Execute render request graph, in reverse order
+                        for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
                         {
-                            if (!m_TemporaryTargetForCubemaps.IsCreated())
-                                m_TemporaryTargetForCubemaps.Create();
+                            var renderRequestIndex = renderRequestIndicesToRender[i];
+                            var renderRequest = renderRequests[renderRequestIndex];
 
-                            var hdCamera = renderRequest.hdCamera;
-                            ref var target = ref renderRequest.target;
-                            target.id = m_TemporaryTargetForCubemaps;
-                        }
+                            var cmd = CommandBufferPool.Get("");
+
+                            // TODO: Avoid the intermediate target and render directly into final target
+                            //  CommandBuffer.Blit does not work on Cubemap faces
+                            //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
+                            if (renderRequest.target.face != CubemapFace.Unknown)
+                            {
+                                if (!m_TemporaryTargetForCubemaps.IsCreated())
+                                    m_TemporaryTargetForCubemaps.Create();
+
+                                var hdCamera = renderRequest.hdCamera;
+                                ref var target = ref renderRequest.target;
+                                target.id = m_TemporaryTargetForCubemaps;
+                            }
 
 
-                        // var aovRequestIndex = 0;
-                        foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                            // var aovRequestIndex = 0;
+                            foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
+                            {
+                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                                {
+                                    cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                                    ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                                    cmd.SetInvertCulling(false);
+                                }
+                                renderContext.ExecuteCommandBuffer(cmd);
+                                CommandBufferPool.Release(cmd);
+                                renderContext.Submit();
+                                cmd = CommandBufferPool.Get();
+                            }
+
+                            using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                                ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                                UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                                ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
+                                UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
+
+                            {
+                                var target = renderRequest.target;
+                                // Handle the copy if requested
+                                if (target.copyToTarget != null)
+                                {
+                                    cmd.CopyTexture(
+                                        target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
+                                        target.copyToTarget, (int)target.face, 0, 0, 0
+                                    );
+                                }
+                                if (renderRequest.clearCameraSettings)
+                                    // release reference because the RenderTexture might be destroyed before the camera
+                                    renderRequest.hdCamera.camera.targetTexture = null;
+
+                                ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+
+                                // Culling results can be shared between render requests: clear only when required
+                                if (!skipClearCullingResults.Contains(renderRequest.index))
+                                {
+                                    renderRequest.cullingResults.decalCullResults?.Clear();
+                                    UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+                                }
+                            }
+
+                            // Render XR mirror view once all render requests have been completed
+                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
+                            {
+                                m_XRSystem.RenderMirrorView(cmd);
+                            }
+
+                            // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
+                            PropagateScreenSpaceShadowData();
+
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
-                            cmd = CommandBufferPool.Get();
                         }
-
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera)))
-                        {
-                            cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                            UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
-                            cmd.SetInvertCulling(false);
-                            UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                        }
-
-                        {
-                            var target = renderRequest.target;
-                            // Handle the copy if requested
-                            if (target.copyToTarget != null)
-                            {
-                                cmd.CopyTexture(
-                                    target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
-                                    target.copyToTarget, (int)target.face, 0, 0, 0
-                                );
-                            }
-                            if (renderRequest.clearCameraSettings)
-                                // release reference because the RenderTexture might be destroyed before the camera
-                                renderRequest.hdCamera.camera.targetTexture = null;
-
-                            ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-
-                            // Culling results can be shared between render requests: clear only when required
-                            if (!skipClearCullingResults.Contains(renderRequest.index))
-                            {
-                                renderRequest.cullingResults.decalCullResults?.Clear();
-                                UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
-                            }
-                        }
-
-                        // Render XR mirror view once all render requests have been completed
-                        if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
-                        {
-                            m_XRSystem.RenderMirrorView(cmd);
-                        }
-
-                        // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
-                        PropagateScreenSpaceShadowData();
-
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-                        renderContext.Submit();
                     }
                 }
             }
