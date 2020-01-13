@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -71,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
 
                 HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
-                var latestVersion = k_Migrations.Length;
+                var latestVersion = k_Migrations.Keys.Max();
                 var wasUpgraded = false;
                 var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
                 AssetVersion assetVersion = null;
@@ -110,11 +111,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 //upgrade
-                while (assetVersion.version < latestVersion)
+                for (var version = assetVersion.version + 1; version <= latestVersion; ++version)
                 {
-                    k_Migrations[assetVersion.version](material, id);
-                    assetVersion.version++;
+                    if (!k_Migrations.TryGetValue(version, out var migrations)) continue;
+                    foreach (var migration in migrations)
+                    {
+                        migration(material, id);
                     wasUpgraded = true;
+                }
+                    assetVersion.version = version;
                 }
 
                 if (wasUpgraded)
@@ -129,8 +134,12 @@ namespace UnityEditor.Rendering.HighDefinition
         // So we must have migration step that work on every materials at once.
         // Which also means that if we want to update only one shader, we need
         // to bump all materials version...
-        static readonly Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
+
+        /// <summary>Define for all version which migration functions must be applied.</summary>
+        delegate void MigrationAction(Material material, HDShaderUtils.ShaderID id);
+        static readonly Dictionary<int, MigrationAction[]> k_Migrations = new Dictionary<int, MigrationAction[]>
         {
+            // { 1, new [] { MyFirstMigration, MySecondMigration }} // Migration processors for version 1
             /* EmissiveIntensityToColor,
              * SecondMigrationStep,
              * ...
