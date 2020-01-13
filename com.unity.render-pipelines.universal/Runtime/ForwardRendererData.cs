@@ -43,6 +43,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
 
+            [Reload("Shaders/Utils/ScreenSpaceShadows.compute")] // seongdae;vxsm
+            public ComputeShader screenSpaceShadowCS; // seongdae;vxsm
+
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 

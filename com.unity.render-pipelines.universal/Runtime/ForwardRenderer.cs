@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
+        ScreenSpaceShadowComputePass m_ScreenSpaceShadowComputePass; //seongdae;vxsm
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
@@ -65,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_ScreenSpaceShadowComputePass = new ScreenSpaceShadowComputePass(RenderPassEvent.BeforeRenderingPrepasses, data.shaders.screenSpaceShadowCS); //seongdae;vxsm
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
@@ -117,6 +119,7 @@ namespace UnityEngine.Rendering.Universal
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+            bool computeShadowsInScreenSpace = ScreenSpaceShadowComputePass.ComputeShadowsInScreenSpace(ref renderingData); //seongdae;vxsm
 
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
@@ -125,6 +128,9 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
                 (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
+
+            // screen space shadow in compute shader requires depth press, seongdae;vxsm
+            requiresDepthPrepass |= computeShadowsInScreenSpace; //seongdae;vxsm
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
             // we have a proper fix.
@@ -178,7 +184,13 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
-
+            //seongdae;vxsm
+            if (computeShadowsInScreenSpace)
+            {
+                EnqueuePass(m_ScreenSpaceShadowComputePass);
+            }
+            else
+            //seongdae;vxsm
             if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);

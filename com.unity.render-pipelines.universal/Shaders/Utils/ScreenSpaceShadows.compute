@@ -1,0 +1,793 @@
+﻿#pragma kernel BlendCascadeShadowsNearest  CSKernel=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
+#pragma kernel BlendCascadeShadowsHard     CSKernel=BlendCascadeShadowsHard     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE HARD_SHADOWS
+#pragma kernel BlendCascadeShadowsSoft     CSKernel=BlendCascadeShadowsSoft     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE SOFT_SHADOWS
+
+#pragma kernel BlendDynamicShadowsNearest  CSKernel=BlendDynamicShadowsNearest  WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
+#pragma kernel BlendDynamicShadowsHard     CSKernel=BlendDynamicShadowsHard     WITH_DYNAMIC_SHADOWS HARD_SHADOWS
+#pragma kernel BlendDynamicShadowsSoft     CSKernel=BlendDynamicShadowsSoft     WITH_DYNAMIC_SHADOWS SOFT_SHADOWS
+
+#pragma kernel NoBlendNearest              CSKernel=NoBlendNearest              NEAREST_SAMPLE
+#pragma kernel NoBlendHard                 CSKernel=NoBlendHard                 HARD_SHADOWS
+#pragma kernel NoBlendSoft                 CSKernel=NoBlendSoft                 SOFT_SHADOWS
+
+#define TILE_SIZE 8
+#define SHADER_STAGE_COMPUTE 1
+
+#ifdef SOFT_SHADOWS
+#define _SHADOWS_SOFT
+#endif
+
+#define VX_SHADOWS_OPT
+#define _SHADOWS_ENABLED
+
+#define PCF9x9 1
+#define PCF7X7 0
+#define PCF5x5 0
+#define PCF3x3 0
+
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.voxelized-shadows/ShaderLibrary/Common.hlsl"
+
+#ifdef UNITY_MATRIX_I_VP
+#undef UNITY_MATRIX_I_VP
+#endif
+
+#define UNITY_MATRIX_I_VP _InvViewProjMatrix
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
+#else
+TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
+
+SAMPLER(sampler_CameraDepthTexture);
+
+CBUFFER_START(_DirectionalVxShadowMap)
+    uint4 _VxShadowMapParameters; // x:begin offset, y:z-bias
+CBUFFER_END
+
+#define _BeginOffset _VxShadowMapParameters.x
+#define _VoxelZBias  _VxShadowMapParameters.y
+#define _VxsmOffset  _VxShadowMapParameters.x + OFFSET_DIR
+
+RW_TEXTURE2D(float, _ScreenSpaceShadowOutput);
+
+void AcquireBitmask(uint4 innerResults[2], uint4 leafIndex, out uint4 bitmask4_0, out uint4 bitmask4_1)
+{
+    uint4 leafValue4_0 = AccessVxShadowMaps(leafIndex);
+    uint4 leafValue4_1 = AccessVxShadowMaps(leafIndex + 1);
+
+    bool4 lit         = innerResults[1] &  VX_SHADOWS_LIT;
+    bool4 intersected = innerResults[1] == VX_SHADOWS_INTERSECTED;
+
+    bitmask4_0 = lit         ? 0x00000000   : 0xFFFFFFFF;
+    bitmask4_0 = intersected ? leafValue4_0 : bitmask4_0;
+
+    bitmask4_1 = lit         ? 0x00000000   : 0xFFFFFFFF;
+    bitmask4_1 = intersected ? leafValue4_1 : bitmask4_1;
+}
+
+void FetchLeaf(uint3 posQ, out uint leafx, out uint leafy)
+{
+    uint3 leaf = posQ % int3(8, 8, 8);
+    leafx = leaf.x;
+    leafy = leaf.y;
+}
+
+void FetchLeaf4(uint3 posQ, int4 xoff4, int4 yoff4, out uint4 leafx4, out uint4 leafy4)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        // todo : be able to use unsigned instead of singed?
+        int3 posQ_ = posQ;
+        posQ_.x += xoff4[i];
+        posQ_.y += yoff4[i];
+
+        uint3 leaf = posQ_ % int3(8, 8, 8);
+        leafx4[i] = leaf.x;
+        leafy4[i] = leaf.y;
+    }
+}
+
+void FetchLit(uint leafx, uint leafy, uint index, uint4 bitmask4_0, uint4 bitmask4_1, out float lit)
+{
+    uint bitmask = leafy < 4 ? bitmask4_0[index] : bitmask4_1[index];
+
+    uint maskShift = mad(leafy % 4, 8, leafx);
+    uint mask = 0x00000001 << maskShift;
+
+    lit = (bitmask & mask) == 0 ? 1.0 : 0.0;
+}
+
+void FetchLit4(
+    uint4 leafx4,
+    uint4 leafy4,
+    uint4 index4,
+    uint4 bitmask4_0,
+    uint4 bitmask4_1,
+    out float4 lit4)
+{
+    uint4 bitmask4;
+
+    bitmask4.x = leafy4.x < 4 ? bitmask4_0[index4.x] : bitmask4_1[index4.x];
+    bitmask4.y = leafy4.y < 4 ? bitmask4_0[index4.y] : bitmask4_1[index4.y];
+    bitmask4.z = leafy4.z < 4 ? bitmask4_0[index4.z] : bitmask4_1[index4.z];
+    bitmask4.w = leafy4.w < 4 ? bitmask4_0[index4.w] : bitmask4_1[index4.w];
+
+    uint4 maskShift4 = mad(leafy4 % 4, 8, leafx4);
+    uint4 mask4 = 0x00000001 << maskShift4;
+
+    lit4 = (bitmask4 & mask4) == 0 ? 1.0 : 0.0;
+}
+
+void Sample3x3Tent(float weight, out float kernel[3])
+{
+    const float a = 1.0;
+    const float b = 1.0 / 3.0;
+    const float c = 2.0 / 3.0;
+
+    float u = -a + c * (1.0 - weight);
+    float v = -b + c * (1.0 - weight);
+    float w =  b + c * (1.0 - weight);
+
+    kernel[0] = u + 1.0;
+    kernel[1] = v < 0.0 ? v + 1.0 : -v + 1.0;
+    kernel[2] = -w + 1.0;
+}
+
+void Sample5x5Tent(float weight, out float kernel[5])
+{
+    const float a = 1.0;
+    const float b = 3.0 / 5.0;
+    const float c = 2.0 / 5.0;
+    const float d = 1.0 / 5.0;
+
+    float x0 = -a + c * (1.0 - weight);
+    float x1 = -b + c * (1.0 - weight);
+    float x2 = -d + c * (1.0 - weight);
+    float x3 =  d + c * (1.0 - weight);
+    float x4 =  b + c * (1.0 - weight);
+
+    kernel[0] = x0 + 1.0;
+    kernel[1] = x1 + 1.0;
+    kernel[2] = x2 < 0.0 ? x2 + 1.0 : -x2 + 1.0;
+    kernel[3] = -x3 + 1.0;
+    kernel[4] = -x4 + 1.0;
+}
+
+float PCF3x3VxShadowMap(uint vxsmOffset, uint2 adjOffset, uint3 posQ, float2 lerpWeight, uint4 innerResults[2])
+{
+    uint4 nodeIndex4 = vxsmOffset + innerResults[0];
+
+    uint4 posQ_x = posQ.xxxx + adjOffset.xyxy;
+    uint4 posQ_y = posQ.yyyy + adjOffset.xxyy;
+
+    uint4 leaf4_x = posQ_x % 8;
+    uint4 leaf4_y = posQ_y % 8;
+    uint  leaf4_z = posQ.z % 8;
+
+    uint4 leafIndex = vxsmOffset + uint4(
+        _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z]);
+
+    uint4 bitmask4_0 = 0;
+    uint4 bitmask4_1 = 0;
+
+    AcquireBitmask(innerResults, leafIndex, bitmask4_0, bitmask4_1);
+
+#if 1
+    const int3 off = int3(-1, 0, 1);
+    uint4 index4;
+    uint2 leafPivot;
+
+    uint4 leaf_x;
+    uint4 leaf_y;
+    uint4 bitmask4;
+    uint4 mask4;
+
+    float4 bit_111_001_000;
+    float4 bit_000_100_111;
+    float bit_000_010_000;
+
+    FetchLeaf4(posQ, off.xyzx, off.xxxy, leaf_x, leaf_y);
+    leafPivot.x = leaf_x.x;
+    leafPivot.y = leaf_y.x;
+    index4.x = 0;
+    index4.y = leafPivot.x < leaf_x.y ? 0 : 1;
+    index4.z = leafPivot.x < leaf_x.z ? 0 : 1;
+    index4.w = leafPivot.y < leaf_y.w ? 0 : 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_111_001_000);
+
+    FetchLeaf4(posQ, off.zxyz, off.yzzz, leaf_x, leaf_y);
+    index4.x = leafPivot.x < leaf_x.x ? 0 : 1;
+    index4.x = leafPivot.y < leaf_y.x ? index4.x : index4.x + 2;
+    index4.y = leafPivot.y < leaf_y.y ? 0 : 2;
+    index4.z = leafPivot.x < leaf_x.z ? 0 : 1;
+    index4.z = leafPivot.y < leaf_y.z ? index4.z : index4.z + 2;
+    index4.w = leafPivot.x < leaf_x.w ? 0 : 1;
+    index4.w = leafPivot.y < leaf_y.w ? index4.w : index4.w + 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_000_100_111);
+
+    FetchLeaf(posQ, leaf_x.x, leaf_y.x);
+    index4.x = leafPivot.x < leaf_x.x ? 0 : 1;
+    index4.x = leafPivot.y < leaf_y.x ? index4.x : index4.x + 2;
+    FetchLit(leaf_x.x, leaf_y.x, index4.x, bitmask4_0, bitmask4_1, bit_000_010_000);
+
+    float Uweight[3];
+    float Vweight[3];
+
+    Sample3x3Tent(lerpWeight.x, Uweight);
+    Sample3x3Tent(lerpWeight.y, Vweight);
+
+    float a111_000_000 =
+        bit_111_001_000.x * Uweight[0] +
+        bit_111_001_000.y * Uweight[1] +
+        bit_111_001_000.z * Uweight[2];
+    float a000_111_000 =
+        bit_111_001_000.w * Uweight[0] +
+        bit_000_010_000 * Uweight[1] +
+        bit_000_100_111.x * Uweight[2];
+    float a000_000_111 =
+        bit_000_100_111.y * Uweight[0] +
+        bit_000_100_111.z * Uweight[1] +
+        bit_000_100_111.w * Uweight[2];
+
+    float result =
+        a111_000_000 * Vweight[0] +
+        a000_111_000 * Vweight[1] +
+        a000_000_111 * Vweight[2];
+
+    return result;
+#else
+    uint3 posQ_001_000_000 = posQ;
+    uint3 posQ_010_000_000 = posQ;
+    uint3 posQ_100_000_000 = posQ;
+    uint3 posQ_000_001_000 = posQ;
+    uint3 posQ_000_010_000 = posQ;
+    uint3 posQ_000_100_000 = posQ;
+    uint3 posQ_000_000_001 = posQ;
+    uint3 posQ_000_000_010 = posQ;
+    uint3 posQ_000_000_100 = posQ;
+
+    posQ_001_000_000.xy -= 1;
+    posQ_010_000_000.y  -= 1;
+    posQ_100_000_000.x  += 1;
+    posQ_100_000_000.y  -= 1;
+
+    posQ_000_001_000.x  -= 1;
+    posQ_000_100_000.x  += 1;
+
+    posQ_000_000_001.x  -= 1;
+    posQ_000_000_001.y  += 1;
+    posQ_000_000_010.y  += 1;
+    posQ_000_000_100.xy += 1;
+
+    uint3 leaf_001_000_000 = posQ_001_000_000 % uint3(8, 8, 8);
+    uint3 leaf_010_000_000 = posQ_010_000_000 % uint3(8, 8, 8);
+    uint3 leaf_100_000_000 = posQ_100_000_000 % uint3(8, 8, 8);
+    uint3 leaf_000_001_000 = posQ_000_001_000 % uint3(8, 8, 8);
+    uint3 leaf_000_010_000 = posQ_000_010_000 % uint3(8, 8, 8);
+    uint3 leaf_000_100_000 = posQ_000_100_000 % uint3(8, 8, 8);
+    uint3 leaf_000_000_001 = posQ_000_000_001 % uint3(8, 8, 8);
+    uint3 leaf_000_000_010 = posQ_000_000_010 % uint3(8, 8, 8);
+    uint3 leaf_000_000_100 = posQ_000_000_100 % uint3(8, 8, 8);
+
+    uint4 leaf_x_111_001_000 = uint4(leaf_001_000_000.x, leaf_010_000_000.x, leaf_100_000_000.x, leaf_000_001_000.x);
+    uint4 leaf_y_111_001_000 = uint4(leaf_001_000_000.y, leaf_010_000_000.y, leaf_100_000_000.y, leaf_000_001_000.y);
+    uint4 leaf_x_000_100_111 = uint4(leaf_000_100_000.x, leaf_000_000_001.x, leaf_000_000_010.x, leaf_000_000_100.x);
+    uint4 leaf_y_000_100_111 = uint4(leaf_000_100_000.y, leaf_000_000_001.y, leaf_000_000_010.y, leaf_000_000_100.y);
+
+    uint4 leafValue_111_001_000;
+    uint4 leafValue_000_100_111;
+
+    uint4 index4;
+
+    index4.x = leaf_x_111_001_000.x < leaf_x_111_001_000.y ? 0 : 1;
+    index4.y = leaf_x_111_001_000.x < leaf_x_111_001_000.z ? 0 : 1;
+    index4.z = leaf_y_111_001_000.x < leaf_y_111_001_000.w ? 0 : 2;
+    index4.w = leaf_y_111_001_000.x < leaf_y_000_100_111.y ? 0 : 2;
+
+    leafValue_111_001_000.x = leaf_y_111_001_000.x < 4 ? bitmask4_0[0] : bitmask4_1[0];
+
+    leafValue_111_001_000.y = leaf_y_111_001_000.y < 4 ? bitmask4_0[index4.x] : bitmask4_1[index4.x];
+    leafValue_111_001_000.z = leaf_y_111_001_000.z < 4 ? bitmask4_0[index4.y] : bitmask4_1[index4.y];
+    leafValue_111_001_000.w = leaf_y_111_001_000.w < 4 ? bitmask4_0[index4.z] : bitmask4_1[index4.z];
+    leafValue_000_100_111.y = leaf_y_000_100_111.y < 4 ? bitmask4_0[index4.w] : bitmask4_1[index4.w];
+
+    index4.x = leaf_x_111_001_000.x < leaf_x_000_100_111.x ? 0 : 1;
+    index4.x = leaf_y_111_001_000.x < leaf_y_000_100_111.x ? index4.x : index4.x + 2;
+    index4.y = leaf_x_111_001_000.x < leaf_x_111_001_000.y ? 0 : 1;
+    index4.y = leaf_y_111_001_000.x < leaf_y_111_001_000.y ? index4.y : index4.y + 2;
+    index4.z = leaf_x_111_001_000.x < leaf_x_111_001_000.z ? 0 : 1;
+    index4.z = leaf_y_111_001_000.x < leaf_y_111_001_000.z ? index4.z : index4.z + 2;
+    index4.w = leaf_x_111_001_000.x < leaf_000_010_000.x   ? 0 : 1;
+    index4.w = leaf_y_111_001_000.x < leaf_000_010_000.y   ? index4.w : index4.w + 2;
+
+    leafValue_000_100_111.x  = leaf_y_000_100_111.x < 4 ? bitmask4_0[index4.x] : bitmask4_1[index4.x];
+    leafValue_000_100_111.z  = leaf_y_000_100_111.z < 4 ? bitmask4_0[index4.y] : bitmask4_1[index4.y];
+    leafValue_000_100_111.w  = leaf_y_000_100_111.w < 4 ? bitmask4_0[index4.z] : bitmask4_1[index4.z];
+    uint leafValue_000_010_000 = leaf_000_010_000.y < 4 ? bitmask4_0[index4.w] : bitmask4_1[index4.w];
+
+    uint4 maskShift_111_001_000 = mad(leaf_y_111_001_000 % 4, 8, leaf_x_111_001_000);
+    uint4 maskShift_000_100_111 = mad(leaf_y_000_100_111 % 4, 8, leaf_x_000_100_111);
+    uint  maskShift_000_010_000 = mad(leaf_000_010_000.y % 4, 8, leaf_000_010_000.x);
+
+    uint4 mask_111_001_000 = 0x00000001 << maskShift_111_001_000;
+    uint4 mask_000_100_111 = 0x00000001 << maskShift_000_100_111;
+    uint  mask_000_010_000 = 0x00000001 << maskShift_000_010_000;
+
+    float4 bit_111_001_000 = (leafValue_111_001_000 & mask_111_001_000) == 0 ? 1.0 : 0.0;
+    float4 bit_000_100_111 = (leafValue_000_100_111 & mask_000_100_111) == 0 ? 1.0 : 0.0;
+    float  bit_000_010_000 = (leafValue_000_010_000 & mask_000_010_000) == 0 ? 1.0 : 0.0;
+
+    float Uweight[3];
+    float Vweight[3];
+
+    Sample3x3Tent(lerpWeight.x, Uweight);
+    Sample3x3Tent(lerpWeight.y, Vweight);
+
+    float a111_000_000 =
+        bit_111_001_000.x * Uweight[0] +
+        bit_111_001_000.y * Uweight[1] +
+        bit_111_001_000.z * Uweight[2];
+    float a000_111_000 =
+        bit_111_001_000.w * Uweight[0] +
+        bit_000_010_000   * Uweight[1] +
+        bit_000_100_111.x * Uweight[2];
+    float a000_000_111 =
+        bit_000_100_111.y * Uweight[0] +
+        bit_000_100_111.z * Uweight[1] +
+        bit_000_100_111.w * Uweight[2];
+
+    float result =
+        a111_000_000 * Vweight[0] +
+        a000_111_000 * Vweight[1] +
+        a000_000_111 * Vweight[2];
+
+    return result;
+
+    float bit_001_001 =
+        bit_111_001_000.x +
+        bit_111_001_000.y +
+        bit_111_001_000.z +
+        bit_111_001_000.w +
+        bit_000_100_111.x +
+        bit_000_100_111.y +
+        bit_000_100_111.z +
+        bit_000_100_111.w +
+        bit_000_010_000;
+
+    return bit_001_001 / 9.0;
+#endif
+}
+
+float PCF5x5VxShadowMap(uint vxsmOffset, uint2 adjOffset, uint3 posQ, float2 lerpWeight, uint4 innerResults[2])
+{
+    uint4 nodeIndex4 = vxsmOffset + innerResults[0];
+
+    uint4 posQ_x = posQ.xxxx + adjOffset.xyxy;
+    uint4 posQ_y = posQ.yyyy + adjOffset.xxyy;
+
+    uint4 leaf4_x = posQ_x % 8;
+    uint4 leaf4_y = posQ_y % 8;
+    uint  leaf4_z = posQ.z % 8;
+
+    uint4 leafIndex = vxsmOffset + uint4(
+        _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z]);
+
+    uint4 bitmask4_0 = 0;
+    uint4 bitmask4_1 = 0;
+
+    AcquireBitmask(innerResults, leafIndex, bitmask4_0, bitmask4_1);
+
+    uint4 index4;
+    uint2 leafPivot;
+
+    uint4 leaf_x;
+    uint4 leaf_y;
+    uint4 bitmask4;
+    uint4 mask4;
+
+    float4 bit_01111_00000_00000_00000_00000;
+    float4 bit_10000_00111_00000_00000_00000;
+    float4 bit_00000_11000_00011_00000_00000;
+    float4 bit_00000_00000_11000_00011_00000;
+    float4 bit_00000_00000_00000_11100_00001;
+    float4 bit_00000_00000_00000_00000_11110;
+    float  bit_00000_00000_00100_00000_00000;
+
+    FetchLeaf4(posQ, int4(-2, -1, 0, 1), int4(-2, -2, -2, -2), leaf_x, leaf_y);
+    leafPivot.x = leaf_x.x;
+    leafPivot.y = leaf_y.x;
+    index4.x = 0;
+    index4.y = (leafPivot.x    ) < leaf_x.y ? 0 : 1;
+    index4.z = (leafPivot.x + 1) < leaf_x.z ? 0 : 1;
+    index4.w = (leafPivot.x + 2) < leaf_x.w ? 0 : 1;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_01111_00000_00000_00000_00000);
+
+    FetchLeaf4(posQ, int4(2, -2, -1, 0), int4(-2, -1, -1, -1), leaf_x, leaf_y);
+    index4.x = (leafPivot.x + 3) < leaf_x.x ? 0 : 1;
+    index4.y = (leafPivot.y    ) < leaf_y.y ? 0 : 2;
+    index4.z = (leafPivot.x    ) < leaf_x.z ? 0 : 1;
+    index4.z = (leafPivot.y    ) < leaf_y.z ? index4.z : index4.z + 2;
+    index4.w = (leafPivot.x + 1) < leaf_x.w ? 0 : 1;
+    index4.w = (leafPivot.y    ) < leaf_y.w ? index4.w : index4.w + 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_10000_00111_00000_00000_00000);
+
+    FetchLeaf4(posQ, int4(1, 2, -2, -1), int4(-1, -1, 0, 0), leaf_x, leaf_y);
+    index4.x = (leafPivot.x + 2) < leaf_x.x ? 0 : 1;
+    index4.x = (leafPivot.y    ) < leaf_y.x ? index4.x : index4.x + 2;
+    index4.y = (leafPivot.x + 3) < leaf_x.y ? 0 : 1;
+    index4.y = (leafPivot.y    ) < leaf_y.y ? index4.y : index4.y + 2;
+    index4.z = (leafPivot.y + 1) < leaf_y.z ? 0 : 2;
+    index4.w = (leafPivot.x    ) < leaf_x.w ? 0 : 1;
+    index4.w = (leafPivot.y + 1) < leaf_y.w ? index4.w : index4.w + 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_00000_11000_00011_00000_00000);
+
+    FetchLeaf4(posQ, int4(1, 2, -2, -1), int4(0, 0, 1, 1), leaf_x, leaf_y);
+    index4.x = (leafPivot.x + 2) < leaf_x.x ? 0 : 1;
+    index4.x = (leafPivot.y + 1) < leaf_y.x ? index4.x : index4.x + 2;
+    index4.y = (leafPivot.x + 3) < leaf_x.y ? 0 : 1;
+    index4.y = (leafPivot.y + 1) < leaf_y.y ? index4.y : index4.y + 2;
+    index4.z = (leafPivot.y + 2) < leaf_y.z ? 0 : 2;
+    index4.w = (leafPivot.x    ) < leaf_x.w ? 0 : 1;
+    index4.w = (leafPivot.y + 2) < leaf_y.w ? index4.w : index4.w + 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_00000_00000_11000_00011_00000);
+
+    FetchLeaf4(posQ, int4(0, 1, 2, -2), int4(1, 1, 1, 2), leaf_x, leaf_y);
+    index4.x = (leafPivot.x + 1) < leaf_x.x ? 0 : 1;
+    index4.x = (leafPivot.y + 2) < leaf_y.x ? index4.x : index4.x + 2;
+    index4.y = (leafPivot.x + 2) < leaf_x.y ? 0 : 1;
+    index4.y = (leafPivot.y + 2) < leaf_y.y ? index4.y : index4.y + 2;
+    index4.z = (leafPivot.x + 3) < leaf_x.z ? 0 : 1;
+    index4.z = (leafPivot.y + 2) < leaf_y.z ? index4.z : index4.z + 2;
+    index4.w = (leafPivot.y + 3) < leaf_y.w ? 0 : 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_00000_00000_00000_11100_00001);
+
+    FetchLeaf4(posQ, int4(-1, 0, 1, 2), int4(2, 2, 2, 2), leaf_x, leaf_y);
+    index4.x = (leafPivot.x    ) < leaf_x.x ? 0 : 1;
+    index4.x = (leafPivot.y + 3) < leaf_y.x ? index4.x : index4.x + 2;
+    index4.y = (leafPivot.x + 1) < leaf_x.y ? 0 : 1;
+    index4.y = (leafPivot.y + 3) < leaf_y.y ? index4.y : index4.y + 2;
+    index4.z = (leafPivot.x + 2) < leaf_x.z ? 0 : 1;
+    index4.z = (leafPivot.y + 3) < leaf_y.z ? index4.z : index4.z + 2;
+    index4.w = (leafPivot.x + 3) < leaf_x.w ? 0 : 1;
+    index4.w = (leafPivot.y + 3) < leaf_y.w ? index4.w : index4.w + 2;
+    FetchLit4(leaf_x, leaf_y, index4, bitmask4_0, bitmask4_1, bit_00000_00000_00000_00000_11110);
+
+    FetchLeaf(posQ, leaf_x.x, leaf_y.x);
+    index4.x = (leafPivot.x + 1) < leaf_x.x ? 0 : 1;
+    index4.x = (leafPivot.y + 1) < leaf_y.x ? index4.x : index4.x + 2;
+    FetchLit(leaf_x.x, leaf_y.x, index4.x, bitmask4_0, bitmask4_1, bit_00000_00000_00100_00000_00000);
+
+    float Uweight[5];
+    float Vweight[5];
+
+    Sample5x5Tent(lerpWeight.x, Uweight);
+    Sample5x5Tent(lerpWeight.y, Vweight);
+
+    float a11111_00000_00000_00000_00000 =
+        bit_01111_00000_00000_00000_00000.x * Uweight[0] +
+        bit_01111_00000_00000_00000_00000.y * Uweight[1] +
+        bit_01111_00000_00000_00000_00000.z * Uweight[2] +
+        bit_01111_00000_00000_00000_00000.w * Uweight[3] +
+        bit_10000_00111_00000_00000_00000.x * Uweight[4];
+    float a00000_11111_00000_00000_00000 =
+        bit_10000_00111_00000_00000_00000.y * Uweight[0] +
+        bit_10000_00111_00000_00000_00000.z * Uweight[1] +
+        bit_10000_00111_00000_00000_00000.w * Uweight[2] +
+        bit_00000_11000_00011_00000_00000.x * Uweight[3] +
+        bit_00000_11000_00011_00000_00000.y * Uweight[4];
+    float a00000_00000_11111_00000_00000 =
+        bit_00000_11000_00011_00000_00000.z * Uweight[0] +
+        bit_00000_11000_00011_00000_00000.w * Uweight[1] +
+        bit_00000_00000_00100_00000_00000   * Uweight[2] +
+        bit_00000_00000_11000_00011_00000.x * Uweight[3] +
+        bit_00000_00000_11000_00011_00000.y * Uweight[4];
+    float a00000_00000_00000_11111_00000 =
+        bit_00000_00000_11000_00011_00000.z * Uweight[0] +
+        bit_00000_00000_11000_00011_00000.w * Uweight[1] +
+        bit_00000_00000_00000_11100_00001.x * Uweight[2] +
+        bit_00000_00000_00000_11100_00001.y * Uweight[3] +
+        bit_00000_00000_00000_11100_00001.z * Uweight[4];
+    float a00000_00000_00000_00000_11111 =
+        bit_00000_00000_00000_11100_00001.w * Uweight[0] +
+        bit_00000_00000_00000_00000_11110.x * Uweight[1] +
+        bit_00000_00000_00000_00000_11110.y * Uweight[2] +
+        bit_00000_00000_00000_00000_11110.z * Uweight[3] +
+        bit_00000_00000_00000_00000_11110.w * Uweight[4];
+
+    float result =
+        a11111_00000_00000_00000_00000 * Vweight[0] +
+        a00000_11111_00000_00000_00000 * Vweight[1] +
+        a00000_00000_11111_00000_00000 * Vweight[2] +
+        a00000_00000_00000_11111_00000 * Vweight[3] +
+        a00000_00000_00000_00000_11111 * Vweight[4];
+        //dot(bit_01111_00000_00000_00000_00000, 1.0) +
+        //dot(bit_10000_00111_00000_00000_00000, 1.0) +
+        //dot(bit_00000_11000_00011_00000_00000, 1.0) +
+        //dot(bit_00000_00000_11000_00011_00000, 1.0) +
+        //dot(bit_00000_00000_00000_00000_11110, 1.0) +
+        //dot(bit_00000_00000_00000_00000_11110, 1.0) +
+        //bit_00000_00000_00100_00000_00000;
+        //result /= 25.0;
+
+    return result;
+}
+
+float PCF7x7VxShadowMap(uint vxsmOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
+{
+    return 1.0;
+}
+
+float PCF9x9VxShadowMap(uint vxsmOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
+{
+    uint4 nodeIndex4 = vxsmOffset + innerResults[0];
+
+    uint4 posQ_x = posQ.xxxx + adjOffset.xyxy;
+    uint4 posQ_y = posQ.yyyy + adjOffset.xxyy;
+
+    uint4 leaf4_x = posQ_x % 8;
+    uint4 leaf4_y = posQ_y % 8;
+    uint  leaf4_z = posQ.z % 8;
+
+    uint4 leafIndex = vxsmOffset + uint4(
+        _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z]);
+
+    uint4 bitmask4_0 = (innerResults[1] & VX_SHADOWS_LIT) ? 0x00000000 : 0xFFFFFFFF;
+    uint4 bitmask4_1 = bitmask4_0;
+
+    if (innerResults[1].x == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.x = _VxShadowMapsBuffer[leafIndex.x    ];
+        bitmask4_1.x = _VxShadowMapsBuffer[leafIndex.x + 1];
+    }
+    if (innerResults[1].y == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.y = _VxShadowMapsBuffer[leafIndex.y    ];
+        bitmask4_1.y = _VxShadowMapsBuffer[leafIndex.y + 1];
+    }
+    if (innerResults[1].z == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.z = _VxShadowMapsBuffer[leafIndex.z    ];
+        bitmask4_1.z = _VxShadowMapsBuffer[leafIndex.z + 1];
+    }
+    if (innerResults[1].w == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.w = _VxShadowMapsBuffer[leafIndex.w    ];
+        bitmask4_1.w = _VxShadowMapsBuffer[leafIndex.w + 1];
+    }
+
+    uint xshift0 = leaf4_x.x;
+    uint xshift1 = leaf4_x.w + 1;
+    uint yshift0 = leaf4_y.x;
+    uint yshift1 = leaf4_y.w + 1;
+
+    uint maskx_0 = ( (0x000000FF << xshift0)) & 0x000000FF;
+    uint maskx_1 = (~(0xFFFFFFFF << xshift1)) & 0x000000FF;
+
+    uint mask00_0 = 0;
+    uint mask00_1 = 0;
+    uint mask10_0 = 0;
+    uint mask10_1 = 0;
+    uint mask01_0 = 0;
+    uint mask01_1 = 0;
+    uint mask11_0 = 0;
+    uint mask11_1 = 0;
+
+    mask00_0 |= (yshift0 <= 0) ? (maskx_0      ) : 0;
+    mask00_0 |= (yshift0 <= 1) ? (maskx_0 <<  8) : 0;
+    mask00_0 |= (yshift0 <= 2) ? (maskx_0 << 16) : 0;
+    mask00_0 |= (yshift0 <= 3) ? (maskx_0 << 24) : 0;
+    mask00_1 |= (yshift0 <= 4) ? (maskx_0      ) : 0;
+    mask00_1 |= (yshift0 <= 5) ? (maskx_0 <<  8) : 0;
+    mask00_1 |= (yshift0 <= 6) ? (maskx_0 << 16) : 0;
+    mask00_1 |= (yshift0 <= 7) ? (maskx_0 << 24) : 0;
+
+    mask10_0 |= (yshift0 <= 0) ? (maskx_1      ) : 0;
+    mask10_0 |= (yshift0 <= 1) ? (maskx_1 <<  8) : 0;
+    mask10_0 |= (yshift0 <= 2) ? (maskx_1 << 16) : 0;
+    mask10_0 |= (yshift0 <= 3) ? (maskx_1 << 24) : 0;
+    mask10_1 |= (yshift0 <= 4) ? (maskx_1      ) : 0;
+    mask10_1 |= (yshift0 <= 5) ? (maskx_1 <<  8) : 0;
+    mask10_1 |= (yshift0 <= 6) ? (maskx_1 << 16) : 0;
+    mask10_1 |= (yshift0 <= 7) ? (maskx_1 << 24) : 0;
+
+    mask01_0 |= (yshift1 >  0) ? (maskx_0      ) : 0;
+    mask01_0 |= (yshift1 >  1) ? (maskx_0 <<  8) : 0;
+    mask01_0 |= (yshift1 >  2) ? (maskx_0 << 16) : 0;
+    mask01_0 |= (yshift1 >  3) ? (maskx_0 << 24) : 0;
+    mask01_1 |= (yshift1 >  4) ? (maskx_0      ) : 0;
+    mask01_1 |= (yshift1 >  5) ? (maskx_0 <<  8) : 0;
+    mask01_1 |= (yshift1 >  6) ? (maskx_0 << 16) : 0;
+    mask01_1 |= (yshift1 >  7) ? (maskx_0 << 24) : 0;
+
+    mask11_0 |= (yshift1 >  0) ? (maskx_1      ) : 0;
+    mask11_0 |= (yshift1 >  1) ? (maskx_1 <<  8) : 0;
+    mask11_0 |= (yshift1 >  2) ? (maskx_1 << 16) : 0;
+    mask11_0 |= (yshift1 >  3) ? (maskx_1 << 24) : 0;
+    mask11_1 |= (yshift1 >  4) ? (maskx_1      ) : 0;
+    mask11_1 |= (yshift1 >  5) ? (maskx_1 <<  8) : 0;
+    mask11_1 |= (yshift1 >  6) ? (maskx_1 << 16) : 0;
+    mask11_1 |= (yshift1 >  7) ? (maskx_1 << 24) : 0;
+
+    uint countMasks =
+        countbits(bitmask4_0.x & mask00_0) + countbits(bitmask4_1.x & mask00_1) +
+        countbits(bitmask4_0.y & mask10_0) + countbits(bitmask4_1.y & mask10_1) +
+        countbits(bitmask4_0.z & mask01_0) + countbits(bitmask4_1.z & mask01_1) +
+        countbits(bitmask4_0.w & mask11_0) + countbits(bitmask4_1.w & mask11_1);
+
+    return 1.0 - ((float)countMasks / 81.0);
+}
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // todo : need to consider XR slot
+
+    uint2 positionSS = dispatchThreadId.xy;
+    if (any(positionSS.xy >= _ScreenSize.xy))
+        return;
+
+    float deviceDepth = LOAD_TEXTURE2D(_CameraDepthTexture, positionSS).x;
+
+    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
+        return;
+    }
+
+#if 0//UNITY_REVERSED_Z
+    // reverse depth on OpenGL
+    deviceDepth = deviceDepth * 2.0 - 1.0;
+#endif
+
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
+
+    float attenuation = 1.0;
+
+#if WITH_DYNAMIC_SHADOWS
+    float4 shadowMapCoords = TransformWorldToShadowCoord(positionWS);
+    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    half4 shadowParams = GetMainLightShadowParams();
+
+    attenuation = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowMapCoords, shadowSamplingData, shadowParams, false);
+
+    if (attenuation == 0.0)
+    {
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+#endif
+
+    float volumeScale = GetVolumeScale(_BeginOffset);
+    uint dagScale = GetDagScale(_BeginOffset);
+    uint voxelResolution = 1 << dagScale;
+
+    float3 posP = ComputePosP(_BeginOffset, voxelResolution, positionWS);
+    float3 lerpWeight = frac(posP);
+
+    if (any(posP < 0.0) || any(posP >= float3(voxelResolution.xxx - 1)))
+    {
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
+        return;
+    }
+
+    posP.z -= _VoxelZBias;
+    uint3 posQ = (uint3)posP;
+
+#if NEAREST_SAMPLE
+    uint2 result;
+    TraverseVxShadowMapPosQ(_VxsmOffset, dagScale, posQ, result);
+
+    if (result.y != VX_SHADOWS_INTERSECTED)
+    {
+        attenuation = (result.y & 0x000000001) ? attenuation : 0.0;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = NearestSampleVxShadowMap(_VxsmOffset, posQ, result);
+    attenuation = min(attenuation, attenuationVxsm);
+#elif HARD_SHADOWS
+
+#if 0 // Author's algorithm
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Stacktraced(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+#else
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+#endif
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+
+        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
+    attenuation = min(attenuation, attenuationVxsm);
+
+#elif SOFT_SHADOWS // todo : soft by PCF filtering
+
+#if 0 // hard shadows, not soft
+
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+
+        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
+    attenuation = min(attenuation, attenuationVxsm);
+
+#else
+
+#if PCF9x9
+    uint2 adjOffset = uint2(-4, 4);
+#elif PCF7x7
+    uint2 adjOffset = uint2(-3, 3);
+#elif PCF5x5
+    uint2 adjOffset = uint2(-2, 2);
+#elif PCF3x3
+    uint2 adjOffset = uint2(-1, 1);
+#endif
+
+    uint4 results[2];
+
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, adjOffset, posQ, results);
+
+    //if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    //{
+    //    float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+    //    attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+    //
+    //    attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+    //    attenuation = LerpWhiteTo(attenuation, shadowStrength);
+    //    _ScreenSpaceShadowOutput[positionSS] = attenuation;
+    //    return;
+    //}
+
+#if PCF9x9
+    float attenuationVxsm = PCF9x9VxShadowMap(_VxsmOffset, adjOffset, posQ, results);
+#elif PCF7x7
+    float attenuationVxsm = PCF7x7VxShadowMap(_VxsmOffset, adjOffset, posQ, results);
+#elif PCF5x5
+    float attenuationVxsm = PCF5x5VxShadowMap(_VxsmOffset, adjOffset, posQ, lerpWeight.xy, results);
+#elif PCF3x3
+    float attenuationVxsm = PCF3x3VxShadowMap(_VxsmOffset, adjOffset, posQ, lerpWeight.xy, results);
+#else
+    float attenuationVxsm = 1.0;
+#endif
+
+    attenuation = min(attenuation, attenuationVxsm);
+#endif
+
+#endif
+
+    _ScreenSpaceShadowOutput[positionSS] = attenuation;
+}
