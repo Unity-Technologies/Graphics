@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 
+### Changed
+- Nodes can now have output connections to different shader stages at the same time.
+
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
 - Shader Graph no longer references the `NUnit` package.
