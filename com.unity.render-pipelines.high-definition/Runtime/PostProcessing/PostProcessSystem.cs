@@ -971,6 +971,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            farSamples = Mathf.Max(3, farSamples);
+            nearSamples = Mathf.Max(3, nearSamples);
+
             float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
             float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
 
@@ -1056,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
                     float P = m_DepthOfField.focusDistance.value;
-                    float maxCoC = (A * F) / (P - F);
+                    float maxCoC = (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     kernel = cs.FindKernel("KMainPhysical");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(P, maxCoC, 0f, 0f));
@@ -1066,7 +1070,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float nearEnd = m_DepthOfField.nearFocusEnd.value;
                     float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
                     float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
-                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart);
+                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
 
                     kernel = cs.FindKernel("KMainManual");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
