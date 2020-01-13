@@ -12,34 +12,34 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            [Tooltip("This boolean indicates if a new loop has just started.")]
+            [Tooltip("Outputs ‘true’ if a new loop has just started. Otherwise, outputs ‘false’.")]
             public bool NewLoop;
 
-            [Tooltip("The current state of VFXSpawnerState.")]
+            [Tooltip("Outputs the current loop state. This can be ‘0’ when not looping, ‘1’ when delaying before a loop, ‘2’ when looping, or ‘3’ when delaying after a loop.")]
             public uint LoopState;
 
-            [Tooltip("The current index of loop.")]
+            [Tooltip("Outputs the current index of the loop. This number is incremented for each new loop.")]
             public int LoopIndex;
 
-            [Tooltip("The current (frame relative) Spawn count.")]
+            [Tooltip("Outputs the number of particles spawned in the current frame.")]
             public float SpawnCount;
 
-            [Tooltip("The current delta time.")]
+            [Tooltip("Outputs the current delta time. This value can be modified by a custom spawner.")]
             public float SpawnDeltaTime;
 
-            [Tooltip("The accumulated delta time since the last Play event.")]
+            [Tooltip("Outputs the accumulated time in seconds since the last Play event.")]
             public float SpawnTotalTime;
 
-            [Tooltip("The duration of the looping state.")]
+            [Tooltip("Outputs the loop duration specified in the spawn context.")]
             public float LoopDuration;
 
-            [Tooltip("The current loop count.")]
+            [Tooltip("Outputs the loop count specified in the spawn context.")]
             public int LoopCount;
 
-            [Tooltip("The current delay time that the VFXSpawner waits for after it finishes a loop.")]
+            [Tooltip("Outputs the delay time the VFXSpawner waits for before starting a new loop. This value is specified in the spawn context.")]
             public float DelayBeforeLoop;
 
-            [Tooltip("The current delay time that the VFXSpawner waits for after it finishes a loop.")]
+            [Tooltip("Outputs the delay time the VFXSpawner waits for after it finishes a loop. This value is specified in the spawn context.")]
             public float DelayAfterLoop;
         }
 
