@@ -293,6 +293,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
+        /// <summary>
+        ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
+        /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
 

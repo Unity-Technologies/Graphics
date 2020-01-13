@@ -577,7 +577,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
+            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
@@ -615,9 +615,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (async && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (async && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (async && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
