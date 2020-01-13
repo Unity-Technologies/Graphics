@@ -55,31 +55,27 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
-            var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
-            if (inputSlotSpaceable.Any() || inputSlots.Count == 0)
+            var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
+            bool needUpdateInputSpaceable = false;
+            foreach (var output in outputSlotSpaceable)
             {
-                var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
-                bool needUpdateInputSpaceable = false;
-                foreach (var output in outputSlotSpaceable)
+                var currentSpaceForSlot = GetOutputSpaceFromSlot(output);
+                if (currentSpaceForSlot != output.space)
                 {
-                    var currentSpaceForSlot = GetOutputSpaceFromSlot(output);
-                    if (currentSpaceForSlot != output.space)
-                    {
-                        output.space = currentSpaceForSlot;
-                        needUpdateInputSpaceable = true;
-                    }
+                    output.space = currentSpaceForSlot;
+                    needUpdateInputSpaceable = true;
                 }
+            }
 
-                //If one of output slot has changed its space, expression tree for inputs,
-                //and more generally, current operation expression graph is invalid.
-                //=> Trigger invalidation on input is enough to recompute the graph from this operator
-                if (needUpdateInputSpaceable)
+            //If one of output slot has changed its space, expression tree for inputs,
+            //and more generally, current operation expression graph is invalid.
+            //=> Trigger invalidation on input is enough to recompute the graph from this operator
+            if (needUpdateInputSpaceable)
+            {
+                var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
+                foreach (var input in inputSlotSpaceable)
                 {
-                    foreach (var input in inputSlotSpaceable)
-                    {
-                        input.Invalidate(InvalidationCause.kSpaceChanged);
-                    }
+                    input.Invalidate(InvalidationCause.kSpaceChanged);
                 }
             }
 
