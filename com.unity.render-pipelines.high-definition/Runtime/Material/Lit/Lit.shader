@@ -217,7 +217,7 @@ Shader "HDRP/Lit"
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        _DecalLayerMask("Decal Layer Mask", Float) = 255.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 

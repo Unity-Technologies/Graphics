@@ -372,7 +372,7 @@ Shader "HDRP/LayeredLitTessellation"
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
+        _DecalLayerMask("Decal Layer Mask", Float) = 255.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
@@ -423,7 +423,7 @@ Shader "HDRP/LayeredLitTessellation"
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP

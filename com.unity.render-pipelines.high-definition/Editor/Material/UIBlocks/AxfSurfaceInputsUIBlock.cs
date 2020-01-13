@@ -205,9 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
         // Decals and SSR
-        const string kEnableDecals = "_SupportDecals";
         const string kEnableSSR = "_ReceivesSSR";
-        MaterialProperty m_SupportDecals = null;
         MaterialProperty m_ReceivesSSR = null;
 
         Expandable  m_ExpandableBit;
@@ -273,8 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClearcoatNormalMap = FindProperty(m_ClearcoatNormalMapText);
             m_ClearcoatIORMap = FindProperty(m_ClearcoatIORMapText);
 
-            // Decals and SSR
-            m_SupportDecals = FindProperty(kEnableDecals);
+            // SSR
             m_ReceivesSSR = FindProperty(kEnableSSR);
         }
 

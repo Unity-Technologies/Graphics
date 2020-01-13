@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
 
             // Keywords for opt-out of decals and SSR:
-            bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            var decalsEnabled = material.GetDecalLayerMask() != DecalLayerMask.None;
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);

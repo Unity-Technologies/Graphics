@@ -109,6 +109,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal static class MaterialExtension
     {
+        public static DecalLayerMask GetDecalLayerMask(this Material material) =>
+            material.HasProperty(kDecalLayerMask)
+                ? (DecalLayerMask) material.GetInt(kDecalLayerMask)
+                : DecalLayerMask.None;
+
+        public static void SetDecalLayerMask(this Material material, in DecalLayerMask value)
+        {
+            if (material.HasProperty(kDecalLayerMask))
+                material.SetInt(kDecalLayerMask, (int)value);
+        }
+
         public static SurfaceType   GetSurfaceType(this Material material)
         {
             return material.HasProperty(kSurfaceType) ? (SurfaceType)material.GetFloat(kSurfaceType) : SurfaceType.Opaque;

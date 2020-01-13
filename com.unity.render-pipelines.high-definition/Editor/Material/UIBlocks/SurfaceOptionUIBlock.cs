@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive Length", "Sets the length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
             public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive Width", "Sets the width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
-            public static GUIContent supportDecalsText = new GUIContent("Receive Decals", "Enable to allow Materials to receive decals.");
+            public static GUIContent decalLayerMaskText = new GUIContent("Decal Layer Mask", "Decal with a layer value matching this layer mask will render on this material.");
 
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
@@ -137,8 +137,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty doubleSidedNormalMode = null;
         const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         MaterialProperty materialID  = null;
-        MaterialProperty supportDecals = null;
-        const string kSupportDecals = "_SupportDecals";
+        MaterialProperty decalLayerMask;
+        const string kDecalLayerMask = HDMaterialProperties.kDecalLayerMask;
         MaterialProperty enableGeometricSpecularAA = null;
         const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         MaterialProperty specularAAScreenSpaceVariance = null;
@@ -327,7 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
-            supportDecals = FindProperty(kSupportDecals);
+            decalLayerMask = FindProperty(kDecalLayerMask);
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA);
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            
+
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {
@@ -706,9 +706,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (supportDecals != null)
+            if (decalLayerMask != null)
             {
-                materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
+                DecalLayerMaskUI.GUILayoutMaterialProperty(Styles.decalLayerMaskText, decalLayerMask);
             }
 
             if (receivesSSR != null)
