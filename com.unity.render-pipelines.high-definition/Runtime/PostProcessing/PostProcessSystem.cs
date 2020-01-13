@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
 
+        //  AMD-CAS data
+        ComputeBuffer m_ContrastAdaptiveSharpen;
+
         // Bloom data
         const int k_MaxBloomMipCount = 16;
         readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_MaxBloomMipCount + 1];
@@ -242,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
             m_EmptyExposureTexture      = null;
             m_TempTexture1024           = null;
@@ -567,6 +571,42 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                         DoFXAA(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
+
+                // Contrast Adaptive Sharpen Upscaling
+                if (dynResHandler.DynamicResolutionEnabled() &&
+                    dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
+                    {
+                        var destination = m_Pool.Get(Vector2.one , k_ColorFormat);
+                        
+                        var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
+                        int kInit = cs.FindKernel("KInitialize");
+                        int kMain = cs.FindKernel("KMain");
+                        if (kInit >= 0 && kMain >= 0)
+                        {
+                            cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width,source.rt.height));
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+
+                            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
+
+                            cmd.SetComputeBufferParam(cs, kInit, "CasParameters", m_ContrastAdaptiveSharpen);
+                            cmd.SetComputeBufferParam(cs, kMain, "CasParameters", m_ContrastAdaptiveSharpen);
+
+                            cmd.DispatchCompute(cs, kInit, 1, 1, 1);
+
+                            int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
+                            int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+
+                            cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, camera.viewCount);
+                        }
+
                         PoolSource(ref source, destination);
                     }
                 }
@@ -2293,6 +2333,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case DynamicResUpscaleFilter.Lanczos:
                         m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                        break;
+                    case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                        m_FinalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
                         break;
                 }
             }

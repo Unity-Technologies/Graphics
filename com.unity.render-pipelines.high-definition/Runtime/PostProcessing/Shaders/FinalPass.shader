@@ -11,7 +11,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local _ DITHER
         #pragma multi_compile_local _ APPLY_AFTER_POST
 
-        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS
+        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -89,6 +89,9 @@ Shader "Hidden/HDRP/FinalPass"
 
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
+            #elif defined(CONTRASTADAPTIVESHARPEN)
+            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy);
+            float3 outColor = inputColor.rgb;
             #else
             float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS);
             float3 outColor = inputColor.rgb;
