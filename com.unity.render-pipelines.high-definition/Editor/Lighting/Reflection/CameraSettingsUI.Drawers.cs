@@ -69,6 +69,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyFieldWithoutToggle(CameraSettingsFields.frustumFarClipPlane, serialized.frustumFarClipPlane, EditorGUIUtility.TrTextContent("Far Clip Plane"), displayedFields.camera);
                     PropertyFieldWithoutToggle(CameraSettingsFields.frustumNearClipPlane, serialized.frustumNearClipPlane, EditorGUIUtility.TrTextContent("Near Clip Plane"), displayedFields.camera);
                 }
+
+                // Enforce valid value range
+                serialized.frustumNearClipPlane.floatValue = Mathf.Max(CameraSettings.Frustum.MinNearClipPlane, serialized.frustumNearClipPlane.floatValue);
+                serialized.frustumFarClipPlane.floatValue = Mathf.Max(serialized.frustumNearClipPlane.floatValue + CameraSettings.Frustum.MinFarClipPlane, serialized.frustumFarClipPlane.floatValue);
                 EditorGUILayout.Space();
             }
 

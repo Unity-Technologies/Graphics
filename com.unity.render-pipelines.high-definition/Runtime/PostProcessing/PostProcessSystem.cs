@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
 
+        //  AMD-CAS data
+        ComputeBuffer m_ContrastAdaptiveSharpen;
+
         // Bloom data
         const int k_MaxBloomMipCount = 16;
         readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_MaxBloomMipCount + 1];
@@ -242,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
             m_EmptyExposureTexture      = null;
             m_TempTexture1024           = null;
@@ -257,29 +261,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
-
-            // Cleanup Custom Post Process
-            var currentHDRP = HDRenderPipeline.currentAsset;
-            if (currentHDRP != null)
-            {
-                foreach (var typeString in currentHDRP.beforeTransparentCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.beforePostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.afterPostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-
-                void CleanupCustomPostProcess(string typeString)
-                {
-                    Type t = Type.GetType(typeString);
-
-                    if (t == null)
-                        return;
-
-                    var comp = VolumeManager.instance.stack.GetComponent(t) as CustomPostProcessVolumeComponent;                    comp.CleanupInternal();
-                    comp.CleanupInternal();
-                }
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -301,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
@@ -475,7 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.beforePostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -576,7 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterPP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.afterPostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -590,6 +571,42 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                         DoFXAA(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
+
+                // Contrast Adaptive Sharpen Upscaling
+                if (dynResHandler.DynamicResolutionEnabled() &&
+                    dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
+                    {
+                        var destination = m_Pool.Get(Vector2.one , k_ColorFormat);
+                        
+                        var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
+                        int kInit = cs.FindKernel("KInitialize");
+                        int kMain = cs.FindKernel("KMain");
+                        if (kInit >= 0 && kMain >= 0)
+                        {
+                            cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width,source.rt.height));
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+
+                            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
+
+                            cmd.SetComputeBufferParam(cs, kInit, "CasParameters", m_ContrastAdaptiveSharpen);
+                            cmd.SetComputeBufferParam(cs, kMain, "CasParameters", m_ContrastAdaptiveSharpen);
+
+                            cmd.DispatchCompute(cs, kInit, 1, 1, 1);
+
+                            int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
+                            int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+
+                            cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, camera.viewCount);
+                        }
+
                         PoolSource(ref source, destination);
                     }
                 }
@@ -954,6 +971,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            farSamples = Mathf.Max(3, farSamples);
+            nearSamples = Mathf.Max(3, nearSamples);
+
             float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
             float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
 
@@ -1039,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
                     float P = m_DepthOfField.focusDistance.value;
-                    float maxCoC = (A * F) / (P - F);
+                    float maxCoC = (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     kernel = cs.FindKernel("KMainPhysical");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(P, maxCoC, 0f, 0f));
@@ -1049,7 +1070,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float nearEnd = m_DepthOfField.nearFocusEnd.value;
                     float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
                     float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
-                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart);
+                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
 
                     kernel = cs.FindKernel("KMainManual");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
@@ -1455,7 +1476,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_MotionBlurSupportsScattering)
             {
                 tileToScatterMax = m_Pool.Get(tileTexScale, GraphicsFormat.R32_UInt);
-                tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_UInt);
+                tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_SFloat);
             }
 
             float screenMagnitude = (new Vector2(camera.actualWidth, camera.actualHeight).magnitude);
@@ -2317,6 +2338,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     case DynamicResUpscaleFilter.Lanczos:
                         m_FinalPassMaterial.EnableKeyword("LANCZOS");
                         break;
+                    case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                        m_FinalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
+                        break;
                 }
             }
 
@@ -2365,11 +2389,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,
-                m_KeepAlpha
-                ? m_AlphaTexture.rt
-                : (Texture)Texture2D.whiteTexture
-            );
+            if (m_KeepAlpha)
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, m_AlphaTexture);
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            }
+            else
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, TextureXR.GetWhiteTexture());
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 0.0f);
+            }
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
@@ -2420,7 +2449,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 bool needsBlitToColorBuffer = false;
-                foreach (var typeString in HDRenderPipeline.currentAsset.beforeTransparentCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
                     needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
 
                 if (needsBlitToColorBuffer)
@@ -2438,7 +2467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (customPostProcessComponentType == null)
                 return false;
 
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
 
             if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
             {

@@ -15,6 +15,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     public class Renderer2DData : ScriptableRendererData
     {
+        public enum Renderer2DDefaultMaterialType
+        {
+            Lit,
+            Unlit,
+            Custom
+        }
+
+        [SerializeField]
+        TransparencySortMode m_TransparencySortMode = TransparencySortMode.Default;
+
+        [SerializeField]
+        Vector3 m_TransparencySortAxis = Vector3.up;
+
         [SerializeField]
         float m_HDREmulationScale = 1;
 
@@ -23,6 +36,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField]
         bool m_UseDepthStencilBuffer = true;
+
+#if UNITY_EDITOR
+        [SerializeField]
+        Renderer2DDefaultMaterialType m_DefaultMaterialType = Renderer2DDefaultMaterialType.Lit;
+
+        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
+        Material m_DefaultCustomMaterial = null;
+
+        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
+        Material m_DefaultLitMaterial = null;
+
+        [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
+        Material m_DefaultUnlitMaterial = null;
+#endif
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
@@ -48,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
-
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
@@ -61,7 +87,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
         internal PostProcessData postProcessData => m_PostProcessData;
-
+        internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
+        internal Vector3 transparencySortAxis => m_TransparencySortAxis;
 
         protected override ScriptableRenderer Create()
         {
@@ -102,14 +129,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_LightBlendStyles = new Light2DBlendStyle[4];
 
-            m_LightBlendStyles[0].enabled = true;
             m_LightBlendStyles[0].name = "Default";
             m_LightBlendStyles[0].blendMode = Light2DBlendStyle.BlendMode.Multiply;
             m_LightBlendStyles[0].renderTextureScale = 1.0f;
 
             for (int i = 1; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightBlendStyles[i].enabled = false;
                 m_LightBlendStyles[i].name = "Blend Style " + i;
                 m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
                 m_LightBlendStyles[i].renderTextureScale = 1.0f;
@@ -139,19 +164,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
 
-#if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
-#endif
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
         {
             if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
-                return AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat");
+            {
+                if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Lit)
+                    return m_DefaultLitMaterial;
+                else if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Unlit)
+                    return m_DefaultUnlitMaterial;
+                else
+                    return m_DefaultCustomMaterial;
+            }
 
             return null;
         }
+
 
         internal override Shader GetDefaultShader()
         {

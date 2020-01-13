@@ -187,6 +187,8 @@ Here is the list of all the defines you can enable
 
 Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
 
+<a name="ScriptingAPI"></a>
+
 ## Scripting API
 
 To do even more complex effect, that may require more than one buffer or even `Compute Shaders`, you have a Scripting API available to extend the `CustomPass` class.  

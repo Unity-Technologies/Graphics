@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 unitsPerPixel = 1.0f / (zoom * assetsPPU);
         }
 
-        internal Rect CalculateFinalBlitPixelRect(float cameraAspect, int screenWidth, int screenHeight)
+        internal Rect CalculateFinalBlitPixelRect(int screenWidth, int screenHeight)
         {
             // This VP is used when the internal temp RT is blitted back to screen.
             Rect pixelRect = new Rect();
@@ -171,6 +171,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 // stretch (fit either width or height)
                 float screenAspect = (float)screenWidth / screenHeight;
+                float cameraAspect = (float)m_Component.refResolutionX / m_Component.refResolutionY;
+
                 if (screenAspect > cameraAspect)
                 {
                     pixelRect.height = screenHeight;

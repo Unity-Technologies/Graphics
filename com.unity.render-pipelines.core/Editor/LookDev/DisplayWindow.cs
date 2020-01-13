@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.LookDev
                 => sidePanel = (SidePanel)evt.newValue);
 
             // Aggregate parts
-            var toolbar = new Toolbar() { name = Style.k_ToolbarName };
+            var toolbar = new UIElements.Toolbar() { name = Style.k_ToolbarName };
             toolbar.Add(layoutRadio);
             toolbar.Add(new ToolbarSpacer());
             toolbar.Add(cameraMenu);

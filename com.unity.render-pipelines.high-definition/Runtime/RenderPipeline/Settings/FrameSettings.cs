@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { LODBiasMode }, tooltip: "Sets the Level Of Detail Bias or the Scale on it.")]
         LODBias = 61,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0, autoName: LODBiasQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 100, positiveDependencies: new[] { LODBiasMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0, displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 100, positiveDependencies: new[] { LODBiasMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         LODBiasQualityLevel = 64,
         // true <=> Fixed, false <=> FromQualitySettings (default)
         [FrameSettingsField(0, autoName: MaximumLODLevelMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MaximumLODLevelMode), tooltip: "Specifies the Maximum Level Of Detail Mode for Cameras using these Frame Settings to use to render the Scene. Offset allows you to add an offset factor while Override allows you to set a specific value.")]
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "Sets the Maximum Level Of Detail Level or the Offset on it.")]
         MaximumLODLevel = 63,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0, autoName: MaximumLODLevelQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0,  displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         MaximumLODLevelQualityLevel = 65,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
@@ -211,9 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
         AsyncCompute = 40,
         [FrameSettingsField(2, displayedName: "Light List", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP builds the Light List asynchronously.")]
         LightListAsync = 41,
-        [FrameSettingsField(2, displayedName: "Screen Space Reflection", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space reflection asynchronously.")]
+        [FrameSettingsField(2, displayedName: "SS Reflection", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space reflection asynchronously.")]
         SSRAsync = 42,
-        [FrameSettingsField(2, displayedName: "Screen Space Ambient Occlusion", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space ambient occlusion asynchronously.")]
+        [FrameSettingsField(2, displayedName: "SS Ambient Occlusion", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space ambient occlusion asynchronously.")]
         SSAOAsync = 43,
         // TODO: Enable thing when the render graph will be the default renderer.
         // [FrameSettingsField(2, displayedName: "Contact Shadows", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates Contact Shadows asynchronously.")]
@@ -577,7 +577,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
+            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= HDRenderPipeline.AggreateRayTracingSupport(renderPipelineSettings);
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
@@ -615,9 +615,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (async && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (async && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (async && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;

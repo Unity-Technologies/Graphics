@@ -301,9 +301,9 @@ uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weig
     return diffusionProfileHash;
 }
 
-#define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
-#define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
-#define SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, name, mask) BlendLayeredDiffusionProfile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
+#define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0).name, MERGE_NAME(surfaceData, 1).name, MERGE_NAME(surfaceData, 2).name, MERGE_NAME(surfaceData, 3).name, mask);
+#define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0).name, MERGE_NAME(surfaceData, 1).name, MERGE_NAME(surfaceData, 2).name, MERGE_NAME(surfaceData, 3).name, mask);
+#define SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, name, mask) BlendLayeredDiffusionProfile(MERGE_NAME(surfaceData, 0).name, MERGE_NAME(surfaceData, 1).name, MERGE_NAME(surfaceData, 2).name, MERGE_NAME(surfaceData, 3).name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,

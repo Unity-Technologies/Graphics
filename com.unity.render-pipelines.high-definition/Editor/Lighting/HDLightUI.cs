@@ -898,7 +898,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported)
                 {
                     if (lightType == HDLightType.Point
                         || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone)
@@ -907,6 +907,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
                         if(serialized.useRayTracedShadows.boolValue)
                         {
+                            if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
+                                && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+                                EditorGUILayout.HelpBox("Ray traced area light shadows are only available in deferred mode.", MessageType.Warning);
+
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
@@ -1027,7 +1031,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported
+            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported
                 && serialized.contactShadows.@override.boolValue)
             {
                 EditorGUI.indentLevel++;
