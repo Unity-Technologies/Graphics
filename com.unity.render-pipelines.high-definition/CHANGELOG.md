@@ -306,6 +306,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed caused by using gather on a UINT texture in motion blur. 
 - Fix issue with ambient occlusion breaking when dynamic resolution is active.
 - Fixed some possible NaN causes in Depth of Field.
+- Fixed Custom Pass nullref due to the new Profiling Sample API changes
+- Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
