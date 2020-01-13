@@ -83,9 +83,11 @@ namespace UnityEngine.Rendering
 #if UNITY_USE_RECORDER
             sampler = CustomSampler.Create(name, true); // Event markers, command buffer CPU profiling and GPU profiling
 #else
-            sampler = CustomSampler.Create($"C#_{name}");
+            // In this case, we need to use the BeginSample(string) API, since it creates a new sampler by that name under the hood,
+            // we need rename this sampler to not clash with the implicit one (it won't be used in this case)
+            sampler = CustomSampler.Create($"Dummy_{name}");
 #endif
-            inlineSampler = CustomSampler.Create($"C#_Inl_{name}"); // Profiles code "immediately"
+            inlineSampler = CustomSampler.Create($"Inl_{name}"); // Profiles code "immediately"
             this.name = name;
 
 #if UNITY_USE_RECORDER
