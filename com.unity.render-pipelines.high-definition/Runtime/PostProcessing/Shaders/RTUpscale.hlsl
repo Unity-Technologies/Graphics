@@ -33,7 +33,7 @@ CTYPE CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
                                     unity_StereoEyeIndex).CTYPE_SWIZZLE;
 }
 
-void WeightedAcc(CTYPE value, float weight, out CTYPE accumulated, out float accumulated_weight)
+void WeightedAcc(CTYPE value, float weight, inout CTYPE accumulated, inout float accumulated_weight)
 {
     accumulated += weight * value;
     accumulated_weight += weight;
@@ -119,23 +119,23 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
 #else
     // In this case the alpha channel is filtered with the same weights as color.
     // We cannot store the total accumulated weight in the alpha as before, so we keep it separately.
-    CTYPE color_accumulation = 0;
-    float weight_accumulation = 0;
+    CTYPE colorAccumulation = 0;
+    float weightAccumulation = 0;
 
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), weight0.x * weight23.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), weight1.x * weight1.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), weight1.x * weight23.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV2.y)), weight1.x * weight4.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_2.y)), weight23.x * weight0.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_1.y)), weight23.x * weight1.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV0.y)), weight23.x * weight23.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV2.y)), weight23.x * weight4.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV3.y)), weight23.x * weight5.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV_1.y)), weight4.x * weight1.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV0.y)), weight4.x * weight23.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV2.y)), weight4.x * weight4.y, color_accumulation, weight_accumulation);
-    WeightedAcc(Bilinear(_InputTexture, float2(UV3.x, UV0.y)), weight5.x * weight23.y, color_accumulation, weight_accumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), weight0.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), weight1.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), weight1.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV_1.x, UV2.y)), weight1.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_2.y)), weight23.x * weight0.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV_1.y)), weight23.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV0.y)), weight23.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV2.y)), weight23.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV0.x, UV3.y)), weight23.x * weight5.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV_1.y)), weight4.x * weight1.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV0.y)), weight4.x * weight23.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV2.x, UV2.y)), weight4.x * weight4.y, colorAccumulation, weightAccumulation);
+    WeightedAcc(Bilinear(_InputTexture, float2(UV3.x, UV0.y)), weight5.x * weight23.y, colorAccumulation, weightAccumulation);
 
-    return color_accumulation /= weight_accumulation;
+    return colorAccumulation /= weightAccumulation;
 #endif
 }
