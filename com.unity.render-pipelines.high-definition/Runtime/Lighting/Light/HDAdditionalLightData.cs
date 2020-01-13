@@ -1504,10 +1504,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
-        internal void EvaluateShadowState(HDCamera hdCamera, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
+        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
         {
             Bounds bounds;
-            float cameraDistance = Vector3.Distance(hdCamera.camera.transform.position, transform.position);
 
             m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
@@ -1515,7 +1514,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
-            m_WillRenderShadowMap &= type == HDLightType.Directional || cameraDistance < shadowFadeDistance;
+            m_WillRenderShadowMap &= type == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
@@ -1525,21 +1524,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderShadowMap)
                 return;
 
-            LightCategory lightCategory = LightCategory.Count;
-            GPULightType gpuLightType = GPULightType.Point;
-            LightVolumeType lightVolumeType = LightVolumeType.Count;
-            HDRenderPipeline.EvaluateGPULightType(type, spotLightShape, areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
-
             // Flag the ray tracing only shadows
             if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
             {
                 bool validShadow = false;
-                if (gpuLightType == GPULightType.Rectangle && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
+                if (processedLight.gpuLightType == GPULightType.Rectangle && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
                     // For area light shadows, we only support them  when in deferred mode
                     validShadow = true;
                 }
-                else if (gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone))
+                else if (processedLight.gpuLightType == GPULightType.Point || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
                 {
                     validShadow = true;
                 }
@@ -1552,7 +1546,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Flag the directional shadow
-            if (useScreenSpaceShadows && gpuLightType == GPULightType.Directional)
+            if (useScreenSpaceShadows && processedLight.gpuLightType == GPULightType.Directional)
             {
                 m_WillRenderScreenSpaceShadow = true;
                 if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
