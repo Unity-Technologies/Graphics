@@ -169,6 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_isLogBaseBufferEnabled = Shader.PropertyToID("g_isLogBaseBufferEnabled");
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
+        public static readonly int _LightListToClear = Shader.PropertyToID("_LightListToClear");
+        public static readonly int _LightListEntries = Shader.PropertyToID("_LightListEntries");
+
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
         public static readonly int _MouseClickPixelCoord = Shader.PropertyToID("_MouseClickPixelCoord");
