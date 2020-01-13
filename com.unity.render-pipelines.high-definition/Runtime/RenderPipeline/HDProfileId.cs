@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
         HDRenderPipelineRenderAOV,
+        HDRenderPipelineAllRenderRequest,
         CullResultsCull,
         CustomPassCullResultsCull,
         UpdateStencilCopyForSSRExclusion,
