@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Misc
         VolumeUpdate,
+        CustomPassVolumeUpdate,
         XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,

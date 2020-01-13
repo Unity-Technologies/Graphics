@@ -728,7 +728,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupUnusedCachedContexts();
 
-            SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
             UpdateEnvironment(hdCamera, renderContext, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, ambientMode, frameIndex, cmd);
 
@@ -792,7 +792,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         frameIndex,
                                         cmd);
 
-                SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
                 int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
@@ -824,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          frameIndex,
                                          cmd);
 
-                    SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                    SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
                     int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
                     AcquireSkyRenderingContext(skyContext, skyHash);
 
