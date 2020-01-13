@@ -608,7 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                     {
-                        var destination = m_Pool.Get(Vector2.one , k_ColorFormat);
+                        var destination = m_Pool.Get(Vector2.one , m_ColorFormat);
                         
                         var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
                         int kInit = cs.FindKernel("KInitialize");

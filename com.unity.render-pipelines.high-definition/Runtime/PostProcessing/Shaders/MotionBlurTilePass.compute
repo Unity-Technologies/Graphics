@@ -351,7 +351,7 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
     }
     else
     {
-        minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+        minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)].x;
     }
 
     _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(minVel));
