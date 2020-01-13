@@ -74,7 +74,9 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
+        public bool supportsMainLightVxShadows; //seongdae;vxsm
         public bool requiresScreenSpaceShadowResolve;
+        public bool requiresScreenSpaceShadowCompute; //seongdae;vxsm
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;
         public int mainLightShadowCascadesCount;
@@ -85,6 +87,9 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
+
+        public List<Matrix4x4> mainLightShadowMatrices; //seongdae;vxsm
+        public List<Vector4> cascadeSplitDistances; //seongdae;vxsm
     }
 
     public struct PostProcessingData
@@ -135,6 +140,8 @@ namespace UnityEngine.Rendering.Universal
     public sealed partial class UniversalRenderPipeline
     {
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
+        static List<Matrix4x4> m_MainLightShadowMatrices = new List<Matrix4x4>(); //seongdae;vxsm
+        static List<Vector4> m_CascadeDistances = new List<Vector4>(); //seongdae;vxsm
 
         public static bool IsStereoEnabled(Camera camera)
         {

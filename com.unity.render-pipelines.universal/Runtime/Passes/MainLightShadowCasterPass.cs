@@ -74,6 +74,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (shadowLightIndex == -1)
                 return false;
 
+            //seongdae;vxsm
+            for (int cascadeIndex = 0; cascadeIndex < k_MaxCascades; cascadeIndex++)
+            {
+                renderingData.shadowData.mainLightShadowMatrices.Add(Matrix4x4.identity);
+                renderingData.shadowData.cascadeSplitDistances.Add(Vector4.zero);
+            }
+            //seongdae;vxsm
+
             VisibleLight shadowLight = renderingData.lightData.visibleLights[shadowLightIndex];
             Light light = shadowLight.light;
             if (light.shadows == LightShadows.None)
@@ -106,6 +114,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!success)
                     return false;
             }
+
+            //seongdae;vxsm
+            for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; cascadeIndex++)
+            {
+                renderingData.shadowData.mainLightShadowMatrices[cascadeIndex] = m_CascadeSlices[cascadeIndex].shadowTransform;
+                renderingData.shadowData.cascadeSplitDistances[cascadeIndex] = m_CascadeSplitDistances[cascadeIndex];
+            }
+            //seongdae;vxsm
 
             return true;
         }
