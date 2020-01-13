@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a public virtual bool in the custom post processes API to specify if a post processes should be executed in the scene view.
 - Added a menu option that checks scene issues with ray tracing. Also removed the previously existing warning at runtime.
 - Added APIs to update probe settings at runtime.
+- Added documentation for the rayTracingSupported method in HDRP
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -355,6 +356,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
 - Shader use for Runtime Debug Display are now correctly stripper when doing a release build
 - Now each camera has its own Volume Stack. This allows Volume Parameters to be updated as early as possible and be ready for the whole frame without conflicts between cameras.
+- Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
 
 ## [7.1.1] - 2019-09-05
 
