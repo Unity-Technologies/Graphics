@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => Cleanup();
+        void OnDestroy() => CleanupPasses();
 
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
