@@ -37,9 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
 - Fixed a bug where the redo functionality in Shader Graph often didn't work.
-
-### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
+- "Copy Shader" has been removed from the VFX Master Node, as it cannot work with the current implementation. 
 
 ## [7.1.1] - 2019-09-05
 ### Added
