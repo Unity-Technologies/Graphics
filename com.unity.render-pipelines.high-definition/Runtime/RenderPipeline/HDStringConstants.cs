@@ -169,6 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_isLogBaseBufferEnabled = Shader.PropertyToID("g_isLogBaseBufferEnabled");
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
+        public static readonly int _LightListToClear = Shader.PropertyToID("_LightListToClear");
+        public static readonly int _LightListEntries = Shader.PropertyToID("_LightListEntries");
+
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
         public static readonly int _MouseClickPixelCoord = Shader.PropertyToID("_MouseClickPixelCoord");
@@ -863,6 +866,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AOParams2                      = Shader.PropertyToID("_AOParams2");
         public static readonly int _AOParams3                      = Shader.PropertyToID("_AOParams3");
         public static readonly int _AOParams4                      = Shader.PropertyToID("_AOParams4");
+        public static readonly int _FirstTwoDepthMipOffsets        = Shader.PropertyToID("_FirstTwoDepthMipOffsets");
         public static readonly int _OcclusionTexture               = Shader.PropertyToID("_OcclusionTexture");
         public static readonly int _BentNormalsTexture             = Shader.PropertyToID("_BentNormalsTexture");
         public static readonly int _AOPackedData                   = Shader.PropertyToID("_AOPackedData");
@@ -870,6 +874,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        // Contrast Adaptive Sharpening
+        public static readonly int _Sharpness                      = Shader.PropertyToID("Sharpness");
+        public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
+        public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
+
+        // BlitCubeTextureFace.shader
+        public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
+        public static readonly int _LoD                            = Shader.PropertyToID("_LoD");
+        public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
     }
 
     // Shared material property names

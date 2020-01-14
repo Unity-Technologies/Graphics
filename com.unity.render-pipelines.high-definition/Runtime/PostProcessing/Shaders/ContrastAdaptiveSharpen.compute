@@ -1,0 +1,96 @@
+﻿#pragma kernel KMain
+#pragma kernel KInitialize
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#define A_GPU 1
+#define A_HLSL 1
+
+#include "ffx_a.h"
+// two elements:
+// [0] = const0 
+// [1] = const1
+// ComputeBuffer is allocated with stride sizeof(int)*4, 2 elements
+RWStructuredBuffer<uint4> CasParameters;
+
+AF2 InputTextureDimensions;
+AF2 OutputTextureDimensions;
+
+float Sharpness;
+
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+AF3 CasLoad(ASU2 p)
+{
+	return _InputTexture[COORD_TEXTURE2D_X(p)].xyz;
+}
+
+void CasInput(inout AF1 r, inout AF1 g, inout AF1 b) 
+{
+}
+
+AF4 CasOutput(AF4 pix)
+{
+	return pix;
+}
+
+void WritePix(AU2 gxy, AF4 casPix)
+{
+	_OutputTexture[COORD_TEXTURE2D_X(gxy)] = casPix;
+}
+
+#include "ffx_cas.h"
+
+
+[numthreads(64, 1, 1)]
+void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+
+	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+	uint4 c0 = CasParameters[0];
+	uint4 c1 = CasParameters[1];
+
+	AF3 c;
+
+	// Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
+	AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x << 4u, WorkGroupId.y << 4u);
+	// Filter.
+	CasFilter(c.r, c.g, c.b, gxy, c0, c1, false, true);
+	WritePix(gxy, CasOutput(AF4(c, 1)));
+
+	gxy.x += 8u;
+	CasFilter(c.r, c.g, c.b, gxy, c0, c1, false, true);
+	WritePix(gxy, CasOutput(AF4(c, 1)));
+
+	gxy.y += 8u;
+	CasFilter(c.r, c.g, c.b, gxy, c0, c1, false, true);
+	WritePix(gxy, CasOutput(AF4(c, 1)));
+
+	gxy.x -= 8u;
+	CasFilter(c.r, c.g, c.b, gxy, c0, c1, false, true);
+	WritePix(gxy, CasOutput(AF4(c, 1)));
+}
+
+
+/*
+Doing this on the GPU despite the fact that CAS provides a CPU version
+of CasSetup(). This is done to prevent us from having to rewrite a C# 
+version every time CAS changes. This is not called from KMain to reduce overhead
+during main render.
+*/
+[numthreads(1,1,1)]
+void KInitialize()
+{
+
+	uint4 c0;
+	uint4 c1;
+
+	CasSetup(c0, c1, Sharpness, InputTextureDimensions * _RTHandleScale.xy, OutputTextureDimensions);
+
+	CasParameters[0] = c0;
+	CasParameters[1] = c1;
+}
