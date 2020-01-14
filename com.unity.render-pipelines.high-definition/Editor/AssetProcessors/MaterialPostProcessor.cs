@@ -117,8 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     foreach (var migration in migrations)
                     {
                         migration(material, id);
-                    wasUpgraded = true;
-                }
+                        wasUpgraded = true;
+                    }
                     assetVersion.version = version;
                 }
 
@@ -140,6 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly Dictionary<int, MigrationAction[]> k_Migrations = new Dictionary<int, MigrationAction[]>
         {
             // { 1, new [] { MyFirstMigration, MySecondMigration }} // Migration processors for version 1
+            { 1, new MigrationAction[] { MigrateDecalLayerMask }}
             /* EmissiveIntensityToColor,
              * SecondMigrationStep,
              * ...
@@ -147,6 +148,15 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         #region Migrations
+
+        static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kSupportDecals = "_SupportDecals";
+            if (!material.HasProperty(kSupportDecals)) return;
+
+            var decalLayerMask = material.GetFloat(kSupportDecals) == 1.0f ? DecalLayerMask.Full : DecalLayerMask.None;
+            material.SetDecalLayerMask(decalLayerMask);
+        }
 
         // Not used currently:
         // TODO: Script liek this must also work with embed material in scene (i.e we need to catch
