@@ -10,6 +10,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static public Texture2D CreatePointLightLookupTexture()
         {
+            if (s_PointLightLookupTexture != null)
+                return s_PointLightLookupTexture;
+
             const float WIDTH = 256;
             const float HEIGHT = 256;
             TextureFormat textureFormat = TextureFormat.ARGB32;

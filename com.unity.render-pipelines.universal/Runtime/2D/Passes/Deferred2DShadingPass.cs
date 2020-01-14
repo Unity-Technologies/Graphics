@@ -15,6 +15,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
     Renderer2DData m_RendererData;
     Material m_GlobalLightMaterial;
     Material m_ShapeLightMaterial;
+    Material m_PointLightMaterial;
 
     public Deferred2DShadingPass(Renderer2DData rendererData)
     {
@@ -85,6 +86,9 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             if (m_ShapeLightMaterial == null)
                 m_ShapeLightMaterial = new Material(m_RendererData.shapeLightShader);
 
+            if (m_PointLightMaterial == null)
+                m_PointLightMaterial = new Material(m_RendererData.pointLightShader);
+
             CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
             var blendStyles = m_RendererData.lightBlendStyles;
 
@@ -154,8 +158,10 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                     cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
 
                     cmd.DisableShaderKeyword("SPRITE_LIGHT");
+                    cmd.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
                     cmd.EnableShaderKeyword("USE_ADDITIVE_BLENDING");
 
+                    // shape lights
                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                     {
                         if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
@@ -165,6 +171,40 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                         }
 
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, 1);
+                    }
+                    else  // point lights
+                    {
+                        Matrix4x4 lightInverseMatrix;
+                        Matrix4x4 lightNoRotInverseMatrix;
+                        RendererLighting.GetScaledLightInvMatrix(light, out lightInverseMatrix, true);
+                        RendererLighting.GetScaledLightInvMatrix(light, out lightNoRotInverseMatrix, false);
+
+                        float innerRadius = RendererLighting.GetNormalizedInnerRadius(light);
+                        float innerAngle = RendererLighting.GetNormalizedAngle(light.pointLightInnerAngle);
+                        float outerAngle = RendererLighting.GetNormalizedAngle(light.pointLightOuterAngle);
+                        float innerRadiusMult = 1 / (1 - innerRadius);
+
+                        cmd.SetGlobalVector("_LightPosition", light.transform.position);
+                        cmd.SetGlobalMatrix("_LightInvMatrix", lightInverseMatrix);
+                        cmd.SetGlobalMatrix("_LightNoRotInvMatrix", lightNoRotInverseMatrix);
+                        cmd.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
+                        cmd.SetGlobalFloat("_OuterAngle", outerAngle);
+                        cmd.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
+                        cmd.SetGlobalTexture("_LightLookup", Light2DLookupTexture.CreatePointLightLookupTexture());
+                        cmd.SetGlobalTexture("_FalloffLookup", Light2DLookupTexture.CreateFalloffLookupTexture());
+                        cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+                        cmd.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
+                        cmd.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
+
+                        if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                            cmd.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
+
+                        if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                            cmd.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");
+
+                        Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+                        Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                        cmd.DrawMesh(lightMesh, matrix, m_PointLightMaterial, 0, 1);
                     }
                 }
 
