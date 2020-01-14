@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class DebugRenderer
     {
+        // Line data.
         [GenerateHLSL]
         struct LineData
         {
@@ -13,82 +14,145 @@ namespace UnityEngine.Rendering.HighDefinition
             public Color    color;
         }
 
-        const int       kMaxLineAllocationCount = short.MaxValue;
-        int             m_MaxLineCount;
-        int             m_CurrentLineCount;
-        int             m_MissedLineAllocation;
-        ComputeBuffer   m_LineDataBuffer;
-        List<LineData>  m_LineData;
+        class LineBuffers
+        {
+            public int              maxLineCount;
+            public int              currentLineCount;
+            public int              missedLineAllocation;
+            public ComputeBuffer    lineDataBuffer;
+            public List<LineData>   lineData;
 
-        Material        m_DebugRendererMaterial;
+            public LineBuffers(int initialLineCount)
+            {
+                maxLineCount = initialLineCount;
+                lineDataBuffer = new ComputeBuffer(maxLineCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LineData)));
+                lineData = new List<LineData>();
+            }
 
-        readonly int    _CameraRelativeOffset = Shader.PropertyToID("_CameraRelativeOffset");
-        readonly int    _LineData = Shader.PropertyToID("_LineData");
+            public void Clear()
+            {
+                lineData.Clear();
+                currentLineCount = 0;
+                missedLineAllocation = 0;
+            }
+
+            public bool CheckAllocation(int newAllocCount)
+            {
+                int newSize = currentLineCount + newAllocCount;
+                // If we require more space, try to allocate a bigger buffer.
+                if (newSize > maxLineCount)
+                {
+                    // In this case we can't allocate more memory so return false to calling code.
+                    if (newSize > kMaxLineAllocationCount)
+                    {
+                        missedLineAllocation += newAllocCount;
+                        return false;
+                    }
+
+                    lineDataBuffer.Release();
+
+                    maxLineCount = Math.Min(kMaxLineAllocationCount, maxLineCount * 2);
+                    lineDataBuffer = new ComputeBuffer(maxLineCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LineData)));
+                }
+
+                return true;
+            }
+
+            public void Cleanup()
+            {
+                lineDataBuffer.Release();
+            }
+        }
+
+        const int               kMaxLineAllocationCount = short.MaxValue;
+        LineBuffers             m_LineNoDepthTest;
+        LineBuffers             m_LineDepthTest;
+
+        // Rendering Shaders
+        Material                m_DebugRendererMaterial;
+        MaterialPropertyBlock   m_DebugRendererMPB = new MaterialPropertyBlock();
+        readonly int            _LineData = Shader.PropertyToID("_LineData");
+        readonly int            _CameraRelativeOffset = Shader.PropertyToID("_CameraRelativeOffset");
+        int                     m_LineNoDepthTestPass;
+        int                     m_LineDepthTestPass;
+
+        Vector3[]               m_OBBPointsCache = new Vector3[8];
 
         public DebugRenderer(int initialLineCount, Shader debugRendererShader)
         {
             m_DebugRendererMaterial = CoreUtils.CreateEngineMaterial(debugRendererShader);
 
-            m_MaxLineCount = initialLineCount;
-            m_LineDataBuffer = new ComputeBuffer(m_MaxLineCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LineData)));
+            m_LineNoDepthTestPass = m_DebugRendererMaterial.FindPass("LineNoDepthTest");
+            m_LineDepthTestPass = m_DebugRendererMaterial.FindPass("LineDepthTest");
+
+            m_LineNoDepthTest = new LineBuffers(initialLineCount);
+            m_LineDepthTest = new LineBuffers(initialLineCount);
         }
 
         public void Cleanup()
         {
             CoreUtils.Destroy(m_DebugRendererMaterial);
-            m_LineDataBuffer.Release();
+            m_LineNoDepthTest.Cleanup();
+            m_LineDepthTest.Cleanup();
         }
 
         public void ClearData()
         {
-            m_LineData.Clear();
-            m_CurrentLineCount = 0;
-            m_MissedLineAllocation = 0;
+            m_LineNoDepthTest.Clear();
+            m_LineDepthTest.Clear();
         }
 
-        bool CheckLineAllocation(int newAllocCount)
+        void RenderLines(CommandBuffer cmd, HDCamera hdCamera, LineBuffers lineBuffers, int passIndex)
         {
-            int newSize = m_CurrentLineCount + newAllocCount;
-            // If we require more space, try to allocate a bigger buffer.
-            if (newSize > m_MaxLineCount)
-            {
-                // In this case we can't allocate more memory so return false to calling code.
-                if (newSize > kMaxLineAllocationCount)
-                {
-                    m_MissedLineAllocation += newAllocCount;
-                    return false;
-                }
+            lineBuffers.lineDataBuffer.SetData(lineBuffers.lineData);
+            m_DebugRendererMPB.SetBuffer(_LineData, lineBuffers.lineDataBuffer);
 
-                m_LineDataBuffer.Release();
-
-                m_MaxLineCount = Math.Min(kMaxLineAllocationCount, m_MaxLineCount * 2);
-                m_LineDataBuffer = new ComputeBuffer(m_MaxLineCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LineData)));
-            }
-
-            return true;
+            Vector3 cameraRelativeOffset = ShaderConfig.s_CameraRelativeRendering != 0 ? hdCamera.camera.transform.position : Vector3.zero;
+            m_DebugRendererMPB.SetVector(_CameraRelativeOffset, cameraRelativeOffset);
+            cmd.DrawProcedural(Matrix4x4.identity, m_DebugRendererMaterial, passIndex, MeshTopology.Lines, 2, lineBuffers.lineData.Count, m_DebugRendererMPB);
         }
 
         internal void Render(CommandBuffer cmd, HDCamera hdCamera)
         {
-            m_LineDataBuffer.SetData(m_LineData);
-            m_DebugRendererMaterial.SetBuffer(_LineData, m_LineDataBuffer);
-
-            Vector3 cameraRelativeOffset = ShaderConfig.s_CameraRelativeRendering != 0 ? hdCamera.camera.transform.position : Vector3.zero;
-            m_DebugRendererMaterial.SetVector(_CameraRelativeOffset, cameraRelativeOffset);
-            cmd.DrawProcedural(Matrix4x4.identity, m_DebugRendererMaterial, 0, MeshTopology.Lines, m_LineData.Count * 2);
+            RenderLines(cmd, hdCamera, m_LineDepthTest, m_LineDepthTestPass);
+            RenderLines(cmd, hdCamera, m_LineNoDepthTest, m_LineNoDepthTestPass);
         }
 
-        public void PushLine(Vector4 p0, Vector4 p1, Color color)
+        public void PushLine(Vector4 p0, Vector4 p1, Color color, bool depthTest = true)
         {
-            if (!CheckLineAllocation(1))
+            var lineBuffers = depthTest ? m_LineDepthTest : m_LineNoDepthTest;
+
+            if (!lineBuffers.CheckAllocation(1))
                 return;
 
-            m_LineData.Add(new LineData { p0 = p0, p1 = p1, color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = p0, p1 = p1, color = color });
         }
 
-        public void PushOBB(OrientedBBox obb, Color color)
+        public void PushOBB(OrientedBBox obb, Color color, bool depthTest = true)
         {
+            var lineBuffers = depthTest ? m_LineDepthTest : m_LineNoDepthTest;
 
+            if (!lineBuffers.CheckAllocation(12))
+                return;
+
+            obb.GetPoints(m_OBBPointsCache);
+            // Base
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[0], p1 = m_OBBPointsCache[1], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[1], p1 = m_OBBPointsCache[2], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[2], p1 = m_OBBPointsCache[3], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[3], p1 = m_OBBPointsCache[0], color = color });
+
+            // Top
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[4], p1 = m_OBBPointsCache[5], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[5], p1 = m_OBBPointsCache[6], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[6], p1 = m_OBBPointsCache[7], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[7], p1 = m_OBBPointsCache[4], color = color });
+
+            // Body
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[0], p1 = m_OBBPointsCache[4], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[1], p1 = m_OBBPointsCache[5], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[2], p1 = m_OBBPointsCache[6], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[3], p1 = m_OBBPointsCache[7], color = color });
         }
     }
 }

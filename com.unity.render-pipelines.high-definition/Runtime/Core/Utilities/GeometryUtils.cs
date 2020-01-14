@@ -75,6 +75,28 @@ namespace UnityEngine.Rendering.HighDefinition
             extentY = 0.5f * vecY.magnitude;
             extentZ = 0.5f * vecZ.magnitude;
         }
+
+        public bool GetPoints(Vector3[] points)
+        {
+            if (points.Length < 8)
+            {
+                Debug.Log("Points array must have a size of 8 or more.");
+                return false;
+            }
+
+            Vector3 fwd = forward;
+
+            points[0] = center + right * extentX + forward * extentZ - up * extentY;
+            points[1] = center - right * extentX + forward * extentZ - up * extentY;
+            points[2] = center - right * extentX - forward * extentZ - up * extentY;
+            points[3] = center + right * extentX - forward * extentZ - up * extentY;
+            points[4] = center + right * extentX + forward * extentZ + up * extentY;
+            points[5] = center - right * extentX + forward * extentZ + up * extentY;
+            points[6] = center - right * extentX - forward * extentZ + up * extentY;
+            points[7] = center + right * extentX - forward * extentZ + up * extentY;
+
+            return true;
+        }
     } // struct OrientedBBox
 
     static class GeometryUtils
