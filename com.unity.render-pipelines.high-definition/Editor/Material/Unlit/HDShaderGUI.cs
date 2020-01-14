@@ -61,11 +61,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     throw new ArgumentException("Unknown SurfaceType");
             }
 
-            float sortingPriority = material.GetFloat(kTransparentSortPriority);
-            bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
+            float sortingPriority = material.HasProperty(kTransparentSortPriority) ? material.GetFloat(kTransparentSortPriority) : 0.0f;
+            bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
             material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
         }
-        
+
         readonly static string[] floatPropertiesToSynchronize = {
             kAlphaCutoffEnabled, "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
         };
