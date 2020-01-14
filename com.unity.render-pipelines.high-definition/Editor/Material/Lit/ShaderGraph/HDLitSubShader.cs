@@ -1064,6 +1064,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         baseActiveFields.AddAll("RefractionSphere");
                         break;
 
+                    case ScreenSpaceRefraction.RefractionModel.Thin:
+                        baseActiveFields.AddAll("RefractionThin");
+                        break;
+
                     default:
                         UnityEngine.Debug.LogError("Unknown refraction model: " + masterNode.refractionModel);
                         break;
@@ -1259,7 +1263,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (mode == GenerationMode.ForReals)
             {
                 subShader.AddShaderChunk("SubShader", false);
-                subShader.AddShaderChunk("{", false);                
+                subShader.AddShaderChunk("{", false);
                 subShader.Indent();
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
@@ -1272,7 +1276,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
             }
-            
+
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
 
             return subShader.GetShaderString(0);

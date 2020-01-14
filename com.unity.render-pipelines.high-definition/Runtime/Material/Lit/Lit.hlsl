@@ -66,7 +66,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
 #endif
 
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN))
 
 #define SUPPORTS_RAYTRACED_AREA_SHADOWS (RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
 
@@ -218,6 +218,8 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+    #elif defined(_REFRACTION_THIN)
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, 0.0)
     #endif
 #endif
 
