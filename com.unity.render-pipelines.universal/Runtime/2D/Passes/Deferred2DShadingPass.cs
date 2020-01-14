@@ -88,17 +88,20 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
             var blendStyles = m_RendererData.lightBlendStyles;
 
+            int layerToRender = s_SortingLayers[i].id;
+            Light2D.LightStats lightStats = Light2D.GetLightStatsByLayer(layerToRender);
+
             // global lights
             bool anyGlobalLightDrawn = false;
             for (int j = 0; j < blendStyles.Length; ++j)
             {
-                if (!blendStyles[j].enabled)
+                if ((lightStats.blendStylesUsed & (uint)(1 << j)) == 0)
                     continue;
 
                 var lights = Light2D.GetLightsByBlendStyle(j);
                 foreach (var light in lights)
                 {
-                    if (light.lightType != Light2D.LightType.Global || !light.IsLitLayer(s_SortingLayers[i].id))
+                    if (light.lightType != Light2D.LightType.Global || !light.IsLitLayer(layerToRender))
                         continue;
 
                     cmd.SetGlobalColor("_LightColor", light.intensity * light.color);
@@ -120,7 +123,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             // non-global lights
             for (int j = 0; j < blendStyles.Length; ++j)
             {
-                if (!blendStyles[j].enabled)
+                if ((lightStats.blendStylesUsed & (uint)(1 << j)) == 0)
                     continue;
 
                 string blendStyleName = "Blend Style - " + blendStyles[j].name;
@@ -131,7 +134,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                 {
                     if (light == null
                         || light.lightType == Light2D.LightType.Global
-                        || !light.IsLitLayer(s_SortingLayers[i].id)
+                        || !light.IsLitLayer(layerToRender)
                         || !light.IsLightVisible(renderingData.cameraData.camera))
                     {
                         continue;
