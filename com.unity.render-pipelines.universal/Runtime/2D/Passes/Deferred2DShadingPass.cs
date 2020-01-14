@@ -7,7 +7,7 @@ using UnityEngine.Rendering.Universal;
 
 public class Deferred2DShadingPass : ScriptableRenderPass
 {
-    static RenderTargetHandle s_BaseColorTarget;
+    static RenderTargetHandle s_GBufferColorTarget;
     static SortingLayer[] s_SortingLayers;
     static readonly ShaderTagId k_GBufferPassName = new ShaderTagId("Universal2DGBuffer");
     static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName };
@@ -30,8 +30,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         CommandBuffer cmd = CommandBufferPool.Get("2D Deferred Shading");
 
         // Create g-buffer RTs.
-        if (s_BaseColorTarget.id == 0)
-            s_BaseColorTarget.Init("_BaseColor");
+        if (s_GBufferColorTarget.id == 0)
+            s_GBufferColorTarget.Init("_GBufferColor");
 
         ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(targetDescriptor.width, targetDescriptor.height);
@@ -42,7 +42,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         descriptor.msaaSamples = 1;
         descriptor.dimension = TextureDimension.Tex2D;
 
-        cmd.GetTemporaryRT(s_BaseColorTarget.id, descriptor);
+        cmd.GetTemporaryRT(s_GBufferColorTarget.id, descriptor);
 
 #if UNITY_EDITOR
         if (!Application.isPlaying)
@@ -69,7 +69,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-            CoreUtils.SetRenderTarget(cmd, s_BaseColorTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor);
+            CoreUtils.SetRenderTarget(cmd, s_GBufferColorTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor);
 
             cmd.EndSample(sortingLayerName);
             context.ExecuteCommandBuffer(cmd);
@@ -212,7 +212,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             }
         }
 
-        cmd.ReleaseTemporaryRT(s_BaseColorTarget.id);
+        cmd.ReleaseTemporaryRT(s_GBufferColorTarget.id);
 
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);

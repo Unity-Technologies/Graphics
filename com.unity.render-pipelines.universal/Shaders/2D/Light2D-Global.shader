@@ -31,8 +31,8 @@ Shader "Hidden/Light2D-Global"
 
             half3 _LightColor;
 
-            TEXTURE2D(_BaseColor);
-            SAMPLER(sampler_BaseColor);
+            TEXTURE2D(_GBufferColor);
+            SAMPLER(sampler_GBufferColor);
 
             Varyings vert(Attributes attributes)
             {
@@ -47,7 +47,7 @@ Shader "Hidden/Light2D-Global"
 
             half4 frag(Varyings i) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseColor, sampler_BaseColor, i.uv);
+                half4 color = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, i.uv);
                 color.rgb *= _LightColor;
                 return color;
             }

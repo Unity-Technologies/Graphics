@@ -171,8 +171,8 @@ Shader "Hidden/Light2D-Shape"
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
-            TEXTURE2D(_BaseColor);
-            SAMPLER(sampler_BaseColor);
+            TEXTURE2D(_GBufferColor);
+            SAMPLER(sampler_GBufferColor);
 
             Varyings vert(Attributes attributes)
             {
@@ -224,7 +224,7 @@ Shader "Hidden/Light2D-Shape"
                 APPLY_NORMALS_LIGHTING(i, color);
                 //APPLY_SHADOWS(i, color, _ShadowIntensity);
 
-                half4 baseColor = SAMPLE_TEXTURE2D(_BaseColor, sampler_BaseColor, i.gBufferUV);
+                half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, i.gBufferUV);
                 return color * baseColor;
             }
             ENDHLSL

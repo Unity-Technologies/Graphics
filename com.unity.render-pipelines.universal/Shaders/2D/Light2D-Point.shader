@@ -184,8 +184,8 @@ Shader "Hidden/Light2D-Point"
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
-            TEXTURE2D(_BaseColor);
-            SAMPLER(sampler_BaseColor);
+            TEXTURE2D(_GBufferColor);
+            SAMPLER(sampler_GBufferColor);
 
             half4	    _LightColor;
             half4x4	    _LightInvMatrix;
@@ -254,7 +254,7 @@ Shader "Hidden/Light2D-Point"
                 APPLY_NORMALS_LIGHTING(input, lightColor);
                 APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
-                half4 baseColor = SAMPLE_TEXTURE2D(_BaseColor, sampler_BaseColor, input.gBufferUV);
+                half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, input.gBufferUV);
 
                 return lightColor * _InverseHDREmulationScale * baseColor;
             }
