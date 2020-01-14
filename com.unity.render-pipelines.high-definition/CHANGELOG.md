@@ -316,6 +316,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Pass nullref due to the new Profiling Sample API changes
 - Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 - Fixed XR rendering locked to vsync of main display with Standalone Player.
+- Fixed custom pass cleanup not called at the right time when using multiple volumes.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
