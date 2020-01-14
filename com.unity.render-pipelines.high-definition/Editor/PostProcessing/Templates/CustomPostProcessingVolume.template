@@ -13,12 +13,17 @@ public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProces
 
     public bool IsActive() => m_Material != null && intensity.value > 0f;
 
+    // Do not forget to add this post process in the Custom Post Process Orders list (Project Settings > HDRP Default Settings).
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
+
+    const string kShaderName = "Hidden/Shader/#SCRIPTNAME#";
 
     public override void Setup()
     {
-        if (Shader.Find("Hidden/Shader/#SCRIPTNAME#") != null)
-            m_Material = new Material(Shader.Find("Hidden/Shader/#SCRIPTNAME#"));
+        if (Shader.Find(kShaderName) != null)
+            m_Material = new Material(Shader.Find(kShaderName));
+        else
+            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process Volume #NAME# is unable to load.");
     }
 
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

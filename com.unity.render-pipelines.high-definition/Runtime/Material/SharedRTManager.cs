@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_MotionVectorsRT = null;
         RTHandle m_CameraDepthStencilBuffer = null;
         // Needed in case passes will need to read stencil per pixel rather than per sample
-        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature. 
+        // The best we can do for resolve is an OR of all samples, however this is inaccurate by nature.
         RTHandle m_StencilBufferResolved;
         RTHandle m_CameraDepthBufferMipChain;
         RTHandle m_CameraHalfResDepthBuffer = null;
@@ -319,16 +319,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingSample(cmd, "ComputeDepthValues", CustomSamplerId.VolumeUpdate.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAADepth)))
                 {
                     // Grab the RTIs and set the output render targets
-                    m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
-                    m_RTIDs2[1] = m_NormalRT.nameID;
-                    CoreUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
+                    m_RTIDs3[0] = m_CameraDepthValuesBuffer.nameID;
+                    m_RTIDs3[1] = m_NormalRT.nameID;
+                    m_RTIDs3[2] = m_MotionVectorsRT.nameID;
+                    CoreUtils.SetRenderTarget(cmd, m_RTIDs3, m_CameraDepthStencilBuffer);
 
                     // Set the input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
                     Shader.SetGlobalTexture(HDShaderIDs._DepthTextureMS, m_DepthAsColorMSAART);
+                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
 
                     // Resolve the depth and normal buffers
                     cmd.DrawProcedural(Matrix4x4.identity, m_DepthResolveMaterial, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
@@ -340,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAColor)))
                 {
                     // Grab the RTIs and set the output render targets
                     CoreUtils.SetRenderTarget(cmd, simpleTarget);

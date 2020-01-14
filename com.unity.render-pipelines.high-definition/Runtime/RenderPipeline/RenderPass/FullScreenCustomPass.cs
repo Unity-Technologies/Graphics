@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int fadeValueId;
 
+        /// <inheritdoc />
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
@@ -48,5 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
+
+        /// <inheritdoc />
+        public override IEnumerable<Material> RegisterMaterialForInspector() { yield return fullscreenPassMaterial; }
     }
 }

@@ -214,6 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var roots = rootCache ?? new List<GameObject>();
             roots.Clear();
             scene.GetRootGameObjects(roots);
+            bool markSceneAsDirty = false;
             for (var i = roots.Count - 1; i >= 0; --i)
             {
                 if (roots[i].name == "SceneIDMap")
@@ -230,9 +231,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         // The serialization used this path explicitly, thus the Unity serialization
                         // system lost the reference to the MonoBehaviour
                         Object.DestroyImmediate(roots[i]);
+
+                        // If we do any any modification on the scene
+                        // we need to dirty it, otherwise, the editor won't commit the change to the disk
+                        // and the issue will still persist.
+                        if (!markSceneAsDirty)
+                            markSceneAsDirty = true;
                     }
                 }
             }
+            if(markSceneAsDirty)
+                SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
         }
     }
 }

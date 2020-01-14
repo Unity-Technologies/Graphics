@@ -273,6 +273,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Material GetDefaultMirrorMaterial()
             => renderPipelineEditorResources?.materials.defaultMirrorMat;
 
+        public override Material defaultParticleMaterial
+            => renderPipelineEditorResources?.materials.defaultParticleMat;
+
         public override Material defaultTerrainMaterial
             => renderPipelineEditorResources?.materials.defaultTerrainMat;
 
@@ -327,6 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int index = diffusionProfileSettingsList.Length;
                 Array.Resize(ref diffusionProfileSettingsList, index + 1);
                 diffusionProfileSettingsList[index] = profile;
+                UnityEditor.EditorUtility.SetDirty(this);
                 return true;
             }
             else

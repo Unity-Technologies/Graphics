@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
-        PopupList m_DiffusionProfile = new PopupList();
+        UnityEditor.ShaderGraph.Drawing.Controls.PopupList m_DiffusionProfile = new UnityEditor.ShaderGraph.Drawing.Controls.PopupList();
 
         // Helper class to serialize an asset inside a shader graph
         [Serializable]

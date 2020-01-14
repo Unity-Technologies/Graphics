@@ -2,20 +2,44 @@ using System;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// Base class for handling UI actions for widgets.
+    /// </summary>
     public class DebugUIHandlerWidget : MonoBehaviour
     {
+        /// <summary>
+        /// Default widget color.
+        /// </summary>
         [HideInInspector]
         public Color colorDefault = new Color(0.8f, 0.8f, 0.8f, 1f);
 
+        /// <summary>
+        /// Selected widget color.
+        /// </summary>
         [HideInInspector]
         public Color colorSelected = new Color(0.25f, 0.65f, 0.8f, 1f);
 
+        /// <summary>
+        /// Parent widget UI Handler.
+        /// </summary>
         public DebugUIHandlerWidget parentUIHandler { get; set; }
+        /// <summary>
+        /// Previous widget UI Handler.
+        /// </summary>
         public DebugUIHandlerWidget previousUIHandler { get; set; }
+        /// <summary>
+        /// Next widget UI Handler.
+        /// </summary>
         public DebugUIHandlerWidget nextUIHandler { get; set; }
 
+        /// <summary>
+        /// Associated widget.
+        /// </summary>
         protected DebugUI.Widget m_Widget;
 
+        /// <summary>
+        /// OnEnable implementation.
+        /// </summary>
         protected virtual void OnEnable() {}
 
         internal virtual void SetWidget(DebugUI.Widget widget)
@@ -28,6 +52,11 @@ namespace UnityEngine.Rendering.UI
             return m_Widget;
         }
 
+        /// <summary>
+        /// Casts the widget to the correct type.
+        /// </summary>
+        /// <typeparam name="T">Type of the widget.</typeparam>
+        /// <returns>Properly cast reference to the widget.</returns>
         protected T CastWidget<T>()
             where T : DebugUI.Widget
         {
@@ -40,20 +69,43 @@ namespace UnityEngine.Rendering.UI
             return casted;
         }
 
-        // Returns `true` if selection is allowed, `false` to skip to the next/previous item
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public virtual bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public virtual void OnDeselection() {}
 
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
         public virtual void OnAction() {}
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public virtual void OnIncrement(bool fast) {}
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public virtual void OnDecrement(bool fast) {}
 
+        /// <summary>
+        /// Previous implementation.
+        /// </summary>
+        /// <returns>Previous widget UI handler, parent if there is none.</returns>
         public virtual DebugUIHandlerWidget Previous()
         {
             if (previousUIHandler != null)
@@ -65,6 +117,10 @@ namespace UnityEngine.Rendering.UI
             return null;
         }
 
+        /// <summary>
+        /// Next implementation.
+        /// </summary>
+        /// <returns>Next widget UI handler, parent if there is none.</returns>
         public virtual DebugUIHandlerWidget Next()
         {
             if (nextUIHandler != null)

@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>
         /// Get all the data used in LookDev currently (views, layout, debug... )
         /// </summary>
-        public static Context currentContext
+        internal static Context currentContext
         {
             //Lazy init: load it when needed instead in static even if you do not support lookdev
             get => s_CurrentContext ?? (s_CurrentContext = LoadConfigInternal() ?? defaultContext);
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.LookDev
         /// Load a different set of datas
         /// </summary>
         /// <param name="path">Path where to load</param>
-        public static void LoadConfig(string path = lastRenderingDataSavePath)
+        internal static void LoadConfig(string path = lastRenderingDataSavePath)
         {
             var last = LoadConfigInternal(path);
             if (last != null)
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.LookDev
         /// Save the current set of datas
         /// </summary>
         /// <param name="path">[optional] Path to save. By default, saved in Library folder</param>
-        public static void SaveConfig(string path = lastRenderingDataSavePath)
+        internal static void SaveConfig(string path = lastRenderingDataSavePath)
         {
             if (currentContext != null && !currentContext.Equals(null))
                 InternalEditorUtility.SaveToSerializedFileAndForget(new[] { currentContext }, path, true);
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.LookDev
             s_EnvironmentDisplayer = EditorWindow.GetWindow<DisplayWindow>();
             ConfigureLookDev(reloadWithTemporaryID: false);
         }
-        
+
         [Callbacks.DidReloadScripts]
         static void OnEditorReload()
         {
@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering.LookDev
 
         /// <summary>Update the rendered element with element in the context</summary>
         /// <param name="index">The index of the stage to update</param>
-        public static void SaveContextChangeAndApply(ViewIndex index)
+        internal static void SaveContextChangeAndApply(ViewIndex index)
         {
             SaveConfig();
             ApplyContextChange(index);
