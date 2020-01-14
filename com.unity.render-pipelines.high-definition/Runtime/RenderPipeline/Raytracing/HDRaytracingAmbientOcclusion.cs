@@ -123,9 +123,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
 
+                        float historyValidity = 1.0f;
+                    #if UNITY_HDRP_DXR_TESTS_DEFINE
+                        if (Application.isPlaying)
+                            historyValidity = 0.0f;
+                        else
+                    #endif
+                            // We need to check if something invalidated the history buffers
+                            historyValidity = m_RenderPipeline.ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = m_RenderPipeline.GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer0, ambientOcclusionHistory, m_AOIntermediateBuffer1);
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer0, ambientOcclusionHistory, m_AOIntermediateBuffer1, historyValidity: historyValidity);
 
                     // Apply the diffuse denoiser
                     HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();

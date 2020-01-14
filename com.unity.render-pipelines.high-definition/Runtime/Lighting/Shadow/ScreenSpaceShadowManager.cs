@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_BlueNoise.BindDitheredRNGData8SPP(cmd);
 
                         // Compute the current frame index
-                        int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                        int frameIndex = RayTracingFrameIndex(hdCamera);
                         cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                         // Inject the ray generation data
@@ -383,6 +383,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 || !hdCamera.ValidShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex))
                                 historyValidity = 0.0f;
 
+                        #if UNITY_HDRP_DXR_TESTS_DEFINE
+                            if (Application.isPlaying)
+                                historyValidity = 0.0f;
+                            else
+                        #endif
+                                // We need to check if something invalidated the history buffers
+                                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                        
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
                             temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, shadowHistoryValidityArray, intermediateBuffer1, dirShadowIndex / 4, m_ShadowChannelMask0, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
@@ -507,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
-                int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                int frameIndex = RayTracingFrameIndex(hdCamera);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Bind the input buffers
@@ -611,12 +619,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     var historyScale = new Vector2(hdCamera.actualWidth / (float)shadowHistoryArray.rt.width, hdCamera.actualHeight / (float)shadowHistoryArray.rt.height);
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
 
+                    float historyValidity = 1.0f;
+                #if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+                #endif
+                    // We need to check if something invalidated the history buffers
+                    historyValidity = ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AnalyticProbBuffer, intermediateBufferRG0);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AreaShadowHistory, shadowHistoryArray);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, shadowHistoryValidityArray);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA0);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA1);
+                    cmd.SetComputeFloatParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._HistoryValidity, historyValidity);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                     // Update the shadow history buffer
@@ -716,7 +734,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
                     cmd.SetComputeFloatParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingLightRadius, additionalLightData.shapeRadius);
-                    int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                    int frameIndex = RayTracingFrameIndex(hdCamera);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                     // If this is a spot light, inject the spot angle in radians
@@ -768,6 +786,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
                         || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex))
                         historyValidity = 0.0f;
+
+                #if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+                #endif
+                        // We need to check if something invalidated the history buffers
+                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
