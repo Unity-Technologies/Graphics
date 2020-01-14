@@ -94,8 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set the data for the ray generation
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._NormalBufferTexture, m_RenderPipeline.sharedRTManager.GetNormalBuffer());
-                int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
+                int frameIndex = RayTracingFrameIndex(hdCamera);
+                cmd.SetRayTracingIntParam(aoShader, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Inject the ray-tracing sampling data
                 BlueNoise blueNoise = m_RenderPipeline.GetBlueNoiseManager();

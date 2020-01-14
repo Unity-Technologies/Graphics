@@ -152,7 +152,7 @@ MonoBehaviour:
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
     type: 2}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 95bff1ff959a7ef4ca9061586a2fd5a8,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
     type: 2}
   m_DefaultLookDevProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
@@ -280,6 +280,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
+      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
