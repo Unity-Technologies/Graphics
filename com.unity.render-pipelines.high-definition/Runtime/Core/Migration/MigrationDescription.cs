@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -82,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="target">The instance to migrate.</param>
         /// <returns>True if it has executed migration steps, false otherwise.</returns>
+        [Pure]
         public bool Migrate(TTarget target)
         {
             if (Equals(target.version, Steps[Steps.Length - 1].Version))
