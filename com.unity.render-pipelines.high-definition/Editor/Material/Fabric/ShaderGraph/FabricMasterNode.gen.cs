@@ -1,8 +1,6 @@
 
 
 
-
-
 using System;
 using System.Linq;
 using Data.Util;
@@ -17,7 +15,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class EyeMasterNode : IVersionable<EyeMasterNode.Version>
+    partial class FabricMasterNode : IVersionable<FabricMasterNode.Version>
     {
         enum Version
         {
@@ -30,17 +28,16 @@ namespace UnityEditor.Rendering.HighDefinition
             get => m_Version;
             set => m_Version = value;
         }
-        static readonly MigrationDescription<Version, EyeMasterNode> k_Migrations = new MigrationDescription<Version, EyeMasterNode>(
-            new MigrationStep<Version, EyeMasterNode>(Version.InitialVersion, Migrations.InitialVersion),
-            new MigrationStep<Version, EyeMasterNode>(Version.UseDecalLayerMask, Migrations.UseDecalLayerMask)
+        static readonly MigrationDescription<Version, FabricMasterNode> k_Migrations = new MigrationDescription<Version, FabricMasterNode>(
+            new MigrationStep<Version, FabricMasterNode>(Version.InitialVersion, Migrations.InitialVersion),
+            new MigrationStep<Version, FabricMasterNode>(Version.UseDecalLayerMask, Migrations.UseDecalLayerMask)
         );
     }
 
-
-    partial class EyeMasterNode
+    partial class FabricMasterNode
     {
         #region Fields
-        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Full;
+        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;
@@ -62,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static partial class Migrations
         {
         #pragma warning disable 618
-            public static void UseDecalLayerMask(EyeMasterNode instance)
+            public static void UseDecalLayerMask(FabricMasterNode instance)
             {
                 instance.m_DecalLayerMask = instance.m_ObsoleteReceiveDecals
                     ? DecalLayerMask.Full
@@ -73,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion
     }
 
-    partial class EyeSubShader
+    partial class FabricSubShader
     {
-        static void SetDecalLayerMaskActiveFields(EyeMasterNode masterNode, ActiveFields.Base baseActiveFields)
+        static void SetDecalLayerMaskActiveFields(FabricMasterNode masterNode, ActiveFields.Base baseActiveFields)
         {
             if (masterNode.decalLayerMask == DecalLayerMask.None)
             {
@@ -87,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    partial class EyeSettingsView
+    partial class FabricSettingsView
     {
         void AddDecalLayerMaskField(PropertySheet ps, int indentLevel)
         {

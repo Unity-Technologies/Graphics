@@ -1,8 +1,6 @@
 
 
 
-
-
 using System;
 using System.Linq;
 using Data.Util;
@@ -17,7 +15,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class FabricMasterNode : IVersionable<FabricMasterNode.Version>
+    partial class HDLitMasterNode : IVersionable<HDLitMasterNode.Version>
     {
         enum Version
         {
@@ -30,17 +28,16 @@ namespace UnityEditor.Rendering.HighDefinition
             get => m_Version;
             set => m_Version = value;
         }
-        static readonly MigrationDescription<Version, FabricMasterNode> k_Migrations = new MigrationDescription<Version, FabricMasterNode>(
-            new MigrationStep<Version, FabricMasterNode>(Version.InitialVersion, Migrations.InitialVersion),
-            new MigrationStep<Version, FabricMasterNode>(Version.UseDecalLayerMask, Migrations.UseDecalLayerMask)
+        static readonly MigrationDescription<Version, HDLitMasterNode> k_Migrations = new MigrationDescription<Version, HDLitMasterNode>(
+            new MigrationStep<Version, HDLitMasterNode>(Version.InitialVersion, Migrations.InitialVersion),
+            new MigrationStep<Version, HDLitMasterNode>(Version.UseDecalLayerMask, Migrations.UseDecalLayerMask)
         );
     }
 
-
-    partial class FabricMasterNode
+    partial class HDLitMasterNode
     {
         #region Fields
-        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Full;
+        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;
@@ -62,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static partial class Migrations
         {
         #pragma warning disable 618
-            public static void UseDecalLayerMask(FabricMasterNode instance)
+            public static void UseDecalLayerMask(HDLitMasterNode instance)
             {
                 instance.m_DecalLayerMask = instance.m_ObsoleteReceiveDecals
                     ? DecalLayerMask.Full
@@ -73,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion
     }
 
-    partial class FabricSubShader
+    partial class HDLitSubShader
     {
-        static void SetDecalLayerMaskActiveFields(FabricMasterNode masterNode, ActiveFields.Base baseActiveFields)
+        static void SetDecalLayerMaskActiveFields(HDLitMasterNode masterNode, ActiveFields.Base baseActiveFields)
         {
             if (masterNode.decalLayerMask == DecalLayerMask.None)
             {
@@ -87,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    partial class FabricSettingsView
+    partial class HDLitSettingsView
     {
         void AddDecalLayerMaskField(PropertySheet ps, int indentLevel)
         {

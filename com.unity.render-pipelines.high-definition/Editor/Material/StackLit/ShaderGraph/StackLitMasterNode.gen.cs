@@ -1,8 +1,6 @@
 
 
 
-
-
 using System;
 using System.Linq;
 using Data.Util;
@@ -36,11 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
         );
     }
 
-
     partial class StackLitMasterNode
     {
         #region Fields
-        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Full;
+        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;

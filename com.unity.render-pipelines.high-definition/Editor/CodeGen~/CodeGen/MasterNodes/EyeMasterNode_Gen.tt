@@ -1,0 +1,24 @@
+<#@ template language="C#" #><#@
+import namespace="System.IO"#><#@
+include file="../Templates/MasterNode/Include.ttinclude" #><#@
+include file="../Templates/Include.ttinclude" #><#
+    var name = "Eye";
+    var materialDir = "Eye";
+    Generate(new MasterNodeGen.MainGen
+    {
+        Name = "Eye",
+        Versions = new[]
+        {
+            (0, "InitialVersion"),
+            (1, "UseDecalLayerMask")
+        },
+        Fields = new MasterNodeGen.IField[]
+        {
+            new MasterNodeGen.DecalLayerMaskField(),
+        }
+    });
+#>
+<#
+    File.WriteAllText(Path.GetFullPath($"../../../Material/{materialDir}/ShaderGraph/{name}MasterNode.gen.cs"), GenerationEnvironment.ToString());
+    GenerationEnvironment.Clear();
+#>

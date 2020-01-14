@@ -1,0 +1,6 @@
+<#@ import namespace="System.IO"#><#+
+    void DeleteGeneratedFile(string templateFile)
+    {
+        File.Delete(Path.ChangeExtension(templateFile, "cs"));
+    }
+#>

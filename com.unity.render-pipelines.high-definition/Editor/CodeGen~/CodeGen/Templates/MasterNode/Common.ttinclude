@@ -1,0 +1,27 @@
+<#+
+    static partial class MasterNodeGen
+    {
+        public enum FieldLocation
+        {
+            MasterNode,
+            SettingsView,
+            SubShader,
+            Migration
+        }
+
+        public struct MasterNodeDescription
+        {
+            public string Name;
+        }
+
+        public interface IField
+        {
+            void Generate(GeneratedTextTransformation tt, MasterNodeDescription masterNode, FieldLocation location);
+        }
+    }
+
+    void Generate(MasterNodeGen.MasterNodeDescription masterNode, MasterNodeGen.IField field, MasterNodeGen.FieldLocation location)
+    {
+        field.Generate(this, masterNode, location);
+    }
+#>

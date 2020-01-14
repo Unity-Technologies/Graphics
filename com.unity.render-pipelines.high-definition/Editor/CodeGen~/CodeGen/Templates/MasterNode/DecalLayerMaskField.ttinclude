@@ -1,21 +1,22 @@
-<#@ include file="Common.ttinclude" once="true" #>
-<#+
+<#@ include file="Common.ttinclude" once="true" #><#+
     static partial class MasterNodeGen
     {
-        public struct DecalLayerMaskField { }
+        public struct DecalLayerMaskField : IField
+        {
+            public void Generate(GeneratedTextTransformation tt, MasterNodeDescription masterNode, FieldLocation location)
+            {
+                tt.__GenerateDecalLayerMaskField(masterNode, location);
+            }
+        }
     }
-
-    /// <summary>
-    /// Generates the DecalLayerMask field for a master node.
-    /// </summary>
-    void Generate(MasterNodeGen.MasterNodeDescription masterNode, MasterNodeGen.DecalLayerMaskField self, MasterNodeGen.FieldLocation location)
+    void __GenerateDecalLayerMaskField(MasterNodeGen.MasterNodeDescription masterNode, MasterNodeGen.FieldLocation location)
     {
         switch (location)
         {
             case MasterNodeGen.FieldLocation.MasterNode:
             {
 #>
-[SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Full;
+[SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
 public DecalLayerMask decalLayerMask
 {
     get => m_DecalLayerMask;

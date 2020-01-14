@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>No layers are accepted.</summary>
         public static readonly DecalLayerMask None = new DecalLayerMask(0);
+        /// <summary>First layer is accepted.</summary>
+        public static readonly DecalLayerMask Layer0 = new DecalLayerMask(1);
         /// <summary>All layers are accepted.</summary>
         public static readonly DecalLayerMask Full = new DecalLayerMask((1 << Capacity) - 1);
 
