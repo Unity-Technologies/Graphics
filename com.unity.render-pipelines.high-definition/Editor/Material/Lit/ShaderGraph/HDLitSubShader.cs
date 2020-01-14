@@ -7,7 +7,7 @@ using Data.Util;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitSubShader")]
-    class HDLitSubShader : IHDLitSubShader
+    partial class HDLitSubShader : IHDLitSubShader
     {
         internal static string DefineRaytracingKeyword(RayTracingNode.RaytracingVariant variant)
             => $"#define {RayTracingNode.RaytracingVariantKeyword(variant)}";
@@ -1026,10 +1026,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (!masterNode.receiveDecals.isOn)
-            {
-                baseActiveFields.AddAll("DisableDecals");
-            }
+            SetDecalLayerMaskActiveFields(masterNode, baseActiveFields);
 
             if (!masterNode.receiveSSR.isOn)
             {
@@ -1259,7 +1256,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (mode == GenerationMode.ForReals)
             {
                 subShader.AddShaderChunk("SubShader", false);
-                subShader.AddShaderChunk("{", false);                
+                subShader.AddShaderChunk("{", false);
                 subShader.Indent();
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
@@ -1272,7 +1269,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
             }
-            
+
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
 
             return subShader.GetShaderString(0);

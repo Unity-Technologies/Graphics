@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
-    class StackLitSubShader : IStackLitSubShader
+    partial class StackLitSubShader : IStackLitSubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -500,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //
         //  ~~~~ ...ok+MFD: these are all material features
         //
-        //  ok masterNode.receiveDecals
+        //  ok masterNode.decalLayerMask
         //  ok masterNode.receiveSSR
         //  ok masterNode.geometricSpecularAA    --> check, a way to combine predicates and/or exclude passes: TODOTODO What about WRITE_NORMAL_BUFFER passes ? (ie smoothness)
         //  ok masterNode.specularOcclusion      --> no use for it though! see comments.
@@ -578,7 +578,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Other to deal with, and
         // Common between Lit and StackLit:
         //
-        // doubleSidedMode, alphaTest, receiveDecals,
+        // doubleSidedMode, alphaTest, decalLayerMask,
         // surfaceType, alphaMode, blendPreserveSpecular, transparencyFog,
         // distortion, distortionMode, distortionDepthTest,
         // sortPriority (int)
@@ -732,10 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Other property predicates:
             //
 
-            if (!masterNode.receiveDecals.isOn)
-            {
-                baseActiveFields.Add("DisableDecals");
-            }
+            SetDecalLayerMaskActiveFields(masterNode, baseActiveFields);
 
             if (!masterNode.receiveSSR.isOn)
             {

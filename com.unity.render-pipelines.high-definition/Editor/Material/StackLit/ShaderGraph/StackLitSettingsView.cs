@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class StackLitSettingsView : VisualElement
+    partial class StackLitSettingsView : VisualElement
     {
         StackLitMasterNode m_Node;
 
@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             //  subsurfaceScattering
             //  transmission
             //
-            //  receiveDecals
+            //  decalLayerMask
             //  receiveSSR
             //  addPrecomputedVelocity
             //  geometricSpecularAA
@@ -319,14 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
             --indentLevel; // ...Material type enables.
 
-            ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.receiveDecals.isOn;
-                    toggle.OnToggleChanged(ChangeReceiveDecals);
-                });
-            });
+            AddDecalLayerMaskField(ps, indentLevel);
 
             ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {
@@ -679,14 +672,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.alphaTest;
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
-        }
-
-        void ChangeReceiveDecals(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Receive Decals Change");
-            ToggleData td = m_Node.receiveDecals;
-            td.isOn = evt.newValue;
-            m_Node.receiveDecals = td;
         }
 
         void ChangeReceiveSSR(ChangeEvent<bool> evt)

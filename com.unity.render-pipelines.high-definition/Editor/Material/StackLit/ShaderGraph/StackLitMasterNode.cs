@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/StackLit")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    partial class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -571,23 +571,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Transmission = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
-            }
-        }
-
-        // Features: other options
-        //
-        [SerializeField]
-        bool m_ReceiveDecals = true;
-
-        public ToggleData receiveDecals
-        {
-            get { return new ToggleData(m_ReceiveDecals); }
-            set
-            {
-                if (m_ReceiveDecals == value.isOn)
-                    return;
-                m_ReceiveDecals = value.isOn;
-                Dirty(ModificationScope.Graph);
             }
         }
 

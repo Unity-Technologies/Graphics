@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/Fabric")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
-    class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    partial class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -315,21 +315,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ReceiveDecals = true;
-
-        public ToggleData receiveDecals
-        {
-            get { return new ToggleData(m_ReceiveDecals); }
-            set
-            {
-                if (m_ReceiveDecals == value.isOn)
-                    return;
-                m_ReceiveDecals = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ReceivesSSR = true;
         public ToggleData receiveSSR
         {
@@ -557,14 +542,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(PositionSlotId);
             }
 
-            // Normal in Vertex 
+            // Normal in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
             {
                 AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexNormalSlotId);
             }
 
-            // tangent in Vertex 
+            // tangent in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
             {
                 AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "HDRP/Hair")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
-    class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    partial class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -383,21 +383,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_MaterialType = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        bool m_ReceiveDecals = true;
-
-        public ToggleData receiveDecals
-        {
-            get { return new ToggleData(m_ReceiveDecals); }
-            set
-            {
-                if (m_ReceiveDecals == value.isOn)
-                    return;
-                m_ReceiveDecals = value.isOn;
-                Dirty(ModificationScope.Graph);
             }
         }
 

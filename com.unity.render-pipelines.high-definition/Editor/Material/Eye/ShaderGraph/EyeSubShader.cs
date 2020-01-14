@@ -6,7 +6,7 @@ using Data.Util;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class EyeSubShader : IEyeSubShader
+    partial class EyeSubShader : IEyeSubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -367,10 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (!masterNode.receiveDecals.isOn)
-            {
-                baseActiveFields.Add("DisableDecals");
-            }
+            SetDecalLayerMaskActiveFields(masterNode, baseActiveFields);
 
             if (!masterNode.receiveSSR.isOn)
             {

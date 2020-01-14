@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/Lit")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
-    class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    partial class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string AlbedoSlotName = "Albedo";
         public const string AlbedoDisplaySlotName = "BaseColor";
@@ -498,21 +498,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SSSTransmission = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        bool m_ReceiveDecals = true;
-
-        public ToggleData receiveDecals
-        {
-            get { return new ToggleData(m_ReceiveDecals); }
-            set
-            {
-                if (m_ReceiveDecals == value.isOn)
-                    return;
-                m_ReceiveDecals = value.isOn;
-                Dirty(ModificationScope.Graph);
             }
         }
 

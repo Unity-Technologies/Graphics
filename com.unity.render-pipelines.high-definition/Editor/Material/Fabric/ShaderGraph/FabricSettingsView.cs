@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class FabricSettingsView : VisualElement
+    partial class FabricSettingsView : VisualElement
     {
         FabricMasterNode m_Node;
 
@@ -187,14 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.receiveDecals.isOn;
-                    toggle.OnToggleChanged(ChangeDecal);
-                });
-            });
+            AddDecalLayerMaskField(ps, indentLevel);
 
             ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {
@@ -365,14 +358,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.alphaTestDepthPostpass;
             td.isOn = evt.newValue;
             m_Node.alphaTestDepthPostpass = td;
-        }
-
-        void ChangeDecal(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Change");
-            ToggleData td = m_Node.receiveDecals;
-            td.isOn = evt.newValue;
-            m_Node.receiveDecals = td;
         }
 
         void ChangeSSR(ChangeEvent<bool> evt)

@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [Title("Master", "HDRP/Eye (Preview)")]
-    class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    partial class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -310,21 +310,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ReceiveDecals = true;
-
-        public ToggleData receiveDecals
-        {
-            get { return new ToggleData(m_ReceiveDecals); }
-            set
-            {
-                if (m_ReceiveDecals == value.isOn)
-                    return;
-                m_ReceiveDecals = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ReceivesSSR = true;
         public ToggleData receiveSSR
         {
@@ -519,7 +504,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
-            }            
+            }
 
             //Normal in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
