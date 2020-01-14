@@ -38,38 +38,21 @@ void Frag(  PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     DecalSurfaceData surfaceData;
-#if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-    uint tileCoord1d = -1;
-    bool clipped = false;
-#endif
+    float clipValue = 1.0;
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
+
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
-    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
+    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);
     if (!(all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
-#if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-        clipped = true; // helper lanes will be clipped
-#endif
-        clip(-1);
-#else // Decal mesh
-
-    // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
-
-#ifdef VARYINGS_NEED_POSITION_WS
-        float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-#else
-    // Unused
-        float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-#endif
-        GetSurfaceData(input, V, posInput, surfaceData);
-#endif
-
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+        clipValue = -1.0; // helper lanes will be clipped
+        #ifndef SHADER_API_METAL
+        clip(clipValue); // call clip as early as possible
+        #endif
     }
 
     input.texCoord0.xy = positionDS.xz;
@@ -78,22 +61,33 @@ void Frag(  PackedVaryingsToPS packedInput,
     input.texCoord3.xy = positionDS.xz;
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-    GetSurfaceData(input, V, posInput, surfaceData);
+#else // Decal mesh
+    // input.positionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
+
+    #ifdef VARYINGS_NEED_POSITION_WS
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+    #else
+    // Unused
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+    #endif
 #endif
+
+    GetSurfaceData(input, V, posInput, surfaceData);
 
 // Perform HTile optimization only on platform that support it
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
     uint2 htileCoord = input.positionSS.xy / 8;
     int stride = (_ScreenSize.x + 7) / 8;
     uint mask = surfaceData.HTileMask;
-    tileCoord1d = htileCoord.y * stride + htileCoord.x;
+    uint tileCoord1d = htileCoord.y * stride + htileCoord.x;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // This is an optimization to reduce the number of atomatic operation executed.
     // smallest tile index in the wave
     uint minTileCoord1d = WaveActiveMin(tileCoord1d);
     while (minTileCoord1d != -1)
     {
-        if ((minTileCoord1d == tileCoord1d) && (!clipped))// if this is the current tile and not a helper lane
+        if ((minTileCoord1d == tileCoord1d) && (clipValue > 0.0))// if this is the current tile and not a helper lane
         {
             // calculate the mask across the current tile
             mask = WaveActiveBitOr(surfaceData.HTileMask);
@@ -124,6 +118,16 @@ void Frag(  PackedVaryingsToPS packedInput,
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
 #endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
+
+
+#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
+    // Metal Shading Language declares that fragment discard invalidates
+    // derivatives for the rest of the quad, so we need to reorder when
+    // we discard during decal projection, or we get artifacts along the
+    // edges of the projection(any partial quads get bad partial derivatives
+    //regardless of whether they are computed implicitly or explicitly).
+    clip(clipValue);
+#endif
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
