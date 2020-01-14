@@ -37,7 +37,7 @@ namespace Unity.Testing.VisualEffectGraph
 
             m_currentVFXEventAttribute.Clear();
             m_currentVFXEventAttribute.AddRange(m_cachedVFXEventAttribute);
-            m_vfx.GetOutputEventAttribute(s_outputEventNameId, m_cachedVFXEventAttribute);
+            m_vfx.GetOutputEventAttribute(s_outputEventNameId, m_currentVFXEventAttribute);
 
             foreach (var eventAttribute in m_currentVFXEventAttribute)
             {
