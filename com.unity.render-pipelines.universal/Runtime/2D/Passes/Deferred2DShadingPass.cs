@@ -8,6 +8,8 @@ using UnityEngine.Rendering.Universal;
 public class Deferred2DShadingPass : ScriptableRenderPass
 {
     static RenderTargetHandle s_GBufferColorTarget;
+    static RenderTargetHandle s_GBufferMaskTarget;
+    static RenderTargetIdentifier[] s_GBufferTargets;
     static SortingLayer[] s_SortingLayers;
     static readonly ShaderTagId k_GBufferPassName = new ShaderTagId("Universal2DGBuffer");
     static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName };
@@ -33,6 +35,12 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         if (s_GBufferColorTarget.id == 0)
             s_GBufferColorTarget.Init("_GBufferColor");
 
+        if (s_GBufferMaskTarget.id == 0)
+            s_GBufferMaskTarget.Init("_GBufferMask");
+
+        if (s_GBufferTargets == null)
+            s_GBufferTargets = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier() };
+
         ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(targetDescriptor.width, targetDescriptor.height);
         descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
@@ -43,6 +51,9 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         descriptor.dimension = TextureDimension.Tex2D;
 
         cmd.GetTemporaryRT(s_GBufferColorTarget.id, descriptor);
+
+        descriptor.graphicsFormat = GraphicsFormat.R8_UNorm;
+        cmd.GetTemporaryRT(s_GBufferMaskTarget.id, descriptor);
 
 #if UNITY_EDITOR
         if (!Application.isPlaying)
@@ -69,7 +80,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-            CoreUtils.SetRenderTarget(cmd, s_GBufferColorTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, clearColor);
+            CoreUtils.SetRenderTarget(cmd, s_GBufferTargets, BuiltinRenderTextureType.CameraTarget, ClearFlag.Color, clearColor);
 
             cmd.EndSample(sortingLayerName);
             context.ExecuteCommandBuffer(cmd);
@@ -212,6 +223,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             }
         }
 
+        cmd.ReleaseTemporaryRT(s_GBufferMaskTarget.id);
         cmd.ReleaseTemporaryRT(s_GBufferColorTarget.id);
 
         context.ExecuteCommandBuffer(cmd);

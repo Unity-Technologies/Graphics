@@ -174,6 +174,9 @@ Shader "Hidden/Light2D-Shape"
             TEXTURE2D(_GBufferColor);
             SAMPLER(sampler_GBufferColor);
 
+            TEXTURE2D(_GBufferMask);
+            SAMPLER(sampler_GBufferMask);
+
             Varyings vert(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
@@ -225,7 +228,10 @@ Shader "Hidden/Light2D-Shape"
                 //APPLY_SHADOWS(i, color, _ShadowIntensity);
 
                 half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, i.gBufferUV);
-                return color * baseColor;
+                half4 mask = SAMPLE_TEXTURE2D(_GBufferMask, sampler_GBufferMask, i.gBufferUV);
+                half rcpA = 1.0f / (baseColor.a + 0.0000001f);
+
+                return color * baseColor * mask.r * rcpA;
             }
             ENDHLSL
         }

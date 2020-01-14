@@ -231,9 +231,18 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float2	uv				: TEXCOORD0;
             };
 
+            struct Targets
+            {
+                float4  color   : SV_Target0;
+                float4  mask    : SV_Target1;
+            };
+
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
+
+            TEXTURE2D(_MaskTex);
+            SAMPLER(sampler_MaskTex);
 
             Varyings UnlitVertex(Attributes attributes)
             {
@@ -246,11 +255,20 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 return o;
             }
 
-            float4 UnlitFragment(Varyings i) : SV_Target
+            Targets UnlitFragment(Varyings i)
             {
+                Targets o = (Targets)0;
+
                 float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 mainTex.rgb *= mainTex.a;
-                return mainTex;
+                o.color = mainTex;
+
+                half4 maskTex = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                maskTex.a = mainTex.a;
+                maskTex.rgb *= maskTex.a;
+                o.mask = maskTex;
+
+                return o;
             }
             ENDHLSL
         }

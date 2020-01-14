@@ -187,6 +187,9 @@ Shader "Hidden/Light2D-Point"
             TEXTURE2D(_GBufferColor);
             SAMPLER(sampler_GBufferColor);
 
+            TEXTURE2D(_GBufferMask);
+            SAMPLER(sampler_GBufferMask);
+
             half4	    _LightColor;
             half4x4	    _LightInvMatrix;
             half4x4	    _LightNoRotInvMatrix;
@@ -255,8 +258,10 @@ Shader "Hidden/Light2D-Point"
                 APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
                 half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, input.gBufferUV);
+                half4 mask = SAMPLE_TEXTURE2D(_GBufferMask, sampler_GBufferMask, input.gBufferUV);
+                half rcpA = 1.0f / (baseColor.a + 0.0000001f);
 
-                return lightColor * _InverseHDREmulationScale * baseColor;
+                return lightColor * _InverseHDREmulationScale * baseColor * mask.r * rcpA;
             }
             ENDHLSL
         }
