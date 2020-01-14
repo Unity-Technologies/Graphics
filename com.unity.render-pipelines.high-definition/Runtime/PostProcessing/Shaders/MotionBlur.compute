@@ -260,7 +260,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             // Slow path.
             float3 motionVecAndDepth = SAMPLE_TEXTURE2D_X_LOD(_MotionVecAndDepth, s_point_clamp_sampler, ClampAndScaleUVForPoint(centerSampleUV), 0).xyz;
 
-            float pixelToSampleScale = _SampleCount * 0.5 * maxMotionVecLen;
+            float pixelToSampleScale = (float)stepCount * rcp(maxMotionVecLen);
+
             float2 centralTapMotionVec = DecodeMotionVectorFromPacked(motionVecAndDepth.xy);
             float  centralMotionVecLen = MotionVecLengthInPixelsFromEncoded(motionVecAndDepth.xy);
 #if GUERTIN2014_DOUBLE_DIR

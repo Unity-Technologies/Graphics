@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +5,6 @@ using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-
     internal class SortingLayerDropDown
     {
         private class LayerSelectionData
@@ -32,7 +30,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTextContent("Mixed...");
         }
 
-        Rect m_SortingLayerDropdownRect = new Rect();
         SortingLayer[] m_AllSortingLayers;
         GUIContent[] m_AllSortingLayerNames;
         List<int> m_ApplyToSortingLayersList;
@@ -41,19 +38,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public void OnEnable(SerializedObject serializedObject, string propertyName)
         {
             m_ApplyToSortingLayers = serializedObject.FindProperty(propertyName);
+            m_ApplyToSortingLayersList = new List<int>(m_ApplyToSortingLayers.arraySize);
 
             m_AllSortingLayers = SortingLayer.layers;
             m_AllSortingLayerNames = m_AllSortingLayers.Select(x => new GUIContent(x.name)).ToArray();
-
-            int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
-            m_ApplyToSortingLayersList = new List<int>(applyToSortingLayersSize);
-
-            for (int i = 0; i < applyToSortingLayersSize; ++i)
-            {
-                int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
-                if (SortingLayer.IsValid(layerID))
-                    m_ApplyToSortingLayersList.Add(layerID);
-            }
         }
 
         void UpdateApplyToSortingLayersArray(object layerSelectionDataObject)
@@ -112,8 +100,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public void OnTargetSortingLayers(SerializedObject serializedObject, Object[] targets, GUIContent labelContent, System.Action<SerializedObject> selectionChangedCallback)
         {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(labelContent);
+            Rect totalPosition = EditorGUILayout.GetControlRect();
+            GUIContent actualLabel = EditorGUI.BeginProperty(totalPosition, labelContent, m_ApplyToSortingLayers);
+            Rect position = EditorGUI.PrefixLabel(totalPosition, actualLabel);
+
+            m_ApplyToSortingLayersList.Clear();
+            int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
+            for (int i = 0; i < applyToSortingLayersSize; ++i)
+            {
+                int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
+                if (SortingLayer.IsValid(layerID))
+                    m_ApplyToSortingLayersList.Add(layerID);
+            }
 
             GUIContent selectedLayers;
             if (m_ApplyToSortingLayersList.Count == 1)
@@ -125,12 +123,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             else
                 selectedLayers = Styles.sortingLayerMixed;
 
-            bool buttonDown = EditorGUILayout.DropdownButton(selectedLayers, FocusType.Keyboard, EditorStyles.popup);
-
-            if (Event.current.type == EventType.Repaint)
-                m_SortingLayerDropdownRect = GUILayoutUtility.GetLastRect();
-
-            if (buttonDown)
+            if (EditorGUI.DropdownButton(position, selectedLayers, FocusType.Keyboard, EditorStyles.popup))
             {
                 GenericMenu menu = new GenericMenu();
                 menu.allowDuplicateNames = true;
@@ -147,10 +140,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     menu.AddItem(m_AllSortingLayerNames[i], m_ApplyToSortingLayersList.Contains(sortingLayer.id), OnSortingLayerSelected, layerSelectionData);
                 }
 
-                menu.DropDown(m_SortingLayerDropdownRect);
+                menu.DropDown(position);
             }
 
-            EditorGUILayout.EndHorizontal();
+            EditorGUI.EndProperty();
         }
     }
 }

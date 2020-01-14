@@ -16,8 +16,7 @@ HRDP is only supported on the following platforms:
 * Modern consoles (Sony PS4 and Microsoft Xbox One)
 * MacOS using Metal graphics
 * Linux and Windows platforms with Vulkan
-* Future: IOS with Metal, Android
 
 **HDRP does not support OpenGL or OpenGL ES devices.**
 
-**Note: HDRP only works on these platforms if the device used supports Compute Shaders. For example, HDRP only works on iOS if the iPhone model supports Compute Shaders.**
+**Note: HDRP only works on these platforms if the device used supports Compute Shaders.**

@@ -116,7 +116,23 @@ namespace UnityEditor.VFX
         }
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
-        public override bool exposeAlphaThreshold => base.exposeAlphaThreshold && shaderGraph == null;
+        public override bool exposeAlphaThreshold
+        {
+            get
+            {
+                if (shaderGraph == null)
+                {
+                    if (base.exposeAlphaThreshold)
+                        return true;
+                }
+                else
+                {
+                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
+                        return true;
+                }
+                return false;
+            }
+        }
         public override bool supportSoftParticles => base.supportSoftParticles && shaderGraph == null;
         public override bool hasAlphaClipping
         {
@@ -361,12 +377,12 @@ namespace UnityEditor.VFX
             {
                 if (!isLitShader && shaderGraph.lit)
                 {
-                    Debug.LogError("You must use a lit vfx master node with a lit output");
+                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
                     return false;
                 }
                 if (isLitShader && !shaderGraph.lit)
                 {
-                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
+                    Debug.LogError("You must use a lit vfx master node with a lit output");
                     return false;
                 }
 
@@ -474,7 +490,7 @@ namespace UnityEditor.VFX
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
-                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS);");
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.VFX_VARYING_POSWS));");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
                                     callSG.builder.AppendLine("INSG.WorldSpaceViewDirection = V;");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)
@@ -527,7 +543,7 @@ namespace UnityEditor.VFX
                         if (pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
                         {
                             callSG.builder.AppendLine(
-@"#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+@"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
 i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaThreshold_7;
 #endif");
                         }
