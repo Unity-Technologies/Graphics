@@ -1,6 +1,6 @@
 # Light Blend Styles
 
-![](images\image_38.png)
+![](Images/2D/image_38.png)
 
 __Blend Styles__ determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal Render Pipeline (URP) 2D Asset can currently contain a total of four different Light Blend Styles, starting with the 'Default' Blend Style being available.
 
@@ -15,21 +15,21 @@ __Blend Styles__ determine the way a particular Light interacts with Sprites in 
 
 ## Blend Mode
 
-![](images\image_39.png)
+![](Images/2D/image_39.png)
 
 Blend Modes controls the way a Sprite is lit by light. The following examples show the four predefined Blend Modes:
 
-| ![Original reference](images\image_40.png) | ![Multiply](images\image_41.png)    |
+| ![Original reference](Images/2D/image_40.png) | ![Multiply](Images/2D/image_41.png)    |
 | ------------------------------------------ | ----------------------------------- |
 | Original Sprite                            | Multiply                            |
-| ![Additive](images\image_42.png)           | ![Subtractive](images\image_43.png) |
+| ![Additive](Images/2D/image_42.png)           | ![Subtractive](Images/2D/image_43.png) |
 | Additive                                   | Subtractive                         |
 
 
 
 ## Custom Blend Modes
 
-![](images\image_44.png)
+![](Images/2D/image_44.png)
 
 All of the Blend Modes available can be expressed with Custom Blend Factors. The factors for the existing Blend Modes are as follows:
 
@@ -54,10 +54,10 @@ All of the Blend Modes available can be expressed with Custom Blend Factors. The
 
 Masks control where Lights can affect a Sprite. There are 4 channels to select from as the mask channel - Red, Blue, Green, and Alpha. In a mask max value means full light, min value means no light. 
 
-| ![Original rock color](images\image_45.png)     | ![Rock Mask](images\image_46.png)                      |
+| ![Original rock color](Images/2D/image_45.png)     | ![Rock Mask](Images/2D/image_46.png)                      |
 | ----------------------------------------------- | ------------------------------------------------------ |
 | Original Rock Color                             | Rock with a mask                                       |
-| ![Additive Light Blending](images\image_47.png) | ![Masked Additive Light Blending](images\image_48.png) |
+| ![Additive Light Blending](Images/2D/image_47.png) | ![Masked Additive Light Blending](Images/2D/image_48.png) |
 | Additive Light Blending                         | Additive Light Blending with a mask                    |
 
 
