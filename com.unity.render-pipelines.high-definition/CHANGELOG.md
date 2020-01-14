@@ -317,6 +317,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 - Fixed XR rendering locked to vsync of main display with Standalone Player.
 - Fixed custom pass cleanup not called at the right time when using multiple volumes.
+- Fixed an issue on metal with edge of decal having artifact by delaying discard of fragments during decal projection
+- Fixed various shader warning
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
