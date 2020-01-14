@@ -319,6 +319,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass cleanup not called at the right time when using multiple volumes.
 - Fixed an issue on metal with edge of decal having artifact by delaying discard of fragments during decal projection
 - Fixed various shader warning
+- Fixing unnecessary memory allocations in the ray tracing cluster build
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -376,6 +377,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
 - Improved performance when entering play mode without domain reload by a factor of ~25
 - Renamened the camera profiling sample to include the camera name
+- Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
 
 ## [7.1.1] - 2019-09-05
 
