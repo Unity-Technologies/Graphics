@@ -766,6 +766,7 @@ namespace UnityEditor.VFX
             if (resource != null)
                 graph = resource.GetOrCreateGraph();
 
+
             GUI.enabled = true;
             if (graph != null)
             {

@@ -66,6 +66,31 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Resize the Dynamic Array.
+        /// This will reallocate memory if necessary and set the current size of the array to the provided size.
+        /// </summary>
+        /// <param name="newSize">New size for the array.</param>
+        /// <param name="keepContent">Set to true if you want the current content of the array to be kept.</param>
+        public void Resize(int newSize, bool keepContent = false)
+        {
+            if (newSize > m_Array.Length)
+            {
+                if (keepContent)
+                {
+                    var newArray = new T[newSize];
+                    Array.Copy(m_Array, newArray, m_Array.Length);
+                    m_Array = newArray;
+                }
+                else
+                {
+                    m_Array = new T[newSize];
+                }
+            }
+
+            size = newSize;
+        }
+
+        /// <summary>
         /// ref access to an element.
         /// </summary>
         /// <param name="index">Element index</param>
