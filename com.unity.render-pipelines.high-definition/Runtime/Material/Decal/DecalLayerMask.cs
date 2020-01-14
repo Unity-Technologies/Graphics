@@ -1,12 +1,19 @@
 using System;
+using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary> The layer mask used by materials for decals. </summary>
+    [Serializable]
     public struct DecalLayerMask : IEquatable<DecalLayerMask>
     {
         /// <summary>Number of layers possible.</summary>
         public const int Capacity = 8;
+        /// <summary>Names of the layers.</summary>
+        public static readonly string[] LayerNames = Enumerable.Range(0, Capacity)
+            .Select(i => $"Decal Layer {i}")
+            .ToArray();
+
         /// <summary>No layers are accepted.</summary>
         public static readonly DecalLayerMask None = new DecalLayerMask(0);
         /// <summary>All layers are accepted.</summary>
