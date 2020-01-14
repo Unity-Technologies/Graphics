@@ -156,10 +156,9 @@ namespace UnityEditor.VFX
             foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
                 subgraphBlocks.RecreateCopy();
             SyncSlots(VFXSlot.Direction.kInput,true);
-            PatchInputExpressions();
         }
         
-        void PatchInputExpressions()
+        public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 

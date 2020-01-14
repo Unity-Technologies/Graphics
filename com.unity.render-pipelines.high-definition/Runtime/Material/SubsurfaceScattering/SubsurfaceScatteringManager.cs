@@ -126,10 +126,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_SSSHTile);
         }
 
-        void UpdateCurrentDiffusionProfileSettings()
+        void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
             var currentDiffusionProfiles = asset.diffusionProfileSettingsList;
-            var diffusionProfileOverride = VolumeManager.instance.stack.GetComponent<DiffusionProfileOverride>();
+            var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
 
             // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
             if (diffusionProfileOverride.active && diffusionProfileOverride.diffusionProfiles.value != null)
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            UpdateCurrentDiffusionProfileSettings();
+            UpdateCurrentDiffusionProfileSettings(hdCamera);
 
             cmd.SetGlobalInt(HDShaderIDs._DiffusionProfileCount, m_SSSActiveDiffusionProfileCount);
 

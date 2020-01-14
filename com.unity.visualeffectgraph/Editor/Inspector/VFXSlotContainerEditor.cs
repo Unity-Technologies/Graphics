@@ -91,7 +91,8 @@ class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         m_CurrentController = controller;
-                        controller.DrawGizmos(view.attachedComponent);
+                        if( controller != null)
+                            controller.DrawGizmos(view.attachedComponent);
                     }
                     else
                     {
@@ -177,10 +178,10 @@ class VFXSlotContainerEditor : Editor
 
         if (serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXModel context in targets.OfType<VFXModel>())
+            foreach (VFXModel slotContainer in targets.OfType<VFXModel>())
             {
                 // notify that something changed.
-                context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                slotContainer.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
     }

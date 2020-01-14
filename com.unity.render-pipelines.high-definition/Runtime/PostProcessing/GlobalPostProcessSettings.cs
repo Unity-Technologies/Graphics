@@ -26,6 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition
         ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
     }
 
+    public enum PostProcessBufferFormat
+    {
+        RGB111110Float = GraphicsFormat.B10G11R11_UFloatPack32,
+        ARGBHalf = GraphicsFormat.R16G16B16A16_SFloat,
+        ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
+    }
+
     /// <summary>
     /// Project-wide settings related to post-processing.
     /// </summary>
@@ -45,8 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static GlobalPostProcessSettings NewDefault() => new GlobalPostProcessSettings()
         {
             lutSize = 32,
-            lutFormat = GradingLutFormat.ARGBHalf
+            lutFormat = GradingLutFormat.ARGBHalf,
+            bufferFormat = PostProcessBufferFormat.RGB111110Float
         };
+
+        // Returns true if the post-processing passes support an alpha channel
+        public bool supportsAlpha => bufferFormat != PostProcessBufferFormat.RGB111110Float;
 
         // Note: A lut size of 16^3 is barely usable (noticeable color banding in highly contrasted
         // areas and harsh tonemappers like ACES'). 32 should be the minimum, the lut being encoded
@@ -81,5 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <seealso cref="GradingLutFormat"/>
         [FormerlySerializedAs("m_LutFormat")]
         public GradingLutFormat lutFormat;
+
+        /// <summary>
+        /// The texture format to be used for the post-processing passes.
+        /// </summary>
+        public PostProcessBufferFormat bufferFormat;
     }
 }

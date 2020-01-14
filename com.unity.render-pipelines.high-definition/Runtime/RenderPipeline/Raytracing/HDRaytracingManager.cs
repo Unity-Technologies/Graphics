@@ -231,37 +231,40 @@ namespace UnityEngine.Rendering.HighDefinition
             // Propagate the right mask
             instanceFlag |= materialIsOnlyTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
 
+            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
+            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
+
             if (rayTracedShadow || pathTracingEnabled)
             {
                 // Raise the shadow casting flag if needed
                 instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
             }
 
-            if (aoEnabled && !materialIsOnlyTransparent)
+            if (aoEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Ambient Occlusion flag if needed
                 instanceFlag |= ((aoLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.AmbientOcclusion) : 0x00;
             }
 
-            if (reflEnabled && !materialIsOnlyTransparent)
+            if (reflEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Screen Space Reflection if needed
                 instanceFlag |= ((reflLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
             }
 
-            if (giEnabled && !materialIsOnlyTransparent)
+            if (giEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((giLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
             }
 
-            if (recursiveEnabled)
+            if (recursiveEnabled && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((rrLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
             }
 
-            if (pathTracingEnabled)
+            if (pathTracingEnabled && meshIsVisible)
             {
                 // Raise the Global Illumination if needed
                 instanceFlag |= ((ptLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.PathTracing) : 0x00;
@@ -277,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
 
-        internal void BuildRayTracingAccelerationStructure()
+        internal void BuildRayTracingAccelerationStructure(HDCamera hdCamera)
         {
             // Clear all the per frame-data
             m_RayTracingRendererReference.Clear();
@@ -351,16 +354,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                             + m_RayTracingLights.hdRectLightArray.Count
                                             + m_RayTracingLights.reflectionProbeArray.Count;
 
-            AmbientOcclusion aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            ScreenSpaceReflection reflSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
-            // Status used to track the errors
-            AccelerationStructureStatus status = AccelerationStructureStatus.Clear;
-
-            // First of all let's process all the LOD groups
             LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
             for (var i = 0; i < lodGroupArray.Length; i++)
             {
@@ -381,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             Renderer currentRenderer = currentLOD.renderers[rendererIdx];
 
                             // This objects should but included into the RAS
-                            status |= AddInstanceToRAS(currentRenderer,
+                            AddInstanceToRAS(currentRenderer,
                                 rayTracedShadow,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
                                 reflSettings.rayTracing.value, reflSettings.layerMask.value,
@@ -424,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
 
                 // This objects should but included into the RAS
-                status |= AddInstanceToRAS(currentRenderer,
+                AddInstanceToRAS(currentRenderer,
                                 rayTracedShadow,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
                                 reflSettings.rayTracing.value, reflSettings.layerMask.value,
@@ -438,18 +437,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // tag the structures as valid
             m_ValidRayTracingState = true;
-
-            // Print a warning in case we hit a transparency issue
-            if (((int)status & (int)AccelerationStructureStatus.TransparencyIssue) != 0)
-                Debug.LogWarning("An object has both transparent and opaque submeshes. This may cause performance issues");
         }
 
         internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
         {
-            ScreenSpaceReflection reflSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value))
             {

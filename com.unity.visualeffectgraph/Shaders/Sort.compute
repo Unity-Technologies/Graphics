@@ -1,7 +1,7 @@
-#pragma kernel BitonicSort128 BITONIC_SORT=BitonicSort128 ELEMENTS_COUNT=128 LDS_PADDING_PERIOD=32 ITERATIONS_COUNT=1 FINAL_PASS=1
-#pragma kernel BitonicSort1024 BITONIC_SORT=BitonicSort1024 ELEMENTS_COUNT=1024 LDS_PADDING_PERIOD=32 ITERATIONS_COUNT=2 FINAL_PASS=1
-#pragma kernel BitonicSort4096 BITONIC_SORT=BitonicSort4096 ELEMENTS_COUNT=4096 LDS_PADDING_PERIOD=0 ITERATIONS_COUNT=2 FINAL_PASS=1
-#pragma kernel BitonicPrePass BITONIC_SORT=BitonicPrePass ELEMENTS_COUNT=4096 LDS_PADDING_PERIOD=0 ITERATIONS_COUNT=2 FINAL_PASS=0
+#pragma kernel BitonicSort128 BITONIC_SORT=BitonicSort128 ELEMENTS_COUNT=128 ITERATIONS_COUNT=1 FINAL_PASS=1
+#pragma kernel BitonicSort1024 BITONIC_SORT=BitonicSort1024 ELEMENTS_COUNT=1024 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicSort4096 BITONIC_SORT=BitonicSort4096 ELEMENTS_COUNT=4096 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicPrePass BITONIC_SORT=BitonicPrePass ELEMENTS_COUNT=4096 ITERATIONS_COUNT=2 FINAL_PASS=0
 #pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
 #pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
@@ -14,17 +14,8 @@
 #define ELEMENTS_COUNT 1024
 #endif
 
-// More loads per threads. Can reduce stall time due to barriers
-// Needs a good occupancy in the first place (many groups dispatched)
 #ifndef ITERATIONS_COUNT
 #define ITERATIONS_COUNT 1
-#endif
-
-// This allows to reduce bank conflicts by adding an additional dword every LDS_PADDING_PERIOD
-// (Watch out for occupancy though)
-// 0 to deactivate padding
-#ifndef LDS_PADDING_PERIOD
-#define LDS_PADDING_PERIOD 0
 #endif
 
 // 1 to use the alternative representation of the bitonic network:
@@ -37,21 +28,17 @@
 #define USE_ALTERNATE_BITONIC_NETWORK 0
 #endif
 
-#define BITONIC_THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
+#define ELEMENTS_PER_THREAD (2 * ITERATIONS_COUNT)
+#define BITONIC_THREADS_COUNT ELEMENTS_COUNT / ELEMENTS_PER_THREAD
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT
 
-#if LDS_PADDING_PERIOD
-#define HALF_SCRATCH_SIZE (ELEMENTS_COUNT + ELEMENTS_COUNT / LDS_PADDING_PERIOD)
-#else
 #define HALF_SCRATCH_SIZE ELEMENTS_COUNT
-#endif
 
-#define LDS_VALUES_OFFSET HALF_SCRATCH_SIZE //((HALF_SCRATCH_SIZE + 31) & ~32)
+#define LDS_VALUES_OFFSET HALF_SCRATCH_SIZE
 #define SCRATCH_SIZE (HALF_SCRATCH_SIZE << 1)
 
-// TODO Test other accesses pattern for iterations
 #define ITERATION_INDEX(id,it) ((it) * BITONIC_THREADS_COUNT + (id))
-#define DST_INDEX(groupId,threadId) (groupId * BITONIC_THREADS_COUNT * ITERATIONS_COUNT + threadId)
+#define DST_INDEX(groupId,threadId) (groupId * BITONIC_THREADS_COUNT * ELEMENTS_PER_THREAD + threadId)
 
 #if DECREASING_ORDER
 #define REJECTED_VALUE asfloat(0xff7fffff) // -MAX_FLOAT
@@ -77,8 +64,8 @@ RWStructuredBuffer<KVP> sortedSequence;
 ByteAddressBuffer deadElementCount;
 
 // Layout of the scratch memory is as follows:
-// First all keys (potentially padded by a DWORD every LDS_PADDING_PERIOD
-// Then all values with the same padding pattern
+// First all keys
+// Then all values
 groupshared float scratch[SCRATCH_SIZE];
 
 CBUFFER_START(SortConstants)
@@ -101,44 +88,34 @@ bool CompareKeys(float key0, float key1)
 
 uint GetLDSIndex(uint index)
 {
-#if LDS_PADDING_PERIOD
-    return index + index / LDS_PADDING_PERIOD;
-#else
     return index;
-#endif
 }
 
-void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
+void LoadFromMemory(uint ldsIndex,uint memIndex)
 {
-    [unroll]
-    for (uint i = 0; i < size; ++i)
-    {
-        KVP kvp = { REJECTED_VALUE, 0 };
-        if (memIndex + i < GetElementCount())
-            kvp = inputSequence[memIndex + i];
+	KVP kvp = { REJECTED_VALUE, 0 };
+	if (memIndex < GetElementCount())
+		kvp = inputSequence[memIndex];
 
-        uint paddedLdsIndex = GetLDSIndex(ldsIndex + i);
-        scratch[paddedLdsIndex] = kvp.key;
-        scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
-    }
+	uint paddedLdsIndex = GetLDSIndex(ldsIndex);
+	scratch[paddedLdsIndex] = kvp.key;
+	scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
 }
 
-void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
+void StoreToMemory(uint memIndex, uint ldsIndex)
 {
-    [unroll]
-    for (uint i = 0; i < size; ++i)
-        if (memIndex + i < GetElementCount())
-        {
-            uint paddedLdsIndex = GetLDSIndex(ldsIndex + i);
-            uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
+	if (memIndex < GetElementCount())
+	{
+		uint paddedLdsIndex = GetLDSIndex(ldsIndex);
+		uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
 #if FINAL_PASS
-            sortedSequence[memIndex + i] = value;
+		sortedSequence[memIndex] = value;
 #else
-            float key = scratch[paddedLdsIndex];
-            KVP kvp = { key, value };
-            sortedSequence[memIndex + i] = kvp;
+		float key = scratch[paddedLdsIndex];
+		KVP kvp = { key, value };
+		sortedSequence[memIndex] = kvp;
 #endif
-        }
+	}
 }
 
 // Bitonic sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
@@ -151,12 +128,12 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
     // Load data from memory to LDS
     //[unroll]
-    for (uint i = 0; i < ITERATIONS_COUNT; ++i)
-    {
-        uint ldsIndex = ITERATION_INDEX(id,i);
-        uint memIndex = DST_INDEX(groupId.x, ldsIndex);
-        LoadFromMemory(ldsIndex * 2, memIndex * 2,2);
-    }
+	for (uint i = 0; i < ELEMENTS_PER_THREAD; ++i)
+	{
+		uint index = BITONIC_THREADS_COUNT * i + id;
+		uint memIndex = DST_INDEX(groupId.x, index);
+		LoadFromMemory(index, memIndex);
+	}
 
     GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
 
@@ -175,11 +152,8 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
                     index1 += step - (2 * lsb) - 1;
 #endif
 
-                uint ldsIndex0 = GetLDSIndex(index0);
-                uint ldsIndex1 = GetLDSIndex(index1);
-
-                float key0 = scratch[ldsIndex0];
-                float key1 = scratch[ldsIndex1];
+                float key0 = scratch[index0];
+                float key1 = scratch[index1];
 
 #if USE_ALTERNATE_BITONIC_NETWORK
                 bool reverse = false;
@@ -189,13 +163,13 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
                 if (CompareKeys(key1,key0) != reverse)
                 {
                     // swap keys
-                    scratch[ldsIndex0] = key1;
-                    scratch[ldsIndex1] = key0;
+                    scratch[index0] = key1;
+                    scratch[index1] = key0;
 
                     // swap values
-                    float value0 = scratch[ldsIndex0 + LDS_VALUES_OFFSET];
-                    scratch[ldsIndex0 + LDS_VALUES_OFFSET] = scratch[ldsIndex1 + LDS_VALUES_OFFSET];
-                    scratch[ldsIndex1 + LDS_VALUES_OFFSET] = value0;
+                    float value0 = scratch[index0 + LDS_VALUES_OFFSET];
+                    scratch[index0 + LDS_VALUES_OFFSET] = scratch[index1 + LDS_VALUES_OFFSET];
+                    scratch[index1 + LDS_VALUES_OFFSET] = value0;
                 }
             }
 
@@ -204,12 +178,12 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
     // Store sorted data from LDS to memory
     //[unroll]
-    for (uint j = 0; j < ITERATIONS_COUNT; ++j) // "j" just to avoid warning with loop unrolling
-    {
-        uint ldsIndex = ITERATION_INDEX(id,j);
-        uint memIndex = DST_INDEX(groupId.x, ldsIndex);
-        StoreToMemory(memIndex * 2, ldsIndex * 2, 2);
-    }
+	for (uint j = 0; j < ELEMENTS_PER_THREAD; ++j)
+	{
+		uint index = BITONIC_THREADS_COUNT * j + id; //(id / 32) * 64 * ITERATIONS_COUNT + (id & 31) + j * 32;//id * ITERATIONS_COUNT * 2 + j;
+		uint memIndex = DST_INDEX(groupId.x, index);
+		StoreToMemory(memIndex, index);
+	}
 }
 
 CBUFFER_START(MergePassConstants)
