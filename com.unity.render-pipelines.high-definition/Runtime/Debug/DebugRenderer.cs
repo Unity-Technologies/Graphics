@@ -71,8 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Rendering Shaders
         Material                m_DebugRendererMaterial;
         MaterialPropertyBlock   m_DebugRendererMPB = new MaterialPropertyBlock();
-        readonly int            _LineData = Shader.PropertyToID("_LineData");
-        readonly int            _CameraRelativeOffset = Shader.PropertyToID("_CameraRelativeOffset");
+        readonly int            m_LineDataPropertyId = Shader.PropertyToID("_LineData");
+        readonly int            m_CameraRelativeOffsetPropertyId = Shader.PropertyToID("_CameraRelativeOffset");
         int                     m_LineNoDepthTestPass;
         int                     m_LineDepthTestPass;
 
@@ -105,10 +105,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderLines(CommandBuffer cmd, HDCamera hdCamera, LineBuffers lineBuffers, int passIndex)
         {
             lineBuffers.lineDataBuffer.SetData(lineBuffers.lineData);
-            m_DebugRendererMPB.SetBuffer(_LineData, lineBuffers.lineDataBuffer);
+            m_DebugRendererMPB.SetBuffer(m_LineDataPropertyId, lineBuffers.lineDataBuffer);
 
             Vector3 cameraRelativeOffset = ShaderConfig.s_CameraRelativeRendering != 0 ? hdCamera.camera.transform.position : Vector3.zero;
-            m_DebugRendererMPB.SetVector(_CameraRelativeOffset, cameraRelativeOffset);
+            m_DebugRendererMPB.SetVector(m_CameraRelativeOffsetPropertyId, cameraRelativeOffset);
             cmd.DrawProcedural(Matrix4x4.identity, m_DebugRendererMaterial, passIndex, MeshTopology.Lines, 2, lineBuffers.lineData.Count, m_DebugRendererMPB);
         }
 
@@ -153,6 +153,32 @@ namespace UnityEngine.Rendering.HighDefinition
             lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[1], p1 = m_OBBPointsCache[5], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[2], p1 = m_OBBPointsCache[6], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = m_OBBPointsCache[3], p1 = m_OBBPointsCache[7], color = color });
+        }
+
+        public void PushFrustum(Frustum frustum, Color color, bool depthTest = true)
+        {
+            var lineBuffers = depthTest ? m_LineDepthTest : m_LineNoDepthTest;
+
+            if (!lineBuffers.CheckAllocation(12))
+                return;
+
+            // Base
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[0], p1 = frustum.corners[1], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[1], p1 = frustum.corners[3], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[3], p1 = frustum.corners[2], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[2], p1 = frustum.corners[0], color = color });
+
+            // Top
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[4], p1 = frustum.corners[5], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[5], p1 = frustum.corners[7], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[7], p1 = frustum.corners[6], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[6], p1 = frustum.corners[4], color = color });
+
+            // Body
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[0], p1 = frustum.corners[4], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[1], p1 = frustum.corners[5], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[2], p1 = frustum.corners[6], color = color });
+            lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[3], p1 = frustum.corners[7], color = color });
         }
     }
 }

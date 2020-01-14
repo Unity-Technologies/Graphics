@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool showRaysPerFrame = false;
             public Color raysPerFrameFontColor = Color.white;
 
+            public bool freezeProbeVisibility = false;
             public int debugCameraToFreeze = 0;
 
             // TODO: The only reason this exist is because of Material/Engine debug enums
@@ -217,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsCameraFrozen(Camera camera)
         {
-            return IsCameraFreezeEnabled() && camera.name.Equals(GetFrozenCameraName());
+            return (IsCameraFreezeEnabled() && camera.name.Equals(GetFrozenCameraName())) || (data.freezeProbeVisibility && camera.cameraType == CameraType.Reflection);
         }
 
         public bool IsDebugDisplayEnabled()
@@ -892,6 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             widgetList.AddRange(new DebugUI.Widget[]
             {
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
+                new DebugUI.BoolField { displayName = "Freeze Probes for culling", getter = () => data.freezeProbeVisibility, setter = value => data.freezeProbeVisibility = value },
             });
 
             if (XRSystem.testModeEnabled)
