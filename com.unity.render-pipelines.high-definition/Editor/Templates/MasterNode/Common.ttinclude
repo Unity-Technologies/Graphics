@@ -1,0 +1,17 @@
+<#+
+    static partial class MasterNodeGen
+    {
+        public enum FieldLocation
+        {
+            MasterNode,
+            SettingsView,
+            SubShader,
+            Migration
+        }
+
+        public struct MasterNodeDescription
+        {
+            public string Name;
+        }
+    }
+#>

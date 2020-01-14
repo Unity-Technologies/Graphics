@@ -1,0 +1,69 @@
+<#+
+    /// <summary>Add versioning support to a class.</summary>
+    static class VersionedMigrationGen
+    {
+        [Flags]
+        public enum Features
+        {
+            None = 0,
+            VersionEnum = 1 << 0,
+            VersionField = 1 << 1,
+            MigrationDefinition = 1 << 2,
+        }
+
+        public class VersionedMigration
+        {
+            public Features Features = (Features)(-1);
+            public string Visibility = "";
+            public string VersionedTypeName;
+            public string VersionTypeName = "Version";
+            public (int, string)[] Versions = {};
+        }
+    }
+
+	void Generate(VersionedMigrationGen.VersionedMigration self)
+	{
+#>
+<#= self.Visibility #>partial class <#= self.VersionedTypeName #> : IVersionable<<#= self.VersionedTypeName #>.<#= self.VersionTypeName #>>
+{
+<#+ if ((self.Features & VersionedMigrationGen.Features.VersionEnum) != 0) { #>
+    enum <#= self.VersionTypeName #>
+    {
+<#+
+    PushIndent("        ");
+    foreach (var (version, name) in self.Versions)
+        WriteLine($"{name} = {version},");
+        PopIndent();
+#>
+    }
+<#+ } #>
+
+<#+ if ((self.Features & VersionedMigrationGen.Features.VersionField) != 0) { #>
+    [SerializeField] <#= self.VersionTypeName #> m_Version;
+    <#= self.VersionTypeName #> IVersionable<<#= self.VersionTypeName #>>.version
+    {
+        get => m_Version;
+        set => m_Version = value;
+    }
+<#+ } #>
+
+<#+ if ((self.Features & VersionedMigrationGen.Features.MigrationDefinition) != 0) { #>
+    static readonly MigrationDescription<<#= self.VersionTypeName #>, <#= self.VersionedTypeName #>> k_Migrations = new MigrationDescription<<#= self.VersionTypeName #>, <#= self.VersionedTypeName #>>(
+<#+
+    PushIndent("        ");
+    for (var i = 0; i < self.Versions.Length; ++i)
+    {
+        var (_, name) = self.Versions[i];
+        Write($"new MigrationStep<{self.VersionTypeName}, {self.VersionedTypeName}>({self.VersionTypeName}.{name}, Migrations.{name})");
+        WriteLine(i == self.Versions.Length - 1 ? string.Empty: ",");
+    }
+
+    PopIndent();
+#>
+    );
+<#+
+} #>
+}
+<#+
+	}
+#>
