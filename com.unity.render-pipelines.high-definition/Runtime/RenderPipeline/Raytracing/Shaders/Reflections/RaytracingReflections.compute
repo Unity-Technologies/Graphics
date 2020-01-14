@@ -111,7 +111,10 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
 
     // In the second texture, we store the sampled direction and the invPDF of the sample
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
+    //if (rand() < 0.5)
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
+    //else
+    //    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDirSkyIS, 1.0 / sampleSkyPDF);
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]

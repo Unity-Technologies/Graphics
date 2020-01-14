@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
-        RTHandle m_IntensityTexture;
+        RTHandle m_IntensityHemiTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
         public override bool hasAdvancedMode => true;
@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
             m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
-            m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
+            m_IntensityHemiTexture   = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
             m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
@@ -68,8 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnDisable()
         {
-            if (m_IntensityTexture != null)
-                RTHandles.Release(m_IntensityTexture);
+            if (m_IntensityHemiTexture != null)
+                RTHandles.Release(m_IntensityHemiTexture);
 
             m_ReadBackTexture = null;
         }
@@ -84,19 +84,46 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
 
-            Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, m_IntegrateHDRISkyMaterial);
+            Graphics.Blit(Texture2D.whiteTexture, m_IntensityHemiTexture.rt,   m_IntegrateHDRISkyMaterial, 0);
 
             // Copy the rendertexture containing the lux value inside a Texture2D
-            RenderTexture.active = m_IntensityTexture.rt;
+            RenderTexture.active = m_IntensityHemiTexture.rt;
             m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
             RenderTexture.active = null;
-
             // And then the value inside this texture
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
+
             m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
             if (max == 0.0f)
                 max = 1.0f;
+
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
+        }
+
+        // Compute the lux value in the upper hemisphere of the HDRI skybox
+        public void GetUpperSphereLuxValue()
+        {
+            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+
+            if (hdri == null)
+                return;
+
+            Graphics.Blit(Texture2D.whiteTexture, m_IntensityHemiTexture.rt,   m_IntegrateHDRISkyMaterial, 1);
+
+            // Copy the rendertexture containing the lux value inside a Texture2D
+            RenderTexture.active = m_IntensityHemiTexture.rt;
+            m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
+            RenderTexture.active = null;
+            // And then the value inside this texture
+            Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
+
+            m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
+            float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+            if (max == 0.0f)
+                max = 1.0f;
+
             m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
@@ -112,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
+                GetUpperSphereLuxValue();
                 updateDefaultShadowTint = true;
             }
 

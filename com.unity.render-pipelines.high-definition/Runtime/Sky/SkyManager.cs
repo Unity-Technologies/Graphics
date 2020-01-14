@@ -753,13 +753,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     ref var context = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
                     context.lastFrameUsed = m_CurrentFrameIndex;
-                    RTHandle invCDFRows = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFRows;
-                    RTHandle invCDFCols = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFFull;
+                    RTHandle invCDFRows   = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFRows;
+                    RTHandle invCDFCols   = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFFull;
+
+                    Vector4  hdriIntegral = ((HDRISkyRenderer)context.renderer).GetSphereSkyIntegral();
 
                     if (invCDFRows != null)
                         cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalRows, invCDFRows);
                     if (invCDFCols != null)
                         cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalCols, invCDFCols);
+                    cmd.SetGlobalVector(HDShaderIDs._HDRISkySphereIntegral, hdriIntegral);
 
                     cmd.SetGlobalInt(HDShaderIDs._SkyFrameIndex, skyIdx++);
 

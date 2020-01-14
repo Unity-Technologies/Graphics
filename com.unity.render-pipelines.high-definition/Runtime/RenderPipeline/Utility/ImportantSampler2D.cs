@@ -11,10 +11,8 @@ namespace UnityEngine.Rendering
 {
     class ImportantSampler2D
     {
-        Texture2D       m_CFDinv; // Cumulative Function Distribution Inverse
-
-        public RTHandle m_InvCDFFull;
-        public RTHandle m_InvCDFRows;
+        public RTHandle m_InvCDFFull = null;
+        public RTHandle m_InvCDFRows = null;
         RTHandle m_OutDebug;
 
 #if DUMP_IMAGE
@@ -40,22 +38,29 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        public void Init(RTHandle pdfDensity, CommandBuffer cmd)
+        public void Init(RTHandle density, Vector4 hdriIntegral, CommandBuffer cmd)
         {
             // Rescale pdf between 0 & 1
-            RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, //slices:(int)Mathf.Log(1024.0f, 2.0f),
+            RTHandle pdfCopy = RTHandles.Alloc(density.rt.width, density.rt.height, //slices:(int)Mathf.Log(1024.0f, 2.0f),
                 //useMipMap:pdfDensity.rt.useMipMap, autoGenerateMips:true,
-                colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+                colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
             //RTHandle pdfCopy = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, slices:(int)Mathf.Log(1024.0f, 2.0f),
             //    useMipMap:pdfDensity.rt.useMipMap, autoGenerateMips:true,
             //    colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
-            cmd.CopyTexture(pdfDensity, pdfCopy);
+            cmd.CopyTexture(density, pdfCopy);
 #if DUMP_IMAGE
             ParallelOperation._Idx = 0;
             _Idx = 0;
             cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
             {
                 Default(request, "___PDFCopy");
+            });
+#endif
+            Rescale(pdfCopy, new Vector2(0.0f, hdriIntegral.w), cmd);
+#if DUMP_IMAGE
+            cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
+            {
+                Default(request, "___PDFCopyRescaled");
             });
 #endif
 
@@ -99,6 +104,30 @@ namespace UnityEngine.Rendering
             });
 #endif
 
+            ////////////////////////////////////////////////////////////////////////////////
+            ///
+            //
+            // 1. Integrate the normalized the sphere
+            {
+                //var hdrp = HDRenderPipeline.defaultAsset;
+                //Material integrator = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+
+                //RTHandle intensitySphereTexture = RTHandles.Alloc(1, 1, colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+
+                //Texture2D readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
+
+                //Graphics.Blit(Texture2D.whiteTexture, intensitySphereTexture.rt, integrator, 1);
+
+                //RenderTexture.active = intensitySphereTexture.rt;
+                //readBackTexture.ReadPixels(new Rect(0, 0, 1, 1), 0, 0);
+                //RenderTexture.active = null;
+
+                //Vector4 skyIntensity = readBackTexture.GetPixel(0, 0);
+            }
+            //
+            ///
+            ////////////////////////////////////////////////////////////////////////////////
+
             // Compute the CDF of the rows of the rescaled PDF
             RTHandle cdfFull = ComputeCDF1D.ComputeCDF(
                                     pdfCopy,
@@ -130,10 +159,10 @@ namespace UnityEngine.Rendering
             ////////////////////////////////////////////////////////////////////////////////
             /// Rows
             // Before Rescaling the CDFFull
-            RTHandle sumRows = RTHandles.Alloc(1, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+            RTHandle sumRows = RTHandles.Alloc(1, density.rt.height, colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
 
             // Last columns of "CDF of rows" already contains the sum of rows
-            cmd.CopyTexture(cdfFull, 0, 0, pdfDensity.rt.width - 1, 0, 1, pdfDensity.rt.height, sumRows, 0, 0, 0, 0);
+            cmd.CopyTexture(cdfFull, 0, 0, density.rt.width - 1, 0, 1, density.rt.height, sumRows, 0, 0, 0, 0);
 #if DUMP_IMAGE
             cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
             {
@@ -209,6 +238,8 @@ namespace UnityEngine.Rendering
 
             // Compute inverse of CDFs
             m_InvCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
+                                                          pdfCopy,
+                                                          Vector4.one,
                                                           cmd,
                                                           ComputeCDF1D.SumDirection.Horizontal,
                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
@@ -219,6 +250,8 @@ namespace UnityEngine.Rendering
             });
 #endif
             m_InvCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
+                                                          pdfCopy,
+                                                          hdriIntegral,
                                                           cmd,
                                                           ComputeCDF1D.SumDirection.Vertical,
                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
@@ -233,18 +266,18 @@ namespace UnityEngine.Rendering
             RTHandle samples = GenerateSamples(4096, m_InvCDFRows, m_InvCDFFull, ParallelOperation.Direction.Horizontal, cmd);
 
             //
-            m_OutDebug = RTHandles.Alloc(pdfDensity.rt.width, pdfDensity.rt.height, colorFormat: pdfDensity.rt.graphicsFormat, enableRandomWrite: true);
+            m_OutDebug = RTHandles.Alloc(density.rt.width, density.rt.height, colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader outputDebug2D = hdrp.renderPipelineResources.shaders.OutputDebugCS;
 
             int kernel = outputDebug2D.FindKernel("CSMain");
 
-            cmd.CopyTexture(pdfDensity, m_OutDebug);
+            cmd.CopyTexture(density, m_OutDebug);
 
             cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,  m_OutDebug);
             cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples, samples);
             cmd.SetComputeIntParams   (outputDebug2D, HDShaderIDs._Sizes,
-                                       pdfDensity.rt.width, pdfDensity.rt.height, samples.rt.width, 1);
+                                       density.rt.width, density.rt.height, samples.rt.width, 1);
 
             int numTilesX = (samples.rt.width  + (8 - 1))/8;
             cmd.DispatchCompute(outputDebug2D, kernel, numTilesX, 1, 1);
@@ -289,6 +322,27 @@ namespace UnityEngine.Rendering
 
             cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
             //cmd.RequestAsyncReadback(tex, SaveTempImg);
+        }
+
+        private void Rescale(RTHandle tex, Vector2 minMax, CommandBuffer cmd)
+        {
+            var hdrp = HDRenderPipeline.defaultAsset;
+            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.Rescale01CS;
+
+            rescale01.EnableKeyword("MINMAX");
+            rescale01.EnableKeyword("READ_WRITE");
+
+            int kernel = rescale01.FindKernel("CSMainValue");
+
+            cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._Output, tex);
+            cmd.SetComputeVectorParam (rescale01,         HDShaderIDs._MinMax, minMax);
+            cmd.SetComputeIntParams   (rescale01,         HDShaderIDs._Sizes,
+                                       tex.rt.width, tex.rt.height, tex.rt.width, tex.rt.height);
+
+            int numTilesX = (tex.rt.width  + (8 - 1))/8;
+            int numTilesY = (tex.rt.height + (8 - 1))/8;
+
+            cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
         }
 
         public RTHandle GenerateSamples(uint samplesCount, RTHandle sliceInvCDF, RTHandle fullInvCDF, ParallelOperation.Direction direction, CommandBuffer cmd)

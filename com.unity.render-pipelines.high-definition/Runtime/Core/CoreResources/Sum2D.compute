@@ -20,24 +20,23 @@
 //#pragma kernel CSMain SUM_PER_THREAD=16
 //#pragma kernel CSMain SUM_PER_THREAD=8
 
-<<<<<<< Updated upstream
 //#define SUM_PER_THREAD  16
 //#define DIRECTION       VERTICAL
 
 //#pragma multi_compile VERTICAL HORIZONTAL
 
 //#define DIRECTION       VERTICAL
-=======
+//=======
 #define SUM_PER_THREAD  16
 #define DIRECTION       VERTICAL
->>>>>>> Stashed changes
+//>>>>>>> Stashed changes
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
-<<<<<<< Updated upstream
+//<<<<<<< Updated upstream
   Texture2D<float4> _Input;
 RWTexture2D<float4> _Output;
 
@@ -75,6 +74,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         _Output[uint2(id.x + i, id.y    )] = sum.xxxx;
 #endif
     }
+}
+/*
 =======
 Texture2D<float4> _Input;
 // Create a RenderTexture with enableRandomWrite flag and set it
@@ -107,3 +108,4 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     _Output[id.xy] = sum.xxxx;
 >>>>>>> Stashed changes
 }
+*/

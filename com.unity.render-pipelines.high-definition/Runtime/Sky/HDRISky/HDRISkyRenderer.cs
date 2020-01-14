@@ -12,21 +12,27 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
-        RTHandle m_OctMap;
-        Material m_CubeToOct;
+        //RTHandle m_OctMap;
+        RTHandle m_LatLongMap;
+        //Material m_CubeToOct;
+        Material m_CubeToLatLong;
         bool preValue = false;
 
         public ImportantSampler2D m_ImportanceSampler = null;
 
+        Vector4     m_SkyIntensity;
+
         public HDRISkyRenderer()
         {
+            m_ImportanceSampler = null;
         }
 
         public override void Build()
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.hdriSkyPS);
-            m_CubeToOct = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
+            //m_CubeToOct = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
+            m_CubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
         }
 
         public override void Cleanup()
@@ -86,6 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
+        public Vector4 GetSphereSkyIntegral()
+        {
+            return m_SkyIntensity;
+        }
+
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
@@ -97,15 +108,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 //m_OctMap = RTHandles.Alloc(size, size, slices:(int)Mathf.Log((float)size, 2.0f), useMipMap:true, autoGenerateMips: false,
                 //                           colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
                 //                           enableRandomWrite: true);
-                m_OctMap = RTHandles.Alloc(size, size,
-                                           colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
-                                           enableRandomWrite: true);
-                m_CubeToOct.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
-                Graphics.Blit(Texture2D.whiteTexture, m_OctMap, m_CubeToOct);
+                //m_OctMap = RTHandles.Alloc(size, size,
+                //                           colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                //                           enableRandomWrite: true);
+                m_LatLongMap = RTHandles.Alloc(size, size/2,
+                                               colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                               enableRandomWrite: true);
+                //m_CubeToOct.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
+                m_CubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                //Graphics.Blit(Texture2D.whiteTexture, m_OctMap, m_CubeToOct);
+                //builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, m_OctMap, m_CubeToOct, 0);
+                builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, m_LatLongMap, m_CubeToLatLong, 0);
+
+                var hdrp = HDRenderPipeline.defaultAsset;
+                Material integrator = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+                integrator.SetFloat("_CoefForIntegration", 1.0f/(4096.0f*size*size));
+                integrator.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
+                RTHandle intensitySphereTexture = RTHandles.Alloc(1, 1, colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+                Texture2D readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
+                Graphics.Blit(Texture2D.whiteTexture, intensitySphereTexture.rt, integrator, 1);
+                RenderTexture.active = intensitySphereTexture.rt;
+                readBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
+                RenderTexture.active = null;
+                Color skyColor = readBackTexture.GetPixel(0, 0);
+                m_SkyIntensity = skyColor;
 
                 if (m_ImportanceSampler == null)
                     m_ImportanceSampler = new ImportantSampler2D();
-                m_ImportanceSampler.Init(m_OctMap, builtinParams.commandBuffer);
+
+                m_ImportanceSampler.Init(m_LatLongMap, m_SkyIntensity, builtinParams.commandBuffer);
             }
 
             if (hdriSky.enableBackplate.value == false)

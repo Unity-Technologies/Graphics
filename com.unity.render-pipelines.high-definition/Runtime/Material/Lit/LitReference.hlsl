@@ -180,9 +180,41 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
     return acc / sampleCount;
 }
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
+float GetBNDSequenceSample223(uint2 pixelCoord, uint sampleIndex, uint sampleDimension)
+{
+    // wrap arguments
+    pixelCoord = pixelCoord & 127;
+    sampleIndex = sampleIndex & 255;
+    sampleDimension = sampleDimension & 255;
+
+    // xor index based on optimized ranking
+    uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0f), 0, 255);
+
+    // fetch value in sequence
+    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0f), 0, 255);
+
+    // If the dimension is optimized, xor sequence value based on optimized scrambling
+    uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    value = value ^ clamp((uint)(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)] * 256.0f), 0, 255);
+
+    // convert to float and return
+    return (0.5f + value) / 256.0f;
+}
+
+float GetSample223(uint2 coord, uint index, uint samplesCount, uint dim)
+{
+    // If we go past the number of stored samples per dim, just shift all to the next pair of dimensions
+    dim += (index / samplesCount) * 2;
+
+    return GetBNDSequenceSample223(coord, index, dim);
+}
+
 // Ref: Moving Frostbite to PBR (Appendix A)
 float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
-                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                  float3 V, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, PositionInputs posInput,
                                   uint sampleCount = 2048)
 {
     float3x3 localToWorld;
@@ -200,9 +232,16 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
     float  NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
     float3 acc   = float3(0.0, 0.0, 0.0);
 
+    uint2 pixelCoord = posInput.positionSS;
+
+    int globalSampleIndex = _SkyFrameIndex;
+
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u = Hammersley2d(i, sampleCount);
+        //float2 u = Hammersley2d(i, sampleCount);
+        float2 u;
+        u.x = GetSample223(pixelCoord, globalSampleIndex, sampleCount, 0);
+        u.y = GetSample223(pixelCoord, globalSampleIndex, sampleCount, 1);
 
         float VdotH;
         float NdotL;

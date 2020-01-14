@@ -2,8 +2,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using UnityEngine.Rendering;
-//using UnityEngine.Experimental.Rendering;
-//using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
@@ -14,50 +12,6 @@ namespace UnityEngine.Rendering
         {
             Vertical,
             Horizontal
-        }
-
-        public ComputeCDF1D()
-        {
-        }
-
-        static uint _Idx = 0;
-
-        static private void SaveTempImg(AsyncGPUReadbackRequest request)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\CDF_" + _Idx.ToString() + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-                ++_Idx;
-            }
-        }
-
-        static private void SaveInvCDF(AsyncGPUReadbackRequest request)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\InvCDF_" + _Idx.ToString() + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-                ++_Idx;
-            }
         }
 
         static public RTHandle ComputeCDF(RTHandle input, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
@@ -119,7 +73,6 @@ namespace UnityEngine.Rendering
                 numTilesY = (temp0.rt.height + (8 - 1))/8;
             }
             cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
-            //cmd.RequestAsyncReadback(temp0, SaveTempImg);
 
             // Loop
             kernel = cdfStep.FindKernel("CSMain" + addon);
@@ -142,8 +95,7 @@ namespace UnityEngine.Rendering
                     numTilesX =  pong.rt.width;
                     numTilesY = (pong.rt.height + (8 - 1))/8;
                 }
-                cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
-                //cmd.RequestAsyncReadback(pong, SaveTempImg);
+                cmd.DispatchCompute(cdfStep, kernel, numTilesX, numTilesY, 1);
                 if (i == iteration - 1)
                 {
                     cdf = pong;
@@ -154,7 +106,7 @@ namespace UnityEngine.Rendering
             return cdf;
         }
 
-        static public RTHandle ComputeInverseCDF(RTHandle cdf, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
+        static public RTHandle ComputeInverseCDF(RTHandle cdf, RTHandle fullPDF, Vector4 integral, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
         {
             if (cdf == null)
             {
@@ -175,7 +127,7 @@ namespace UnityEngine.Rendering
 
             RTHandle invCDF = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
 
-            string addon = "";
+            string addon;
             if (direction == SumDirection.Vertical)
             {
                 addon = "V";
@@ -187,14 +139,16 @@ namespace UnityEngine.Rendering
 
             // RGB to Greyscale
             int kernel = invCDFCS.FindKernel("CSMain" + addon);
-            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Input,  cdf);
-            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Output, invCDF);
+            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Input,    cdf);
+            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Output,   invCDF);
+            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._PDF,      fullPDF);
+            cmd.SetComputeVectorParam (invCDFCS,         HDShaderIDs._Integral,
+                                        new Vector4(integral.x, integral.y, integral.z, 1.0f/Mathf.Max(integral.x, integral.y, integral.z)));
             cmd.SetComputeIntParams   (invCDFCS,         HDShaderIDs._Sizes,
                                         cdf.rt.width, cdf.rt.height, invCDF.rt.width, invCDF.rt.height);
             int numTilesX = (invCDF.rt.width  + (8 - 1))/8;
             int numTilesY = (invCDF.rt.height + (8 - 1))/8;
-            cmd.DispatchCompute     (invCDFCS, kernel, numTilesX, numTilesY, 1);
-            //cmd.RequestAsyncReadback(invCDF, SaveInvCDF);
+            cmd.DispatchCompute(invCDFCS, kernel, numTilesX, numTilesY, 1);
 
             return invCDF;
         }

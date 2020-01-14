@@ -216,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SkyTextureMarginalRows  = Shader.PropertyToID("_SkyTextureMarginalRows");
         public static readonly int _SkyTextureMarginalCols  = Shader.PropertyToID("_SkyTextureMarginalCols");
         public static readonly int _SkyFrameIndex           = Shader.PropertyToID("_SkyFrameIndex");
+        public static readonly int _HDRISkySphereIntegral   = Shader.PropertyToID("_HDRISkySphereIntegral");
 
         public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
         public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
@@ -711,9 +712,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Samples                        = Shader.PropertyToID("_Samples");
         public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");
         public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
+        public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
         public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
         public static readonly int _SliceInvCDF                    = Shader.PropertyToID("_SliceInvCDF");
         public static readonly int _InvCDF                         = Shader.PropertyToID("_InvCDF");
+        public static readonly int _PDF                            = Shader.PropertyToID("_PDF");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
