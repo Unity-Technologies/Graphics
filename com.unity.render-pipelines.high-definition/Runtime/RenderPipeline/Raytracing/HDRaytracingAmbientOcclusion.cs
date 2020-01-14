@@ -72,8 +72,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             RayTracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
-            var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the textures and the params
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, outputTexture);
-            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, VolumeManager.instance.stack.GetComponent<AmbientOcclusion>().directLightingStrength.value));
+            cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, hdCamera.volumeStack.GetComponent<AmbientOcclusion>().directLightingStrength.value));
 
             // TODO: All the push-debug stuff should be centralized somewhere
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.SSAO);

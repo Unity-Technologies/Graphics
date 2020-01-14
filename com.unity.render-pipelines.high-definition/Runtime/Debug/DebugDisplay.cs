@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_RecordedSamplers.Count == 0);
 
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
@@ -800,6 +800,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection)
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
+
+            list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
 
             m_DebugLightingItems = list.ToArray();

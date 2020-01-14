@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exclude MouseEvent, RigidBodyCollision, TriggerEvent & Sphere binders when physics modules isn't available
 - Visual Effect Activation Track : Handle empty string in ExposedProperty
 - in some cases AABox position gizmo would not move when dragged.
+- Inspector doesn't trigger any exception if VisualEffectAsset comes from an Asset Bundle [case 1203616](https://issuetracker.unity3d.com/issues/visual-effect-component-is-not-fully-shown-in-the-inspector-if-vfx-is-loaded-from-asset-bundle)
 
 ## [7.1.1] - 2019-09-05
 ### Added

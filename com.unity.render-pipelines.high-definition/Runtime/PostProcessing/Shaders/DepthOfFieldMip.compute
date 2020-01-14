@@ -3,8 +3,9 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel KMainColor   MAIN=KMainColor     CTYPE=float3
-#pragma kernel KMainCoC     MAIN=KMainCoC       CTYPE=float
+#pragma kernel KMainColor        MAIN=KMainColor           CTYPE=float3
+#pragma kernel KMainColorAlpha   MAIN=KMainColorAlpha      CTYPE=float4
+#pragma kernel KMainCoC          MAIN=KMainCoC             CTYPE=float
 
 RW_TEXTURE2D_X(CTYPE, _InputTexture);
 
