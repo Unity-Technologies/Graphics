@@ -92,6 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[] xrWorldSpaceCameraPosViewOffset = new Vector4[ShaderConfig.s_XrMaxViews];
         Vector4[] xrPrevWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
 
+        ScriptableCullingParameters m_CullingParameters;
+        internal ScriptableCullingParameters cullingParameters { get { return m_CullingParameters; } private set { m_CullingParameters = value; } }
+
         // This variable is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usge
         internal struct ShadowHistoryUsage
@@ -148,6 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         public bool isFirstFrame { get; private set; }
+
+        bool m_IsCameraFrozen = false;
 
         // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
         // TODO: pass this as "_ZBufferParams" if the projection matrix is oblique.
@@ -302,13 +307,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
+        public bool Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
             // Make sure that the shadow history identification array is allocated and is at the right size
             if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
             {
                 shadowHistoryUsage = new ShadowHistoryUsage[hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots];
             }
+
+            m_IsCameraFrozen = hdrp.debugDisplaySettings.IsCameraFrozen(camera);
 
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
@@ -407,6 +414,25 @@ namespace UnityEngine.Rendering.HighDefinition
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
             // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, m_msaaSamples);
+
+            // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
+            if (m_AdditionalCameraData != null && m_AdditionalCameraData.hasCustomRender)
+                return false;
+
+            if (!m_IsCameraFrozen)
+            {
+                if (xr.enabled)
+                {
+                    cullingParameters = xr.cullingParams;
+                }
+                else
+                {
+                    if (!camera.TryGetCullingParameters(camera.stereoEnabled, out m_CullingParameters))
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
@@ -554,7 +580,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewProjMatrix = projMatrix * combinedViewMatrix;
                 }
 
-                UpdateFrustum(projMatrix, invProjMatrix, viewProjMatrix);
+                if (!m_IsCameraFrozen)
+                    UpdateFrustum(projMatrix, invProjMatrix, viewProjMatrix);
             }
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);

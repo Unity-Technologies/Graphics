@@ -270,9 +270,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
-        ScriptableCullingParameters frozenCullingParams;
-        bool frozenCullingParamAvailable = false;
-
         internal bool showCascade
         {
             get => m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
@@ -415,6 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeSubsurfaceScattering();
 
             m_DebugDisplaySettings.RegisterDebug();
+
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
@@ -1518,8 +1516,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                         camera.targetTexture = visibleProbe.realtimeTexture;
-                        camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                        // Disable first and then set the hideFlags otherwise we will trigger twice OneEnable/Disable (once because hideFlags changed and the other when disabling)
                         camera.gameObject.SetActive(false);
+                        camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
                         // Warning: accessing Object.name generate 48B of garbage at each frame here
                         // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
@@ -2543,37 +2542,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
 
-            // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
-            if (additionalCameraData != null && additionalCameraData.hasCustomRender)
-                return false;
-
-            if (hdCamera.xr.enabled)
-            {
-                cullingParams = hdCamera.xr.cullingParams;
-            }
-            else
-            {
-                if (!camera.TryGetCullingParameters(camera.stereoEnabled, out cullingParams))
-                    return false;
-            }
-
-            if (m_DebugDisplaySettings.IsCameraFreezeEnabled())
-            {
-                bool cameraIsFrozen = camera.name.Equals(m_DebugDisplaySettings.GetFrozenCameraName());
-                if (cameraIsFrozen)
-                {
-                    if (!frozenCullingParamAvailable)
-                    {
-                        frozenCullingParams = cullingParams;
-                        frozenCullingParamAvailable = true;
-                    }
-                    cullingParams = frozenCullingParams;
-                }
-            }
-            else
-            {
-                frozenCullingParamAvailable = false;
-            }
+            cullingParams = hdCamera.cullingParameters;
 
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
@@ -4171,6 +4140,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderShadowsDebugOverlay(debugParams, atlases, cmd, ref x, ref y, overlaySize, m_SharedPropertyBlock);
 
                 DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, cmd, debugParams.debugDisplaySettings, ref x, ref y, overlaySize, debugParams.hdCamera.actualWidth);
+
+                HDDebugUtils.Render(cmd, hdCamera);
             }
         }
 

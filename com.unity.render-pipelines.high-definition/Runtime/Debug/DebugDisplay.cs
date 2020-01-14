@@ -209,9 +209,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return data.debugCameraToFreeze != 0;
         }
+
         public string GetFrozenCameraName()
         {
             return s_CameraNamesStrings[data.debugCameraToFreeze].text;
+        }
+
+        public bool IsCameraFrozen(Camera camera)
+        {
+            return IsCameraFreezeEnabled() && camera.name.Equals(GetFrozenCameraName());
         }
 
         public bool IsDebugDisplayEnabled()
@@ -363,7 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (needsRefreshingCameraFreezeList)
             {
-                s_CameraNames.Insert(0, new GUIContent("None"));
+                // Since this thing is static, there's no proper place to initialize it.
+                // So we check if the default values already exist before adding them.
+                if (s_CameraNames.Count == 0 || s_CameraNames[0].text != "None" )
+                {
+                    s_CameraNames.Insert(0, new GUIContent("SceneCamera"));
+                    s_CameraNames.Insert(0, new GUIContent("None"));
+                }
 
                 s_CameraNamesStrings = s_CameraNames.ToArray();
                 s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
