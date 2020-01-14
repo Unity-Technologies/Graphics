@@ -219,7 +219,8 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_THIN)
-    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, 0.0)
+    #define _REFRACTION_THIN_DIST 0.005
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, _REFRACTION_THIN_DIST)
     #endif
 #endif
 
@@ -449,8 +450,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
 #if HAS_REFRACTION
     // Note: Reuse thickness of transmission's property set
-    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
-        surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
+    FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor,
+    #ifdef _REFRACTION_THIN
+                                 _REFRACTION_THIN_DIST,
+    #else
+                                 surfaceData.atDistance,
+    #endif
+                                 surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
 
     ApplyDebugToBSDFData(bsdfData);
@@ -1095,6 +1101,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
+
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
     preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
