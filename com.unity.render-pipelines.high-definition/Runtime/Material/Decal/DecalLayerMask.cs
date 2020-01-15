@@ -8,11 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct DecalLayerMask : IEquatable<DecalLayerMask>
     {
         /// <summary>Number of layers possible.</summary>
-        public const int Capacity = 8;
+        public const int Capacity = DecalLayer.LayerCount;
         /// <summary>Names of the layers.</summary>
-        public static readonly string[] LayerNames = Enumerable.Range(0, Capacity)
-            .Select(i => $"Decal Layer {i}")
-            .ToArray();
+        public static readonly string[] LayerNames = DecalLayer.LayerNames;
 
         /// <summary>No layers are accepted.</summary>
         public static readonly DecalLayerMask None = new DecalLayerMask(0);
@@ -21,9 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>All layers are accepted.</summary>
         public static readonly DecalLayerMask Full = new DecalLayerMask((1 << Capacity) - 1);
 
-        readonly int m_Value;
+        [SerializeField]
+        int m_Value;
 
-        public DecalLayerMask(int value) => m_Value = value;
+        public DecalLayerMask(int value) => m_Value = value & 0xFF;
 
         public static explicit operator int(in DecalLayerMask v) => v.m_Value;
         public static explicit operator DecalLayerMask(in int v) => new DecalLayerMask(v);

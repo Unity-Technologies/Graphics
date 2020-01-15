@@ -37,15 +37,15 @@ namespace UnityEditor.Rendering.HighDefinition
     partial class HairMasterNode
     {
         #region Fields
-        [SerializeField] int m_DecalLayerMask = (int)DecalLayerMask.Layer0;
+        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
-            get => (DecalLayerMask)m_DecalLayerMask;
+            get => m_DecalLayerMask;
             set
             {
-                if ((DecalLayerMask)m_DecalLayerMask == value) return;
+                if (m_DecalLayerMask == value) return;
         
-                m_DecalLayerMask = (int)value;
+                m_DecalLayerMask = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
         #pragma warning disable 618
             public static void UseDecalLayerMask(HairMasterNode instance)
             {
-                instance.m_DecalLayerMask = (int)(instance.m_ObsoleteReceiveDecals
+                instance.m_DecalLayerMask = (instance.m_ObsoleteReceiveDecals
                     ? DecalLayerMask.Full
                     : DecalLayerMask.None);
             }
