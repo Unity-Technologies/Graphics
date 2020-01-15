@@ -4,6 +4,10 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/MotionVectorVertexShaderCommon.hlsl"
 
+#if WRITE_DECAL_BUFFER
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepass.hlsl"
+#endif
+
 PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)
 {
@@ -33,6 +37,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+#define __DECAL_BUFFER_TARGET SV_Target1
+
 void Frag(  PackedVaryingsToPS packedInput
             // The motion vector is always the first buffer
             , out float4 outMotionVector : SV_Target0
@@ -40,19 +46,30 @@ void Frag(  PackedVaryingsToPS packedInput
             // Write the normal buffer
             #ifdef WRITE_NORMAL_BUFFER
             , out float4 outNormalBuffer : SV_Target1
+            #undef __DECAL_BUFFER_TARGET
+            #define __DECAL_BUFFER_TARGET SV_Target2
                 // Output the depth as a color if required
                 #ifdef WRITE_MSAA_DEPTH
                 , out float1 depthColor : SV_Target2
+                #undef __DECAL_BUFFER_TARGET
+                #define __DECAL_BUFFER_TARGET SV_Target3
                 #endif
             #elif defined(WRITE_MSAA_DEPTH) // When only WRITE_MSAA_DEPTH is define and not WRITE_NORMAL_BUFFER it mean we are Unlit and only need depth, but we still have normal buffer binded
             , out float4 outNormalBuffer : SV_Target1
             , out float1 depthColor : SV_Target2
+            #undef __DECAL_BUFFER_TARGET
+            #define __DECAL_BUFFER_TARGET SV_Target3
+            #endif
+
+            #if defined(WRITE_DECAL_BUFFER)
+            , out float4 decalBuffer: __DECAL_BUFFER_TARGET
             #endif
 
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
         )
+#undef __DECAL_BUFFER_TARGET
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
@@ -88,7 +105,7 @@ void Frag(  PackedVaryingsToPS packedInput
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
 
     // Setting the motionVector to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
-    // a value of >1 can never happen naturally, unless explicitely set. 
+    // a value of >1 can never happen naturally, unless explicitely set.
     if (forceNoMotion)
         outMotionVector = float4(2.0, 0.0, 0.0, 0.0);
 
@@ -109,5 +126,9 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
+#endif
+
+#ifdef WRITE_DECAL_BUFFER
+    EncodeIntoDecalPrepass(surfaceData, _DecalLayerMask, decalBuffer);
 #endif
 }

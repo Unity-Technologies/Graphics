@@ -4,6 +4,10 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
+#if WRITE_DECAL_BUFFER
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepass.hlsl"
+#endif
+
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
@@ -24,23 +28,36 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+#define __DECAL_BUFFER_TARGET SV_Target0
+
 void Frag(  PackedVaryingsToPS packedInput
             #ifdef WRITE_NORMAL_BUFFER
             , out float4 outNormalBuffer : SV_Target0
+            #undef __DECAL_BUFFER_TARGET
+            #define __DECAL_BUFFER_TARGET SV_Target1
                 #ifdef WRITE_MSAA_DEPTH
+                #undef __DECAL_BUFFER_TARGET
+                #define __DECAL_BUFFER_TARGET SV_Target2
                 , out float1 depthColor : SV_Target1
                 #endif
             #elif defined(WRITE_MSAA_DEPTH) // When only WRITE_MSAA_DEPTH is define and not WRITE_NORMAL_BUFFER it mean we are Unlit and only need depth, but we still have normal buffer binded
             , out float4 outNormalBuffer : SV_Target0
             , out float1 depthColor : SV_Target1
+            #undef __DECAL_BUFFER_TARGET
+            #define __DECAL_BUFFER_TARGET SV_Target2
             #elif defined(SCENESELECTIONPASS)
             , out float4 outColor : SV_Target0
+            #endif
+
+            #if defined(WRITE_DECAL_BUFFER)
+            , out float4 decalBuffer: __DECAL_BUFFER_TARGET
             #endif
 
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
         )
+#undef __DECAL_BUFFER_TARGET
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -77,5 +94,9 @@ void Frag(  PackedVaryingsToPS packedInput
 #elif defined(SCENESELECTIONPASS)
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#endif
+
+#ifdef WRITE_DECAL_BUFFER
+    EncodeIntoDecalPrepass(surfaceData, _DecalLayerMask, decalBuffer);
 #endif
 }
