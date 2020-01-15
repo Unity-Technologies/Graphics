@@ -79,6 +79,7 @@
 
 float4 _ShapeLightMaskFilter;
 float4 _ShapeLightInvertedFilter;
+float2 _ShapeLightBlendFactors;
 TEXTURE2D(_GBufferColor);
 SAMPLER(sampler_GBufferColor);
 TEXTURE2D(_GBufferMask);
@@ -87,17 +88,17 @@ SAMPLER(sampler_GBufferMask);
 half4 BlendLightingWithBaseColor(half3 lightColor, float2 gBufferUV)
 {
     half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, gBufferUV);
-    half rcpA = 1.0f / (baseColor.a + 0.0000001f);
-
+    
     if (any(_ShapeLightMaskFilter))
     {
+        half rcpA = 1.0f / (baseColor.a + 0.0000001f);
         half4 mask = SAMPLE_TEXTURE2D(_GBufferMask, sampler_GBufferMask, gBufferUV) * rcpA;
         float4 processedMask = (1 - _ShapeLightInvertedFilter) * mask + _ShapeLightInvertedFilter * (1 - mask);
         lightColor *= dot(processedMask, _ShapeLightMaskFilter);
     }
 
     half4 output;
-    output.rgb = baseColor.rgb * lightColor;
+    output.rgb = baseColor.rgb * lightColor * _ShapeLightBlendFactors.x + lightColor * _ShapeLightBlendFactors.y * baseColor.a;
     output.a = baseColor.a;
 
     return output;
