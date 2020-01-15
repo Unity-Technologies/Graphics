@@ -9,6 +9,7 @@
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    uint _DecalLayerMask;
 
 
 #endif

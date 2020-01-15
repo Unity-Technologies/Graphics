@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2  _DecalAtlasResolution;
         public uint    _EnableDecals;
         public uint    _DecalCount;
+        public uint    _DecalLayerMask;
     }
 }
 

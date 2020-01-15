@@ -33,10 +33,6 @@ CBUFFER_START(UnityTerrain)
     int _ObjectId;
     int _PassValue;
 #endif
-
-#if defined(WRITE_DECAL_BUFFER)
-int _DecalLayerMask;
-#endif
 CBUFFER_END
 
 #ifdef UNITY_INSTANCING_ENABLED

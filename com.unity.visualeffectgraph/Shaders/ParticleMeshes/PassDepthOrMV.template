@@ -77,10 +77,6 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-#if defined(WRITE_DECAL_BUFFER)
-int _DecalLayerMask;
-#endif
-
 #pragma fragment frag
 float4 frag(ps_input i) : SV_TARGET
 {
