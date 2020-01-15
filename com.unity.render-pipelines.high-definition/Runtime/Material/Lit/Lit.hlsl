@@ -214,10 +214,13 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 
 #if HAS_REFRACTION
     // Note that this option is referred as "Box" in the UI, we are keeping _REFRACTION_PLANE as shader define to avoid complication with already created materials.
-    #if defined(_REFRACTION_PLANE) || defined(_REFRACTION_THIN)
+    #if defined(_REFRACTION_PLANE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
+    #elif defined(_REFRACTION_THIN)
+    #define REFRACTION_THIN_DISTANCE 0.005
+    #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelBox(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #endif
 #endif
 
@@ -449,7 +452,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Note: Reuse thickness of transmission's property set
     FillMaterialTransparencyData(surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor,
     #ifdef _REFRACTION_THIN
-                                 0.005, 0.005, // We set both atDistance and thickness to the same, small value
+                                 // We set both atDistance and thickness to the same, small value
+                                 REFRACTION_THIN_DISTANCE, REFRACTION_THIN_DISTANCE,
     #else
                                  surfaceData.atDistance, surfaceData.thickness,
     #endif
