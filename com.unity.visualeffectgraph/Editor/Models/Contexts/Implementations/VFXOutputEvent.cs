@@ -18,8 +18,8 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            //TODO : Check input slot
-            return true;
+            var anyInputContextPlugged = inputContexts.Any();
+            return anyInputContextPlugged;
         }
     }
 }
