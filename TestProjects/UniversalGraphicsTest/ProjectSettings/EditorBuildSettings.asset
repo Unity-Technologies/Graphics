@@ -239,4 +239,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/108_MoveCamera.unity
     guid: 5365b5739a6ca3c40bd03dc1ee5cb3c6
+  - enabled: 1
+    path: Assets/Scenes/110_GI_OptixDenoiser.unity
+    guid: a387ea586ecfaa94fb04b688ec7f60f4
   m_configObjects: {}
