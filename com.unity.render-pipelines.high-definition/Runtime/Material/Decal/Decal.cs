@@ -24,6 +24,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         };
 
+        // Structure for the decal prepass
+        [GenerateHLSL(PackingRules.Exact, false)]
+        public struct DecalPrepassData
+        {
+            [SurfaceDataAttributes("Geometric Normal", false, true)]
+            public Vector3 geomNormalWS;
+            [SurfaceDataAttributes("Decal Layer Mask", true)]
+            public uint decalLayerMask;
+        };
+
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
         {

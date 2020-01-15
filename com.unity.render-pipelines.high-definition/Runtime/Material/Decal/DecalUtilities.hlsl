@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepass.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
@@ -200,6 +201,19 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
+DecalPrepassData GetDecalPrepassData(PositionInputs posInput)
+{
+    float4 buffer = LOAD_TEXTURE2D_X(_DecalNormalLayerTexture, posInput.positionSS);
+    float3 geomNormalWS;
+    uint decalLayerMask;
+    DecodeFromDecalPrepass(buffer, geomNormalWS, decalLayerMask);
+
+    DecalPrepassData result;
+    ZERO_INITIALIZE(DecalPrepassData, result);
+    result.geomNormalWS = geomNormalWS;
+    result.decalLayerMask = decalLayerMask;
+    return result;
+}
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
     uint mask = 0;

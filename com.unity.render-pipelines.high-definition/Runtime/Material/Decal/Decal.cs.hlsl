@@ -28,6 +28,14 @@ struct DecalSurfaceData
     uint HTileMask;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalPrepassData
+// PackingRules = Exact
+struct DecalPrepassData
+{
+    float3 geomNormalWS;
+    uint decalLayerMask;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.DecalData
 // PackingRules = Exact
 struct DecalData
