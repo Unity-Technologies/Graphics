@@ -755,6 +755,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                     {
+                        var matchingProperty = graph.properties.FirstOrDefault(p => p.guid == property.guid);
+                        // This could be from another graph, in which case we add a copy to this graph.
+                        if (matchingProperty == null)
+                        {
+                            property = (AbstractShaderProperty)property.Copy();
+                            // In this case, we do want to copy the overrideReferenceName
+                            property.overrideReferenceName = property.overrideReferenceName;
+                            graph.AddGraphInput(property);
+                        }
+
                         var node = new PropertyNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -767,6 +777,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     case ShaderKeyword keyword:
                     {
+                        var matchingKeyword = graph.properties.FirstOrDefault(p => p.guid == keyword.guid);
+                        // This could be from another graph, in which case we add a copy to this graph.
+                        if (matchingKeyword == null)
+                        {
+                            keyword = (ShaderKeyword)keyword.Copy();
+                            // In this case, we do want to copy the overrideReferenceName
+                            keyword.overrideReferenceName = keyword.overrideReferenceName;
+                            graph.AddGraphInput(keyword);
+                        }
+
                         var node = new KeywordNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
