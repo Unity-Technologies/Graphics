@@ -65,6 +65,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
 #endif
                 float4  PositionCS      : SV_POSITION; // Clip Position
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -202,6 +204,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
                 float4  PositionCS      : SV_POSITION; // Clip Position
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
