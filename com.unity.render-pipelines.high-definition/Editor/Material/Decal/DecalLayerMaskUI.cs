@@ -4,22 +4,43 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DecalLayerMaskUI
+    /// <summary>
+    ///     UI utilities for <see cref="DecalLayerMask" />.
+    /// </summary>
+    public static class DecalLayerMaskUI
     {
         static readonly string[] k_Options = Enumerable.Range(0, DecalLayerMask.Capacity)
             .Select(i => $"Layer {i}")
             .ToArray();
 
-        public static DecalLayerMask GUIField(Rect rect, GUIContent label, DecalLayerMask value) =>
-            (DecalLayerMask) EditorGUI.MaskField(rect, label, (int) value, k_Options);
-
-        public static DecalLayerMask GUILayoutField(GUIContent label, DecalLayerMask value)
+        /// <summary>Draw a DecalLayerMask mask field in a rect.</summary>
+        /// <param name="rect">The rect to draw into.</param>
+        /// <param name="label">The label of the field.</param>
+        /// <param name="value">The value to drawn.</param>
+        /// <returns>The edited value.</returns>
+        public static DecalLayerMask GUIField(Rect rect, GUIContent label, DecalLayerMask value)
         {
-            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight);
+            return (DecalLayerMask) EditorGUI.MaskField(rect, label, (int) value, k_Options);
+        }
+
+        /// <summary>Draw a DecalLayerMask mask field with an automatic layout.</summary>
+        /// <param name="label">The label of the field.</param>
+        /// <param name="value">The value to drawn.</param>
+        /// <param name="options">The options to use for the layout.</param>
+        /// <returns>The edited value.</returns>
+        public static DecalLayerMask GUILayoutField(GUIContent label, DecalLayerMask value,
+            params GUILayoutOption[] options)
+        {
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, options);
             return GUIField(rect, label, value);
         }
 
-        public static void GUILayoutMaterialProperty(GUIContent label, MaterialProperty property)
+        /// <summary>Draw a DecalLayerMask field for a <see cref="MaterialProperty"/>.</summary>
+        /// <param name="label">The label of the field.</param>
+        /// <param name="property">The property to draw and update</param>
+        /// <param name="options">The options to use for the layout.</param>
+        public static void GUILayoutMaterialProperty(GUIContent label, MaterialProperty property,
+            params GUILayoutOption[] options)
         {
             var decalLayerMaskValue = (DecalLayerMask) (int) property.floatValue;
             EditorGUI.BeginChangeCheck();
@@ -31,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((decalLayerMaskValue & DecalLayerMask.Full) == DecalLayerMask.Full)
                 decalLayerMaskValue = new DecalLayerMask(-1);
 
-            decalLayerMaskValue = GUILayoutField(label, decalLayerMaskValue);
+            decalLayerMaskValue = GUILayoutField(label, decalLayerMaskValue, options);
             EditorGUI.showMixedValue = false;
 
             if (!EditorGUI.EndChangeCheck()) return;
