@@ -55,6 +55,11 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         descriptor.graphicsFormat = GraphicsFormat.R8_UNorm;
         cmd.GetTemporaryRT(s_GBufferMaskTarget.id, descriptor);
 
+        cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
+        cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
+        cmd.SetGlobalTexture("_LightLookup", Light2DLookupTexture.CreatePointLightLookupTexture());
+        cmd.SetGlobalTexture("_FalloffLookup", Light2DLookupTexture.CreateFalloffLookupTexture());
+
 #if UNITY_EDITOR
         if (!Application.isPlaying)
             s_SortingLayers = SortingLayer.layers;
@@ -144,6 +149,9 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                 string blendStyleName = "Blend Style - " + blendStyles[j].name;
                 cmd.BeginSample(blendStyleName);
 
+                cmd.SetGlobalVector("_ShapeLightMaskFilter", blendStyles[j].maskTextureChannelFilter.mask);
+                cmd.SetGlobalVector("_ShapeLightInvertedFilter", blendStyles[j].maskTextureChannelFilter.inverted);
+
                 var lights = Light2D.GetLightsByBlendStyle(j);
                 foreach (var light in lights)
                 {
@@ -160,13 +168,10 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                         continue;
 
                     cmd.SetGlobalColor("_LightColor", light.intensity * light.color);
-                    cmd.SetGlobalTexture("_FalloffLookup", Light2DLookupTexture.CreateFalloffLookupTexture());
                     cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                     cmd.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                     cmd.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
                     cmd.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
-                    cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
-                    cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
 
                     cmd.DisableShaderKeyword("SPRITE_LIGHT");
                     cmd.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
@@ -201,8 +206,6 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                         cmd.SetGlobalFloat("_InnerRadiusMult", innerRadiusMult);
                         cmd.SetGlobalFloat("_OuterAngle", outerAngle);
                         cmd.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
-                        cmd.SetGlobalTexture("_LightLookup", Light2DLookupTexture.CreatePointLightLookupTexture());
-                        cmd.SetGlobalTexture("_FalloffLookup", Light2DLookupTexture.CreateFalloffLookupTexture());
                         cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                         cmd.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
                         cmd.SetGlobalFloat("_LightZDistance", light.pointLightDistance);

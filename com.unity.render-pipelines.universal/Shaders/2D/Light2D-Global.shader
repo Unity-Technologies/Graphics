@@ -16,6 +16,7 @@ Shader "Hidden/Light2D-Global"
             #pragma fragment frag
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes
             {
@@ -31,12 +32,6 @@ Shader "Hidden/Light2D-Global"
 
             half3 _LightColor;
 
-            TEXTURE2D(_GBufferColor);
-            SAMPLER(sampler_GBufferColor);
-
-            TEXTURE2D(_GBufferMask);
-            SAMPLER(sampler_GBufferMask);
-
             Varyings vert(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
@@ -50,15 +45,7 @@ Shader "Hidden/Light2D-Global"
 
             half4 frag(Varyings i) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, i.uv);
-                half4 mask = SAMPLE_TEXTURE2D(_GBufferMask, sampler_GBufferMask, i.uv);
-                half rcpA = 1.0f / (color.a + 0.0000001f);
-
-                half4 output;
-                output.rgb = color.rgb * _LightColor * mask.r * rcpA;
-                output.a = color.a;
-                
-                return output;
+                return BlendLightingWithBaseColor(_LightColor, i.uv);
             }
             ENDHLSL
         }
