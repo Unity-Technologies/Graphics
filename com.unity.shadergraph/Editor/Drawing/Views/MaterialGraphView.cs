@@ -779,12 +779,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ShaderKeyword keyword:
                     {
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.properties.FirstOrDefault(p => p.guid == keyword.guid) == null)
+                        if (graph.properties.FirstOrDefault(k => k.guid == keyword.guid) == null)
                         {
                             var copy = (ShaderKeyword)keyword.Copy();
                             graph.SanitizeGraphInputName(copy);
-                            copy.overrideReferenceName = keyword.overrideReferenceName; // In this case, we do want to copy the overrideReferenceName
-                            graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName);
+                            graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName); // We do want to copy the overrideReferenceName
 
                             keyword = copy;
                             graph.AddGraphInput(keyword);
