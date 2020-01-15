@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
+- Added support for a user defined default material to 2DRendererData.
 - Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available.
 - Added the option to toggle shadow receiving on transparent objects.
 - Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
-
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove final blit pass to force alpha to 1.0 on mobile platforms.
 - Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 - Particle shaders now receive shadows
+- Blend Style in the 2DRendererData are now automatically enabled/disabled.
+- When using the 2D Renderer, Sprites will render with a faster rendering path when no lights are present.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -49,9 +52,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
 - Fixed post-processing with XR single-pass rendering modes.
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
+- Fixed an issue when using the 2D Renderer where some types of renderers would not be assigned the correct material.
 - Fixed conflicting meta with HDRP
 - Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
 - Fixed lazy initialization with last version of ResourceReloader
+- Fixed an issue where viewport aspect ratio was wrong when using the Stretch Fill option of the Pixel Perfect Camera. [case 1188695](https://issuetracker.unity3d.com/issues/pixel-perfect-camera-component-does-not-maintain-the-aspect-ratio-when-the-stretch-fill-is-enabled)
 - Fixed inconsistent lighting between the forward renderer and the deferred renderer that was caused by a missing normalize operation on vertex normals on some SpeedTree shader variants.
 - Fixed issue where the Editor would crash when you used a `ForwardRendererData` preset. [case 1201052](https://issuetracker.unity3d.com/product/unity/issues/guid/1201052/)
 - Fixed an issue where Normal Map Textures didn't apply when you added them to newly-created Materials. [case 1197217](https://issuetracker.unity3d.com/product/unity/issues/guid/1197217/)
