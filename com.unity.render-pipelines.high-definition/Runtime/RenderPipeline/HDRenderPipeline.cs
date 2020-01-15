@@ -154,9 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_CameraColorMSAABuffer;
         RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
         RTHandle m_CameraSssDiffuseLightingMSAABuffer;
-        // RGB: vertex normal
-        // A: DecalLayerMask
-        RTHandle m_DecalBuffer;
 
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
@@ -576,9 +573,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
-
-            if (settings.supportDecals)
-                m_DecalBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SInt, useDynamicScale: true, name: "DecalBuffer");
         }
 
         void GetOrCreateDebugTextures()
@@ -629,7 +623,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
-            RTHandles.Release(m_DecalBuffer);
         }
 
         bool SetRenderingFeatures()
@@ -4199,7 +4192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearDecalBuffer)))
-                        CoreUtils.SetRenderTarget(cmd, m_DecalBuffer, ClearFlag.Color, Color.black);
+                        CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDecalPrepassBuffer(), ClearFlag.Color, Color.black);
                 }
 
                 // Clear the HDR target

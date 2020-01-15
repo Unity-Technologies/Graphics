@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -24,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
+        RTHandle m_DecalPrePassBuffer = null;
+
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
         Material m_ColorResolveMaterial = null;
@@ -32,12 +35,14 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ReuseGBufferMemory = false;
         bool m_MotionVectorsSupport = false;
         bool m_MSAASupported = false;
+        bool m_DecalsSupported;
         MSAASamples m_MSAASamples = MSAASamples.None;
 
         // Arrays of RTIDs that are used to set render targets (when MSAA and when not MSAA)
         protected RenderTargetIdentifier[] m_RTIDs1 = new RenderTargetIdentifier[1];
         protected RenderTargetIdentifier[] m_RTIDs2 = new RenderTargetIdentifier[2];
         protected RenderTargetIdentifier[] m_RTIDs3 = new RenderTargetIdentifier[3];
+        protected RenderTargetIdentifier[] m_RTIDs4 = new RenderTargetIdentifier[4];
 
         // Property block used for the resolves
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
@@ -53,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
             m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            m_DecalsSupported = settings.supportDecals;
 
             // Create the depth/stencil buffer
             m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "CameraDepthStencil");
@@ -107,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
             }
+
+            if (m_DecalsSupported)
+                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SInt, useDynamicScale: true, name: "Decal PrePass Buffer");
         }
 
         public bool IsConsolePlatform()
@@ -119,17 +128,35 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
         public RenderTargetIdentifier[] GetPrepassBuffersRTI(FrameSettings frameSettings)
         {
-            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            using (ListPool<RenderTargetIdentifier>.Get(out var mrts))
             {
-                Debug.Assert(m_MSAASupported);
-                m_RTIDs2[0] = m_NormalMSAART.nameID;
-                m_RTIDs2[1] = m_DepthAsColorMSAART.nameID;
-                return m_RTIDs2;
-            }
-            else
-            {
-                m_RTIDs1[0] = m_NormalRT.nameID;
-                return m_RTIDs1;
+                if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    Debug.Assert(m_MSAASupported);
+                    mrts.Add(m_NormalMSAART.nameID);
+                    mrts.Add(m_DepthAsColorMSAART.nameID);
+                }
+                else
+                {
+                    mrts.Add(m_NormalRT.nameID);
+                }
+
+                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    mrts.Add(m_DecalPrePassBuffer.nameID);
+
+                switch (mrts.Count)
+                {
+                    case 1:
+                        mrts.CopyTo(m_RTIDs1);
+                        return m_RTIDs1;
+                    case 2:
+                        mrts.CopyTo(m_RTIDs2);
+                        return m_RTIDs2;
+                    case 3:
+                        mrts.CopyTo(m_RTIDs3);
+                        return m_RTIDs3;
+                    default: throw new Exception("Unreachable");
+                }
             }
         }
 
@@ -137,21 +164,47 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderTargetIdentifier[] GetMotionVectorsPassBuffersRTI(FrameSettings frameSettings)
         {
             Debug.Assert(m_MotionVectorsSupport);
-            if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            using (ListPool<RenderTargetIdentifier>.Get(out var mrts))
             {
-                Debug.Assert(m_MSAASupported);
-                m_RTIDs3[0] = m_MotionVectorsMSAART.nameID;
-                m_RTIDs3[1] = m_NormalMSAART.nameID;
-                m_RTIDs3[2] = m_DepthAsColorMSAART.nameID;
-                return m_RTIDs3;
+                if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    Debug.Assert(m_MSAASupported);
+                    mrts.Add(m_MotionVectorsMSAART.nameID);
+                    mrts.Add(m_NormalMSAART.nameID);
+                    mrts.Add(m_DepthAsColorMSAART.nameID);
+                }
+                else
+                {
+                    mrts.Add(m_MotionVectorsRT.nameID);
+                    mrts.Add(m_NormalRT.nameID);
+                }
+
+                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    mrts.Add(m_DecalPrePassBuffer.nameID);
+
+                switch (mrts.Count)
+                {
+                    case 1:
+                        mrts.CopyTo(m_RTIDs1);
+                        return m_RTIDs1;
+                    case 2:
+                        mrts.CopyTo(m_RTIDs2);
+                        return m_RTIDs2;
+                    case 3:
+                        mrts.CopyTo(m_RTIDs3);
+                        return m_RTIDs3;
+                    case 4:
+                        mrts.CopyTo(m_RTIDs4);
+                        return m_RTIDs4;
+                    default: throw new Exception("Unreachable");
+                }
             }
-            else
-            {
-                Debug.Assert(m_MotionVectorsSupport);
-                m_RTIDs2[0] = m_MotionVectorsRT.nameID;
-                m_RTIDs2[1] = m_NormalRT.nameID;
-                return m_RTIDs2;
-            }
+        }
+
+        public RTHandle GetDecalPrepassBuffer()
+        {
+            Debug.Assert(m_DecalsSupported);
+            return m_DecalPrePassBuffer;
         }
 
         // Request the normal buffer (MSAA or not)
@@ -288,6 +341,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
             }
+
+            if (m_DecalsSupported)
+                RTHandles.Release(m_DecalPrePassBuffer);
         }
 
         public static int SampleCountToPassIndex(MSAASamples samples)
