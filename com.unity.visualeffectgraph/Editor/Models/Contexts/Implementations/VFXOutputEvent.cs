@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -20,6 +22,32 @@ namespace UnityEditor.VFX
         {
             var anyInputContextPlugged = inputContexts.Any();
             return anyInputContextPlugged;
+        }
+
+        private static void CollectParentsContextRecursively(VFXContext start, HashSet<VFXContext> parents)
+        {
+            if (parents.Contains(start))
+                return;
+            parents.Add(start);
+            foreach (var parent in start.inputContexts)
+                CollectParentsContextRecursively(parent, parents);
+        }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                var parents = new HashSet<VFXContext>();
+                CollectParentsContextRecursively(this, parents);
+
+                //Detect all attribute used in source spawner & consider as read source from them
+                //This can be done using VFXDataSpawner after read attribute from spawn feature merge (require to be sure that the order of compilation is respected)
+                foreach (var block in parents.SelectMany(o => o.children).OfType<VFX.Block.VFXSpawnerSetAttribute>())
+                {
+                    var attributeName = block.GetSetting("attribute");
+                    yield return new VFXAttributeInfo(VFXAttribute.Find((string)attributeName.value), VFXAttributeMode.ReadSource);
+                }
+            }
         }
     }
 }
