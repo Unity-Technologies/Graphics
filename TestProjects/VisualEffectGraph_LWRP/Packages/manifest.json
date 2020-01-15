@@ -3,7 +3,7 @@
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.1",
+    "com.unity.test-framework": "1.1.5",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
     "com.unity.timeline": "1.2.1",
@@ -19,6 +19,7 @@
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.vr": "1.0.0"
   },
+  "disableProjectUpdate": true,
   "testables": [
     "com.unity.testing.visualeffectgraph",
     "com.unity.render-pipelines.visualeffectgraph",
