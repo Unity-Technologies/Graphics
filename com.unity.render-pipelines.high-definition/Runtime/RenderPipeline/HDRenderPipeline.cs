@@ -2543,6 +2543,9 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
 
             cullingParams = hdCamera.cullingParameters;
+            Plane[] planes = new Plane[cullingParams.cullingPlaneCount];
+            for (int i = 0; i < cullingParams.cullingPlaneCount; ++i)
+                planes[i] = cullingParams.GetCullingPlane(i);
 
             LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 

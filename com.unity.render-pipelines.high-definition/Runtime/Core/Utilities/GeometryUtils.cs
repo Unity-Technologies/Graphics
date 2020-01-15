@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3[] corners; // Positions of the 8 corners
 
         // The frustum will be camera-relative if given a camera-relative VP matrix.
-        public static void Create(Frustum frustum, Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
+        public static void Create(Frustum frustum, Matrix4x4 viewProjMatrix, Vector3 viewPos, Vector3 viewDir, float nearClipPlane, float farClipPlane, bool depth_0_1, bool reverseZ)
         {
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
 
@@ -19,19 +19,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 nd = 0.0f;
 
                 // See "Fast Extraction of Viewing Frustum Planes" by Gribb and Hartmann.
-                Vector3 f  = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
-                float   s  = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
-                Plane   np = new Plane(s * f, s * viewProjMatrix.m23);
+                Vector3 f = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
+                float s = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
+                Plane np = new Plane(s * f, s * viewProjMatrix.m23);
 
                 frustum.planes[4] = np;
             }
 
             if (reverseZ)
             {
-                Plane tmp         = frustum.planes[4];
+                Plane tmp = frustum.planes[4];
                 frustum.planes[4] = frustum.planes[5];
                 frustum.planes[5] = tmp;
             }
+
+            Plane nearPlane = new Plane();
+            nearPlane.SetNormalAndPosition(viewDir, viewPos);
+            nearPlane.distance -= nearClipPlane;
+
+            Plane farPlane = new Plane();
+            farPlane.SetNormalAndPosition(-viewDir, viewPos);
+            farPlane.distance += farClipPlane;
+
+            frustum.planes[4] = nearPlane;
+            frustum.planes[5] = farPlane;
 
             Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
 
