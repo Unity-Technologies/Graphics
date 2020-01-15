@@ -111,6 +111,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
+            #pragma multi_compile _ RENDER_WITH_MODE_TEST
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
