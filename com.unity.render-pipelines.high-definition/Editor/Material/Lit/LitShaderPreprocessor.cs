@@ -55,6 +55,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && isGBufferPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportLightLayers)
                 return true;
 
+            // Strip the decal prepass variant when decals are disabled
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
+                !hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
+                return true;
+
             // This test include all Lit variant from Shader Graph (Because we check "DepthOnly" pass)
             // Other forward material ("DepthForwardOnly") don't use keyword for WriteNormalBuffer but #define
             bool isDepthOnlyPass = snippet.passName == "DepthOnly";
