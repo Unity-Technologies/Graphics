@@ -1012,8 +1012,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 saveRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
+                isCheckedOut = null;
+                checkOut = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
                     node.Dispose();
+                m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
             if (previewManager != null)
