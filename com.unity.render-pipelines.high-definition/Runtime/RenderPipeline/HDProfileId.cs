@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
         ClearHDRTarget,
+        ClearDecalBuffer,
         ClearGBuffer,
         ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
