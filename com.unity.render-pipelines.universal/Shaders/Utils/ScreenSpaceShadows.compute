@@ -1,4 +1,4 @@
-﻿#pragma kernel BlendCascadeShadowsNearest  CSKernel=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
+#pragma kernel BlendCascadeShadowsNearest  CSKernel=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
 #pragma kernel BlendCascadeShadowsHard     CSKernel=BlendCascadeShadowsHard     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE HARD_SHADOWS
 #pragma kernel BlendCascadeShadowsSoft     CSKernel=BlendCascadeShadowsSoft     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE SOFT_SHADOWS
 
@@ -638,7 +638,7 @@ void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
     // todo : need to consider XR slot
 
     uint2 positionSS = dispatchThreadId.xy;
-    if (any(positionSS.xy >= _ScreenSize.xy))
+    if (any(positionSS.xy >= (uint2)_ScreenSize.xy))
         return;
 
     float deviceDepth = LOAD_TEXTURE2D(_CameraDepthTexture, positionSS).x;
@@ -649,7 +649,7 @@ void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
         return;
     }
 
-#if 0//UNITY_REVERSED_Z
+#if SHADER_API_GLCORE
     // reverse depth on OpenGL
     deviceDepth = deviceDepth * 2.0 - 1.0;
 #endif
