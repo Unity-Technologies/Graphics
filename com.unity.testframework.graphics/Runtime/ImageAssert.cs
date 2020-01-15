@@ -74,7 +74,7 @@ namespace UnityEngine.TestTools.Graphics
                     foreach (var camera in cameras)
                     {
                         camera.targetTexture = rt;
-                        camera.Render();
+                        camera.RenderWithMode(1);
                         camera.targetTexture = null;
                     }
 
@@ -209,7 +209,7 @@ namespace UnityEngine.TestTools.Graphics
         {
             if (camera == null)
                 throw new ArgumentNullException(nameof(camera));
-            
+
             if (settings == null)
                 settings = new ImageComparisonSettings();
 

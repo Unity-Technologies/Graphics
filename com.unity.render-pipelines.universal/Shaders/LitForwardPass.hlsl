@@ -139,6 +139,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
     half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
+    #ifdef RENDER_WITH_MODE_TEST
+    return half4(inputData.normalWS,1.0f);
+    #endif
     return color;
 }
 

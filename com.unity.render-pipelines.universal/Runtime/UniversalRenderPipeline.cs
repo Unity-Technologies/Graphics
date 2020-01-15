@@ -167,6 +167,17 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
+
+        protected override void RenderWithMode(ScriptableRenderContext context, Camera[] cameras, int renderMode)
+        {
+            if (renderMode != 0)
+                Shader.EnableKeyword("RENDER_WITH_MODE_TEST");
+
+            Render(context, cameras);
+
+            Shader.DisableKeyword("RENDER_WITH_MODE_TEST");
+        }
+
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             BeginFrameRendering(renderContext, cameras);
