@@ -2,8 +2,6 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.analytics": "3.3.2",
-    "com.unity.collab-proxy": "1.2.16",
     "com.unity.ide.rider": "1.1.0",
     "com.unity.ide.vscode": "1.1.2",
     "com.unity.multiplayer-hlapi": "1.0.4",
