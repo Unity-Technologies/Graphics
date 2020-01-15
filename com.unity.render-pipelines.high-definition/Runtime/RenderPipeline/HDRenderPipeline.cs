@@ -3027,6 +3027,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext, cmd);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
+                cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, m_SharedRTManager.GetDecalPrepassBuffer());
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
