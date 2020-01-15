@@ -9,9 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public static class DecalLayerMaskUI
     {
-        static readonly string[] k_Options = Enumerable.Range(0, DecalLayerMask.Capacity)
-            .Select(i => $"Layer {i}")
-            .ToArray();
+        static readonly string[] k_Options = DecalLayerMask.LayerNames;
 
         /// <summary>Draw a DecalLayerMask mask field in a rect.</summary>
         /// <param name="rect">The rect to draw into.</param>
@@ -20,7 +18,20 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The edited value.</returns>
         public static DecalLayerMask GUIField(Rect rect, GUIContent label, DecalLayerMask value)
         {
-            return (DecalLayerMask) EditorGUI.MaskField(rect, label, (int) value, k_Options);
+            // The 'Everyone' label is shown only for bit all set to 1 for an int
+            // But we want it to be shown also when all bit of the specified capacity
+            // are set
+            var intValue = (int) value;
+            if ((value & DecalLayerMask.Full) == DecalLayerMask.Full)
+                intValue = -1;
+
+            var newIntValue = EditorGUI.MaskField(rect, label, intValue, k_Options);
+            if (newIntValue == -1)
+                value = DecalLayerMask.Full;
+            else
+                value = (DecalLayerMask) newIntValue;
+
+            return value;
         }
 
         /// <summary>Draw a DecalLayerMask mask field with an automatic layout.</summary>
@@ -46,18 +57,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = property.hasMixedValue;
 
-            // The 'Everyone' label is shown only for bit all set to 1 for an int
-            // But we want it to be shown also when all bit of the specified capacity
-            // are set
-            if ((decalLayerMaskValue & DecalLayerMask.Full) == DecalLayerMask.Full)
-                decalLayerMaskValue = new DecalLayerMask(-1);
-
             decalLayerMaskValue = GUILayoutField(label, decalLayerMaskValue, options);
             EditorGUI.showMixedValue = false;
 
             if (!EditorGUI.EndChangeCheck()) return;
-            if (decalLayerMaskValue == new DecalLayerMask(-1))
-                decalLayerMaskValue = DecalLayerMask.Full;
             property.floatValue = (int) decalLayerMaskValue;
         }
     }

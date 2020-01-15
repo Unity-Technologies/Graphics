@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         MaterialEditor m_MaterialEditor = null;
         SerializedProperty m_MaterialProperty;
+        SerializedDecalLayer m_DecalLayer;
         SerializedProperty m_DrawDistanceProperty;
         SerializedProperty m_FadeScaleProperty;
         SerializedProperty m_UVScaleProperty;
@@ -114,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Fetch serialized properties
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
+            m_DecalLayer = new SerializedDecalLayer(serializedObject.FindProperty("m_DecalLayer"));
             m_DrawDistanceProperty = serializedObject.FindProperty("m_DrawDistance");
             m_FadeScaleProperty = serializedObject.FindProperty("m_FadeScale");
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
@@ -321,6 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(m_Size, k_SizeContent);
             EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+            EditorGUILayout.PropertyField((SerializedProperty)m_DecalLayer, k_DecalLayerContent);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);

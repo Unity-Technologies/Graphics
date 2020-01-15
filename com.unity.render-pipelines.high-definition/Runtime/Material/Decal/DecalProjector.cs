@@ -127,6 +127,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        DecalLayer m_DecalLayer = DecalLayer.Layer0;
+        /// <summary>
+        /// The layer of the decal.
+        /// </summary>
+        public DecalLayer decalLayer
+        {
+            get => m_DecalLayer;
+            set
+            {
+                m_DecalLayer = value;
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
         private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
         /// <summary>
         /// Change the offset position.
@@ -230,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
             m_OldMaterial = m_Material;
-                  
+
 #if UNITY_EDITOR
             m_Layer = gameObject.layer;
             // Handle scene visibility
