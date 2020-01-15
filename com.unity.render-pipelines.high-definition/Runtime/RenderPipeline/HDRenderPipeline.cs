@@ -995,6 +995,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                     cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
+
+                    // Bind the camera's ray tracing frame index
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
                 }
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }

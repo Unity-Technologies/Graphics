@@ -316,6 +316,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Pass nullref due to the new Profiling Sample API changes
 - Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
 - Fixed XR rendering locked to vsync of main display with Standalone Player.
+- Fixed custom pass cleanup not called at the right time when using multiple volumes.
+- Fixed an issue on metal with edge of decal having artifact by delaying discard of fragments during decal projection
+- Fixed various shader warning
+- Fixing unnecessary memory allocations in the ray tracing cluster build
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -373,6 +377,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
 - Improved performance when entering play mode without domain reload by a factor of ~25
 - Renamed the camera profiling sample to include the camera name
+- Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
 - Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore
 
 ## [7.1.1] - 2019-09-05

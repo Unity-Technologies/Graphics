@@ -159,7 +159,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
 
 #ifdef _ALPHATEST_ON
-	ClipHoles(input.texCoord0);
+	ClipHoles(input.texCoord0.xy);
 #endif	
 
     // terrain lightmap uvs are always taken from uv0
