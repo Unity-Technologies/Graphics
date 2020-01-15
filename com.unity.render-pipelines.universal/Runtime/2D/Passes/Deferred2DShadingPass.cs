@@ -40,7 +40,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             s_GBufferMaskTarget.Init("_GBufferMask");
 
         if (s_GBufferNormalTarget.id == 0)
-            s_GBufferNormalTarget.Init("_GBufferNormal");
+            s_GBufferNormalTarget.Init("_NormalMap");
 
         if (s_GBufferTargets == null)
             s_GBufferTargets = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier(), s_GBufferNormalTarget.Identifier() };
@@ -185,18 +185,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                     cmd.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
                     cmd.EnableShaderKeyword("USE_ADDITIVE_BLENDING");
 
-                    // shape lights
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
-                    {
-                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                        {
-                            cmd.EnableShaderKeyword("SPRITE_LIGHT");
-                            cmd.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
-                        }
-
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, 1);
-                    }
-                    else  // point lights
+                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                     {
                         Matrix4x4 lightInverseMatrix;
                         Matrix4x4 lightNoRotInverseMatrix;
@@ -217,7 +206,26 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                         cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                         cmd.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
                         cmd.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
+                    }
 
+                    if (light.useNormalMap)
+                        cmd.EnableShaderKeyword("USE_NORMAL_MAP");
+                    else
+                        cmd.DisableShaderKeyword("USE_NORMAL_MAP");
+
+                    // shape lights
+                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    {
+                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        {
+                            cmd.EnableShaderKeyword("SPRITE_LIGHT");
+                            cmd.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
+                        }
+
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, 1);
+                    }
+                    else  // point lights
+                    {
                         if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                             cmd.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
 

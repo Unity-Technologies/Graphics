@@ -16,6 +16,12 @@
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
             float3 normalUnpacked = UnpackNormal(normal);\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
+
+        #define APPLY_NORMALS_LIGHTING_NEW(input, lightColor)\
+            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            normal.rgb *= 1.0f / (normal.a + 0.0000001f);\
+            float3 normalUnpacked = UnpackNormal(normal);\
+            lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
             float4	positionWS : TEXCOORDA;\
@@ -34,6 +40,16 @@
             dirToLight.z =  _LightZDistance;\
             dirToLight = normalize(dirToLight);\
             lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
+
+        #define APPLY_NORMALS_LIGHTING_NEW(input, lightColor)\
+            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            normal.rgb *= 1.0f / (normal.a + 0.0000001f);\
+            float3 normalUnpacked = UnpackNormal(normal);\
+            float3 dirToLight;\
+            dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
+            dirToLight.z =  _LightZDistance;\
+            dirToLight = normalize(dirToLight);\
+            lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
     #endif
 
     #define NORMALS_LIGHTING_VARIABLES \
@@ -46,6 +62,7 @@
     #define NORMALS_LIGHTING_VARIABLES
     #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)
     #define APPLY_NORMALS_LIGHTING(input, lightColor)
+    #define APPLY_NORMALS_LIGHTING_NEW(input, lightColor)
 #endif
 
 #define SHADOW_COORDS(TEXCOORDA)\

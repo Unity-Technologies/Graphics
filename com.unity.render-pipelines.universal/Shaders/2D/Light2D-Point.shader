@@ -248,7 +248,7 @@ Shader "Hidden/Light2D-Point"
                 lightColor.a = attenuation;
 #endif
 
-                APPLY_NORMALS_LIGHTING(input, lightColor);
+                APPLY_NORMALS_LIGHTING_NEW(input, lightColor);
                 APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
                 return BlendLightingWithBaseColor(lightColor.rgb, input.gBufferUV);
