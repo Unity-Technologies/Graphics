@@ -821,13 +821,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                     {
-                        var matchingProperty = graph.properties.FirstOrDefault(p => p.guid == property.guid);
-                        // This could be from another graph, in which case we add a copy to this graph.
-                        if (matchingProperty == null)
+                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                        if (graph.properties.FirstOrDefault(p => p.guid == property.guid) == null)
                         {
-                            property = (AbstractShaderProperty)property.Copy();
-                            // In this case, we do want to copy the overrideReferenceName
-                            property.overrideReferenceName = property.overrideReferenceName;
+                            var copy = (AbstractShaderProperty)property.Copy();
+                            graph.SanitizeGraphInputName(copy);
+                            graph.SanitizeGraphInputReferenceName(copy, property.overrideReferenceName); // We do want to copy the overrideReferenceName
+
+                            property = copy;
                             graph.AddGraphInput(property);
                         }
 
@@ -843,13 +844,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     case ShaderKeyword keyword:
                     {
-                        var matchingKeyword = graph.properties.FirstOrDefault(p => p.guid == keyword.guid);
-                        // This could be from another graph, in which case we add a copy to this graph.
-                        if (matchingKeyword == null)
+                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                        if (graph.properties.FirstOrDefault(p => p.guid == keyword.guid) == null)
                         {
-                            keyword = (ShaderKeyword)keyword.Copy();
-                            // In this case, we do want to copy the overrideReferenceName
-                            keyword.overrideReferenceName = keyword.overrideReferenceName;
+                            var copy = (ShaderKeyword)keyword.Copy();
+                            graph.SanitizeGraphInputName(copy);
+                            copy.overrideReferenceName = keyword.overrideReferenceName; // In this case, we do want to copy the overrideReferenceName
+                            graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName);
+
+                            keyword = copy;
                             graph.AddGraphInput(keyword);
                         }
 
