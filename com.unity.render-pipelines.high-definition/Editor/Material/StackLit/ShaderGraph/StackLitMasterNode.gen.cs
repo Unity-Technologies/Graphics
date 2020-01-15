@@ -37,15 +37,15 @@ namespace UnityEditor.Rendering.HighDefinition
     partial class StackLitMasterNode
     {
         #region Fields
-        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
+        [SerializeField] int m_DecalLayerMask = (int)DecalLayerMask.Layer0;
         public DecalLayerMask decalLayerMask
         {
-            get => m_DecalLayerMask;
+            get => (DecalLayerMask)m_DecalLayerMask;
             set
             {
-                if (m_DecalLayerMask == value) return;
+                if ((DecalLayerMask)m_DecalLayerMask == value) return;
         
-                m_DecalLayerMask = value;
+                m_DecalLayerMask = (int)value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -61,9 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition
         #pragma warning disable 618
             public static void UseDecalLayerMask(StackLitMasterNode instance)
             {
-                instance.m_DecalLayerMask = instance.m_ObsoleteReceiveDecals
+                instance.m_DecalLayerMask = (int)(instance.m_ObsoleteReceiveDecals
                     ? DecalLayerMask.Full
-                    : DecalLayerMask.None;
+                    : DecalLayerMask.None);
             }
         #pragma warning restore 618
         }
