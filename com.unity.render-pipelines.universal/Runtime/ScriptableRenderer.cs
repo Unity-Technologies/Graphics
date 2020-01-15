@@ -415,6 +415,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthTextureAvailable);
 
             // Required by VolumeSystem / PostProcessing.
             VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);

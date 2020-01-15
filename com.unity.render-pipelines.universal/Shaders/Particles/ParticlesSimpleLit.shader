@@ -120,6 +120,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
+            #pragma multi_compile _ _DEPTH_TEXTURE_AVAILABLE
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment

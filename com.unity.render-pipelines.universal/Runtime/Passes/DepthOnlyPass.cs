@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DepthTextureAvailable, true);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

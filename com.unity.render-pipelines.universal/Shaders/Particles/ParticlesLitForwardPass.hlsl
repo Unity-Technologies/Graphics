@@ -37,7 +37,7 @@ struct VaryingsParticle
 #if defined(_FLIPBOOKBLENDING_ON)
     float3 texcoord2AndBlend        : TEXCOORD5;
 #endif
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+#if (defined(_SOFTPARTICLES_ON) && defined(_DEPTH_TEXTURE_AVAILABLE)) || defined(_FADING_ON) || defined(_DISTORTION_ON)
     float4 projectedPosition        : TEXCOORD6;
 #endif
 
@@ -132,7 +132,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.texcoord2AndBlend.z = input.texcoordBlend;
 #endif
 
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+#if (defined(_SOFTPARTICLES_ON) && defined(_DEPTH_TEXTURE_AVAILABLE)) || defined(_FADING_ON) || defined(_DISTORTION_ON)
     output.projectedPosition = vertexInput.positionNDC;
 #endif
 
@@ -154,7 +154,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 #endif
 
     float4 projectedPosition = float4(0,0,0,0);
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+#if (defined(_SOFTPARTICLES_ON) && defined(_DEPTH_TEXTURE_AVAILABLE)) || defined(_FADING_ON) || defined(_DISTORTION_ON)
     projectedPosition = input.projectedPosition;
 #endif
 

@@ -127,6 +127,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
 
+        public static readonly string DepthTextureAvailable = "_DEPTH_TEXTURE_AVAILABLE";
+
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
