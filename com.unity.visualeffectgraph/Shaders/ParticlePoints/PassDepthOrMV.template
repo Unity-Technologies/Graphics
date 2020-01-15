@@ -7,7 +7,7 @@ struct ps_input
 	#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
 	nointerpolation float2 builtInInterpolants : TEXCOORD0;
 	#endif
-	
+
 	float pointSize : PSIZE;
 
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -27,6 +27,10 @@ int _ObjectId;
 int _PassValue;
 #endif
 
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
+#endif
+
 #pragma fragment frag
 float4 frag(ps_input i) : SV_TARGET
 {
@@ -39,6 +43,6 @@ float4 frag(ps_input i) : SV_TARGET
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 	return (float4)0;
 #else
-	#error VFX_PASSDEPTH undefined 
+	#error VFX_PASSDEPTH undefined
 #endif
 }

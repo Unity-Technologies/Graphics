@@ -40,4 +40,8 @@ float _IncludeIndirectLighting;
 int _ObjectId;
 int _PassValue;
 
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
+#endif
+
 CBUFFER_END

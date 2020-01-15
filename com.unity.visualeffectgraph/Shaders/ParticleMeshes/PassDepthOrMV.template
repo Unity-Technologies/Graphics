@@ -6,7 +6,7 @@ struct ps_input
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
-	float2 uv : TEXCOORD0;	
+	float2 uv : TEXCOORD0;
 	#endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : TEXCOORD1;
@@ -26,23 +26,23 @@ struct ps_input
 	// z: alpha
 	nointerpolation float3 builtInInterpolants : TEXCOORD4;
 	#endif
-	
+
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vectors scale X
 	// y: motion vectors scale Y
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 	#endif
-    
+
     #if VFX_NEEDS_POSWS_INTERPOLATOR
 	float3 posWS : TEXCOORD8;
     #endif
-	
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
     ${VFXAdditionalInterpolantsDeclaration}
-	
+
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -68,13 +68,17 @@ ${VFXPassVelocityDefine}
 #else
 ${VFXPassDepthDefine}
 #endif
-${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
+${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
 
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#endif
+
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
 #endif
 
 #pragma fragment frag
@@ -85,14 +89,14 @@ float4 frag(ps_input i) : SV_TARGET
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-        
+
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
         float alpha = VFXGetFragmentColor(i).a;
-        alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
+        alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
     #endif
 	VFXClipFragmentColor(alpha,i);
-	
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		return encodedMotionVector;

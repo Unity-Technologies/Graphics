@@ -33,6 +33,10 @@ CBUFFER_START(UnityTerrain)
     int _ObjectId;
     int _PassValue;
 #endif
+
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
+#endif
 CBUFFER_END
 
 #ifdef UNITY_INSTANCING_ENABLED
@@ -160,7 +164,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
 #ifdef _ALPHATEST_ON
 	ClipHoles(input.texCoord0);
-#endif	
+#endif
 
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;

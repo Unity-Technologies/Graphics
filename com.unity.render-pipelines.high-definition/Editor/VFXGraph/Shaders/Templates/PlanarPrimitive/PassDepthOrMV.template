@@ -1,6 +1,7 @@
 #pragma target 4.5
 #define UNITY_MATERIAL_LIT
 #pragma multi_compile _ WRITE_NORMAL_BUFFER
+#pragma multi_compile _ WRITE_DECAL_BUFFER
 
 #define NEEDS_NORMAL	defined(WRITE_NORMAL_BUFFER) || FORCE_NORMAL_VARYING || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
 #define NEEDS_TANGENT	USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
@@ -11,7 +12,7 @@ struct ps_input
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
-	float2 uv : TEXCOORD0;	
+	float2 uv : TEXCOORD0;
 	#endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 	// x: alpha threshold
@@ -20,13 +21,13 @@ struct ps_input
 	// w: smoothness
 	VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 	#endif
-	
+
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vector scale u
 	// y: motion vector scale v
 	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 	#endif
-	
+
 	#if NEEDS_NORMAL
 	float4 normal : TEXCOORD3; // normal scale is stored in w
 	#endif
@@ -36,12 +37,12 @@ struct ps_input
 	#if USE_NORMAL_BENDING
 	float2 bentFactors : TEXCOORD5;
 	#endif
-	
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
-    
+
     ${VFXAdditionalInterpolantsDeclaration}
 
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -87,14 +88,18 @@ ${VFXPassVelocityDefine}
 ${VFXPassDepthDefine}
 #endif
 ${VFXIncludeRP("VFXLit.template")}
-	
+
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
 #endif
-  
+
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
+#endif
+
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED
@@ -118,13 +123,13 @@ void frag(ps_input i
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
 	${VFXComputeNormalWS}
-	
+
 	#ifdef VFX_SHADERGRAPH
-    
+
         ${VFXAdditionalInterpolantsPreparation}
-        
+
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-        
+
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
         float alpha = VFXGetFragmentColor(i).a;
@@ -133,7 +138,7 @@ void frag(ps_input i
         #endif
     #endif
         VFXClipFragmentColor(alpha,i);
-	
+
 	#ifdef WRITE_NORMAL_BUFFER
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
@@ -143,9 +148,9 @@ void frag(ps_input i
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;
-           
+
            surface.normalWS = normalWS;
-           
+
            EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
         #endif
 	#endif

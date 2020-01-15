@@ -115,4 +115,8 @@ float3 _EmissionColor;
 int _ObjectId;
 int _PassValue;
 
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
+#endif
+
 CBUFFER_END

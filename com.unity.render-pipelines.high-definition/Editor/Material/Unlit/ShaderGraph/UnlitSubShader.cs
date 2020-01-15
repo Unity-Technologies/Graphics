@@ -135,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
                 // Note we don't need to define WRITE_NORMAL_BUFFER
+                // Note we don't need to define WRITE_DECAL_BUFFER
             },
 
             Includes = new List<string>()
@@ -180,6 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
                 // Note we don't need to define WRITE_NORMAL_BUFFER
+                // Note we don't need to define WRITE_DECAL_BUFFER
             },
             Includes = new List<string>()
             {

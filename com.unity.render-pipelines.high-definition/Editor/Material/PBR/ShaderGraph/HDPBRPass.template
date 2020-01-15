@@ -110,6 +110,10 @@ Pass
     int _ObjectId;
     int _PassValue;
 
+    #if defined(WRITE_DECAL_BUFFER)
+    int _DecalLayerMask;
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Interpolator Packing And Struct Declarations
     //-------------------------------------------------------------------------------------
@@ -216,7 +220,7 @@ $include("SharedCode.template.hlsl")
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.normalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;

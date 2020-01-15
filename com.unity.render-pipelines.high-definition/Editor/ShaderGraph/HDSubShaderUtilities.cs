@@ -1029,6 +1029,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
             "#define WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_DECAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
@@ -1036,6 +1037,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
+            "#pragma multi_compile _ WRITE_DECAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };

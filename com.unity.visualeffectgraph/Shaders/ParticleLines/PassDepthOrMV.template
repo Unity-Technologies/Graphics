@@ -14,12 +14,16 @@ struct ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
-			
-${VFXInclude("Shaders/ParticleLines/Pass.template")}	
+
+${VFXInclude("Shaders/ParticleLines/Pass.template")}
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+#endif
+
+#if defined(WRITE_DECAL_BUFFER)
+int _DecalLayerMask;
 #endif
 
 #pragma fragment frag
@@ -34,7 +38,7 @@ float4 frag(ps_input i) : SV_TARGET
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 	return (float4)0;
 #else
-#error VFX_PASSDEPTH undefined 
+#error VFX_PASSDEPTH undefined
 #endif
-	
+
 }

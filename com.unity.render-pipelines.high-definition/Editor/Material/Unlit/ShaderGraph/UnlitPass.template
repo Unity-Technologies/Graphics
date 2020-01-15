@@ -86,6 +86,10 @@ Pass
     int _ObjectId;
     int _PassValue;
 
+    #if defined(WRITE_DECAL_BUFFER)
+    int _DecalLayerMask;
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Interpolator Packing And Struct Declarations
     //-------------------------------------------------------------------------------------
