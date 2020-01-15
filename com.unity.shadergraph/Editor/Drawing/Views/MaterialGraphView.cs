@@ -214,30 +214,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {data}, groupItems.OfType<StickyNoteData>().ToArray());
         }
 
-        // private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
-        // {
-        //     // Default the menu buttons to disabled
-        //     DropdownMenuAction.Status inheritPrecisionAction = DropdownMenuAction.Status.Disabled;
-        //     DropdownMenuAction.Status floatPrecisionAction = DropdownMenuAction.Status.Disabled;
-        //     DropdownMenuAction.Status halfPrecisionAction = DropdownMenuAction.Status.Disabled;
-        //
-        //     // Check which precisions are available to switch to
-        //     foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
-        //     {
-        //         if (selectedNode.node.precision != Precision.Inherit)
-        //             inheritPrecisionAction = DropdownMenuAction.Status.Normal;
-        //         if (selectedNode.node.precision != Precision.Float)
-        //             floatPrecisionAction = DropdownMenuAction.Status.Normal;
-        //         if (selectedNode.node.precision != Precision.Half)
-        //             halfPrecisionAction = DropdownMenuAction.Status.Normal;
-        //     }
-        //
-        //     // Create the menu options
-        //     //evt.menu.AppendAction("Precision/Inherit", _ => SetNodePrecisionOnSelection(Precision.Inherit), (a) => inheritPrecisionAction);
-        //     //evt.menu.AppendAction("Precision/Float", _ => SetNodePrecisionOnSelection(Precision.Float), (a) => floatPrecisionAction);
-        //     //evt.menu.AppendAction("Precision/Half", _ => SetNodePrecisionOnSelection(Precision.Half), (a) => halfPrecisionAction);
-        // }
-
         private void InitializeViewSubMenu(ContextualMenuPopulateEvent evt)
         {
             // Default the menu buttons to disabled
