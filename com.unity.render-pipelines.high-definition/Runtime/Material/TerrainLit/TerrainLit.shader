@@ -46,7 +46,7 @@ Shader "HDRP/TerrainLit"
         [HideInInspector] _MainTex("Albedo", 2D) = "white" {}
         [HideInInspector] _Color("Color", Color) = (1,1,1,1)
 
-        [HideInInspector] _DecalLayerMask("Decal Layer Mask", Float) = 255.0
+        [HideInInspector] _DecalLayerMask("Decal Layer Mask", Float) = 1.0
         [HideInInspector] [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [HideInInspector] [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 

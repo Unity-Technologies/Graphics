@@ -35,7 +35,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
 
-        _DecalLayerMask("Decal Layer Mask", Float) = 255.0
+        _DecalLayerMask("Decal Layer Mask", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
     }
 
