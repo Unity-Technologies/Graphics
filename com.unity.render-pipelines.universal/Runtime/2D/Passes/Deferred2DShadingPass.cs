@@ -9,6 +9,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 {
     static RenderTargetHandle s_GBufferColorTarget;
     static RenderTargetHandle s_GBufferMaskTarget;
+    static RenderTargetHandle s_GBufferNormalTarget;
     static RenderTargetIdentifier[] s_GBufferTargets;
     static SortingLayer[] s_SortingLayers;
     static readonly ShaderTagId k_GBufferPassName = new ShaderTagId("Universal2DGBuffer");
@@ -38,8 +39,11 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         if (s_GBufferMaskTarget.id == 0)
             s_GBufferMaskTarget.Init("_GBufferMask");
 
+        if (s_GBufferNormalTarget.id == 0)
+            s_GBufferNormalTarget.Init("_GBufferNormal");
+
         if (s_GBufferTargets == null)
-            s_GBufferTargets = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier() };
+            s_GBufferTargets = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier(), s_GBufferNormalTarget.Identifier() };
 
         ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(targetDescriptor.width, targetDescriptor.height);
@@ -54,6 +58,9 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
         descriptor.graphicsFormat = GraphicsFormat.R8_UNorm;
         cmd.GetTemporaryRT(s_GBufferMaskTarget.id, descriptor);
+
+        descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
+        cmd.GetTemporaryRT(s_GBufferNormalTarget.id, descriptor);
 
         cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
         cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
@@ -227,6 +234,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             }
         }
 
+        cmd.ReleaseTemporaryRT(s_GBufferNormalTarget.id);
         cmd.ReleaseTemporaryRT(s_GBufferMaskTarget.id);
         cmd.ReleaseTemporaryRT(s_GBufferColorTarget.id);
 

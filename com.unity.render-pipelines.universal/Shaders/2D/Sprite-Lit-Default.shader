@@ -217,24 +217,31 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
+
             struct Attributes
             {
                 float3 positionOS   : POSITION;
-                float4 color		: COLOR;
-                float2 uv			: TEXCOORD0;
+                float4 color        : COLOR;
+                float2 uv           : TEXCOORD0;
+                float4 tangent      : TANGENT;
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                float4  color			: COLOR;
-                float2	uv				: TEXCOORD0;
+                float4  positionCS      : SV_POSITION;
+                float4  color           : COLOR;
+                float2  uv              : TEXCOORD0;
+                float3  normalWS        : TEXCOORD1;
+                float3  tangentWS       : TEXCOORD2;
+                float3  bitangentWS     : TEXCOORD3;
             };
 
             struct Targets
             {
                 float4  color   : SV_Target0;
                 float4  mask    : SV_Target1;
+                float4  normal  : SV_Target2;
             };
 
             TEXTURE2D(_MainTex);
@@ -244,14 +251,19 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
 
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
+
             Varyings UnlitVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
+                o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+                o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
+                o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
                 return o;
             }
 
@@ -267,6 +279,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 maskTex.a = mainTex.a;
                 maskTex.rgb *= maskTex.a;
                 o.mask = maskTex;
+
+                float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+                float4 normalVS = NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
+                normalVS.rgb *= normalVS.a;
+                o.normal = normalVS;
 
                 return o;
             }
