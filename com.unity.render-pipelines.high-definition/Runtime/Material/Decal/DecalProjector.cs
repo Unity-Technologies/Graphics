@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
