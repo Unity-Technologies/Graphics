@@ -2543,8 +2543,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.ObjectMotionVectors, false);
             }
 
-            currentFrameSettings.SetEnabled(FrameSettingsField.GlobalScreenSpace,
-                xrPass.viewCount != 0 && xrPass.GetGlobalScreenSpaceMatrix() != Matrix4x4.identity);
+            var useGlobalScreenSpace = xrPass.viewCount > 0 && xrPass.GetGlobalScreenSpaceMatrix() != Matrix4x4.zero;
+            currentFrameSettings.SetEnabled(FrameSettingsField.GlobalScreenSpace, useGlobalScreenSpace);
 
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 

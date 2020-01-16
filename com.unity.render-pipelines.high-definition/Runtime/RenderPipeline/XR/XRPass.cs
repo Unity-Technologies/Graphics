@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             projMatrix = camera.GetStereoProjectionMatrix(eye);
             viewMatrix = camera.GetStereoViewMatrix(eye);
             viewport = camera.pixelRect;
-            globalScreenSpaceParams = Matrix4x4.identity;
+            globalScreenSpaceParams = Matrix4x4.zero;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
             legacyStereoEye = eye;
@@ -80,11 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.height *= renderPass.renderTargetDesc.height;
 
             // TODO add viewport subsection to XRDisplaySubsystem.XRRenderParameter?
-            globalScreenSpaceParams = Matrix4x4.identity;
+            globalScreenSpaceParams = Matrix4x4.zero;
         }
 #endif
     }
-
     public class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);

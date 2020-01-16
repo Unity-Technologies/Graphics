@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
-            // global screen space variants
+            // Global Screen Space Variants
             PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.GlobalScreenSpace);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.GlobalScreenSpace);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.GlobalScreenSpace);
@@ -405,9 +405,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
-                    // wip cluster display
-                    cmd.SetGlobalMatrix(HDShaderIDs._GlobalScreenSpaceParams, camera.globalScreenSpaceParams);
-
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
                     // filtering and can't use clamp sampler and the likes

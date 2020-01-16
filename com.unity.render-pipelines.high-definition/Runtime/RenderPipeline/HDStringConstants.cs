@@ -73,8 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
     // TODO: Would be nice to clean this up at some point
     static class HDShaderIDs
     {
-        // WIP Cluster Display
-        public static readonly int _GlobalScreenSpaceParams = Shader.PropertyToID("_GlobalScreenSpaceParams");
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");
@@ -302,6 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
+        public static readonly int _GlobalScreenSpaceParams = Shader.PropertyToID("_GlobalScreenSpaceParams");
 
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");

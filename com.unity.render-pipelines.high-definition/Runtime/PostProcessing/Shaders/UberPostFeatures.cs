@@ -10,6 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ChromaticAberration       = 1 << 0,
         Vignette                  = 1 << 1,
         LensDistortion            = 1 << 2,
-        GlobalScreenSpace         = 1 << 3
+        GlobalScreenSpace         = 1 << 3,
     }
 }

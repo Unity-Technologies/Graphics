@@ -44,7 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ViewConstants mainViewConstants;
 
         public Vector4   screenSize;
-        public Vector2   globalScreenSize; // temporary terminology
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
         public Camera    camera;
@@ -332,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-                    globalScreenSpaceParams = Matrix4x4.identity;
+                    globalScreenSpaceParams = Matrix4x4.zero;
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -921,6 +920,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
+
+            // Cluster Display
+            cmd.SetGlobalMatrix(HDShaderIDs._GlobalScreenSpaceParams, globalScreenSpaceParams);
 
             // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
