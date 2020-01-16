@@ -93,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Use negation so we don't create keyword by default
             var decalLayerMask = material.GetDecalLayerMask();
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalLayerMask == DecalLayerMask.None);
+            CoreUtils.SetKeyword(material, "WRITE_DECAL_BUFFER", decalLayerMask != DecalLayerMask.None);
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
         }
