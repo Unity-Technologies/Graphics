@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Contrast Adaptive Sharpen (CAS) Upscaling effect.
 - Added APIs to update probe settings at runtime.
 - Added documentation for the rayTracingSupported method in HDRP
-- Added user-selectable format for the post processing passes. 
+- Added user-selectable format for the post processing passes.
 - Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
 - Added warnings in FrameSettings inspector when using DXR and atempting to use Asynchronous Execution.
 
@@ -248,18 +248,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
 - Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
 - Fixed missing distortion inputs in Lit and Unlit material UI.
-- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
-- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture.
+- Fixed issue with Exclude from TAA stencil ignored.
 - Fixed ray traced reflection exposure issue.
 - Fixed issue with TAA history not initialising corretly scale factor for first frame
 - Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
 - Fixed issue with History not reset when chaning antialiasing mode on camera
-- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off.
 - Fixed ray tracing reflection denoiser not applied in tier 1
 - Fixed the vibility of ray tracing related methods.
 - Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
 - Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
-- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights.
 - Fixed exposure management for the path tracer
 - Fixed AxF material UI containing two advanced options settings.
 - Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
@@ -307,7 +307,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warning in AO code.
 - Fixed a warning in simpledenoiser.compute
 - Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
-- Fixed caused by using gather on a UINT texture in motion blur. 
+- Fixed caused by using gather on a UINT texture in motion blur.
 - Fix issue with ambient occlusion breaking when dynamic resolution is active.
 - Fixed some possible NaN causes in Depth of Field.
 - Fixed Custom Pass nullref due to the new Profiling Sample API changes
@@ -380,13 +380,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now each camera has its own Volume Stack. This allows Volume Parameters to be updated as early as possible and be ready for the whole frame without conflicts between cameras.
 - Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
 - Improved performance when entering play mode without domain reload by a factor of ~25
-- Renamened the camera profiling sample to include the camera name
+- Renamed the camera profiling sample to include the camera name
 - Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
 - Renamed the camera profiling sample to include the camera name
 - Renamed the post processing graphic formats to match the new convention.
 - The restart in Wizard for DXR will always be last fix from now on
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
+- Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
 
 ## [7.1.1] - 2019-09-05
 
