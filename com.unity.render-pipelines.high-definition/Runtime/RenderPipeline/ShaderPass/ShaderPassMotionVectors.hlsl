@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/MotionVectorVertexShaderCommon.hlsl"
 
 #if WRITE_DECAL_BUFFER
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepass.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
 
 PackedVaryingsType Vert(AttributesMesh inputMesh,

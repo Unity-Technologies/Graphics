@@ -1,5 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepass.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
@@ -49,7 +49,7 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint mat
     if (blendParams.x == 1.0f)	// normal blend source is mask blue channel
         normalBlend = src.z * decalBlend;
     else
-        normalBlend = albedoBlend; // normal blend source is albedo alpha     
+        normalBlend = albedoBlend; // normal blend source is albedo alpha
 
     if (blendParams.y == 1.0f)	// mask blend source is mask blue channel
         maskBlend = src.z * decalBlend;
@@ -168,7 +168,7 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
         float albedoContribution = decalData.normalToWorld[1][3];
         if (albedoContribution == 0.0f)
         {
-            mask = 0;	// diffuse will not get modified						
+            mask = 0;	// diffuse will not get modified
         }
 
         float normalBlend = albedoBlend;
@@ -272,7 +272,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
         if (!fastPath)
         {
-            // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave. 
+            // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave.
             s_decalIdx = WaveActiveMin(v_decalIdx);
             // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
             // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
