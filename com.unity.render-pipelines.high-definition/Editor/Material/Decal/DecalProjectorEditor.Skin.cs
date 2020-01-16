@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_EditUVTooltip = "Modify the UV positions only";
 
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
-        static readonly GUIContent k_DecalLayerContent = EditorGUIUtility.TrTextContent("Decal Layer", "Specifies the Decal Layer of this decal.");
         static readonly GUIContent k_MaterialContent = EditorGUIUtility.TrTextContent("Material", "Specifies the Material this component projects as a decal.");
         static readonly GUIContent k_DistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the distance from the Camera at which HDRP stop rendering the decal.");
         static readonly GUIContent k_FadeScaleContent = EditorGUIUtility.TrTextContent("Start Fade", "Controls the distance from the Camera at which this component begins to fade the decal out.");

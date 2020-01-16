@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
             public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
+            public static GUIContent decalLayerText = new GUIContent("Decal Layer", "The layer of the decal.");
 
             public static GUIContent[] maskMapText =
             {
@@ -152,6 +153,9 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
+        protected MaterialProperty decalLayer = null;
+        protected const string kDecalLayer = HDMaterialProperties.kDecalLayer;
+
         public DecalSurfaceInputsUIBlock(Expandable expandableBit)
         {
             m_ExpandableBit = expandableBit;
@@ -177,6 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax);
             metallicScale = FindProperty(kMetallicScale);
             maskMapBlueScale = FindProperty(kMaskMapBlueScale);
+            decalLayer = FindProperty(kDecalLayer);
 
             // TODO: move emission to the EmissionUIBlock ?
             emissiveColor = FindProperty(kEmissiveColor);
@@ -322,6 +327,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
+
+                DecalLayerUI.GUILayoutMaterialProperty(Styles.decalLayerText, decalLayer);
 
                 EditorGUILayout.HelpBox(
                     "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",

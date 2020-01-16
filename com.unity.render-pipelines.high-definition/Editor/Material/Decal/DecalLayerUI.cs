@@ -30,6 +30,24 @@ namespace UnityEditor.Rendering.HighDefinition
             var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, options);
             return GUIField(rect, label, value);
         }
+
+        /// <summary>Draw a DecalLayer field for a <see cref="MaterialProperty"/>.</summary>
+        /// <param name="label">The label of the field.</param>
+        /// <param name="property">The property to draw and update</param>
+        /// <param name="options">The options to use for the layout.</param>
+        public static void GUILayoutMaterialProperty(GUIContent label, MaterialProperty property,
+            params GUILayoutOption[] options)
+        {
+            var decalLayerValue = (DecalLayer) (int) property.floatValue;
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = property.hasMixedValue;
+
+            decalLayerValue = GUILayoutField(label, decalLayerValue, options);
+            EditorGUI.showMixedValue = false;
+
+            if (!EditorGUI.EndChangeCheck()) return;
+            property.floatValue = (int) decalLayerValue;
+        }
     }
 
     [CustomPropertyDrawer(typeof(DecalLayer))]
