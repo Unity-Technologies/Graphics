@@ -385,6 +385,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the post processing graphic formats to match the new convention.
 - The restart in Wizard for DXR will always be last fix from now on
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
+- Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
 
 ## [7.1.1] - 2019-09-05
 
