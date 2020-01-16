@@ -379,6 +379,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved performance when entering play mode without domain reload by a factor of ~25
 - Renamened the camera profiling sample to include the camera name
 - Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
+- Renamed the camera profiling sample to include the camera name
+- Renamed the post processing graphic formats to match the new convention.
 
 ## [7.1.1] - 2019-09-05
 
