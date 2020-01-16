@@ -9,6 +9,7 @@ namespace Unity.Testing.VisualEffectGraph
         static private int s_outputEventNameId = Shader.PropertyToID("Test_Output_Event");
         static private int s_positionNameId = Shader.PropertyToID("position");
         static private int s_colorNameId = Shader.PropertyToID("color");
+        static private int s_texIndexId = Shader.PropertyToID("texIndex");
         static private int s_customEmissionNameId = Shader.PropertyToID("custom_emission");
 
         public GameObject m_ObjectReference;
@@ -30,6 +31,8 @@ namespace Unity.Testing.VisualEffectGraph
             }
         }
 
+        static private float[] s_acceptableTexIndexValues = new [] { 10.0f, 20.0f, 30.0f };
+
         void Update()
         {
             if (m_vfx == null || m_ObjectReference == null)
@@ -41,6 +44,24 @@ namespace Unity.Testing.VisualEffectGraph
 
             foreach (var eventAttribute in m_currentVFXEventAttribute)
             {
+                //texIndex isn't used in particle system but it should be reachable in these vfx event attribute.
+                var texIndex = eventAttribute.GetFloat(s_texIndexId);
+                bool correct = false;
+                foreach (var value in s_acceptableTexIndexValues)
+                {
+                    if (Mathf.Abs(value - texIndex) < 1e-5f)
+                    {
+                        correct = true;
+                        break;
+                    }
+                }
+
+                if (!correct)
+                {
+                    Debug.LogError("Unable to retrieve texIndex, got : " + texIndex);
+                    break;
+                }
+
                 var newObject = GameObject.Instantiate(m_ObjectReference);
                 newObject.GetComponent<Transform>().position = eventAttribute.GetVector3(s_positionNameId);
                 var renderer = newObject.GetComponent<Renderer>();
