@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added documentation for the rayTracingSupported method in HDRP
 - Added user-selectable format for the post processing passes.
 - Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
+- Added warnings in FrameSettings inspector when using DXR and atempting to use Asynchronous Execution.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -320,6 +321,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue on metal with edge of decal having artifact by delaying discard of fragments during decal projection
 - Fixed various shader warning
 - Fixing unnecessary memory allocations in the ray tracing cluster build
+- Fixed duplicate column labels in LightEditor's light tab
+- Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -378,7 +381,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved performance when entering play mode without domain reload by a factor of ~25
 - Renamed the camera profiling sample to include the camera name
 - Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
-- Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore
+- Renamed the camera profiling sample to include the camera name
+- Renamed the post processing graphic formats to match the new convention.
+- The restart in Wizard for DXR will always be last fix from now on
+- Updated the default scene and default DXR scene and DefaultVolumeProfile.
+- Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
+- Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
 
 ## [7.1.1] - 2019-09-05
 
