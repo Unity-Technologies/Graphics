@@ -115,4 +115,6 @@ float3 _EmissionColor;
 int _ObjectId;
 int _PassValue;
 
+uint _DecalLayerMask;
+
 CBUFFER_END
