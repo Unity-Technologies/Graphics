@@ -73,7 +73,7 @@ Pass
     // (eg property enabled + one or even multiple (and all of them) slots present,
     // connection or unconnected but non default value):
 
-    //
+    // 
     // $SpecularAA:             // this one is set whether we have GeometricSpecularAA or NormalMapFiltering (TODOTODO)
     // $GeometricSpecularAA:
     // $AmbientOcclusion: // not used, bugbug todotodo in Lit
@@ -102,8 +102,8 @@ Pass
 
     //
     // Original shader keywords reference:
-    //
-
+    // 
+        
     // _ALPHATEST_ON
     // _DOUBLESIDED_ON
 
@@ -114,13 +114,13 @@ Pass
 
 
     // // Keyword for transparent
-    //
+    // 
     // _SURFACE_TYPE_TRANSPARENT
     // _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     // _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // handled in material.hlsl
 
     // // MaterialFeature used as shader feature
-    //
+    // 
     // _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
     // _MATERIAL_FEATURE_ANISOTROPY
     // _MATERIAL_FEATURE_COAT
@@ -135,7 +135,7 @@ Pass
     //
     // // Handling of anisotropy for area lights:
     // _ANISOTROPY_FOR_AREA_LIGHTS
-    //
+    // 
     // // Vertically layered BSDF test/tweak
     // _VLAYERED_RECOMPUTE_PERLIGHT
     // _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
@@ -323,7 +323,7 @@ Pass
     //
     // Note: the constant buffer is declared here, and we manually add
     // debug properties in the master node if debug is enabled.
-    // These are in turn used in StackLit.hlsl, so we need the cbuffer declaration before
+    // These are in turn used in StackLit.hlsl, so we need the cbuffer declaration before 
     // including Material.hlsl.
     // TODOTODO:
     // For now, we still splice the Graph here, and debug mode won't work, as we need to
@@ -544,9 +544,9 @@ $include("SharedCode.template.hlsl")
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal
+        // For back lighting we use the oposite vertex normal 
         InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
-
+        
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;

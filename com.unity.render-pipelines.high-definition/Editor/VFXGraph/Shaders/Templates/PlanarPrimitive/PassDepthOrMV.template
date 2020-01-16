@@ -121,13 +121,13 @@ void frag(ps_input i
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
 	${VFXComputeNormalWS}
-
+	
 	#ifdef VFX_SHADERGRAPH
-
+    
         ${VFXAdditionalInterpolantsPreparation}
-
+        
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-
+        
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
         float alpha = VFXGetFragmentColor(i).a;
@@ -136,7 +136,7 @@ void frag(ps_input i
         #endif
     #endif
         VFXClipFragmentColor(alpha,i);
-
+	
 	#ifdef WRITE_NORMAL_BUFFER
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
@@ -146,9 +146,9 @@ void frag(ps_input i
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;
-
+           
            surface.normalWS = normalWS;
-
+           
            EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
         #endif
 	#endif

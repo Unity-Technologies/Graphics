@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
             m_OldMaterial = m_Material;
-
+                  
 #if UNITY_EDITOR
             m_Layer = gameObject.layer;
             // Handle scene visibility

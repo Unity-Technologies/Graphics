@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-
+            
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {

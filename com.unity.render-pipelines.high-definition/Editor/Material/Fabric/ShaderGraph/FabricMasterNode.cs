@@ -542,14 +542,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(PositionSlotId);
             }
 
-            // Normal in Vertex
+            // Normal in Vertex 
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
             {
                 AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(VertexNormalSlotId);
             }
 
-            // tangent in Vertex
+            // tangent in Vertex 
             if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
             {
                 AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));

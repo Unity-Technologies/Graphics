@@ -504,7 +504,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
-            }
+            }            
 
             //Normal in Vertex
             if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))

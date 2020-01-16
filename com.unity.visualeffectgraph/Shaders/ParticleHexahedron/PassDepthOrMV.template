@@ -32,7 +32,7 @@ ${VFXPassVelocityDefine}
 #else
 ${VFXPassDepthDefine}
 #endif
-${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
