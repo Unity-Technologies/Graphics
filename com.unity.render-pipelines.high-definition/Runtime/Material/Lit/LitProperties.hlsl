@@ -286,4 +286,6 @@ float _TessellationTilingScale;
 int _ObjectId;
 int _PassValue;
 
+uint _DecalLayerMask;
+
 CBUFFER_END

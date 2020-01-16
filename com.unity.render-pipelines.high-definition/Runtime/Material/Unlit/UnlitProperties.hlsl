@@ -40,4 +40,6 @@ float _IncludeIndirectLighting;
 int _ObjectId;
 int _PassValue;
 
+uint _DecalLayerMask;
+
 CBUFFER_END

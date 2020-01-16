@@ -33,6 +33,8 @@ CBUFFER_START(UnityTerrain)
     int _ObjectId;
     int _PassValue;
 #endif
+
+uint _DecalLayerMask;
 CBUFFER_END
 
 #ifdef UNITY_INSTANCING_ENABLED
