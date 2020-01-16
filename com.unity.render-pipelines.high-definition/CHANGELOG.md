@@ -229,6 +229,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved a bit the GC calls generated during the rendering.
 - Material update is now only triggered when the relevant settings are touched in the shader graph master nodes
 - Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
+- Removed the "slice distribution uniformity" parameter.
+- Improved the noise used by the volumetric lighting system.
 
 ## [7.1.1] - 2019-09-05
 
