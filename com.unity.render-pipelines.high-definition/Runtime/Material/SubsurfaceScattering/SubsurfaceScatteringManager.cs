@@ -331,8 +331,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Clear the HTile texture. TODO: move this to ClearBuffers(). Clear operations must be batched!
                 CoreUtils.SetRenderTarget(cmd, resources.hTileBuffer, ClearFlag.Color, Color.clear);
 
-                CoreUtils.SetRenderTarget(cmd, resources.depthStencilBuffer); // No need for color buffer here
-                cmd.SetRandomWriteTarget(1, resources.hTileBuffer); // This need to be done AFTER SetRenderTarget
+                // NOTE: The colorBuffer is here to be bound as color RT as otherwise we have D3D12 erorrs thrown when using dynamic resolution, due to the previously
+                // set color surface lingering around and having a different dimension from the depth buffer. It can be whatever has the same size of depth buffer.
+                // It will not be used in any way in the shader itself.
+                CoreUtils.SetRenderTarget(cmd, resources.diffuseBuffer, resources.depthStencilBuffer);
+                cmd.SetRandomWriteTarget(1, resources.colorBuffer); // This need to be done AFTER SetRenderTarget
                 // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                 // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
                 CoreUtils.DrawFullScreen(cmd, parameters.copyStencilForSplitLighting, null, 2);

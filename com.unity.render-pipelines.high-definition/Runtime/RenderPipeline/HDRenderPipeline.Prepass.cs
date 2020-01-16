@@ -538,6 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DBufferNormalPatchParameters parameters;
             public RenderGraphResource depthStencilBuffer;
+            public RenderGraphResource motionVectorBuffer;
             public RenderGraphMutableResource normalBuffer;
         }
 
@@ -631,13 +632,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.normalBuffer = builder.WriteTexture(output.resolvedNormalBuffer);
                     passData.depthStencilBuffer = builder.ReadTexture(output.resolvedDepthBuffer);
+                    passData.motionVectorBuffer = builder.ReadTexture(output.motionVectorsBuffer);
 
                     builder.SetRenderFunc(
                     (DBufferNormalPatchData data, RenderGraphContext context) =>
                     {
                         // We can call DBufferNormalPatch after RenderDBuffer as it only affect forward material and isn't affected by RenderGBuffer
                         // This reduce lifeteime of stencil bit
+                        // NOTE: The motionVector is here to be bound as color RT as otherwise we have D3D12 erorrs thrown when using dynamic resolution, due to the previously
+                        // set color surface lingering around and having a different dimension from the depth buffer. It is not used in any way in the shader itself.
                         DBufferNormalPatch( data.parameters,
+                                            context.resources.GetTexture(data.motionVectorBuffer),
                                             context.resources.GetTexture(data.normalBuffer),
                                             context.resources.GetTexture(data.depthStencilBuffer),
                                             context.cmd, context.renderContext);

@@ -3041,7 +3041,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // We can call DBufferNormalPatch after RenderDBuffer as it only affect forward material and isn't affected by RenderGBuffer
                     // This reduce lifetime of stencil bit
-                    DBufferNormalPatch(PrepareDBufferNormalPatchParameters(hdCamera), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), cmd, renderContext);
+                    // NOTE: The colorBuffer is here to be bound as color RT as otherwise we have D3D12 erorrs thrown when using dynamic resolution, due to the previously
+                    // set color surface lingering around and having a different dimension from the depth buffer. It can be whatever has the same size of depth buffer.
+                    // It will not be used in any way in the shader itself.
+                    DBufferNormalPatch(PrepareDBufferNormalPatchParameters(hdCamera), m_CameraColorBuffer, m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), cmd, renderContext);
                 }
             }
         }
@@ -3154,12 +3157,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // DBufferNormalPatch will patch the normal buffer with data from DBuffer for forward material.
         // As forward material output normal during depth prepass, they aren't affected by decal, and thus we need to patch the normal buffer.
-        static void DBufferNormalPatch(in DBufferNormalPatchParameters parameters, RTHandle normalBuffer, RTHandle depthStencilBuffer, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        // NOTE: The colorBuffer is here to be bound as color RT as otherwise we have D3D12 erorrs thrown when using dynamic resolution, due to the previously
+        // set color surface lingering around and having a different dimension from the depth buffer. It can be whatever has the same size of depth buffer.
+        // It will not be used in any way in the shader itself.
+        static void DBufferNormalPatch(in DBufferNormalPatchParameters parameters, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthStencilBuffer, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, parameters.stencilMask);
             parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, parameters.stencilRef);
 
-            CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthStencilBuffer);
             cmd.SetRandomWriteTarget(1, normalBuffer);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.decalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
             cmd.ClearRandomWriteTargets();
@@ -3860,7 +3866,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DownsampleDepth)))
             {
-                CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetLowResDepthBuffer());
+                // NOTE: The colorBuffer is here to be bound as color RT as otherwise we have D3D12 erorrs thrown when using dynamic resolution, due to the previously
+                // set color surface lingering around and having a different dimension from the depth buffer. It can be whatever has the same size of depth buffer.
+                // It will not be used in any way in the shader itself.
+                CoreUtils.SetRenderTarget(cmd, m_LowResTransparentBuffer, m_SharedRTManager.GetLowResDepthBuffer());
                 cmd.SetViewport(new Rect(0, 0, hdCamera.actualWidth * 0.5f, hdCamera.actualHeight * 0.5f));
                 // TODO: Add option to switch modes at runtime
                 if(settings.checkerboardDepthBuffer)
