@@ -837,8 +837,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
                 RTHandle feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
-                if (!parameters.enableReprojection) frameIndex = 0;
-
                 VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, s_CmjPointSet, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
