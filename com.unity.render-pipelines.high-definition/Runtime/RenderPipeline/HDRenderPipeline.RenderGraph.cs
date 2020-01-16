@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         bool                        preRefractionPass)
         {
             // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) && preRefractionPass)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && preRefractionPass)
                 return;
 
             string passName;
@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.renderTarget[0] = builder.WriteTexture(colorBuffer);
                 passData.renderTarget[1] = builder.WriteTexture(mrt1);
 
-                if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) && !preRefractionPass)
+                if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
                 {
                     builder.ReadTexture(colorPyramid.Value);
                 }
@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render pre-refraction objects
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, motionVectorsBuffer, depthStencilBuffer, null, shadowResult, cullingResults, true);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, true);
@@ -811,7 +811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // and in this case the pass is considered as having side effect and cannot be pruned.
             if (isPreRefraction)
             {
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
                     return;
             }
             // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion

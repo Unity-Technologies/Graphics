@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
             cmd.SetRayTracingIntParams(reflectionShader, HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-            int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            int frameIndex = RayTracingFrameIndex(hdCamera);
             cmd.SetRayTracingIntParam(reflectionShader, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
             // Inject the ray-tracing sampling data
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingIncludeSky, settings.reflectSky.value ? 1 : 0);
 
                     // Bind the sampling data
-                    int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                    int frameIndex = RayTracingFrameIndex(hdCamera);
                     cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                     // Bind the output buffers
@@ -288,8 +288,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
+                    float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+#endif
+                        // We need to check if something invalidated the history buffers
+                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, intermediateBuffer0);
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, intermediateBuffer0, historyValidity: historyValidity);
                     HDUtils.BlitCameraTexture(cmd, intermediateBuffer0, outputTexture);
                 }
             }
@@ -335,8 +344,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
+                    float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+#endif
+                        // We need to check if something invalidated the history buffers
+                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
-                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, intermediateBuffer0, reflectionHistory, outputTexture);
+                    reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, intermediateBuffer0, reflectionHistory, outputTexture, historyValidity: historyValidity);
                 }
                 else
                 {

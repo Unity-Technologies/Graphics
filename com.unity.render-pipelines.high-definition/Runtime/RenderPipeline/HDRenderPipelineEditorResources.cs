@@ -14,10 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeProfile defaultSkyAndFogProfile;
         [Reload("Editor/DefaultDXRScene/Sky and Fog Settings Profile.asset")]
         public VolumeProfile defaultDXRSkyAndFogProfile;
-        [Reload("Editor/DefaultScene/Scene PostProcess Profile.asset")]
-        public VolumeProfile defaultPostProcessingProfile;
-        [Reload("Editor/DefaultDXRScene/Scene PostProcess Profile.asset")]
-        public VolumeProfile defaultDXRPostProcessingProfile;
+        [Reload("Editor/DefaultDXRScene/DXR Settings.asset")]
+        public VolumeProfile defaultDXRSettings;
         [Reload(new[]
         {
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
@@ -43,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultMirrorMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
             public Material defaultDecalMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDParticleMaterial.mat")]
+            public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
             [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]

@@ -220,10 +220,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
-        private bool m_NeedTAAResetHistory = false;
 
         public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
 
+        internal bool resetPostProcessingHistory = true;
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
-        internal string cameraName => m_AdditionalCameraData?.cameraName ?? "HDRenderPipeline::Render Camera";
+        internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         public VolumeStack volumeStack { get; private set; }
 
@@ -281,11 +281,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsTAAEnabled()
         {
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
-        }
-
-        internal bool NeedTAAResetHistory()
-        {
-            return m_NeedTAAResetHistory;
         }
 
         internal bool IsVolumetricReprojectionEnabled()
@@ -327,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The condition inside controls whether we perform init/deinit or not.
                 hdrp.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
+                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.Refraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired   = IsVolumetricReprojectionEnabled();
 
@@ -471,11 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
             if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
             {
-                m_NeedTAAResetHistory = true;
-            }
-            else
-            {
-                m_NeedTAAResetHistory = false;
+                resetPostProcessingHistory = true;
             }
         }
 
@@ -856,6 +847,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isFirstFrame = true;
             cameraFrameCount = 0;
+            resetPostProcessingHistory = true;
         }
 
         public void Dispose()
