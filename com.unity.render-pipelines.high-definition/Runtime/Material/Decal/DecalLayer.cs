@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public DecalLayer(int value) => m_Value = value % LayerCount;
 
         public static explicit operator int(in DecalLayer v) => v.m_Value;
+        public static explicit operator uint(in DecalLayer v) => (uint)v.m_Value;
         public static explicit operator DecalLayer(in int v) => new DecalLayer(v);
         public static explicit operator DecalLayerMask(in DecalLayer layer) => new DecalLayerMask(1 << layer.m_Value);
         public static DecalLayer operator&(in DecalLayer l, in DecalLayer r) => new DecalLayer((int)l & (int)r);
