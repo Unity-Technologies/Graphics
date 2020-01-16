@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added user-selectable format for the post processing passes. 
 - Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
 - Added warnings in FrameSettings inspector when using DXR and atempting to use Asynchronous Execution.
+- Added history rejection based on velocity of intersected objects for directional, point and spot lights.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
