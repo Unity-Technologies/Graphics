@@ -653,7 +653,7 @@ Shader "HDRP/LayeredLit"
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #if defined(WRITE_NORMAL_BUFFER) || defined(WRITE_DECAL_BUFFER) // If enabled we need all regular interpolator
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitMotionVectorPass.hlsl"
@@ -723,7 +723,7 @@ Shader "HDRP/LayeredLit"
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #if defined(WRITE_NORMAL_BUFFER) || defined(WRITE_DECAL_BUFFER) // If enabled we need all regular interpolator
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
