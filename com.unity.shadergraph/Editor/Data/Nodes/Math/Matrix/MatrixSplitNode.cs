@@ -137,12 +137,12 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var inputSlot in s_TempSlots)
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            GetInputSlots(tempSlots);
+            foreach (var inputSlot in tempSlots)
             {
                 inputSlot.hasError = false;
-                
+
                 // if there is a connection
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())
@@ -201,17 +201,17 @@ namespace UnityEditor.ShaderGraph
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.SetConcreteType(dynamicType);
 
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var inputError = s_TempSlots.Any(x => x.hasError);
+            tempSlots.Clear();
+            GetInputSlots(tempSlots);
+            var inputError = tempSlots.Any(x => x.hasError);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
             // or the above dynanic slotType for dynamic nodes
             // or error if there is an input error
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            foreach (var outputSlot in s_TempSlots)
+            tempSlots.Clear();
+            GetOutputSlots(tempSlots);
+            foreach (var outputSlot in tempSlots)
             {
                 outputSlot.hasError = false;
 
@@ -234,9 +234,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             isInError |= inputError;
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            isInError |= s_TempSlots.Any(x => x.hasError);
+            tempSlots.Clear();
+            GetOutputSlots(tempSlots);
+            isInError |= tempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError(ref errorMessage);
             isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;
@@ -255,6 +255,8 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
+
+            tempSlots.Dispose();
         }
     }
 }

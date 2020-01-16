@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem
     {
-        protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
-        protected static List<IEdge> s_TempEdges = new List<IEdge>();
-        protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
-
         [NonSerialized]
         private Guid m_Guid;
 
@@ -348,12 +344,13 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Get inputs
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            tempSlots.Clear();
+            GetInputSlots(tempSlots);
 
             // If no inputs were found use the precision of the Graph
             // This can be removed when parameters are considered as true inputs
-            if (s_TempSlots.Count == 0)
+            if (tempSlots.Count == 0)
             {
                 m_ConcretePrecision = owner.concretePrecision;
                 return false;
@@ -363,7 +360,7 @@ namespace UnityEditor.ShaderGraph
             var precisionsToCompare = new List<int>();
             bool isInError = false;
 
-            foreach (var inputSlot in s_TempSlots)
+            foreach (var inputSlot in tempSlots)
             {
                 // If input port doesnt have an edge use the Graph's precision for that input
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
@@ -391,7 +388,7 @@ namespace UnityEditor.ShaderGraph
             m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
 
             // Clean up
-            s_TempSlots.Clear();
+            tempSlots.Dispose();
             return isInError;
         }
 
@@ -407,9 +404,9 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var inputSlot in s_TempSlots)
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            GetInputSlots(tempSlots);
+            foreach (var inputSlot in tempSlots)
             {
                 inputSlot.hasError = false;
                 // if there is a connection
@@ -470,17 +467,17 @@ namespace UnityEditor.ShaderGraph
             foreach (var skippedSlot in skippedDynamicMatrixSlots)
                 skippedSlot.SetConcreteType(dynamicMatrixType);
 
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var inputError = s_TempSlots.Any(x => x.hasError);
+            tempSlots.Clear();
+            GetInputSlots(tempSlots);
+            var inputError = tempSlots.Any(x => x.hasError);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
             // or the above dynamic slotType for dynamic nodes
             // or error if there is an input error
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            foreach (var outputSlot in s_TempSlots)
+            tempSlots.Clear();
+            GetOutputSlots(tempSlots);
+            foreach (var outputSlot in tempSlots)
             {
                 outputSlot.hasError = false;
 
@@ -503,9 +500,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             isInError |= inputError;
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            isInError |= s_TempSlots.Any(x => x.hasError);
+            tempSlots.Clear();
+            GetOutputSlots(tempSlots);
+            isInError |= tempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError(ref errorMessage);
             isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;
@@ -524,6 +521,8 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
+
+            tempSlots.Dispose();
         }
 
         public int version { get; set; }
@@ -551,23 +550,27 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var s in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            using (var tempPreviewProperties = PooledList<PreviewProperty>.Get())
+            using (var tempEdges = PooledList<IEdge>.Get())
             {
-                s_TempPreviewProperties.Clear();
-                s_TempEdges.Clear();
-                owner.GetEdges(s.slotReference, s_TempEdges);
-                if (s_TempEdges.Any())
-                    continue;
-
-                s.GetPreviewProperties(s_TempPreviewProperties, GetVariableNameForSlot(s.id));
-                for (int i = 0; i < s_TempPreviewProperties.Count; i++)
+                GetInputSlots(tempSlots);
+                foreach (var s in tempSlots)
                 {
-                    if (s_TempPreviewProperties[i].name == null)
+                    tempPreviewProperties.Clear();
+                    tempEdges.Clear();
+                    owner.GetEdges(s.slotReference, tempEdges);
+                    if (tempEdges.Any())
                         continue;
 
-                    properties.Add(s_TempPreviewProperties[i]);
+                    s.GetPreviewProperties(tempPreviewProperties, GetVariableNameForSlot(s.id));
+                    for (int i = 0; i < tempPreviewProperties.Count; i++)
+                    {
+                        if (tempPreviewProperties[i].name == null)
+                            continue;
+
+                        properties.Add(tempPreviewProperties[i]);
+                    }
                 }
             }
         }

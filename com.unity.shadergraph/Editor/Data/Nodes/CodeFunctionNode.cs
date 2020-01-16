@@ -343,19 +343,19 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            foreach (var outSlot in s_TempSlots)
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            GetOutputSlots(tempSlots);
+            foreach (var outSlot in tempSlots)
             {
                 sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
 
             string call = GetFunctionName() + "(";
             bool first = true;
-            s_TempSlots.Clear();
-            GetSlots(s_TempSlots);
-            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-            foreach (var slot in s_TempSlots)
+            tempSlots.Clear();
+            GetSlots(tempSlots);
+            tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+            foreach (var slot in tempSlots)
             {
                 if (!first)
                 {
@@ -371,6 +371,7 @@ namespace UnityEditor.ShaderGraph
             call += ");";
 
             sb.AppendLine(call);
+            tempSlots.Dispose();
         }
 
         private string GetFunctionName()
@@ -385,11 +386,11 @@ namespace UnityEditor.ShaderGraph
         {
             string header = "void " + GetFunctionName() + "(";
 
-            s_TempSlots.Clear();
-            GetSlots(s_TempSlots);
-            s_TempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            GetSlots(tempSlots);
+            tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
             var first = true;
-            foreach (var slot in s_TempSlots)
+            foreach (var slot in tempSlots)
             {
                 if (!first)
                     header += ", ";
@@ -403,6 +404,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             header += ")";
+            tempSlots.Dispose();
             return header;
         }
 
@@ -422,14 +424,15 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            s_TempSlots.Clear();
-            GetSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
+            var tempSlots = PooledList<MaterialSlot>.Get();
+            GetSlots(tempSlots);
+            foreach (var slot in tempSlots)
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
                 var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
+            tempSlots.Dispose();
             return result;
         }
 
@@ -453,87 +456,106 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             var binding = NeededCoordinateSpace.None;
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
-                binding |= slot.RequiresNormal();
-            return binding;
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresNormal();
+                return binding;
+            }
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             var binding = NeededCoordinateSpace.None;
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
-                binding |= slot.RequiresViewDirection();
-            return binding;
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresViewDirection();
+                return binding;
+            }
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var binding = NeededCoordinateSpace.None;
-            foreach (var slot in s_TempSlots)
-                binding |= slot.RequiresPosition();
-            return binding;
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresPosition();
+                return binding;
+            }
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var binding = NeededCoordinateSpace.None;
-            foreach (var slot in s_TempSlots)
-                binding |= slot.RequiresTangent();
-            return binding;
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresTangent();
+                return binding;
+            }
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var binding = NeededCoordinateSpace.None;
-            foreach (var slot in s_TempSlots)
-                binding |= slot.RequiresBitangent();
-            return binding;
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresBitangent();
+                return binding;
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                if (slot.RequiresMeshUV(channel))
-                    return true;
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresMeshUV(channel))
+                        return true;
+                }
+
+                return false;
             }
-            return false;
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                if (slot.RequiresScreenPosition())
-                    return true;
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresScreenPosition())
+                        return true;
+                }
+
+                return false;
             }
-            return false;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                if (slot.RequiresVertexColor())
-                    return true;
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresVertexColor())
+                        return true;
+                }
+
+                return false;
             }
-            return false;
         }
     }
 }
