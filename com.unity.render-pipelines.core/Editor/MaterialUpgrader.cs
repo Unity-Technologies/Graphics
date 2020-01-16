@@ -111,30 +111,69 @@ namespace UnityEditor.Rendering
         {
             foreach (var t in m_TextureRename)
             {
+                if (!srcMaterial.HasProperty(t.Key) || !dstMaterial.HasProperty(t.Value))
+                    continue;
+
                 dstMaterial.SetTextureScale(t.Value, srcMaterial.GetTextureScale(t.Key));
                 dstMaterial.SetTextureOffset(t.Value, srcMaterial.GetTextureOffset(t.Key));
                 dstMaterial.SetTexture(t.Value, srcMaterial.GetTexture(t.Key));
             }
 
             foreach (var t in m_FloatRename)
+            {
+                if (!srcMaterial.HasProperty(t.Key) || !dstMaterial.HasProperty(t.Value))
+                    continue;
+
                 dstMaterial.SetFloat(t.Value, srcMaterial.GetFloat(t.Key));
+            }
 
             foreach (var t in m_ColorRename)
+            {
+                if (!srcMaterial.HasProperty(t.Key) || !dstMaterial.HasProperty(t.Value))
+                    continue;
+
                 dstMaterial.SetColor(t.Value, srcMaterial.GetColor(t.Key));
+            }
 
             foreach (var prop in m_TexturesToRemove)
+            {
+                if (!dstMaterial.HasProperty(prop))
+                    continue;
+
                 dstMaterial.SetTexture(prop, null);
+            }
 
             foreach (var prop in m_TexturesToSet)
+            {
+                if (!dstMaterial.HasProperty(prop.Key))
+                    continue;
+
                 dstMaterial.SetTexture(prop.Key, prop.Value);
+            }
 
             foreach (var prop in m_FloatPropertiesToSet)
+            {
+                if (!dstMaterial.HasProperty(prop.Key))
+                    continue;
+
                 dstMaterial.SetFloat(prop.Key, prop.Value);
+            }
 
             foreach (var prop in m_ColorPropertiesToSet)
+            {
+                if (!dstMaterial.HasProperty(prop.Key))
+                    continue;
+
                 dstMaterial.SetColor(prop.Key, prop.Value);
+            }
+
             foreach (var t in m_KeywordFloatRename)
+            {
+                if (!dstMaterial.HasProperty(t.property))
+                    continue;
+
                 dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
+            }
         }
 
         /// <summary>
@@ -260,6 +299,17 @@ namespace UnityEditor.Rendering
             AssetDatabase.Refresh();
         }
 
+        private static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
+        {
+            if (material == null)
+                return false;
+
+            if (material.shader == null)
+                return false;
+
+            return !shaderNamesToIgnore.Contains(material.shader.name);
+        }
+
         /// <summary>
         /// Upgrade the project folder.
         /// </summary>
@@ -267,6 +317,19 @@ namespace UnityEditor.Rendering
         /// <param name="progressBarName">Name of the progress bar.</param>
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
+        {
+            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
+            UpgradeProjectFolder(upgraders, shaderNamesToIgnore, progressBarName, flags);
+        }
+
+        /// <summary>
+        /// Upgrade the project folder.
+        /// </summary>
+        /// <param name="upgraders">List of upgraders.</param>
+        /// <param name="shaderNamesToIgnore">Set of shader names to ignore.</param>
+        /// <param name="progressBarName">Name of the progress bar.</param>
+        /// <param name="flags">Material Upgrader flags.</param>
+        public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
             if (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
@@ -277,7 +340,7 @@ namespace UnityEditor.Rendering
                 if (IsMaterialPath(s))
                     totalMaterialCount++;
             }
-
+            
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
@@ -288,6 +351,10 @@ namespace UnityEditor.Rendering
                         break;
 
                     Material m = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path) as Material;
+
+                    if (!ShouldUpgradeShader(m, shaderNamesToIgnore))
+                        continue;
+                    
                     Upgrade(m, upgraders, flags);
 
                     //SaveAssetsAndFreeMemory();
@@ -337,6 +404,19 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void UpgradeSelection(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
+            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
+            UpgradeSelection(upgraders, shaderNamesToIgnore, progressBarName, flags);
+        }
+
+        /// <summary>
+        /// Upgrade the selection.
+        /// </summary>
+        /// <param name="upgraders">List of upgraders.</param>
+        /// <param name="shaderNamesToIgnore">Set of shader names to ignore.</param>
+        /// <param name="progressBarName">Name of the progress bar.</param>
+        /// <param name="flags">Material Upgrader flags.</param>
+        public static void UpgradeSelection(List<MaterialUpgrader> upgraders, HashSet<string> shaderNamesToIgnore, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
+        {
             var selection = Selection.objects;
 
             if (selection == null)
@@ -371,6 +451,10 @@ namespace UnityEditor.Rendering
                     break;
 
                 var material = selectedMaterials[i];
+
+                if (!ShouldUpgradeShader(material, shaderNamesToIgnore))
+                    continue;
+
                 Upgrade(material, upgraders, flags);
                 if (material != null)
                     lastMaterialName = material.name;
