@@ -89,6 +89,7 @@ TEXTURE3D(_VBufferLightingHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 TEXTURE2D_ARRAY(_CmjPointSet);
 
+// Shared with VolumeVoxelization.compute.
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
@@ -98,7 +99,6 @@ CBUFFER_START(UnityVolumetricLighting)
     float    _CornetteShanksConstant;
     uint     _VBufferLightingHistoryIsValid;
 
-    float4   _VBufferSampleOffset;
     float4   _VolumeMaskDimensions;             // Not used by this shader
 
     // BigTile...
@@ -120,6 +120,7 @@ struct JitteredRay
     float3 jitterDirWS;
     float3 xDirDerivWS;
     float3 yDirDerivWS;
+    float  zOffset;
 };
 
 struct VoxelLighting
@@ -154,7 +155,7 @@ float ComputeHistoryWeight()
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
-                                               JitteredRay ray, float t0, float t1, float dt, float extinction, float anisotropy, float jitter)
+                                               JitteredRay ray, float t0, float t1, float dt, float extinction, float anisotropy)
 {
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
@@ -165,7 +166,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
     const float NdotL = 1;
 
     float tOffset, weight;
-    ImportanceSampleHomogeneousMedium(jitter, extinction, dt, tOffset, weight);
+    ImportanceSampleHomogeneousMedium(ray.zOffset, extinction, dt, tOffset, weight);
 
     float t = t0 + tOffset;
     posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
@@ -255,8 +256,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureFlags, PositionInputs posInput,
                                          uint lightCount, uint lightStart, float3 centerWS,
-                                         JitteredRay ray, float t0, float t1, float dt, float extinction, float anisotropy,
-                                         float jitter)
+                                         JitteredRay ray, float t0, float t1, float dt, float extinction, float anisotropy)
 {
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
@@ -320,7 +320,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float lightSqRadius = light.size.x;
 
                 float t, distSq, rcpPdf;
-                ImportanceSamplePunctualLight(jitter, light.positionRWS, lightSqRadius,
+                ImportanceSamplePunctualLight(ray.zOffset, light.positionRWS, lightSqRadius,
                                               ray.originWS, ray.jitterDirWS,
                                               tEntr, tExit,
                                               t, distSq, rcpPdf);
@@ -399,7 +399,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             if (sampleLight)
             {
                 float tOffset, weight;
-                ImportanceSampleHomogeneousMedium(jitter, extinction, tExit - tEntr, tOffset, weight);
+                ImportanceSampleHomogeneousMedium(ray.zOffset, extinction, tExit - tEntr, tOffset, weight);
 
                 // Compute transmittance from 't0' to 'tEntr'.
                 weight *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
@@ -535,23 +535,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         VoxelLighting aggregateLighting;
         ZERO_INITIALIZE(VoxelLighting, aggregateLighting);
 
-
-    #if ENABLE_REPROJECTION
-        // 16 * 16x16x64 = 64x64x64.
-        float3 jitter = LOAD_TEXTURE2D_ARRAY(_CmjPointSet, voxelCoord.xy & 15, voxelCoord.z & 63).xyz; // TODO: shuffle
-
-        // Transform: [0, 1] -> [-0.5, 0.5).
-        ray.jitterDirWS = normalize(ray.centerDirWS + (jitter.x - 0.5) * ray.xDirDerivWS
-                                                    + (jitter.y - 0.5) * ray.yDirDerivWS);
-    #else
-        float3 jitter = float3(0, 0, 0.5);
-    #endif
-
         if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
             VoxelLighting lighting = EvaluateVoxelLightingDirectional(context, featureFlags, posInput,
                                                                       centerWS, ray, t0, t1, dt,
-                                                                      extinction, anisotropy, jitter.z);
+                                                                      extinction, anisotropy);
 
             aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
             aggregateLighting.radianceComplete += lighting.radianceComplete;
@@ -562,7 +550,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
             VoxelLighting lighting = EvaluateVoxelLightingLocal(context, featureFlags, posInput,
                                                                 lightCount, lightStart,
                                                                 centerWS, ray, t0, t1, dt,
-                                                                extinction, anisotropy, jitter.z);
+                                                                extinction, anisotropy);
 
             aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
             aggregateLighting.radianceComplete += lighting.radianceComplete;
@@ -716,7 +704,6 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     JitteredRay ray;
     ray.originWS    = GetCurrentViewPosition();
     ray.centerDirWS = rayDirWS;        // Normalized
-    ray.jitterDirWS = ray.centerDirWS; // Set up later
 
     // Does not work with oblique near planes, tilt shift, etc...
     float FdotV            = dot(F, rayDirWS);
@@ -724,6 +711,31 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     ray.xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize); // Normalize & rescale
     ray.yDirDerivWS = cross(ray.xDirDerivWS, rayDirWS); // Will have the length of 'unitDistFaceSize' by construction
+
+ #if ENABLE_REPROJECTION
+    uint arraySlice = _FrameCount & 15; // 16 slices in total
+#else
+    uint arraySlice = 0;                // Non-temporal noise pattern
+#endif
+
+    // We only offset the ray, not the individual samples.
+    // This helps preserve stratification along the ray.
+    // Basically, we implement Interleaved Sampling (use a unique pattern
+    // for a block of pixels rather than a single pixel) combined with
+    // Cranley-Patterson Rotation (toroidal shift) along the ray.
+    // See "Blue Noise Dithered Sampling", slide 33.
+    float3 rayOffset;
+
+    // There are 16x screen-space masks of size 16x16.
+    rayOffset = LOAD_TEXTURE2D_ARRAY(_CmjPointSet, voxelCoord.xy & 15, arraySlice).xyz; // TODO: shuffle
+    rayOffset.xy -= 0.5; // Transform: [0, 1] -> [-0.5, 0.5)
+
+    // TODO: we use 'ray.zOffset' as a random number in a bunch of places as is.
+    // Perhaps it's worth to transform it to reduce the amount of correlation?
+    // Basically, don't use it as is in a bunch of places...
+    ray.zOffset     = rayOffset.z;
+    ray.jitterDirWS = normalize(ray.centerDirWS + rayOffset.x * ray.xDirDerivWS
+                                                + rayOffset.y * ray.yDirDerivWS);
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 

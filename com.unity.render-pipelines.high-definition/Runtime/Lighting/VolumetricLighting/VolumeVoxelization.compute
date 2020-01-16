@@ -59,6 +59,7 @@ TEXTURE3D(_VolumeMaskAtlas);
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
+// Shared with VolumetricLighting.compute.
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
     float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
@@ -68,7 +69,6 @@ CBUFFER_START(UnityVolumetricLighting)
     float    _CornetteShanksConstant;           // Not used by this shader
     uint     _VBufferLightingHistoryIsValid;    // Not used by this shader
 
-    float4   _VBufferSampleOffset;              // Not used by this shader
     float4   _VolumeMaskDimensions;             // x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
 
     // BigTile...
@@ -359,20 +359,20 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
-    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
+    float3 rayDirWS       = normalize(mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz);
     float3 rightDirWS     = cross(rayDirWS, U);
-    float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
     float  rcpLenRightDir = rsqrt(dot(rightDirWS, rightDirWS));
 
     JitteredRay ray;
     ray.originWS    = GetCurrentViewPosition();
-    ray.centerDirWS = rayDirWS * rcpLenRayDir; // Normalize
+    ray.centerDirWS = rayDirWS;        // Normalized
 
-    float FdotD = dot(F, ray.centerDirWS);
-    float unitDistFaceSize = _VBufferUnitDepthTexelSpacing * FdotD * rcpLenRayDir;
+    // Does not work with oblique near planes, tilt shift, etc...
+    float FdotV            = dot(F, rayDirWS);
+    float unitDistFaceSize = _VBufferUnitDepthTexelSpacing * FdotV;
 
     ray.xDirDerivWS = rightDirWS * (rcpLenRightDir * unitDistFaceSize); // Normalize & rescale
-    ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
+    ray.yDirDerivWS = cross(ray.xDirDerivWS, rayDirWS); // Will have the length of 'unitDistFaceSize' by construction
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);

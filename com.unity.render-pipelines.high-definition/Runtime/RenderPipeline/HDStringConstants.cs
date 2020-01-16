@@ -505,7 +505,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferLightingHistory            = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingHistoryIsValid     = Shader.PropertyToID("_VBufferLightingHistoryIsValid");
         public static readonly int _VBufferLightingFeedback           = Shader.PropertyToID("_VBufferLightingFeedback");
-        public static readonly int _VBufferSampleOffset               = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
         public static readonly int _NumVisibleDensityVolumes          = Shader.PropertyToID("_NumVisibleDensityVolumes");

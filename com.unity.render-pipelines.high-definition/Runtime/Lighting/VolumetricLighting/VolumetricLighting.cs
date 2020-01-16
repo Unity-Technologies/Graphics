@@ -183,9 +183,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Vector4[] m_PackedCoeffs;
         ZonalHarmonicsL2 m_PhaseZH;
-        Vector2[] m_xySeq;
 
-        static Texture2DArray[] s_CmjPointSets = new Texture2DArray[CmjPointSet.k_NumFrames];
+        static Texture2DArray s_CmjPointSet = null;
 
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
         // Each of them is the centroid of the interval of length 2/14.
@@ -223,33 +222,28 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PhaseZH = new ZonalHarmonicsL2();
             m_PhaseZH.coeffs = new float[3];
 
-            m_xySeq = new Vector2[7];
-
             m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
             Color[] points = new Color[CmjPointSet.k_Width * CmjPointSet.k_Height];
 
-            for (int t = 0; t < CmjPointSet.k_NumFrames; t++) // Loop over frames
+            // Want a 10 bpc texture, but creating a GraphicsFormat.A2B10G10R10_UNormPack32 texture fails... :-(
+            s_CmjPointSet = new Texture2DArray(CmjPointSet.k_Width, CmjPointSet.k_Height, CmjPointSet.k_NumTables, TextureFormat.RGBA32, false, true)
             {
-                // Creating a GraphicsFormat.A2B10G10R10_UNormPack32 texture fails... :-(
-                s_CmjPointSets[t] = new Texture2DArray(CmjPointSet.k_Width, CmjPointSet.k_Height, CmjPointSet.k_Depth, TextureFormat.RGBA32, false, true)
-                {
-                    hideFlags = HideFlags.HideAndDontSave,
-                    name = "CMJ Point Set " + t + "/16"
-                };
+                hideFlags = HideFlags.HideAndDontSave,
+                name = "CMJ Point Set"
+            };
 
-                for (int z = 0; z < CmjPointSet.k_Depth; z++) // Loop over slices
+            for (int t = 0; t < CmjPointSet.k_NumTables; t++) // Loop over slices
+            {
+                for (int i = 0; i < CmjPointSet.k_Width * CmjPointSet.k_Height; i++)
                 {
-                    for (int i = 0; i < CmjPointSet.k_Width * CmjPointSet.k_Height; i++)
-                    {
-                        points[i] = new Color(CmjPointSet.s_Data[t, z, i, 0], CmjPointSet.s_Data[t, z, i, 1], CmjPointSet.s_Data[t, z, i, 2]);
-                    }
-
-                    s_CmjPointSets[t].SetPixels(points, z);
+                    points[i] = new Color(CmjPointSet.s_Data[t, i, 0], CmjPointSet.s_Data[t, i, 1], CmjPointSet.s_Data[t, i, 2]);
                 }
 
-                s_CmjPointSets[t].Apply(false, true);
+                s_CmjPointSet.SetPixels(points, t);
             }
+
+            s_CmjPointSet.Apply(false, true);
 
             CreateVolumetricLightingBuffers();
         }
@@ -391,11 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: No need to test for support volumetric here, we do saferelease and null assignation
             DestroyVolumetricLightingBuffers();
 
-            for (int t = 0; t < CmjPointSet.k_NumFrames; t++)
-            {
-                s_CmjPointSets[t] = null;
-            }
-
+            s_CmjPointSet = null;
             m_VolumeVoxelizationCS = null;
             m_VolumetricLightingCS = null;
         }
@@ -527,6 +517,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthDecodingParams,    prevFrameParams.depthDecodingParams);
 
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                  m_LightingBufferHandle);
+
+
+            cmd.SetGlobalInt(   "frameIndex",                 frameIndex);
         }
 
         DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
@@ -737,7 +730,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              numBigTileX, numBigTileY;
             public float            unitDepthTexelSpacing;
             public float            anisotropy;
-            public Vector4          xySeqOffset;
             public bool             enableReprojection;
             public bool             historyIsValid;
             public int              viewCount;
@@ -784,12 +776,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTileY = GetNumTileBigTileY(hdCamera);
             parameters.filterVolume = fog.filter.value;
 
-            GetHexagonalClosePackedSpheres7(m_xySeq);
-            int sampleIndex = frameIndex % 7;
-            // TODO: should we somehow reorder offsets in Z based on the offset in XY? S.t. the samples more evenly cover the domain.
-            // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
-            parameters.xySeqOffset.Set(m_xySeq[sampleIndex].x, m_xySeq[sampleIndex].y, m_zSeq[sampleIndex], frameIndex);
-
             return parameters;
         }
 
@@ -812,16 +798,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeMatrixArrayParam(parameters.volumetricLightingCS, HDShaderIDs._VBufferCoordToViewDirWS, parameters.pixelCoordToViewDirWS);
             cmd.SetComputeFloatParam(parameters.volumetricLightingCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, parameters.unitDepthTexelSpacing);
             cmd.SetComputeFloatParam(parameters.volumetricLightingCS, HDShaderIDs._CornetteShanksConstant, CornetteShanksPhasePartConstant(parameters.anisotropy));
-            cmd.SetComputeVectorParam(parameters.volumetricLightingCS, HDShaderIDs._VBufferSampleOffset, parameters.xySeqOffset);
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferDensity, densityBuffer);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingIntegral, lightingBuffer); // Write
+            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, "_CmjPointSet", cmjPointSet);
 
             if (parameters.enableReprojection)
             {
                 cmd.SetComputeIntParam(parameters.volumetricLightingCS, HDShaderIDs._VBufferLightingHistoryIsValid, parameters.historyIsValid ? 1 : 0);
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingHistory, historyRT);  // Read
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferLightingFeedback, feedbackRT); // Write
-                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, "_CmjPointSet", cmjPointSet);
             }
 
             // The shader defines GROUP_SIZE_1D = 8.
@@ -855,9 +840,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
                 RTHandle feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
-                Texture2DArray cmjPointSet = s_CmjPointSets[frameIndex & 15]; // TODO: shuffle
+                if (!parameters.enableReprojection) frameIndex = 0;
 
-                VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, cmjPointSet, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, s_CmjPointSet, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
