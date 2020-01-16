@@ -127,18 +127,20 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
+#ifdef SUBPASS_INPUT_AVAILABLE
 #ifdef _MSAA_ENABLED
     for(int i = 0; i < _MSAASampleCount; ++i)
     {
         attenuation += UNITY_READ_FRAMEBUFFER_INPUT_MS(SHADOWINPUT, i, shadowCoord.xy).x;
     }
     attenuation /= _MSAASampleCount;
-#else
+#else //_MSAA_ENABLED
     attenuation = UNITY_READ_FRAMEBUFFER_INPUT(SHADOWINPUT, shadowCoord.xy).x;
+#endif //_MSAA_ENABLED
+#else //SUBPASS_INPUT_AVAILABLE
+    attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
+#endif //SUBPASS_INPUT_AVAILABLE
 #endif
-
-#endif
-
     return attenuation;
 }
 
@@ -181,7 +183,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 
     real attenuation;
     real shadowStrength = shadowParams.x;
-#if UNITY_UV_STARTS_AT_TOP
+#if UNITY_UV_STARTS_AT_TOP && defined(SUBPASS_INPUT_AVAILABLE)
     shadowCoord = shadowCoord * float4(1.0, -1.0, 1.0, 1.0) + float4(0.0, 1.0, 0.0, 0.0);
 #endif
     // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.

@@ -471,29 +471,14 @@ namespace UnityEngine.Rendering.Universal
             ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
             ref CameraData cameraData = ref renderingData.cameraData;
             if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
             {
                 m_FirstCameraRenderPassExecuted = true;
-//                Camera camera = cameraData.camera;
-//                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-//                context.ExecuteCommandBuffer(cmd);
-//                cmd.Clear();
-//
-//                if (cameraData.isStereoEnabled)
-//                {
-//                    context.StartMultiEye(cameraData.camera);
-//                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-//                }
+
             }
-//            if (!renderPass.overrideCameraTarget)
-//            {
-//                passColorAttachment = m_CameraColorTarget;
-//                passDepthAttachment = m_CameraDepthTarget;
-//            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -519,41 +504,49 @@ namespace UnityEngine.Rendering.Universal
                 passDepthAttachment = m_CameraDepthTarget;
             }
 
+            Camera camera = cameraData.camera;
+            ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
             if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
             {
                 m_FirstCameraRenderPassExecuted = true;
 
-                Camera camera = cameraData.camera;
-                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-
                 // Overlay cameras composite on top of previous ones. They don't clear.
                 // MTT: Commented due to not implemented yet
-//                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
-//                    clearFlag = ClearFlag.None;
 
-            //    SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-            //        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-//                context.ExecuteCommandBuffer(cmd);
-//                cmd.Clear();
-//
-//                if (cameraData.isStereoEnabled)
-//                {
-//                    context.StartMultiEye(cameraData.camera);
-//                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-//                }
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                if (cameraData.isStereoEnabled)
+                {
+                    context.StartMultiEye(cameraData.camera);
+                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                }
             }
 
             // Only setup render target if current render pass attachments are different from the active ones
-//            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
-//            {
-//                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
-//            }
+            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            {
+                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+            }
 
             context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
+
+            context.ExecuteCommandBuffer(cmd);
+
+            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            {
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));            }
+            context.ExecuteCommandBuffer(cmd);
+
+
+            CommandBufferPool.Release(cmd);
 
         }
 

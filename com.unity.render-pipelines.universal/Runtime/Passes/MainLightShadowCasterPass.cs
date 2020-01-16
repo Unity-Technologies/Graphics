@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
+            overrideCameraTarget = true;
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];

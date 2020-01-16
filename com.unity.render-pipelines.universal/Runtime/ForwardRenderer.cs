@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
           //  m_CameraColorAttachment.InitDescriptor(cameraTargetDescriptor.colorFormat);
 
-            // Special path for depth only offscreen cameras. Only write opaques + transparents. 
+            // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-            
+
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
 
@@ -216,13 +216,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DepthPrepass.Setup(desc, m_DepthTexture);
                 m_DepthPrepass.Configure(cmd, desc);
-                context.ExecuteCommandBuffer(cmd);
+                context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
                 cmd.Clear();
                 SetBlockDescriptor(RenderPassBlock.BeforeRendering, desc.width, desc.height, 1);
                 EnqueuePass(m_DepthPrepass);
             }
 
-            m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment); //check if ok with no renderpass
 
             if (desc.msaaSamples > 1)
             {
@@ -234,14 +234,13 @@ namespace UnityEngine.Rendering.Universal
             if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(desc);
-                m_ScreenSpaceShadowResolvePass.Configure(cmd, desc);
+                m_ScreenSpaceShadowResolvePass.Configure(cmd, desc); //TODO: investigate why this needs to be commented when not using RenderPass
 
                 m_RenderOpaqueForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
                 m_RenderTransparentForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
 
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+
             }
 
             SetBlockDescriptor(RenderPassBlock.MainRendering, desc.width, desc.height, desc.msaaSamples);
@@ -327,12 +326,8 @@ namespace UnityEngine.Rendering.Universal
                     if (requiresFinalPostProcessPass)
                     {
                         m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, true);
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
                         EnqueuePass(m_PostProcessPass);
                         m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
@@ -346,8 +341,6 @@ namespace UnityEngine.Rendering.Universal
 
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, desc.msaaSamples == 1 ? m_ActiveCameraColorAttachment : m_MsaaResolveTarget);
                     m_FinalBlitPass.ConfigureColorAttachment(RenderTargetHandle.CameraTarget);
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
@@ -446,7 +439,7 @@ namespace UnityEngine.Rendering.Universal
             QualitySettings.antiAliasing = msaaSamples;
 #endif
         }
-        
+
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             ref CameraData cameraData = ref renderingData.cameraData;

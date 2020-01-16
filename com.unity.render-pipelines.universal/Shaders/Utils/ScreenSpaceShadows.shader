@@ -61,7 +61,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 //TODO: same as everywhere, though UNITY_FRAMEBUFFER_FETCH_AVAILABLE is used mostly as !UNITY_EDITOR, as metal behaves differently on mobile
-#if UNITY_UV_STARTS_AT_TOP && defined(UNITY_FRAMEBUFFER_FETCH_AVAILABLE)
+#if UNITY_UV_STARTS_AT_TOP && defined(SUBPASS_INPUT_AVAILABLE)
             if (_ProjectionParams.x > 0)
             {
               input.uv.xy = input.uv.xy * float2(1.0, -1.0) + float2(0.0, 1.0);
