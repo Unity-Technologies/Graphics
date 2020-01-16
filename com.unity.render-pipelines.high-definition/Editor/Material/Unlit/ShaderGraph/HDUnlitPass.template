@@ -34,7 +34,7 @@ Pass
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
-    $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
+    #pragma shader_feature_local        _ENABLE_FOG_ON_TRANSPARENT
     $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
     $EnableShadowMatte:                 #define _ENABLE_SHADOW_MATTE
 

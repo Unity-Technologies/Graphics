@@ -9,11 +9,18 @@
 #pragma kernel KMainNear          MAIN=KMainNear        NEAR
 #pragma kernel KMainNearTiles     MAIN=KMainNearTiles   NEAR USE_TILES
 
+#pragma kernel KMainFarAlpha           MAIN=KMainFarAlpha         FAR ENABLE_ALPHA
+#pragma kernel KMainFarTilesAlpha      MAIN=KMainFarTilesAlpha    FAR USE_TILES ENABLE_ALPHA
+#pragma kernel KMainNearAlpha          MAIN=KMainNearAlpha        NEAR ENABLE_ALPHA
+#pragma kernel KMainNearTilesAlpha     MAIN=KMainNearTilesAlpha   NEAR USE_TILES ENABLE_ALPHA
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
 TEXTURE2D_X(_InputDilatedCoCTexture);
 
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 RW_TEXTURE2D_X(float, _OutputAlphaTexture);
 
 SAMPLER(sampler_LinearClamp);
@@ -103,6 +110,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
     float4 acc = 0.0;
     float nearWeightAcc = 0.0;
+    float accAlpha = 0.0;
 
     // Gather samples
     UNITY_LOOP
@@ -118,32 +126,49 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         sampTap = sampTap * sampDist * clipping + uv;
         sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
 
-        float3 sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).xyz;
+        CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
-
+    
         #if NEAR
         {
             float weight = saturate(1.0 - (sampCoC - samp0CoC));
-            acc += float4(sampColor, sampCoC > 0.0) * weight;
+            acc += float4(sampColor.xyz, sampCoC > 0.0) * weight;
             nearWeightAcc += weight;
+
+#ifdef ENABLE_ALPHA
+            accAlpha += sampColor.w * weight;
+#endif
         }
         #else // FAR
         {
             // Weight & pre-multiply to limit bleeding on the focused area
             float weight = saturate(1.0 - (samp0CoC - sampCoC));
-            acc += float4(sampColor, sampCoC) * weight;
+            acc += float4(sampColor.xyz, sampCoC)* weight;
+
+#ifdef ENABLE_ALPHA
+            accAlpha += sampColor.w * weight;
+#endif
         }
         #endif
     }
-
 
 #if NEAR
     float alpha = saturate(sqrt((acc.w / TotalSampleCount) * PI));
     alpha = smoothstep(0.0, 1.0, alpha);
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (nearWeightAcc + 1e-5); // zero-div guard
+    #ifdef ENABLE_ALPHA
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(acc.xyz, accAlpha) / (nearWeightAcc + 1e-5); // zero-div guard
+    #else
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (nearWeightAcc + 1e-5); // zero-div guard
+    #endif
+
     _OutputAlphaTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = alpha;
 #else // FAR
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (acc.w + 1e-5); // zero-div guard
+    #ifdef ENABLE_ALPHA
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(acc.xyz, accAlpha) / (acc.w + 1e-5); // zero-div guard
+    #else
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (acc.w + 1e-5); // zero-div guard
+    #endif
 #endif
+
 }

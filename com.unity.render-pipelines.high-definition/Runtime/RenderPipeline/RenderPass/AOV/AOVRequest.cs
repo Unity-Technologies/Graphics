@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Since 2019.3, use AOVRequest.NewDefault() instead.")]
         public static readonly AOVRequest @default = default;
         /// <summary>Default settings.</summary>
+        /// <returns></returns>
         public static AOVRequest NewDefault() => new AOVRequest
         {
             m_MaterialProperty = MaterialSharedProperty.None,
@@ -63,6 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
+        /// <param name="materialProperty">The property to render.</param>
+        /// <returns>A ref return to chain calls.</returns>
         public ref AOVRequest SetFullscreenOutput(MaterialSharedProperty materialProperty)
         {
             m_MaterialProperty = materialProperty;
@@ -70,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
+        /// <param name="lightingProperty">The property to render.</param>
+        /// <returns>A ref return to chain calls.</returns>
         public ref AOVRequest SetFullscreenOutput(LightingProperty lightingProperty)
         {
             m_LightingProperty = lightingProperty;
@@ -77,6 +82,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
+        /// <param name="debugFullScreen">The property to render.</param>
+        /// <returns>A ref return to chain calls.</returns>
         public ref AOVRequest SetFullscreenOutput(DebugFullScreen debugFullScreen)
         {
             m_DebugFullScreen = debugFullScreen;
@@ -84,12 +91,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Set the light filter to use.</summary>
+        /// <param name="filter">The light filter to use</param>
+        /// <returns>A ref return to chain calls.</returns>
         public ref AOVRequest SetLightFilter(DebugLightFilterMode filter)
         {
             m_LightFilterProperty = filter;
             return ref *thisPtr;
         }
 
+        /// <summary>
+        /// Populate the debug display settings with the AOV data.
+        /// </summary>
+        /// <param name="debug">The debug display settings to fill.</param>
         public void FillDebugData(DebugDisplaySettings debug)
         {
             debug.SetDebugViewCommonMaterialProperty(m_MaterialProperty);

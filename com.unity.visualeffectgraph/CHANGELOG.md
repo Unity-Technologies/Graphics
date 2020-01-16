@@ -19,8 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New quad distortion output for particle strips
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
+- Naming for particles system and spawn context
 
 ### Fixed
+- Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
@@ -47,6 +49,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraph operators appear on drag edge on graph.
 - Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 - Removed Unnecessary reference to HDRP Runtime Assembly in VFX Runtime Assembly
+- Allow alpha clipping of motion vector for transparent outputs [Case 1192930] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192930/)
+- subgraph block into subgraph context no longer forget parameter values.
+- Fix exception when compiling an asset with a turbulence block in absolute mode
+- Fixed GetCustomAttribute that was locked to Current
+- Shader compilation now works when using view direction in shader graph
+- Fix for destroying selected component corrupt "Play Controls" window
+- Depth Position and Collision blocks now work correctly in local space systems
+- Filter out Direction type on inconsistent operator [Case 1201681](https://issuetracker.unity3d.com/product/unity/issues/guid/1201681/)
+- Exclude MouseEvent, RigidBodyCollision, TriggerEvent & Sphere binders when physics modules isn't available
+- Visual Effect Activation Track : Handle empty string in ExposedProperty
+- in some cases AABox position gizmo would not move when dragged.
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now save your graph as a new Asset.
 - Added support for vertex skinning when you use the DOTS animation package.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
+- When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
 - Fixed a bug where the redo functionality in Shader Graph often didn't work.
+- Fixed a bug where you could drag the Blackboard into a graph even when you disabled the Blackboard.
 - Documentation links on nodes now point to the correct URLs and package versions.
 
 ### Fixed

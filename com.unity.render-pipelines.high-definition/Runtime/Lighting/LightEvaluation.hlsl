@@ -230,11 +230,11 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     return color;
 }
 
-float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
+DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                  DirectionalLightData light, BuiltinData builtinData, float3 N)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    float shadow     = 1.0;
+    DirectionalShadowType shadow = 1.0;
     float shadowMask = 1.0;
     float NdotL      = dot(N, -light.forward); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
@@ -448,7 +448,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 #endif
 
 #if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
-    if(light.screenSpaceShadowIndex >= 0)
+    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
     }

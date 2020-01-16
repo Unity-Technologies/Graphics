@@ -2,10 +2,16 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Utility class providing default textures compatible in any XR setup.
+    /// </summary>
     public static class TextureXR
     {
         // Property set by XRSystem
         private static int m_MaxViews = 1;
+        /// <summary>
+        /// Maximum number of views handled by the XR system.
+        /// </summary>
         public static int maxViews
         {
             set
@@ -15,9 +21,15 @@ namespace UnityEngine.Rendering
         }
 
         // Property accessed when allocating a render target
+        /// <summary>
+        /// Number of slices used by the XR system.
+        /// </summary>
         public static int slices { get => m_MaxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
+        /// <summary>
+        /// Returns true if the XR system uses texture arrays.
+        /// </summary>
         public static bool useTexArray
         {
             get
@@ -39,6 +51,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Dimension of XR textures.
+        /// </summary>
         public static TextureDimension dimension
         {
             get
@@ -53,31 +68,60 @@ namespace UnityEngine.Rendering
         static Texture      m_BlackUIntTexture;
         static RTHandle     m_BlackUIntTexture2DArrayRTH;
         static RTHandle     m_BlackUIntTextureRTH;
+        /// <summary>
+        /// Default black unsigned integer texture.
+        /// </summary>
+        /// <returns>The default black unsigned integer texture.</returns>
         public static RTHandle  GetBlackUIntTexture() { return useTexArray ? m_BlackUIntTexture2DArrayRTH : m_BlackUIntTextureRTH; }
 
         static Texture2DArray   m_ClearTexture2DArray;
         static Texture2D        m_ClearTexture;
         static RTHandle         m_ClearTexture2DArrayRTH;
         static RTHandle         m_ClearTextureRTH;
+        /// <summary>
+        /// Default clear color (0, 0, 0, 1) texture.
+        /// </summary>
+        /// <returns>The default clear color texture.</returns>
         public static RTHandle GetClearTexture() { return useTexArray ? m_ClearTexture2DArrayRTH : m_ClearTextureRTH; }
 
         static Texture2DArray   m_MagentaTexture2DArray;
         static Texture2D        m_MagentaTexture;
         static RTHandle         m_MagentaTexture2DArrayRTH;
         static RTHandle         m_MagentaTextureRTH;
+        /// <summary>
+        /// Default magenta texture.
+        /// </summary>
+        /// <returns>The default magenta texture.</returns>
         public static RTHandle GetMagentaTexture() { return useTexArray ? m_MagentaTexture2DArrayRTH : m_MagentaTextureRTH; }
 
         static Texture2DArray   m_BlackTexture2DArray;
         static RTHandle         m_BlackTexture2DArrayRTH;
         static RTHandle         m_BlackTextureRTH;
+        /// <summary>
+        /// Default black texture.
+        /// </summary>
+        /// <returns>The default black texture.</returns>
         public static RTHandle GetBlackTexture() { return useTexArray ? m_BlackTexture2DArrayRTH : m_BlackTextureRTH; }
+        /// <summary>
+        /// Default black texture array.
+        /// </summary>
+        /// <returns>The default black texture array.</returns>
         public static RTHandle GetBlackTextureArray() { return m_BlackTexture2DArrayRTH; }
 
         static Texture2DArray   m_WhiteTexture2DArray;
         static RTHandle         m_WhiteTexture2DArrayRTH;
         static RTHandle         m_WhiteTextureRTH;
+        /// <summary>
+        /// Default white texture.
+        /// </summary>
+        /// <returns>The default white texture.</returns>
         public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
 
+        /// <summary>
+        /// Initialize XR textures. Must be called at least once.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to initialize textures.</param>
+        /// <param name="clearR32_UIntShader">Compute shader used to intitialize unsigned integer textures.</param>
         public static void Initialize(CommandBuffer cmd, ComputeShader clearR32_UIntShader)
         {
             if (m_BlackUIntTexture2DArray == null) // We assume that everything is invalid if one is invalid.

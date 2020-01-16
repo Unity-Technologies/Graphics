@@ -31,6 +31,7 @@ Pass
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
@@ -40,7 +41,6 @@ Pass
     $Material.Anisotropy:                #define _MATERIAL_FEATURE_ANISOTROPY 1
     $Material.Iridescence:               #define _MATERIAL_FEATURE_IRIDESCENCE 1
     $Material.SpecularColor:             #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
-    $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
     $AmbientOcclusion:                   #define _AMBIENT_OCCLUSION 1
     $SpecularOcclusionFromAO:            #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal:  #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1

@@ -381,7 +381,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 validSlots.Add(slots[i]);
             }
-            return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            var slotRequirements = validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+
+            return slotRequirements | (transparencyFog.isOn ? NeededCoordinateSpace.World : 0);
         }
 
          public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
@@ -488,7 +490,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                false
+                false,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSided.isOn ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);

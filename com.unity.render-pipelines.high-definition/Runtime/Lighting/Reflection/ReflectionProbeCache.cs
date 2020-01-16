@@ -1,13 +1,10 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class ReflectionProbeCache
     {
-        internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
-        internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");
-        internal static readonly int s_FaceIndexID = Shader.PropertyToID("_FaceIndex");
-
         enum ProbeFilteringState
         {
             Convolving,
@@ -26,16 +23,16 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
-        public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
+        public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
             m_CubeToPano = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
             // BC6H requires CPP feature not yet available
-            probeFormat = TextureFormat.RGBAHalf;
+            probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-            Debug.Assert(probeFormat == TextureFormat.BC6H || probeFormat == TextureFormat.RGBAHalf, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
+            Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
@@ -43,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeFormat, isMipmaped, m_CubeToPano);
             m_IBLFilterBSDF = iblFilterBSDFArray;
 
-            m_PerformBC6HCompression = probeFormat == TextureFormat.BC6H;
+            m_PerformBC6HCompression = probeFormat == GraphicsFormat.RGB_BC6H_SFloat;
 
             InitializeProbeBakingStates();
         }
@@ -120,11 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // We can't use Graphics.ConvertTexture here because it does not work with a RenderTexture as destination.
         void ConvertTexture(CommandBuffer cmd, Texture input, RenderTexture target)
         {
-            m_ConvertTextureMPB.SetTexture(s_InputTexID, input);
-            m_ConvertTextureMPB.SetFloat(s_LoDID, 0.0f); // We want to convert mip 0 to whatever the size of the destination cache is.
+            m_ConvertTextureMPB.SetTexture(HDShaderIDs._InputTex, input);
+            m_ConvertTextureMPB.SetFloat(HDShaderIDs._LoD, 0.0f); // We want to convert mip 0 to whatever the size of the destination cache is.
             for (int f = 0; f < 6; ++f)
             {
-                m_ConvertTextureMPB.SetFloat(s_FaceIndexID, (float)f);
+                m_ConvertTextureMPB.SetFloat(HDShaderIDs._FaceIndex, (float)f);
                 CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, 0, (CubemapFace)f);
                 CoreUtils.DrawFullScreen(cmd, m_ConvertTextureMaterial, m_ConvertTextureMPB);
             }
@@ -210,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
                 {
-                    using (new ProfilingSample(cmd, "Convolve Reflection Probe"))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvolveReflectionProbe)))
                     {
                         // For now baking is done directly but will be time sliced in the future. Just preparing the code here.
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Convolving;
