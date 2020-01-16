@@ -179,7 +179,11 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                     cmd.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                     cmd.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                     cmd.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
-                    cmd.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
+
+                    if (light.volumeOpacity > 0.0f && light.GetTopMostLitLayer() == layerToRender)
+                        cmd.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
+                    else
+                        cmd.SetGlobalFloat("_VolumeOpacity", 0.0f);
 
                     cmd.DisableShaderKeyword("SPRITE_LIGHT");
                     cmd.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");

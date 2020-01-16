@@ -192,6 +192,7 @@ Shader "Hidden/Light2D-Point"
             half	    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half	    _InverseHDREmulationScale;
             half        _IsFullSpotlight;
+            float       _VolumeOpacity;
 
             Varyings vert(Attributes input)
             {
@@ -248,10 +249,12 @@ Shader "Hidden/Light2D-Point"
                 lightColor.a = attenuation;
 #endif
 
+                half4 volumeColor = lightColor * _VolumeOpacity;
+
                 APPLY_NORMALS_LIGHTING_NEW(input, lightColor);
                 APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
-                return BlendLightingWithBaseColor(lightColor.rgb, input.gBufferUV);
+                return BlendLightingWithBaseColor(lightColor.rgb, input.gBufferUV) + volumeColor;
             }
             ENDHLSL
         }

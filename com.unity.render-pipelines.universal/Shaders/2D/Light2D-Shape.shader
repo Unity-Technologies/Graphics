@@ -159,6 +159,7 @@ Shader "Hidden/Light2D-Shape"
             float4 _LightColor;
             float  _FalloffDistance;
             float4 _FalloffOffset;
+            float   _VolumeOpacity;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -218,10 +219,13 @@ Shader "Hidden/Light2D-Shape"
                 color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
     #endif
 #endif
+
+                half4 volumeColor = color * _VolumeOpacity;
+
                 APPLY_NORMALS_LIGHTING_NEW(i, color);
                 //APPLY_SHADOWS(i, color, _ShadowIntensity);
 
-                return BlendLightingWithBaseColor(color.rgb, i.gBufferUV);
+                return BlendLightingWithBaseColor(color.rgb, i.gBufferUV) + volumeColor;
             }
             ENDHLSL
         }
