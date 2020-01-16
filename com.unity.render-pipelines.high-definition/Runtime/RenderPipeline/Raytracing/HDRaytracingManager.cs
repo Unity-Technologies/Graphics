@@ -439,6 +439,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingState = true;
         }
 
+        internal bool ValidRayTracingHistory(HDCamera hdCamera)
+        {
+            return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
+                && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
+        }
+
+        internal int RayTracingFrameIndex(HDCamera hdCamera)
+        {
+        #if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                return 0;
+            else
+        #endif
+            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+        }
+
         internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
