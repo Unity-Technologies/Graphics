@@ -3035,7 +3035,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DbufferManager.clearPropertyMaskBufferKernel,
                                 m_DbufferManager.propertyMaskBufferSize,
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)),
-                                renderContext, cmd);
+                                renderContext,
+                                m_SharedRTManager.GetDecalPrepassBuffer(),
+                                cmd);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
                 cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, m_SharedRTManager.GetDecalPrepassBuffer());
@@ -3091,6 +3093,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     int                         propertyMaskBufferSize,
                                     RendererList                meshDecalsRendererList,
                                     ScriptableRenderContext     renderContext,
+                                    RTHandle                    decalPrepassBuffer,
                                     CommandBuffer               cmd)
         {
             // for alpha compositing, color is cleared to 0, alpha to 1
@@ -3127,6 +3130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
+            cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, decalPrepassBuffer);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
             cmd.ClearRandomWriteTargets();

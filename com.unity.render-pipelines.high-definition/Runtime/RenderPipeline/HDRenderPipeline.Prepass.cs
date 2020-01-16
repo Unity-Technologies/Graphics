@@ -619,6 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     m_DbufferManager.propertyMaskBufferSize,
                                     resources.GetRendererList(data.meshDecalsRendererList),
                                     context.renderContext,
+                                    m_SharedRTManager.GetDecalPrepassBuffer(),
                                     context.cmd);
                 });
             }
