@@ -86,14 +86,14 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     }
 
 
-    static Dictionary<string,List<string>> dependantAssetCache;
+    static Dictionary<string,HashSet<string>> dependantAssetCache;
 
 
     static public void RecompileDependencies(VisualEffectObject visualEffectObject)
     {
         if( dependantAssetCache == null)
         {
-            dependantAssetCache = new Dictionary<string, List<string>>();
+            dependantAssetCache = new Dictionary<string, HashSet<string>>();
             //building cache
             foreach (var graph in VFXGraph.GetAllGraphs<VisualEffectAsset>())
             {
@@ -101,12 +101,12 @@ class VFXExternalShaderProcessor : AssetPostprocessor
                 {
                     foreach(var dep in graph.subgraphDependencies)
                     {
-                        List<string> dependencyList;
+                        HashSet<string> dependencyList;
 
                         string dependantGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep));
                         if( ! dependantAssetCache.TryGetValue(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)), out dependencyList))
                         {
-                            dependencyList = new List<string>();
+                            dependencyList = new HashSet<string>();
                             dependantAssetCache[dependantGUID] = dependencyList;
                         }
                         dependencyList.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(graph)));
@@ -117,7 +117,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 
 
         {
-            List<string> dependencyList;
+            HashSet<string> dependencyList;
             if( dependantAssetCache.TryGetValue(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(visualEffectObject)),out dependencyList))
             {
                 foreach(var dep in dependencyList.ToList())
@@ -139,7 +139,14 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
             {
                 if( dependantAssetCache != null)
-                    dependantAssetCache.Remove(AssetDatabase.AssetPathToGUID(assetPath));
+                {
+                    string guid = AssetDatabase.AssetPathToGUID(assetPath);
+                    dependantAssetCache.Remove(guid);
+                    foreach(var deps in dependantAssetCache.Values)
+                    {
+                        deps.Remove(guid);
+                    }
+                }
                 VisualEffectResource.DeleteAtPath(assetPath);
             }
         }
@@ -160,12 +167,12 @@ class VFXExternalShaderProcessor : AssetPostprocessor
                     {
                         foreach(var dep in resource.GetOrCreateGraph().subgraphDependencies)
                         {
-                            List<string> dependencyList;
+                            HashSet<string> dependencyList;
 
                             string dependantGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep));
                             if( ! dependantAssetCache.TryGetValue(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)), out dependencyList))
                             {
-                                dependencyList = new List<string>();
+                                dependencyList = new HashSet<string>();
                                 dependantAssetCache[dependantGUID] = dependencyList;
                             }
                             dependencyList.Add(assetGUID);
