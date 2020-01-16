@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug that caused problems with Blackboard property ordering.
 - Fixed a bug where the redo functionality in Shader Graph often didn't work.
 - Fixed a bug where you could drag the Blackboard into a graph even when you disabled the Blackboard.
+- Documentation links on nodes now point to the correct URLs and package versions.
 
 ### Fixed
 - You can now smoothly edit controls on the `Dielectric Specular` node.
