@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.LookDev
 {
+    /// <summary>state of the comparison gizmo of the LookDev</summary>
     [Serializable]
     public class ComparisonGizmoState
     {

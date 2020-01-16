@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId raytracingPassID = new ShaderTagId("Forward");
         RenderStateBlock m_RaytracingFlagStateBlock;
 
-        public void InitRecursiveRenderer()
+        void InitRecursiveRenderer()
         {
             m_RaytracingFlagStateBlock = new RenderStateBlock
             {
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        public void ReleaseRecursiveRenderer()
+        void ReleaseRecursiveRenderer()
         {
             if (m_RaytracingFlagMaterial != null)
             {
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
+        void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
         {
 
             // Clear our target
@@ -78,10 +78,10 @@ namespace UnityEngine.Rendering.HighDefinition
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
         }
 
-        public void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
+        void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
 
             // Check the validity of the state before computing the effect
             bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
@@ -94,8 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RayTracingShader forwardShader = m_Asset.renderPipelineRayTracingResources.forwardRaytracing;
             Shader raytracingMask = m_Asset.renderPipelineRayTracingResources.raytracingFlagMask;
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rtSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Grab the acceleration structure and the list of HD lights for the target camera
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();

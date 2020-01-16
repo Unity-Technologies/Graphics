@@ -29,6 +29,14 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     BuiltinData builtinData;
     bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
 
+#if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
+#if HAS_REFRACTION
+    rayIntersection.color *= lerp(surfaceData.transmittanceColor, float3(0.0, 0.0, 0.0), 1.0 - surfaceData.transmittanceMask);
+#else
+    rayIntersection.color *= (1.0 - builtinData.opacity);
+#endif
+    IgnoreHit();
+#else
     // If this fella is not opaque, then we ignore this hit
     if (!isVisible)
     {
@@ -40,4 +48,5 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         AcceptHitAndEndSearch();
     }
+#endif
 }

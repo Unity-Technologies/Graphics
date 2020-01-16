@@ -47,6 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
             public ComputeShader clearDispatchIndirectCS;
+            [Reload("Runtime/Lighting/LightLoop/ClearLightLists.compute")]
+            public ComputeShader clearLightListsCS;
             [Reload("Runtime/Lighting/LightLoop/builddispatchindirect.compute")]
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
@@ -206,6 +208,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
+            public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -254,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
+            public ComputeShader contrastAdaptiveSharpenCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -364,11 +370,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as RenderPipelineResources;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach (var field in typeof(RenderPipelineResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

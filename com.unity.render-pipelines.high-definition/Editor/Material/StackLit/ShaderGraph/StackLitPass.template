@@ -32,6 +32,7 @@ Pass
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions
@@ -117,7 +118,6 @@ Pass
     // _SURFACE_TYPE_TRANSPARENT
     // _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     // _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // handled in material.hlsl
-    // _ENABLE_FOG_ON_TRANSPARENT
 
     // // MaterialFeature used as shader feature
     // 
@@ -142,8 +142,6 @@ Pass
 
 
     // Common shader_features:
-
-    $AlphaFog:                                           #define _ENABLE_FOG_ON_TRANSPARENT
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR

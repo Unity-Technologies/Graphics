@@ -4,6 +4,7 @@
 // Some shader compiler don't support to do multiple ## for concatenation inside the same macro, it require an indirection.
 // This is the purpose of this macro
 #define MERGE_NAME(X, Y) X##Y
+#define CALL_MERGE_NAME(X, Y) MERGE_NAME(X, Y)
 
 // These define are use to abstract the way we sample into a cubemap array.
 // Some platform don't support cubemap array so we fallback on 2D latlong

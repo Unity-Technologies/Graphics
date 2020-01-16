@@ -25,38 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.ReadTexture(buffers.contactShadowsBuffer);
         }
 
-        class CopyStencilBufferPassData
-        {
-            public HDCamera hdCamera;
-            public RenderGraphResource depthStencilBuffer;
-            public RenderGraphMutableResource stencilBufferCopy;
-            public Material copyStencil;
-            public Material copyStencilForSSR;
-        }
-
-        RenderGraphResource CopyStencilBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, Material copyStencil, Material copyStencilForSSR)
-        {
-            // TODO: Move early out outside of the rendering function, otherwise we adds a pass for nothing.
-            using (var builder = renderGraph.AddRenderPass<CopyStencilBufferPassData>("Copy Stencil", out var passData))
-            {
-                passData.hdCamera = hdCamera;
-                passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
-                passData.stencilBufferCopy = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "CameraStencilCopy" }));
-                passData.copyStencil = copyStencil;
-                passData.copyStencilForSSR = copyStencilForSSR;
-
-                builder.SetRenderFunc(
-                (CopyStencilBufferPassData data, RenderGraphContext context) =>
-                {
-                    RTHandle depthBuffer = context.resources.GetTexture(data.depthStencilBuffer);
-                    RTHandle stencilCopy = context.resources.GetTexture(data.stencilBufferCopy);
-                    CopyStencilBufferIfNeeded(context.cmd, data.hdCamera, depthBuffer, stencilCopy, data.copyStencil, data.copyStencilForSSR);
-                });
-
-                return passData.stencilBufferCopy;
-            }
-        }
-
         class BuildGPULightListPassData
         {
             public LightDataGlobalParameters lightDataGlobalParameters;
@@ -73,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
+            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
@@ -287,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGraphResource result;
 
             // TODO RENDERGRAPH
-            //var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+            //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
             //{
             //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
@@ -410,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ComputeBuffer       visibleVolumeDataBuffer,
                                                     ComputeBuffer       bigTileLightListBuffer)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
                 {
@@ -459,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
-            if (Fog.IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 

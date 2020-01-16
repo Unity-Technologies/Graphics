@@ -2,8 +2,17 @@ using System;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Delegate utility class.
+    /// </summary>
     public static class DelegateUtility
     {
+        /// <summary>
+        /// Cast a delegate.
+        /// </summary>
+        /// <param name="source">Source delegate.</param>
+        /// <param name="type">Type of the delegate.</param>
+        /// <returns>Cast delegate.</returns>
         public static Delegate Cast(Delegate source, Type type)
         {
             if (source == null)

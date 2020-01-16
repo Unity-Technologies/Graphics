@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Build the frame passes. Allocated resources will be transferred to the returned value.</summary>
+        /// <returns>The built collection.</returns>
         public AOVRequestDataCollection Build()
         {
             var result = new AOVRequestDataCollection(m_AOVRequestDataData);

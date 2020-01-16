@@ -26,7 +26,7 @@ HDRP uses the ambient Light Probe as the final fallback for indirect diffuse lig
 
 * Volumetric fog if the Global Light Probe dimmer is set to a value above 0
 
-The ambient Light Probe can be static (generated only once) or dynamic (updated at run time).**Note**: If there is a **Light Probe group** in your Scene and you have computed **Global Illumination**, then the Ambient Light Probe only affects Mesh Renderers that have their **Light Probe Mode** set to **Off**, and that have **Volumetric fog** (if it’s enabled in the Scene).
+The ambient Light Probe can be static (generated only once) or dynamic (updated at runtime).**Note**: If there is a **Light Probe group** in your Scene and you have computed **Global Illumination**, then the Ambient Light Probe only affects Mesh Renderers that have their **Light Probe Mode** set to **Off**, and that have **Volumetric fog** (if it’s enabled in the Scene).
 
 ## Ambient Reflection Probe
 
@@ -47,7 +47,7 @@ The **Environment (HDRP)** section is at the top and has two settings that you c
 | **Profile**             | A [Volume Profile](Volume-Profile.html) for the sky. This Volume Profile must include at least one Sky Volume override. |
 | **Static Lighting Sky** | The sky to use for the Global Illumination simulation. The drop-down only contains sky types that the **Profile** includes. For example, if the **Profile** includes a **Gradient Sky** Volume override, you can select **Gradient Sky** from this drop-down.<br/>You can only edit this setting if you assign a Volume Profile to the **Profile** field. |
 
-You can assign the same Volume Profile to both the **Static Lighting Sky** field and a Volume in your Scene. If you do this, and use the same sky settings for the baked lighting and the visual background in the Volume, the baked lighting accurately matches the background at run time. If you want to control the light baking for the environment lighting separately to the visual background in your Scene, you can assign a different Volume Profile for each process.
+You can assign the same Volume Profile to both the **Static Lighting Sky** field and a Volume in your Scene. If you do this, and use the same sky settings for the baked lighting and the visual background in the Volume, the baked lighting accurately matches the background at runtime. If you want to control the light baking for the environment lighting separately to the visual background in your Scene, you can assign a different Volume Profile for each process.
 
 **Note**: Changes to the baking environment only affect baked lightmaps and Light Probes during the baking process.
 
@@ -57,7 +57,7 @@ You can assign the same Volume Profile to both the **Static Lighting Sky** field
 
 You can use the sky **Lighting Override Mask** in your Unity Project’s HDRP Asset to separate the Visual Environment from the environment lighting. If you set the **Lighting Override Mask** to **Nothing**, or to a group of Layers that have no Volumes on them, then no Layer acts as an override. This means that environment lighting comes from all Volumes that affect a Camera. If you set the **Lighting Override Mask** to include Layers that have Volumes on them, HDRP only uses Volumes on these Layers to calculate environment lighting.
 
-An example of where you would want to decouple the sky lighting from the visual sky, and use a different Volume Profile for each, is when you have an [HDRI Sky](Override-HDRI-Sky.html) that includes sunlight. To make the sun visible at run time in your application, your sky background must show an HDRI sky that features the sun. To achieve real-time lighting from the sun, you must use a Directional [Light](Light-Component.html) in your Scene and, for the baking process, use an HDRI sky that is identical to the first one but does not include the sun. If you were to use an HDRI sky that includes the sun to bake the lighting, the sun would contribute to the lighting twice (once from the Directional Light, and once from the baking process) and make the lighting look unrealistic.
+An example of where you would want to decouple the sky lighting from the visual sky, and use a different Volume Profile for each, is when you have an [HDRI Sky](Override-HDRI-Sky.html) that includes sunlight. To make the sun visible at runtime in your application, your sky background must show an HDRI sky that features the sun. To achieve real-time lighting from the sun, you must use a Directional [Light](Light-Component.html) in your Scene and, for the baking process, use an HDRI sky that is identical to the first one but does not include the sun. If you were to use an HDRI sky that includes the sun to bake the lighting, the sun would contribute to the lighting twice (once from the Directional Light, and once from the baking process) and make the lighting look unrealistic.
 
 ## HDRP built-in sky types
 
