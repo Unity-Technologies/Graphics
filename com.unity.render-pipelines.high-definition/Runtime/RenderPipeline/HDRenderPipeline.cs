@@ -2921,6 +2921,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderDepthPrepass( ScriptableRenderContext     renderContext,
                                         CommandBuffer               cmd,
                                         FrameSettings               frameSettings,
+                                        RenderTargetIdentifier[]    depthOnlyMrt,
                                         RenderTargetIdentifier[]    mrt,
                                         RTHandle                    depthBuffer,
                                         in RendererList             depthOnlyRendererList,
@@ -2931,10 +2932,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                         bool                        renderRayTracingPrepass
                                         )
         {
-            CoreUtils.SetRenderTarget(cmd, depthBuffer);
-
             if (hasDepthOnlyPass)
             {
+                if (depthOnlyMrt == null)
+                    CoreUtils.SetRenderTarget(cmd, depthBuffer);
+                else
+                    CoreUtils.SetRenderTarget(cmd, depthOnlyMrt, depthBuffer);
                 DrawOpaqueRendererList(renderContext, cmd, frameSettings, depthOnlyRendererList);
             }
 
@@ -2966,6 +2969,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(depthPrepassParameters.profilingId)))
             {
                 RenderDepthPrepass(renderContext, cmd, hdCamera.frameSettings,
+                                m_SharedRTManager.GetPrepassBuffersDepthOntyRT(hdCamera.frameSettings),
                                     m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings),
                                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                                     depthOnlyRendererList,

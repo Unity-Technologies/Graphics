@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool useRayTracing = passData.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
+                                    , null // TODO: Add DecalPrepassBuffer if decals are enabled or null
                                     , mrt
                                     , context.resources.GetTexture(data.depthBuffer)
                                     , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList

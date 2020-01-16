@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MSAASamples m_MSAASamples = MSAASamples.None;
 
         // Arrays of RTIDs that are used to set render targets (when MSAA and when not MSAA)
+        protected RenderTargetIdentifier[] m_RTIDs1Secondary = new RenderTargetIdentifier[1];
         protected RenderTargetIdentifier[] m_RTIDs1 = new RenderTargetIdentifier[1];
         protected RenderTargetIdentifier[] m_RTIDs2 = new RenderTargetIdentifier[2];
         protected RenderTargetIdentifier[] m_RTIDs3 = new RenderTargetIdentifier[3];
@@ -141,9 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     mrts.Add(m_NormalRT.nameID);
                 }
 
-                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
-                    mrts.Add(m_DecalPrePassBuffer.nameID);
-
                 switch (mrts.Count)
                 {
                     case 1:
@@ -152,12 +150,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     case 2:
                         mrts.CopyTo(m_RTIDs2);
                         return m_RTIDs2;
-                    case 3:
-                        mrts.CopyTo(m_RTIDs3);
-                        return m_RTIDs3;
                     default: throw new Exception("Unreachable");
                 }
             }
+        }
+
+        // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
+        public RenderTargetIdentifier[] GetPrepassBuffersDepthOntyRT(FrameSettings frameSettings)
+        {
+            if (!frameSettings.IsEnabled(FrameSettingsField.Decals)) return null;
+
+            m_RTIDs1Secondary[0] = m_DecalPrePassBuffer.nameID;
+            return m_RTIDs1Secondary;
         }
 
         // Function that will return the set of buffers required for the motion vector pass
