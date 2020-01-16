@@ -669,8 +669,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Analyze the projection matrix.
             // p[2][3] = (reverseZ ? 1 : -1) * (depth_0_1 ? 1 : 2) * (f * n) / (f - n)
             float scale     = projMatrix[2, 3] / (f * n) * (f - n);
-            bool  depth_0_1 = Mathf.Abs(scale) < 1.5f;
-            bool  reverseZ  = scale > 0;
+            bool depth_0_1 = Mathf.Abs(scale) < 1.5f;
+            bool reverseZ  = scale > 0;
             bool  flipProj  = invProjMatrix.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
 
             // http://www.humus.name/temp/Linearize%20depth.txt
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 viewDir = -viewConstants.viewMatrix.GetColumn(2);
             viewDir.Normalize();
-            Frustum.Create(frustum, viewProjMatrix, viewConstants.worldSpaceCameraPos, viewDir, n, f, depth_0_1, reverseZ);
+            Frustum.Create(frustum, viewProjMatrix, viewConstants.worldSpaceCameraPos, viewDir, n, f);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)

@@ -162,13 +162,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!lineBuffers.CheckAllocation(12))
                 return;
 
-            // Base
+            // Near
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[0], p1 = frustum.corners[1], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[1], p1 = frustum.corners[3], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[3], p1 = frustum.corners[2], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[2], p1 = frustum.corners[0], color = color });
 
-            // Top
+            // Far
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[4], p1 = frustum.corners[5], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[5], p1 = frustum.corners[7], color = color });
             lineBuffers.lineData.Add(new LineData { p0 = frustum.corners[7], p1 = frustum.corners[6], color = color });
