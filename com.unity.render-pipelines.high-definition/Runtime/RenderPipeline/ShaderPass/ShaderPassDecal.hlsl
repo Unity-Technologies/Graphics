@@ -3,7 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
@@ -12,6 +12,20 @@ void MeshDecalsPositionZBias(inout VaryingsToPS input)
 #else
 	input.vmesh.positionCS.z += _DecalMeshDepthBias;
 #endif
+}
+
+DecalPrepassData GetDecalPrepassData(uint2 positionSS)
+{
+    float4 buffer = LOAD_TEXTURE2D_X(_DecalNormalLayerTexture, positionSS);
+    float3 geomNormalWS;
+    uint decalLayerMask;
+    DecodeFromDecalPrepass(buffer, geomNormalWS, decalLayerMask);
+
+    DecalPrepassData result;
+    ZERO_INITIALIZE(DecalPrepassData, result);
+    result.geomNormalWS = geomNormalWS;
+    result.decalLayerMask = decalLayerMask;
+    return result;
 }
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
@@ -40,10 +54,24 @@ void Frag(  PackedVaryingsToPS packedInput,
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 
-	float depth = LoadCameraDepth(input.positionSS.xy);
+    float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // Clip the decal if it does not pass the decal layer mask of the receiving material.
+    // Decal layer of the decal
+    uint decalLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayer).x);
+    uint decalLayerMask = 1 << decalLayer;
+
+    // Decal layer mask accepted by the receiving material
+    DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
+    if ((decalLayerMask && decalPrepassData.decalLayerMask) == 0)
+    {
+        clipValue = -1.0;
+        clip(clipValue);
+    }
+
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);
@@ -64,6 +92,19 @@ void Frag(  PackedVaryingsToPS packedInput,
 #else // Decal mesh
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
+
+    // Clip the decal if it does not pass the decal layer mask of the receiving material.
+    // Decal layer of the decal
+    uint decalLayer = _DecalLayer;
+    uint decalLayerMask = 1 << decalLayer;
+
+    // Decal layer mask accepted by the receiving material
+    DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
+    if ((decalLayerMask && decalPrepassData.decalLayerMask) == 0)
+    {
+        clipValue = -1.0;
+        clip(clipValue);
+    }
 
     #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);

@@ -97,6 +97,6 @@ void Frag(  PackedVaryingsToPS packedInput
 #endif
 
 #ifdef WRITE_DECAL_BUFFER
-    EncodeIntoDecalPrepass(surfaceData, _DecalLayerMask, decalBuffer);
+    EncodeIntoDecalPrepass(surfaceData.geomNormalWS, _DecalLayerMask, decalBuffer);
 #endif
 }

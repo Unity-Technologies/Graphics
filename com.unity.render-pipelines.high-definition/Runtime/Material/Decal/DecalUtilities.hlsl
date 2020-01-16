@@ -201,19 +201,6 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
-DecalPrepassData GetDecalPrepassData(PositionInputs posInput)
-{
-    float4 buffer = LOAD_TEXTURE2D_X(_DecalNormalLayerTexture, posInput.positionSS);
-    float3 geomNormalWS;
-    uint decalLayerMask;
-    DecodeFromDecalPrepass(buffer, geomNormalWS, decalLayerMask);
-
-    DecalPrepassData result;
-    ZERO_INITIALIZE(DecalPrepassData, result);
-    result.geomNormalWS = geomNormalWS;
-    result.decalLayerMask = decalLayerMask;
-    return result;
-}
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
     uint mask = 0;
