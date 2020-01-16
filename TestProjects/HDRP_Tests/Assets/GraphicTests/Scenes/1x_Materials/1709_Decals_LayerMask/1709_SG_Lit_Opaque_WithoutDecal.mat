@@ -10,7 +10,7 @@ Material:
   m_Name: 1709_SG_Lit_Opaque_WithoutDecal
   m_Shader: {fileID: -6465566751694194690, guid: 9e655b9f2758ea24b902c21e205276df,
     type: 3}
-  m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _DISABLE_DECALS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
