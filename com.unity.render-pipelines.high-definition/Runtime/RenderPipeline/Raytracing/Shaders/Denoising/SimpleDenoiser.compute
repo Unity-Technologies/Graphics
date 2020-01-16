@@ -17,6 +17,8 @@
 #pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
 #pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
 
+#pragma only_renderers d3d11
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -234,6 +236,10 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
+        // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
+        if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
+            continue;
+
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 

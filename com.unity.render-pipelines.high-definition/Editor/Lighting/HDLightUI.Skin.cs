@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Headers
             public readonly GUIContent generalHeader = new GUIContent("General");
             public readonly GUIContent shapeHeader = new GUIContent("Shape");
+            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body (Preview)");
             public readonly GUIContent emissionHeader = new GUIContent("Emission");
             public readonly GUIContent volumetricHeader = new GUIContent("Volumetrics");
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
@@ -76,7 +77,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = new GUIContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
-            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera to the emissive celestial body represented by the light. Primarily used for sorting.");
+            public readonly GUIContent flareSize = new GUIContent("Flare Size", "Size of the flare around the celestial body (in degrees).");
+            public readonly GUIContent flareTint = new GUIContent("Flare Tint", "Tints the flare of the celestial body");
+            public readonly GUIContent flareFalloff = new GUIContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");
+            public readonly GUIContent surfaceTexture = new GUIContent("Surface Texture", "2D (disk) texture of the surface of the celestial body. Acts like a multiplier.");
+            public readonly GUIContent surfaceTint = new GUIContent("Surface Tint", "Tints the surface of the celestial body");
+            public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. Primarily used for sorting.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
@@ -119,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
+            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the directional shadow will cast a ray traced colored shadow.");
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");

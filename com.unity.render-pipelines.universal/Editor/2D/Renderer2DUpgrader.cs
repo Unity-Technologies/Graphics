@@ -28,16 +28,34 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         static void UpgradeGameObject(GameObject go)
         {
-            SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>(true);
+            Renderer[] spriteRenderers = go.GetComponentsInChildren<Renderer>(true);
 
             bool upgraded = false;
-            foreach (SpriteRenderer renderer in spriteRenderers)
+            foreach (Renderer renderer in spriteRenderers)
             {
-                if (renderer.sharedMaterial != null && renderer.sharedMaterial.shader.name == "Sprites/Default")
+                if (renderer is UnityEngine.U2D.SpriteShapeRenderer)
+                    Debug.Log("Sprite Shape Found");
+
+                int materialCount = renderer.sharedMaterials.Length;
+                Material[] newMaterials = new Material[materialCount];
+
+                for (int i = 0; i < materialCount; i++)
                 {
-                    renderer.sharedMaterial = s_SpriteLitDefault;
-                    upgraded = true;
+                    Material mat = renderer.sharedMaterials[i];
+
+                    if (mat != null && mat.shader.name == "Sprites/Default")
+                    {
+                        newMaterials[i] = s_SpriteLitDefault;
+                        upgraded = true;
+                    }
+                    else
+                    {
+                        newMaterials[i] = renderer.sharedMaterials[i];
+                    }
                 }
+
+                if (upgraded)
+                    renderer.sharedMaterials = newMaterials;
             }
 
             if (upgraded)
@@ -55,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)")]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", false)]
         static void UpgradeSceneTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will change the material references of Sprite Renderers in currently open scene(s) to a lit material. You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
@@ -71,7 +89,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)")]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", true)]
+        static bool UpgradeSceneTo2DRendererValidation()
+        {
+            return Light2DEditorUtility.IsUsing2DRenderer();
+        }
+
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", false)]
         static void UpgradeProjectTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
@@ -80,6 +104,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
             AssetDatabase.SaveAssets();
             Resources.UnloadUnusedAssets();
+        }
+
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", true)]
+        static bool UpgradeProjectTo2DRendererValidation()
+        {
+            return Light2DEditorUtility.IsUsing2DRenderer();
         }
     }
 }

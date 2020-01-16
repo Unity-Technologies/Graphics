@@ -162,6 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
                         new Entry(InclusiveScope.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
                         new Entry(InclusiveScope.DXR, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow),
+                        new Entry(InclusiveScope.DXR, Style.dxrReflections, IsDXRReflectionsCorrect, FixDXRReflections),
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
                         new Entry(InclusiveScope.DXR, Style.dxrShaderConfig, IsDXRShaderConfigCorrect, FixDXRShaderConfig),
@@ -323,7 +324,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
-            HDRenderPipeline.defaultAsset.renderPipelineResources
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.renderPipelineResources
                 = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
         }
@@ -335,7 +341,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
-            HDRenderPipeline.defaultAsset.renderPipelineEditorResources
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
         }
@@ -347,9 +358,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            hdAsset.enableSRPBatcher = true;
-            EditorUtility.SetDirty(hdAsset);
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.enableSRPBatcher = true;
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
@@ -362,9 +376,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            var defaultAssetList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            hdAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
+            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
             foreach (var diffusionProfileAsset in defaultAssetList)
             {
@@ -372,10 +389,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
 
                 var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                hdAsset.AddDiffusionProfile(userAsset);
+                hdrpAsset.AddDiffusionProfile(userAsset);
             }
 
-            EditorUtility.SetDirty(hdAsset);
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         bool IsDefaultSceneCorrect()
@@ -401,9 +418,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
-            EditorUtility.SetDirty(hdAsset);
+            var hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset == null)
+                return;
+
+            EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdrpAsset);
+            EditorUtility.SetDirty(hdrpAsset);
         }
 
         #endregion
@@ -550,6 +570,20 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        bool IsDXRReflectionsCorrect()
+            => HDRenderPipeline.currentAsset != null
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSR;
+        void FixDXRReflections(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+            //as property returning struct make copy, use serializedproperty to modify it
+            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
+            var propertySSR = serializedObject.FindProperty("m_RenderPipelineSettings.supportSSR");
+            propertySSR.boolValue = true;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());
         void FixDXRStaticBatching(bool fromAsyncUnused)
@@ -581,20 +615,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion
 
-        #region LocalConfigPackage
+        #region Packman
 
-        const string localConfigPackagePath = "LocalPackages/com.unity.render-pipelines.high-definition-config";
+        const string k_HdrpPackageName = "com.unity.render-pipelines.high-definition";
+        const string k_HdrpConfigPackageName = "com.unity.render-pipelines.high-definition-config";
+        const string k_LocalHdrpConfigPackagePath = "LocalPackages/com.unity.render-pipelines.high-definition-config";
         bool lastPackageConfigInstalledCheck = false;
         void IsLocalConfigurationPackageInstalledAsync(Action<bool> callback)
         {
-            if (!Directory.Exists(localConfigPackagePath))
+            if (!Directory.Exists(k_LocalHdrpConfigPackagePath))
             {
                 callback?.Invoke(lastPackageConfigInstalledCheck = false);
                 return;
             }
             
-            m_PackageRetriever.ProcessAsync(
-                "com.unity.render-pipelines.high-definition-config",
+            m_UsedPackageRetriever.ProcessAsync(
+                k_HdrpConfigPackageName,
                 info =>
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(info.resolvedPath);
@@ -607,23 +643,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         void InstallLocalConfigurationPackage(Action onCompletion)
-            => m_PackageRetriever.ProcessAsync(
-                "com.unity.render-pipelines.high-definition-config",
+            => m_UsedPackageRetriever.ProcessAsync(
+                k_HdrpConfigPackageName,
                 info =>
                 {
-                    if (!Directory.Exists(localConfigPackagePath))
+                    if (!Directory.Exists(k_LocalHdrpConfigPackagePath))
                     {
-                        CopyFolder(info.resolvedPath, "LocalPackages/com.unity.render-pipelines.high-definition-config");
+                        CopyFolder(info.resolvedPath, k_LocalHdrpConfigPackagePath);
                     }
                     
-                    PackageManager.Client.Add("file:../LocalPackages/com.unity.render-pipelines.high-definition-config");
+                    PackageManager.Client.Add($"file:../{k_LocalHdrpConfigPackagePath}");
                     lastPackageConfigInstalledCheck = true;
                     onCompletion?.Invoke();
                 });
         
         void RefreshDisplayOfConfigPackageArea()
         {
-            if (!m_PackageRetriever.isRunning)
+            if (!m_UsedPackageRetriever.isRunning)
                 IsLocalConfigurationPackageInstalledAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
         }
 
@@ -716,8 +752,72 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        UsedPackageRetriever m_PackageRetriever = new UsedPackageRetriever();
+        UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
+        
+        class LastAvailablePackageVersionRetriever
+        {
+            PackageManager.Requests.SearchRequest m_CurrentRequest;
+            Action<string> m_CurrentAction;
+            string m_CurrentPackageName;
 
+            Queue<(string packageName, Action<string> action)> m_Queue = new Queue<(string packageName, Action<string> action)>();
+
+            bool isCurrentInProgress => m_CurrentRequest != null && !m_CurrentRequest.Equals(null) && !m_CurrentRequest.IsCompleted;
+
+            public bool isRunning => isCurrentInProgress || m_Queue.Count() > 0;
+
+            public void ProcessAsync(string packageName, Action<string> action)
+            {
+                if (isCurrentInProgress)
+                    m_Queue.Enqueue((packageName, action));
+                else
+                    Start(packageName, action);
+            }
+
+            void Start(string packageName, Action<string> action)
+            {
+                m_CurrentAction = action;
+                m_CurrentPackageName = packageName;
+                m_CurrentRequest = PackageManager.Client.Search(packageName, offlineMode: false);
+                EditorApplication.update += Progress;
+            }
+
+            void Progress()
+            {
+                //Can occures on Wizard close or if scripts reloads
+                if (m_CurrentRequest == null || m_CurrentRequest.Equals(null))
+                {
+                    EditorApplication.update -= Progress;
+                    return;
+                }
+
+                if (m_CurrentRequest.IsCompleted)
+                    Finished();
+            }
+
+            void Finished()
+            {
+                EditorApplication.update -= Progress;
+                if (m_CurrentRequest.Status == PackageManager.StatusCode.Success)
+                {
+                    string lastVersion = m_CurrentRequest.Result[0].versions.latestCompatible;
+                    m_CurrentAction?.Invoke(lastVersion);
+                }
+                else if (m_CurrentRequest.Status >= PackageManager.StatusCode.Failure)
+                    Debug.LogError($"Failed to find package {m_CurrentPackageName}. Reason: {m_CurrentRequest.Error.message}");
+                else
+                    Debug.LogError("Unsupported progress state " + m_CurrentRequest.Status);
+
+                m_CurrentRequest = null;
+
+                if (m_Queue.Count > 0)
+                {
+                    (string packageIdOrName, Action<string> action) = m_Queue.Dequeue();
+                    EditorApplication.delayCall += () => Start(packageIdOrName, action);
+                }
+            }
+        }
+        LastAvailablePackageVersionRetriever m_LastAvailablePackageRetriever = new LastAvailablePackageVersionRetriever();
         #endregion
     }
 }

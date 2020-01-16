@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(self.schemaId.stringValue))
                 ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
 
-            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
+            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             // Magic Number !!
             rect.x += 3;
             rect.width -= 6;
@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUIUtility.labelWidth = CalcPrefixLabelWidth(subLabels[index], (GUIStyle) null);
                 if (typeof(T) == typeof(int))
-                    values[index] = (T)(object)EditorGUI.IntField(position1, subLabels[index], (int)(object)values[index]);
+                    values[index] = (T)(object)EditorGUI.DelayedIntField(position1, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))
                     values[index] = (T)(object)EditorGUI.Toggle(position1, subLabels[index], (bool)(object)values[index]);
                 else if (typeof(T) == typeof(float))

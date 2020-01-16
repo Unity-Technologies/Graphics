@@ -10,8 +10,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     #region Resource Descriptors
     public enum TextureSizeMode
     {
+        ///<summary>Explicit size.</summary>
         Explicit,
+        ///<summary>Size automatically scaled by a Vector.</summary>
         Scale,
+        ///<summary>Size automatically scaled by a Functor.</summary>
         Functor
     }
 
@@ -20,32 +23,57 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct TextureDesc
     {
+        ///<summary>Texture sizing mode.</summary>
         public TextureSizeMode sizeMode;
+        ///<summary>Texture width.</summary>
         public int width;
+        ///<summary>Texture height.</summary>
         public int height;
+        ///<summary>Number of texture slices..</summary>
         public int slices;
+        ///<summary>Texture scale.</summary>
         public Vector2 scale;
+        ///<summary>Texture scale function.</summary>
         public ScaleFunc func;
+        ///<summary>Depth buffer bit depth.</summary>
         public DepthBits depthBufferBits;
+        ///<summary>Color format.</summary>
         public GraphicsFormat colorFormat;
+        ///<summary>Filtering mode.</summary>
         public FilterMode filterMode;
+        ///<summary>Addressing mode.</summary>
         public TextureWrapMode wrapMode;
+        ///<summary>Texture dimension.</summary>
         public TextureDimension dimension;
+        ///<summary>Enable random UAV read/write on the texture.</summary>
         public bool enableRandomWrite;
+        ///<summary>Texture needs mip maps.</summary>
         public bool useMipMap;
+        ///<summary>Automatically generate mip maps.</summary>
         public bool autoGenerateMips;
+        ///<summary>Texture is a shadow map.</summary>
         public bool isShadowMap;
+        ///<summary>Anisotropic filtering level.</summary>
         public int anisoLevel;
+        ///<summary>Mip map bias.</summary>
         public float mipMapBias;
-        public bool enableMSAA; // Only supported for Scale and Functor size mode
-        public MSAASamples msaaSamples; // Only supported for Explicit size mode
+        ///<summary>Textre is multisampled. Only supported for Scale and Functor size mode.</summary>
+        public bool enableMSAA;
+        ///<summary>Number of MSAA samples. Only supported for Explicit size mode.</summary>
+        public MSAASamples msaaSamples;
+        ///<summary>Bind texture multi sampled.</summary>
         public bool bindTextureMS;
+        ///<summary>Texture uses dynamic scaling.</summary>
         public bool useDynamicScale;
+        ///<summary>Memory less flag.</summary>
         public RenderTextureMemoryless memoryless;
+        ///<summary>Texture name.</summary>
         public string name;
 
         // Initial state. Those should not be used in the hash
+        ///<summary>Texture needs to be cleared on first use.</summary>
         public bool clearBuffer;
+        ///<summary>Clear color.</summary>
         public Color clearColor;
 
         void InitDefaultValues(bool dynamicResolution, bool xrReady)
@@ -376,11 +404,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
                     {
-                        // Commented because string.Format causes garbage
-                        //using (new ProfilingSample(rgContext.cmd, string.Format("RenderGraph: Clear Buffer {0}", resourceDescMoved.desc.name)))
                         bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                         var name = debugClear ? "RenderGraph: Clear Buffer (Debug)" : "RenderGraph: Clear Buffer";
-                        using (new ProfilingSample(rgContext.cmd, name))
+                        using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClear)))
                         {
                             var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                             var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
@@ -473,7 +499,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
                     {
-                        using (new ProfilingSample(rgContext.cmd, "RenderGraph: Clear Buffer (Debug)"))
+                        using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
                         {
                             var clearFlag = resourceDesc.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                             CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(resource), clearFlag, Color.magenta);

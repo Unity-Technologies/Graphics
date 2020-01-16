@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
     static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
+        public unsafe static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
         {
             bool overlap = true;
 
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
             // See "Correct Frustum Culling" by Inigo Quilez.
             // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
-            Plane[] planes = new Plane[3];
+            var planes = stackalloc Plane[3];
 
             planes[0].normal   = obb.right;
             planes[0].distance = obb.extentX;

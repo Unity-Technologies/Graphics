@@ -5,15 +5,26 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDAdditionalCameraData : IVersionable<HDAdditionalCameraData.Version>
     {
+        /// <summary>
+        /// Define migration versions of the HDAdditionalCameraData
+        /// </summary>
         protected enum Version
         {
+            /// <summary>Version Step.</summary>
             None,
+            /// <summary>Version Step.</summary>
             First,
+            /// <summary>Version Step.</summary>
             SeparatePassThrough,
+            /// <summary>Version Step.</summary>
             UpgradingFrameSettingsToStruct,
+            /// <summary>Version Step.</summary>
             AddAfterPostProcessFrameSetting,
+            /// <summary>Version Step.</summary>
             AddFrameSettingSpecularLighting, // Not used anymore
+            /// <summary>Version Step.</summary>
             AddReflectionSettings,
+            /// <summary>Version Step.</summary>
             AddCustomPostprocessAndCustomPass,
         }
 

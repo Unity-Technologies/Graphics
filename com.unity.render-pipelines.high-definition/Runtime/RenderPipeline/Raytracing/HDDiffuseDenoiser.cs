@@ -11,15 +11,13 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
         // Required for fetching depth and normal buffers
         SharedRTManager m_SharedRTManager;
-
-        // Temporary buffers used for the denoising
-        RTHandle m_IntermediateBuffer0 = null;
+        HDRenderPipeline m_RenderPipeline;
 
         public HDDiffuseDenoiser()
         {
         }
 
-        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager)
+        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_SimpleDenoiserCS = rpRTResources.diffuseDenoiserCS;
@@ -27,14 +25,11 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
-
-            // Allocate the temporary buffers
-            m_IntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateBuffer0");
+            m_RenderPipeline = renderPipeline;
         }
 
         public void Release()
         {
-            RTHandles.Release(m_IntermediateBuffer0);
         }
 
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
@@ -53,13 +48,16 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
             int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
+            // Request the intermediate buffers that we need
+            RTHandle intermediateBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+
             int m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterSingle" : "BilateralFilterColor");
             cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_OwenScrambleRGBA);
             cmd.SetComputeFloatParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, halfResolutionFilter ? m_IntermediateBuffer0 : outputSignal);
+            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, halfResolutionFilter ? intermediateBuffer0 : outputSignal);
             cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._HalfResolutionFilter, halfResolutionFilter ? 1 : 0);
             cmd.SetComputeFloatParam(m_SimpleDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
@@ -67,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             if (halfResolutionFilter)
             {
                 m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "GatherSingle" : "GatherColor");
-                cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer0);
+                cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
                 cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
                 cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
             }

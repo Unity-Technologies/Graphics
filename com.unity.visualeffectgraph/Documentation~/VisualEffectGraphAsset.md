@@ -1,41 +1,40 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Visual Effect Graph Assets
 
-Visual Effect Graph Assets are the data containers of Visual Effect Graph. They contain all the user-authored data required to play a Visual Effect Graph:
+A Visual Effect Graph Asset is a data container that the Visual Effect Graph uses the play a visual effect. It includes:
 
-* Graph Elements
-* Exposed Properties
+* Graph elements
+* Exposed properties
 * Compiled Shaders
-* Operator Bytecode
+* Operator bytecode
 
-## Creating Visual Effect Assets
+## Creating Visual Effect Graph Assets
 
-Visual Effect Graph Assets can be created Using the **Assets > Create > Visual Effect** Menu, by selecting **Visual Effect Graph**.
+To create a Visual Effect Graph Asset, select **Assets > Create > Visual Effects > Visual Effect Graph**. Unity creates a new Visual Effect in the currently opened folder of your Project window.
 
-The asset will be created in the current folder of your Project Window.
+## Using Visual Effect Graph Assets
 
-## Editing Visual Effect Assets
+To edit a Visual Effect Graph Asset, first open it in the [Visual Effect Graph window](VisualEffectGraphWindow.md). To do this, you can either:
 
-Visual Effect Graph Assets can be opened in the [Visual Effect Graph Window](VisualEffectGraphWindow.md)  :
+* Double-Click the Visual Effect Graph Asset in the Project window.
+* Select the Visual Effect Graph Asset in the Project window to view it in the Inspector then, in the Asset's header, click the **Open** button.
+* In the Inspector for a [Visual Effect component](VisualEffectComponent.md#the-visual-effect-inspector), click the **Edit** button next to the **Asset Template** property. This opens the assigned Visual Effect Graph Asset.
 
-* By Selecting the asset in the Project View, and clicking the **Open** button in the Inspector's header.
-* By Double-Clicking the asset
-* By Clicking the Edit Button next to the **Asset Template** field in the  [Visual Effect Inspector](VisualEffectComponent.md#the-visual-effect-inspector) 
+With the Visual Effect Graph open, you can now edit the Visual Effect.
 
 #### Visual Effect Asset Inspector
 
-When Selected, a Visual Effect Graph Asset displays its inspector for Asset-Wide configuration Options.
+When you select a Visual Effect Graph Asset, the Inspector displays Asset-wide configuration Options.
 
 ![](Images/VisualEffectAssetInspector.png)
 
-| Property Name       | Description / Values                                         |
-| ------------------- | ------------------------------------------------------------ |
-| Update Mode         | Sets at which rate Visual Effect Graph is updated:<br />**- Fixed Delta Time: ** Updates at the rate defined in the [Visual Effect  Project Settings](VisualEffectProjectSettings.md)<br />**- Delta Time: ** Updates at the same rate as the rendering. |
-| Culling Flags       | Sets whether the visual effect will be updated depending on its culling state (bounding box being visible by at least one camera):<br />**- Recompute bounds and simulate when visible:** The effect will only update, even its bounding box if it is visible. When using dynamic bounding box (computed with operators), you may want to change this setting to one of the two options with **Always Recompute Bounds** .<br /> **- Always Recompute Bounds, simulate when Visible: ** the system will only recompute bounds regardless of the culling, and will perform update of the graph based on the updated bounds.<br />**- Always Recompute Bounds and Simulate: ** The whole effect will be simulated all the time, regardless of its bounds.<br /><br />*Note: Regardless of the mode, the bounding box will always be used to perform rendering culling of the effect.* |
-| PreWarm Total Time  | Duration the effect should be simulated when `Reset()` is performed. |
-| PreWarm Step Count  | How many simulation Steps shall be used to compute PreWarm. More steps increase precision at the expense of performance. |
-| PreWarm Delta Time  | Delta Time used for the PreWarm Mechanism (based on Total Time and Step Count), adjust this value and step count if you need precise delta time for your simulation. |
-| Initial Event Name  | Name of the Event Sent when the Effect becomes Enabled. Defaults to OnPlay but can be changed to another Event Name, or blank field to keep all systems not spawning by default. |
-| Output Render Order | Reorderable List where all Output Contexts are displayed in their rendering order (First items before/behind other items) |
-| Shaders             | A list of all shaders compiled for the graph, available as read-only for Debugging purposes. Using the Shader Externalization in [Visual Effect Preferences](VisualEffectPreferences.md) can externalize shaders temporarily for debugging purposes. |
+| Property Name           | Description / Values                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| **Update Mode**         | Sets the rate at which Unity updates the visual effect:<br /> &#8226;**Fixed Delta Time**: Updates the visual effect at the rate that the **Fixed Time Step** property defines in the [Visual Effect Project Settings](VisualEffectProjectSettings.md).<br />&#8226; **Delta Time**: Updates the visual effect every frame. |
+| **Culling Flags**       | Sets whether Unity updates the visual effect depending on its culling state. The culling state refers to whether a Camera can see the visual effect's bounding box or not. The options are:<br />&#8226; **Recompute bounds and simulate when visible**: Unity simulates the effect and recalculates the effect's bounding box when the effect is visible. If your visual effect uses a dynamic bounding box (one that you compute with operators), you should not use this option in favor of one that includes **Always Recompute Bounds** .<br /> &#8226; **Always Recompute Bounds, simulate only when Visible**: Regardless of whether any Camera can see the effect's bounding box or not, Unity always recalculates the bounding box. Unity only simulates the effect if a Camera can see the updated bounds.<br />&#8226; **Always Recompute Bounds and Simulate**:  Regardless of whether any Camera can see the effect's bounding box or not, Unity always recalculates the bounding box and simulates the effect.<br /><br />**Note**: Regardless of the mode, Unity always uses the bounding box to perform culling of the effect. |
+| **PreWarm Total Time**  | Sets the duration that Unity should simulate the effect when `Reset()` occurs. This pre-simulates the effect so that, when the effect starts, it appears already 'built-up'. When you change this value, Unity calculates a new value for **PreWarm Delta Time**. |
+| **PreWarm Step Count**  | Sets the number of simulation steps that Unity uses to calculate the PreWarm. A greater number of steps increase precision as well as the resource intensity of the effect, which decreases performance. When you change this value, Unity calculates a new value for **PreWarm Delta Time**. |
+| **PreWarm Delta Time**  | Sets the delta time  that Unity uses for the PreWarm. When you change this value, Unity  calculates new values for **PreWarm Total Time** and **PreWarm Step Count**. Adjust this value, instead of **PreWarm Total Time** and **PreWarm Step Count** individually, if you need to use a precise delta time for your simulation. |
+| **Initial Event Name**  | Sets the name of the [Event](Events.md) that Unity sends when the effect enables. The default value is **OnPlay**, but you can change this to another name, or even a blank field, to make it so that every system does not spawn by default. |
+| **Output Render Order** | Defines a list that shows every Output Context in their rendering order. You can re-order this list to change the order that Unity renders the Output Contexts. Unity draws items at the top of the list first then progressively draws those lower down the list in front of those above. |
+| **Shaders**             | Defines a list of every Shader that Unity has compiled for the Visual Effect Graph. These are read-only and mainly for debugging purposes. Use **Shader Externalization** in [Visual Effect Preferences](VisualEffectPreferences.md) to externalize Shaders temporarily for debugging purposes. |
 
