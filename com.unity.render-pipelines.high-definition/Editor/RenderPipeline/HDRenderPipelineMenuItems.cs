@@ -184,17 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     OverrideCommonParameters(volFog, fog);
                     EditorUtility.SetDirty(profile);
                 }
-
-                if (profile.TryGet<VolumetricLightingController>(out var volController))
-                {
-                    var fog = CreateFogComponentIfNeeded(profile);
-                    if (volController.depthExtent.overrideState)
-                        fog.depthExtent.Override(volController.depthExtent.value);
-                    //if (volController.sliceDistributionUniformity.overrideState)
-                    //    fog.sliceDistributionUniformity.Override(volController.sliceDistributionUniformity.value);
-
-                    EditorUtility.SetDirty(profile);
-                }
             }
 
             AssetDatabase.SaveAssets();

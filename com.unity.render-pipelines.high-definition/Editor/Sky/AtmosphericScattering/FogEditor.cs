@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (isInAdvancedMode)
                     {
                         PropertyField(m_DepthExtent);
-                        PropertyField(m_SliceDistributionUniformity);
+                        // PropertyField(m_SliceDistributionUniformity);
                         PropertyField(m_Filter);
                     }
 

@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.
         // Usually, the exponential distribution makes the most sense.
         // We hide the controls since they are not intuitive and are more likely to do harm than good.
-        public float sliceDistributionUniformity = 0;
+        public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0, 0, 1);
 
         [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
         public BoolParameter filter = new BoolParameter(false);

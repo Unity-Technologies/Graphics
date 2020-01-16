@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          hdCamera.camera.nearClipPlane,
                                          hdCamera.camera.farClipPlane,
                                          hdCamera.camera.fieldOfView,
-                                         controller.sliceDistributionUniformity);
+                                         controller.sliceDistributionUniformity.value);
         }
 
         internal void ReinitializeVolumetricBufferParams(HDCamera hdCamera)
