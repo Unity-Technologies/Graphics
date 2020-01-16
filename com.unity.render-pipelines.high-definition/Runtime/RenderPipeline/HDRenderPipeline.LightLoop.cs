@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 ctx.resources.GetTexture(data.lightingBuffer),
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.historyBuffer) : null,
                                                 data.parameters.enableReprojection ? ctx.resources.GetTexture(data.feedbackBuffer) : null,
-                                                null, // TODO...
+                                                s_CmjPointSet, // Static and immutable
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
                     });

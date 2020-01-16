@@ -485,6 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _EnableVolumetricFog               = Shader.PropertyToID("_EnableVolumetricFog");
         public static readonly int _GlobalFogAnisotropy               = Shader.PropertyToID("_GlobalFogAnisotropy");
         public static readonly int _CornetteShanksConstant            = Shader.PropertyToID("_CornetteShanksConstant");
+        public static readonly int _CmjPointSet                       = Shader.PropertyToID("_CmjPointSet");
         public static readonly int _VBufferViewportSize               = Shader.PropertyToID("_VBufferViewportSize");
         public static readonly int _VBufferSliceCount                 = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferRcpSliceCount              = Shader.PropertyToID("_VBufferRcpSliceCount");

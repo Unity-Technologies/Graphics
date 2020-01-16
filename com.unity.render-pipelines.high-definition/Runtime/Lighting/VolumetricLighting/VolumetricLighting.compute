@@ -637,14 +637,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float phase = IsotropicPhaseFunction();
     #endif // ENABLE_ANISOTROPY
 
-
-
-
-// blendValue = float4(aggregateLighting.radianceNoPhase,  extinction * dt);
-
-
-
-
         // Integrate the contribution of the probe over the interval.
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
         float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
@@ -732,7 +724,6 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // TODO: we use 'ray.zOffset' as a random number in a bunch of places as is.
     // Perhaps it's worth to transform it to reduce the amount of correlation?
-    // Basically, don't use it as is in a bunch of places...
     ray.zOffset     = rayOffset.z;
     ray.jitterDirWS = normalize(ray.centerDirWS + rayOffset.x * ray.xDirDerivWS
                                                 + rayOffset.y * ray.yDirDerivWS);
