@@ -177,6 +177,30 @@ MonoBehaviour:
   enableSunDisk:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &-3201625860353118628
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f1984a7ac01bf84b86559f7595cdc68, type: 3}
+  m_Name: LightCluster
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  maxNumLightsPercell:
+    m_OverrideState: 0
+    m_Value: 10
+    min: 0
+    max: 24
+  cameraClusterRange:
+    m_OverrideState: 1
+    m_Value: 20
+    min: 0.001
+    max: 50
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,6 +218,7 @@ MonoBehaviour:
   - {fileID: 8436036751141806562}
   - {fileID: 5224583816479116611}
   - {fileID: 3564700782616824417}
+  - {fileID: -3201625860353118628}
 --- !u!114 &1096948277615296340
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -364,8 +389,8 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
   rayLength:
-    m_OverrideState: 0
-    m_Value: 10
+    m_OverrideState: 1
+    m_Value: 20
     min: 0.001
     max: 50
   clampValue:
@@ -514,7 +539,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 1
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
