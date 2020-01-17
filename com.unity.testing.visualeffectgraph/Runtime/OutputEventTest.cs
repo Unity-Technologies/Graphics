@@ -38,6 +38,9 @@ namespace Unity.Testing.VisualEffectGraph
             if (m_vfx == null || m_ObjectReference == null)
                 return;
 
+            if (!m_vfx.HasSystem(s_outputEventNameId))
+                return; //Graphics test are recompiling effect between start & update, it could lead to an unexpected state here.
+
             m_currentVFXEventAttribute.Clear();
             m_currentVFXEventAttribute.AddRange(m_cachedVFXEventAttribute);
             m_vfx.GetOutputEventAttribute(s_outputEventNameId, m_currentVFXEventAttribute);
