@@ -140,6 +140,13 @@ Pass
     // _VLAYERED_RECOMPUTE_PERLIGHT
     // _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 
+    //-------------------------------------------------------------------------------------
+    // Graph Defines
+    //-------------------------------------------------------------------------------------
+    $splice(Defines)
+    //-------------------------------------------------------------------------------------
+    // End Defines
+    //-------------------------------------------------------------------------------------
 
     // Common shader_features:
 
@@ -167,6 +174,9 @@ Pass
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    $NormalDropOffTS:		                         #define _NORMAL_DROPOFF_TS 1
+    $NormalDropOffOS:		                         #define _NORMAL_DROPOFF_OS 1
+    $NormalDropOffWS:		                         #define _NORMAL_DROPOFF_WS 1
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl"
 
@@ -235,9 +245,8 @@ Pass
 
 
     //-------------------------------------------------------------------------------------
-    // Defines
+    // Active Field Defines
     //-------------------------------------------------------------------------------------
-    $splice(Defines)
 
     // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
@@ -437,12 +446,18 @@ $include("SharedCode.template.hlsl")
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
-        // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+        // normal delivered to master node
+        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
+#if _NORMAL_DROPOFF_TS
+        GetNormalWS(fragInputs, normalSrc, surfaceData.normalWS, doubleSidedConstants);
+#elif _NORMAL_DROPOFF_OS
+		surfaceData.normalWS = TransformObjectToWorldNormal(normalSrc);
+#elif _NORMAL_DROPOFF_WS
+		surfaceData.normalWS = normalSrc;
+#endif
 
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
         $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);

@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/004_Camera_TargetTexture.unity
     guid: c678e78e9c06d44789d69ac8df08d375
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/005_LitBakedEmission.unity
     guid: e23c793ace3c4a146a73360af1600fbd
   - enabled: 1
