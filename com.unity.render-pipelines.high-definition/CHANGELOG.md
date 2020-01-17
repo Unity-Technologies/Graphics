@@ -323,6 +323,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing unnecessary memory allocations in the ray tracing cluster build
 - Fixed duplicate column labels in LightEditor's light tab
 - Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
+- Fixed missing reference in dxr default scene
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
