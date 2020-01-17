@@ -417,6 +417,10 @@ namespace UnityEngine.Rendering.HighDefinition
         //be base on a default(HDAdditionnalData) which will have a point type
         internal HDLightType ComputeLightType(Light attachedLight)
         {
+            // Shuriken lights won't have a Light component.
+            if (attachedLight == null)
+                return HDLightType.Point;
+
             switch (attachedLight.type)
             {
                 case LightType.Spot: return HDLightType.Spot;

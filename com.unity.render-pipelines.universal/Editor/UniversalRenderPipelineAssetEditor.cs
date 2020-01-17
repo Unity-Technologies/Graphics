@@ -55,11 +55,14 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
+            public static GUIContent postProcessingFeatureSet = EditorGUIUtility.TrTextContent("Feature Set", "Sets the post-processing solution to use. To future proof your application, use Integrated instead of the comparability mode. Only use compatibility mode if your project still uses the Post-processing V2 package, but be aware that Unity plans to deprecate Post-processing V2 support for the Universal Render Pipeline in the near future.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
+            public static string postProcessingFeatureSetWarning = "Unity plans to deprecate Post-processing V2 support for the Universal Render Pipeline in the near future. You should only use this mode for compatibility purposes.";
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
+            public static string postProcessingGlobalWarning = "The Post-processing Feature Set in the URP Asset is set to Post-processing V2. This Volume component will not have any effect.";
 
             // Advanced settings
             public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "If enabled, the render pipeline uses the SRP batcher.");
@@ -130,6 +133,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShaderVariantLogLevel;
 
         LightRenderingMode selectedLightRenderingMode;
+        SerializedProperty m_PostProcessingFeatureSet;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
 
@@ -195,6 +199,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
 
+            m_PostProcessingFeatureSet = serializedObject.FindProperty("m_PostProcessingFeatureSet");
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
@@ -345,16 +350,31 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
-                if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
-                else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+                bool ppv2Enabled = false;
 
-                EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
-                m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
-                if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
-                    EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+                EditorGUILayout.PropertyField(m_PostProcessingFeatureSet, Styles.postProcessingFeatureSet);
+
+                if (m_PostProcessingFeatureSet.intValue == (int)PostProcessingFeatureSet.PostProcessingV2)
+                {
+                    EditorGUILayout.HelpBox(Styles.postProcessingFeatureSetWarning, MessageType.Warning);
+                    ppv2Enabled = true;
+                }
+#endif
+
+                if (!ppv2Enabled)
+                {
+                    EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
+                    if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
+                    else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+
+                    EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
+                    m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+                    if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
+                        EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                }
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

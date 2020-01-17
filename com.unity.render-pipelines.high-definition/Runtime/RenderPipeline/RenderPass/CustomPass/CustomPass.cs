@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -14,7 +15,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Name of the custom pass
         /// </summary>
-        public string           name = "Custom Pass";
+        public string name
+        {
+            get => m_Name;
+            set
+            {
+                m_Name = value;
+                m_ProfilingSampler = new ProfilingSampler(m_Name);
+            }
+        }
+        [SerializeField, FormerlySerializedAsAttribute("name")]
+        string m_Name = "Custom Pass";
+
+        internal ProfilingSampler   profilingSampler
+        {
+            get
+            {
+                if (m_ProfilingSampler == null)
+                    m_ProfilingSampler = new ProfilingSampler(m_Name ?? "Custom Pass");
+                return m_ProfilingSampler;
+            }
+        }
+        ProfilingSampler            m_ProfilingSampler;
 
         /// <summary>
         /// Is the custom pass enabled or not
@@ -57,6 +79,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <value></value>
         protected CustomPassInjectionPoint injectionPoint => owner.injectionPoint;
+
+        /// <summary>
+        /// True if you want your custom pass to be executed in the scene view. False for game cameras only.
+        /// </summary>
+        protected virtual bool executeInSceneView => true;
 
         /// <summary>
         /// Used to select the target buffer when executing the custom pass
@@ -107,6 +134,17 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
+        internal bool WillBeExecuted(HDCamera hdCamera)
+        {
+            if (!enabled)
+                return false;
+
+            if (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView)
+                return false;
+
+            return true;
+        }
+
         internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
@@ -114,21 +152,24 @@ namespace UnityEngine.Rendering.HighDefinition
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            if (!isSetup)
+            using (new ProfilingScope(cmd, profilingSampler))
             {
-                Setup(renderContext, cmd);
-                isSetup = true;
+                if (!isSetup)
+                {
+                    Setup(renderContext, cmd);
+                    isSetup = true;
+                }
+
+                SetCustomPassTarget(cmd);
+
+                isExecuting = true;
+                Execute(renderContext, cmd, hdCamera, cullingResult);
+                isExecuting = false;
+                
+                // Set back the camera color buffer if we were using a custom buffer as target
+                if (targetDepthBuffer != TargetBuffer.Camera)
+                    CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
             }
-
-            SetCustomPassTarget(cmd);
-
-            isExecuting = true;
-            Execute(renderContext, cmd, hdCamera, cullingResult);
-            isExecuting = false;
-            
-            // Set back the camera color buffer if we were using a custom buffer as target
-            if (targetDepthBuffer != TargetBuffer.Camera)
-                CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
         }
 
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
@@ -176,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
         }
-        
+
         /// <summary>
         /// Use this method if you want to draw objects that are not visible in the camera.
         /// For example if you disable a layer in the camera and add it in the culling parameters, then the culling result will contains your layer.
@@ -304,6 +345,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return currentRTManager.GetNormalBuffer(IsMSAAEnabled(currentHDCamera));
         }
+
+        /// <summary>
+        /// List all the materials that need to be displayed at the bottom of the component.
+        /// All the materials gathered by this method will be used to create a Material Editor and then can be edited directly on the custom pass.
+        /// </summary>
+        /// <returns>An enumerable of materials to show in the inspector. These materials can be null, the list is cleaned afterwards</returns>
+        public virtual IEnumerable<Material> RegisterMaterialForInspector() { yield break; }
 
         /// <summary>
         /// Returns the render queue range associated with the custom render queue type

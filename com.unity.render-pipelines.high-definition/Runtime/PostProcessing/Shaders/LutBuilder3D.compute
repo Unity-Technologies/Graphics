@@ -43,6 +43,7 @@ CBUFFER_START(cb0)
     float4 _ShaHiLimits;        // xy: shadows min/max, zw: highlight min/max
     float4 _SplitShadows;       // xyz: color, w: balance
     float4 _SplitHighlights;    // xyz: color, w: unused
+    float4 _Params;             // x: enable grading, yzw: unused
 
     // Custom tonemapping settings
     float4 _CustomToneCurve;
@@ -188,6 +189,19 @@ float3 ColorGrade(float3 colorLutSpace)
     return colorLinear;
 }
 
+// Used for debugging - see the ColorGrading option in FrameSettings
+float3 NeutralColorGrade(float3 colorLutSpace)
+{
+    // Switch back to linear
+    float3 colorLinear = LogCToLinear(colorLutSpace);
+
+    #if defined(TONEMAPPING_ACES)
+    colorLinear = ACES_to_ACEScg(unity_to_ACES(colorLinear));
+    #endif
+
+    return colorLinear;
+}
+
 float3 Tonemap(float3 colorLinear)
 {
     #if defined(TONEMAPPING_NEUTRAL)
@@ -229,7 +243,18 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 colorLutSpace = float3(dispatchThreadId) * _Size.yyy;
 
     // Color grade & tonemap
-    float3 gradedColor = ColorGrade(colorLutSpace);
+    float3 gradedColor = colorLutSpace;
+
+    if (_Params.x > 0.0)
+    {
+        gradedColor = ColorGrade(gradedColor);
+    }
+    else
+    {
+        // Skip grading
+        gradedColor = NeutralColorGrade(gradedColor);
+    }
+
     gradedColor = Tonemap(gradedColor);
 
     _OutputTexture[dispatchThreadId] = float4(max(gradedColor, 0.0), 1.0);

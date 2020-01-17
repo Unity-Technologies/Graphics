@@ -23,9 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkySettings = value;
                 currentUpdateTime = 0.0f;
 
-                if (skyRenderer == null || m_SkySettings.GetSkyRendererType() != skyRenderer.GetType())
+                if (m_SkySettings != null && (skyRenderer == null || m_SkySettings.GetSkyRendererType() != skyRenderer.GetType()))
                 {
-
                     if (skyRenderer != null)
                     {
                         skyRenderer.Cleanup();
@@ -35,6 +34,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     skyRenderer = (SkyRenderer)Activator.CreateInstance(rendererType);
                     skyRenderer.Build();
                 }
+            }
+        }
+
+        public void Cleanup()
+        {
+            if (skyRenderer != null)
+            {
+                skyRenderer.Cleanup();
             }
         }
 

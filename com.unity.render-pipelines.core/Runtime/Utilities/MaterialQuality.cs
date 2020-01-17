@@ -4,16 +4,28 @@ using UnityEngine.Rendering;
 
 namespace Utilities
 {
+    /// <summary>
+    /// Material quality flags.
+    /// </summary>
     [Flags]
     public enum MaterialQuality
     {
+        /// <summary>Low Material Quality.</summary>
         Low = 1 << 0,
+        /// <summary>Medium Material Quality.</summary>
         Medium = 1 << 1,
+        /// <summary>High Material Quality.</summary>
         High = 1 << 2
     }
 
+    /// <summary>
+    /// Material Quality utility class.
+    /// </summary>
     public static class MaterialQualityUtilities
     {
+        /// <summary>
+        /// Keywords strings for Material Quality levels.
+        /// </summary>
         public static string[] KeywordNames =
         {
             "MATERIAL_QUALITY_LOW",
@@ -21,8 +33,14 @@ namespace Utilities
             "MATERIAL_QUALITY_HIGH",
         };
 
+        /// <summary>
+        /// String representation of the MaterialQuality enum.
+        /// </summary>
         public static string[] EnumNames = Enum.GetNames(typeof(MaterialQuality));
 
+        /// <summary>
+        /// Keywords for Material Quality levels.
+        /// </summary>
         public static ShaderKeyword[] Keywords =
         {
             new ShaderKeyword(KeywordNames[0]),
@@ -30,6 +48,11 @@ namespace Utilities
             new ShaderKeyword(KeywordNames[2]),
         };
 
+        /// <summary>
+        /// Returns the highest available quality level in a MaterialQuality bitfield.
+        /// </summary>
+        /// <param name="levels">Input MaterialQuality bitfield.</param>
+        /// <returns>The highest available quality level.</returns>
         public static MaterialQuality GetHighestQuality(this MaterialQuality levels)
         {
             for (var i = Keywords.Length - 1; i >= 0; --i)
@@ -42,6 +65,12 @@ namespace Utilities
             return 0;
         }
 
+        /// <summary>
+        /// Returns the closest available quality level in a MaterialQuality bitfield.
+        /// </summary>
+        /// <param name="availableLevels">Available MaterialQuality bitfield.</param>
+        /// <param name="requestedLevel">Input MaterialQuality level.</param>
+        /// <returns>The closest available quality level.</returns>
         public static MaterialQuality GetClosestQuality(this MaterialQuality availableLevels, MaterialQuality requestedLevel)
         {
             // Special fallback when there are no available quality levels. Needs to match in the shader stripping code
@@ -80,6 +109,10 @@ namespace Utilities
             return chosenQuality;
         }
 
+        /// <summary>
+        /// Set the global keyword for the provided MaterialQuality.
+        /// </summary>
+        /// <param name="level">MaterialQuality level to set the keyword for.</param>
         public static void SetGlobalShaderKeywords(this MaterialQuality level)
         {
             for (var i = 0; i < KeywordNames.Length; ++i)
@@ -91,6 +124,11 @@ namespace Utilities
             }
         }
 
+        /// <summary>
+        /// Set the global keyword for the provided MaterialQuality.
+        /// </summary>
+        /// <param name="level">MaterialQuality level to set the keyword for.</param>
+        /// <param name="cmd">Command Buffer used to setup the keyword.</param>
         public static void SetGlobalShaderKeywords(this MaterialQuality level, CommandBuffer cmd)
         {
             for (var i = 0; i < KeywordNames.Length; ++i)
@@ -102,6 +140,11 @@ namespace Utilities
             }
         }
 
+        /// <summary>
+        /// Returns the index (in the MaterialQuality enum) of the first available level.
+        /// </summary>
+        /// <param name="level">MaterialQuality bitfield.</param>
+        /// <returns>The index of the first available level.</returns>
         public static int ToFirstIndex(this MaterialQuality level)
         {
             for (var i = 0; i < KeywordNames.Length; ++i)
@@ -113,6 +156,11 @@ namespace Utilities
             return -1;
         }
 
+        /// <summary>
+        /// Returns the enum equivalent of the index in the MaterialQuality enum list.
+        /// </summary>
+        /// <param name="index">Index of the material quality.</param>
+        /// <returns>The equivalent enum.</returns>
         public static MaterialQuality FromIndex(int index) => (MaterialQuality) (1 << index);
     }
 }

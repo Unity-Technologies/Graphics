@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -25,15 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
-        public PlanarReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
+        public PlanarReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterGGX iblFilter, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
 
             // BC6H requires CPP feature not yet available
-            probeFormat = TextureFormat.RGBAHalf;
+            probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-            Debug.Assert(probeFormat == TextureFormat.BC6H || probeFormat == TextureFormat.RGBAHalf, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
+            Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
@@ -41,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeSize, probeFormat, isMipmaped);
             m_IBLFilterGGX = iblFilter;
 
-            m_PerformBC6HCompression = probeFormat == TextureFormat.BC6H;
+            m_PerformBC6HCompression = probeFormat == GraphicsFormat.RGB_BC6H_SFloat;
 
             InitializeProbeBakingStates();
         }
@@ -178,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
                 {
-                    using (new ProfilingSample(cmd, "Convolve Planar Reflection Probe"))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvolvePlanarReflectionProbe)))
                     {
                         // For now baking is done directly but will be time sliced in the future. Just preparing the code here.
                         m_ProbeBakingState[sliceIndex] = ProbeFilteringState.Convolving;
