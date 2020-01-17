@@ -56,11 +56,12 @@ namespace UnityEditor.Rendering.HighDefinition
 		SerializedProperty      	m_ClearFlags;
 		SerializedProperty      	m_PassFoldout;
 		List<SerializedProperty>	m_CustomPassUserProperties = new List<SerializedProperty>();
-		Type						m_PassType;
+		CustomPass					m_CustomPass;
+		Type						m_PassType => m_CustomPass.GetType();
 
 		void FetchProperties(SerializedProperty property)
 		{
-			m_Name = property.FindPropertyRelative("name");
+			m_Name = property.FindPropertyRelative("m_Name");
 			m_Enabled = property.FindPropertyRelative("enabled");
 			m_TargetColorBuffer = property.FindPropertyRelative("targetColorBuffer");
 			m_TargetDepthBuffer = property.FindPropertyRelative("targetDepthBuffer");
@@ -92,6 +93,8 @@ namespace UnityEditor.Rendering.HighDefinition
 				if (prop != null)
 					m_CustomPassUserProperties.Add(prop);
 			}
+
+			
 		}
 
 	    void InitInternal(SerializedProperty customPass)
@@ -102,9 +105,13 @@ namespace UnityEditor.Rendering.HighDefinition
 		    firstTime = false;
 	    }
 
+		/// <summary>
+		/// Use this function to initialize the local SerializedProperty you will use in your pass.
+		/// </summary>
+		/// <param name="customPass">Your custom pass instance represented as a SerializedProperty</param>
 		protected virtual void Initialize(SerializedProperty customPass) {}
 
-		internal void SetPassType(Type passType) => m_PassType = passType;
+		internal void SetPass(CustomPass pass) => m_CustomPass = pass;
 
 	    internal void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
 	    {
@@ -138,7 +145,10 @@ namespace UnityEditor.Rendering.HighDefinition
 		{
 			if ((commonPassUIFlags & PassUIFlag.Name) != 0)
 			{
+				EditorGUI.BeginChangeCheck();
 				EditorGUI.PropertyField(rect, m_Name);
+				if (EditorGUI.EndChangeCheck())
+					m_CustomPass.name = m_Name.stringValue;
 				rect.y += Styles.defaultLineSpace;
 			}
 
@@ -174,6 +184,11 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 		}
 
+		/// <summary>
+		/// Implement this function to draw your custom GUI.
+		/// </summary>
+		/// <param name="customPass">Your custom pass instance represented as a SerializedProperty</param>
+		/// <param name="rect">space available for you to draw the UI</param>
 		protected virtual void DoPassGUI(SerializedProperty customPass, Rect rect)
 		{
 			foreach (var prop in m_CustomPassUserProperties)
@@ -201,6 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
 			EditorGUIUtility.labelWidth = 0;
 		}
 
+		/// <summary>
+		/// Implement this functions if you implement DoPassGUI. The result of this function must match the number of lines displayed in your custom GUI.
+		/// Note that this height can be dynamic.
+		/// </summary>
+		/// <param name="customPass">Your custom pass instance represented as a SerializedProperty</param>
+		/// <returns>The height in pixels of tour custom pass GUI</returns>
 		protected virtual float GetPassHeight(SerializedProperty customPass)
 		{
 			float height = 0;

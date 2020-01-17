@@ -254,10 +254,36 @@ namespace UnityEditor.Rendering.HighDefinition
                 property.stringValue = lightLayerName0;
             EditorGUI.EndProperty();
         }
+
+        /// <summary>
+        /// Similar to <see cref="EditorGUI.HandlePrefixLabel(Rect, Rect, GUIContent)"/> but indent the label
+        /// with <see cref="EditorGUI.indentLevel"/> value.
+        ///
+        /// Use this method to draw a label that will be highlighted during field search.
+        /// </summary>
+        /// <param name="totalPosition"></param>
+        /// <param name="labelPosition"></param>
+        /// <param name="label"></param>
+        internal static void HandlePrefixLabelWithIndent(Rect totalPosition, Rect labelPosition, GUIContent label)
+        {
+            // HandlePrefixLabel does not indent with EditorGUI.indentLevel.
+            // It seems that it is 15 pixels per indent space.
+            // You can check by adding 'EditorGUI.LabelField(labelRect, field.label);' before and check that the
+            // is properly overdrawn
+            //
+            labelPosition.x += EditorGUI.indentLevel * 15;
+            EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
+        }
     }
 
-    internal static partial class SerializedPropertyExtention
+    internal static partial class SerializedPropertyExtension
     {
+        public static IEnumerable<string> EnumerateDisplayName(this SerializedProperty property)
+        {
+            while (property.NextVisible(true))
+                yield return property.displayName;
+        }
+
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
         /// This handle case where index do not correspond to enum value.
