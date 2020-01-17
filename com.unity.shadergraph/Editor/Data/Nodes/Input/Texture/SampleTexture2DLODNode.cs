@@ -137,10 +137,10 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
+            var result = false;
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
                 GetInputSlots(tempSlots);
-                var result = false;
                 foreach (var slot in tempSlots)
                 {
                     if (slot.RequiresMeshUV(channel))
@@ -149,10 +149,9 @@ namespace UnityEditor.ShaderGraph
                         break;
                     }
                 }
-
-                tempSlots.Clear();
-                return result;
             }
+
+            return result;
         }
     }
 }

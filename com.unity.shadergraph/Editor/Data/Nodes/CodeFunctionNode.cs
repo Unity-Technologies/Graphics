@@ -343,35 +343,36 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var tempSlots = PooledList<MaterialSlot>.Get();
-            GetOutputSlots(tempSlots);
-            foreach (var outSlot in tempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
-            }
-
-            string call = GetFunctionName() + "(";
-            bool first = true;
-            tempSlots.Clear();
-            GetSlots(tempSlots);
-            tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-            foreach (var slot in tempSlots)
-            {
-                if (!first)
+                GetOutputSlots(tempSlots);
+                foreach (var outSlot in tempSlots)
                 {
-                    call += ", ";
+                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
                 }
-                first = false;
 
-                if (slot.isInputSlot)
-                    call += GetSlotValue(slot.id, generationMode);
-                else
-                    call += GetVariableNameForSlot(slot.id);
+                string call = GetFunctionName() + "(";
+                bool first = true;
+                tempSlots.Clear();
+                GetSlots(tempSlots);
+                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+                foreach (var slot in tempSlots)
+                {
+                    if (!first)
+                    {
+                        call += ", ";
+                    }
+                    first = false;
+
+                    if (slot.isInputSlot)
+                        call += GetSlotValue(slot.id, generationMode);
+                    else
+                        call += GetVariableNameForSlot(slot.id);
+                }
+                call += ");";
+
+                sb.AppendLine(call);
             }
-            call += ");";
-
-            sb.AppendLine(call);
-            tempSlots.Dispose();
         }
 
         private string GetFunctionName()
@@ -386,25 +387,27 @@ namespace UnityEditor.ShaderGraph
         {
             string header = "void " + GetFunctionName() + "(";
 
-            var tempSlots = PooledList<MaterialSlot>.Get();
-            GetSlots(tempSlots);
-            tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-            var first = true;
-            foreach (var slot in tempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                if (!first)
-                    header += ", ";
+                GetSlots(tempSlots);
+                tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
+                var first = true;
+                foreach (var slot in tempSlots)
+                {
+                    if (!first)
+                        header += ", ";
 
-                first = false;
+                    first = false;
 
-                if (slot.isOutputSlot)
-                    header += "out ";
+                    if (slot.isOutputSlot)
+                        header += "out ";
 
-                header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
+                    header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
+                }
+
+                header += ")";
             }
 
-            header += ")";
-            tempSlots.Dispose();
             return header;
         }
 
@@ -424,15 +427,17 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            var tempSlots = PooledList<MaterialSlot>.Get();
-            GetSlots(tempSlots);
-            foreach (var slot in tempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
-                result = result.Replace(toReplace, replacement);
+                GetSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
+                    var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
+                    result = result.Replace(toReplace, replacement);
+                }
             }
-            tempSlots.Dispose();
+
             return result;
         }
 

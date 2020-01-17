@@ -344,52 +344,52 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Get inputs
-            var tempSlots = PooledList<MaterialSlot>.Get();
-            tempSlots.Clear();
-            GetInputSlots(tempSlots);
-
-            // If no inputs were found use the precision of the Graph
-            // This can be removed when parameters are considered as true inputs
-            if (tempSlots.Count == 0)
+            using(var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                m_ConcretePrecision = owner.concretePrecision;
-                return false;
-            }
+                GetInputSlots(tempSlots);
 
-            // Otherwise compare precisions from inputs
-            var precisionsToCompare = new List<int>();
-            bool isInError = false;
-
-            foreach (var inputSlot in tempSlots)
-            {
-                // If input port doesnt have an edge use the Graph's precision for that input
-                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
-                if (!edges.Any())
+                // If no inputs were found use the precision of the Graph
+                // This can be removed when parameters are considered as true inputs
+                if (tempSlots.Count == 0)
                 {
-                    precisionsToCompare.Add((int)owner.concretePrecision);
-                    continue;
+                    m_ConcretePrecision = owner.concretePrecision;
+                    return false;
                 }
 
-                // Get output node from edge
-                var outputSlotRef = edges[0].outputSlot;
-                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                if (outputNode == null)
+                // Otherwise compare precisions from inputs
+                var precisionsToCompare = new List<int>();
+                bool isInError = false;
+
+                foreach (var inputSlot in tempSlots)
                 {
-                    errorMessage = string.Format("Failed to find Node with Guid {0}", outputSlotRef.nodeGuid);
-                    isInError = true;
-                    continue;
+                    // If input port doesnt have an edge use the Graph's precision for that input
+                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    if (!edges.Any())
+                    {
+                        precisionsToCompare.Add((int)owner.concretePrecision);
+                        continue;
+                    }
+
+                    // Get output node from edge
+                    var outputSlotRef = edges[0].outputSlot;
+                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    if (outputNode == null)
+                    {
+                        errorMessage = string.Format("Failed to find Node with Guid {0}", outputSlotRef.nodeGuid);
+                        isInError = true;
+                        continue;
+                    }
+
+                    // Use precision from connected Node
+                    precisionsToCompare.Add((int)outputNode.concretePrecision);
                 }
 
-                // Use precision from connected Node
-                precisionsToCompare.Add((int)outputNode.concretePrecision);
+                // Use highest precision from all input sources
+                m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
+
+                // Clean up
+                return isInError;
             }
-
-            // Use highest precision from all input sources
-            m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
-
-            // Clean up
-            tempSlots.Dispose();
-            return isInError;
         }
 
         public virtual void ValidateNode()
@@ -404,125 +404,125 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            var tempSlots = PooledList<MaterialSlot>.Get();
-            GetInputSlots(tempSlots);
-            foreach (var inputSlot in tempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                inputSlot.hasError = false;
-                // if there is a connection
-                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
-                if (!edges.Any())
+                GetInputSlots(tempSlots);
+                foreach (var inputSlot in tempSlots)
                 {
+                    inputSlot.hasError = false;
+                    // if there is a connection
+                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    if (!edges.Any())
+                    {
+                        if (inputSlot is DynamicVectorMaterialSlot)
+                            skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
+                        if (inputSlot is DynamicMatrixMaterialSlot)
+                            skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
+                        continue;
+                    }
+
+                    // get the output details
+                    var outputSlotRef = edges[0].outputSlot;
+                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    if (outputNode == null)
+                        continue;
+
+                    var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
+                    if (outputSlot == null)
+                        continue;
+
+                    if (outputSlot.hasError)
+                    {
+                        inputSlot.hasError = true;
+                        continue;
+                    }
+
+                    var outputConcreteType = outputSlot.concreteValueType;
+                    // dynamic input... depends on output from other node.
+                    // we need to compare ALL dynamic inputs to make sure they
+                    // are compatible.
                     if (inputSlot is DynamicVectorMaterialSlot)
-                        skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
-                    if (inputSlot is DynamicMatrixMaterialSlot)
-                        skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
-                    continue;
+                    {
+                        dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot) inputSlot, outputConcreteType);
+                        continue;
+                    }
+                    else if (inputSlot is DynamicMatrixMaterialSlot)
+                    {
+                        dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot) inputSlot, outputConcreteType);
+                        continue;
+                    }
                 }
 
-                // get the output details
-                var outputSlotRef = edges[0].outputSlot;
-                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                if (outputNode == null)
-                    continue;
+                // we can now figure out the dynamic slotType
+                // from here set all the
+                var dynamicType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                    dynamicKvP.Key.SetConcreteType(dynamicType);
+                foreach (var skippedSlot in skippedDynamicSlots)
+                    skippedSlot.SetConcreteType(dynamicType);
 
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
-                if (outputSlot == null)
-                    continue;
+                // and now dynamic matrices
+                var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
+                foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
+                    dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
+                foreach (var skippedSlot in skippedDynamicMatrixSlots)
+                    skippedSlot.SetConcreteType(dynamicMatrixType);
 
-                if (outputSlot.hasError)
+                tempSlots.Clear();
+                GetInputSlots(tempSlots);
+                var inputError = tempSlots.Any(x => x.hasError);
+
+                // configure the output slots now
+                // their slotType will either be the default output slotType
+                // or the above dynamic slotType for dynamic nodes
+                // or error if there is an input error
+                tempSlots.Clear();
+                GetOutputSlots(tempSlots);
+                foreach (var outputSlot in tempSlots)
                 {
-                    inputSlot.hasError = true;
-                    continue;
+                    outputSlot.hasError = false;
+
+                    if (inputError)
+                    {
+                        outputSlot.hasError = true;
+                        continue;
+                    }
+
+                    if (outputSlot is DynamicVectorMaterialSlot)
+                    {
+                        (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
+                        continue;
+                    }
+                    else if (outputSlot is DynamicMatrixMaterialSlot)
+                    {
+                        (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
+                        continue;
+                    }
                 }
 
-                var outputConcreteType = outputSlot.concreteValueType;
-                // dynamic input... depends on output from other node.
-                // we need to compare ALL dynamic inputs to make sure they
-                // are compatible.
-                if (inputSlot is DynamicVectorMaterialSlot)
+                isInError |= inputError;
+                tempSlots.Clear();
+                GetOutputSlots(tempSlots);
+                isInError |= tempSlots.Any(x => x.hasError);
+                isInError |= CalculateNodeHasError(ref errorMessage);
+                isInError |= ValidateConcretePrecision(ref errorMessage);
+                hasError = isInError;
+
+                if (isInError)
                 {
-                    dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
-                    continue;
+                    ((GraphData) owner).AddValidationError(tempId, errorMessage);
                 }
-                else if (inputSlot is DynamicMatrixMaterialSlot)
+                else
                 {
-                    dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
-                    continue;
+                    ++version;
                 }
+
+                ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
+                DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+
+                ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
+                DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
             }
-
-            // we can now figure out the dynamic slotType
-            // from here set all the
-            var dynamicType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-            foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                dynamicKvP.Key.SetConcreteType(dynamicType);
-            foreach (var skippedSlot in skippedDynamicSlots)
-                skippedSlot.SetConcreteType(dynamicType);
-
-            // and now dynamic matrices
-            var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
-            foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
-                dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
-            foreach (var skippedSlot in skippedDynamicMatrixSlots)
-                skippedSlot.SetConcreteType(dynamicMatrixType);
-
-            tempSlots.Clear();
-            GetInputSlots(tempSlots);
-            var inputError = tempSlots.Any(x => x.hasError);
-
-            // configure the output slots now
-            // their slotType will either be the default output slotType
-            // or the above dynamic slotType for dynamic nodes
-            // or error if there is an input error
-            tempSlots.Clear();
-            GetOutputSlots(tempSlots);
-            foreach (var outputSlot in tempSlots)
-            {
-                outputSlot.hasError = false;
-
-                if (inputError)
-                {
-                    outputSlot.hasError = true;
-                    continue;
-                }
-
-                if (outputSlot is DynamicVectorMaterialSlot)
-                {
-                    (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
-                    continue;
-                }
-                else if (outputSlot is DynamicMatrixMaterialSlot)
-                {
-                    (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
-                    continue;
-                }
-            }
-
-            isInError |= inputError;
-            tempSlots.Clear();
-            GetOutputSlots(tempSlots);
-            isInError |= tempSlots.Any(x => x.hasError);
-            isInError |= CalculateNodeHasError(ref errorMessage);
-            isInError |= ValidateConcretePrecision(ref errorMessage);
-            hasError = isInError;
-
-            if (isInError)
-            {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
-            }
-            else
-            {
-                ++version;
-            }
-
-            ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
-            DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
-
-            ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
-            DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
-
-            tempSlots.Dispose();
         }
 
         public int version { get; set; }

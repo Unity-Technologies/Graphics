@@ -27,14 +27,18 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
             Assert.IsTrue(m_Active);
+            m_Active = false;
             Clear();
             s_Pool.Push(this);
             GC.SuppressFinalize(this);
         }
 
+// Destructor causes some GC alloc so only do this sanity check in debug build
+#if DEBUG
         ~PooledList()
         {
             throw new InvalidOperationException($"{nameof(PooledList<T>)} must be disposed manually.");
         }
+#endif
     }
 }
