@@ -7,5 +7,5 @@
     "description": "Provides test framework helpers for writing tests for graphics code, such as image comparison assertions and automatic management of reference images.",
     "keywords": ["qa", "test", "testing", "tests", "graphics"],
     "dependencies": {
-    }
+      "com.unity.external.test-protocol": "0.0.1-preview.6"}
 }

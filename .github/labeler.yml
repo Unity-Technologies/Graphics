@@ -1,0 +1,32 @@
+# Add 'core' to any changes within 'com.unity.render-pipelines.core' folder or any subfolders
+SRP:
+  - com.unity.render-pipelines.core/**/*
+  - TestProjects/SRP*/**/*
+  
+# Add 'hdrp' to any changes within HDRP-related folder or any subfolders
+HDRP:
+  - com.unity.render-pipelines.high-definition-config/**/*
+  - com.unity.render-pipelines.high-definition/**/*
+  - com.unity.testing.hdrp/**/*
+  - TestProjects/HDRP*/**/*
+  
+Universal:
+  - com.unity.render-pipelines.universal/**/*
+  - com.unity.render-pipelines.lightweight/**/*
+  - TestProjects/Universal*/**/*
+  
+Shader Graph:
+  - com.unity.shadergraph/**/*
+  - TestProjects/ShaderGraph*/**/*
+  - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
+  
+vfx:
+  - com.unity.visualeffectgraph/**/*
+  - com.unity.testing.visualeffectgraph/**/*
+  - TestProjects/VisualEffectGraph*/**/*
+  
+yamato:
+  - .yamato/*
+  
+testing:
+  - TestProjects/**/*

@@ -1,13 +1,17 @@
+**DON'T FORGET TO ADD A CHANGELOG**
+
+### Checklist for PR maker
+- [ ] Have you added a backport label (if needed)? For example, the `need-backport-2019.3` label. After you backport the PR, the label changes to `backported-2019.3`.
+- [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
+- [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
+- [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
+
+---
 ### Purpose of this PR
 Why is this PR needed, what hard problem is it solving/fixing?
 
 ---
-### Release Notes
-Please add any useful notes about the feature/fix that might be helpful for others.
-
----
 ### Testing status
-**Katana Tests**: First off we need to make sure the Katana SRP tests are green?
 
 **Manual Tests**: What did you do?
 - [ ] Opened test project + Run graphic tests locally
@@ -20,10 +24,7 @@ Please add any useful notes about the feature/fix that might be helpful for othe
 
 **Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
 
-Launch Katana (Link on master here - update for your branch):
-https://katana.bf.unity3d.com/projects/com.unity.render-pipelines/builders?ScriptableRenderLoop_branch=master&automation-tools_branch=master&unity_branch=trunk&sort=1-asc
-
-Alternative, launch Yamato (Select your branch):
+**Yamato**: (Select your branch):
 https://yamato.prd.cds.internal.unity3d.com/jobs/78-ScriptableRenderPipeline
 
 Any test projects to go with this to help reviewers?
