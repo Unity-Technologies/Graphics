@@ -2255,8 +2255,8 @@ float3 ImportanceSampleSkyTexture(
     //uint brdfSamplesCount = lerp(samplesCount, 1, usedRoughness);
     //uint iblSamplesCount  = lerp(1, samplesCount, usedRoughness);
 
-    uint brdfSamplesCount = samplesCount;
-    uint iblSamplesCount  = samplesCount;
+    int brdfSamplesCount = samplesCount;
+    int iblSamplesCount  = samplesCount;
 
     //float usedRoughness = clamp(bsdfData.roughnessT, 0.01f, 0.99f);
     //usedRoughness = clamp(bsdfData.roughnessT, 0.01f, 0.99f);
@@ -2266,7 +2266,7 @@ float3 ImportanceSampleSkyTexture(
 
 //*
     float  accW  = 0.0f;
-    for (uint i = 0; i < brdfSamplesCount; ++i)
+    for (int i = 0; i < brdfSamplesCount; ++i)
     {
         //float2 u = Hammersley2d(i, samplesCount);
         uint2 pixelCoord = posInput.positionSS;
@@ -2365,7 +2365,7 @@ float3 ImportanceSampleSkyTexture(
         materialSampling = float3(1, 0, 0);
 //*/
     accW = 0.0f;
-    for (uint i = 0; i < iblSamplesCount; ++i)
+    for (int i = 0; i < iblSamplesCount; ++i)
     {
         //float2 u = Hammersley2d(i, samplesCount);
 
@@ -2517,14 +2517,18 @@ IndirectLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
 //    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 //    #endif
 
-//#elif false && defined(RAYTRACING_ENABLED)
+#elif false && defined(RAYTRACING_ENABLED)
+
 //
-//    const uint sampleIdx    = 0;
-//    const uint samplesCount = 512;
-//    const uint sliceIndex   = 0;
+    envLighting = 0;
+
 //
-//    float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
-//
+//    //const uint sampleIdx    = 0;
+//    //const uint samplesCount = 512;
+//    //const uint sliceIndex   = 0;
+//    //
+//    //float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+//    //
 //    //if (posInput.positionNDC.x < 0.5)
 //    //{
 //    //    if (roughness == 0.0f)
@@ -2542,10 +2546,11 @@ IndirectLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
 //    //    }
 //    //}
 //    //else
-//    //if (posInput.positionNDC.x > 0.5)
+//    ////if (posInput.positionNDC.x > 0.5)
 //    //{
-//    //    envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData, posInput);
+//         envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData, posInput);
 //    //}
+//
 
 #else
 

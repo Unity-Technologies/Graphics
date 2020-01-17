@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Order is important!
             RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
             RenderSettings.ambientProbe = GetAmbientProbe(hdCamera);
-            
+
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
@@ -680,7 +680,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);                                    
+                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
                                     // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
                                     // otherwise ambient probe isn't correct for one frame.
@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         renderContext.Submit();
                                         cmd = CommandBufferPool.Get();
                                         m_requireWaitForAsyncReadBackRequest = false;
-                                    }         
+                                    }
                                 }
                             }
 
@@ -757,10 +757,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     ref var context = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
                     context.lastFrameUsed = m_CurrentFrameIndex;
-                    RTHandle invCDFRows   = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFRows;
-                    RTHandle invCDFCols   = ((HDRISkyRenderer)context.renderer).m_ImportanceSampler?.m_InvCDFFull;
+                    var skyContext  = hdCamera.visualSky;
+                    var skyRenderer = skyContext.skyRenderer;
+                    //var renderer = skyContext.skyRenderer;
+                    RTHandle invCDFRows   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFRows;
+                    RTHandle invCDFCols   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFFull;
 
-                    Vector4  hdriIntegral = ((HDRISkyRenderer)context.renderer).GetSphereSkyIntegral();
+                    Vector4  hdriIntegral = ((HDRISkyRenderer)skyRenderer).GetSphereSkyIntegral();
 
                     if (invCDFRows != null)
                         cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalRows, invCDFRows);
@@ -770,7 +773,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.SetGlobalInt(HDShaderIDs._SkyFrameIndex, skyIdx++);
 
-                    blueNoise.BindDitheredRNGData1SPP(cmd);
+                    //blueNoise.BindDitheredRNGData1SPP(cmd);
                 }
             }
             float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
