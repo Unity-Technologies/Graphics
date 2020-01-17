@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering.HighDefinition;
@@ -253,6 +254,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Fragment Normal Space", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(NormalDropOffSpace.Tangent), (field) =>
+                {
+                    field.value = m_Node.normalDropOffSpace;
+                    field.RegisterValueChangedCallback(ChangeSpaceOfNormalDropOffMode);
+                });
+            });
+
             ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -414,6 +424,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
+        }
+
+        void ChangeSpaceOfNormalDropOffMode(ChangeEvent<Enum> evt)
+        {
+              if (Equals(m_Node.normalDropOffSpace, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Space Drop-Off Mode Change");
+            m_Node.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
         }
 
         void ChangeMaterialType(ChangeEvent<Enum> evt)
