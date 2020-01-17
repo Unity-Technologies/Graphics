@@ -125,6 +125,10 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                 if ((lightStats.blendStylesUsed & (uint)(1 << j)) == 0)
                     continue;
 
+                cmd.SetGlobalVector("_ShapeLightMaskFilter", blendStyles[j].maskTextureChannelFilter.mask);
+                cmd.SetGlobalVector("_ShapeLightInvertedFilter", blendStyles[j].maskTextureChannelFilter.inverted);
+                cmd.SetGlobalVector("_ShapeLightBlendFactors", blendStyles[j].blendFactors);
+
                 var lights = Light2D.GetLightsByBlendStyle(j);
                 foreach (var light in lights)
                 {
