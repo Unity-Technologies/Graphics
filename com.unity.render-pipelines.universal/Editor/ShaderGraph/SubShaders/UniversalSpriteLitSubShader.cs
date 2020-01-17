@@ -167,9 +167,61 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 s_ETCExternalAlphaKeyword,
             },
         };
-#endregion
 
-#region Keywords
+        ShaderPass m_GBufferPass = new ShaderPass
+        {
+            // Definition
+            displayName = "Sprite GBuffer",
+            referenceName = "SHADERPASS_SPRITEGBUFFER",
+            lightMode = "Universal2DGBuffer",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteGBufferPass.hlsl",
+            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+            useInPreview = true,
+            BlendOverride = "Blend One OneMinusSrcAlpha",
+
+            // Port mask
+            vertexPorts = new List<int>()
+            {
+                SpriteLitMasterNode.PositionSlotId,
+                SpriteLitMasterNode.VertNormalSlotId,
+                SpriteLitMasterNode.VertTangentSlotId
+            },
+            pixelPorts = new List<int>
+            {
+                SpriteLitMasterNode.ColorSlotId,
+                SpriteLitMasterNode.NormalSlotId,
+                SpriteLitMasterNode.MaskSlotId
+            },
+
+            // Required fields
+            requiredVaryings = new List<string>()
+            {
+                "Varyings.color",
+                "Varyings.texCoord0",
+                "Varyings.screenPosition",
+                "Varyings.normalWS",
+                "Varyings.tangentWS",
+                "Varyings.bitangentWS",
+            },
+
+            // Pass setup
+            includes = new List<string>()
+            {
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
+            },
+            pragmas = new List<string>()
+            {
+                "prefer_hlslcc gles",
+                "exclude_renderers d3d11_9x",
+            },
+        };
+        #endregion
+
+        #region Keywords
         static KeywordDescriptor s_ETCExternalAlphaKeyword = new KeywordDescriptor()
         {
             displayName = "ETC External Alpha",
@@ -276,6 +328,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 GenerateShaderPass(litMasterNode, m_LitPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(litMasterNode, m_NormalPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(litMasterNode, m_ForwardPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(litMasterNode, m_GBufferPass, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
