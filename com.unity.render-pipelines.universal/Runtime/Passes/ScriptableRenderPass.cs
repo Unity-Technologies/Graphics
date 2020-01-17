@@ -211,6 +211,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
+        /// This method is only used for compatibility with the Post-processing V2 package.
         /// </summary>
         /// <param name="cmd">Command buffer to record command for execution.</param>
         /// <param name="cameraData">Camera rendering data.</param>
@@ -223,6 +224,8 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
         public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
+            ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
+            RenderingUtils.RenderPostProcessingCompat(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
         }
 #endif
 

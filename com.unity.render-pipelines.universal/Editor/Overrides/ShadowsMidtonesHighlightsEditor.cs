@@ -40,6 +40,12 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            if (UniversalRenderPipeline.asset?.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                EditorGUILayout.HelpBox(UniversalRenderPipelineAssetEditor.Styles.postProcessingGlobalWarning, MessageType.Warning);
+                return;
+            }
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, EditorGUIUtility.TrTextContent("Shadows"), GetWheelValue);

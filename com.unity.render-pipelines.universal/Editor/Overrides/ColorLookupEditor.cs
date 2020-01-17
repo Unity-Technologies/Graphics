@@ -18,6 +18,12 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            if (UniversalRenderPipeline.asset?.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                EditorGUILayout.HelpBox(UniversalRenderPipelineAssetEditor.Styles.postProcessingGlobalWarning, MessageType.Warning);
+                return;
+            }
+
             PropertyField(m_Texture, EditorGUIUtility.TrTextContent("Lookup Texture"));
 
             var lut = m_Texture.value.objectReferenceValue;
