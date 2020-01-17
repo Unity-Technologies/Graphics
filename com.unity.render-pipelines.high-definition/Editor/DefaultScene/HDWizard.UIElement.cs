@@ -101,6 +101,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void CreateDefaultSceneFromPackageAnsAssignIt(bool forDXR)
         {
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
             string subPath = forDXR ? "/DXR/" : "/";
 
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
