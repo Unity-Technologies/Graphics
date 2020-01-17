@@ -379,8 +379,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // We need to set the history as invalid if the directional light has rotated
                             float historyValidity = 1.0f;
-                            if (//m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation
-                                /*||*/ (hdCamera != null && !hdCamera.ValidShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex)))
+                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation
+                                || !hdCamera.ValidShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex))
                                 historyValidity = 0.0f;
 
                         #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         #endif
                                 // We need to check if something invalidated the history buffers
                                 historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
-
+                        
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
                             temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, shadowHistoryValidityArray, intermediateBuffer1, dirShadowIndex / 4, m_ShadowChannelMask0, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
@@ -781,7 +781,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
                 if (additionalLightData.filterTracedShadow)
                 {
-                    // We need to set the history as invalid if the light has moved (rotated or translated),
+                    // We need to set the history as invalid if the light has moved (rotated or translated), 
                     float historyValidity = 1.0f;
                     if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
                         || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex))

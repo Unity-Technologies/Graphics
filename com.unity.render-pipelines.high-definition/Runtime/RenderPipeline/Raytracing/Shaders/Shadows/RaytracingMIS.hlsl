@@ -121,6 +121,7 @@ void brdfSampleMIS(MISSamplingInput misInput, out float3 direction, out float pd
     pdf = EvalBrdfPDF(misInput, direction);
 }
 
+
 // Here we decided to use a "Damier" pattern to define which importance sampling technique to use for the MIS
 bool GenerateMISSample(inout MISSamplingInput misInput, SphQuad squad, float3 viewVector, inout MISSamplingOuput misSamplingOutput)
 {

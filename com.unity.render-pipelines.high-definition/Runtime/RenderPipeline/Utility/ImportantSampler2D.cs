@@ -4,8 +4,8 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.HighDefinition;
+//using UnityEngine.Experimental.Rendering;
+//using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering
         private void Rescale(RTHandle tex, RTHandle minMax, ParallelOperation.Direction direction, CommandBuffer cmd, bool single = false)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.Rescale01CS;
+            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
 
             rescale01.EnableKeyword("MINMAX");
             rescale01.EnableKeyword("READ_WRITE");
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering
         private void Rescale(RTHandle tex, Vector2 minMax, CommandBuffer cmd)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.Rescale01CS;
+            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
 
             rescale01.EnableKeyword("MINMAX");
             rescale01.EnableKeyword("READ_WRITE");
@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering
         public RTHandle GenerateSamples(uint samplesCount, RTHandle sliceInvCDF, RTHandle fullInvCDF, ParallelOperation.Direction direction, CommandBuffer cmd)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader importanceSample2D = hdrp.renderPipelineResources.shaders.ImportanceSample2DCS;
+            ComputeShader importanceSample2D = hdrp.renderPipelineResources.shaders.importanceSample2DCS;
 
             string addon = "";
             if (direction == ParallelOperation.Direction.Horizontal)

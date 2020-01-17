@@ -208,6 +208,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
@@ -313,6 +314,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
                     }
                 }
+
             }
         }
 

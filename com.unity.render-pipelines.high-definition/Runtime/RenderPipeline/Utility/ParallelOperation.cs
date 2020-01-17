@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
             RTHandle final;
 
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader opStep = hdrp.renderPipelineResources.shaders.ParallelOperationCS;
+            ComputeShader opStep = hdrp.renderPipelineResources.shaders.parallelOperationCS;
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
@@ -165,7 +165,8 @@ namespace UnityEngine.Rendering
             if (opPerThread > 1)
             {
                 RTHandle inRT   = temp0;
-                RTHandle outRT  = temp1;
+                RTHandle outRT  = temp1;
+
                 do
                 {
                     curSize /= opPerThread;

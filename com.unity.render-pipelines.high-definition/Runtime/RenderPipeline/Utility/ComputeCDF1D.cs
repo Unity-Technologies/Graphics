@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
             }
 
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader cdfStep = hdrp.renderPipelineResources.shaders.CDF1DCS;
+            ComputeShader cdfStep = hdrp.renderPipelineResources.shaders.cdf1DCS;
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering
             }
 
             var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader invCDFCS = hdrp.renderPipelineResources.shaders.InverseCDF1DCS;
+            ComputeShader invCDFCS = hdrp.renderPipelineResources.shaders.inverseCDF1DCS;
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)

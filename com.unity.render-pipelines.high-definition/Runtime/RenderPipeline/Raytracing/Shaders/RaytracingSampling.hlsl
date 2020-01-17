@@ -1,6 +1,3 @@
-#ifndef UNITY_RAYTRACING_SAMPLING_INCLUDED
-#define UNITY_RAYTRACING_SAMPLING_INCLUDED
-
 Texture2D<float>                        _OwenScrambledTexture;
 Texture2D<float>                        _ScramblingTileXSPP;
 Texture2D<float>                        _RankingTileXSPP;
@@ -75,5 +72,3 @@ float GetBNDSequenceSample(uint2 pixelCoord, uint sampleIndex, uint sampleDimens
     // convert to float and return
     return (0.5f + value) / 256.0f;
 }
-
-#endif // UNITY_RAYTRACING_SAMPLING_INCLUDED

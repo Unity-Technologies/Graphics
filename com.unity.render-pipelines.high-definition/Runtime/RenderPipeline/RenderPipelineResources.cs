@@ -114,8 +114,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader hdriSkyPS;
             [Reload("Runtime/Sky/HDRISky/IntegrateHDRISky.shader")]
             public Shader integrateHdriSkyPS;
-            [Reload("Runtime/Core/CoreResources/CubeToOctahedral.shader")]
-            public Shader cubeToOctahedral;
             [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
             public Shader skyboxCubemapPS;
             [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
@@ -150,18 +148,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
-            [Reload("Runtime/Core/CoreResources/CubeToOctahedral.compute")]
-            public ComputeShader cubeToOctahedralCS;
             [Reload("Runtime/Core/CoreResources/ParallelOperation.compute")]
-            public ComputeShader ParallelOperationCS;
+            public ComputeShader parallelOperationCS;
             [Reload("Runtime/Core/CoreResources/CDF1D.compute")]
-            public ComputeShader CDF1DCS;
+            public ComputeShader cdf1DCS;
             [Reload("Runtime/Core/CoreResources/InverseCDF1D.compute")]
-            public ComputeShader InverseCDF1DCS;
+            public ComputeShader inverseCDF1DCS;
             [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
-            public ComputeShader Rescale01CS;
+            public ComputeShader rescale01CS;
             [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
-            public ComputeShader ImportanceSample2DCS;
+            public ComputeShader importanceSample2DCS;
+            // TODO Remove
             [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
             public ComputeShader OutputDebugCS;
 

@@ -750,32 +750,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
-            SkyType type = (SkyType)VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyType.value;
-            if (type == SkyType.HDRI)
-            {
-                if (hdCamera.lightingSky.IsValid() && IsCachedContextValid(hdCamera.lightingSky))
-                {
-                    ref var context = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
-                    context.lastFrameUsed = m_CurrentFrameIndex;
-                    var skyContext  = hdCamera.visualSky;
-                    var skyRenderer = skyContext.skyRenderer;
-                    //var renderer = skyContext.skyRenderer;
-                    RTHandle invCDFRows   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFRows;
-                    RTHandle invCDFCols   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFFull;
+            //SkyType type = (SkyType)VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyType.value;
+            //if (type == SkyType.HDRI)
+            //{
+            //    if (hdCamera.lightingSky.IsValid() && IsCachedContextValid(hdCamera.lightingSky))
+            //    {
+            //        ref var context = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
+            //        context.lastFrameUsed = m_CurrentFrameIndex;
+            //        var skyContext  = hdCamera.visualSky;
+            //        var skyRenderer = skyContext.skyRenderer;
+            //        //var renderer = skyContext.skyRenderer;
+            //        RTHandle invCDFRows   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFRows;
+            //        RTHandle invCDFCols   = ((HDRISkyRenderer)skyRenderer).m_ImportanceSampler?.m_InvCDFFull;
 
-                    Vector4  hdriIntegral = ((HDRISkyRenderer)skyRenderer).GetSphereSkyIntegral();
+            //        Vector4  hdriIntegral = ((HDRISkyRenderer)skyRenderer).GetSphereSkyIntegral();
 
-                    if (invCDFRows != null)
-                        cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalRows, invCDFRows);
-                    if (invCDFCols != null)
-                        cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalCols, invCDFCols);
-                    cmd.SetGlobalVector(HDShaderIDs._HDRISkySphereIntegral, hdriIntegral);
+            //        if (invCDFRows != null)
+            //            cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalRows, invCDFRows);
+            //        if (invCDFCols != null)
+            //            cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginalCols, invCDFCols);
+            //        cmd.SetGlobalVector(HDShaderIDs._HDRISkySphereIntegral, hdriIntegral);
 
-                    cmd.SetGlobalInt(HDShaderIDs._SkyFrameIndex, skyIdx++);
+            //        cmd.SetGlobalInt(HDShaderIDs._SkyFrameIndex, skyIdx++);
 
-                    //blueNoise.BindDitheredRNGData1SPP(cmd);
-                }
-            }
+            //        //blueNoise.BindDitheredRNGData1SPP(cmd);
+            //    }
+            //}
             float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
 

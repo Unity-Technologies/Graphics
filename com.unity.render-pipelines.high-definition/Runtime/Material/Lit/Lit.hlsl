@@ -2527,49 +2527,8 @@ IndirectLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
 //    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 //    #endif
 
-#elif false && defined(RAYTRACING_ENABLED)
-
-//
-    envLighting = 0;
-
-//
-//    //const uint sampleIdx    = 0;
-//    //const uint samplesCount = 512;
-//    //const uint sliceIndex   = 0;
-//    //
-//    //float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
-//    //
-//    //if (posInput.positionNDC.x < 0.5)
-//    //{
-//    //    if (roughness == 0.0f)
-//    //    {
-//    //        float3 L = reflect(-V, bsdfData.normalWS);
-//    //        float3 H = normalize(L + V);
-//    //        float3 F = F_Schlick(bsdfData.fresnel0, dot(V, H));
-//    //        envLighting = F*SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation).rgb;
-//    //    }
-//    //    else
-//    //    {
-//    //        envLighting = ImportanceSampleSkyTexture(lightLoopContext, posInput,
-//    //                                                 V, preLightData, lightData, bsdfData, roughness,
-//    //                                                 sliceIndex, samplesCount);
-//    //    }
-//    //}
-//    //else
-//    ////if (posInput.positionNDC.x > 0.5)
-//    //{
-//         envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData, posInput);
-//    //}
-//
-
 #else
 
-//    if (posInput.positionNDC.x > 0.5)
-//    {
-//        envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData, posInput);
-//    }
-//else
-{
     float3 R = preLightData.iblR;
 
 #if HAS_REFRACTION
@@ -2651,7 +2610,6 @@ IndirectLighting EvaluateBSDF_Env(LightLoopContext lightLoopContext,
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
-}
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
     envLighting *= weight * lightData.multiplier;
