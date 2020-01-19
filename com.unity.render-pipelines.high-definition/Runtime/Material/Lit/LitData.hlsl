@@ -217,7 +217,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #if SHADERPASS == SHADERPASS_SHADOWS 
         GENERIC_ALPHA_TEST(alphaValue, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
     #else
-        GENERIC_ALPHA_TEST(alphaValue, _AlphaCutoff);
+        GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
     #endif
 #endif
 
