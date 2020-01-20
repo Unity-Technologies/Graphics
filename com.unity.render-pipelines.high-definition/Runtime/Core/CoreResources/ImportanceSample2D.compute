@@ -1,0 +1,51 @@
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainH HORIZONTAL   KerName=CSMainH
+#pragma kernel CSMainV VERTICAL     KerName=CSMainV
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
+  Texture2D<float4> _SliceInvCDF;
+  Texture2D<float4> _InvCDF;
+RWTexture2D<float4> _Output;
+
+SamplerState sampler_LinearClamp;
+
+uint4               _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+[numthreads(8, 1, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.x < _OutputSize.x))
+    {
+        float2 u = Hammersley2dSeq(id.x, _OutputSize.x);// *_InputSize;
+
+#ifdef HORIZONTAL
+        //float sliceInvCDFValue = _SliceInvCDF[uint2(         0,                           round(u.x))].x;
+        //float invCDFValue      =      _InvCDF[uint2(round(u.y), /*_InputSize.x*/round(sliceInvCDFValue))].x;
+        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(0, u.x), 0).x;
+        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(u.y, sliceInvCDFValue), 0).x;
+
+        float2 smpl = float2(saturate(invCDFValue), saturate(sliceInvCDFValue));
+
+        _Output[id.xy] = float4(smpl.xy, 0, 1);
+#else
+        //float sliceInvCDFValue = _SliceInvCDF[uint2(                          round(u.x),          0)].x;
+        //float invCDFValue      =      _InvCDF[uint2(/*_InputSize.y*/round(sliceInvCDFValue), round(u.y))].x;
+        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(u.x, 0), 0).x;
+        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(sliceInvCDFValue, u.y), 0).x;
+
+        float2 smpl = float2(saturate(sliceInvCDFValue), saturate(invCDFValue));
+
+        _Output[id.xy] = float4(smpl.xy, 0, 1);
+#endif
+    }
+}

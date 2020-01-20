@@ -1,0 +1,189 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainH HORIZONTAL
+#pragma kernel CSMainV VERTICAL
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+            float4  _Integral; // .xyz:{r, g, b}, z:1.0/max(r, g, b)
+  Texture2D<float4> _Input;
+  Texture2D<float4> _PDF;
+RWTexture2D<float4> _Output;
+
+uint4               _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+float TransformPDF(float4 pdf)
+{
+    return SampleToPDFMeasure(pdf);
+        //max(pdf.x, max(pdf.y, pdf.z));
+}
+
+float CosineInterpolate(
+    float y1, float y2,
+    float mu)
+{
+    float mu2 = (1.0f - cos(mu*PI))*0.5f;
+    return y1*(1.0f - mu2) + y2*mu2;
+}
+
+[numthreads(8, 8, 1)]
+#ifdef HORIZONTAL
+void CSMainH(uint3 id : SV_DispatchThreadID)
+#else
+void CSMainV(uint3 id : SV_DispatchThreadID)
+#endif
+{
+    if (all(id.xy < _OutputSize))
+    {
+        const float integral = 1.0f/_Integral.w;
+
+        float4 inVal = _Input[id.xy];
+        float  u1    = saturate(_Input[id.xy].x);
+
+        int i;
+
+        float2 scale = (_OutputSize.xy - float2(1.0f, 1.0f))/_OutputSize.xy;
+        float2 bias  = 0.5f/_OutputSize.xy;
+
+    #ifdef HORIZONTAL
+        float u0 = saturate(_Input[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
+        float dp = 1.0f/_OutputSize.x;
+        float d  = (u1 - u0); // *_OutputSize.y;
+        if (d <= dp)
+        {
+            _Output[uint2(u1*_InputSize.x, id.y)] = //float4(1, 0, 0, 0);
+                float4(saturate(float(id.x)*dp), TransformPDF(_PDF[uint2(u1*_InputSize.x, id.y)])*integral, 0.0f, 0.0f);
+        }
+        //float  u0    = saturate(_Input[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
+        ////float  d     = (u1 - u0)*_InputSize.x;
+        //    //(u1 - u0 - dp)*_OutputSize.x;
+        ////if (d > 1.0f)
+        else
+        {
+            //const int maxIter = (d - 1)*_InputSize.x;
+            //const int maxIter = (d - 1)*_InputSize.x;
+
+            //const float y0 = float(id.x - 1)*dp;
+            //const float y1 = float(id.x    )*dp;
+            //const float x0 = float((u0 + 0*dp)*_InputSize.x);
+            //const float x1 = float((u1 - 0*dp)*_InputSize.x);
+
+            //const float a  =    (y0 - y1)
+            //               / // ---------
+            //                    (x0 - x1);
+
+            //const float b  = (x0*y1 - x1*y0)
+            //            / // ---------------
+            //                    (x0 - x1);
+
+            //for (i = 0; i <= maxIter; ++i)
+            //{
+            //    uint xi = uint(u0*_InputSize.x + i);
+            //    //float4 cur = _Output[uint2(xi, id.y)];
+            //    //cur.z = 1.0f;
+            //    //_Output[uint2(xi, id.y)] = cur;
+            //    //uint xi = uint(u0*_InputSize.x + i);
+            //    _Output[uint2(xi, id.y)] = float4(
+            //        saturate(a*float(xi) + b),
+            //        //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+            //        TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
+            //}
+
+            const int maxIter = ceil(d*_InputSize.x);
+
+            const float y0 = float(id.x - 1)*dp;
+            const float y1 = float(id.x)*dp;
+            const float x0 = float(u0*_InputSize.x);
+            const float x1 = float(u1*_InputSize.x);
+
+            const float a  =    (y0 - y1)
+                           / // ---------
+                                (x0 - x1);
+
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
+            {
+                uint xi = uint(u0*_InputSize.x + i);
+                _Output[uint2(xi, id.y)] = float4(
+                    saturate(a*float(xi) + b),
+                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+                    TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
+            }
+        }
+    #else
+        float u0 = saturate(_Input[uint2(id.x, id.y == 0 ? id.y : id.y - 1)].x);
+        float dp = 1.0f/_OutputSize.y;
+        float d  = (u1 - u0); // *_OutputSize.y;
+        if (d <= dp)
+        {
+            _Output[uint2(id.x, u1*_InputSize.y)] = float4(saturate(float(id.y)*dp), TransformPDF(_PDF[uint2(id.x, u1*_InputSize.y)])*integral, 0.0f, 0.0f);
+        }
+        //if (d > 1.0f)
+        //{
+        //    const int maxIter = (d - 1)*_InputSize.y;
+        //
+        //    const float y0 = float(id.y - 1)*dp;
+        //    const float y1 = float(id.y    )*dp;
+        //    const float x0 = float((u0 + dp)*_InputSize.y);
+        //    const float x1 = float((u1 - dp)*_InputSize.y);
+        //
+        //    const float a  =    (y0 - y1)
+        //                   / // ----------
+        //                        (x0 - x1);
+        //
+        //    const float b  = (x0*y1 - x1*y0)
+        //                / // ---------------
+        //                        (x0 - x1);
+        //
+        //    for (i = 1; i <= maxIter; ++i)
+        //    {
+        //        //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
+        //        //uint xi = uint(u0*_InputSize.y + i + 1);
+        //        uint xi = uint(u0*_InputSize.y + i);
+        //        _Output[uint2(id.x, xi)] = float4(
+        //            saturate(a*float(xi) + b),
+        //            //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+        //            TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
+        //    }
+        //}
+        else
+        {
+            const int maxIter = ceil(d*_InputSize.y);
+
+            const float y0 = float(id.y - 1)*dp;
+            const float y1 = float(id.y)*dp;
+            const float x0 = float(u0*_InputSize.y);
+            const float x1 = float(u1*_InputSize.y);
+
+            const float a  =    (y0 - y1)
+                           / // ----------
+                                (x0 - x1);
+
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
+            {
+                //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
+                uint xi = uint(u0*_InputSize.y + i);
+                _Output[uint2(id.x, xi)] = float4(
+                    saturate(a*float(xi) + b),
+                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+                    TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
+            }
+        }
+    #endif
+    }
+}

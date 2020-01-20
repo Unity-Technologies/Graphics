@@ -358,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture GetReflectionTexture(SkyUpdateContext skyContext)
         {
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
-        {
+            {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxBSDFCubemapArray;
@@ -372,6 +372,50 @@ namespace UnityEngine.Rendering.HighDefinition
         public Texture GetSkyReflection(HDCamera hdCamera)
         {
             return GetReflectionTexture(hdCamera.lightingSky);
+        }
+
+        internal RenderTargetIdentifier GetMarginalTexture(HDCamera hdCamera)
+        {
+            SkyUpdateContext skyContext = hdCamera.lightingSky;
+
+            SkyType skyType = (SkyType)hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value;
+
+            if (skyType == SkyType.HDRI && skyContext.IsValid() && IsCachedContextValid(skyContext))
+            {
+                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                var renderer = (HDRISkyRenderer)skyContext.skyRenderer;
+
+                if (renderer?.marginal != null && renderer?.conditionalMarginal.rt != null)
+                    return renderer?.marginal.rt;
+                else
+                    return Texture2D.whiteTexture;
+            }
+            else
+            {
+                return Texture2D.whiteTexture;
+            }
+        }
+
+        internal RenderTargetIdentifier GetConditionalMarginalTexture(HDCamera hdCamera)
+        {
+            SkyUpdateContext skyContext = hdCamera.lightingSky;
+
+            SkyType skyType = (SkyType)hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value;
+
+            if (skyType == SkyType.HDRI && skyContext.IsValid() && IsCachedContextValid(skyContext))
+            {
+                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                var renderer = (HDRISkyRenderer)skyContext.skyRenderer;
+
+                if (renderer?.conditionalMarginal != null && renderer?.conditionalMarginal.rt != null)
+                    return renderer?.conditionalMarginal;
+                else
+                    return Texture2D.whiteTexture;
+            }
+            else
+            {
+                return Texture2D.whiteTexture;
+            }
         }
 
         // Return the value of the ambient probe
@@ -401,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Order is important!
             RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
             RenderSettings.ambientProbe = GetAmbientProbe(hdCamera);
-            
+
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
@@ -680,7 +724,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);                                    
+                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
                                     // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
                                     // otherwise ambient probe isn't correct for one frame.
@@ -692,7 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         renderContext.Submit();
                                         cmd = CommandBufferPool.Get();
                                         m_requireWaitForAsyncReadBackRequest = false;
-                                    }         
+                                    }
                                 }
                             }
 
@@ -751,6 +795,22 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
             float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
+
+            //hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+            //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
+
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            {
+                var skyMarginal             = GetMarginalTexture(hdCamera);
+                var skyConditionalMarginal  = GetConditionalMarginalTexture(hdCamera);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              skyMarginal);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   skyConditionalMarginal);
+            }
+            else
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
+            }
 
             if (IsLightingSkyValid(hdCamera))
             {

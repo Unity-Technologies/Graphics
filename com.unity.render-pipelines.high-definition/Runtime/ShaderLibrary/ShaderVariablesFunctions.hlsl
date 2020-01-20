@@ -148,4 +148,17 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
     return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
 }
 
+float SampleToPDFMeasure(float3 value)
+{
+    return value.r + value.g + value.b;
+    //return max(value.r, max(value.g, value.b));
+    //return Luminance(value);
+    //return AcesLuminance(value);
+}
+
+float SampleToPDFMeasure(float4 value)
+{
+    return SampleToPDFMeasure(value.rgb);
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

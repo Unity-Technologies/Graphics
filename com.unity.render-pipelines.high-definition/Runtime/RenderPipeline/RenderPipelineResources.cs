@@ -148,6 +148,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+            [Reload("Runtime/Core/CoreResources/GPUOperations.compute")]
+            public ComputeShader gpuOperationsCS;
+            [Reload("Runtime/Core/CoreResources/CDF1D.compute")]
+            public ComputeShader cdf1DCS;
+            [Reload("Runtime/Core/CoreResources/InverseCDF1D.compute")]
+            public ComputeShader inverseCDF1DCS;
+            [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
+            public ComputeShader rescale01CS;
+            [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
+            public ComputeShader importanceSample2DCS;
+            [Reload("Runtime/Core/CoreResources/ImportanceLatLongIntegration.compute")]
+            public ComputeShader importanceLatLongIntegrationCS;
+            // TODO Remove
+            [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
+            public ComputeShader OutputDebugCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
