@@ -18,8 +18,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
-        
+
         // -------------------------------------
         // Particle specific
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0

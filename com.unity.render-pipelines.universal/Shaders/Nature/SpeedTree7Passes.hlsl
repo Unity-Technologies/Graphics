@@ -150,7 +150,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
         output.viewDirWS = viewDirWS;
     #endif
 
-    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #ifdef _MAIN_LIGHT_SHADOWS
         output.shadowCoord = GetShadowCoord(vertexInput);
     #endif
 

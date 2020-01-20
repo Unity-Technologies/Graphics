@@ -23,7 +23,6 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
         [HideInInspector] _SmoothnessSource("Smoothness Source", Float) = 0.0
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
 
         // -------------------------------------
         // Particle specific
