@@ -5,25 +5,14 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Core.hlsl"
 
-#define SHADOWS_SCREEN 0
 #define MAX_SHADOW_CASCADES 4
 
-#if !defined(_RECEIVE_SHADOWS_OFF)
-    #if defined(_MAIN_LIGHT_SHADOWS)
-        #define MAIN_LIGHT_CALCULATE_SHADOWS
-
-        #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-            #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
-        #endif
-    #endif
-
-    #if defined(_ADDITIONAL_LIGHT_SHADOWS)
-        #define ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    #endif
+#ifndef SHADOWS_SCREEN
+#if defined(_MAIN_LIGHT_SHADOWS) && defined(_MAIN_LIGHT_SHADOWS_CASCADE) && !defined(SHADER_API_GLES)
+#define SHADOWS_SCREEN 1
+#else
+#define SHADOWS_SCREEN 0
 #endif
-
-#if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-    #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 #endif
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
@@ -106,7 +95,6 @@ half4 GetMainLightShadowParams()
 {
     return _MainLightShadowParams;
 }
-
 
 // ShadowParams
 // x: ShadowStrength
@@ -209,27 +197,30 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
 {
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
-#else
-    half cascadeIndex = 0;
-#endif
-
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
+#else
+    return mul(_MainLightWorldToShadow[0], float4(positionWS, 1.0));
+#endif
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)
 {
-#if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+#if !defined(_MAIN_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #endif
 
+#if SHADOWS_SCREEN
+    return SampleScreenSpaceShadowmap(shadowCoord);
+#else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+#endif
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 {
-#if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+#if !defined(_ADDITIONAL_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #endif
 
@@ -255,7 +246,11 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
+#if SHADOWS_SCREEN
+    return ComputeScreenPos(vertexInput.positionCS);
+#else
     return TransformWorldToShadowCoord(vertexInput.positionWS);
+#endif
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
