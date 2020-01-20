@@ -18,18 +18,25 @@ float2 ScreenSpaceGlobalToLocalUV(float2 uv)
 
 float2 ClipSpaceLocalToGlobal(float2 pos)
 {
-	pos.y *= -1; // flip Y
+    // clip to UV
+	pos.y = -pos.y; // flip Y
 	pos = (pos + 1) * 0.5; // [0, 1] local
 	pos = ScreenSpaceLocalToGlobalUV(pos); // [0, 1] global
-    return pos * 2 - 1; // [-1, 1] global
+	// UV to clip
+    pos = pos * 2 - 1; // [-1, 1] global
+    pos.y = -pos.y;
+    return pos;
 }
 
 float2 ClipSpaceGlobalToLocal(float2 pos)
 {
+    // clip to UV
+    pos.y = -pos.y;
 	pos = (pos + 1) * 0.5; // [0, 1] global
     pos = ScreenSpaceGlobalToLocalUV(pos); // [0, 1] local
+    // UV to clip
     pos = pos * 2 - 1; // [-1, 1] local
-    pos.y *= -1; // flip Y
+    pos.y = -pos.y; // flip Y
     return pos;
 }
 
