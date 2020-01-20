@@ -127,6 +127,11 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLut.Init("_InternalGradingLut");
             m_DepthInfoTexture.Init("_DepthInfoTexture");
             m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
+
+            supportedRenderingFeatures = new RenderingFeatures()
+            {
+                cameraStacking = true,
+            };
         }
 
         /// <inheritdoc />
@@ -150,7 +155,11 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool postProcessEnabled = cameraData.postProcessEnabled;
+            // We only apply post-processing at the end of the stack, i.e, when we are rendering a camera that resolves rendering to camera target.
+            bool applyPostProcessing = cameraData.postProcessEnabled && renderingData.resolveFinalTarget;
+
+            // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
+            bool generateColorGradingLUT = cameraData.postProcessEnabled && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool isStereoEnabled = cameraData.isStereoEnabled;
@@ -216,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            if (postProcessEnabled)
+            if (generateColorGradingLUT)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
@@ -290,13 +299,13 @@ namespace UnityEngine.Rendering.Universal
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
             m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
             EnqueuePass(m_RenderTransparentForwardPass);
-
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            bool afterRenderExists = renderingData.cameraData.captureActions != null ||
-                                     hasAfterRendering;
+            bool resolveFinalTarget = renderingData.resolveFinalTarget;
+            bool hasCaptureActions = renderingData.cameraData.captureActions != null && resolveFinalTarget;
+            bool afterRenderExists = hasCaptureActions || hasAfterRendering;
 
-            bool requiresFinalPostProcessPass = postProcessEnabled &&
+            bool requiresFinalPostProcessPass = applyPostProcessing &&
                                      renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
             // if we have additional filters
@@ -305,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 bool willRenderFinalPass = (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget);
                 // perform post with src / dest the same
-                if (postProcessEnabled)
+                if (applyPostProcessing)
                 {
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, requiresFinalPostProcessPass, !willRenderFinalPass);
                     EnqueuePass(m_PostProcessPass);
@@ -334,7 +343,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (postProcessEnabled)
+                if (applyPostProcessing)
                 {
                     if (requiresFinalPostProcessPass)
                     {
@@ -349,7 +358,7 @@ namespace UnityEngine.Rendering.Universal
                         EnqueuePass(m_PostProcessPass);
                     }
                 }
-                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget && resolveFinalTarget)
                 {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
@@ -359,6 +368,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (renderingData.cameraData.isSceneViewCamera)
             {
+                // Scene view camera should always resolve target (not stacked)
+                Assertions.Assert.IsTrue(resolveFinalTarget, "Editor camera must resolve target upon finish rendering.");
                 m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
                 EnqueuePass(m_SceneViewDepthCopyPass);
             }
