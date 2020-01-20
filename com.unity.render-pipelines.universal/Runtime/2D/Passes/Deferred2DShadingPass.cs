@@ -20,12 +20,22 @@ public class Deferred2DShadingPass : ScriptableRenderPass
     Material m_ShapeLightMaterial;
     Material m_PointLightMaterial;
 
+    RenderStateBlock m_GBufferRenderState;
+
     public Deferred2DShadingPass(Renderer2DData rendererData)
     {
         if (s_SortingLayers == null)
             s_SortingLayers = SortingLayer.layers;
 
         m_RendererData = rendererData;
+
+        var stencilState = StencilState.defaultValue;
+        stencilState.enabled = true;
+        stencilState.SetCompareFunction(CompareFunction.Always);
+        stencilState.SetPassOperation(StencilOp.Replace);
+        m_GBufferRenderState = new RenderStateBlock(RenderStateMask.Stencil);
+        m_GBufferRenderState.stencilReference = 111;
+        m_GBufferRenderState.stencilState = stencilState;
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -50,16 +60,18 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
         descriptor.useMipMap = false;
         descriptor.autoGenerateMips = false;
-        descriptor.depthBufferBits = 0;
+        descriptor.depthBufferBits = 24;
         descriptor.msaaSamples = 1;
         descriptor.dimension = TextureDimension.Tex2D;
 
         cmd.GetTemporaryRT(s_GBufferColorTarget.id, descriptor);
 
         descriptor.graphicsFormat = GraphicsFormat.R8_UNorm;
+        descriptor.depthBufferBits = 0;
         cmd.GetTemporaryRT(s_GBufferMaskTarget.id, descriptor);
 
         descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
+        descriptor.depthBufferBits = 0;
         cmd.GetTemporaryRT(s_GBufferNormalTarget.id, descriptor);
 
         cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
@@ -92,7 +104,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-            CoreUtils.SetRenderTarget(cmd, s_GBufferTargets, BuiltinRenderTextureType.CameraTarget, ClearFlag.Color, clearColor);
+            CoreUtils.SetRenderTarget(cmd, s_GBufferTargets, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
 
             cmd.EndSample(sortingLayerName);
             context.ExecuteCommandBuffer(cmd);
@@ -100,7 +112,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
             // Draw the g-buffer.
             DrawingSettings drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_GBufferRenderState);
 
             // Render the lights.
             if (m_GlobalLightMaterial == null)
@@ -112,7 +124,17 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             if (m_PointLightMaterial == null)
                 m_PointLightMaterial = new Material(m_RendererData.pointLightShader);
 
-            CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
+            CoreUtils.SetRenderTarget(
+                cmd,
+                colorAttachment,
+                RenderBufferLoadAction.Load,
+                RenderBufferStoreAction.Store,
+                s_GBufferColorTarget.Identifier(),
+                RenderBufferLoadAction.Load,
+                RenderBufferStoreAction.Store,
+                ClearFlag.None
+            );
+
             var blendStyles = m_RendererData.lightBlendStyles;
 
             int layerToRender = s_SortingLayers[i].id;
@@ -184,7 +206,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                     cmd.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                     cmd.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
 
-                    if (light.volumeOpacity > 0.0f && light.GetTopMostLitLayer() == layerToRender)
+                    bool isVolumetric = light.volumeOpacity > 0.0f && light.GetTopMostLitLayer() == layerToRender;
+                    if (isVolumetric)
                         cmd.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
                     else
                         cmd.SetGlobalFloat("_VolumeOpacity", 0.0f);
@@ -230,7 +253,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                             cmd.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
                         }
 
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, 1);
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, m_ShapeLightMaterial, 0, isVolumetric ? 2 : 1);
                     }
                     else  // point lights
                     {
@@ -242,7 +265,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
                         Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                         Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                        cmd.DrawMesh(lightMesh, matrix, m_PointLightMaterial, 0, 1);
+                        cmd.DrawMesh(lightMesh, matrix, m_PointLightMaterial, 0, isVolumetric ? 2 : 1);
                     }
                 }
 

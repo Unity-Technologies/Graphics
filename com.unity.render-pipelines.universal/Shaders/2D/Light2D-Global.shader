@@ -10,6 +10,14 @@ Shader "Hidden/Light2D-Global"
             ZWrite Off
             Cull Off
 
+            Stencil {
+                Ref 111
+                Comp equal
+                Pass keep
+                Fail keep
+                ZFail keep
+            }
+
             HLSLPROGRAM
             #pragma prefer_hlslcc gles
             #pragma vertex vert
