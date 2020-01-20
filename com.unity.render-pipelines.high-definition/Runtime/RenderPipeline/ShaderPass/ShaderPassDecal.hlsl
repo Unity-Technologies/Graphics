@@ -66,7 +66,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     // Decal layer mask accepted by the receiving material
     DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
-    if ((decalLayerMask && decalPrepassData.decalLayerMask) == 0)
+    if ((decalLayerMask & decalPrepassData.decalLayerMask) == 0)
     {
         clipValue = -1.0;
         clip(clipValue);
@@ -100,7 +100,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     // Decal layer mask accepted by the receiving material
     DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
-    if ((decalLayerMask && decalPrepassData.decalLayerMask) == 0)
+    if ((decalLayerMask & decalPrepassData.decalLayerMask) == 0)
     {
         clipValue = -1.0;
         clip(clipValue);
