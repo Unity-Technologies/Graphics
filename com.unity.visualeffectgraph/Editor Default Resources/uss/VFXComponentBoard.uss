@@ -10,7 +10,7 @@ VFXComponentBoard.graphElement
     padding-top:0;
     padding-bottom:0;
 
-    min-width: 140px;
+    min-width: 286px;
     min-height: 100px;
 }
 
@@ -150,6 +150,109 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 {
     padding-top: 8px;
 }
+
+#debug-container
+{
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+
+#debug-label
+{
+    padding-top: 10px;
+}
+
+
+
+#debug-box
+{
+    flex-grow: 1;
+    background-color:#222;
+    margin: auto;
+    width: 90%;
+    height: 150px;
+    overflow:hidden;
+    border-radius:6px;
+}
+
+#debug-settings-container
+{
+    flex:1 1 auto;
+    flex-direction:row;
+}
+
+#debug-settings-element-container
+{
+    flex-direction:column;
+    align-content:center;
+}
+
+#debug-box-axis-container
+{
+    flex-direction:column;
+    flex-grow: 1;
+    width: 10%;
+}
+
+#debug-plot-area {
+    flex-direction: row;
+    width: 100%;
+    margin-top: 7px;
+    margin-bottom: 12px;
+    padding-left:4px;
+}
+
+#debug-box-axis-100 {
+    flex-grow: 1;
+    -unity-text-align: upper-center;
+}
+#debug-box-axis-50 {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+#debug-box-axis-0 {
+    flex-grow: 1;
+    -unity-text-align: lower-center;
+}
+
+#debug-system-stat-container
+{
+    flex-direction:row;
+    height:200px;
+    width: 100%;
+}
+
+#debug-system-stat-title, #debug-system-stat-title-name {
+    font-size: 12px;
+    flex-grow: 1;
+    width: 20%;
+    -unity-text-align: middle-center;
+}
+
+#debug-system-stat-title-name {
+    width: 25%;
+}
+
+
+#debug-system-stat-entry-container
+{
+    flex-direction:row;
+    align-items:center;
+    flex-grow: 1;
+    width:100%;
+}
+
+#debug-system-stat-entry, #debug-system-stat-entry-name {
+    flex-grow: 1;
+    width: 20%;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+#debug-system-stat-entry-name {
+    width: 25%;
+}
+
 
 #play-rate-container #play-rate-slider
 {

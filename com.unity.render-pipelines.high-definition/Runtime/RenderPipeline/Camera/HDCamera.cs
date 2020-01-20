@@ -68,10 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
-        // We need to keep this here as culling is done before volume update. That means that culling for the light will be left with the state used by the last
-        // updated camera which is not necessarily the camera we are culling for. This should be fixed if we end up having scriptable culling, as the culling for
-        // the lights can be done after the volume update.
-        internal float shadowMaxDistance = 500.0f;
+        // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
+        internal uint cameraFrameCount = 0;
 
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
@@ -93,6 +91,27 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[] xrWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
         Vector4[] xrWorldSpaceCameraPosViewOffset = new Vector4[ShaderConfig.s_XrMaxViews];
         Vector4[] xrPrevWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
+
+        // This variable is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
+        // This avoid ghosting and many other problems that may happen due to an unwanted history usge
+        internal struct ShadowHistoryUsage
+        {
+            public int lightInstanceID;
+            public uint frameCount;
+        }
+        internal ShadowHistoryUsage[] shadowHistoryUsage = null;
+
+        internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        {
+            return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetInstanceID()
+                    && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1));
+        }
+
+        internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        {
+            shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
+            shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
+        }
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -240,6 +259,10 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumColorPyramidBuffersAllocated = 0;
         int m_NumVolumetricBuffersAllocated   = 0;
 
+        internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
+
+        public VolumeStack volumeStack { get; private set; }
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -249,6 +272,8 @@ namespace UnityEngine.Rendering.HighDefinition
             frustum.corners = new Vector3[8];
 
             frustumPlaneEquations = new Vector4[6];
+
+            volumeStack = VolumeManager.instance.CreateStack();
 
             Reset();
         }
@@ -263,9 +288,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_NeedTAAResetHistory;
         }
 
-        internal bool IsVolumetricReprojectionEnabled(bool ignoreVolumeStack = false)
+        internal bool IsVolumetricReprojectionEnabled()
         {
-            bool a = Fog.IsVolumetricFogEnabled(this, ignoreVolumeStack);
+            bool a = Fog.IsVolumetricFogEnabled(this);
             bool b = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
             bool c = camera.cameraType == CameraType.Game;
             bool d = Application.isPlaying;
@@ -279,11 +304,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Otherwise, previous frame view constants will be wrong.
         public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
-            bool ignoreVolumeStack = true; // Unfortunately, it is initialized after this function call
+            // Make sure that the shadow history identification array is allocated and is at the right size
+            if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
+            {
+                shadowHistoryUsage = new ShadowHistoryUsage[hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots];
+            }
 
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
+
+            UpdateVolumeAndPhysicalParameters();
 
             m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
@@ -294,11 +325,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Have to do this every frame in case the settings have changed.
                 // The condition inside controls whether we perform init/deinit or not.
-                hdrp.ReinitializeVolumetricBufferParams(this, ignoreVolumeStack);
+                hdrp.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
+                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.Refraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
-                bool isVolumetricHistoryRequired   = IsVolumetricReprojectionEnabled(ignoreVolumeStack);
+                bool isVolumetricHistoryRequired   = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
                 if (isCurrentColorPyramidRequired)
@@ -368,10 +399,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateAllViewConstants();
             isFirstFrame = false;
+            cameraFrameCount++;
 
-            hdrp.UpdateVolumetricBufferParams(this, ignoreVolumeStack);
-
-            UpdateVolumeAndPhysicalParameters();
+            hdrp.UpdateVolumetricBufferParams(this);
 
             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
@@ -691,6 +721,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If no override is provided, use the camera transform.
             if (volumeAnchor == null)
                 volumeAnchor = camera.transform;
+
+            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.VolumeUpdate)))
+            {
+                VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
+            }
         }
 
         /// <param name="aspect">
@@ -820,15 +855,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Reset()
         {
             isFirstFrame = true;
+            cameraFrameCount = 0;
         }
 
         public void Dispose()
         {
+            VolumeManager.instance.DestroyStack(volumeStack);
+
             if (m_HistoryRTSystem != null)
             {
                 m_HistoryRTSystem.Dispose();
                 m_HistoryRTSystem = null;
             }
+
+            if (lightingSky != null && lightingSky != visualSky)
+                lightingSky.Cleanup();
+
+            if (visualSky != null)
+                visualSky.Cleanup();
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -1010,18 +1054,27 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
+        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
+        struct AmbientOcclusionAllocator
+        {
+            float scaleFactor;
+
+            public AmbientOcclusionAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+            }
+        }
+
         public void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
             if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-                {
-                    return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
-                }
-
-                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, Allocator, 2);
+                var aoAlloc = new AmbientOcclusionAllocator(scaleFactor);
+                AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
             }
@@ -1130,9 +1183,9 @@ namespace UnityEngine.Rendering.HighDefinition
             else
 #endif
             {
-                skyAmbientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-                visualSky.skySettings = SkyManager.GetSkySetting(VolumeManager.instance.stack);
+                visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.

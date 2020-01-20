@@ -206,7 +206,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             PixelSnap();
 
             if (m_Internal.useOffscreenRT)
-                m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(m_Camera.aspect, rtSize.x, rtSize.y);
+                m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 
@@ -246,7 +246,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
             m_Camera.orthographicSize = m_Internal.originalOrthoSize;
-            m_Camera.ResetAspect();
             m_Camera.ResetWorldToCameraMatrix();
 
 #if UNITY_EDITOR

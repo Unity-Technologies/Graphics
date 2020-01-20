@@ -110,6 +110,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace;
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get { return m_NormalDropOffSpace; }
+            set
+            {
+                if (m_NormalDropOffSpace == value)
+                    return;
+
+                m_NormalDropOffSpace = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -124,7 +140,22 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new NormalMaterialSlot(VertNormalSlotId, NormalName, NormalName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new TangentMaterialSlot(VertTangentSlotId, TangentName, TangentName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
-            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
+            //switch drop off delivery space for normal values   
+            var coordSpace = CoordinateSpace.Tangent;
+            switch (m_NormalDropOffSpace)
+            {
+                case NormalDropOffSpace.Tangent:
+                    coordSpace = CoordinateSpace.Tangent;
+                    break;
+                case NormalDropOffSpace.World:
+                    coordSpace = CoordinateSpace.World;
+                    break;
+                case NormalDropOffSpace.Object:
+                    coordSpace = CoordinateSpace.Object;
+                    break;
+            }
+            RemoveSlot(NormalSlotId);
+            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
             AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Color.black, ColorMode.Default, ShaderStageCapability.Fragment));
             if (model == Model.Metallic)
                 AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));

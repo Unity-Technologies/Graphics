@@ -1978,8 +1978,7 @@ namespace UnityEditor.VFX.UI
             {
                 var contextToController = systems[i].Keys.Select(t => new KeyValuePair<VFXContextController, VFXContext>((VFXContextController)GetNodeController(t, 0), t)).Where(t => t.Key != null).ToDictionary(t => t.Value, t => t.Key);
                 m_Systems[i].contexts = contextToController.Values.ToArray();
-                m_Systems[i].title = graph.UIInfos.GetNameOfSystem(systems[i].Keys);
-
+                m_Systems[i].title = m_Graph.systemNames.GetUniqueSystemName(m_Systems[i].contexts.First().model.GetData());
                 VFXContextType type = VFXContextType.None;
                 VFXContext prevContext = null;
                 var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();

@@ -36,10 +36,19 @@ projects:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
   skip_checkout: true
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published --fast
+    
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdwin }} -c editor --wait --published
+    {% else %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}
 
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
   artifacts:
@@ -55,11 +64,19 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
     flavor: b1.xlarge
     type: Unity::VM
     image: sdet/gamecode_win10:stable
-
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --pre
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published --fast
+    
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdwin }} -c editor --wait --published
+    {% else %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}
 
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64  --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
   artifacts:
@@ -73,7 +90,7 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
 {% else %}
 
 {{ project.name }}_Win_{{ testplatform.name }}_{{ editor.version }}:
-  name : Test {{ project.name }} on Win_{{ testplatform.name }} on version {{ editor.version }}
+  name : {{ project.name }} on Win_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM

@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/006_StripAttributes.unity
     guid: 6cf5bcccabd797d4db3c44a0d4ac7389
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/008_AssetBundle.unity
+    guid: 3144ec9758afdcf4482416ecbc5c193c
   - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/05_MotionVectors.unity
     guid: 24824e132e4c94b43818ee0460ae321c
@@ -164,7 +167,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphShadowLit.unity
     guid: 2dbb17953af83c24bacf6b650bd0e432
-  - enabled: 0
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/SampleScene/ShadergraphSampleScene.unity
     guid: c728f3824d066e24a8eba25cde029b41
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContextWithSubgraphBlock/SubgraphContextWithSubgraphBlock.unity
+    guid: c0966123a38e92644b1aa4482c8950c5
   m_configObjects: {}
