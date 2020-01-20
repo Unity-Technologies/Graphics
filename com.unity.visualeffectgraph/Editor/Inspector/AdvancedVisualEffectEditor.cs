@@ -131,6 +131,10 @@ namespace UnityEditor.VFX
             {
                 base.OnDisable();
             }
+            else
+            {
+                OnDisableWithoutResetting();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;

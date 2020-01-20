@@ -37,6 +37,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void Cleanup()
+        {
+            if (skyRenderer != null)
+            {
+                skyRenderer.Cleanup();
+            }
+        }
+
         public bool IsValid()
         {
             // We need to check m_SkySettings because it can be "nulled" when destroying the volume containing the settings (as it's a ScriptableObject) without the context knowing about it.

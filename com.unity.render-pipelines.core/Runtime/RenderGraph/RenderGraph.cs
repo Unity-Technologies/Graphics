@@ -305,7 +305,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
         /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
         /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
-        /// <param name="customSampler">Optional C# profiling object.</param>
+        /// <param name="sampler">Optional profiling sampler.</param>
         /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler = null) where PassData : class, new()
         {

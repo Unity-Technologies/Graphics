@@ -53,11 +53,11 @@ Varyings BuildVaryings(Attributes input)
 #endif
     
 #ifdef VARYINGS_NEED_NORMAL_WS
-    output.normalWS = NormalizeNormalPerVertex(normalWS);
+    output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_WS
-    output.tangentWS = normalize(tangentWS);
+    output.tangentWS = tangentWS;		// normalized in TransformObjectToWorldDir()
 #endif
 
 #if defined(SHADERPASS_SHADOWCASTER)
@@ -93,10 +93,6 @@ Varyings BuildVaryings(Attributes input)
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
     output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
-#endif
-
-#ifdef VARYINGS_NEED_BITANGENT_WS
-    output.bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
