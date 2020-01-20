@@ -4305,13 +4305,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if ENABLE_VIRTUALTEXTURES
-                using (new ProfilingSample(cmd, "Clear VTFeedback Buffers", CustomSamplerId.VTFeedbackClear.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackClear)))
                 {
                     RTHandle alreadyCleared = null;
                     if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
                     {
                         alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
-                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);  
+                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
                     }
 
                     // If the forward buffer is different from the GBuffer clear it also
