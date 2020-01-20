@@ -33,7 +33,9 @@ Targets frag(PackedVaryings packedInput)
     maskTex.rgb *= maskTex.a;
     o.mask = maskTex;
 
-    float4 normalVS = NormalsRenderingShared(mainTex, surfaceDescription.Normal, unpacked.tangentWS.xyz, unpacked.bitangentWS, unpacked.normalWS);
+    float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+    float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
+    float4 normalVS = NormalsRenderingShared(mainTex, surfaceDescription.Normal, unpacked.tangentWS.xyz, bitangent, unpacked.normalWS);
     normalVS.rgb *= normalVS.a;
     o.normal = normalVS;
 
