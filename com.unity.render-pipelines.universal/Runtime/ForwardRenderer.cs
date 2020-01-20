@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupBackbufferFormat(int msaaSamples, bool stereo)
         {
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -383,10 +383,10 @@ namespace UnityEngine.Rendering.Universal
             bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             if (isStereoEnabled)
                 isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == baseDescriptor.dimension;
-#endif//ENABLE_VR
+#endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
             if (isOffscreenRender)
