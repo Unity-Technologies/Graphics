@@ -466,27 +466,4 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
-// Cluster Display Uniforms And Utilities
-
-// row 0: translation2d, scale 2d
-// row 1: global screensize (xy) and its reciprocate (zw)
-float4x4 _GlobalScreenSpaceParams;
-
-float2 ScreenSpaceLocalToGlobal(float2 uv) { return uv * _GlobalScreenSpaceParams[0].zw + _GlobalScreenSpaceParams[0].xy; }
-
-float2 ScreenSpaceGlobalToLocal(float2 uv) { return (uv - _GlobalScreenSpaceParams[0].xy) / _GlobalScreenSpaceParams[0].zw; }
-
-// defined from Cluster Rendering Package
-#if defined(USING_GLOBAL_SCREEN_SPACE)
-    #define SCREEN_SPACE_GLOBAL(uv) (ScreenSpaceLocalToGlobal(uv))
-    #define SCREEN_SPACE_LOCAL(uv) (ScreenSpaceGlobalToLocal(uv))
-    #define ScreenSize _GlobalScreenSpaceParams[1]
-#else
-    #define SCREEN_SPACE_GLOBAL(uv) uv
-    #define SCREEN_SPACE_LOCAL(uv) uv
-    #define ScreenSize _ScreenSize
-#endif
-
-// End Of Cluster Display Uniforms And Utilities
-
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
