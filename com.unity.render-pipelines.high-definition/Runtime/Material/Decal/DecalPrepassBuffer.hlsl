@@ -5,7 +5,7 @@ void EncodeIntoDecalPrepass(in float3 geomNormalWS, in uint decalLayerMask, out 
 {
     float2 octNormalWS = PackNormalOctQuadEncode(geomNormalWS);
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
-    outBuffer0 = float4(packNormalWS, asfloat(decalLayerMask));
+    outBuffer0 = float4(packNormalWS, float(decalLayerMask));
 }
 
 void DecodeFromDecalPrepass(in float4 buffer0, out float3 geomNormalWS, out uint decalLayerMask)
@@ -14,7 +14,7 @@ void DecodeFromDecalPrepass(in float4 buffer0, out float3 geomNormalWS, out uint
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
     geomNormalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
 
-    decalLayerMask = asuint(buffer0.w);
+    decalLayerMask = uint(buffer0.w);
 }
 
 #endif
