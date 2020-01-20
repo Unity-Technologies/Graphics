@@ -56,7 +56,9 @@ struct Varyings
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
     float3 positionWS               : TEXCOORD7;
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD8;
+#endif
     float4 clipPos                  : SV_POSITION;
 };
 
@@ -91,11 +93,15 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.normalWS = NormalizeNormalPerPixel(input.normalWS);
 
     input.viewDirectionWS = viewDirWS;
-#ifdef _MAIN_LIGHT_SHADOWS
-    input.shadowCoord = IN.shadowCoord;
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    input.shadowCoord = input.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
 #else
     input.shadowCoord = float4(0, 0, 0, 0);
 #endif
+
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
@@ -275,7 +281,7 @@ Varyings SplatmapVert(Attributes v)
     o.positionWS = Attributes.positionWS;
     o.clipPos = Attributes.positionCS;
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     o.shadowCoord = GetShadowCoord(Attributes);
 #endif
 

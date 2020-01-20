@@ -330,8 +330,6 @@ namespace UnityEngine.Rendering.Universal
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
-
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
             bool hasHSRGPU = SystemInfo.hasHiddenSurfaceRemovalOnGPU;
@@ -415,14 +413,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             shadowData.bias = m_ShadowBiasData;
-
-            // Until we can have keyword stripping forcing single cascade hard shadows on gles2
-            bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
-            // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
-            shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
+            // We no longer use screen space shadows in URP.
+            // This change allows us to have particles & transparent objects receive shadows.
+            shadowData.requiresScreenSpaceShadowResolve = false;// shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
 
             int shadowCascadesCount;
             switch (settings.shadowCascadeOption)
@@ -440,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
             }
 
-            shadowData.mainLightShadowCascadesCount = (shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
+            shadowData.mainLightShadowCascadesCount = shadowCascadesCount;//(shadowData.requiresScreenSpaceShadowResolve) ? shadowCascadesCount : 1;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 

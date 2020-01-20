@@ -32,6 +32,7 @@ public class UniversalGraphicsTests
 
         if (scene.name.Substring(3, 4).Equals("_xr_"))
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
             Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo Universal tests do not run on MacOSX.");
 
             XRSettings.LoadDeviceByName("MockHMD");
@@ -45,10 +46,15 @@ public class UniversalGraphicsTests
 
             foreach (var camera in cameras)
                 camera.stereoTargetEye = StereoTargetEyeMask.Both;
+#else
+            yield return null;
+#endif
         }
         else
         {
+#if ENABLE_VR && ENABLE_VR_MODULE
             XRSettings.enabled = false;
+#endif
             yield return null;
         }
 
