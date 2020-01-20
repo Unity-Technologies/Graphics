@@ -190,6 +190,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
+            public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]

@@ -201,10 +201,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
-        private bool m_NeedTAAResetHistory = false;
 
         public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
 
+        internal bool resetPostProcessingHistory = true;
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -256,11 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsTAAEnabled()
         {
             return antialiasing == AntialiasingMode.TemporalAntialiasing;
-        }
-
-        internal bool NeedTAAResetHistory()
-        {
-            return m_NeedTAAResetHistory;
         }
 
         public bool IsVolumetricReprojectionEnabled()
@@ -436,11 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
             if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
             {
-                m_NeedTAAResetHistory = true;
-            }
-            else
-            {
-                m_NeedTAAResetHistory = false;
+                resetPostProcessingHistory = true;
             }
         }
 
@@ -809,6 +800,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Reset()
         {
             isFirstFrame = true;
+            resetPostProcessingHistory = true;
         }
 
         public void Dispose()

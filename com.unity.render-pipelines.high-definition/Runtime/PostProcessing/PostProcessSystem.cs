@@ -24,7 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
-        bool m_ResetHistory;
         Material m_FinalPassMaterial;
         Material m_ClearBlackMaterial;
         Material m_SMAAMaterial;
@@ -219,8 +218,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "Alpha Channel Copy"
                 );
             }
-
-            ResetHistory();
         }
 
         public void Cleanup()
@@ -281,18 +278,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ResetHistory() => m_ResetHistory = true;
-
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
         {
             m_HDInstance = hdInstance;
             m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
             m_AnimatedMaterialsEnabled = CoreUtils.AreAnimatedMaterialsEnabled(camera.camera);
-            if (camera.NeedTAAResetHistory())
-            {
-                ResetHistory();
-            }
 
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
@@ -437,6 +427,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                     {
                         DoDynamicExposure(cmd, camera, source, lightingBuffer);
+
+                        // On reset history we need to apply dynamic exposure immediately to avoid
+                        // white or black screen flashes when the current exposure isn't anywhere
+                        // near 0
+                        if (camera.resetPostProcessingHistory)
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+
+                            var cs = m_Resources.shaders.applyExposureCS;
+                            int kernel = cs.FindKernel("KMain");
+
+                            // Note: we call GetPrevious instead of GetCurrent because the textures
+                            // are swapped internally as the system expects the texture will be used
+                            // on the next frame. So the actual "current" for this frame is in
+                            // "previous".
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureTexture, GetPreviousExposureTexture(camera));
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+
+                            PoolSource(ref source, destination);
+                        }
                     }
                 }
 
@@ -492,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory && m_MotionBlurFS)
+                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
                     {
                         using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                         {
@@ -600,7 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_ResetHistory = false;
+            camera.resetPostProcessingHistory = false;
         }
 
         void PushUberFeature(UberPostFeatureFlags flags)
@@ -781,10 +793,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
 
-            if (!Application.isPlaying || m_ResetHistory)
+            if (!Application.isPlaying || camera.resetPostProcessingHistory)
                 adaptationMode = AdaptationMode.Fixed;
 
-            if (m_ResetHistory)
+            if (camera.resetPostProcessingHistory)
             {
                 kernel = cs.FindKernel("KReset");
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -848,7 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
 
 
-            if (m_ResetHistory)
+            if (camera.resetPostProcessingHistory)
             {
                 m_TAAHistoryBlitPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
                 var rtScaleSource = source.rtHandleProperties.rtHandleScale;
@@ -1066,7 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
                     kernel = cs.FindKernel("KMain");
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(m_ResetHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);

@@ -127,6 +127,7 @@ MonoBehaviour:
     copyAlphaCS: {fileID: 7200000, guid: c2c7eb6611725264187721ef9df0354b, type: 3}
     nanKillerCS: {fileID: 7200000, guid: 83982f199acf927499576a99abc9bea9, type: 3}
     exposureCS: {fileID: 7200000, guid: 976d7bce54fae534fb9ec67e9c18570c, type: 3}
+    applyExposureCS: {fileID: 7200000, guid: 1a6fea1dc099b984d8f2b27d504dc096, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
     lutBuilder3DCS: {fileID: 7200000, guid: 37f2b1b0ecd6f1c439e4c1b4f2fdb524, type: 3}
     depthOfFieldKernelCS: {fileID: 7200000, guid: 7869415cc3e4eaa4d82ac21a752a2780,

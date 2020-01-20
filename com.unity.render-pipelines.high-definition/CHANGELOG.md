@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.8] - 2020-01-20
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
 
 ## [7.1.7] - 2019-12-11
 
