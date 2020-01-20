@@ -168,7 +168,7 @@ namespace UnityEditor.VFX
             if (!string.IsNullOrEmpty(blendModeStr))
                 writer.WriteLine(blendModeStr);
             if (hasMotionVector && !isBlendModeOpaque)
-                writer.WriteLine("Blend 1 Off"); //Disable blending for velocity target in forward
+                writer.WriteLine("Blend 1 SrcAlpha OneMinusSrcAlpha"); //Blend 1 Off, but allow clipping in forward pass for second render target
         }
 
         public override void Sanitize(int version)

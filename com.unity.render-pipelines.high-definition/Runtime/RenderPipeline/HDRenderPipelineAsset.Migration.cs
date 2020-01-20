@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddCustomPostprocessAndCustomPass,
             ScalableSettingsRefactor,
             ShadowFilteringVeryHighQualityRemoval,
+            SeparateColorGradingAndTonemappingFrameSettings,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -73,6 +74,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ref var shadowInit = ref data.m_RenderPipelineSettings.hdShadowInitParams;
                 shadowInit.shadowFilteringQuality = shadowInit.shadowFilteringQuality > HDShadowFilteringQuality.High ? HDShadowFilteringQuality.High : shadowInit.shadowFilteringQuality;
+            }),
+            MigrationStep.New(Version.SeparateColorGradingAndTonemappingFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToSeparateColorGradingAndTonemapping(ref data.m_RenderingPathDefaultCameraFrameSettings);
             })
         );
 

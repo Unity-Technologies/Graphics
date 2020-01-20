@@ -38,7 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void Initialize()
         {
-            ScriptableBakedReflectionSystemSettings.system = new HDBakedReflectionSystem();
+            if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
+                ScriptableBakedReflectionSystemSettings.system = new HDBakedReflectionSystem();
         }
 
         enum BakingStages
@@ -97,7 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (ShouldIssueWarningForCurrentSRP())
                     Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
-                        "please switch your render pipeline or use another reflection system");
+                        "Either switch your render pipeline or use a different reflection system. You may need to trigger a " +
+                        "C# domain reload to initialize the appropriate reflection system. One way to do this is to compile a script.");
 
                 handle.ExitStage((int)BakingStages.ReflectionProbes);
                 handle.SetIsDone(true);

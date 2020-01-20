@@ -36,6 +36,8 @@ MonoBehaviour:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
     defaultDecalMat: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
+    defaultParticleMat: {fileID: 2100000, guid: b739a3f02ff77bf48b7636e64c3e3b4c,
+      type: 2}
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
     GUITextureBlit2SRGB: {fileID: 2100000, guid: 6e95c04e4e686554e8bed96ee69f690c,
       type: 2}
