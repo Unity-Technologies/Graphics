@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (m_DecalsSupported)
-                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SInt, useDynamicScale: true, name: "Decal PrePass Buffer");
+                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
         }
 
         public bool IsConsolePlatform()
