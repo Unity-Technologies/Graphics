@@ -428,7 +428,8 @@ namespace UnityEditor.VFX
             VFXExpressionGraph graph,
             List<VFXLayoutElementDesc> globalEventAttributeDescs,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            ref SubgraphInfos subgraphInfos)
+            ref SubgraphInfos subgraphInfos,
+            VFXSystemNames systemNames = null)
         {
             var spawners = CollectSpawnersHierarchy(contexts,ref subgraphInfos);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
@@ -475,12 +476,17 @@ namespace UnityEditor.VFX
                     var expressionIndex = graph.GetFlattenedIndex(contextExpression.exp);
                     systemValueMappings.Add(new VFXMapping(contextExpression.name, expressionIndex));
                 }
-
+                string nativeName = string.Empty;
+                if (systemNames != null)
+                    nativeName = systemNames.GetUniqueSystemName(spawnContext);
+                else
+                    throw new InvalidOperationException("system names manager cannot be null");
                 outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     values = systemValueMappings.ToArray(),
                     buffers = buffers.ToArray(),
                     capacity = 0u,
+                    name = nativeName,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
                     tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
@@ -924,8 +930,10 @@ namespace UnityEditor.VFX
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
 
+                m_Graph.systemNames.Sync(m_Graph);
+
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos);
+                FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts,ref subgraphInfos);
@@ -943,7 +951,9 @@ namespace UnityEditor.VFX
                         contextToCompiledData,
                         contextSpawnToBufferIndex,
                         dependentBuffersData,
-                        subgraphInfos.contextEffectiveInputLinks);
+                        subgraphInfos.contextEffectiveInputLinks,
+                        m_Graph.systemNames);
+
                 }
 
                 // Update renderer settings
@@ -985,11 +995,15 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
                 Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
+                AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath); // Force the reload to invoke the AwakeFromLoad as Import doesnt do it
                 Profiler.EndSample();
 
                 Profiler.EndSample();
                 EditorUtility.ClearProgressBar();
             }
+
+            m_Graph.onRuntimeDataChanged?.Invoke(m_Graph);
+
         }
 
         public void UpdateValues()

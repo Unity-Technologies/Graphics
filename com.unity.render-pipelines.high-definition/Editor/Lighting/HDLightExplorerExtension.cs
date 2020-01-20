@@ -862,7 +862,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     reflectionData.Update();
-                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane"), GUIContent.none);
+                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw"), GUIContent.none);
                     reflectionData.ApplyModifiedProperties();
                 }, (lprop, rprop) =>
                 {
@@ -872,14 +872,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw").floatValue);
                 }, (target, source) => 
                 {
                     if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
                         return;
 
                     tReflectionData.Update();
-                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlane").floatValue;
+                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw").floatValue;
                     tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FarClip, "m_FarClip", 60, (r, prop, dep) =>                        // 5: Far clip
@@ -891,7 +891,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     reflectionData.Update();
-                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane"), GUIContent.none);
+                    EditorGUI.PropertyField(r, reflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw"), GUIContent.none);
                     reflectionData.ApplyModifiedProperties();
                 }, (lprop, rprop) =>
                 {
@@ -901,14 +901,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (IsNullComparison(lReflectionData, rReflectionData, out var order))
                         return order; 
 
-                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue);
+                    return lReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue);
                 }, (target, source) => 
                 {
                     if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
                         return;
 
                     tReflectionData.Update();
-                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlane").floatValue;
+                    tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue;
                     tReflectionData.ApplyModifiedProperties();
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ParallaxCorrection, "m_BoxProjection", 215, (r, prop, dep) =>   // 6. Use Influence volume as proxy

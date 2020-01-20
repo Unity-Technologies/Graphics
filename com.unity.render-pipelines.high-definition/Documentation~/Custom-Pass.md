@@ -48,12 +48,12 @@ In this screenshot, you can see a FullScreen render pass:
 
 There are some settings that you will find by default on every custom pass, here are their significations:
 
-Name | Description
---- | ---
-Name | name of the pass, it will be used as the name of the profiling marker for debugging
-Target color buffer | The target buffer where the color will be written
-Target depth buffer | The target buffer where the depth and stencil will be written and tested
-Clear flags | When the render targets above are bound for rendering, how do you want them to be cleared
+| Name                | Description                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| Name                | name of the pass, it will be used as the name of the profiling marker for debugging       |
+| Target color buffer | The target buffer where the color will be written                                         |
+| Target depth buffer | The target buffer where the depth and stencil will be written and tested                  |
+| Clear flags         | When the render targets above are bound for rendering, how do you want them to be cleared |
 
 > **Note:** by default the target buffers are set to the camera buffers but you can also select the custom buffer. It is another buffer allocated by HDRP where you can put everything you want, you can then sample it in custom pass shaders. You can choose the format of the custom buffer in the HDRP asset settings under the **Rendering** section.
 
@@ -187,6 +187,8 @@ Here is the list of all the defines you can enable
 
 Note that you can also override the depth state of the objects in your pass. This is especially useful when you're rendering objects that are not in the camera culling mask (they are only rendered in the custom pass). Because in these objects, opaque ones will be rendered in `Depth Equal` test which only works if they already are in the depth buffer. In this case you may want to override the depth test to `Less Equal`.
 
+<a name="ScriptingAPI"></a>
+
 ## Scripting API
 
 To do even more complex effect, that may require more than one buffer or even `Compute Shaders`, you have a Scripting API available to extend the `CustomPass` class.  
@@ -229,6 +231,7 @@ In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRe
 > - To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
 > - When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
 > - **MSAA**: when you enable MSAA and you want to render objects to the main camera color buffer and then in a second pass, sample this buffer, you'll need to resolve it first. To do so you have this function `CustomPass.ResolveMSAAColorBuffer` that will resolve the MSAA camera color buffer into the standard camera color buffer.
+> - **If you don't want your effect to executed in the Scene View**, then you can override the protected `executeInSceneView` boolean to false.
 
 Now that you have allocated your resources you're ready to start doing stuff in the `Execute` function.
 
@@ -271,6 +274,39 @@ For the `renderQueueRange`, you can use the `GetRenderQueueRange` function in th
 You can retrieve the `CustomPassVolume` in script using [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) and access most of the things available from the UI like `isGlobal`, `fadeRadius` and `injectionPoint`.
 
 You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
+
+### Scripting Custom Pass UI
+
+To customize the UI of custom passes, we use a similar pattern to the MonoBehaviour Editor, but the attributes are different, for example here is a part of the FullScreen Custom Pass Drawer:
+
+```CSharp
+[CustomPassDrawerAttribute(typeof(FullScreenCustomPass))]
+public class FullScreenCustomPassDrawer : CustomPassDrawer
+{
+    protected override void Initialize(SerializedProperty customPass)
+    {
+        // Initialize the local SerializedProperty you will use in your pass.
+    }
+
+    protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
+    {
+        // Draw your custom GUI using `EditorGUI` calls. Note that the Layout functions don't work here
+    }
+
+    protected override float GetPassHeight(SerializedProperty customPass)
+    {
+        // Return the number of vertical height in pixel that you used in your DoPassGUI.
+        // Can be dynamic.
+        return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * X;
+    }
+}
+```
+
+When you create a custom pass drawer, even if your DoPassGUI is empty, you'll have a default UI for all common settings to the pass (name, target buffers, clearflags). If you don't want it you can override the `commonPassUIFlags` property to remove some of them. For example here we only keep the name and the target buffer enum:
+
+```CSharp
+protected override PassUIFlag commonPassUIFlags => PassUIFlag.Name | PassUIFlag.TargetColorBuffer;
+```
 
 ### Other API functions
 
