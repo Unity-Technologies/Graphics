@@ -326,6 +326,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where passing a null ProfilingSampler would cause a null ref exception.
 - Fixed memory leak in Sky when in matcap mode.
 - Fixed compilation issues on platform that don't support VR.
+- Fixed migration code called when we create a new HDRP asset.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
