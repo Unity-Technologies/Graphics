@@ -332,21 +332,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                 view = renderingData.cameraData.camera.worldToCameraMatrix;
             }
 
-            proj = GL.GetGPUProjectionMatrix(proj, false);
+            // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
+            // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
+            bool isGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
+                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                     || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
-            // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] for GL-based platforms.
-            bool isDepth_0_1 = IsDepth_0_1(proj, renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane);
-            float ndcZScale = isDepth_0_1 ? 1.0f : 0.5f;
-            float ndcZBias = isDepth_0_1 ? 0.0f : 0.5f;
+            //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function not work for orthographic projection, so make we our own!
+            Matrix4x4 gpuProj = new Matrix4x4(
+                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, (SystemInfo.graphicsUVStartsAtTop || isGL ? 1.0f : -1.0f), 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
+                new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
+            ) * proj;
+            
 
             // xy coordinates in range [-1; 1] go to pixel coordinates.
             Matrix4x4 toScreen = new Matrix4x4(
                 new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
                 new Vector4(0.0f, 0.5f * m_RenderHeight, 0.0f, 0.0f),
-                new Vector4(0.0f, 0.0f, ndcZScale, 0.0f),
-                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, ndcZBias, 1.0f)
+                new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.0f, 1.0f)
             );
-            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * proj * view);
+
+            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * gpuProj * view);
             cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
         }
 
@@ -1467,14 +1476,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             uint hx = Mathf.FloatToHalf(x);
             uint hy = Mathf.FloatToHalf(y);
             return hx | (hy << 16);
-        }
-
-        // Lifted from com.unity.render-pipelines.high-definition\Runtime\RenderPipeline\Camera\HDCamera.cs.
-        static bool IsDepth_0_1(Matrix4x4 projMatrix, float n, float f)
-        {
-            float scale     = projMatrix[2, 3] / (f * n) * (f - n);
-            bool  depth_0_1 = Mathf.Abs(scale) < 1.5f;
-            return depth_0_1;
         }
     }
 
