@@ -9,7 +9,7 @@ StructuredBuffer<DecalData> _DecalDatas;
 TEXTURE2D(_DecalAtlas2D);
 SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
-TEXTURE2D(_DecalNormalLayerTexture);
+TEXTURE2D_X(_DecalNormalLayerTexture);
 
 #ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
 RWStructuredBuffer<uint> _DecalPropertyMaskBuffer;

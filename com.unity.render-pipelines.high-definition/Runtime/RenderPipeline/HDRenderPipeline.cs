@@ -3040,7 +3040,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
-                cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, m_SharedRTManager.GetDecalPrepassBuffer());
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
@@ -3129,8 +3128,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
             cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
 
-            HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, decalPrepassBuffer);
+            HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
 
             cmd.ClearRandomWriteTargets();
