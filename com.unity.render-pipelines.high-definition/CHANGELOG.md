@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
 
+### Changed
+- On Xbox and PS4 you will also need to download the com.unity.render-pipeline.platform (ps4 or xboxone) package from the appropriate platform developer forum
+
 ## [7.1.7] - 2019-12-11
 
 ### Added
