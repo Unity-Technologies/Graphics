@@ -15,5 +15,5 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float exposure = GetCurrentExposureMultiplier();
     float3 color = LOAD_TEXTURE2D_X(_InputTexture, dispatchThreadId.xy).xyz;
-    _OutputTexture[dispatchThreadId] = color * exposure;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color * exposure;
 }
