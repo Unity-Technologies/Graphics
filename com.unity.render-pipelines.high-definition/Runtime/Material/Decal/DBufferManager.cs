@@ -97,6 +97,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalTexture(m_TextureShaderIDs[i], TextureXR.GetBlackTexture());
             }
+
+            cmd.SetGlobalTexture(HDShaderIDs._DecalNormalLayerTexture, TextureXR.GetBlackTexture());
         }
     }
 }
