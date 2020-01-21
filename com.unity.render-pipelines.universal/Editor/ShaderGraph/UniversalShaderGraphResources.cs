@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
         [InterpolatorPack]
         internal struct Varyings
         {
-            [Semantic("SV_Position")]
+            [Semantic("SV_POSITION")]
             Vector4 positionCS;
             [Optional]
             Vector3 positionWS;
