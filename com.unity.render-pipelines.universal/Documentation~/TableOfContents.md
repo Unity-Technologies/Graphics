@@ -1,12 +1,9 @@
 * [Universal Render Pipeline](index.md)
-
 * [Getting started](InstallingAndConfiguringURP.md)
   * [Create a Project from a Template](CreateNewProjectFromTemplate.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
-
 * [Rendering](rendering-in-universalrp.md)
-
 * [Post-processing](integration-with-post-processing.md)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
@@ -28,7 +25,6 @@
     * [Tonemapping](post-processing-tonemapping.md)
     * [Vignette](post-processing-vignette.md)
     * [White Balance](Post-Processing-White-Balance.md)
-
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
   * [Lit](lit-shader.md)
@@ -40,7 +36,6 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
-
 * [2D](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
   * [Requirements and setup](Setup.md)
@@ -58,7 +53,7 @@
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
-
+* Consoles
+  * [Building for consoles](Building-For-Consoles.md)
 * [Frequently asked questions (FAQ)](faq.md)
-
 * [Feature Comparison with Built-in](universalrp-builtin-feature-comparison.md)
