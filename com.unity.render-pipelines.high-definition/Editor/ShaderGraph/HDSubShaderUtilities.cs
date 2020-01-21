@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [InterpolatorPack]
         internal struct VaryingsMeshToPS
         {
-            [Semantic("SV_Position")]                                               Vector4 positionCS;
+            [Semantic("SV_POSITION")]                                               Vector4 positionCS;
             [Optional]                                                              Vector3 positionRWS;
             [Optional]                                                              Vector3 normalWS;
             [Optional]                                                              Vector4 tangentWS;      // w contain mirror sign
