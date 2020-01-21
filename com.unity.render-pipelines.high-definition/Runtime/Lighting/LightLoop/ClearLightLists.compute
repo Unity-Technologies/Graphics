@@ -1,0 +1,11 @@
+#pragma kernel ClearList
+
+RWStructuredBuffer<uint>  _LightListToClear;
+int _LightListEntries;
+
+[numthreads(64, 1, 1)]
+void ClearList(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < (uint)_LightListEntries)
+        _LightListToClear[id.x] = 0;
+}

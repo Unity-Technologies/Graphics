@@ -43,6 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultMirrorMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
             public Material defaultDecalMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDParticleMaterial.mat")]
+            public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
             [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]

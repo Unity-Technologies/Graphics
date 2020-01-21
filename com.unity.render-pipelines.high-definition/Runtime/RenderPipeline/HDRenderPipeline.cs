@@ -293,6 +293,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
+        /// <summary>
+        ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
+        /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
 
@@ -1186,13 +1189,9 @@ namespace UnityEngine.Rendering.HighDefinition
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
             {
                 var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                // We can't use dynResHandler here because it would capture the local field and so generate garbage
-                if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
-                {
-                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
-                }
+                var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
+                var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
+                hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
             }
             );
 
@@ -1677,88 +1676,92 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     }
-                    // Execute render request graph, in reverse order
-                    for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
+
+                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
-                        var renderRequestIndex = renderRequestIndicesToRender[i];
-                        var renderRequest = renderRequests[renderRequestIndex];
-
-                        var cmd = CommandBufferPool.Get("");
-
-                        // TODO: Avoid the intermediate target and render directly into final target
-                        //  CommandBuffer.Blit does not work on Cubemap faces
-                        //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
-                        if (renderRequest.target.face != CubemapFace.Unknown)
+                        // Execute render request graph, in reverse order
+                        for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
                         {
-                            if (!m_TemporaryTargetForCubemaps.IsCreated())
-                                m_TemporaryTargetForCubemaps.Create();
+                            var renderRequestIndex = renderRequestIndicesToRender[i];
+                            var renderRequest = renderRequests[renderRequestIndex];
 
-                            var hdCamera = renderRequest.hdCamera;
-                            ref var target = ref renderRequest.target;
-                            target.id = m_TemporaryTargetForCubemaps;
-                        }
+                            var cmd = CommandBufferPool.Get("");
+
+                            // TODO: Avoid the intermediate target and render directly into final target
+                            //  CommandBuffer.Blit does not work on Cubemap faces
+                            //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
+                            if (renderRequest.target.face != CubemapFace.Unknown)
+                            {
+                                if (!m_TemporaryTargetForCubemaps.IsCreated())
+                                    m_TemporaryTargetForCubemaps.Create();
+
+                                var hdCamera = renderRequest.hdCamera;
+                                ref var target = ref renderRequest.target;
+                                target.id = m_TemporaryTargetForCubemaps;
+                            }
 
 
-                        // var aovRequestIndex = 0;
-                        foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                            // var aovRequestIndex = 0;
+                            foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
+                            {
+                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                                {
+                                    cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                                    ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                                    cmd.SetInvertCulling(false);
+                                }
+                                renderContext.ExecuteCommandBuffer(cmd);
+                                CommandBufferPool.Release(cmd);
+                                renderContext.Submit();
+                                cmd = CommandBufferPool.Get();
+                            }
+
+                            using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                                ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                                UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                                ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
+                                UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
+
+                            {
+                                var target = renderRequest.target;
+                                // Handle the copy if requested
+                                if (target.copyToTarget != null)
+                                {
+                                    cmd.CopyTexture(
+                                        target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
+                                        target.copyToTarget, (int)target.face, 0, 0, 0
+                                    );
+                                }
+                                if (renderRequest.clearCameraSettings)
+                                    // release reference because the RenderTexture might be destroyed before the camera
+                                    renderRequest.hdCamera.camera.targetTexture = null;
+
+                                ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+
+                                // Culling results can be shared between render requests: clear only when required
+                                if (!skipClearCullingResults.Contains(renderRequest.index))
+                                {
+                                    renderRequest.cullingResults.decalCullResults?.Clear();
+                                    UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+                                }
+                            }
+
+                            // Render XR mirror view once all render requests have been completed
+                            if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
+                            {
+                                m_XRSystem.RenderMirrorView(cmd);
+                            }
+
+                            // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
+                            PropagateScreenSpaceShadowData();
+
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
-                            cmd = CommandBufferPool.Get();
                         }
-
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera)))
-                        {
-                            cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                            UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
-                            cmd.SetInvertCulling(false);
-                            UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                        }
-
-                        {
-                            var target = renderRequest.target;
-                            // Handle the copy if requested
-                            if (target.copyToTarget != null)
-                            {
-                                cmd.CopyTexture(
-                                    target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
-                                    target.copyToTarget, (int)target.face, 0, 0, 0
-                                );
-                            }
-                            if (renderRequest.clearCameraSettings)
-                                // release reference because the RenderTexture might be destroyed before the camera
-                                renderRequest.hdCamera.camera.targetTexture = null;
-
-                            ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-
-                            // Culling results can be shared between render requests: clear only when required
-                            if (!skipClearCullingResults.Contains(renderRequest.index))
-                            {
-                                renderRequest.cullingResults.decalCullResults?.Clear();
-                                UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
-                            }
-                        }
-
-                        // Render XR mirror view once all render requests have been completed
-                        if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game)
-                        {
-                            m_XRSystem.RenderMirrorView(cmd);
-                        }
-
-                        // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
-                        PropagateScreenSpaceShadowData();
-
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-                        renderContext.Submit();
                     }
                 }
             }
@@ -2212,7 +2215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render pre refraction objects
                 RenderForwardTransparent(cullingResults, hdCamera, true, renderContext, cmd);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
                 {
                     // First resolution of the color buffer for the color pyramid
                     m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
@@ -2284,10 +2287,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
 
-            aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
-            RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+            bool hasAfterPostProcessCustomPass = WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
 
-            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
+            aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+            RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd, !hasAfterPostProcessCustomPass);
+
+            RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
 
             // Copy and rescale depth buffer for XR devices
             if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
@@ -3398,7 +3403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 transparentRange = HDRenderQueue.k_RenderQueue_TransparentWithLowRes;
             }
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
                     transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
@@ -3419,7 +3424,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderForwardTransparent(CullingResults cullResults, HDCamera hdCamera, bool preRefraction, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // If rough refraction are turned off, we render all transparents in the Transparent pass and we skip the PreRefraction one.
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) && preRefraction)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && preRefraction)
             {
                 return;
             }
@@ -3515,6 +3520,19 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             return customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
+        }
+
+        bool WillCustomPassBeExecuted(HDCamera hdCamera, CustomPassInjectionPoint injectionPoint)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
+                return false;
+
+            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+
+            if (customPass == null)
+                return false;
+
+            return customPass.WillExecuteInjectionPoint(hdCamera);
         }
 
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3777,7 +3795,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (isPreRefraction)
             {
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
                     return;
             }
             else
@@ -4250,12 +4268,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier finalRT, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier finalRT, ScriptableRenderContext renderContext, CommandBuffer cmd, bool isFinalPass)
         {
             // Y-Flip needs to happen during the post process pass only if it's the final pass and is the regular game view
             // SceneView flip is handled by the editor internal code and GameView rendering into render textures should not be flipped in order to respect Unity texture coordinates convention
-            bool flipInPostProcesses = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
-            RenderTargetIdentifier destination = HDUtils.PostProcessIsFinalPass() ? finalRT : m_IntermediateAfterPostProcessBuffer;
+            bool flipInPostProcesses = HDUtils.PostProcessIsFinalPass() && isFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            RenderTargetIdentifier destination = HDUtils.PostProcessIsFinalPass() && isFinalPass ? finalRT : m_IntermediateAfterPostProcessBuffer;
+
 
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             RenderAfterPostProcess(cullResults, hdCamera, renderContext, cmd);

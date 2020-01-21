@@ -9,6 +9,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local _ FXAA
         #pragma multi_compile_local _ GRAIN
         #pragma multi_compile_local _ DITHER
+        #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma multi_compile_local _ APPLY_AFTER_POST
 
         #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
@@ -18,6 +19,7 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
         TEXTURE2D_X(_InputTexture);
@@ -58,7 +60,7 @@ Shader "Hidden/HDRP/FinalPass"
             return output;
         }
 
-        float3 UpscaledResult(float2 UV)
+        CTYPE UpscaledResult(float2 UV)
         {
         #if DEBUG_UPSCALE_POINT
             return Nearest(_InputTexture, UV);
@@ -88,25 +90,26 @@ Shader "Hidden/HDRP/FinalPass"
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
-            float3 outColor = UpscaledResult(positionNDC.xy);
+            CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(CONTRASTADAPTIVESHARPEN)
-            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy);
-            float3 outColor = inputColor.rgb;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy).CTYPE_SWIZZLE;
             #else
-            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS);
-            float3 outColor = inputColor.rgb;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif
 
+			#if !defined(ENABLE_ALPHA)
             float outAlpha = (_KeepAlpha == 1.0) ? LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x : 1.0;
-
+			#endif
+			
             #if FXAA
-            RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
+            RunFXAA(_InputTexture, sampler_LinearClamp, outColor.rgb, positionSS, positionNDC);
             #endif
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
             #if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
             #endif
+
 
             #if GRAIN
             {
@@ -136,7 +139,7 @@ Shader "Hidden/HDRP/FinalPass"
                 noise = FastSign(noise) * (1.0 - sqrt(1.0 - abs(noise)));
 
                 //outColor += noise / 255.0;
-                outColor = SRGBToLinear(LinearToSRGB(outColor) + noise / 255.0);
+                outColor.xyz = SRGBToLinear(LinearToSRGB(outColor.xyz) + noise / 255.0);
             }
             #endif
 
@@ -147,7 +150,11 @@ Shader "Hidden/HDRP/FinalPass"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
+        #if !defined(ENABLE_ALPHA)
             return float4(outColor, outAlpha);
+        #else
+            return outColor;
+        #endif
         }
 
     ENDHLSL

@@ -273,6 +273,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Material GetDefaultMirrorMaterial()
             => renderPipelineEditorResources?.materials.defaultMirrorMat;
 
+        public override Material defaultParticleMaterial
+            => renderPipelineEditorResources?.materials.defaultParticleMat;
+
         public override Material defaultTerrainMaterial
             => renderPipelineEditorResources?.materials.defaultTerrainMat;
 
