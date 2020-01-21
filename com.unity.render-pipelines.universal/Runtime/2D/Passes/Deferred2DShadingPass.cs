@@ -13,7 +13,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
     static RenderTargetIdentifier[] s_GBufferTargets;
     static SortingLayer[] s_SortingLayers;
     static readonly ShaderTagId k_GBufferPassName = new ShaderTagId("Universal2DGBuffer");
-    static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName };
+    static readonly ShaderTagId k_UnlitPassName = new ShaderTagId("SRPDefaultUnlit");
+    static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName, k_UnlitPassName };
 
     Renderer2DData m_RendererData;
     Material m_GlobalLightMaterial;
