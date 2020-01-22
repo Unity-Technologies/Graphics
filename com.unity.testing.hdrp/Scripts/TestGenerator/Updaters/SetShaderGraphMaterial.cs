@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 {
@@ -25,8 +27,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 Directory.CreateDirectory(directory);
             File.WriteAllText(shaderFilePath, shaderContent);
 
-            UnityEditor.AssetDatabase.ImportAsset(shaderFilePath);
-            var shader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(shaderFilePath);
+            AssetDatabase.ImportAsset(shaderFilePath);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderFilePath);
             var material = Instantiate(prefab);
             material.shader = shader;
             return material;

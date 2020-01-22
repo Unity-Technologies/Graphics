@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 {
     // Prototype
@@ -6,6 +8,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
         Float,
         Int,
         Bool,
-        Texture,
+        Texture
     }
 }

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 {
@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 var jtoken = obj.SelectToken("m_SerializableNodes[0].JSONnodeData");
                 var masterNodeEscapedJSON = jtoken.ToString();
 
-                var dmasterNodeJSON = k_LineReturn.Replace(masterNodeEscapedJSON, "\n");
+                var masterNodeJSON = k_LineReturn.Replace(masterNodeEscapedJSON, "\n");
                 masterNodeJSON = k_Quote.Replace(masterNodeJSON, "\"");
                 masterNodeJSON = k_BackSlash.Replace(masterNodeJSON, "\\");
 
@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 masterNodeJToken?.Replace(JToken.Parse(value));
 
                 masterNodeJSON = masterNodeJObject.ToString();
-                jtoken.Replace((JToken)masterNodeJSON);
+                jtoken.Replace(masterNodeJSON);
                 return obj.ToString();
             }
         }
