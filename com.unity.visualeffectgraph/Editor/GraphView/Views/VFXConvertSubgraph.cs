@@ -202,15 +202,18 @@ namespace UnityEditor.VFX.UI
 
             }
 
+            List<VFXNodeController> m_SourceOperatorAndParameters;
+            List<VFXNodeController> m_TargetOperatorAndParameters;
+
             void CopyPasteOperators(Dictionary<VFXNodeController,VFXNodeController> targetNodes)
             {
-                List<VFXNodeController> sourceOperatorAndParameters = m_SourceControllers.OfType<VFXNodeController>().Where(t=>!(t is VFXBlockController)).ToList();
-                object result = VFXCopy.Copy(sourceOperatorAndParameters, m_Rect);
+                m_SourceOperatorAndParameters = m_SourceControllers.OfType<VFXNodeController>().Where(t=>!(t is VFXBlockController)).ToList();
+                object result = VFXCopy.Copy(m_SourceOperatorAndParameters, m_Rect);
 
-                List<VFXNodeController> targetOperatorAndParameters = new List<VFXNodeController>();
-                VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, targetOperatorAndParameters);
+                m_TargetOperatorAndParameters = new List<VFXNodeController>();
+                VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, m_TargetOperatorAndParameters);
 
-                foreach (var st in sourceOperatorAndParameters.Zip(targetOperatorAndParameters, (s, t)=>new { source = s, target = t }))
+                foreach (var st in m_SourceOperatorAndParameters.Zip(m_TargetOperatorAndParameters, (s, t)=>new { source = s, target = t }))
                 {
                     targetNodes[st.source] = st.target;
                 }
@@ -300,13 +303,13 @@ namespace UnityEditor.VFX.UI
 
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
 
-                var otherSourceControllers = m_SourceControllers.OfType<VFXNodeController>().Where(t => !(t is VFXBlockController)).ToList();
 
                 Dictionary<VFXNodeController,VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
                 CopyPasteOperators(targetControllers);
                 
+                m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceBlockControllers);
                 //Create lost links between nodes and blocks
-                foreach(var edge in m_SourceController.dataEdges.Where(t=> otherSourceControllers.Contains(t.output.sourceNode) && m_SourceBlockControllers.Contains(t.input.sourceNode)))
+                foreach(var edge in m_SourceController.dataEdges.Where(t=> m_SourceOperatorAndParameters.Contains(t.output.sourceNode) && m_SourceBlockControllers.Contains(t.input.sourceNode)))
                 {
                     var outputNode = targetControllers[edge.output.sourceNode];
                     var output = outputNode.outputPorts.First(t => t.path == edge.output.path);
@@ -317,7 +320,7 @@ namespace UnityEditor.VFX.UI
                     m_TargetController.CreateLink(input, output);
                 }
                 //Create lost links between nodes
-                foreach(var edge in m_SourceController.dataEdges.Where(t=> otherSourceControllers.Contains(t.output.sourceNode) && otherSourceControllers.Contains(t.input.sourceNode)))
+                foreach(var edge in m_SourceController.dataEdges.Where(t=> m_SourceOperatorAndParameters.Contains(t.output.sourceNode) && m_SourceOperatorAndParameters.Contains(t.input.sourceNode)))
                 {
                     var outputNode = targetControllers[edge.output.sourceNode];
                     var output = outputNode.outputPorts.First(t => t.path == edge.output.path);
@@ -340,7 +343,10 @@ namespace UnityEditor.VFX.UI
                 var targetContextController = m_TargetController.GetRootNodeController(targetContext, 0) as VFXContextController;
 
                 m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceBlockControllers);
+                m_SourceControllers = m_SourceOperatorAndParameters.Cast<Controller>().ToList();
+                m_TargetControllers = m_TargetOperatorAndParameters;
                 TransferEdges();
+                m_SourceControllers = m_SourceControllersWithBlocks.ToList();
                 UninitSmart();
             }
 
@@ -431,7 +437,6 @@ namespace UnityEditor.VFX.UI
 
             void TransfertDataEdges()
             {
-                m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceControllers.OfType<VFXContextController>().SelectMany(t => t.blockControllers));
                 
                 // Search for links between with inputs in the selected part and the output in other parts of the graph.
                 Dictionary<VFXDataAnchorController, List<VFXDataAnchorController>> traversingInEdges = new Dictionary<VFXDataAnchorController, List<VFXDataAnchorController>>();
@@ -684,14 +689,6 @@ namespace UnityEditor.VFX.UI
                     if (outputSpawners.Count() > 1)
                     {
                         Debug.LogWarning("More than one spawner is linked to the content if the new subgraph, some links we not be kept");
-                    }
-
-                    if (outputSpawners.Count > 0)
-                    {
-                        var kvContext = outputSpawners.First();
-
-                        (m_SourceNodeController as VFXContextController).model.LinkFrom(kvContext.Key.model, 0, 2); // linking to trigger
-                        CreateAndLinkEvent(m_SourceControllers, m_TargetController, m_TargetControllers, kvContext.Value, VFXSubgraphContext.triggerEventName);
                     }
                 }
                 { //link named events as if

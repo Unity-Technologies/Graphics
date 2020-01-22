@@ -522,7 +522,7 @@ namespace UnityEditor.VFX.UI
 
         static bool IsDefaultEvent(string evt)
         {
-            return evt == VisualEffectAsset.PlayEventName || evt == VisualEffectAsset.StopEventName || evt == VFXSubgraphContext.triggerEventName;
+            return evt == VisualEffectAsset.PlayEventName || evt == VisualEffectAsset.StopEventName;
         }
 
         IEnumerable<String> GetEventNames()

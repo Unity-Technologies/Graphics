@@ -3,6 +3,9 @@ editors:
     cmd: -u 2019.3/staging
   - version: fast-2019.3
     cmd: -u 2019.3/staging --fast
+  - version: CUSTOM-REVISION
+    cmdwin: -r %CUSTOM_REVISION%
+    cmdposix: -r $CUSTOM_REVISION
 platforms:
   - name: Win
     type: Unity::VM::GPU
@@ -14,7 +17,7 @@ platforms:
     flavor: m1.mac
   - name: Linux
     type: Unity::VM::GPU
-    image: cds-ops/ubuntu-18.04-base:latest
+    image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
 testplatforms:
   - name: playmode
@@ -59,13 +62,22 @@ linux_apis:
     type: {{ platform.type }}
     #model: rtx2080
     {% endif %}
-    image: {{ platform.image }}
-    flavor: {{ platform.flavor}}
+    image: {{ platform.image }}      
+    flavor: {{ platform.flavor }}
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published    
+    
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmdwin }} -c editor --wait --published
+    {% else %}
+    - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}    
 
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
@@ -91,13 +103,22 @@ linux_apis:
     type: {{ platform.type }}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
+{% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+{% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple'"
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../ScriptableRenderPipeline/ bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published'
+    {% else %}
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmd }} -c editor --wait --published'
+    {% endif %}
+    
     {% if testplatform.name == "Standalone" %}
     - |
       ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
@@ -132,12 +153,22 @@ linux_apis:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
+    
+    {% if editor.version == 'CUSTOM-REVISION' %}
+    - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli {{ editor.cmdposix }} -c editor --wait --published
+    {% else %}
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
+    {% endif %}
+    
     {% if testplatform.name == "Standalone" %}
     - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% else %}
@@ -157,13 +188,6 @@ linux_apis:
 
 All_{{ project.name }}_{{ editor.version }}:
   name: All {{ project.name }} CI - {{ editor.version }}
-  agent:
-    name: whatever
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-    - dir
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
@@ -197,6 +221,17 @@ All_{{ project.name }}_{{ editor.version }}:
     
   {% endfor %}
   {% endfor %}
+  # {% if editor.version == "fast-trunk" %}
+  # triggers:
+    # changes:
+      # only:
+        # - "com.unity.render-pipelines.high-definition-config/**/*"
+        # - "com.unity.render-pipelines.high-definition/**/*"
+        # - "com.unity.testing.hdrp/**/*"
+        # - "TestProjects/HDRP*/**/*"
+      # except:
+        # - "**/*.md"
+  # {% endif %}
 
 {% endfor %} 
 {% endfor %}

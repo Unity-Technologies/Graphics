@@ -491,6 +491,14 @@ namespace UnityEditor.Rendering.Universal
 //            }
 //#endif
 
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+            if (m_UniversalRenderPipeline.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                EditorGUILayout.HelpBox("Camera Stacking is not supported with Post-processing V2. Only Base camera will render.", MessageType.Warning);
+                return;
+            }
+#endif
+
             if (m_StackSettingsFoldout.value)
             {
                 m_LayerList.DoLayoutList();
@@ -791,7 +799,7 @@ namespace UnityEditor.Rendering.Universal
 
             hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
 
-            if (selectedRenderPostProcessing)
+            if (selectedRenderPostProcessing && UniversalRenderPipeline.asset?.postProcessingFeatureSet != PostProcessingFeatureSet.PostProcessingV2)
             {
                 EditorGUI.indentLevel++;
                 hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasing, ref selectedAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);

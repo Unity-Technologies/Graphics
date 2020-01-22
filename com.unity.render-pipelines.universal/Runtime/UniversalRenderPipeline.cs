@@ -280,7 +280,10 @@ namespace UnityEngine.Rendering.Universal
             if (baseCameraAdditionalData != null && baseCameraAdditionalData.renderType == CameraRenderType.Overlay)
                 return;
 
-            List<Camera> cameraStack = baseCameraAdditionalData?.cameraStack;
+            // renderer contains a stack if it has additional data and the renderer supports stacking
+            var renderer = baseCameraAdditionalData?.scriptableRenderer;
+            bool supportsCameraStacking = renderer != null && renderer.supportedRenderingFeatures.cameraStacking;
+            List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -288,6 +291,10 @@ namespace UnityEngine.Rendering.Universal
             int lastActiveOverlayCameraIndex = -1;
             if (cameraStack != null)
             {
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+                if (asset.postProcessingFeatureSet != PostProcessingFeatureSet.PostProcessingV2)
+                {
+#endif
                 // TODO: Add support to camera stack in VR multi pass mode
                 if (!IsMultiPassStereoEnabled(baseCamera))
                 {
@@ -320,6 +327,13 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Debug.LogWarning("Multi pass stereo mode doesn't support Camera Stacking. Overlay cameras will skip rendering.");
                 }
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+                }
+                else
+                {
+                    Debug.LogWarning("Post-processing V2 doesn't support Camera Stacking. Overlay cameras will skip rendering.");
+                }
+#endif
             }
 
 
@@ -448,6 +462,17 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
+
+            // PPv2 compatibility
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+#pragma warning disable 0618 // Obsolete
+            if (settings.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                baseCamera.TryGetComponent(out cameraData.postProcessLayer);
+                cameraData.postProcessEnabled &= cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
+            }
+#pragma warning restore 0618
+#endif
 
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;

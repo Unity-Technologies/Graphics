@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             return IsStereoEnabled(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
 #else
             return false;
