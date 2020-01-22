@@ -43,8 +43,6 @@ uint  _Iteration;
 
 #if defined(MINMAX)
     #define OutType float2
-#elif defined(RGB)
-    #define OutType float3
 #else
     #define OutType float
 #endif

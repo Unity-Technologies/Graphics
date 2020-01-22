@@ -26,7 +26,7 @@
 // Tile size of this compute
 #define RAYTRACING_REFLECTIONS_TILE_SIZE 8
 
-#define ENABLE_HDRISKY_MIS
+//#define ENABLE_HDRISKY_MIS
 
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);

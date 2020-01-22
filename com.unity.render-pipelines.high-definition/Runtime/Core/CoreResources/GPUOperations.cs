@@ -21,27 +21,6 @@ namespace UnityEngine.Rendering
             MinMax
         }
 
-        static public uint _Idx = 0;
-
-        static private void SaveTempImg(AsyncGPUReadbackRequest request)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\Op_" + _Idx.ToString() + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-                ++_Idx;
-            }
-        }
-
         static private void Dispatch(CommandBuffer cmd, ComputeShader cs, int kernel, RTHandle output, RTHandle input, Direction direction, int inSize, int outSize, int opPerThread)
         {
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Input,  input);
@@ -62,29 +41,17 @@ namespace UnityEngine.Rendering
             }
             cmd.SetComputeIntParam  (cs, HDShaderIDs._Iteration, opPerThread);
             cmd.DispatchCompute     (cs, kernel, numTilesX, numTilesY, 1);
-            //cmd.RequestAsyncReadback(output, SaveTempImg);
         }
 
         static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction opDirection, int opPerThread = 8, bool isPDF = false, GraphicsFormat sumFormat = GraphicsFormat.None)
         {
-            if (input == null)
-            {
-                return null;
-            }
+            Debug.Assert(input != null);
+            Debug.Assert(opPerThread >= 1 && opPerThread <= 64);
+            Debug.Assert(opPerThread%2 == 0 || opPerThread == 1);
 
-            if (opPerThread < 1 || opPerThread > 64)
-            {
-                return null;
-            }
-
-            if (opPerThread % 2 == 1 && opPerThread != 1)
-            {
-                return null;
-            }
-
-            RTHandle temp0;
-            RTHandle temp1;
-            RTHandle final;
+            RTHandle temp0 = null;
+            RTHandle temp1 = null;
+            RTHandle final = null;
 
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader opStep = hdrp.renderPipelineResources.shaders.gpuOperationsCS;
@@ -100,27 +67,42 @@ namespace UnityEngine.Rendering
 
             int outWidth;
             int outHeight;
+            bool singlePass = false;
             if (opDirection == Direction.Vertical)
             {
                 outWidth  = width;
                 outHeight = 1;
 
-                temp0 = RTHandles.Alloc(outWidth, height/opPerThread,               colorFormat: format, enableRandomWrite: true);
-                temp1 = RTHandles.Alloc(outWidth, height/(opPerThread*opPerThread), colorFormat: format, enableRandomWrite: true);
+                if (height/(opPerThread*opPerThread) > 0)
+                {
+                    temp0 = RTHandles.Alloc(outWidth, height/opPerThread,               colorFormat: format, enableRandomWrite: true);
+                    temp1 = RTHandles.Alloc(outWidth, height/(opPerThread*opPerThread), colorFormat: format, enableRandomWrite: true);
+                }
+                else
+                {
+                    singlePass  = true;
+                    opPerThread = height;
+                }
             }
             else // if (opDirection == SumDirection.Horizontal)
             {
                 outWidth  = 1;
                 outHeight = height;
 
-                temp0 = RTHandles.Alloc(width/opPerThread,               outHeight, colorFormat: format, enableRandomWrite: true);
-                temp1 = RTHandles.Alloc(width/(opPerThread*opPerThread), outHeight, colorFormat: format, enableRandomWrite: true);
+                if (width/(opPerThread*opPerThread) > 0)
+                {
+                    temp0 = RTHandles.Alloc(width/opPerThread,               outHeight, colorFormat: format, enableRandomWrite: true);
+                    temp1 = RTHandles.Alloc(width/(opPerThread*opPerThread), outHeight, colorFormat: format, enableRandomWrite: true);
+                }
+                else
+                {
+                    singlePass  = true;
+                    opPerThread = width;
+                }
             }
 
-            if (temp1.rt.width == 0 || temp1.rt.height == 0)
-            {
-                return null;
-            }
+            Debug.Assert(singlePass == true || (singlePass == false && temp0.rt.width != 0 && temp0.rt.height != 0));
+            Debug.Assert(singlePass == true || (singlePass == false && temp1.rt.width != 0 && temp1.rt.height != 0));
 
             string addon = "";
             switch (operation)
@@ -154,9 +136,15 @@ namespace UnityEngine.Rendering
             int kernelFirst = opStep.FindKernel("CSMain" + firstAddon + addon + "First" + strDir);
             int kernel      = opStep.FindKernel("CSMain" + addon + strDir);
 
-            Dispatch(cmd, opStep, kernelFirst, opPerThread == 1 ? final : temp0, input, opDirection, curSize, curSize/opPerThread, opPerThread);
+            Dispatch(cmd, opStep, kernelFirst,
+                     opPerThread == 1 || singlePass ? final : temp0,
+                     input,
+                     opDirection,
+                     curSize,
+                     curSize/opPerThread,
+                     opPerThread);
 
-            if (opPerThread > 1)
+            if (singlePass == false && opPerThread > 1)
             {
                 RTHandle inRT   = temp0;
                 RTHandle outRT  = temp1;
@@ -171,6 +159,9 @@ namespace UnityEngine.Rendering
 
                 Dispatch(cmd, opStep, kernel, final, inRT, opDirection, curSize/opPerThread, 1, opPerThread);
             }
+
+            RTHandleDeleter.ScheduleRelease(temp0);
+            RTHandleDeleter.ScheduleRelease(temp1);
 
             return final;
         }

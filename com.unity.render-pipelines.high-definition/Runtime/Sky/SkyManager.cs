@@ -374,50 +374,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetReflectionTexture(hdCamera.lightingSky);
         }
 
-        internal RenderTargetIdentifier GetMarginalTexture(HDCamera hdCamera)
-        {
-            SkyUpdateContext skyContext = hdCamera.lightingSky;
-
-            SkyType skyType = (SkyType)hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value;
-
-            if (skyType == SkyType.HDRI && skyContext.IsValid() && IsCachedContextValid(skyContext))
-            {
-                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                var renderer = (HDRISkyRenderer)skyContext.skyRenderer;
-
-                if (renderer?.marginal != null && renderer?.conditionalMarginal.rt != null)
-                    return renderer?.marginal.rt;
-                else
-                    return Texture2D.whiteTexture;
-            }
-            else
-            {
-                return Texture2D.whiteTexture;
-            }
-        }
-
-        internal RenderTargetIdentifier GetConditionalMarginalTexture(HDCamera hdCamera)
-        {
-            SkyUpdateContext skyContext = hdCamera.lightingSky;
-
-            SkyType skyType = (SkyType)hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value;
-
-            if (skyType == SkyType.HDRI && skyContext.IsValid() && IsCachedContextValid(skyContext))
-            {
-                ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                var renderer = (HDRISkyRenderer)skyContext.skyRenderer;
-
-                if (renderer?.conditionalMarginal != null && renderer?.conditionalMarginal.rt != null)
-                    return renderer?.conditionalMarginal;
-                else
-                    return Texture2D.whiteTexture;
-            }
-            else
-            {
-                return Texture2D.whiteTexture;
-            }
-        }
-
         // Return the value of the ambient probe
         internal SphericalHarmonicsL2 GetAmbientProbe(HDCamera hdCamera)
         {
@@ -595,6 +551,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
+
+                    Texture skyReflection = GetReflectionTexture(updateContext);
+                    ImportanceSamplers.ScheduleMarginalGenerationForce(skyReflection.GetInstanceID(), skyReflection);
                 }
                 else
                 {
@@ -799,15 +758,17 @@ namespace UnityEngine.Rendering.HighDefinition
             //hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
             //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            var marginals = ImportanceSamplers.GetMarginals(reflectionTexture.GetInstanceID());
+            if (marginals != null)
             {
-                var skyMarginal             = GetMarginalTexture(hdCamera);
-                var skyConditionalMarginal  = GetConditionalMarginalTexture(hdCamera);
+                var skyMarginal             = marginals.marginal;
+                var skyConditionalMarginal  = marginals.conditionalMarginal;
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              skyMarginal);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   skyConditionalMarginal);
             }
             else
             {
+                ImportanceSamplers.ScheduleMarginalGeneration(reflectionTexture.GetInstanceID(), reflectionTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
             }
