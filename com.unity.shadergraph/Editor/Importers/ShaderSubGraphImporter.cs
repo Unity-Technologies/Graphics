@@ -116,7 +116,8 @@ namespace UnityEditor.ShaderGraph
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
-            
+            asset.precision = outputNode.precision;
+
             GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents);
             

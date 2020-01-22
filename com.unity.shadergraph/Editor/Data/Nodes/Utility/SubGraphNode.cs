@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
                 
                 name = m_SubGraph.name;
                 concretePrecision = m_SubGraph.outputPrecision;
+                precision = m_SubGraph.precision;
             }
         }
 
@@ -133,7 +134,6 @@ namespace UnityEditor.ShaderGraph
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
                 m_SubGraph = null;
                 UpdateSlots();
-
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -450,6 +450,8 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 owner.AddValidationError(tempId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
+
+
 
             ValidateShaderStage();
         }

@@ -75,6 +75,8 @@ namespace UnityEditor.ShaderGraph
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
+
+        public Precision precision;
         
         public void OnBeforeSerialize()
         {
