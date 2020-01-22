@@ -163,6 +163,76 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Spawner_And_Output_Event()
+        {
+            //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
+            var spawnCountValue = 1.0f; //We running these test at 10FPS
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            graph.AddChild(outputEvent);
+            outputEvent.LinkFrom(basicSpawner);
+            graph.RecompileIfNeeded();
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            var outputEventNames = new List<string>();
+            vfxComponent.GetOutputEventNames(outputEventNames);
+            Assert.AreEqual(1u, outputEventNames.Count);
+            var outputEventName = outputEventNames[0];
+
+            //Checking invalid event
+            var eventAttributes = new List<VFXEventAttribute>();
+            eventAttributes.Add(vfxComponent.CreateVFXEventAttribute());
+            var eventAttribute = vfxComponent.CreateVFXEventAttribute();
+            Assert.AreEqual(0u, vfxComponent.GetOutputEventAttributeCount("azertyuiop"));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute("azertyuiop", 0u, eventAttribute));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute("azertyuiop", 1u, eventAttribute));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute("azertyuiop", eventAttributes));
+            Assert.AreEqual(0u, eventAttributes.Count);
+
+            //Checking on valid event while there is an event
+            maxFrame = 512;
+            while (vfxComponent.GetOutputEventAttributeCount(outputEventName) == 0u && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            Assert.AreEqual(1u, vfxComponent.GetOutputEventAttributeCount(outputEventName));
+            Assert.IsTrue(vfxComponent.GetOutputEventAttribute(outputEventName, 0u, eventAttribute));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute(outputEventName, 1u, eventAttribute));
+            Assert.IsTrue(vfxComponent.GetOutputEventAttribute(outputEventName, eventAttributes));
+            Assert.AreEqual(1u, eventAttributes.Count);
+
+            //Checking on valid event while there isn't an event
+            maxFrame = 512;
+            while (vfxComponent.GetOutputEventAttributeCount(outputEventName) != 0u && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            Assert.AreEqual(0u, vfxComponent.GetOutputEventAttributeCount(outputEventName));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute(outputEventName, 0u, eventAttribute));
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute(outputEventName, 1u, eventAttribute));
+            eventAttributes.Add(vfxComponent.CreateVFXEventAttribute());
+            Assert.IsFalse(vfxComponent.GetOutputEventAttribute(outputEventName, eventAttributes));
+            Assert.AreEqual(0u, eventAttributes.Count);
+
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner()
         {
             var spawnCountValue = 753.0f;
