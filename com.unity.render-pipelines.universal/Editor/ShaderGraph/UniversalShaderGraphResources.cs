@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
         [InterpolatorPack]
         internal struct Varyings
         {
-            [Semantic("SV_Position")]
+            [Semantic("SV_POSITION")]
             Vector4 positionCS;
             [Optional]
             Vector3 positionWS;
@@ -69,8 +69,6 @@ namespace UnityEditor.Rendering.Universal
             Vector4 color;
             [Optional]
             Vector3 viewDirectionWS;
-            [Optional]
-            Vector3 bitangentWS;
             [Optional]
             Vector4 screenPosition;
             [Optional][PreprocessorIf("defined(LIGHTMAP_ON)")]
@@ -177,8 +175,6 @@ namespace UnityEditor.Rendering.Universal
                 new Dependency("Varyings.positionWS",                 "Attributes.positionOS"),
                 new Dependency("Varyings.normalWS",                   "Attributes.normalOS"),
                 new Dependency("Varyings.tangentWS",                  "Attributes.tangentOS"),
-                new Dependency("Varyings.bitangentWS",                "Attributes.normalOS"),
-                new Dependency("Varyings.bitangentWS",                "Attributes.tangentOS"),
                 new Dependency("Varyings.texCoord0",                  "Attributes.uv0"),
                 new Dependency("Varyings.texCoord1",                  "Attributes.uv1"),
                 new Dependency("Varyings.texCoord2",                  "Attributes.uv2"),
@@ -234,10 +230,12 @@ namespace UnityEditor.Rendering.Universal
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceNormal",           "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
                 new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "Varyings.tangentWS"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "SurfaceDescriptionInputs.WorldSpaceNormal"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceTangent",        "SurfaceDescriptionInputs.WorldSpaceTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceTangent",          "SurfaceDescriptionInputs.WorldSpaceTangent"),
 
-                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "Varyings.bitangentWS"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "SurfaceDescriptionInputs.WorldSpaceNormal"),
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "SurfaceDescriptionInputs.WorldSpaceTangent"),
                 new Dependency("SurfaceDescriptionInputs.ObjectSpaceBiTangent",      "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
 

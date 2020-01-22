@@ -391,6 +391,22 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace;
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get { return m_NormalDropOffSpace; }
+            set
+            {
+                if (m_NormalDropOffSpace == value)
+                    return;
+
+                m_NormalDropOffSpace = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
         // Features: material surface input parametrizations
         //
         [SerializeField]
@@ -1030,7 +1046,21 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(VertexTangentSlotId);
 
-            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
+            RemoveSlot(NormalSlotId);                
+            var coordSpace = CoordinateSpace.Tangent;
+            switch (m_NormalDropOffSpace)
+            {
+                case NormalDropOffSpace.Tangent:
+                    coordSpace = CoordinateSpace.Tangent;
+                    break;
+                case NormalDropOffSpace.World:
+                    coordSpace = CoordinateSpace.World;
+                    break;
+                case NormalDropOffSpace.Object:
+                    coordSpace = CoordinateSpace.Object;
+                    break;
+            }
+            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
             validSlots.Add(NormalSlotId);
 
             AddSlot(new NormalMaterialSlot(BentNormalSlotId, BentNormalSlotName, BentNormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
