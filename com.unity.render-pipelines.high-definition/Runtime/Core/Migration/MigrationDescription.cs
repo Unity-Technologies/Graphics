@@ -5,12 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Helpers to manipulate <see cref="MigrationDescription{TVersion, TTarget}"/></summary>
     public static class MigrationDescription
     {
-        public static T LastVersion<T>() where T : System.Enum
+        public static T LastVersion<T>() where T : struct, IConvertible
         {
-            var values = System.Enum.GetValues(typeof(T));
-            if (values.Length == 0)
-                throw new System.ArgumentException("Enum with no values is not supported.");
-            return (T)values.GetValue(values.Length - 1);
+            return TypeInfo.GetEnumLastValue<T>();
         }
 
         /// <summary>Create a new migration description.</summary>
