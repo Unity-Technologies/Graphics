@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("High")
             };
             public static int[] antialiasingQualityValues = { 0, 1, 2 };
-            
+
         };
 
         ReorderableList m_LayerList;
@@ -271,10 +271,19 @@ namespace UnityEditor.Rendering.Universal
             foreach (int i in m_CameraStackPPList)
             {
                 Debug.Log("BEFORE:: " + i);
+                if (i == oldindex)
+                {
+                    m_CameraStackPPList.Remove(i);
+                }
+
+
             }
+
+            // Fixing up the post processing list
             if (m_CameraStackPPList.Contains(oldindex))
             {
                 m_CameraStackPPList.Remove(oldindex);
+
                 m_CameraStackPPList.Add(newindex);
 
                 // If the new index is smaller than ay index in this list we need to bump all of them.
