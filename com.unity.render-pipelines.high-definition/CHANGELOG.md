@@ -388,7 +388,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the camera profiling sample to include the camera name
 - Renamed the post processing graphic formats to match the new convention.
 - The restart in Wizard for DXR will always be last fix from now on
-- Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
 - Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
 - Removed Wind textures from runtime as wind is no longer built into the pipeline
