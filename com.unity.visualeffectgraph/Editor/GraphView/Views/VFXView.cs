@@ -1854,7 +1854,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                if( VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
                 {
                     evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
                 }

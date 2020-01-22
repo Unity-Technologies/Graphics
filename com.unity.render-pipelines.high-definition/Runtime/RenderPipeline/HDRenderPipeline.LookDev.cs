@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDRISky sky;
             public Volume volume;
         }
-        
+
         void IDataProvider.FirstInitScene(StageRuntimeInterface SRI)
         {
             Camera camera = SRI.camera;
@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Volume volume = volumeGO.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.priority = float.MaxValue;
+            volume.enabled = false;
 
 #if UNITY_EDITOR
             HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
@@ -99,6 +100,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.sky.rotation.Override(sky.longitudeOffset);
                 data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Sky;
             }
+        }
+
+        void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = true;
+        }
+
+        void IDataProvider.OnEndRendering(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            data.volume.enabled = false;
         }
 
         IEnumerable<string> IDataProvider.supportedDebugModes

@@ -11,6 +11,9 @@ EditorUserSettings:
     UnityEditor.ShaderGraph.ToggleSettings:
       value: 18135d1527590858060c032302276919051e1a26296a7c243f3c187fa0e92708f0e220e0e22d09352a0bed30017c5b39f3061a0eba4909041d01ef3e03f0061a15c00a87408a4332c41719908f00
       flags: 0
+    lightmappingDeviceAndPlatform:
+      value: 53
+      flags: 0
     vcSharedLogLevel:
       value: 0d5e400f0650
       flags: 0
@@ -23,6 +26,3 @@ EditorUserSettings:
   m_VCOverwriteFailedCheckoutAssets: 1
   m_VCOverlayIcons: 1
   m_VCAllowAsyncUpdate: 0
-  m_AssetPipelineMode2: 1
-  m_CacheServerMode: 0
-  m_CacheServers: []

@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
 
-            using (new ProfilingSample(builtinParams.commandBuffer, "Draw PreSky"))
+            using (new ProfilingScope(builtinParams.commandBuffer, ProfilingSampler.Get(HDProfileId.PreRenderSky)))
             {
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
@@ -129,8 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
 
-            using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
-            {
                 m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
@@ -148,9 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // This matrix needs to be updated at the draw call frequency.
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
             }
         }
     }
-}

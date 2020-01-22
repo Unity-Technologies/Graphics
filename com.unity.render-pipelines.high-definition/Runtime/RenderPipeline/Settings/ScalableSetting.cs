@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="index">The index of the level to get.</param>
         /// <param name="value">
         /// Contains the value of the level when the level is found.
-        /// 
+        ///
         /// <c>default</c> when:
         /// - The index is out of range
         /// </param>
@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        /// <summary>Serialization callback</summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             // Enforce the number of stored value after serialization
@@ -78,6 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Values = new T[0];
         }
 
+        /// <summary>Serialization callback</summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             // Enforce the number of stored value before serialization
@@ -97,24 +99,44 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public class IntScalableSetting : ScalableSetting<int>
     {
+        /// <summary>
+        /// Instantiate a new int scalable setting.
+        /// </summary>
+        /// <param name="values">The values of the settings</param>
+        /// <param name="schemaId">The schema of the setting.</param>
         public IntScalableSetting(int[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
     public class UintScalableSetting : ScalableSetting<uint>
     {
+        /// <summary>
+        /// Instantiate a new uint scalable setting.
+        /// </summary>
+        /// <param name="values">The values of the settings</param>
+        /// <param name="schemaId">The schema of the setting.</param>
         public UintScalableSetting(uint[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
     public class FloatScalableSetting : ScalableSetting<float>
     {
+        /// <summary>
+        /// Instantiate a new float scalable setting.
+        /// </summary>
+        /// <param name="values">The values of the settings</param>
+        /// <param name="schemaId">The schema of the setting.</param>
         public FloatScalableSetting(float[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     /// <summary><see cref="ScalableSetting{T}"/>.</summary>
     [Serializable]
     public class BoolScalableSetting : ScalableSetting<bool>
     {
+        /// <summary>
+        /// Instantiate a new bool scalable setting.
+        /// </summary>
+        /// <param name="values">The values of the settings</param>
+        /// <param name="schemaId">The schema of the setting.</param>
         public BoolScalableSetting(bool[] values, ScalableSettingSchemaId schemaId) : base(values, schemaId) { }
     }
     #endregion

@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-            PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
+            PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before computing the effect
             if (!pathTracingShader || !pathTracingSettings.enable.value)
@@ -65,8 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grab the acceleration structure and the list of HD lights for the target camera
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
             HDRaytracingLightCluster lightCluster = RequestLightCluster();
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Define the shader pass to use for the path tracing pass
             cmd.SetRayTracingShaderPass(pathTracingShader, "PathTracingDXR");

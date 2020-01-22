@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 180;
+            return 224;
         }
     }
 
@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 100;
+            return 120;
         }
     }
 

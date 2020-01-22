@@ -92,11 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_isInit[(int)index] && m_PreIntegratedFGD[(int)index].IsCreated())
                 return;
 
-            using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation"))
-            {
-                CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial[(int)index], new RenderTargetIdentifier(m_PreIntegratedFGD[(int)index]));
-            }
-
+            CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial[(int)index], new RenderTargetIdentifier(m_PreIntegratedFGD[(int)index]));
             m_isInit[(int)index] = true;
         }
 

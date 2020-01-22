@@ -89,8 +89,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                     && GUILayout.Button("Reload All"))
                 {
-                    var resources = target as HDRenderPipelineRayTracingResources;
-                    resources = null;
+                    foreach (var field in typeof(HDRenderPipelineRayTracingResources).GetFields())
+                        field.SetValue(target, null);
+
                     ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
                 }
             }
