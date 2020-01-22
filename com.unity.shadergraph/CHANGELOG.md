@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Documentation links on nodes now point to the correct URLs and package versions.
 - You can now smoothly edit controls on the `Dielectric Specular` node.
 - Fixed Blackboard Properties to support scientific notation.
+- Fixed a bug where switching from Color Nodes' Mode from Default to HDR or vice-versa would cause the Color to be altered incorrectly.
 
 ## [7.1.1] - 2019-09-05
 ### Added
