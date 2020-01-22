@@ -570,7 +570,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (newMode == SurfaceType.Transparent)
             {
-                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilLightingUsage.SplitLighting) != 0)
+                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilUsage.SubsurfaceScattering) != 0)
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 

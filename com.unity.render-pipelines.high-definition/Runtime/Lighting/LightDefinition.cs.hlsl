@@ -41,13 +41,6 @@
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
 
-//
-// UnityEngine.Rendering.HighDefinition.StencilLightingUsage:  static fields
-//
-#define STENCILLIGHTINGUSAGE_NO_LIGHTING (0)
-#define STENCILLIGHTINGUSAGE_SPLIT_LIGHTING (1)
-#define STENCILLIGHTINGUSAGE_REGULAR_LIGHTING (2)
-
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
 struct DirectionalLightData

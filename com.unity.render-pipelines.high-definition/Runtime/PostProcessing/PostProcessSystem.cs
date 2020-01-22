@@ -926,8 +926,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
             }
 
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
@@ -2341,8 +2341,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, m_Resources.textures.SMAAAreaTex);
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAASearchTex, m_Resources.textures.SMAASearchTex);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.SMAA);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.SMAA);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
 
             switch(camera.SMAAQuality)
             {

@@ -230,19 +230,4 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2D,
         Cubemap
     }
-
-    // Usage of StencilBits.Lighting on 2 bits.
-    // We support both deferred and forward renderer.  Here is the current usage of this 2 bits:
-    // 0. Everything except case below. This include any forward opaque object. No lighting in deferred lighting path.
-    // 1. All deferred opaque object that require split lighting (i.e output both specular and diffuse in two different render target). Typically Subsurface scattering material.
-    // 2. All deferred opaque object.
-    // 3. unused
-    [GenerateHLSL]
-    // Caution: Value below are hardcoded in some shader (because properties doesn't support include). If order or value is change, please update corresponding ".shader"
-    enum StencilLightingUsage
-    {
-        NoLighting,
-        SplitLighting,
-        RegularLighting
-    }
 }

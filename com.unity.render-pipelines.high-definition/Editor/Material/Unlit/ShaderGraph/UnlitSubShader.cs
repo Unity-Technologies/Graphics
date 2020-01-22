@@ -259,8 +259,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                string.Format("   Ref  {0}", (int)StencilLightingUsage.NoLighting),
+                string.Format("   WriteMask {0}", (int) StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering),
+                string.Format("   Ref  {0}", (int)StencilUsage.Clear),
                 "   Comp Always",
                 "   Pass Replace",
                 "}"
@@ -269,8 +269,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void GetStencilStateForDepthOrMV(bool useObjectMotionVector, ref Pass pass)
         {
-            int stencilWriteMask = useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
-            int stencilRef = useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
+            int stencilWriteMask = useObjectMotionVector ? (int)StencilUsage.ObjectMotionVector : 0;
+            int stencilRef = useObjectMotionVector ? (int)StencilUsage.ObjectMotionVector : 0;
 
             if (stencilWriteMask != 0)
             {

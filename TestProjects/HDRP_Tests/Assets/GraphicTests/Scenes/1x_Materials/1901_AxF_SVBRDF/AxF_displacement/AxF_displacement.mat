@@ -264,16 +264,16 @@ Material:
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
-    - _StencilRef: 2
-    - _StencilRefDepth: 16
+    - _StencilRef: 0
+    - _StencilRefDepth: 8
     - _StencilRefDistortionVec: 64
     - _StencilRefGBuffer: 2
-    - _StencilRefMV: 144
-    - _StencilWriteMask: 3
-    - _StencilWriteMaskDepth: 48
+    - _StencilRefMV: 40
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 64
     - _StencilWriteMaskGBuffer: 3
-    - _StencilWriteMaskMV: 176
+    - _StencilWriteMaskMV: 40
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
     - _SurfaceType: 0
@@ -319,6 +319,7 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!114 &1364823656999534784
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -331,4 +332,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 1

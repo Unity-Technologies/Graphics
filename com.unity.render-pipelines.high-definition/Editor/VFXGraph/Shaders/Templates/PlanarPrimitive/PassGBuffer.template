@@ -1,10 +1,11 @@
 Pass
 {		
 	Tags { "LightMode"="GBuffer" }
-	
+
+    // TODO: Use value from C# (Update GetStencilStateForDepthOrMV )
 	Stencil
 	{
-		WriteMask 7
+		WriteMask 3
 		Ref  2
 		Comp Always
 		Pass Replace

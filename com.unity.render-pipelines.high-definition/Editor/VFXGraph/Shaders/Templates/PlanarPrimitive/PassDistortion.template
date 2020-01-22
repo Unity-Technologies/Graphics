@@ -3,10 +3,11 @@ Pass
 {		
 	Tags { "LightMode"="DistortionVectors" }
 
+    // TODO: Use value from C# (Update GetStencilStateForDepthOrMV )
 	Stencil
 	{
-		WriteMask 64
-		Ref 64
+		WriteMask 4
+		Ref 4
 		Comp Always
 		Pass Replace
 	}

@@ -48,24 +48,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 
             // Stencil usage rules:
-            // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
-            // LightingMask need to be tagged during either GBuffer or Forward pass
+            // StencilUsage need to be tagged during depth prepass
+            // RequiresDeferredLighting need to be tagged during GBuffer
+            // SubsurfaceScattering need to be tagged during either GBuffer or Forward pass
             // ObjectVelocity need to be tagged in velocity pass.
-            // As velocity pass can be use as a replacement of depth prepass it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
-            // As GBuffer pass can have no depth prepass, it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
+            // As velocity pass can be use as a replacement of depth prepass it also need to have StencilUsage
+            // As GBuffer pass can have no depth prepass, it also need to have StencilUsage
             // Object velocity is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
             // so we have a guarantee than when we write object velocity no other object will be draw on top (and so would have require to overwrite velocity).
             // Final combination is:
-            // Prepass: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer
-            // Motion vectors: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // Prepass: StencilUsage
+            // Motion vectors: StencilUsage, ObjectVelocity
             // Forward: LightingMask
 
-            int stencilRef = (int)StencilLightingUsage.NoLighting;
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            int stencilRefDepth = (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            int stencilWriteMaskDepth = (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            int stencilRef = (int)StencilUsage.Clear;
+            int stencilWriteMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
+            int stencilRefDepth = (int)StencilUsage.Clear;
+            int stencilWriteMaskDepth = (int)StencilUsage.TraceReflectionRay;
+            int stencilRefMV = (int)StencilUsage.ObjectMotionVector;
+            int stencilWriteMaskMV = (int)StencilUsage.ObjectMotionVector | (int)StencilUsage.TraceReflectionRay;
 
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
@@ -74,8 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
             material.SetInt(kStencilRefMV, stencilRefMV);
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
-            material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
-            material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
+            material.SetInt(kStencilRefDistortionVec, (int)StencilUsage.DistortionVectors);
+            material.SetInt(kStencilWriteMaskDistortionVec, (int)StencilUsage.DistortionVectors);
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
