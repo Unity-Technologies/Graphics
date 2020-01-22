@@ -714,6 +714,25 @@ namespace UnityEditor.VFX.Test
                 var expectedName = "abcd_" + type.ToString();
                 var whereExpectedName = whereExpectedType.Where(o => o.name == expectedName);
                 Assert.AreEqual(1, whereExpectedName.Count());
+
+                var entry = whereExpectedName.First();
+                if (entry.type == typeof(Texture))
+                {
+                    var dimension = vfxAsset.GetTextureDimension(entry.name);
+                    switch (dimension)
+                    {
+                        case TextureDimension.Tex2D:        Assert.AreEqual(type, VFXValueType.Texture2D);        break;
+                        case TextureDimension.Tex3D:        Assert.AreEqual(type, VFXValueType.Texture3D);        break;
+                        case TextureDimension.Cube:         Assert.AreEqual(type, VFXValueType.TextureCube);      break;
+                        case TextureDimension.Tex2DArray:   Assert.AreEqual(type, VFXValueType.Texture2DArray);   break;
+                        case TextureDimension.CubeArray:    Assert.AreEqual(type, VFXValueType.TextureCubeArray); break;
+                        default: Assert.Fail("Unknown expected type"); break;
+                    }
+                }
+                else
+                {
+                    Assert.IsFalse(VFXExpression.IsTexture(type));
+                }
             }
             Assert.AreEqual(types.Length, exposedProperties.Count);
         }
