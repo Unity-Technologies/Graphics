@@ -95,7 +95,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     // Clip the decal if it does not pass the decal layer mask of the receiving material.
     // Decal layer of the decal
-    uint decalLayer = _DecalLayer;
+    uint decalLayer = UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayer).x;
     uint decalLayerMask = 1 << decalLayer;
 
     // Decal layer mask accepted by the receiving material
@@ -113,7 +113,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
     #endif
 #endif
-
+    // TODO: branch here for decallayermask
     GetSurfaceData(input, V, posInput, surfaceData);
 
 // Perform HTile optimization only on platform that support it
