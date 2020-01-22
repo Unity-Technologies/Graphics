@@ -5,6 +5,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Helpers to manipulate <see cref="MigrationDescription{TVersion, TTarget}"/></summary>
     public static class MigrationDescription
     {
+        public static T LastVersion<T>() where T : System.Enum
+        {
+            var values = System.Enum.GetValues(typeof(T));
+            if (values.Length == 0)
+                throw new System.ArgumentException("Enum with no values is not supported.");
+            return (T)values.GetValue(values.Length - 1);
+        }
+
         /// <summary>Create a new migration description.</summary>
         /// <typeparam name="TVersion">An enum identifying the version.</typeparam>
         /// <typeparam name="TTarget">The type to migrate.</typeparam>

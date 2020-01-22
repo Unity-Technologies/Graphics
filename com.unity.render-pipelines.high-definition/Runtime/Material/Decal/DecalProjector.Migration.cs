@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
             FixPivotPosition
         }
 
+        [SerializeField]
+        Version m_Version = MigrationDescription.LastVersion<Version>();
+        Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+
+
         static readonly MigrationDescription<Version, DecalProjector> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UseZProjectionAxisAndScaleIndependance, (DecalProjector decal) =>
             {
@@ -44,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Translate the decal to half its size in z so it will remain at same position
                 Vector3 translationValue = (decal.m_Offset - new Vector3(0f, 0f, decal.m_Size.z * 0.5f));
                 decal.transform.Translate(translationValue);
-                
+
                 // Update pivot position to -z face
                 decal.m_Offset.x = 0f;
                 decal.m_Offset.y = 0f;
@@ -72,10 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 decal.m_Handle = DecalSystem.instance.AddDecal(decal.position, decal.rotation, Vector3.one, sizeOffset, decal.m_DrawDistance, decal.m_FadeScale, decal.uvScaleBias, decal.m_AffectsTransparency, decal.m_Material, decal.gameObject.layer, decal.m_FadeFactor);
             })
         );
-
-        [SerializeField]
-        Version m_Version;
-        Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         void Awake() => k_Migration.Migrate(this);
     }
