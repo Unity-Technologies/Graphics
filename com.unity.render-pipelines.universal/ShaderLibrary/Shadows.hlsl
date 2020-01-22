@@ -183,7 +183,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 
     real attenuation;
     real shadowStrength = shadowParams.x;
-#if UNITY_UV_STARTS_AT_TOP && defined(SUBPASS_INPUT_AVAILABLE)
+#if UNITY_UV_STARTS_AT_TOP
     shadowCoord = shadowCoord * float4(1.0, -1.0, 1.0, 1.0) + float4(0.0, 1.0, 0.0, 0.0);
 #endif
     // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.

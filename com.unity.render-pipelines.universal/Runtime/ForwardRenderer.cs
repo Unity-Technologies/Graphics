@@ -222,25 +222,26 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
+            if (resolveShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(desc);
+                m_ScreenSpaceShadowResolvePass.Configure(cmd, desc); //TODO: investigate why this needs to be commented when not using RenderPass
+                context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
+                cmd.Clear();
+                m_RenderOpaqueForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
+                m_RenderTransparentForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
+                EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
+
             m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment); //check if ok with no renderpass
 
             if (desc.msaaSamples > 1)
             {
                 m_MsaaResolveTarget.Init("_ResolveTarget");
                 cmd.GetTemporaryRT(m_MsaaResolveTarget.id, desc.width, desc.height, 0, FilterMode.Point, desc.graphicsFormat);
+                context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
+                cmd.Clear();
                 m_RenderOpaqueForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
-            }
-
-            if (resolveShadowsInScreenSpace)
-            {
-                m_ScreenSpaceShadowResolvePass.Setup(desc);
-                m_ScreenSpaceShadowResolvePass.Configure(cmd, desc); //TODO: investigate why this needs to be commented when not using RenderPass
-
-                m_RenderOpaqueForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
-                m_RenderTransparentForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
-
-                EnqueuePass(m_ScreenSpaceShadowResolvePass);
-
             }
 
             SetBlockDescriptor(RenderPassBlock.MainRendering, desc.width, desc.height, desc.msaaSamples);

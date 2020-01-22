@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor)
         {
             m_RenderTextureDescriptor = baseDescriptor;
-            m_RenderTextureDescriptor.depthBufferBits = 32;
+            m_RenderTextureDescriptor.depthBufferBits = 0;
             m_RenderTextureDescriptor.msaaSamples = baseDescriptor.msaaSamples;
             m_RenderTextureDescriptor.colorFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8

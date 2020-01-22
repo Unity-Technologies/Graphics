@@ -204,7 +204,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 {
     return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
 }
-#define SUBPASS_INPUT_AVAILABLE (defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && defined(UNITY_FRAMEBUFFER_FETCH_AVAILABLE)))
+#define SUBPASS_INPUT_AVAILABLE defined(SHADER_API_VULKAN) || (defined(SHADER_API_MOBILE) && defined(SHADER_API_METAL))
 #if SUBPASS_INPUT_AVAILABLE
 // Renderpass inputs: Vulkan/Metal subpass input
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) cbuffer hlslcc_SubpassInput_f_##idx { float4 hlslcc_fbinput_##idx; }
