@@ -327,6 +327,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leak in Sky when in matcap mode.
 - Fixed compilation issues on platform that don't support VR.
 - Fixed migration code called when we create a new HDRP asset.
+- Fixed the outline example in the doc (sampling range was dependent on screen resolution)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
