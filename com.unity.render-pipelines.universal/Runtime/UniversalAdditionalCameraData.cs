@@ -163,6 +163,9 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
+        // Camera Stack Settings
+        [SerializeField] List<int> m_CameraStackPostProcessingList = new List<int>();
+
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -175,6 +178,15 @@ namespace UnityEngine.Rendering.Universal
 
                 return s_DefaultAdditionalCameraData;
             }
+        }
+
+        /// <summary>
+        /// Controls if this camera should render shadows.
+        /// </summary>
+        public List<int> cameraStackPostProcessingList
+        {
+            get => m_CameraStackPostProcessingList;
+            set => m_CameraStackPostProcessingList = value;
         }
 
         /// <summary>

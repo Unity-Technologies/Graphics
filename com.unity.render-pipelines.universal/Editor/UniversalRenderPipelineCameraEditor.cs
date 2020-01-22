@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
 
+            public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing. Click this to select a new renderer.");
+
             public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nUninitialized has undefined values for the camera background. Use this only if you are rendering all pixels in the Camera's view.");
             public static GUIContent cameraType = EditorGUIUtility.TrTextContent("Render Type", "Controls which type of camera this is.");
             public static GUIContent renderingShadows = EditorGUIUtility.TrTextContent("Render Shadows", "Makes this camera render shadows.");
@@ -44,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
 
-            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects. Post-processing will be applied while rendering the last camera int the stack.");
+            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects. Post-processing will be applied while rendering the last camera in the stack.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
             public static GUIContent antialiasingQuality = EditorGUIUtility.TrTextContent("Quality", "The quality level to use for the selected anti-aliasing method.");
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
@@ -59,6 +61,9 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
+
+            public static GUIContent postProcessingActiveText = EditorGUIUtility.TrIconContent("Packages/com.unity.render-pipelines.universal/Editor/Gizmos/Camera_PostProcessingSmall.png", "Post Processing will be executed after this camera.");
+            public static GUIContent postProcessingNotActiveText = EditorGUIUtility.TrIconContent("Packages/com.unity.render-pipelines.universal/Editor/Gizmos/Camera_PostProcessingSmallOff.png", "Clicking this button will turn on Post Processing after this Camera");
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -130,6 +135,10 @@ namespace UnityEditor.Rendering.Universal
         List<CameraRenderType> validCameraTypes = new List<CameraRenderType>{CameraRenderType.Overlay};
         List<Camera> errorCameras = new List<Camera>();
         Texture2D m_ErrorIcon;
+        Texture2D m_PostProcessingIcon;
+
+
+        List<int> m_CameraStackPPList;
 
         // Temporary saved bools for foldout header
         SavedBool m_CommonCameraSettingsFoldout;
@@ -166,6 +175,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataStopNaN;
         SerializedProperty m_AdditionalCameraDataDithering;
         SerializedProperty m_AdditionalCameraClearDepth;
+        SerializedProperty m_CameraStackPostProcessingListProp;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -198,7 +208,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
-        
+
         public new void OnEnable()
         {
             m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
@@ -210,6 +220,7 @@ namespace UnityEditor.Rendering.Universal
             m_StackSettingsFoldout = new SavedBool($"{target.GetType()}.StackSettingsFoldout", false);
             m_AdditionalCameraData = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
             m_ErrorIcon = EditorGUIUtility.Load("icons/console.erroricon.sml.png") as Texture2D;
+            m_PostProcessingIcon = EditorGUIUtility.Load("Packages/com.unity.render-pipelines.universal/Editor/Gizmos/Camera_PostProcessingSmall.png") as Texture2D;
             validCameras.Clear();
             errorCameras.Clear();
             settings.OnEnable();
@@ -241,12 +252,41 @@ namespace UnityEditor.Rendering.Universal
                 m_LayerList.onRemoveCallback = list =>
                 {
                     m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(list.index);
+                    m_CameraStackPPList.Remove(list.index);
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    UpdatePPList();
                     m_AdditionalCameraDataSO.ApplyModifiedProperties();
                 };
 
+                m_LayerList.onReorderCallbackWithDetails += OnReorderCallbackWithDetails;
+
                 m_LayerList.onAddDropdownCallback = (rect, list) => AddCameraToCameraList(rect, list);
             }
+        }
+
+        // Need to fix the index after move.
+        // New index cannot be an already added one. Then it needs to be pushed once.
+        void OnReorderCallbackWithDetails(ReorderableList list, int oldindex, int newindex)
+        {
+            foreach (int i in m_CameraStackPPList)
+            {
+                Debug.Log("BEFORE:: " + i);
+            }
+            if (m_CameraStackPPList.Contains(oldindex))
+            {
+                m_CameraStackPPList.Remove(oldindex);
+                m_CameraStackPPList.Add(newindex);
+
+                // If the new index is smaller than ay index in this list we need to bump all of them.
+
+            }
+
+            foreach (int i in m_CameraStackPPList)
+            {
+                Debug.Log("AFTER:: " + i);
+            }
+
+            UpdatePPList();
         }
 
         void SelectElement(ReorderableList list)
@@ -277,6 +317,7 @@ namespace UnityEditor.Rendering.Universal
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += 1;
 
+            // Apparently this can be null..............................
             var element = m_AdditionalCameraDataCameras.GetArrayElementAtIndex(index);
 
             var cam = element.objectReferenceValue as Camera;
@@ -312,17 +353,51 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.LabelField(rect, cam.name, type.ToString());
                 }
 
+                var usePostAfterThis = m_CameraStackPPList.Contains(index);
+                Rect selectRect = new Rect(rect.width-20, rect.y, 24, EditorGUIUtility.singleLineHeight);
+
+                // If Post Processing is not set on the camera this is disabled.
+                GUI.enabled = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                if (GUI.Button(selectRect, usePostAfterThis ? Styles.postProcessingActiveText : Styles.postProcessingNotActiveText))
+                {
+                    if (!m_CameraStackPPList.Contains(index))
+                    {
+                        m_CameraStackPPList.Add(index);
+                    }
+                    else
+                    {
+                        m_CameraStackPPList.Remove(index);
+                    }
+
+                    UpdatePPList();
+                }
+
+                GUI.enabled = true;
                 EditorGUIUtility.labelWidth = labelWidth;
             }
             else
             {
                 // Automagicaly deletes the entry if a user has removed a camera from the scene
                 m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(index);
+                m_CameraStackPPList.Remove(index);
+                //UpdatePPList();
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
             }
+        }
+
+        void UpdatePPList()
+        {
+            m_CameraStackPostProcessingListProp.ClearArray();
+            for (int i = 0; i < m_CameraStackPPList.Count; ++i)
+            {
+                m_CameraStackPostProcessingListProp.InsertArrayElementAtIndex(i);
+                m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue = m_CameraStackPPList[i];
+            }
+            Debug.Log("SIZE: " + m_CameraStackPostProcessingListProp.arraySize);
+            m_AdditionalCameraDataSO.ApplyModifiedProperties();
         }
 
         void AddCameraToCameraList(Rect rect, ReorderableList list)
@@ -388,7 +463,18 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraClearDepth = m_AdditionalCameraDataSO.FindProperty("m_ClearDepth");
             m_AdditionalCameraDataCameraTypeProp = m_AdditionalCameraDataSO.FindProperty("m_CameraType");
 
+            m_CameraStackPostProcessingListProp = m_AdditionalCameraDataSO.FindProperty("m_CameraStackPostProcessingList");
+            m_CameraStackPPList = new List<int>();
+            UpdateCameraStackPPList();
             m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
+        }
+
+        void UpdateCameraStackPPList()
+        {
+            for (int i = 0; i < m_CameraStackPostProcessingListProp.arraySize; ++i)
+            {
+                m_CameraStackPPList.Add(m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue);
+            }
         }
 
         public void OnDisable()
