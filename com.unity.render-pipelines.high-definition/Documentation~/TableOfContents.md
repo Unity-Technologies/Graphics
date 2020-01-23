@@ -139,6 +139,8 @@
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
+* Consoles
+  * [Building For Consoles](Building-For-Consoles)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
