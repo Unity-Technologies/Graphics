@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
+                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
                 }
             }
 
@@ -895,30 +895,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_XRViewConstants[0] = mainViewConstants;
             }
 
-            // Update frustum and projection parameters
-            {
-                var projMatrix = mainViewConstants.projMatrix;
-                var invProjMatrix = mainViewConstants.invProjMatrix;
-                var viewProjMatrix = mainViewConstants.viewProjMatrix;
-
-                if (xr.enabled)
-                {
-                    var combinedProjMatrix = xr.cullingParams.stereoProjectionMatrix;
-                    var combinedViewMatrix = xr.cullingParams.stereoViewMatrix;
-
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        var combinedOrigin = combinedViewMatrix.inverse.GetColumn(3) - (Vector4)(camera.transform.position);
-                        combinedViewMatrix.SetColumn(3, combinedOrigin);
-                    }
-
-                    projMatrix = GL.GetGPUProjectionMatrix(combinedProjMatrix, true);
-                    invProjMatrix = projMatrix.inverse;
-                    viewProjMatrix = projMatrix * combinedViewMatrix;
-                }
-
-                UpdateFrustum(projMatrix, invProjMatrix, viewProjMatrix);
-            }
+            UpdateFrustum(mainViewConstants);
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
@@ -994,8 +971,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateFrustum(Matrix4x4 projMatrix, Matrix4x4 invProjMatrix, Matrix4x4 viewProjMatrix)
+        void UpdateFrustum(in ViewConstants viewConstants)
         {
+            // Update frustum and projection parameters
+            var projMatrix = mainViewConstants.projMatrix;
+            var invProjMatrix = mainViewConstants.invProjMatrix;
+            var viewProjMatrix = mainViewConstants.viewProjMatrix;
+
+            if (xr.enabled)
+            {
+                var combinedProjMatrix = xr.cullingParams.stereoProjectionMatrix;
+                var combinedViewMatrix = xr.cullingParams.stereoViewMatrix;
+
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    var combinedOrigin = combinedViewMatrix.inverse.GetColumn(3) - (Vector4)(camera.transform.position);
+                    combinedViewMatrix.SetColumn(3, combinedOrigin);
+                }
+
+                projMatrix = GL.GetGPUProjectionMatrix(combinedProjMatrix, true);
+                invProjMatrix = projMatrix.inverse;
+                viewProjMatrix = projMatrix * combinedViewMatrix;
+            }
+
             float n = camera.nearClipPlane;
             float f = camera.farClipPlane;
 
@@ -1022,7 +1020,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float orthoWidth  = orthoHeight * camera.aspect;
             unity_OrthoParams = new Vector4(orthoWidth, orthoHeight, 0, camera.orthographic ? 1 : 0);
 
-            Frustum.Create(frustum, viewProjMatrix, depth_0_1, reverseZ);
+            Vector3 viewDir = -viewConstants.invViewMatrix.GetColumn(2);
+            viewDir.Normalize();
+            Frustum.Create(frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
