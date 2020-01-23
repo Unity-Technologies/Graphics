@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
 - Naming for particles system and spawn context
+- Noise evaluation now performed on CPU when possible
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
