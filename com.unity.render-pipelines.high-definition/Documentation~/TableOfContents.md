@@ -117,7 +117,6 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
-  * [Authoring Custom Effects](Custom-Post-Process)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
@@ -144,5 +143,5 @@
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
-  * [Creating a Custom Pass](Custom-Pass)
+  * [Creating a Custom Render Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
