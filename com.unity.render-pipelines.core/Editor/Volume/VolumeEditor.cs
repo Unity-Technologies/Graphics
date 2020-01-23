@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering
                 return;
 
             var t = volume.transform;
-            var scale = t.localScale;
+            var scale = t.lossyScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, scale);
             Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
