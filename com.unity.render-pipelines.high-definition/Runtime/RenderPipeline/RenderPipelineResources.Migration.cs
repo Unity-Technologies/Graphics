@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [HideInInspector, SerializeField, FormerlySerializedAs("version")]
-        Version m_Version = Version.First;  //keep former creation affectation
+        Version m_Version = MigrationDescription.LastVersion<Version>();
 
         Version IVersionable<Version>.version
         {
