@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 8be9e7474d2ab284e9c12cbe7016087b
+=======
+guid: 2a9acc3eb0e393948b9f56bb9d2591ba
+>>>>>>> adb3228d58... Bugfix 168283: URP shaders output incorrect alpha values (#5526)
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -57,7 +61,10 @@ TextureImporter:
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+<<<<<<< HEAD
   ignorePngGamma: 0
+=======
+>>>>>>> adb3228d58... Bugfix 168283: URP shaders output incorrect alpha values (#5526)
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform

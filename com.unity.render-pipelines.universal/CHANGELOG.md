@@ -174,6 +174,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
 - Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
 - Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
+- Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
 
 ## [7.1.2] - 2019-09-19
 ### Added
