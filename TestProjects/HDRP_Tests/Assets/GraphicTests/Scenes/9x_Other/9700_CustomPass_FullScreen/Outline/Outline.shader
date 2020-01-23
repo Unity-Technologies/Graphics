@@ -52,11 +52,9 @@
 
         if (Luminance(outline.rgb) < luminanceThreshold)
         {
-            float3 o = float3(_ScreenSize.zw, 0);
-
             for (int i = 0; i < MAXSAMPLES; i++)
             {
-                float2 uvN = uv + _ScreenSize.zw * samplingPositions[i];
+                float2 uvN = uv + _ScreenSize.zw * _RTHandleScale.xy * samplingPositions[i];
                 float4 neighbour = SAMPLE_TEXTURE2D_X_LOD(_OutlineBuffer, s_linear_clamp_sampler, uvN, 0);
 
                 if (Luminance(neighbour) > luminanceThreshold)
