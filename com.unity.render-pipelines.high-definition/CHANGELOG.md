@@ -399,6 +399,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
 - Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
 - Removed Wind textures from runtime as wind is no longer built into the pipeline
+- Expose StartSinglePass() and StopSinglePass() as public interface for XRPass
 
 ## [7.1.1] - 2019-09-05
 
