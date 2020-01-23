@@ -82,8 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            // If the current pipeline supports ray tracing, display first the ray tracing checkbox
-            bool rayTracingSupported = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported;
+            bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
             if (rayTracingSupported)
                 PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
 
