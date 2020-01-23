@@ -25,6 +25,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_Selected;
 
         [SerializeField]
+        string m_DiskJson;
+
+        [SerializeField]
         GraphObject m_GraphObject;
 
         [NonSerialized]
@@ -252,8 +255,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsDirty()
         {
-            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
             var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
+            return IsDirty(fileJson);
+        }
+
+        bool IsDirty(string fileJson)
+        {
+            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
             return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
         }
 
@@ -262,10 +270,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void CheckForChanges()
         {
-            var isDirty = IsDirty();
-            if (isDirty)
+            var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
+            bool isDirty;
+            if (string.CompareOrdinal(fileJson, m_DiskJson) != 0)
             {
                 m_PromptChangedOnDisk = true;
+                isDirty = true;
+            }
+            else
+            {
+                var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
+                isDirty = string.CompareOrdinal(currentJson, fileJson) != 0;
             }
             UpdateTitle(isDirty);
         }
@@ -349,7 +364,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
-                    }                    
+                    }
                 }
             }
 
@@ -713,8 +728,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+            var json = JsonUtility.ToJson(graphObject.graph, true);
+            if (FileUtilities.WriteToDisk(path, json))
+            {
+                m_DiskJson = json;
                 AssetDatabase.ImportAsset(path);
+            }
         }
 
         public void Initialize(string assetGuid)
@@ -757,6 +776,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = assetGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                m_DiskJson = textGraph;
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
