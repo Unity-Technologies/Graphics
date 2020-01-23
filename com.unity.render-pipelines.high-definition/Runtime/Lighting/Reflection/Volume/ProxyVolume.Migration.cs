@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
-        Version m_CSVersion;
+        Version m_CSVersion = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_CSVersion; set => m_CSVersion = value; }
 
         // Obsolete fields

@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 0618, 0612
         [SerializeField]
-        private Version m_Version = Version.ShadowResolution;
+        private Version m_Version = MigrationDescription.LastVersion<Version>();
 
         private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
             = MigrationDescription.New(
