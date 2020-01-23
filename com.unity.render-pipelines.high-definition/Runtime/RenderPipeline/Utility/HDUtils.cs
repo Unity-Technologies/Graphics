@@ -112,6 +112,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
         public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
+        
+        public static float GetRuntimeDebugPanelWidth(HDCameraInfo hdCamera)
+        {
+            // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
+            float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
+            return Mathf.Min(hdCamera.actualWidth, width);
+        }
 
         public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCameraInfo hdCamera)
         {
@@ -124,6 +131,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 y -= s_OverlayLineHeight;
                 s_OverlayLineHeight = -1.0f;
             }
+
+            if (x == 0)
+                x += GetRuntimeDebugPanelWidth(hdCamera);
         }
 
         /// <summary>Get the aspect ratio of a projection matrix.</summary>

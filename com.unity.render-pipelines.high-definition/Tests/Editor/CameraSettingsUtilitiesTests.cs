@@ -42,8 +42,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     frustum = new CameraSettings.Frustum
                     {
                         aspect = RandomUtilities.RandomFloat(i, 6724.2745f) * 0.5f + 1,
-                        nearClipPlane = RandomUtilities.RandomFloat(i, 7634.7235f) * 10.0f + 10f,
-                        farClipPlane = RandomUtilities.RandomFloat(i, 1935.3234f) * 100.0f + 1000.0f,
+                        nearClipPlaneRaw = RandomUtilities.RandomFloat(i, 7634.7235f) * 10.0f + 10f,
+                        farClipPlaneRaw = RandomUtilities.RandomFloat(i, 1935.3234f) * 100.0f + 1000.0f,
                         fieldOfView = RandomUtilities.RandomFloat(i, 9364.2534f) * 30.0f + 75.0f,
                         mode = RandomUtilities.RandomEnumIndex<CameraSettings.Frustum.Mode>(i * 2.5f),
                         projectionMatrix = perspectiveMatrix

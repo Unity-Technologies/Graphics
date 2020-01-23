@@ -30,6 +30,11 @@ namespace UnityEditor
             }
         }
 
+        static VisualEffectAssetEditorUtility()
+        {
+            UnityEngine.VFX.VFXManager.activateVFX = true;
+        }
+
 
         public const string templateAssetName = "Simple Particle System.vfx";
         public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";

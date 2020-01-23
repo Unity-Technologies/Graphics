@@ -43,6 +43,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a check in the custom post process template to throw an error if the default shader is not found.
 - Exposed the debug overlay ratio in the debug menu.
 - Added a separate frame settings for tonemapping alongside color grading.
+- Added the receive fog option in the material UI for ShaderGraphs.
+- Added a public virtual bool in the custom post processes API to specify if a post processes should be executed in the scene view.
+- Added a menu option that checks scene issues with ray tracing. Also removed the previously existing warning at runtime.
+- Added Contrast Adaptive Sharpen (CAS) Upscaling effect.
+- Added APIs to update probe settings at runtime.
+- Added documentation for the rayTracingSupported method in HDRP
+- Added user-selectable format for the post processing passes.
+- Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
+- Added warnings in FrameSettings inspector when using DXR and atempting to use Asynchronous Execution.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -121,7 +130,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
 - Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
 - Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
-- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present. 
+- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present.
 - Fixed issue causing planar probes to disappear if there is no light in the scene.
 - Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
 - Fixed an issue with fog volume component upgrade not working properly
@@ -238,18 +247,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
 - Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
 - Fixed missing distortion inputs in Lit and Unlit material UI.
-- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
-- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture.
+- Fixed issue with Exclude from TAA stencil ignored.
 - Fixed ray traced reflection exposure issue.
 - Fixed issue with TAA history not initialising corretly scale factor for first frame
 - Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
 - Fixed issue with History not reset when chaning antialiasing mode on camera
-- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off.
 - Fixed ray tracing reflection denoiser not applied in tier 1
 - Fixed the vibility of ray tracing related methods.
 - Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
 - Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
-- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights.
 - Fixed exposure management for the path tracer
 - Fixed AxF material UI containing two advanced options settings.
 - Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
@@ -269,6 +278,62 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Culling group was not disposed error.
 - Fixed issues on some GPU that do not support gathers on integer textures.
 - Fixed an issue with ambient probe not being initialized for the first frame after a domain reload for volumetric fog.
+- Fixed the scene visibility of decal projectors and density volumes
+- Fixed a leak in sky manager.
+- Fixed an issue where entering playmode while the light editor is opened would produce null reference exceptions.
+- Fixed the debug overlay overlapping the debug menu at runtime.
+- Fixed an issue with the framecount when changing scene.
+- Fixed errors that occurred when using invalid near and far clip plane values for planar reflections.
+- Fixed issue with motion blur sample weighting function.
+- Fixed motion vectors in MSAA.
+- Fixed sun flare blending (case 1205862).
+- Fixed a lot of issues related to ray traced screen space shadows.
+- Fixed memory leak caused by apply distortion material not being disposed.
+- Fixed Reflection probe incorrectly culled when moving its parent (case 1207660)
+- Fixed a nullref when upgrading the Fog volume components while the volume is opened in the inspector.
+- Fix issues where decals on PS4 would not correctly write out the tile mask causing bits of the decal to go missing.
+- Use appropriate label width and text content so the label is completely visible
+- Fixed an issue where final post process pass would not output the default alpha value of 1.0 when using 11_11_10 color buffer format.
+- Fixed SSR issue after the MSAA Motion Vector fix.
+- Fixed an issue with PCSS on directional light if punctual shadow atlas was not allocated.
+- Fixed an issue where shadow resolution would be wrong on the first face of a baked reflection probe.
+- Fixed issue with PCSS softness being incorrect for cascades different than the first one.
+- Fixed custom post process not rendering when using multiple HDRP asset in quality settings
+- Fixed probe gizmo missing id (case 1208975)
+- Fixed a warning in raytracingshadowfilter.compute
+- Fixed issue with AO breaking with small near plane values.
+- Fixed custom post process Cleanup function not called in some cases.
+- Fixed shader warning in AO code.
+- Fixed a warning in simpledenoiser.compute
+- Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
+- Fixed caused by using gather on a UINT texture in motion blur.
+- Fix issue with ambient occlusion breaking when dynamic resolution is active.
+- Fixed some possible NaN causes in Depth of Field.
+- Fixed Custom Pass nullref due to the new Profiling Sample API changes
+- Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
+- Fixed particle lights.
+- Improved behavior of lights and probe going over the HDRP asset limits.
+- Fixed issue triggered when last punctual light is disabled and more than one camera is used.
+- Fixed Custom Pass nullref due to the new Profiling Sample API changes
+- Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
+- Fixed XR rendering locked to vsync of main display with Standalone Player.
+- Fixed custom pass cleanup not called at the right time when using multiple volumes.
+- Fixed an issue on metal with edge of decal having artifact by delaying discard of fragments during decal projection
+- Fixed various shader warning
+- Fixing unnecessary memory allocations in the ray tracing cluster build
+- Fixed duplicate column labels in LightEditor's light tab
+- Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
+- Fixed an issue where passing a null ProfilingSampler would cause a null ref exception.
+- Fixed memory leak in Sky when in matcap mode.
+- Fixed compilation issues on platform that don't support VR.
+- Fixed migration code called when we create a new HDRP asset.
+- Fixed an issue where ambient occlusion and screen space reflections editors would generate null ref exceptions when HDRP was not set as the current pipeline.
+- Fixed a null reference exception in the probe UI when no HDRP asset is present.
+- Fixed the outline example in the doc (sampling range was dependent on screen resolution)
+- Fixed a null reference exception in the HDRI Sky editor when no HDRP asset is present.
+- Fixed an issue where Decal Projectors created from script where rotated around the X axis by 90°.
+- Fixed frustum used to compute Density Volumes visibility when projection matrix is oblique.
+- Fixed a null reference exception in Path Tracing, Recursive Rendering and raytraced Global Illumination editors when no HDRP asset is present.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -281,14 +346,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Physically Based Sky below ground
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
-- Optimize Shadow RT load on Tile based architecture platforms. 
+- Optimize Shadow RT load on Tile based architecture platforms.
 - Improved quality of SSAO.
 - Moved RequestShadowMapRendering() back to public API.
 - Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
 - Added SceneSelection pass for TerrainLit shader.
 - Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
 - The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
-- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
+- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias.
 - Fix the default stencil values when a material is created from a SSS ShaderGraph.
 - Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
 - Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
@@ -315,7 +380,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
 - Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
 - Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
+- Updated macros to be compatible with the new shader preprocessor.
 - Ray tracing reflection temporal filtering is now done in pre-exposed space
+- Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
+- Disabled the refraction and transmission map keywords if the material is opaque.
+- Keep celestial bodies outside the atmosphere.
+- Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
+- Shader use for Runtime Debug Display are now correctly stripper when doing a release build
+- Now each camera has its own Volume Stack. This allows Volume Parameters to be updated as early as possible and be ready for the whole frame without conflicts between cameras.
+- Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
+- Improved performance when entering play mode without domain reload by a factor of ~25
+- Renamed the camera profiling sample to include the camera name
+- Discarding the ray tracing history for AO, reflection, diffuse shadows and GI when the viewport size changes.
+- Renamed the camera profiling sample to include the camera name
+- Renamed the post processing graphic formats to match the new convention.
+- The restart in Wizard for DXR will always be last fix from now on
+- Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
+- Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
+- Removed Wind textures from runtime as wind is no longer built into the pipeline
 
 ## [7.1.1] - 2019-09-05
 

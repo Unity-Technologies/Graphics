@@ -32,6 +32,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
   rayTracing:
     m_OverrideState: 1
     m_Value: 1
@@ -45,24 +48,11 @@ MonoBehaviour:
     m_Value: 0
     min: 0
     max: 1
-  stepCount:
-    m_OverrideState: 0
-    m_Value: 6
-    min: 2
-    max: 32
   radius:
     m_OverrideState: 0
     m_Value: 2
     min: 0.25
     max: 5
-  fullResolution:
-    m_OverrideState: 0
-    m_Value: 0
-  maximumRadiusInPixels:
-    m_OverrideState: 0
-    m_Value: 40
-    min: 16
-    max: 256
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
@@ -71,14 +61,6 @@ MonoBehaviour:
     m_Value: 0.5
     min: 0
     max: 1
-  bilateralUpsample:
-    m_OverrideState: 0
-    m_Value: 1
-  directionCount:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 1
-    max: 8
   blurSharpness:
     m_OverrideState: 0
     m_Value: 0.1
@@ -103,10 +85,31 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   denoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.764
+    m_OverrideState: 1
+    m_Value: 1
     min: 0.001
     max: 1
+  m_StepCount:
+    m_OverrideState: 0
+    m_Value: 6
+    min: 2
+    max: 32
+  m_FullResolution:
+    m_OverrideState: 0
+    m_Value: 0
+  m_MaximumRadiusInPixels:
+    m_OverrideState: 0
+    m_Value: 40
+    min: 16
+    max: 256
+  m_BilateralUpsample:
+    m_OverrideState: 0
+    m_Value: 1
+  m_DirectionCount:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 1
+    max: 8
 --- !u!114 &-608649704942363887
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -125,6 +128,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 500
     min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4
@@ -223,8 +231,11 @@ MonoBehaviour:
     min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
-    m_Value: 4.1869273
+    m_Value: 4.1886163
     min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0.44019982, y: 0.4541125, z: 0.5}
   desiredLuxValue:
     m_OverrideState: 0
     m_Value: 20000
@@ -240,4 +251,53 @@ MonoBehaviour:
     m_Value: 0
   hdriSky:
     m_OverrideState: 1
-    m_Value: {fileID: 8900000, guid: ec03f1d4a2587b749bc197def8c88c8e, type: 3}
+    m_Value: {fileID: 8900000, guid: 21bb9ef0ab3fe414bacf326d4f1d8ee2, type: 3}
+  enableBackplate:
+    m_OverrideState: 0
+    m_Value: 0
+  backplateType:
+    m_OverrideState: 0
+    m_Value: 0
+  groundLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  scale:
+    m_OverrideState: 0
+    m_Value: {x: 32, y: 32}
+  projectionDistance:
+    m_OverrideState: 0
+    m_Value: 16
+    min: 0.0000001
+  plateRotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  plateTexRotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  plateTexOffset:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0}
+  blendAmount:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 100
+  shadowTint:
+    m_OverrideState: 0
+    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
+  pointLightShadow:
+    m_OverrideState: 0
+    m_Value: 0
+  dirLightShadow:
+    m_OverrideState: 0
+    m_Value: 0
+  rectLightShadow:
+    m_OverrideState: 0
+    m_Value: 0

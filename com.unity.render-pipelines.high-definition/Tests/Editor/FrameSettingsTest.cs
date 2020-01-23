@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             public bool enableMotionVectors = false; // Enable/disable whole motion vectors pass (Camera + Object).
             public bool enableObjectMotionVectors = false;
             public bool enableDecals = false;
-            public bool enableRoughRefraction = false; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+            public bool enableRoughRefraction = false; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
             public bool enableTransparentPostpass = false;
             public bool enableDistortion = false;
             public bool enablePostprocess = false;
@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.enableMotionVectors, frameSettingsData.IsEnabled(FrameSettingsField.MotionVectors));
                 Assert.AreEqual(legacyFrameSettingsData.enableObjectMotionVectors, frameSettingsData.IsEnabled(FrameSettingsField.ObjectMotionVectors));
                 Assert.AreEqual(legacyFrameSettingsData.enableDecals, frameSettingsData.IsEnabled(FrameSettingsField.Decals));
-                Assert.AreEqual(legacyFrameSettingsData.enableRoughRefraction, frameSettingsData.IsEnabled(FrameSettingsField.RoughRefraction));
+                Assert.AreEqual(legacyFrameSettingsData.enableRoughRefraction, frameSettingsData.IsEnabled(FrameSettingsField.Refraction));
                 Assert.AreEqual(legacyFrameSettingsData.enableTransparentPostpass, frameSettingsData.IsEnabled(FrameSettingsField.TransparentPostpass));
                 Assert.AreEqual(legacyFrameSettingsData.enableDistortion, frameSettingsData.IsEnabled(FrameSettingsField.Distortion));
                 Assert.AreEqual(legacyFrameSettingsData.enablePostprocess, frameSettingsData.IsEnabled(FrameSettingsField.Postprocess));
@@ -465,7 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.MotionVectors) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.MotionVectors]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ObjectMotionVectors) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ObjectMotionVectors]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Decals) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Decals]);
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.RoughRefraction) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.RoughRefraction]);
+                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.RoughRefraction) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Refraction]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.TransparentPostpass) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.TransparentPostpass]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Distortion) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Distortion]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Postprocess) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Postprocess]);

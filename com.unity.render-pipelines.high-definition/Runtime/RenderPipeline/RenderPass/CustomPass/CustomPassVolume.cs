@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => Cleanup();
+        void OnDestroy() => CleanupPasses();
 
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
@@ -87,12 +87,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var pass in customPasses)
             {
-                if (pass != null && pass.enabled)
-                    using (new ProfilingScope(cmd, pass.profilingSampler))
-                    {
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
-                        executed = true;
-                    }
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    executed = true;
+                }
+            }
+
+            return executed;
+        }
+
+        internal bool WillExecuteInjectionPoint(HDCameraInfo hdCamera)
+        {
+            bool executed = false;
+
+            // We never execute volume if the layer is not within the culling layers of the camera
+            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+                return false;
+
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                    executed = true;
             }
 
             return executed;

@@ -33,7 +33,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Lanczos upscaling filter.
         /// </summary>
-        Lanczos,
+        Lanczos,     
+        // Difference of Gaussians? [aka unsharp]
+        ContrastAdaptiveSharpen,
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>

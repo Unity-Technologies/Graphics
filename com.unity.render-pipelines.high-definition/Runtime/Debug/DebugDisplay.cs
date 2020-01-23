@@ -388,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_RecordedSamplers.Count == 0);
 
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));

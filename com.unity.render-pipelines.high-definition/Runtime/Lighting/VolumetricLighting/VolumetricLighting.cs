@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3Int viewportResolution = ComputeVBufferResolution(volumetricLightingPreset, hdCamera.actualWidth, hdCamera.actualHeight);
 
-            var controller = VolumeManager.instance.stack.GetComponent<Fog>();
+            var controller = hdCamera.volumeStack.GetComponent<Fog>();
 
             return new VBufferParameters(viewportResolution, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
@@ -280,9 +280,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                          hdCamera.camera.fieldOfView,
                                          controller.sliceDistributionUniformity.value);
         }
-        internal void ReinitializeVolumetricBufferParams(HDCameraInfo hdCamera, bool ignoreVolumeStack)
+
+        internal void ReinitializeVolumetricBufferParams(HDCameraInfo hdCamera)
         {
-            bool fog  = Fog.IsVolumetricFogEnabled(hdCamera, ignoreVolumeStack);
+            bool fog  = Fog.IsVolumetricFogEnabled(hdCamera);
             bool init = hdCamera.vBufferParams != null;
 
             if (fog ^ init)
@@ -306,9 +307,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This function relies on being called once per camera per frame.
         // The results are undefined otherwise.
-        internal void UpdateVolumetricBufferParams(HDCameraInfo hdCamera, bool ignoreVolumeStack)
+        internal void UpdateVolumetricBufferParams(HDCameraInfo hdCamera)
         {
-            if (!Fog.IsVolumetricFogEnabled(hdCamera, ignoreVolumeStack))
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
 
             var parameters = ComputeVBufferParameters(hdCamera);
@@ -448,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
+            var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
             SetPreconvolvedAmbientLightProbe(hdCamera, cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
@@ -728,7 +729,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new VolumetricLightingParameters();
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
+            var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);

@@ -296,7 +296,8 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
-            Modified();
+            if(cause != InvalidationCause.kExpressionGraphChanged && cause != InvalidationCause.kExpressionInvalidated)
+                Modified();
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try

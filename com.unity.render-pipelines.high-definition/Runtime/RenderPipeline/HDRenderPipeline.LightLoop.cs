@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGraphResource result;
 
             // TODO RENDERGRAPH
-            //var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+            //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
             //{
             //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);

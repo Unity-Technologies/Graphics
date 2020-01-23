@@ -15,6 +15,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public virtual CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
 
         /// <summary>
+        /// True if you want your custom post process to be visible in the scene view.false False otherwise.
+        /// </summary>
+        public virtual bool visibleInSceneView => true;
+
+        /// <summary>
         /// Setup function, called once before render is called.
         /// </summary>
         public virtual void Setup() {}
@@ -32,6 +37,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Cleanup function, called when the render pipeline is disposed.
         /// </summary>
         public virtual void Cleanup() {}
+
+        /// <summary>
+        /// Unity calls this method when the object goes out of scope.
+        /// </summary>
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            CleanupInternal();
+        }
 
         internal void CleanupInternal()
         {

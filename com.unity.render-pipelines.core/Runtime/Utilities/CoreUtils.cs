@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -45,6 +46,8 @@ namespace UnityEngine.Rendering
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
         public const int editMenuPriority3 = 342;
+        /// <summary>Edit Menu priority 4</summary>
+        public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
@@ -575,6 +578,24 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            
+        /// <summary>
+        /// Generate a name based on render texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <param name="format">Graphics format of the render texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="enableMSAA">True if the texture is multisampled.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
+        /// <returns>Generated names bassed on the provided parameters.</returns>
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -602,8 +623,25 @@ namespace UnityEngine.Rendering
         /// <param name="name">Base name of the texture.</param>
         /// <param name="mips">True if the texture has mip maps.</param>
         /// <param name="depth">Depth of the texture.</param>
-        /// <returns>Generated names bassed on the provided parameters.</returns>
+        /// <returns>Generated names based on the provided parameters.</returns>
         public static string GetTextureAutoName(int width, int height, TextureFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
+            => GetTextureAutoName(width, height, format.ToString(), dim, name, mips, depth);
+
+        /// <summary>
+        /// Generate a name based on texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="format">Graphics format of the texture.</param>
+        /// <param name="dim">Dimension of the texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <returns>Generated names based on the provided parameters.</returns>
+        public static string GetTextureAutoName(int width, int height, GraphicsFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
+            => GetTextureAutoName(width, height, format.ToString(), dim, name, mips, depth);
+
+        static string GetTextureAutoName(int width, int height, string format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
         {
             string temp;
             if (depth == 0)

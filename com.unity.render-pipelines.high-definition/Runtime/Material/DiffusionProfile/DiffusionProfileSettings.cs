@@ -220,9 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateCache();
 
 #if UNITY_EDITOR
-            if (m_Version != Version.Last)
+            if (m_Version != MigrationDescription.LastVersion<Version>())
             {
-                // We delay the upgrade of the diffusion profile because ni the OnEnable we are still
+                // We delay the upgrade of the diffusion profile because in the OnEnable we are still
                 // in the import of the current diffusion profile, so we can't create new assets of the same
                 // type from here otherwise it will freeze the editor in an infinite import loop.
                 // Thus we delay the upgrade of one editor frame so the import of this asset is finished.

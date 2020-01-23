@@ -3,17 +3,15 @@
 // So in the meantime we use a Dictionary with a perf hit...
 //#define USE_UNSAFE
 
+#if UNITY_2020_1_OR_NEWER
+//#define UNITY_USE_RECORDER // Temporarily commented out until a crash is fixed in GPU profiling samplers.
+#endif
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
-// TODO: See with Julien, currently our graphic test crash if recorder a enable on test 2204 (but only when run with other test
-// in isolation, test run correctly. Commenting the 5 first PRofiling scope of the lightloop.cs file prevent the crash).
-//#if UNITY_2020_1_OR_NEWER
-#if false
-#define UNITY_USE_RECORDER
-#endif
 
 namespace UnityEngine.Rendering
 {
@@ -57,6 +55,12 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class ProfilingSampler
     {
+        /// <summary>
+        /// Get the sampler for the corresponding enumeration value.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the enumeration.</typeparam>
+        /// <param name="marker">Enumeration value.</param>
+        /// <returns>The profiling sampler for the given enumeration value.</returns>
         public static ProfilingSampler Get<TEnum>(TEnum marker)
             where TEnum : Enum
         {
@@ -68,9 +72,21 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Name of the profiling sampler.</param>
         public ProfilingSampler(string name)
         {
+            // Caution: Name of sampler MUST not match name provide to cmd.BeginSample(), otherwise
+            // we get a mismatch of marker when enabling the profiler.
+#if UNITY_USE_RECORDER
             sampler = CustomSampler.Create(name, true); // Event markers, command buffer CPU profiling and GPU profiling
+#else
+            // In this case, we need to use the BeginSample(string) API, since it creates a new sampler by that name under the hood,
+            // we need rename this sampler to not clash with the implicit one (it won't be used in this case)
+            sampler = CustomSampler.Create($"Dummy_{name}");
+#endif
             inlineSampler = CustomSampler.Create($"Inl_{name}"); // Profiles code "immediately"
             this.name = name;
 
@@ -103,10 +119,10 @@ namespace UnityEngine.Rendering
         {
             set
             {
-                #if UNITY_USE_RECORDER
+#if UNITY_USE_RECORDER
                 m_Recorder.enabled = value;
                 m_InlineRecorder.enabled = value;
-                #endif
+#endif
             }
         }
 
@@ -165,10 +181,10 @@ namespace UnityEngine.Rendering
         ProfilingSampler() { }
     }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
     /// <summary>
     /// Scoped Profiling markers
     /// </summary>
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
     public struct ProfilingScope : IDisposable
     {
         string          m_Name;
@@ -184,14 +200,27 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
-            m_Name = sampler.name; // Don't use CustomSampler.name because it causes garbage
             m_Cmd = cmd;
             m_Disposed = false;
-            m_Sampler = sampler.sampler;
-            m_InlineSampler = sampler.inlineSampler;
+            if (sampler != null)
+            {
+                m_Name = sampler.name; // Don't use CustomSampler.name because it causes garbage
+                m_Sampler = sampler.sampler;
+                m_InlineSampler = sampler.inlineSampler;
+            }
+            else
+            {
+                m_Name = "NullProfilingSampler"; // Don't use CustomSampler.name because it causes garbage
+                m_Sampler = null;
+                m_InlineSampler = null;
+            }
 
             if (cmd != null)
+#if UNITY_USE_RECORDER
                 cmd.BeginSample(m_Sampler);
+#else
+                cmd.BeginSample(m_Name);
+#endif
             m_InlineSampler?.Begin();
         }
 
@@ -215,7 +244,11 @@ namespace UnityEngine.Rendering
             if (disposing)
             {
                 if (m_Cmd != null)
+#if UNITY_USE_RECORDER
                     m_Cmd.EndSample(m_Sampler);
+#else
+                    m_Cmd.EndSample(m_Name);
+#endif
                 m_InlineSampler?.End();
             }
 
@@ -223,13 +256,24 @@ namespace UnityEngine.Rendering
         }
 }
 #else
+    /// <summary>
+    /// Scoped Profiling markers
+    /// </summary>
     public struct ProfilingScope : IDisposable
     {
+        /// <summary>
+        /// Profiling Scope constructor
+        /// </summary>
+        /// <param name="cmd">Command buffer used to add markers and compute execution timings.</param>
+        /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
 
         }
 
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
         public void Dispose()
         {
         }
@@ -237,6 +281,9 @@ namespace UnityEngine.Rendering
 #endif
 
 
+    /// <summary>
+    /// Profiling Sampler class.
+    /// </summary>
     [System.Obsolete("Please use ProfilingScope")]
     public struct ProfilingSample : IDisposable
     {
@@ -246,6 +293,12 @@ namespace UnityEngine.Rendering
         bool m_Disposed;
         CustomSampler m_Sampler;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="name">Name of the profiling sample.</param>
+        /// <param name="sampler">Custom sampler for CPU profiling.</param>
         public ProfilingSample(CommandBuffer cmd, string name, CustomSampler sampler = null)
         {
             m_Cmd = cmd;
@@ -258,16 +311,31 @@ namespace UnityEngine.Rendering
         }
 
         // Shortcut to string.Format() using only one argument (reduces Gen0 GC pressure)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="format">Formating of the profiling sample.</param>
+        /// <param name="arg">Parameters for formating the name.</param>
         public ProfilingSample(CommandBuffer cmd, string format, object arg) : this(cmd, string.Format(format, arg))
         {
         }
 
         // Shortcut to string.Format() with variable amount of arguments - for performance critical
         // code you should pre-build & cache the marker name instead of using this
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="format">Formating of the profiling sample.</param>
+        /// <param name="args">Parameters for formating the name.</param>
         public ProfilingSample(CommandBuffer cmd, string format, params object[] args) : this(cmd, string.Format(format, args))
         {
         }
 
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);

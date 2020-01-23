@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private RTHandle m_FinalHalfRes;
 
         private bool m_RunningFullRes = false;
+        private Vector4 m_HistoryInfo = new Vector4();
 
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 
@@ -183,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Render(CommandBuffer cmd, HDCameraInfo camera, ScriptableRenderContext renderContext, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
             if (!IsActive(camera, settings))
             {
@@ -220,6 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4          aoParams2;
             public Vector4          aoParams3;
             public Vector4          aoParams4;
+            public Vector4          firstAndSecondMipOffsets;
             public Vector4          aoBufferInfo;
             public Vector4          toViewSpaceProj;
             public Vector2          runningRes;
@@ -240,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new RenderAOParameters();
 
             // Grab current settings
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             parameters.fullResolution = settings.fullResolution;
 
             if (parameters.fullResolution)
@@ -283,9 +285,11 @@ namespace UnityEngine.Rendering.HighDefinition
             float scaleFactor = (parameters.runningRes.x * parameters.runningRes.y) / (540.0f * 960.0f);
             float radInPixels = Mathf.Max(16, settings.maximumRadiusInPixels * Mathf.Sqrt(scaleFactor));
 
+            
+
             parameters.aoParams2 = new Vector4(
-                rtHandleProperties.currentRenderTargetSize.x,
-                rtHandleProperties.currentRenderTargetSize.y,
+                m_HistoryInfo.x,
+                m_HistoryInfo.y,
                 1.0f / (settings.stepCount + 1.0f),
                 radInPixels
             );
@@ -320,6 +324,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 minUpperNudgeLimit,
                 0
             );
+
+            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            var depthMipInfo = hdrp.sharedRTManager.GetDepthBufferMipChainInfo();
+            parameters.firstAndSecondMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
             parameters.gtaoCS = m_Resources.shaders.GTAOCS;
@@ -383,6 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams1, parameters.aoParams1);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams2, parameters.aoParams2);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams4, parameters.aoParams4);
+            cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._FirstTwoDepthMipOffsets, parameters.firstAndSecondMipOffsets);
 
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
 
@@ -411,6 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var blurCS = parameters.denoiseAOCS;
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams1, parameters.aoParams1);
+                cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams2, parameters.aoParams2);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams3, parameters.aoParams3);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOParams4, parameters.aoParams4);
                 cmd.SetComputeVectorParam(parameters.denoiseAOCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
@@ -486,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Dispatch(CommandBuffer cmd, HDCameraInfo camera, int frameCount)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderSSAO)))
@@ -506,6 +516,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var output = m_RunningFullRes ? m_AmbientOcclusionTex : m_FinalHalfRes;
                         DenoiseAO(aoParameters, m_PackedDataTex, m_PackedDataBlurred, currentHistory, historyOutput, output, cmd);
+                        m_HistoryInfo = aoParameters.aoBufferInfo;
                     }
 
                     if (!m_RunningFullRes)
@@ -521,7 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PushGlobalParameters(HDCameraInfo hdCamera, CommandBuffer cmd)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
             else
@@ -530,7 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PostDispatchWork(CommandBuffer cmd, HDCameraInfo camera)
         {
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, aoTexture);
             // TODO: All the push debug stuff should be centralized somewhere
