@@ -333,6 +333,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null reference exception in the HDRI Sky editor when no HDRP asset is present.
 - Fixed an issue where Decal Projectors created from script where rotated around the X axis by 90°.
 - Fixed frustum used to compute Density Volumes visibility when projection matrix is oblique.
+- Fixed a null reference exception in Path Tracing, Recursive Rendering and raytraced Global Illumination editors when no HDRP asset is present.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
