@@ -142,6 +142,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightCluster != null)
             {
+                // If it is not null and it has already the right size, we are pretty much done
+                if (m_LightCluster.count == bufferSize)
+                    return;
+
                 CoreUtils.SafeRelease(m_LightCluster);
                 m_LightCluster = null;
             }
@@ -158,6 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightCullResult != null)
             {
+                // If it is not null and it has already the right size, we are pretty much done
+                if (m_LightCullResult.count == numLights)
+                    return;
+
                 CoreUtils.SafeRelease(m_LightCullResult);
                 m_LightCullResult = null;
             }
@@ -174,6 +182,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_LightVolumeGPUArray != null)
             {
+                // If it is not null and it has already the right size, we are pretty much done
+                if (m_LightVolumeGPUArray.count == numLights)
+                    return;
+
                 CoreUtils.SafeRelease(m_LightVolumeGPUArray);
                 m_LightVolumeGPUArray = null;
             }
@@ -188,9 +200,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer
+            // Release the previous buffer 
             if (m_LightDataGPUArray != null)
             {
+                // If it is not null and it has already the right size, we are pretty much done
+                if (m_LightDataGPUArray.count == numLights)
+                    return;
+
+                // It is not the right size, free it to be reallocated
                 CoreUtils.SafeRelease(m_LightDataGPUArray);
                 m_LightDataGPUArray = null;
             }
@@ -207,6 +224,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the previous buffer
             if (m_EnvLightDataGPUArray != null)
             {
+                // If it is not null and it has already the right size, we are pretty much done
+                if (m_EnvLightDataGPUArray.count == numEnvLights)
+                    return;
+
                 CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
                 m_EnvLightDataGPUArray = null;
             }
