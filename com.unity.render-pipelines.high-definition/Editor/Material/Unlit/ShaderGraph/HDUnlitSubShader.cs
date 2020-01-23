@@ -468,6 +468,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 return activeFields;
             }
 
+            if (masterNode.IsSlotConnected(HDUnlitMasterNode.VertexNormalSlotId))
+            {
+                baseActiveFields.Add("AttributesMesh.normalOS");
+            }
+
             if (masterNode.alphaTest.isOn && pass.PixelShaderUsesSlot(HDUnlitMasterNode.AlphaThresholdSlotId))
             {
                 baseActiveFields.Add("AlphaTest");
