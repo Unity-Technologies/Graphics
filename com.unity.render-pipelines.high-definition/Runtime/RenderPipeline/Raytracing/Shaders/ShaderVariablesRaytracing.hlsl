@@ -14,7 +14,6 @@ float                                   _RaytracingIntensityClamp;
 float                                   _RaytracingReflectionMaxDistance;
 float                                   _RaytracingReflectionMinSmoothness;
 int                                     _RaytracingIncludeSky;
-int                                     _RaytracingFrameIndex;
 float                                   _RaytracingPixelSpreadAngle;
 int                                     _RayCountEnabled;
 float                                   _RaytracingCameraNearPlane;

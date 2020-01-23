@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [VolumeComponentMenu("Sky/Physically Based Sky (Preview)")]
+    [VolumeComponentMenu("Sky/Physically Based Sky")]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     public class PhysicallyBasedSky : SkySettings
     {
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         PhysicallyBasedSky()
         {
-            displayName = "Physically Based Sky (Preview)";
+            displayName = "Physically Based Sky";
         }
 
         public int GetPrecomputationHashCode()
