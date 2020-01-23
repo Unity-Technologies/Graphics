@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Render Queue filters for the DrawRenderers custom pass 
+        /// Render Queue filters for the DrawRenderers custom pass
         /// </summary>
         public enum RenderQueueType
         {
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Version     m_Version = Version.Initial;
+        Version     m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version
         {
             get => m_Version;
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 isExecuting = true;
                 Execute(renderContext, cmd, hdCamera, cullingResult);
                 isExecuting = false;
-                
+
                 // Set back the camera color buffer if we were using a custom buffer as target
                 if (targetDepthBuffer != TargetBuffer.Camera)
                     CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
