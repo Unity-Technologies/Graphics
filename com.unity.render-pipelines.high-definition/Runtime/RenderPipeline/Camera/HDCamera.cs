@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
     
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
-    public partial class HDCamera : Camera, IFrameSettingsHistoryContainer
+    public partial class HDCamera : ExtensibleCamera, IFrameSettingsHistoryContainer
     {
         public enum FlipYMode
         {
