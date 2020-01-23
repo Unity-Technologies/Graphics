@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using UnityEditor.AnimatedValues;
 using UnityEditorInternal;
@@ -138,7 +139,7 @@ namespace UnityEditor.Rendering.Universal
         Texture2D m_PostProcessingIcon;
 
 
-        List<int> m_CameraStackPPList;
+        //List<int> m_CameraStackPPList;
 
         // Temporary saved bools for foldout header
         SavedBool m_CommonCameraSettingsFoldout;
@@ -157,6 +158,11 @@ namespace UnityEditor.Rendering.Universal
         UniversalAdditionalCameraData m_AdditionalCameraData;
         SerializedObject m_AdditionalCameraDataSO;
 
+        SerializedProperty m_StackProp;
+        //SerializedProperty m_StackCamerasProp;
+        //SerializedProperty m_StackPostProcessingIndexesProp;
+        SerializedProperty m_StackEntriesProp;
+
         readonly AnimBool m_ShowBGColorAnim = new AnimBool();
         readonly AnimBool m_ShowOrthoAnim = new AnimBool();
         readonly AnimBool m_ShowTargetEyeAnim = new AnimBool();
@@ -166,7 +172,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataRenderOpaqueProp;
         SerializedProperty m_AdditionalCameraDataRendererProp;
         SerializedProperty m_AdditionalCameraDataCameraTypeProp;
-		SerializedProperty m_AdditionalCameraDataCameras;
+		//SerializedProperty m_AdditionalCameraDataCameras;
         SerializedProperty m_AdditionalCameraDataVolumeLayerMask;
         SerializedProperty m_AdditionalCameraDataVolumeTrigger;
         SerializedProperty m_AdditionalCameraDataRenderPostProcessing;
@@ -176,6 +182,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataDithering;
         SerializedProperty m_AdditionalCameraClearDepth;
         SerializedProperty m_CameraStackPostProcessingListProp;
+
+        SerializedProperty m_CameraStack;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -239,75 +247,105 @@ namespace UnityEditor.Rendering.Universal
         }
         void UpdateCameras()
         {
-            var o = new PropertyFetcher<UniversalAdditionalCameraData>(m_AdditionalCameraDataSO);
-            m_AdditionalCameraDataCameras = o.Find("m_Cameras");
+            // var o = new PropertyFetcher<UniversalAdditionalCameraData>(m_AdditionalCameraDataSO);
+            // m_AdditionalCameraDataCameras = o.Find("m_Cameras");
+
+            // Get the CameraStack and its entries.
+            m_StackEntriesProp = m_StackProp.FindPropertyRelative("m_Entries");
 
             var camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
             if (camType == CameraRenderType.Base)
             {
-                m_LayerList = new ReorderableList(m_AdditionalCameraDataSO, m_AdditionalCameraDataCameras, true, false, true, true);
-
+                m_LayerList = new ReorderableList(m_AdditionalCameraDataSO, m_StackEntriesProp, true, false, true, true);
                 m_LayerList.drawElementCallback += DrawElementCallback;
                 m_LayerList.onSelectCallback += SelectElement;
-                m_LayerList.onRemoveCallback = list =>
-                {
-                    m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(list.index);
-                    m_CameraStackPPList.Remove(list.index);
-                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                    UpdatePPList();
-                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
-                };
-
-                m_LayerList.onReorderCallbackWithDetails += OnReorderCallbackWithDetails;
+                // m_LayerList.onRemoveCallback = list =>
+                // {
+                //     m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(list.index);
+                //     m_CameraStackPPList.Remove(list.index);
+                //     ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                //     UpdatePPList();
+                //     m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                // };
 
                 m_LayerList.onAddDropdownCallback = (rect, list) => AddCameraToCameraList(rect, list);
             }
+
+
+
+
+
+
+            // if (camType == CameraRenderType.Base)
+            // {
+            //     m_LayerList = new ReorderableList(m_AdditionalCameraDataSO, m_AdditionalCameraDataCameras, true, false, true, true);
+            //     m_LayerList.drawElementCallback += DrawElementCallback;
+            //     m_LayerList.onSelectCallback += SelectElement;
+            //     m_LayerList.onRemoveCallback = list =>
+            //     {
+            //         m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(list.index);
+            //         m_CameraStackPPList.Remove(list.index);
+            //         ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            //         UpdatePPList();
+            //         m_AdditionalCameraDataSO.ApplyModifiedProperties();
+            //     };
+            //
+            //     m_LayerList.onReorderCallbackWithDetails += OnReorderCallbackWithDetails;
+            //
+            //     m_LayerList.onAddDropdownCallback = (rect, list) => AddCameraToCameraList(rect, list);
+            // }
         }
 
         // Need to fix the index after move.
         // New index cannot be an already added one. Then it needs to be pushed once.
-        void OnReorderCallbackWithDetails(ReorderableList list, int oldindex, int newindex)
-        {
-            foreach (int i in m_CameraStackPPList)
-            {
-                Debug.Log("BEFORE:: " + i);
-                if (i == oldindex)
-                {
-                    m_CameraStackPPList.Remove(i);
-                }
-
-
-            }
-
-            // Fixing up the post processing list
-            if (m_CameraStackPPList.Contains(oldindex))
-            {
-                m_CameraStackPPList.Remove(oldindex);
-
-                m_CameraStackPPList.Add(newindex);
-
-                // If the new index is smaller than ay index in this list we need to bump all of them.
-
-            }
-
-            foreach (int i in m_CameraStackPPList)
-            {
-                Debug.Log("AFTER:: " + i);
-            }
-
-            UpdatePPList();
-        }
+        // void OnReorderCallbackWithDetails(ReorderableList list, int oldindex, int newindex)
+        // {
+        //     foreach (int i in m_CameraStackPPList)
+        //     {
+        //         Debug.Log("BEFORE:: " + i);
+        //         if (i == oldindex)
+        //         {
+        //             m_CameraStackPPList.Remove(i);
+        //         }
+        //
+        //
+        //     }
+        //
+        //     // Fixing up the post processing list
+        //     if (m_CameraStackPPList.Contains(oldindex))
+        //     {
+        //         m_CameraStackPPList.Remove(oldindex);
+        //
+        //         m_CameraStackPPList.Add(newindex);
+        //
+        //         // If the new index is smaller than ay index in this list we need to bump all of them.
+        //
+        //     }
+        //
+        //     foreach (int i in m_CameraStackPPList)
+        //     {
+        //         Debug.Log("AFTER:: " + i);
+        //     }
+        //
+        //     //UpdatePPList();
+        // }
 
         void SelectElement(ReorderableList list)
         {
-            var element = m_AdditionalCameraDataCameras.GetArrayElementAtIndex(list.index);
-            var cam = element.objectReferenceValue as Camera;
-            if (Event.current.clickCount == 2)
-            {
-                Selection.activeObject = cam;
-            }
+            var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(list.index);
+            var cam = stackEntry.FindPropertyRelative("camera").objectReferenceValue as Camera;
 
-            EditorGUIUtility.PingObject(cam);
+            if (cam != null)
+            {
+                //var element = m_AdditionalCameraDataCameras.GetArrayElementAtIndex(list.index);
+                //var cam = element.objectReferenceValue as Camera;
+                if (Event.current.clickCount == 2)
+                {
+                    Selection.activeObject = cam;
+                }
+
+                EditorGUIUtility.PingObject(cam);
+            }
         }
 
         static GUIContent s_TextImage = new GUIContent();
@@ -321,98 +359,259 @@ namespace UnityEditor.Rendering.Universal
 
         GUIContent m_NameContent = new GUIContent();
 
+
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += 1;
 
             // Apparently this can be null..............................
-            var element = m_AdditionalCameraDataCameras.GetArrayElementAtIndex(index);
+            //var element = m_StackEntries.GetArrayElementAtIndex(index);
+            // Get the Camera entry
 
-            var cam = element.objectReferenceValue as Camera;
-            if (cam != null)
+
+
+            // var camEntry = element.GetArrayElementAtIndex(0);
+            // var cam = camEntry.objectReferenceValue as Camera;
+            //var cam = element.objectReferenceValue as Camera;
+
+            //m_AdditionalCameraDataRenderPostProcessing.boolValue;
+
+
+
+
+            Debug.Log(index);
+            var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(index);
+            if (stackEntry != null)
             {
-                bool warning = false;
-                string warningInfo = "";
-                var type = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderType;
-                if (!validCameraTypes.Contains(type))
+                var cam = stackEntry.FindPropertyRelative("camera").objectReferenceValue as Camera;
+                var entryType = stackEntry.FindPropertyRelative("entryType").intValue;
+
+
+                if (entryType == (int)EntryType.Camera && cam != null)
                 {
-                    warning = true;
-                    warningInfo += "Not a supported type";
-                    if (!errorCameras.Contains(cam))
+                    bool warning = false;
+                    string warningInfo = "";
+                    var type = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderType;
+                    if (!validCameraTypes.Contains(type))
                     {
-                        errorCameras.Add(cam);
+                        warning = true;
+                        warningInfo += "Not a supported type";
+                        if (!errorCameras.Contains(cam))
+                        {
+                            errorCameras.Add(cam);
+                        }
                     }
-                }
-                else if (errorCameras.Contains(cam))
-                {
-                    errorCameras.Remove(cam);
-                }
-
-                var labelWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth -= 20f;
-                if (warning)
-                {
-                    GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                    m_NameContent.text = cam.name;
-                    EditorGUI.LabelField(rect, m_NameContent, TempContent(type.GetName(), warningInfo, m_ErrorIcon), errorStyle);
-                }
-                else
-                {
-                    EditorGUI.LabelField(rect, cam.name, type.ToString());
-                }
-
-                var usePostAfterThis = m_CameraStackPPList.Contains(index);
-                Rect selectRect = new Rect(rect.width-20, rect.y, 24, EditorGUIUtility.singleLineHeight);
-
-                // If Post Processing is not set on the camera this is disabled.
-                GUI.enabled = m_AdditionalCameraDataRenderPostProcessing.boolValue;
-                if (GUI.Button(selectRect, usePostAfterThis ? Styles.postProcessingActiveText : Styles.postProcessingNotActiveText))
-                {
-                    if (!m_CameraStackPPList.Contains(index))
+                    else if (errorCameras.Contains(cam))
                     {
-                        m_CameraStackPPList.Add(index);
+                        errorCameras.Remove(cam);
+                    }
+
+                    var labelWidth = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth -= 20f;
+                    if (warning)
+                    {
+                        GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
+                        m_NameContent.text = cam.name;
+                        EditorGUI.LabelField(rect, m_NameContent, TempContent(type.GetName(), warningInfo, m_ErrorIcon), errorStyle);
                     }
                     else
                     {
-                        m_CameraStackPPList.Remove(index);
+                        EditorGUI.LabelField(rect, cam.name, type.ToString());
                     }
 
-                    UpdatePPList();
+                    //var usePostAfterThis = m_CameraStackPPList.Contains(index);
+                    //var usePostAfterThis = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().runPostProcessingAfterThisCamera;
+
+                    //Rect selectRect = new Rect(rect.width-20, rect.y, 24, EditorGUIUtility.singleLineHeight);
+
+                    // If Post Processing is not set on the camera this is disabled.
+                    //GUI.enabled = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                    // if (GUI.Button(selectRect, usePostAfterThis ? Styles.postProcessingActiveText : Styles.postProcessingNotActiveText))
+                    // {
+                    //     foreach (int i in m_CameraStackPPList)
+                    //     {
+                    //         Debug.Log($"this seems to be here {i}");
+                    //     }
+                    //     if (!m_CameraStackPPList.Contains(index))
+                    //     {
+                    //         Debug.Log($"Adding {index}");
+                    //         m_CameraStackPPList.Add(index);
+                    //     }
+                    //     else
+                    //     {
+                    //         Debug.Log($"Removing {index}");
+                    //         m_CameraStackPPList.Remove(index);
+                    //     }
+                    //
+                    //     UpdatePPList();
+                    // }
+
+                    //GUI.enabled = true;
+                    EditorGUIUtility.labelWidth = labelWidth;
+                }
+                else if (entryType == (int)EntryType.PostProcessing)
+                {
+                    GUI.enabled = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                    var labelWidth = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth -= 20f;
+                    EditorGUI.LabelField(rect, " ", "POST PROCESSING");
+                    EditorGUIUtility.labelWidth = labelWidth;
+                }
+                else
+                {
+                    Debug.Log("Should delete something");
+                    // Automagicaly deletes the entry if a user has removed a camera from the scene
+                    m_StackEntriesProp.DeleteArrayElementAtIndex(index);
+                    m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+
+
+                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
+
+                    // Need to clean out the errorCamera list here.
+                    errorCameras.Clear();
                 }
 
                 GUI.enabled = true;
-                EditorGUIUtility.labelWidth = labelWidth;
-            }
-            else
-            {
-                // Automagicaly deletes the entry if a user has removed a camera from the scene
-                m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(index);
-                m_CameraStackPPList.Remove(index);
-                //UpdatePPList();
-                m_AdditionalCameraDataSO.ApplyModifiedProperties();
-
-                // Need to clean out the errorCamera list here.
-                errorCameras.Clear();
             }
         }
 
-        void UpdatePPList()
-        {
-            m_CameraStackPostProcessingListProp.ClearArray();
-            for (int i = 0; i < m_CameraStackPPList.Count; ++i)
-            {
-                m_CameraStackPostProcessingListProp.InsertArrayElementAtIndex(i);
-                m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue = m_CameraStackPPList[i];
-            }
-            Debug.Log("SIZE: " + m_CameraStackPostProcessingListProp.arraySize);
-            m_AdditionalCameraDataSO.ApplyModifiedProperties();
-        }
+
+        // void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
+        // {
+        //     rect.height = EditorGUIUtility.singleLineHeight;
+        //     rect.y += 1;
+        //
+        //     // Apparently this can be null..............................
+        //     var element = m_AdditionalCameraDataCameras.GetArrayElementAtIndex(index);
+        //
+        //     var cam = element.objectReferenceValue as Camera;
+        //     if (cam != null)
+        //     {
+        //         bool warning = false;
+        //         string warningInfo = "";
+        //         var type = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderType;
+        //         if (!validCameraTypes.Contains(type))
+        //         {
+        //             warning = true;
+        //             warningInfo += "Not a supported type";
+        //             if (!errorCameras.Contains(cam))
+        //             {
+        //                 errorCameras.Add(cam);
+        //             }
+        //         }
+        //         else if (errorCameras.Contains(cam))
+        //         {
+        //             errorCameras.Remove(cam);
+        //         }
+        //
+        //         var labelWidth = EditorGUIUtility.labelWidth;
+        //         EditorGUIUtility.labelWidth -= 20f;
+        //         if (warning)
+        //         {
+        //             GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
+        //             m_NameContent.text = cam.name;
+        //             EditorGUI.LabelField(rect, m_NameContent, TempContent(type.GetName(), warningInfo, m_ErrorIcon), errorStyle);
+        //         }
+        //         else
+        //         {
+        //             EditorGUI.LabelField(rect, cam.name, type.ToString());
+        //         }
+        //
+        //         var usePostAfterThis = m_CameraStackPPList.Contains(index);
+        //         //var usePostAfterThis = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().runPostProcessingAfterThisCamera;
+        //
+        //         Rect selectRect = new Rect(rect.width-20, rect.y, 24, EditorGUIUtility.singleLineHeight);
+        //
+        //         // If Post Processing is not set on the camera this is disabled.
+        //         GUI.enabled = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+        //         if (GUI.Button(selectRect, usePostAfterThis ? Styles.postProcessingActiveText : Styles.postProcessingNotActiveText))
+        //         {
+        //             foreach (int i in m_CameraStackPPList)
+        //             {
+        //                 Debug.Log($"this seems to be here {i}");
+        //             }
+        //             if (!m_CameraStackPPList.Contains(index))
+        //             {
+        //                 Debug.Log($"Adding {index}");
+        //                 m_CameraStackPPList.Add(index);
+        //             }
+        //             else
+        //             {
+        //                 Debug.Log($"Removing {index}");
+        //                 m_CameraStackPPList.Remove(index);
+        //             }
+        //
+        //             UpdatePPList();
+        //         }
+        //
+        //         GUI.enabled = true;
+        //         EditorGUIUtility.labelWidth = labelWidth;
+        //     }
+        //     else
+        //     {
+        //         // Automagicaly deletes the entry if a user has removed a camera from the scene
+        //         m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(index);
+        //         if (m_CameraStackPPList.Contains(index))
+        //         {
+        //             m_CameraStackPPList.Remove(index);
+        //         }
+        //         //UpdatePPList();
+        //         m_AdditionalCameraDataSO.ApplyModifiedProperties();
+        //
+        //         // Need to clean out the errorCamera list here.
+        //         errorCameras.Clear();
+        //     }
+        // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // void UpdatePPList()
+        // {
+        //     m_CameraStackPostProcessingListProp.ClearArray();
+        //     m_StackPostProcessingIndexesProp.ClearArray();
+        //
+        //     // We could clean the list for duplicates here since somehow it is not when it gets here. It is full of duplicates.
+        //     Debug.Log($"COUNT {m_CameraStackPPList.Count}");
+        //     for (int i = 0; i < m_CameraStackPPList.Count; ++i)
+        //     {
+        //         m_CameraStackPostProcessingListProp.InsertArrayElementAtIndex(i);
+        //         m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue = m_CameraStackPPList[i];
+        //
+        //         m_StackPostProcessingIndexesProp.InsertArrayElementAtIndex(i);
+        //         m_StackPostProcessingIndexesProp.GetArrayElementAtIndex(i).intValue = m_CameraStackPPList[i];
+        //     }
+        //     m_StackPostProcessingIndexesProp.serializedObject.ApplyModifiedProperties();
+        //     Debug.Log("SIZE: " + m_CameraStackPostProcessingListProp.arraySize);
+        //     m_AdditionalCameraDataSO.ApplyModifiedProperties();
+        // }
 
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
             Camera[] allCameras = new Camera[Camera.allCamerasCount];
             Camera.GetAllCameras(allCameras);
+            validCameras.Clear();
             foreach (var camera in allCameras)
             {
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
@@ -425,7 +624,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            var names = new GUIContent[validCameras.Count];
+            var names = new GUIContent[validCameras.Count+1];
 
             for (int i = 0; i < validCameras.Count; ++i)
             {
@@ -437,20 +636,62 @@ namespace UnityEditor.Rendering.Universal
                 names = new GUIContent[1];
                 names[0] = new GUIContent("No Overlay Cameras exist.");
             }
+
+            names[names.Length-1] = new GUIContent("PostProcessingEntry");
             EditorUtility.DisplayCustomMenu(rect, names, -1, AddCameraToCameraListMenuSelected, null);
         }
 
         void AddCameraToCameraListMenuSelected(object userData, string[] options, int selected)
         {
-            if(!validCameras.Any())
-                return;
+            //if(!validCameras.Any())
+            //    return;
 
-            var length = m_AdditionalCameraDataCameras.arraySize;
-            ++m_AdditionalCameraDataCameras.arraySize;
-            m_AdditionalCameraDataCameras.serializedObject.ApplyModifiedProperties();
-            m_AdditionalCameraDataCameras.GetArrayElementAtIndex(length).objectReferenceValue = validCameras[selected];
-            m_AdditionalCameraDataCameras.serializedObject.ApplyModifiedProperties();
+            Debug.Log(selected);
+            var length = m_StackEntriesProp.arraySize;
+            ++m_StackEntriesProp.arraySize;
+            m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+            var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(length);
+
+            if (selected == validCameras.Count)
+            {
+                Debug.Log("Selected Last Entry");
+                stackEntry.FindPropertyRelative("camera").objectReferenceValue = null;
+                stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.PostProcessing;
+            }
+            else
+            {
+                stackEntry.FindPropertyRelative("camera").objectReferenceValue = validCameras[selected];
+                stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.Camera;
+            }
+            m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+
+
+
         }
+
+
+
+        // void AddCameraToCameraListMenuSelected(object userData, string[] options, int selected)
+        // {
+        //     if(!validCameras.Any())
+        //         return;
+        //
+        //     var length = m_AdditionalCameraDataCameras.arraySize;
+        //     ++m_AdditionalCameraDataCameras.arraySize;
+        //     m_AdditionalCameraDataCameras.serializedObject.ApplyModifiedProperties();
+        //     m_AdditionalCameraDataCameras.GetArrayElementAtIndex(length).objectReferenceValue = validCameras[selected];
+        //     m_AdditionalCameraDataCameras.serializedObject.ApplyModifiedProperties();
+        //
+        //
+        //     Debug.Log("Adding");
+        //     int size = m_StackCamerasProp.arraySize;
+        //     ++m_StackCamerasProp.arraySize;
+        //     m_StackCamerasProp.serializedObject.ApplyModifiedProperties();
+        //     m_StackCamerasProp.GetArrayElementAtIndex(size).objectReferenceValue = validCameras[selected];
+        //     m_StackCamerasProp.serializedObject.ApplyModifiedProperties();
+        // }
+
+
 
         void init(UniversalAdditionalCameraData additionalCameraData)
         {
@@ -472,19 +713,32 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraClearDepth = m_AdditionalCameraDataSO.FindProperty("m_ClearDepth");
             m_AdditionalCameraDataCameraTypeProp = m_AdditionalCameraDataSO.FindProperty("m_CameraType");
 
-            m_CameraStackPostProcessingListProp = m_AdditionalCameraDataSO.FindProperty("m_CameraStackPostProcessingList");
-            m_CameraStackPPList = new List<int>();
-            UpdateCameraStackPPList();
-            m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
+            //var muppets = new CameraStack();
+            //m_CameraStackPostProcessingListProp = m_AdditionalCameraDataSO.FindProperty("m_CameraStackPostProcessingList");
+            //m_CameraStackPPList = new List<int>();
+            //UpdateCameraStackPPList();
+
+            m_StackProp = m_AdditionalCameraDataSO.FindProperty("m_CameraStack");
+            //m_StackCamerasProp = m_StackProp.FindPropertyRelative("cameras");
+            //m_StackPostProcessingIndexesProp = m_StackProp.FindPropertyRelative("m_PostProcessingIndexes");
+
+            m_StackEntriesProp = m_StackProp.FindPropertyRelative("m_Entries");
+
+            //m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
+
+            m_AdditionalCameraDataSO.ApplyModifiedProperties();
+
+            int a = 0;
+            Debug.Log(a);
         }
 
-        void UpdateCameraStackPPList()
-        {
-            for (int i = 0; i < m_CameraStackPostProcessingListProp.arraySize; ++i)
-            {
-                m_CameraStackPPList.Add(m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue);
-            }
-        }
+        // void UpdateCameraStackPPList()
+        // {
+        //     for (int i = 0; i < m_CameraStackPostProcessingListProp.arraySize; ++i)
+        //     {
+        //         m_CameraStackPPList.Add(m_CameraStackPostProcessingListProp.GetArrayElementAtIndex(i).intValue);
+        //     }
+        // }
 
         public void OnDisable()
         {

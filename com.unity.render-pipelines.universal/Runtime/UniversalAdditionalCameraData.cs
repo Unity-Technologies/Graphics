@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -142,7 +142,10 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] CameraRenderType m_CameraType = CameraRenderType.Base;
 		[SerializeField] List<Camera> m_Cameras = new List<Camera>();
+
+        [SerializeField] CameraStack m_CameraStack = new CameraStack();
 		[SerializeField] int m_RendererIndex = -1;
+
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
@@ -262,6 +265,25 @@ namespace UnityEngine.Rendering.Universal
         public List<Camera> cameras => cameraStack;
         #endregion
 
+        // /// <summary>
+        // /// Returns true if the Post Processing will run after this camera.
+        // /// </summary>
+        // public bool runPostProcessingAfterThisCamera
+        // {
+        //     get => m_RunPostProcessingAfterThisCamera;
+        //     set => m_RunPostProcessingAfterThisCamera = value;
+        // }
+
+        /// <summary>
+        /// Returns the camera stack. Only valid for Base cameras.
+        /// Overlay cameras have no stack and will return null.
+        /// <seealso cref="CameraRenderType"/>.
+        /// </summary>
+        public CameraStack GetCameraStack()
+        {
+            return m_CameraStack;
+        }
+
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
         /// Overlay cameras have no stack and will return null.
@@ -309,10 +331,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     return UniversalRenderPipeline.asset.supportsCameraDepthTexture;
                 }
-                else
-                {
-                    return m_RequiresDepthTextureOption == CameraOverrideOption.On;
-                }
+
+                return m_RequiresDepthTextureOption == CameraOverrideOption.On;
             }
             set { m_RequiresDepthTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
@@ -329,10 +349,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     return UniversalRenderPipeline.asset.supportsCameraOpaqueTexture;
                 }
-                else
-                {
-                    return m_RequiresOpaqueTextureOption == CameraOverrideOption.On;
-                }
+
+                return m_RequiresOpaqueTextureOption == CameraOverrideOption.On;
             }
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
@@ -459,6 +477,76 @@ namespace UnityEngine.Rendering.Universal
             }
             Gizmos.DrawIcon(transform.position, gizmoName);
 #endif
+        }
+    }
+
+    // public interface ICameraStackEntry{}
+    //
+    //
+    // [Serializable]
+    // public class StackCameraEntry : ICameraStackEntry
+    // {
+    //     public Camera camera;
+    // }
+    //
+    // [Serializable]
+    // public class StackPostEffectEntry : ICameraStackEntry
+    // {
+    //     public string name = "PostEffectEntry";
+    // }
+
+    public enum EntryType
+    {
+        Camera,
+        PostProcessing,
+    }
+
+    [Serializable]
+    public class CameraStackEntry
+    {
+        public Camera camera;
+        public EntryType entryType;
+    }
+
+    [Serializable]
+    public class CameraStack : System.Object
+    {
+        [SerializeField]
+        List<Camera> cameras = new List<Camera>();
+
+        // [SerializeReference]
+        // List<ICameraStackEntry> m_Entries = new List<ICameraStackEntry>();
+
+        [SerializeField]
+        List<CameraStackEntry> m_Entries = new List<CameraStackEntry>();
+
+        [SerializeField]
+        List<int> m_PostProcessingIndexes = new List<int>();
+
+
+        public void AddCamera(Camera camera)
+        {
+            //if(cameras == null)
+            //    cameras = new List<Camera>();
+            cameras.Append(camera);
+        }
+
+        public void RemoveCamera(Camera camera)
+        {
+            cameras.Remove(camera);
+        }
+
+        public override string ToString()
+        {
+            string names = "";
+            //if (cameras != null)
+            //{
+                foreach (Camera camera in cameras)
+                {
+                    names += camera.name;
+                }
+            //}
+            return names;
         }
     }
 }
