@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Distance,
         Direction,
         R0,
+        R1,
         RG0,
         RGBA0,
         RGBA1
@@ -87,6 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Set of intermediate textures that will be used by ray tracing effects
         RTHandle m_RayTracingIntermediateBufferR0;
+        RTHandle m_RayTracingIntermediateBufferR1;
         RTHandle m_RayTracingIntermediateBufferRG0;
         RTHandle m_RayTracingIntermediateBufferRGBA0;
         RTHandle m_RayTracingIntermediateBufferRGBA1;
@@ -111,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the intermediate buffers
             m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
+            m_RayTracingIntermediateBufferR1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR1");
             m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
             m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
             m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
@@ -122,6 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_RayTracingDirectionBuffer);
 
             RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            RTHandles.Release(m_RayTracingIntermediateBufferR1);
             RTHandles.Release(m_RayTracingIntermediateBufferRG0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
@@ -548,6 +552,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_RayTracingDirectionBuffer;
                 case InternalRayTracingBuffers.R0:
                     return m_RayTracingIntermediateBufferR0;
+                case InternalRayTracingBuffers.R1:
+                    return m_RayTracingIntermediateBufferR1;
                 case InternalRayTracingBuffers.RG0:
                     return m_RayTracingIntermediateBufferRG0;
                 case InternalRayTracingBuffers.RGBA0:
