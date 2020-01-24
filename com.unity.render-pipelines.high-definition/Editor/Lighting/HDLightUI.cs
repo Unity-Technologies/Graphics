@@ -721,12 +721,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
-                ShowCookieTextureTypeWarning(serialized.settings.cookie);
+                ShowCookieTextureWarnings(serialized.settings.cookie);
             }
             else if (serialized.areaLightShape == AreaLightShape.Rectangle)
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
-                ShowCookieTextureTypeWarning(serialized.areaLightCookie.objectReferenceValue as Texture);
+                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -736,7 +736,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ShowCookieTextureTypeWarning(Texture cookie)
+        static void ShowCookieTextureWarnings(Texture cookie)
         {
             if (cookie == null)
                 return;
@@ -765,6 +765,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            if (cookie.width != cookie.height)
+                EditorGUILayout.HelpBox(s_Styles.cookieNonPOT, MessageType.Warning);
+            if (cookie.width < LightCookieManager.k_MinCookieSize || cookie.height < LightCookieManager.k_MinCookieSize)
+                EditorGUILayout.HelpBox(s_Styles.cookieTooSmall, MessageType.Warning);
         }
 
         static void DrawEmissionAdvancedContent(SerializedHDLight serialized, Editor owner)

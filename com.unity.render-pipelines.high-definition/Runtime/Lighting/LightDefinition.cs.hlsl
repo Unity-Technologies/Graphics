@@ -23,6 +23,13 @@
 #define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
 
 //
+// UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
+//
+#define COOKIEMODE_NONE (0)
+#define COOKIEMODE_CLAMP (1)
+#define COOKIEMODE_REPEAT (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
@@ -50,11 +57,12 @@ struct DirectionalLightData
     float lightDimmer;
     float volumetricLightDimmer;
     float3 forward;
-    int cookieIndex;
+    int cookieMode;
+    float4 cookieScaleOffset;
     float3 right;
-    int tileCookie;
-    float3 up;
     int shadowIndex;
+    float3 up;
+    int contactShadowIndex;
     float3 color;
     int contactShadowMask;
     float3 shadowTint;
@@ -75,7 +83,7 @@ struct DirectionalLightData
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
-    int surfaceTextureIndex;
+    float4 surfaceTextureScaleOffset;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -96,9 +104,10 @@ struct LightData
     float rangeAttenuationScale;
     float3 color;
     float rangeAttenuationBias;
+    int cookieMode;
     int cookieIndex;
-    int tileCookie;
     int shadowIndex;
+    float4 cookieScaleOffset;
     int contactShadowMask;
     float3 shadowTint;
     float shadowDimmer;

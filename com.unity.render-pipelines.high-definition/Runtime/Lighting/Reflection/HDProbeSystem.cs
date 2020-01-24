@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)probe.resolution
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)probe.resolution
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
