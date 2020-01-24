@@ -167,8 +167,8 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
 
-            material.SetInt(kDecalStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Decals);
-            material.SetInt(kDecalStencilRef, (int)HDRenderPipeline.StencilBitMask.Decals);
+            material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
+            material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, false);

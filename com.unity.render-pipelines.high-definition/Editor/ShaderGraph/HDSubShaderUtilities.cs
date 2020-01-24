@@ -1227,20 +1227,20 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); // StencilLightingUsage.NoLighting
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRef", stencilRef); 
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
-            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // DoesntReceiveSSR
+            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
             // Motion vector pass
-            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilBitMask.ObjectMotionVectors
-            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
+            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", 64); // StencilBitMask.DistortionVectors
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", 64); // StencilBitMask.DistortionVectors
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors); 
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors); 
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); // StencilMask.Lighting
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); // StencilLightingUsage.RegularLighting
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
