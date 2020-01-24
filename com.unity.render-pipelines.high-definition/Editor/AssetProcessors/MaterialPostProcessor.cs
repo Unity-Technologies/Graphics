@@ -23,39 +23,47 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
 
+            int materialIdx = 0;
+            int totalMaterials = guids.Length;
             foreach (var asset in guids)
             {
+                materialIdx++;
                 var path = AssetDatabase.GUIDToAssetPath(asset);
+                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
                 AssetDatabase.ImportAsset(path);
             }
+            UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
         }
 
         [InitializeOnLoadMethod]
-        static void ReimportAllMaterialsOnPackageChange()
+        static void RegisterUpgraderReimport()
         {
-            //This method is called at opening and when HDRP package change (update of manifest.json)
-            var curUpgradeVersion = HDProjectSettings.materialVersionForUpgrade;
-
-            if (curUpgradeVersion != MaterialPostprocessor.k_Migrations.Length)
-            {
-                string commandLineOptions = System.Environment.CommandLine;
-                bool inTestSuite = commandLineOptions.Contains("-testResults");
-                if (!inTestSuite)
-                {
-                    EditorUtility.DisplayDialog("HDRP Material Migration", "Your High Definition Render Pipeline version requires a material upgrade." +
-                                                " All materials in the project will be re-imported and saved to disk (and checked out if relevant) if changed. \n" +
-                                                " Please consult the upgrade guide in the HDRP documentation for more information.", "Ok");
-                }
-
-                ReimportAllMaterials();
-            }
-
             EditorApplication.update += () =>
             {
-                if (Time.renderedFrameCount > 0 && MaterialPostprocessor.s_NeedsSavingAssets)
-                    MaterialPostprocessor.SaveAssetsToDisk();
+                if (Time.renderedFrameCount > 0)
+                {
+                    //This method is called at opening and when HDRP package change (update of manifest.json)
+                    var curUpgradeVersion = HDProjectSettings.materialVersionForUpgrade;
+
+                    if (curUpgradeVersion != MaterialPostprocessor.k_Migrations.Length)
+                    {
+                        string commandLineOptions = System.Environment.CommandLine;
+                        bool inTestSuite = commandLineOptions.Contains("-testResults");
+                        if (!inTestSuite)
+                        {
+                            EditorUtility.DisplayDialog("HDRP Material Migration", "Your High Definition Render Pipeline version requires a material upgrade." +
+                                                        " All materials in the project will be re-imported and saved to disk (and checked out if relevant) if changed. \n" +
+                                                        " Please consult the upgrade guide in the HDRP documentation for more information.", "Ok");
+                        }
+
+                        ReimportAllMaterials();
+                    }
+
+                    if (MaterialPostprocessor.s_NeedsSavingAssets)
+                        MaterialPostprocessor.SaveAssetsToDisk();
+                }
             };
         }
     }
