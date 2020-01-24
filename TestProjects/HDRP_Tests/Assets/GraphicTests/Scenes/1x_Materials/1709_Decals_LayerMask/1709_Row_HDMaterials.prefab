@@ -14,10 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ExecuteMode: -1
   m_GetMaterialMode: 2
-  m_Material: {fileID: 0}
-  m_SameDirectoryOf: {fileID: 0}
-  m_CreateAssetDirectory: 
-  m_CreateAssetFormat: 1709__{0}.mat
+  m_Material: {fileID: 2100000, guid: a21c19ec6c3dd0a498bcc4e935e245a8, type: 2}
+  m_GeneratedDirectory:
+    m_SameDirectoryOf: {fileID: 2100000, guid: a21c19ec6c3dd0a498bcc4e935e245a8, type: 2}
+    m_CreateAssetDirectory: 
+  m_CreateAssetFormat: 1709_SG_Lit_Opaque_{0}.mat
+  m_LoadDirectory:
+    m_SameDirectoryOf: {fileID: 0}
+    m_CreateAssetDirectory: 
+  m_LoadAssetFormat: Material_{0}_{1}.mat
 --- !u!114 &7067400912616542823
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35,42 +40,42 @@ MonoBehaviour:
   m_Modifications:
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
-      intValue: 0
+      kind: 1
+      intValue: 1
       boolValue: 0
       floatValue: 1
       textureValue: {fileID: 0}
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
-      intValue: 0
+      kind: 1
+      intValue: 2
       boolValue: 0
       floatValue: 2
       textureValue: {fileID: 0}
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
-      intValue: 0
+      kind: 1
+      intValue: 4
       boolValue: 0
       floatValue: 4
       textureValue: {fileID: 0}
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
-      intValue: 0
+      kind: 1
+      intValue: 3
       boolValue: 0
       floatValue: 3
       textureValue: {fileID: 0}
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
-      intValue: 0
+      kind: 1
+      intValue: 6
       boolValue: 0
       floatValue: 6
       textureValue: {fileID: 0}
   - modifications:
     - name: _DecalLayerMask
-      kind: 0
+      kind: 1
       intValue: 0
       boolValue: 0
       floatValue: 0

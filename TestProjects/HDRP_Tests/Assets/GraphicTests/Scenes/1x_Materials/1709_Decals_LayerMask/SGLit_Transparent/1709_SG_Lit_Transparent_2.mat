@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5468800972175755180
+--- !u!114 &-4940140862775577044
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,15 +21,17 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 1709_SG_Lit_Transparent_2
-  m_Shader: {fileID: -6465566751694194690, guid: 7fadb20dd386e4847ba2795376cabff5,
+  m_Shader: {fileID: -6465566751694194690, guid: 38a5f90bc3599c9478b90a61aa35de7d,
     type: 3}
-  m_ShaderKeywords: _BLENDMODE_ALPHA _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: WRITE_DECAL_BUFFER _BLENDMODE_ALPHA _ENABLE_FOG_ON_TRANSPARENT
+    _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
+    RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
   - MOTIONVECTORS
@@ -142,7 +144,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalLayerMask: -1
+    - _DecalLayerMask: 4
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1

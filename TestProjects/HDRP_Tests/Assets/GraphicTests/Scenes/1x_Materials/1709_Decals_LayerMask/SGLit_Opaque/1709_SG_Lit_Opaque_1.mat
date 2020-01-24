@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8430648838483959525
+--- !u!114 &-2532430685385878708
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,9 +21,9 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 1709_SG_Lit_Opaque_1
-  m_Shader: {fileID: -6465566751694194690, guid: d1ceed6d433f6be4f8cfa6f6b8349205,
+  m_Shader: {fileID: -6465566751694194690, guid: 41cb1138f6e34a24ba0303bb3730081c,
     type: 3}
-  m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: WRITE_DECAL_BUFFER _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -33,7 +33,6 @@ Material:
   disabledShaderPasses:
   - DistortionVectors
   - MOTIONVECTORS
-  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
   m_SavedProperties:
@@ -142,7 +141,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalLayerMask: -1
+    - _DecalLayerMask: 2
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1

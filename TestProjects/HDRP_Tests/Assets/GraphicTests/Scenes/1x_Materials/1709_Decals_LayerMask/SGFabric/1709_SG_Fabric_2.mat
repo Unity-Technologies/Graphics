@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8141823803623179063
+--- !u!114 &-1734158142598730345
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 1709_SG_Fabric_2
-  m_Shader: {fileID: -6465566751694194690, guid: 9160d1d0c373f2e45b2260a30d8bf105,
+  m_Shader: {fileID: -6465566751694194690, guid: b00f1eee444de2943be02ef859f374a4,
     type: 3}
   m_ShaderKeywords: _DISABLE_DECALS
   m_LightmapFlags: 4
@@ -142,7 +142,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalLayerMask: -1
+    - _DecalLayerMask: 4
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1

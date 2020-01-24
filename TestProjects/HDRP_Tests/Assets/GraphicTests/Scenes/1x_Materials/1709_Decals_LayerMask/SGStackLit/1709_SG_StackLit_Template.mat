@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 1709_SG_StackLit_Template
-  m_Shader: {fileID: -6465566751694194690, guid: c0fef1d4d7556c2448e267cf8a08838c,
+  m_Shader: {fileID: -6465566751694194690, guid: 7d497c5db2c244642bfcd7b501be5e2f,
     type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
@@ -17,7 +17,6 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
-    RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
   - MOTIONVECTORS

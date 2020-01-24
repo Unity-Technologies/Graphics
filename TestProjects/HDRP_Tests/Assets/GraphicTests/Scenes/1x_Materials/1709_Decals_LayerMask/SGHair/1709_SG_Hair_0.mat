@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 1709_SG_Hair_0
-  m_Shader: {fileID: -6465566751694194690, guid: f1e0e351a65639042a8ad09c59536018,
+  m_Shader: {fileID: -6465566751694194690, guid: 2f7c113f81856b646aa72b4376878bc9,
     type: 3}
   m_ShaderKeywords: _DISABLE_DECALS
   m_LightmapFlags: 4
@@ -129,7 +129,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalLayerMask: -1
+    - _DecalLayerMask: 1
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
@@ -251,7 +251,7 @@ Material:
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
---- !u!114 &8267968252066845121
+--- !u!114 &3781387192678720187
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
