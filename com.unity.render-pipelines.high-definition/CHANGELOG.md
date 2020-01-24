@@ -339,6 +339,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null reference exception in Path Tracing, Recursive Rendering and raytraced Global Illumination editors when no HDRP asset is present.
 - Fixed an issue where materials newly created from the contextual menu would have an invalid state, causing various problems until it was edited.
 - Fixed transparent material created with ZWrite enabled (now it is disabled by default for new transparent materials)
+- Fixed mouseover on Move and Rotate tool while DecalProjector is selected.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
