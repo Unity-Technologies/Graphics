@@ -19,14 +19,16 @@ namespace UnityEditor.VFX
     class VFXGraphPreprocessor : AssetPostprocessor
     {
 
-        static void OnAddResourceDependencies(VisualEffectResource resource)
+        static string[] OnAddResourceDependencies(string assetPath)
         {
-             if( resource != null)
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+            if( resource != null)
             {
                     VFXGraph graph = resource.GetOrCreateGraph();
                     if( graph != null)
-                        graph.AddImportDependencies();
-                }
+                        return graph.GetImportDependencies();
+            }
+            return null;
         }
 
         static void OnCompileResource(VisualEffectResource resource)
@@ -812,7 +814,7 @@ namespace UnityEditor.VFX
             get { return m_SubgraphDependencies.AsReadOnly(); }
         }
 
-        public void AddImportDependencies()
+        public string[] GetImportDependencies()
         {
             visualEffectResource.ClearImportDependencies();
             
@@ -821,6 +823,8 @@ namespace UnityEditor.VFX
 
             foreach (var dep in dependentAsset)
                 visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+
+            return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
         }
 
         private VisualEffectResource m_Owner;
