@@ -34,4 +34,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRPReservedBits = 255 & ~(UserBit0 | UserBit1),
     }
+
+    /// <summary>
+    /// Stencil bit exposed to user and not reserved by HDRP.
+    /// Note that it is important that the Write Mask used in conjunction with these bits includes only this bits.
+    /// For example if you want to tag UserBit0, the shaderlab code for the stencil state setup would look like:
+    /// 
+    ///         WriteMask 64 // Value of UserBit0
+    ///         Ref  64 // Value of UserBit0
+    ///         Comp Always
+    ///         Pass Replace
+    ///         
+    /// Or if for example you want to write UserBit0 and zero out the UserBit1,  the shaderlab code for the stencil state setup would look like:
+    /// 
+    ///         WriteMask MyWriteMask // with MyWriteMask define in C# as MyWriteMask = (UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)
+    ///         Ref MyRef // with MyRef define in C# as MyRef = UserStencilUsage.UserBit0
+    ///         Comp Always
+    ///         Pass Replace
+    /// </summary>
+    public enum UserStencilUsage
+    {
+        UserBit0 = StencilUsage.UserBit0,
+        UserBit1 = StencilUsage.UserBit1
+    }
 }
