@@ -788,7 +788,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Lit-Master-Node"; }
+            get { return null; }
         }
 
         public bool HasRefraction()
