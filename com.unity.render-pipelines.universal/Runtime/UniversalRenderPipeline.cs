@@ -241,8 +241,6 @@ namespace UnityEngine.Rendering.Universal
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
-            SetupPerCameraShaderConstants(cameraData);
-
             string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingScope(cmd, _CameraProfilingSampler))
