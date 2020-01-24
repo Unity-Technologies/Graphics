@@ -497,7 +497,7 @@ namespace UnityEditor.VFX
                     var mappingPreProcess = ComputePreProcessExpressionForSpawn(expressionPerSpawnToProcess, graph);
                     var preProcessTask = new VFXEditorTaskDesc
                     {
-                        type = UnityEngine.VFX.VFXTaskType.PreProcessExpression,
+                        type = UnityEngine.VFX.VFXTaskType.EvaluateExpressionsSpawner,
                         buffers = new VFXMapping[0],
                         values = mappingPreProcess,
                         parameters = contextData.parameters,
