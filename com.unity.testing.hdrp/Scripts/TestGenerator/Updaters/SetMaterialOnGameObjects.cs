@@ -124,15 +124,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                     case GetMaterialMode.LoadMaterialAsset:
                     {
 #if UNITY_EDITOR
-                        var directory = ResolveLoadAssetDirectory();
+                        if (!isPlayMode)
+                        {
+                            var directory = ResolveLoadAssetDirectory();
 
-                        // Compute the full path
-                        var fileName = string.Format(m_LoadAssetFormat, i, instance.name);
-                        var fullPath = Path.Combine(directory, fileName);
+                            // Compute the full path
+                            var fileName = string.Format(m_LoadAssetFormat, i, instance.name);
+                            var fullPath = Path.Combine(directory, fileName);
 
-                        var material = AssetDatabase.LoadAssetAtPath<Material>(fullPath);
-                        if (material != null)
-                            renderer.sharedMaterial = material;
+                            var material = AssetDatabase.LoadAssetAtPath<Material>(fullPath);
+                            if (material != null)
+                                renderer.sharedMaterial = material;
+                        }
+                        else
 #endif
                         {
                             Debug.LogError(

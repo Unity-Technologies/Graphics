@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
-using UnityEditor.Searcher;
-using UnityEditorInternal;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
@@ -32,33 +27,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 if (parent == null || parent.Equals(null))
                     parent = transform;
 
-                IGenerateGameObjects generator = GetComponent<IGenerateGameObjects>();
+                var generator = GetComponent<IGenerateGameObjects>();
 
                 if (generator != null && !generator.Equals(null))
                 {
                     foreach (Transform child in parent)
                         instances.Add(child.gameObject);
-                    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     if (!EditorApplication.isPlayingOrWillChangePlaymode)
                         generator.GenerateInEditMode(parent, instances);
                     else
-                    #endif
+#endif
                         generator.GenerateInPlayMode(parent, instances);
                 }
 
                 GetComponents(updaters);
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 if (!EditorApplication.isPlayingOrWillChangePlaymode)
                 {
                     foreach (var updater in updaters)
-                    {
                         if ((updater.executeMode & ExecuteMode.EditMode) != 0)
                             updater.UpdateInEditMode(parent, instances);
-                    }
-
                 }
                 else
-                #endif
+#endif
                 {
                     foreach (var updater in updaters)
                         if ((updater.executeMode & ExecuteMode.PlayMode) != 0)

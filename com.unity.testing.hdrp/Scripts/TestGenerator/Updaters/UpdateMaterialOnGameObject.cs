@@ -27,6 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 
         void UpdateInstances(List<GameObject> instances)
         {
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.StartAssetEditing();
+#endif
             var c = Mathf.Min(instances.Count, m_Modifications.Length);
             for (var i = 0; i < c; ++i)
             {
@@ -42,7 +45,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 var modifications = m_Modifications[i];
                 foreach (var modification in modifications.modifications)
                     modification.ApplyTo(material);
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(material);
+#endif
             }
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.StopAssetEditing();
+#endif
         }
     }
 }
