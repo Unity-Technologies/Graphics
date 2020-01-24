@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering
                 var cur = m_RTHandleDescs[i];
                 if (cur.lifetime <= 0)
                 {
-                    cur.rtHandle?.Release();
+                    cur.rtHandle.Release();
                     m_RTHandleDescs.Remove(cur);
                 }
             }

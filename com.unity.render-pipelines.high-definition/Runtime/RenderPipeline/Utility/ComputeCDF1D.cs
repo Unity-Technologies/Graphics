@@ -16,10 +16,6 @@ namespace UnityEngine.Rendering
 
         static public RTHandle ComputeCDF(RTHandle input, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
         {
-            RTHandle temp0;
-            RTHandle temp1;
-            RTHandle cdf;
-
             if (input == null)
             {
                 return null;
@@ -37,9 +33,11 @@ namespace UnityEngine.Rendering
             int width  = input.rt.width;
             int height = input.rt.height;
 
-            temp0 = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
-            temp1 = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
-            cdf   = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
+            RTHandle temp0  = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
+            RTHandle temp1  = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
+            RTHandle cdf    = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
+            RTHandleDeleter.ScheduleRelease(temp0);
+            RTHandleDeleter.ScheduleRelease(temp1);
 
             uint iteration;
             string addon = "";

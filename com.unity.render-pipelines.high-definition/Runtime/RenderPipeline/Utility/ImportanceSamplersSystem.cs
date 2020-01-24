@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -24,7 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              currentMip          = 0;
         }
 
-        Dictionary<int, MarginalInfos>  m_InternalData;
+        internal static Dictionary<int, MarginalInfos>  m_InternalData;
+        internal static int _Idx = 0;
 
         /// <summary>
         /// RTHandleSystem constructor.
@@ -32,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ImportanceSamplersSystem()
         {
             m_InternalData  = new Dictionary<int, MarginalInfos>();
+            _Idx = 0;
         }
 
         /// <summary>
@@ -76,12 +79,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Schedule generation of the marginal textures. return if the task was scheduled
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
-        /// <param name="pdfTexture">(optional) Texture2D or CubeMap which used for the the generation of the important sampling.</param>
-        public bool ScheduleMarginalGeneration(int identifier, Texture pdfTexture = null)
+        /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
+        public bool ScheduleMarginalGeneration(int identifier, Texture pdfTexture)
         {
             if (Exist(identifier) == false)
             {
-                return ScheduleMarginalGenerationForce(identifier, pdfTexture);
+                return InternalScheduleMarginalGeneration(identifier, pdfTexture);
             }
             else
             {
@@ -93,8 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Schedule generation of the marginal textures. Even if the identifier already exist (always return true)
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
-        /// <param name="pdfTexture">(optional) Texture2D or CubeMap which used for the the generation of the important sampling.</param>
-        public bool ScheduleMarginalGenerationForce(int identifier, Texture pdfTexture = null)
+        /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
+        public bool ScheduleMarginalGenerationForce(int identifier, Texture pdfTexture)
         {
             if (Exist(identifier))
             {
@@ -105,6 +108,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InternalData.Remove(identifier);
             }
 
+            return InternalScheduleMarginalGeneration(identifier, pdfTexture);
+        }
+
+        internal bool InternalScheduleMarginalGeneration(int identifier, Texture pdfTexture)
+        {
             MarginalInfos toGenerate = new MarginalInfos();
             toGenerate.marginals                        = new MarginalTextures();
             toGenerate.input                            = pdfTexture;
@@ -125,15 +133,42 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
         public void Update(CommandBuffer cmd)
         {
-            //
+            foreach(var item in m_InternalData.Where(x => x.Value.input == null).ToList())
+            {
+                m_InternalData.Remove(item.Key);
+            }
+
             foreach (var cur in m_InternalData)
             {
                 if (cur.Value.isReady == false || cur.Value.inProgress)
                 {
                     // Do only one per frame
+                    //      One slice & one mip per frame
                     GenerateMarginals(cur, cmd);
                     break;
                 }
+            }
+        }
+
+        static private void DefaultDumper(AsyncGPUReadbackRequest request, string name)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
+                                                    copy,
+                                                    Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                                    (uint)request.width, (uint)request.height, 0,
+                                                    Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\" + name + ".exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
             }
         }
 
@@ -146,14 +181,16 @@ namespace UnityEngine.Rendering.HighDefinition
             MarginalInfos value = current.Value;
 
             bool hasMip = value.input.mipmapCount > 1;
-            UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat = Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
+            UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
+                Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
                 //value.input.graphicsFormat;
 
             int width       = -1;
             int height      = -1;
-            int slicesCount  = 1;
+            int slicesCount =  1;
 
-            bool dumpFile = value.currentMip == 0 && value.currentSlice == 0;
+            bool dumpFile = true;
+                //value.currentMip == 0 && value.currentSlice == 0;
 
             if (value.input.dimension == TextureDimension.Tex2D ||
                 value.input.dimension == TextureDimension.Tex2DArray)
@@ -201,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (value.input.dimension == TextureDimension.Tex2D ||
                 value.input.dimension == TextureDimension.Tex2DArray)
             {
-                generator.Init(value.input, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile);
+                generator.Init(value.input, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
             }
             else if (value.input.dimension == TextureDimension.Cube ||
                      value.input.dimension == TextureDimension.CubeArray)
@@ -212,17 +249,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle latLongMap = RTHandles.Alloc(  curWidth, curHeight,
                                                         colorFormat: internalFormat,
                                                         enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(latLongMap);
+                RTHandle cubemap = RTHandles.Alloc( current.Value.input.width, current.Value.input.height,
+                                                    useMipMap: true,
+                                                    autoGenerateMips: false,
+                                                    dimension: TextureDimension.Cube,
+                                                    colorFormat: value.input.graphicsFormat,
+                                                    enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(cubemap);
+                for (int i = 0; i < 6; ++i)
+                {
+                    cmd.CopyTexture(value.input, 6*current.Value.currentSlice + i, cubemap, i);
+                }
 
                 var hdrp = HDRenderPipeline.defaultAsset;
                 Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                cubeToLatLong.SetTexture("_srcCubeTexture", value.input);
+                cubeToLatLong.SetTexture("_srcCubeTexture", cubemap);
                 cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
+                cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                {
+                    //DefaultDumper(request, String.Format("___FirstInput_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                    DefaultDumper(request, "___FirstInput_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                });
+                //Debug.Log(String.Format("SKCode: {0}", _Idx));
 
                 cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
 
-                generator.Init(latLongMap, 0, 0, cmd, dumpFile);
-
-                RTHandleDeleter.ScheduleRelease(latLongMap);
+                generator.Init(latLongMap, 0, 0, cmd, dumpFile, _Idx);
             }
 
             cmd.CopyTexture(generator.invCDFRows, 0, 0, value.marginals.marginal,            current.Value.currentSlice, current.Value.currentMip);
@@ -234,6 +287,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     current.Value.inProgress    = false;
                     current.Value.isReady       = true;
+                    cmd.RequestAsyncReadback(generator.invCDFRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                        DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                    });
+                    cmd.RequestAsyncReadback(generator.invCDFFull, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                        DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                    });
                 }
                 else
                 {
@@ -253,6 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 current.Value.currentSlice++;
                 current.Value.currentMip = 0;
             }
+            ++_Idx;
         }
     }
 }

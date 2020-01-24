@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Schedule generation of the marginal textures. return if the task was scheduled
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
-        /// <param name="pdfTexture">(optional) Texture2D or CubeMap which used for the the generation of the important sampling.</param>
+        /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
         public static bool ScheduleMarginalGeneration(int identifier, Texture pdfTexture)
         {
             return s_DefaultInstance.ScheduleMarginalGeneration(identifier, pdfTexture);
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Schedule generation of the marginal textures. Even if the identifier already exist (always return true)
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
-        /// <param name="pdfTexture">(optional) Texture2D or CubeMap which used for the the generation of the important sampling.</param>
+        /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
         public static bool ScheduleMarginalGenerationForce(int identifier, Texture pdfTexture)
         {
             return s_DefaultInstance.ScheduleMarginalGenerationForce(identifier, pdfTexture);

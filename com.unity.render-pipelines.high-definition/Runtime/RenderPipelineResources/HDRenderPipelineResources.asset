@@ -108,6 +108,15 @@ MonoBehaviour:
       type: 3}
     clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
       type: 3}
+    gpuOperationsCS: {fileID: 7200000, guid: 88251c50f79036244804f6a06fc14172, type: 3}
+    cdf1DCS: {fileID: 7200000, guid: ce2e168e4d3b38e43936b5944043d00d, type: 3}
+    inverseCDF1DCS: {fileID: 7200000, guid: 850326b736b6e0b41bcec3df36a62ef9, type: 3}
+    rescale01CS: {fileID: 7200000, guid: 4b31ebc66d70d784c90fe5695a2421a4, type: 3}
+    importanceSample2DCS: {fileID: 7200000, guid: 6a1d4639486a09941aa4a50492c150ca,
+      type: 3}
+    importanceLatLongIntegrationCS: {fileID: 7200000, guid: 367b3ae37f3df114aa0a48ca50c5ecb7,
+      type: 3}
+    OutputDebugCS: {fileID: 7200000, guid: 806284a356269b5418cb750608d6ed56, type: 3}
     xrMirrorViewPS: {fileID: 4800000, guid: e6255f98cf405eb45ab6f9006cf11e1f, type: 3}
     xrOcclusionMeshPS: {fileID: 4800000, guid: 46a45b32bb110604fb36216b63bcdb81, type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}

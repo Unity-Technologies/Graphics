@@ -481,8 +481,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Then copy it to the cubemap array slice
                     for (int i = 0; i < 6; ++i)
                     {
-                        m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6 * bsdfIdx + i);
+                        m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6*bsdfIdx + i);
                     }
+                }
+                renderingContext.skyboxBSDFCubemapArray.IncrementUpdateCount();
+
+                //Texture skyReflection = GetReflectionTexture(skyContext);
+                //if (skyReflection != m_BlackCubemapArray)
+                {
+                    //ImportanceSamplers.ScheduleMarginalGenerationForce((int)((uint)renderingContext.skyboxBSDFCubemapArray.GetInstanceID() + renderingContext.skyboxBSDFCubemapArray.updateCount), renderingContext.skyboxBSDFCubemapArray);
+                    ImportanceSamplers.ScheduleMarginalGenerationForce(renderingContext.skyboxBSDFCubemapArray.GetInstanceID(), renderingContext.skyboxBSDFCubemapArray);
                 }
             }
         }
@@ -552,8 +560,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
 
-                    Texture skyReflection = GetReflectionTexture(updateContext);
-                    ImportanceSamplers.ScheduleMarginalGenerationForce(skyReflection.GetInstanceID(), skyReflection);
+                    //Texture skyReflection = GetReflectionTexture(updateContext);
+                    //if (skyReflection != m_BlackCubemapArray)
+                    //{
+                    // TOOD RELEASE MARGINALS
+                    //    ImportanceSamplers.ScheduleMarginalGeneration((int)((uint)skyReflection.GetInstanceID() + skyReflection.updateCount), skyReflection);
+                    //}
                 }
                 else
                 {
@@ -674,30 +686,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                     {
-                            RenderSkyToCubemap(skyContext);
+                        RenderSkyToCubemap(skyContext);
 
-                            if (updateAmbientProbe)
+                        if (updateAmbientProbe)
+                        {
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                             {
-                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
-                                {
-                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                                cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
+                                cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
+                                cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
+                                cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
-                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                    // otherwise ambient probe isn't correct for one frame.
-                                    if (m_requireWaitForAsyncReadBackRequest)
-                                    {
-                                        cmd.WaitAllAsyncReadbackRequests();
-                                        renderContext.ExecuteCommandBuffer(cmd);
-                                        CommandBufferPool.Release(cmd);
-                                        renderContext.Submit();
-                                        cmd = CommandBufferPool.Get();
-                                        m_requireWaitForAsyncReadBackRequest = false;
-                                    }
+                                // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                // otherwise ambient probe isn't correct for one frame.
+                                if (m_requireWaitForAsyncReadBackRequest)
+                                {
+                                    cmd.WaitAllAsyncReadbackRequests();
+                                    renderContext.ExecuteCommandBuffer(cmd);
+                                    CommandBufferPool.Release(cmd);
+                                    renderContext.Submit();
+                                    cmd = CommandBufferPool.Get();
+                                    m_requireWaitForAsyncReadBackRequest = false;
                                 }
                             }
+                        }
 
                         if (renderingContext.supportsConvolution)
                         {
@@ -758,6 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
             //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
 
+            //var marginals = ImportanceSamplers.GetMarginals((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount));
             var marginals = ImportanceSamplers.GetMarginals(reflectionTexture.GetInstanceID());
             if (marginals != null)
             {
@@ -768,7 +781,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                ImportanceSamplers.ScheduleMarginalGeneration(reflectionTexture.GetInstanceID(), reflectionTexture);
+                //ImportanceSamplers.ScheduleMarginalGeneration((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount), reflectionTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
             }
