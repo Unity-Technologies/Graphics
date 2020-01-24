@@ -204,7 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        /// <summary>
+        /// Enable XR single-pass rendering.
+        /// </summary>
+        public void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -240,7 +243,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        /// <summary>
+        /// Disable XR single-pass rendering.
+        /// </summary>
+        public void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {

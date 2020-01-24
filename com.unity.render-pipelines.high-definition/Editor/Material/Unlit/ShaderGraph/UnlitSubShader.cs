@@ -345,6 +345,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 return activeFields;
             }
 
+            if (masterNode.IsSlotConnected(UnlitMasterNode.VertNormalSlotId))
+            {
+                baseActiveFields.Add("AttributesMesh.normalOS");
+            }
+
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
