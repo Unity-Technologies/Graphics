@@ -19,45 +19,66 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class MaterialReimporter : Editor
     {
+        static internal void ReimportAllMaterials()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:material", null);
+
+            foreach (var asset in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(asset);
+                AssetDatabase.ImportAsset(path);
+            }
+
+            MaterialPostprocessor.s_NeedsSavingAssets = true;
+        }
+
         [InitializeOnLoadMethod]
-        static void ReimportAllMaterials()
+        static void ReimportAllMaterialsOnPackageChange()
         {
             //This method is called at opening and when HDRP package change (update of manifest.json)
-            //Check to see if the upgrader has been run for this project/HDRP version
-            PackageManager.PackageInfo hdrpInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetAssembly(typeof(HDRenderPipeline)));
-            var hdrpVersion = hdrpInfo.version;
-            var curUpgradeVersion = HDProjectSettings.packageVersionForMaterialUpgrade;
+            var curUpgradeVersion = HDProjectSettings.materialVersionForUpgrade;
 
-            bool firstInstallOfHDRP = curUpgradeVersion == HDProjectSettings.k_PackageFirstTimeVersionForMaterials;
-            if (curUpgradeVersion != hdrpVersion)
+            if (curUpgradeVersion != MaterialPostprocessor.k_Migrations.Length)
             {
-                string[] guids = AssetDatabase.FindAssets("t:material", null);
-
-                foreach (var asset in guids)
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(asset);
-                    AssetDatabase.ImportAsset(path);
-                }
-
-                string commandLineOptions = System.Environment.CommandLine;
-                bool inTestSuite = commandLineOptions.Contains("-testResults");
-                //prevent popup in test suite as there is no user to interact, no need to save in this case
-                if (!inTestSuite && (firstInstallOfHDRP || EditorUtility.DisplayDialog("High Definition Materials Migration",
-                    "Your current High Definition Render Pipeline requires a change that will update your Materials. In order to apply this update automatically, you need to save your Project. If you choose not to save your Project, you will need to re-import Materials manually, then save the Project.\n\nPlease note that downgrading from the High Definition Render Pipeline is not supported.",
-                    "Save Project", "Not now")))
-                {
-                    AssetDatabase.SaveAssets();
-
-                    //to prevent data loss, only update the saved version if user applied change
-                    HDProjectSettings.packageVersionForMaterialUpgrade = hdrpVersion;
-                }
+                EditorUtility.DisplayDialog("HDRP Material Migration", "Your High Definition Render Pipeline version requires a material upgrade." +
+                    " All materials in the project will be re-imported and saved to disk (and checked out if relevant) if changed. \n"+
+                    " Please consult the upgrade guide in the HDRP documentation for more information.", "Ok");
+                ReimportAllMaterials();
             }
+
+            EditorApplication.update += () =>
+            {
+                if (Time.renderedFrameCount > 0 && MaterialPostprocessor.s_NeedsSavingAssets)
+                    MaterialPostprocessor.SaveAssetsToDisk();
+            };
         }
     }
 
     class MaterialPostprocessor : AssetPostprocessor
     {
         internal static List<string> s_CreatedAssets = new List<string>();
+        internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
+        internal static bool s_NeedsSavingAssets = false;
+
+        static internal void SaveAssetsToDisk()
+        {
+            string commandLineOptions = System.Environment.CommandLine;
+            bool inTestSuite = commandLineOptions.Contains("-testResults");
+            if (inTestSuite)
+                return;
+
+            foreach (var asset in s_ImportedAssetThatNeedSaving)
+            {
+                AssetDatabase.MakeEditable(asset);
+            }
+
+            AssetDatabase.SaveAssets();
+            //to prevent data loss, only update the saved version if user applied change and assets are written to
+            HDProjectSettings.materialVersionForUpgrade = MaterialPostprocessor.k_Migrations.Length;
+
+            s_ImportedAssetThatNeedSaving.Clear();
+            s_NeedsSavingAssets = false;
+        }
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
@@ -118,7 +139,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (wasUpgraded)
+                {
                     EditorUtility.SetDirty(assetVersion);
+                    s_ImportedAssetThatNeedSaving.Add(asset);
+                    s_NeedsSavingAssets = true;
+                }
             }
         }
 
@@ -129,18 +154,15 @@ namespace UnityEditor.Rendering.HighDefinition
         // So we must have migration step that work on every materials at once.
         // Which also means that if we want to update only one shader, we need
         // to bump all materials version...
-        static readonly Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
+        static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
         {
-            /* EmissiveIntensityToColor,
-             * SecondMigrationStep,
-             * ...
-             SpecularOcclusionMode  */
+             StencilRefactor,
         };
 
         #region Migrations
 
         // Not used currently:
-        // TODO: Script liek this must also work with embed material in scene (i.e we need to catch
+        // TODO: Script like this must also work with embed material in scene (i.e we need to catch
         // .unity scene and load material and patch in memory. And it must work with perforce
         // i.e automatically checkout all those files).
         static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
@@ -170,7 +192,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        //exemple migration method, remove it after first real migration
+        static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
+        {
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+        //example migration method, remove it after first real migration
         //static void EmissiveIntensityToColor(Material material, ShaderID id)
         //{
         //    switch(id)

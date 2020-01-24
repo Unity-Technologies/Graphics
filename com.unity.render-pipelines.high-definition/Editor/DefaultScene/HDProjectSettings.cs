@@ -33,9 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         int m_WizardActiveTab = 0;
         [SerializeField]
-        string m_PackageVersionForMaterials = k_PackageFirstTimeVersionForMaterials;
+        int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
-        internal const string k_PackageFirstTimeVersionForMaterials = "NeverSaved";
+        internal const int k_NeverProcessedMaterialVersion = -1;
 
         public static GameObject defaultScenePrefab
         {
@@ -87,12 +87,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static string packageVersionForMaterialUpgrade
+        public static int materialVersionForUpgrade
         {
-            get => instance.m_PackageVersionForMaterials;
+            get => instance.m_LastMaterialVersion;
             set
             {
-                instance.m_PackageVersionForMaterials = value;
+                instance.m_LastMaterialVersion = value;
                 Save();
             }
         }

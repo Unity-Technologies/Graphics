@@ -35,7 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction.unity
     guid: 530aef5d08a1569479cc65b219b8f9fb
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1206_Lit_Transparent_Distortion.unity
     guid: fc3cc4c68d873e64ca12fcfc828d7ee4
   - enabled: 1
@@ -533,7 +533,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9700_CustomPass_FullScreen.unity
     guid: 86f8f2a99d6720b48abc19c684103d74
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9701_CustomPass_DrawRenderers.unity
     guid: c64196eb7ce78e84bb835b2ea858ee19
   m_configObjects: {}

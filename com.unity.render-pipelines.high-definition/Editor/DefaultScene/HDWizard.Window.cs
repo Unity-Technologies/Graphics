@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
+            public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
             public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
@@ -316,6 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
             container.Add(CreateLargeButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
+            container.Add(CreateLargeButton(Style.migrateMaterials, UpgradeStandardShaderMaterials.UpgradeMaterials));
 
             container.Add(CreateWizardBehaviour());
         }
