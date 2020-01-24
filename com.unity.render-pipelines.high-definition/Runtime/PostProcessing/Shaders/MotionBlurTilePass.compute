@@ -228,7 +228,7 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
 
     // Sample the motionVec at this tile.
     uint packedTileInfo = _TileToScatterMax[COORD_TEXTURE2D_X(id)];
-    uint minMotionVec = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+    float minMotionVec = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
 
     float2 MotionVecData = UnpackMotionVec(packedTileInfo);
 
@@ -247,21 +247,21 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
     // TODO: We need to find a better min motionVec determination.
     #if USE_NEIGHBOURHOOD_MIN
     // Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
-    uint v0 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))];
-    uint v1 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords))];
-    uint v2 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))];
+    float v0 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))];
+    float v1 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords))];
+    float v2 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))];
 
-    uint v3 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords))];
-    uint v4 = minMotionVec;
-    uint v5 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords))];
+    float v3 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords))];
+    float v4 = minMotionVec;
+    float v5 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords))];
 
-    uint v6 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords))];
-    uint v7 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords))];
-    uint v8 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords))];
+    float v6 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords))];
+    float v7 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords))];
+    float v8 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords))];
 
-    uint minMotionVec0 = Min3(v0, v1, v2);
-    uint minMotionVec1 = Min3(v3, v4, v5);
-    uint minMotionVec2 = Min3(v6, v7, v8);
+    float minMotionVec0 = Min3(v0, v1, v2);
+    float minMotionVec1 = Min3(v3, v4, v5);
+    float minMotionVec2 = Min3(v6, v7, v8);
     minMotionVec = Min3(minMotionVec0, minMotionVec1, minMotionVec2);
     #endif
     _TileToScatterMin[COORD_TEXTURE2D_X(id)] = minMotionVec;
@@ -303,7 +303,7 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
     float minMotionVec2 = Min3(v6.z, v7.z, v8.z);
 
 
-    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id.xy)] = float3(MaxMotionVec(maxMotionVec0, MaxMotionVec(maxMotionVec1, maxMotionVec2)), Min3(minMotionVec1, minMotionVec1, minMotionVec2)) ;
+    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id.xy)] = float3(MaxMotionVec(maxMotionVec0, MaxMotionVec(maxMotionVec1, maxMotionVec2)), Min3(minMotionVec0, minMotionVec1, minMotionVec2)) ;
 }
 
 #endif
@@ -314,7 +314,7 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
 
 #if SCATTERING
 TEXTURE2D_X_UINT(_TileToScatterMax);
-TEXTURE2D_X_UINT(_TileToScatterMin);
+TEXTURE2D_X(_TileToScatterMin);
 RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 #endif
 
@@ -331,27 +331,27 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
     float maxVelLen = MotionVecLengthInPixelsFromEncoded(maxVelData);
 
     // TODO: In theory this could have to be even wider. In general, we need a better way to determine min velocities.
-    uint minVel = 0.0f;
+    float minVel = 0.0f;
     int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
     if (maxVelLen > TILE_SIZE * 3.5)
     {
 
-        uint4 data0 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        uint4 data1 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        uint4 data2 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        uint4 data3 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data0 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data1 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data2 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data3 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
 
-        uint minData0 = min(data0.x, Min3(data0.y, data0.z, data0.w));
-        uint minData1 = min(data1.x, Min3(data1.y, data1.z, data1.w));
-        uint minData2 = min(data2.x, Min3(data2.y, data2.z, data2.w));
-        uint minData3 = min(data3.x, Min3(data3.y, data3.z, data3.w));
+        float minData0 = min(data0.x, Min3(data0.y, data0.z, data0.w));
+        float minData1 = min(data1.x, Min3(data1.y, data1.z, data1.w));
+        float minData2 = min(data2.x, Min3(data2.y, data2.z, data2.w));
+        float minData3 = min(data3.x, Min3(data3.y, data3.z, data3.w));
 
          minVel = min(minData0, Min3(minData1, minData2, minData3));
     }
     else
     {
-        minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+        minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)].x;
     }
 
     _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(minVel));

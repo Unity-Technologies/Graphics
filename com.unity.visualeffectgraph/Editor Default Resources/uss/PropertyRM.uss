@@ -60,6 +60,7 @@
     padding-left: 1px;
     margin-bottom:0;
     padding-bottom:0;
+    overflow:hidden;
     -unity-text-align:middle-left;
 }
 

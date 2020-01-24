@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
         public override string libraryName { get { return "Length"; } }
         public override string name { get { return "Length"; } }
 
-        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndDirection; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

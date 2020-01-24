@@ -353,7 +353,7 @@ void RayGenAreaShadowSingle()
     _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float2(rayIntersection.color.x * currentSample.x + previousValue.x, currentSample.y + previousValue.y);
 }
 
-RW_TEXTURE2D_X(float, _RaytracedDirectionalShadowIntegration);
+RW_TEXTURE2D_X(float, _RaytracedShadowIntegration);
 float _DirectionalLightAngle;
 
 [shader("raygeneration")]
@@ -369,7 +369,7 @@ void RayGenDirectionalShadowSingle()
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
     // Read the previous value of the buffer
-    float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)].x;
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)].x;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
@@ -412,10 +412,10 @@ void RayGenDirectionalShadowSingle()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
-    _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
+    _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
 }
 
-RW_TEXTURE2D_X(float4, _RaytracedDirectionalColorShadowIntegration);
+RW_TEXTURE2D_X(float4, _RaytracedColorShadowIntegration);
 
 [shader("raygeneration")]
 void RayGenDirectionalColorShadowSingle()
@@ -430,7 +430,7 @@ void RayGenDirectionalColorShadowSingle()
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
     // Read the previous value of the buffer
-    float3 previousValue = _RaytracedDirectionalColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
+    float3 previousValue = _RaytracedColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
@@ -487,7 +487,7 @@ void RayGenDirectionalColorShadowSingle()
             RAYTRACINGRENDERERFLAG_TRANSPARENT | RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, rayDescriptor, rayIntersection);
     }
 
-    _RaytracedDirectionalColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(previousValue + rayIntersection.color / (float)_RaytracingNumSamples, 1.0);
+    _RaytracedColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(previousValue + rayIntersection.color / (float)_RaytracingNumSamples, 1.0);
 }
 
 [shader("raygeneration")]
@@ -516,8 +516,8 @@ void RayGenShadowSegmentSingle()
     if (rayDistance < 0.0)
     {
         // Read the previous value and add one
-        float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-        _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
         return;
     }
 
@@ -566,8 +566,8 @@ void RayGenShadowSegmentSingle()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
-    float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-    _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+    _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
 }
 
 bool RayTraceContactShadow(PositionInputs posInput, float3 direction)

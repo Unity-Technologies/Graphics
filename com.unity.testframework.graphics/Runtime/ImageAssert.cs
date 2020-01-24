@@ -205,7 +205,7 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="camera">The camera to render from.</param>
         /// <param name="width"> width of the image to be rendered</param>
         /// <param name="height"> height of the image to be rendered</param>
-        public static void AllocatesMemory(Camera camera, ImageComparisonSettings settings = null)
+        public static void AllocatesMemory(Camera camera, ImageComparisonSettings settings = null, int gcAllocThreshold = 2)
         {
             if (camera == null)
                 throw new ArgumentNullException(nameof(camera));
@@ -239,7 +239,7 @@ namespace UnityEngine.TestTools.Graphics
                 Profiler.EndSample();
 
                 // There are 2 GC.Alloc overhead for calling Camera.CustomRender
-                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount - 2;
+                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount - gcAllocThreshold;
 
                 if (allocationCountOfRenderPipeline > 0)
                     throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");

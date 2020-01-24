@@ -1,3 +1,4 @@
+#if !defined(SHADER_STAGE_RAY_TRACING)
     FragInputs BuildFragInputs(VaryingsMeshToPS input)
     {
         FragInputs output;
@@ -24,14 +25,14 @@
 
         return output;
     }
-
+#endif
     SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, float3 viewWS)
     {
         SurfaceDescriptionInputs output;
         ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
-        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
-        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
+        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            input.tangentToWorld[2].xyz;	// normal was already normalized in BuildTangentToWorld()
+        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
         $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
@@ -64,6 +65,8 @@
         return output;
     }
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
+
     // existing HDRP code uses the combined function to go directly from packed to frag inputs
     FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     {
@@ -71,3 +74,4 @@
         VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
         return BuildFragInputs(unpacked);
     }
+#endif
