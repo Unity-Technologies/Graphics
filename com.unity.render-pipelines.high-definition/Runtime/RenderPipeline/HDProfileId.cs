@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
         Gizmos,
+        DisplayCookieAtlas,
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
@@ -80,6 +81,10 @@ namespace UnityEngine.Rendering.HighDefinition
         PreIntegradeWardCookTorrance,
         FilterCubemapCharlie,
         FilterCubemapGGX,
+        DisplayPointLightCookieArray,
+        DisplayPlanarReflectionProbeAtlas,
+        BlitTextureInPotAtlas,
+        AreaLightCookieConvolution,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,

@@ -1,4 +1,6 @@
 using System;
+using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -29,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for the texture 2D size used for planar reflection probes.
     /// </summary>
     [Serializable]
-    public enum PlanarReflectionResolution
+    public enum PlanarReflectionAtlasResolution
     {
         /// <summary>Size 64</summary>
         PlanarReflectionResolution64 = 64,
@@ -55,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for the texture 2D size used for cookies.
     /// </summary>
     [Serializable]
-    public enum CookieResolution
+    public enum CookieAtlasResolution
     {
         /// <summary>Size 64</summary>
         CookieResolution64 = 64,
@@ -108,13 +110,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default GlobalDecalSettings</summary>
         public static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
         {
-            cookieSize = CookieResolution.CookieResolution128,
-            cookieTexArraySize = 16,
+            cookieAtlasSize = CookieAtlasResolution.CookieResolution2048,
+            cookieFormat = CookieAtlasGraphicsFormat.R11G11B10,
             pointCookieSize = CubeCookieResolution.CubeCookieResolution128,
             cubeCookieTexArraySize = 16,
 
-            planarReflectionProbeCacheSize = 2,
-            planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024,
+            cookieAtlasLastValidMip = 0,
+            cookieAreaTextureArraySize = 16,
+
+// We must keep this value for migration purpose (when we create a new HDRP asset it is migrated to the last version)
+#pragma warning disable 618 // Type or member is obsolete
+            cookieTexArraySize = 1,
+#pragma warning restore 618
+
+            // Note: we need to put 128 here because when we create a new HDRP asset, the upgrade code multiply this value by max planar on screen which gives 2048
+            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution128,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
 
@@ -126,15 +136,24 @@ namespace UnityEngine.Rendering.HighDefinition
             maxAreaLightsOnScreen = 64,
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
+            maxPlanarReflectionOnScreen = 16,
         };
 
-        public CookieResolution cookieSize;
-        public int cookieTexArraySize;
+        [FormerlySerializedAs("cookieSize")]
+        public CookieAtlasResolution cookieAtlasSize;
+        public CookieAtlasGraphicsFormat cookieFormat;
         public CubeCookieResolution pointCookieSize;
         public int cubeCookieTexArraySize;
 
-        public int planarReflectionProbeCacheSize;
-        public PlanarReflectionResolution planarReflectionTextureSize;
+        // We keep this property for the migration code (we need to know how many cookies we could have before).
+        [Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.")]
+        public int cookieTexArraySize;
+
+        public int cookieAtlasLastValidMip;
+        public int cookieAreaTextureArraySize;
+
+        [FormerlySerializedAs("planarReflectionTextureSize")]
+        public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
         public int reflectionProbeCacheSize;
         public CubeReflectionResolution reflectionCubemapSize;
         public bool reflectionCacheCompressed;
@@ -149,5 +168,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxAreaLightsOnScreen;
         public int maxEnvLightsOnScreen;
         public int maxDecalsOnScreen;
+        public int maxPlanarReflectionOnScreen;
     }
 }

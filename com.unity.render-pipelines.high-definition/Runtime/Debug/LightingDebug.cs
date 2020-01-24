@@ -144,6 +144,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float                debugExposure = 0.0f;
 
+        public bool                 displayCookieAtlas = false;
+        public bool                 displayCookieCubeArray = false;
+        public uint                 cookieCubeArraySliceIndex = 0;
+        public uint                 cookieAtlasMipLevel = 0;
+        public bool                 clearCookieAtlas = false;
+
+        public bool                 displayPlanarReflectionProbeAtlas = false;
+        public uint                 planarReflectionProbeMipLevel = 0;
+        public bool                 clearPlanarReflectionProbeAtlas = false;
+
         public bool                 showPunctualLight = true;
         public bool                 showDirectionalLight = true;
         public bool                 showAreaLight = true;

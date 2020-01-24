@@ -217,6 +217,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return (int)Math.Log(highestDim, 2);
         }
 
+        public int GetCookieAtlasMipCount() => (int)Mathf.Log((int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
+        public int GetCookieCubeArraySize() => currentPlatformRenderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize;
+
+        public int GetPlanarReflectionProbeMipCount()
+        {
+            int size = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize;
+            return (int)Mathf.Log(size, 2);
+        }
+
         internal int GetMaxScreenSpaceShadows()
         {
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
@@ -1482,7 +1491,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             break;
                         case ProbeSettings.ProbeType.PlanarProbe:
-                            int desiredPlanarProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize;
+                            int desiredPlanarProbeSize = (int)visibleProbe.resolution;
                             if (visibleProbe.realtimeTexture == null || visibleProbe.realtimeTexture.width != desiredPlanarProbeSize)
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
@@ -4145,6 +4154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 mpb.SetTexture(HDShaderIDs._InputCubemap, debugParameters.skyReflectionTexture);
                 mpb.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
                 mpb.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
                 cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                 cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                 HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, debugParameters.hdCamera);

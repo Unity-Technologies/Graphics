@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._AreaCookieTextures, m_TextureCaches.areaLightCookieManager.GetTexCache());
+                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._RaytracedAreaShadowIntegration, intermediateBufferRGBA0);
@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._AreaCookieTextures, m_TextureCaches.areaLightCookieManager.GetTexCache());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
 
                     // Output buffers
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._RaytracedAreaShadowSample, intermediateBufferRGBA1);

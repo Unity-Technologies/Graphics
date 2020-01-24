@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using System.Text.RegularExpressions;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
@@ -196,6 +198,20 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        public static void BlitQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
@@ -750,6 +766,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return s_DefaultHDAdditionalCameraData;
         }
 
+        static Dictionary<GraphicsFormat, int> graphicsFormatSizeCache = new Dictionary<GraphicsFormat, int>
+        {
+            // Init some default format so we don't allocate more memory on the first frame.
+            {GraphicsFormat.R8G8B8A8_UNorm, 4},
+            {GraphicsFormat.R16G16B16A16_SFloat, 8},
+            {GraphicsFormat.RGB_BC6H_SFloat, 1}, // BC6H uses 128 bits for each 4x4 tile which is 8 bits per pixel
+        };
+
+        /// <summary>
+        /// Compute the size in bytes of a GraphicsFormat. Does not works with compressed formats.
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns>Size in Bytes</returns>
+        internal static int GetFormatSizeInBytes(GraphicsFormat format)
+        {
+            if (graphicsFormatSizeCache.TryGetValue(format, out var size))
+                return size;
+
+            // Compute the size by parsing the enum name: Note that it does not works with compressed formats
+            string name = format.ToString();
+            int underscoreIndex = name.IndexOf('_');
+            name = name.Substring(0, underscoreIndex == -1 ? name.Length : underscoreIndex);
+
+            // Extract all numbers from the format name:
+            int bits = 0;
+            foreach (Match m in Regex.Matches(name, @"\d+"))
+                bits += int.Parse(m.Value);
+
+            size = bits / 8;
+            graphicsFormatSizeCache[format] = size;
+            return size;
+        }
 
         internal static void DisplayUnsupportedMessage(string msg)
         {
