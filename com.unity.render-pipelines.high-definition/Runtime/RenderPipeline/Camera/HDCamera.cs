@@ -158,6 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public int lightInstanceID;
             public uint frameCount;
+            public GPULightType lightType;
         }
 
         internal Vector4[]              frustumPlaneEquations;
@@ -293,16 +294,18 @@ namespace UnityEngine.Rendering.HighDefinition
             ? m_AdditionalCameraData.probeCustomFixedExposure
             : 1.0f;
 
-        internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
             return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetInstanceID()
-                    && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1));
+                    && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1))
+                    && (shadowHistoryUsage[screenSpaceShadowIndex].lightType == lightType);
         }
 
-        internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
             shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
+            shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
