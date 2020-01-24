@@ -495,14 +495,14 @@ namespace UnityEngine.Rendering.Universal
     //     public string name = "PostEffectEntry";
     // }
 
-    public enum EntryType
+    internal enum EntryType
     {
         Camera,
         PostProcessing,
     }
 
     [Serializable]
-    public class CameraStackEntry
+    internal class CameraStackEntry
     {
         public Camera camera;
         public EntryType entryType;
@@ -523,7 +523,17 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         List<int> m_PostProcessingIndexes = new List<int>();
 
-        public void AddEntry()
+        public List<Camera> GetAllCameras()
+        {
+            return cameras;
+        }
+
+        public void SetPostProcessingEntry(int index)
+        {
+
+        }
+
+        public void AddCamera(Camera camera)
         {
 
         }

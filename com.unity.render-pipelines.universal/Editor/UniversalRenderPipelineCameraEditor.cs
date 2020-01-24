@@ -252,13 +252,18 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+
         void RemoveElement(ReorderableList list)
         {
-            Debug.Log(list.index);
-            m_StackEntriesProp.DeleteArrayElementAtIndex(list.index);
-            //ReorderableList.defaultBehaviours.DoRemoveButton(list);
-            m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
-            m_AdditionalCameraDataSO.ApplyModifiedProperties();
+            if(!IsPostProcessEntry(list.index))
+            {
+                m_StackEntriesProp.DeleteArrayElementAtIndex(list.index);
+
+                // Need to double check if this one is needed or not??!!
+                //ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+                m_AdditionalCameraDataSO.ApplyModifiedProperties();
+            }
         }
 
         void SelectElement(ReorderableList list)
@@ -295,7 +300,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Might not need this
             m_StackEntriesProp.serializedObject.Update();
-
+            Debug.Log($"Entry:: {index}");
             var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(index);
             if (stackEntry != null)
             {
@@ -347,13 +352,11 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    Debug.Log("Should delete something");
-                    // Automagicaly deletes the entry if a user has removed a camera from the scene
-                    m_StackEntriesProp.DeleteArrayElementAtIndex(index);
-                    m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
-
-
-                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                    // HIG doesnt allow us to remove data on a re-draw and without a user input.
+                    GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
+                    m_NameContent.text = "MISSING CAMERA";
+                    string warningInfo = "Camera is missing";
+                    EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
 
                     // Need to clean out the errorCamera list here.
                     errorCameras.Clear();
@@ -380,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            var names = new GUIContent[validCameras.Count+1];
+            var names = new GUIContent[validCameras.Count];
 
             for (int i = 0; i < validCameras.Count; ++i)
             {
@@ -393,8 +396,46 @@ namespace UnityEditor.Rendering.Universal
                 names[0] = new GUIContent("No Overlay Cameras exist.");
             }
 
-            names[names.Length-1] = new GUIContent("PostProcessingEntry");
             EditorUtility.DisplayCustomMenu(rect, names, -1, AddCameraToCameraListMenuSelected, null);
+        }
+
+        bool IsPostProcessEntry(int index)
+        {
+            var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(index);
+            if (stackEntry.FindPropertyRelative("entryType").intValue == (int)EntryType.PostProcessing)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
+        void AddPostProcessingEntry()
+        {
+            var length = m_StackEntriesProp.arraySize;
+            ++m_StackEntriesProp.arraySize;
+            m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+            var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(length);
+
+            stackEntry.FindPropertyRelative("camera").objectReferenceValue = null;
+            stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.PostProcessing;
+            m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+            m_AdditionalCameraDataSO.ApplyModifiedProperties();
+
+        }
+
+        void RemovePostProcessingEntry()
+        {
+            for (int i = 0; i < m_StackEntriesProp.arraySize; ++i)
+            {
+                var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(i);
+                if (stackEntry.FindPropertyRelative("entryType").intValue == (int)EntryType.PostProcessing)
+                {
+                    m_StackEntriesProp.DeleteArrayElementAtIndex(i);
+                    m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
+                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                }
+            }
         }
 
         void AddCameraToCameraListMenuSelected(object userData, string[] options, int selected)
@@ -403,18 +444,9 @@ namespace UnityEditor.Rendering.Universal
             ++m_StackEntriesProp.arraySize;
             m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
             var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(length);
+            stackEntry.FindPropertyRelative("camera").objectReferenceValue = validCameras[selected];
+            stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.Camera;
 
-            if (selected == validCameras.Count)
-            {
-                Debug.Log("Selected Last Entry");
-                stackEntry.FindPropertyRelative("camera").objectReferenceValue = null;
-                stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.PostProcessing;
-            }
-            else
-            {
-                stackEntry.FindPropertyRelative("camera").objectReferenceValue = validCameras[selected];
-                stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.Camera;
-            }
             m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
         }
 
@@ -865,6 +897,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (hasChanged)
             {
+                if (selectedRenderPostProcessing)
+                {
+                    // Create Post Processing Entry
+                    AddPostProcessingEntry();
+                }
+                else
+                {
+                    // Remove Post Processing Entry
+                    RemovePostProcessingEntry();
+                }
                 if (m_AdditionalCameraDataSO == null)
                 {
                     m_AdditionalCameraData = Undo.AddComponent<UniversalAdditionalCameraData>(camera.gameObject);
