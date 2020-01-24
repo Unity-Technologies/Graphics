@@ -523,17 +523,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         List<int> m_PostProcessingIndexes = new List<int>();
 
-
-        public void AddCamera(Camera camera)
+        public void AddEntry()
         {
-            //if(cameras == null)
-            //    cameras = new List<Camera>();
-            cameras.Append(camera);
-        }
 
-        public void RemoveCamera(Camera camera)
-        {
-            cameras.Remove(camera);
         }
 
         public override string ToString()
