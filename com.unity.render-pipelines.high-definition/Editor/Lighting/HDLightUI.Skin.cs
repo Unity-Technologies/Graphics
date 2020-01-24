@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
             public readonly GUIContent lightIntensity = new GUIContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
 
-            public readonly GUIContent lightRadius = new GUIContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highligt, and the softness of Ray Traced shadows.");
+            public readonly GUIContent lightRadius = new GUIContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highlight, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
