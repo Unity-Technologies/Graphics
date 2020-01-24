@@ -911,6 +911,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kUseSplitLighting = "_RequireSplitLighting";
 
         public const string kZWrite = "_ZWrite";
+        public const string kTransparentZWrite = "_TransparentZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
 

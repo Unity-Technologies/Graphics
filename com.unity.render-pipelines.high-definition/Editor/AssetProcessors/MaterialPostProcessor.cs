@@ -4,6 +4,9 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
+// Material property names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     class MaterialModificationProcessor : AssetModificationProcessor
@@ -171,6 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
         {
              StencilRefactor,
+             ZWriteForTransparent,
         };
 
         #region Migrations
@@ -243,6 +247,15 @@ namespace UnityEditor.Rendering.HighDefinition
         //            break;
         //    }
         //}
+
+        static void ZWriteForTransparent(Material material, HDShaderUtils.ShaderID id)
+        {
+            // For transparent materials, the ZWrite property that is now used is _TransparentZWrite.
+            if (material.GetSurfaceType() == SurfaceType.Transparent)
+                material.SetFloat(kTransparentZWrite, material.GetZWrite() ? 1.0f : 0.0f);
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
 
         #endregion
 
