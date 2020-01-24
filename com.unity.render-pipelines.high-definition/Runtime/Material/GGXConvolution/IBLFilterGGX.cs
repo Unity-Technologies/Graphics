@@ -68,11 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeGgxIblSampleData(CommandBuffer cmd)
         {
             m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
-
-            using (new ProfilingSample(cmd, "Compute GGX IBL Sample Data"))
-            {
-                cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
-            }
+            cmd.DispatchCompute(m_ComputeGgxIblSampleDataCS, m_ComputeGgxIblSampleDataKernel, 1, 1, 1);
         }
 
         public override void Cleanup()
@@ -85,50 +81,50 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture source, RenderTexture target,
             Matrix4x4[] worldToViewMatrices)
         {
-            int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
-            if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FilterCubemapGGX)))
             {
-                Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
-                return;
-            }
+                int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
+                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+                {
+                    Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
+                    return;
+                }
 
-            // Copy the first mip
-            using (new ProfilingSample(cmd, "Copy Original Mip"))
-            {
+                // Copy the first mip
                 for (int f = 0; f < 6; f++)
                 {
                     cmd.CopyTexture(source, f, 0, target, f, 0);
                 }
-            }
 
-            // Solid angle associated with a texel of the cubemap.
-            float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
+                // Solid angle associated with a texel of the cubemap.
+                float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
 
-            if (!m_GgxIblSampleData.IsCreated())
-            {
-                m_GgxIblSampleData.Create();
-                InitializeGgxIblSampleData(cmd);
-            }
-
-            m_convolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
-
-            var props = new MaterialPropertyBlock();
-            props.SetTexture("_MainTex", source);
-            props.SetFloat("_InvOmegaP", invOmegaP);
-
-            for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
-            {
-                props.SetFloat("_Level", mip);
-
-                for (int face = 0; face < 6; ++face)
+                if (!m_GgxIblSampleData.IsCreated())
                 {
-                    var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
-                    var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
+                    m_GgxIblSampleData.Create();
+                    InitializeGgxIblSampleData(cmd);
+                }
 
-                    props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+                m_convolveMaterial.SetTexture("_GgxIblSamples", m_GgxIblSampleData);
 
-                    CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
-                    CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
+                var props = new MaterialPropertyBlock();
+                props.SetTexture("_MainTex", source);
+                props.SetFloat("_InvOmegaP", invOmegaP);
+
+                for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
+                {
+                    props.SetFloat("_Level", mip);
+
+                    for (int face = 0; face < 6; ++face)
+                    {
+                        var faceSize = new Vector4(source.width >> mip, source.height >> mip, 1.0f / (source.width >> mip), 1.0f / (source.height >> mip));
+                        var transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, faceSize, worldToViewMatrices[face], true);
+
+                        props.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, transform);
+
+                        CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, mip, (CubemapFace)face);
+                        CoreUtils.DrawFullScreen(cmd, m_convolveMaterial, props);
+                    }
                 }
             }
         }
@@ -148,11 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int numRows = conditionalCdf.height;
 
-            using (new ProfilingSample(cmd, "Build Probability Tables"))
-            {
-                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
-                cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
-            }
+            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_ConditionalDensitiesKernel, numRows, 1, 1);
+            cmd.DispatchCompute(m_BuildProbabilityTablesCS, m_MarginalRowDensitiesKernel, 1, 1, 1);
 
             m_convolveMaterial.EnableKeyword("USE_MIS");
             m_convolveMaterial.SetTexture("_ConditionalDensities", conditionalCdf);

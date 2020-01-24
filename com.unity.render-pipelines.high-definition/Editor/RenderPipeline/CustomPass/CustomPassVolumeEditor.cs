@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -15,6 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
         ReorderableList         m_CustomPassList;
         string                  m_ListName;
         CustomPassVolume        m_Volume;
+        MaterialEditor[]        m_MaterialEditors = new MaterialEditor[0];
+        int                     m_CustomPassMaterialsHash;
 
         const string            k_DefaultListName = "Custom Passes";
 
@@ -51,14 +54,50 @@ namespace UnityEditor.Rendering.HighDefinition
                     fadeRadius = o.Find(x => x.fadeRadius),
                 };
             }
-            
+
             CreateReorderableList(m_SerializedPassVolume.customPasses);
+
+            UpdateMaterialEditors();
         }
 
         public override void OnInspectorGUI()
         {
             DrawSettingsGUI();
             DrawCustomPassReorderableList();
+            DrawMaterialsGUI();
+        }
+
+        List<Material> GatherCustomPassesMaterials()
+            => m_Volume.customPasses.SelectMany(p => p.RegisterMaterialForInspector()).Where(m => m != null).ToList();
+
+        void UpdateMaterialEditors()
+        {
+            var materials = GatherCustomPassesMaterials();
+
+            // Destroy all material editors:
+            foreach (var materialEditor in m_MaterialEditors)
+                CoreUtils.Destroy(materialEditor);
+
+            m_MaterialEditors = new MaterialEditor[materials.Count];
+            for (int i = 0; i < materials.Count; i++)
+                m_MaterialEditors[i] = CreateEditor(materials[i], typeof(MaterialEditor)) as MaterialEditor;
+        }
+
+        void DrawMaterialsGUI()
+        {
+            int materialsHash = GatherCustomPassesMaterials().Aggregate(0, (c, m) => c += m.GetHashCode());
+
+            if (materialsHash != m_CustomPassMaterialsHash)
+                UpdateMaterialEditors();
+
+            // Draw the material inspectors:
+            foreach (var materialEditor in m_MaterialEditors)
+            {
+                materialEditor.DrawHeader();
+                materialEditor.OnInspectorGUI();
+            }
+
+            m_CustomPassMaterialsHash = materialsHash;
         }
 
         Dictionary<SerializedProperty, CustomPassDrawer> customPassDrawers = new Dictionary<SerializedProperty, CustomPassDrawer>();
@@ -69,21 +108,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (customPassDrawers.TryGetValue(pass, out drawer))
                 return drawer;
 
-            var passType = m_Volume.customPasses[listIndex].GetType();
+            var customPass = m_Volume.customPasses[listIndex];
 
             foreach (var drawerType in TypeCache.GetTypesWithAttribute(typeof(CustomPassDrawerAttribute)))
             {
                 var attr = drawerType.GetCustomAttributes(typeof(CustomPassDrawerAttribute), true)[0] as CustomPassDrawerAttribute;
-                if (attr.targetPassType == passType)
+                if (attr.targetPassType == customPass.GetType())
                 {
                     drawer = Activator.CreateInstance(drawerType) as CustomPassDrawer;
-                    drawer.SetPassType(passType);
+                    drawer.SetPass(customPass);
                     break;
                 }
-                if (attr.targetPassType.IsAssignableFrom(passType))
+                if (attr.targetPassType.IsAssignableFrom(customPass.GetType()))
                 {
                     drawer = Activator.CreateInstance(drawerType) as CustomPassDrawer;
-                    drawer.SetPassType(passType);
+                    drawer.SetPass(customPass);
                 }
             }
 
@@ -168,6 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     menu.AddItem(new GUIContent(customPassType.Name), false, () => {
                         m_Volume.AddPassOfType(customPassType);
                         passList.serializedObject.Update();
+                        UpdateMaterialEditors();
                     });
                 }
                 menu.ShowAsContext();
@@ -177,6 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
                 m_Volume.customPasses.RemoveAt(list.index);
                 passList.serializedObject.Update();
+                UpdateMaterialEditors();
             };
         }
 

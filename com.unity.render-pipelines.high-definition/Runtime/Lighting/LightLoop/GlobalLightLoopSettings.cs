@@ -5,54 +5,97 @@ namespace UnityEngine.Rendering.HighDefinition
     // RenderRenderPipelineSettings represent settings that are immutable at runtime.
     // There is a dedicated RenderRenderPipelineSettings for each platform
 
+    /// <summary>
+    /// Possible values for the cubemap texture size used for reflection probes.
+    /// </summary>
     [Serializable]
     public enum CubeReflectionResolution
     {
+        /// <summary>Size 128</summary>
         CubeReflectionResolution128 = 128,
+        /// <summary>Size 256</summary>
         CubeReflectionResolution256 = 256,
+        /// <summary>Size 512</summary>
         CubeReflectionResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CubeReflectionResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CubeReflectionResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CubeReflectionResolution4096 = 4096
     }
 
+    /// <summary>
+    /// Possible values for the texture 2D size used for planar reflection probes.
+    /// </summary>
     [Serializable]
     public enum PlanarReflectionResolution
     {
+        /// <summary>Size 64</summary>
         PlanarReflectionResolution64 = 64,
+        /// <summary>Size 128</summary>
         PlanarReflectionResolution128 = 128,
+        /// <summary>Size 256</summary>
         PlanarReflectionResolution256 = 256,
+        /// <summary>Size 512</summary>
         PlanarReflectionResolution512 = 512,
+        /// <summary>Size 1024</summary>
         PlanarReflectionResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         PlanarReflectionResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         PlanarReflectionResolution4096 = 4096,
+        /// <summary>Size 8192</summary>
         PlanarReflectionResolution8192 = 8192,
+        /// <summary>Size 16384</summary>
         PlanarReflectionResolution16384 = 16384
     }
 
+    /// <summary>
+    /// Possible values for the texture 2D size used for cookies.
+    /// </summary>
     [Serializable]
     public enum CookieResolution
     {
+        /// <summary>Size 64</summary>
         CookieResolution64 = 64,
+        /// <summary>Size 128</summary>
         CookieResolution128 = 128,
+        /// <summary>Size 256</summary>
         CookieResolution256 = 256,
+        /// <summary>Size 512</summary>
         CookieResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CookieResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CookieResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CookieResolution4096 = 4096,
+        /// <summary>Size 8192</summary>
         CookieResolution8192 = 8192,
+        /// <summary>Size 16384</summary>
         CookieResolution16384 = 16384
     }
 
+    /// <summary>
+    /// Possible values for the cubemap texture size used for cookies.
+    /// </summary>
     [Serializable]
     public enum CubeCookieResolution
     {
+        /// <summary>Size 64</summary>
         CubeCookieResolution64 = 64,
+        /// <summary>Size 128</summary>
         CubeCookieResolution128 = 128,
+        /// <summary>Size 256</summary>
         CubeCookieResolution256 = 256,
+        /// <summary>Size 512</summary>
         CubeCookieResolution512 = 512,
+        /// <summary>Size 1024</summary>
         CubeCookieResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
         CubeCookieResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
         CubeCookieResolution4096 = 4096
     }
 
