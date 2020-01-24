@@ -101,7 +101,6 @@ namespace UnityEditor.Rendering.LookDev
     [CustomEditor(typeof(EnvironmentLibrary))]
     class EnvironmentLibraryEditor : Editor
     {
-
         VisualElement root;
 
         public sealed override VisualElement CreateInspectorGUI()

@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
 - Fix `WaveIsFirstLane()` to ignore helper lanes in fragment shaders on PS4.
 - Fixed a bug where Unity would crash if you tried to remove a Camera component from a GameObject using the Inspector window, while other components dependended on the Camera component.
+- Fix LookDev FPS manipulation in view
+- Fix LookDev zoom being stuck when going near camera pivot position
+- Fix LookDev manipulation in view non responsive if directly using an HDRI
+- Fix LookDev behaviour when user delete the EnvironmentLibrary asset
 
 ## [7.1.1] - 2019-09-05
 
