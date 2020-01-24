@@ -90,8 +90,6 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-uint _DecalLayerMask;
-
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED

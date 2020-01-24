@@ -27,8 +27,6 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-uint _DecalLayerMask;
-
 #pragma fragment frag
 float4 frag(ps_input i) : SV_TARGET
 {

@@ -93,8 +93,6 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-uint _DecalLayerMask;
-
 #pragma fragment frag
 ps_output frag(ps_input i)
 {

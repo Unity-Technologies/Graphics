@@ -127,8 +127,6 @@ Pass
     int _ObjectId;
     int _PassValue;
 
-    uint _DecalLayerMask;
-
     //-------------------------------------------------------------------------------------
     // Interpolator Packing And Struct Declarations
     //-------------------------------------------------------------------------------------
@@ -198,7 +196,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
         $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
         $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
-     
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
@@ -329,9 +327,9 @@ $include("SharedCode.template.hlsl")
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
-    
+
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:

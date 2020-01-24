@@ -37,8 +37,6 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-uint _DecalLayerMask;
-
 #pragma fragment frag
 void frag(ps_input i
 #ifdef WRITE_NORMAL_BUFFER
