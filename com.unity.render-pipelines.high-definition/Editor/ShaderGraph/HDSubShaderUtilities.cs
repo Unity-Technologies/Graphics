@@ -1261,7 +1261,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
-            collector.AddToggleProperty("_ZWrite", zWrite);
+            collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
+            collector.AddToggleProperty(kTransparentZWrite, zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
             collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddToggleProperty(kEnableFogOnTransparent, fogOnTransparent);

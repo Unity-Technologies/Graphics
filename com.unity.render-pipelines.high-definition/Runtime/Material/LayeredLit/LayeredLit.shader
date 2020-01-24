@@ -278,6 +278,7 @@ Shader "HDRP/LayeredLit"
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
 
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
+        [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
