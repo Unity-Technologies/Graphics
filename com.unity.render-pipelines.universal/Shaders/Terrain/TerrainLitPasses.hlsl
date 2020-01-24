@@ -60,6 +60,7 @@ struct Varyings
     float4 shadowCoord              : TEXCOORD8;
 #endif
     float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
@@ -246,6 +247,7 @@ Varyings SplatmapVert(Attributes v)
     Varyings o = (Varyings)0;
 
     UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.positionOS, v.normalOS, v.texcoord);
 
     VertexPositionInputs Attributes = GetVertexPositionInputs(v.positionOS.xyz);
