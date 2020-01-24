@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Instance = new HDProbeSystemInternal();
 #if UNITY_EDITOR
             UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DisposeStaticInstance;
+            UnityEditor.EditorApplication.quitting += DisposeStaticInstance;
 #endif
         }
 
@@ -38,7 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbe probe, Transform viewerTransform,
             Texture outTarget, out HDProbe.RenderData outRenderData,
             bool forceFlipY = false,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, viewerTransform);
@@ -48,7 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 outTarget,
                 out var cameraSettings, out var cameraPosition,
                 forceFlipY,
-                referenceFieldOfView: referenceFieldOfView
+                referenceFieldOfView: referenceFieldOfView,
+                referenceAspect: referenceAspect
             );
 
             outRenderData = new HDProbe.RenderData(cameraSettings, cameraPosition);

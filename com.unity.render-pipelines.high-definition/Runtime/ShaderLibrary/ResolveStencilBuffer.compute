@@ -1,0 +1,25 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel MAIN_MSAA_2  RESOLVE_KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2
+#pragma kernel MAIN_MSAA_4  RESOLVE_KERNEL_NAME=MAIN_MSAA_4  NUM_SAMPLES=4
+#pragma kernel MAIN_MSAA_8  RESOLVE_KERNEL_NAME=MAIN_MSAA_8  NUM_SAMPLES=8
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+TEXTURE2D_X_MSAA(uint2, _StencilTexture);
+RW_TEXTURE2D_X(uint2, _OutputStencilBuffer);
+
+[numthreads(8, 8, 1)]
+void RESOLVE_KERNEL_NAME(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    // The best shot at resolving is being overly conservative, hence the OR operator. This is by nature inaccurate. 
+    uint resolvedStencil = 0;
+    UNITY_UNROLL
+    for (uint i = 0; i < NUM_SAMPLES; i++)
+    {
+        resolvedStencil |= LOAD_TEXTURE2D_X_MSAA(_StencilTexture, dispatchThreadID.xy, i).g;
+    }
+
+    _OutputStencilBuffer[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = uint2(resolvedStencil, resolvedStencil);
+}

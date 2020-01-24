@@ -34,60 +34,110 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
 
+            public const string installConfigPackageLabel = "Install Configuration Editable Package";
+            public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
+            public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
+            public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
+
             public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
+
+            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
+            public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
+            public const string hdrpVersionWithLocalPackage = "You are using High-Definition Render Pipeline local {0} version. Last packaged version available is {1}."; //{0} and {1} will be replaced when displayed by the version number.
+            public const string hdrpVersionChecking = "Checking last version available for High-Definition Render Pipeline.";
 
             //configuration debugger
             public const string resolve = "Fix";
             public const string resolveAll = "Fix All";
             public const string resolveAllQuality = "Fix All Qualities";
             public const string resolveAllBuildTarget = "Fix All Platforms";
-            public const string allConfigurationError = "There is issue in your configuration. (See below for detail)";
-            public const string colorSpaceLabel = "Color space";
-            public const string colorSpaceError = "Only linear color space supported!";
-            public const string lightmapLabel = "Lightmap encoding";
-            public const string lightmapError = "Only high quality lightmap supported!";
-            public const string shadowLabel = "Shadows";
-            public const string shadowError = "Shadow must be set to activated! (either on hard or soft)";
-            public const string shadowMaskLabel = "Shadowmask mode";
-            public const string shadowMaskError = "Only distance shadowmask supported at the project level! (You can still change this per light.)";
-            public const string scriptingRuntimeVersionLabel = "Script runtime version";
-            public const string scriptingRuntimeVersionError = "Script runtime version must be .Net 4.x or earlier!";
-            public const string hdrpAssetLabel = "Asset configuration";
-            public const string hdrpAssetError = "There are issues in the HDRP asset configuration. (see below)";
-            public const string hdrpAssetUsedLabel = "Assigned";
-            public const string hdrpAssetUsedError = "There is no HDRP asset assigned to the render pipeline!";
-            public const string hdrpAssetRuntimeResourcesLabel = "Runtime resources";
-            public const string hdrpAssetRuntimeResourcesError = "There is an issue with the runtime resources!";
-            public const string hdrpAssetEditorResourcesLabel = "Editor resources";
-            public const string hdrpAssetEditorResourcesError = "There is an issue with the editor resources!";
-            public const string hdrpAssetDiffusionProfileLabel = "Diffusion profile";
-            public const string hdrpAssetDiffusionProfileError = "There is no diffusion profile assigned in the HDRP asset!";
-            public const string hdrpSRPBatcherLabel = "SRP Batcher";
-            public const string hdrpSRPBatcherError = "SRP Batcher must be enabled!";
-            public const string defaultSceneLabel = "Default scene prefab";
-            public const string defaultSceneError = "Default scene prefab must be set to create HD templated scene!";
-            public const string defaultVolumeProfileLabel = "Default volume profile";
-            public const string defaultVolumeProfileError = "Default volume profile must be assigned in the HDRP asset!";
-            public const string vrSupportedLabel = "VR activated";
-            public const string vrSupportedError = "VR need to be enabled in Player Settings!";
-            public const string dxrAutoGraphicsAPILabel = "Auto graphics API";
-            public const string dxrAutoGraphicsAPIError = "Auto Graphics API is not supported!";
-            public const string dxrDirect3D12Label = "Direct3D 12";
-            public const string dxrDirect3D12Error = "Direct3D 12 is needed!";
-            public const string dxrScreenSpaceShadowLabel = "Screen Space Shadow";
-            public const string dxrScreenSpaceShadowError = "Screen Space Shadow is required!";
-            public const string dxrStaticBatchingLabel = "Static Batching";
-            public const string dxrStaticBatchingError = "Static Batching is not supported!";
-            public const string dxrSymbolLabel = "Scripting symbols";
-            public const string dxrSymbolError = "REALTIME_RAYTRACING_SUPPORT must be defined!";
-            public const string dxrResourcesLabel = "DXR resources";
-            public const string dxrResourcesError = "There is an issue with the DXR resources!";
-            public const string dxrActivatedLabel = "DXR activated";
-            public const string dxrActivatedError = "DXR is not activated!";
-            public const string defaultDXRSceneLabel = "Default DXR scene prefab";
-            public const string defaultDXRSceneError = "Default DXR scene prefab must be set to create HD templated scene!";
+
+            public struct ConfigStyle
+            {
+                public readonly string label;
+                public readonly string error;
+                public readonly string button;
+                public ConfigStyle(string label, string error, string button = resolve)
+                {
+                    this.label = label;
+                    this.error = error;
+                    this.button = button;
+                }
+            }
+
+            public static readonly ConfigStyle hdrpColorSpace = new ConfigStyle(
+                label: "Color space",
+                error: "Only linear color space supported!");
+            public static readonly ConfigStyle hdrpLightmapEncoding = new ConfigStyle(
+                label: "Lightmap encoding",
+                error: "Only high quality lightmap supported!",
+                button: resolveAllBuildTarget);
+            public static readonly ConfigStyle hdrpShadow = new ConfigStyle(
+                label: "Shadows",
+                error: "Shadow must be set to activated! (either on hard or soft)");
+            public static readonly ConfigStyle hdrpShadowmask = new ConfigStyle(
+                label: "Shadowmask mode",
+                error: "Only distance shadowmask supported at the project level! (You can still change this per light.)",
+                button: resolveAllQuality);
+            public static readonly ConfigStyle hdrpAsset = new ConfigStyle(
+                label: "Asset configuration",
+                error: "There are issues in the HDRP asset configuration. (see below)",
+                button: resolveAll);
+            public static readonly ConfigStyle hdrpAssetAssigned = new ConfigStyle(
+                label: "Assigned",
+                error: "There is no HDRP asset assigned to the render pipeline!");
+            public static readonly ConfigStyle hdrpAssetRuntimeResources = new ConfigStyle(
+                label: "Runtime resources",
+                error: "There is an issue with the runtime resources!");
+            public static readonly ConfigStyle hdrpAssetEditorResources = new ConfigStyle(
+                label: "Editor resources",
+                error: "There is an issue with the editor resources!");
+            public static readonly ConfigStyle hdrpBatcher = new ConfigStyle(
+                label: "SRP Batcher",
+                error: "SRP Batcher must be enabled!");
+            public static readonly ConfigStyle hdrpAssetDiffusionProfile = new ConfigStyle(
+                label: "Diffusion profile",
+                error: "There is no diffusion profile assigned in the HDRP asset!");
+            public static readonly ConfigStyle hdrpScene = new ConfigStyle(
+                label: "Default scene prefab",
+                error: "Default scene prefab must be set to create HD templated scene!");
+            public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
+                label: "Default volume profile",
+                error: "Default volume profile must be assigned in the HDRP asset!");
+
+            public static readonly ConfigStyle vrActivated = new ConfigStyle(
+                label: "VR activated",
+                error: "VR need to be enabled in Player Settings!");
+
+            public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
+                label: "Auto graphics API",
+                error: "Auto Graphics API is not supported!");
+            public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
+                label: "Direct3D 12",
+                error: "Direct3D 12 is needed!");
+            public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
+                label: "Screen Space Shadow",
+                error: "Screen Space Shadow is required!");
+            public static readonly ConfigStyle dxrReflections = new ConfigStyle(
+                label: "Reflections",
+                error: "Screen Space Reflections are required!");
+            public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
+                label: "Static Batching",
+                error: "Static Batching is not supported!");
+            public static readonly ConfigStyle dxrActivated = new ConfigStyle(
+                label: "DXR activated",
+                error: "DXR is not activated!");
+            public static readonly ConfigStyle dxrResources = new ConfigStyle(
+                label: "DXR resources",
+                error: "There is an issue with the DXR resources!");
+            public static readonly ConfigStyle dxrShaderConfig = new ConfigStyle(
+                label: "DXR shader config",
+                error: "There is an issue with the DXR shader config!");
+            public static readonly ConfigStyle dxrScene = new ConfigStyle(
+                label: "Default DXR scene prefab",
+                error: "Default DXR scene prefab must be set to create HD templated scene!");
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -107,10 +157,21 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRP,
             HDRP_VR,
             HDRP_DXR
-        };
+        }
+        
+        enum ConfigPackageState
+        {
+            BeingChecked,
+            Missing,
+            Present,
+            BeingFixed
+        }
 
         Configuration m_Configuration;
         VisualElement m_BaseUpdatable;
+        VisualElement m_InstallConfigPackageHelpbox = null;
+        VisualElement m_InstallConfigPackageButton = null;
+        Label m_InstallConfigPackageHelpboxLabel;
         ObjectField m_DefaultScene;
         ObjectField m_DefaultDXRScene;
 
@@ -183,11 +244,15 @@ namespace UnityEditor.Rendering.HighDefinition
             rootVisualElement.Add(scrollView);
             var container = scrollView.contentContainer;
 
+            container.Add(CreateHdrpVersionChecker());
+
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
             container.Add(m_DefaultScene = CreateDefaultScene());
             container.Add(m_DefaultDXRScene = CreateDXRDefaultScene());
-            
+
+            container.Add(CreateInstallConfigPackageArea());
+
             container.Add(CreateTitle(Style.configurationTitle));
             container.Add(CreateTabbedBox(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -198,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     : new[] {
                         (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
-                        (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
+                        //VR only supported on window
                         //DXR only supported on window
                     },
                 out m_BaseUpdatable));
@@ -248,9 +313,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BaseUpdatable.Add(dxrScope);
             
             container.Add(CreateTitle(Style.migrationTitle));
-            container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
-            container.Add(CreateMigrationButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
-            container.Add(CreateMigrationButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
+            container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
+            container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
+            container.Add(CreateLargeButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
 
             container.Add(CreateWizardBehaviour());
         }
@@ -347,41 +412,87 @@ namespace UnityEditor.Rendering.HighDefinition
             return toggle;
         }
 
-        VisualElement CreateMigrationButton(string title, Action action)
+        VisualElement CreateLargeButton(string title, Action action)
             => new Button(action)
             {
                 text = title,
-                name = "MigrationButton"
+                name = "LargeButton"
             };
 
+        VisualElement CreateInstallConfigPackageArea()
+        {
+            VisualElement area = new VisualElement()
+            {
+                name = "InstallConfigPackageArea"
+            };
+            m_InstallConfigPackageButton = CreateLargeButton(Style.installConfigPackageLabel, () =>
+            {
+                UpdateDisplayOfConfigPackageArea(ConfigPackageState.BeingFixed);
+                InstallLocalConfigurationPackage(() =>
+                    UpdateDisplayOfConfigPackageArea(ConfigPackageState.Present));
+            });
+            m_InstallConfigPackageHelpbox = new HelpBox(HelpBox.Kind.Info, Style.installConfigPackageInfoInCheck);
+            m_InstallConfigPackageHelpboxLabel = m_InstallConfigPackageHelpbox.Q<Label>();
+            area.Add(m_InstallConfigPackageButton);
+            area.Add(m_InstallConfigPackageHelpbox);
+
+            UpdateDisplayOfConfigPackageArea(ConfigPackageState.BeingChecked);
+
+            RefreshDisplayOfConfigPackageArea();
+            return area;
+        }
+
+        void UpdateDisplayOfConfigPackageArea(ConfigPackageState state)
+        {
+            switch (state)
+            {
+                case ConfigPackageState.Present:
+                    m_InstallConfigPackageButton.SetEnabled(false);
+                    m_InstallConfigPackageButton.focusable = false;
+                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
+                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoFinished;
+                    break;
+
+                case ConfigPackageState.Missing:
+                    m_InstallConfigPackageButton.SetEnabled(true);
+                    m_InstallConfigPackageButton.focusable = true;
+                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.None;
+                    break;
+                    
+                case ConfigPackageState.BeingChecked:
+                    m_InstallConfigPackageButton.SetEnabled(false);
+                    m_InstallConfigPackageButton.focusable = false;
+                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
+                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoInCheck;
+                    break;
+                    
+                case ConfigPackageState.BeingFixed:
+                    m_InstallConfigPackageButton.SetEnabled(false);
+                    m_InstallConfigPackageButton.focusable = false;
+                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
+                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoInProgress;
+                    break;
+            }
+        }
+
+        void GroupEntriesForDisplay(VisualElement container, InclusiveScope filter)
+        {
+            foreach (var entry in entries.Where(e => filter.Contains(e.scope)))
+                container.Add(new ConfigInfoLine(
+                    entry.configStyle.label,
+                    entry.configStyle.error,
+                    entry.configStyle.button,
+                    () => entry.check(),
+                    () => entry.fix(fromAsync: false),
+                    entry.indent));
+        }
+
         void AddHDRPConfigInfo(VisualElement container)
-        {
-            container.Add(new ConfigInfoLine(Style.colorSpaceLabel, Style.colorSpaceError, Style.resolve, IsColorSpaceCorrect, FixColorSpace));
-            container.Add(new ConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap));
-            container.Add(new ConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError,Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(fromAsync: false), indent: 1));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources, indent: 1));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources, indent: 1));
-            container.Add(new ConfigInfoLine(Style.hdrpSRPBatcherLabel, Style.hdrpSRPBatcherError, Style.resolve, IsSRPBatcherCorrect, FixSRPBatcher, indent: 1));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile, indent: 1));
-            container.Add(new ConfigInfoLine(Style.defaultSceneLabel, Style.defaultSceneError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(fromAsync: false)));
-            container.Add(new ConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.resolve, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned));
-        }
-
+            => GroupEntriesForDisplay(container, InclusiveScope.HDRP);
         void AddVRConfigInfo(VisualElement container)
-            =>container.Add(new ConfigInfoLine(Style.vrSupportedLabel, Style.vrSupportedError, Style.resolve, IsVRSupportedForCurrentBuildTargetGroupCorrect, FixVRSupportedForCurrentBuildTargetGroup));
-
+            => GroupEntriesForDisplay(container, InclusiveScope.VR);
         void AddDXRConfigInfo(VisualElement container)
-        {
-            container.Add(new ConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI));
-            container.Add(new ConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false)));
-            container.Add(new ConfigInfoLine(Style.dxrStaticBatchingLabel, Style.dxrStaticBatchingError, Style.resolve, IsDXRStaticBatchingCorrect, FixDXRStaticBatching));
-            container.Add(new ConfigInfoLine(Style.dxrScreenSpaceShadowLabel, Style.dxrScreenSpaceShadowError, Style.resolve, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow));
-            container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
-            container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
-            container.Add(new ConfigInfoLine(Style.defaultDXRSceneLabel, Style.defaultDXRSceneError, Style.resolve, IsDXRDefaultSceneCorrect, () => FixDXRDefaultScene(fromAsync: false)));
-        }
+            => GroupEntriesForDisplay(container, InclusiveScope.DXR);
 
         Label CreateTitle(string title)
         {
@@ -390,7 +501,35 @@ namespace UnityEditor.Rendering.HighDefinition
             return label;
         }
 
+        HelpBox CreateHdrpVersionChecker()
+        {
+            var helpBox = new HelpBox(HelpBox.Kind.Info, Style.hdrpVersionChecking);
+
+            m_LastAvailablePackageRetriever.ProcessAsync(k_HdrpPackageName, version =>
+            {
+                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, packageInfo =>
+                {
+                    if (packageInfo.source == PackageManager.PackageSource.Local)
+                    {
+                        helpBox.kind = HelpBox.Kind.Info;
+                        helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
+                    }
+                    else if(new Version(packageInfo.version) < new Version(version))
+                    {
+                        helpBox.kind = HelpBox.Kind.Warning;
+                        helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
+                    }
+                    else if (new Version(packageInfo.version) == new Version(version))
+                    {
+                        helpBox.kind = HelpBox.Kind.Info;
+                        helpBox.text = String.Format(Style.hdrpVersionLast, version);
+                    }
+                });
+            });
+
+            return helpBox;
+        }
+
         #endregion
     }
 }
-

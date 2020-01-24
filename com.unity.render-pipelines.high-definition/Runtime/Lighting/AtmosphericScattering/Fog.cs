@@ -45,19 +45,28 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
 
+        [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
+        public BoolParameter filter = new BoolParameter(false);
+
         public static bool IsFogEnabled(HDCamera hdCamera)
         {
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && VolumeManager.instance.stack.GetComponent<Fog>().enabled.value;
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricLightingEnabled(HDCamera hdCamera)
+        public static bool IsVolumetricFogEnabled(HDCamera hdCamera)
         {
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && VolumeManager.instance.stack.GetComponent<Fog>().enableVolumetricFog.value;
+            var fog = hdCamera.volumeStack.GetComponent<Fog>();
+
+            bool a = fog.enableVolumetricFog.value;
+            bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
+            bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
+
+            return a && b && c;
         }
 
         public static bool IsPBRFogEnabled(HDCamera hdCamera)
         {
-            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             // For now PBR fog (coming from the PBR sky) is disabled until we improve it
             return false;
             //return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
@@ -86,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             // TODO Handle user override
-            var fogSettings = VolumeManager.instance.stack.GetComponent<Fog>();
+            var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
             {

@@ -2,14 +2,30 @@
 {
     inputData.positionWS = input.positionWS;
 #ifdef _NORMALMAP
-    inputData.normalWS = TransformTangentToWorld(normal,
-        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+
+#if _NORMAL_DROPOFF_TS
+	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+    float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+    float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    inputData.normalWS = TransformTangentToWorld(normal, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+#elif _NORMAL_DROPOFF_OS
+	inputData.normalWS = TransformObjectToWorldNormal(normal);
+#elif _NORMAL_DROPOFF_WS
+	inputData.normalWS = normal;
+#endif
+    
 #else
     inputData.normalWS = input.normalWS;
 #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
-    inputData.shadowCoord = input.shadowCoord;
+
+#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);

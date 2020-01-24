@@ -6,7 +6,7 @@ __Cinemachine Pixel Perfect__ is an [extension](https://docs.unity3d.com/Package
 
 To add this extension to your virtual cameras, use the __Add Extension__ dropdown menu on the Cinemachine Virtual Camera Inspector window. Add this extension to each virtual camera in your Project.
 
-![](images/cine_2Dpixelperfect_ex.png)
+![](Images/2D/cine_2Dpixelperfect_ex.png)
 
 For each virtual camera attached with this extension, the Pixel Perfect Camera component then calculates a pixel-perfect orthographic size that best matches the original size of the virtual camera during __Play Mode __ or when __Run In Edit Mode__ is enabled. This is done to match the original framing of each virtual camera as close as possible when the pixel-perfect calculations are implemented.
 

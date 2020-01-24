@@ -56,8 +56,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 #if UNITY_UV_STARTS_AT_TOP  && SUBPASS_INPUT_AVAILABLE
             input.uv =  input.uv * float2(1.0, -1.0) + float2(0.0, 1.0);
 #endif
-            float2 positionNDC = input.uv;
-            int2   positionSS  = input.uv * _BlitTex_TexelSize.zw;
+
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 positionNDC = uv;
+            int2   positionSS  = uv * _BlitTex_TexelSize.zw;
 
             half3 color = Load(positionSS, 0, 0).xyz;
 

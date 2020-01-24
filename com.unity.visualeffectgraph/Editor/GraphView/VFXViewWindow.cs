@@ -31,6 +31,7 @@ namespace  UnityEditor.VFX.UI
                     {Event.KeyboardEvent("^>"), view.FrameNext },
                     {Event.KeyboardEvent("F7"), view.Compile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
+                    {Event.KeyboardEvent("^&d"), view.DuplicateSelectionWithEdges},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                     {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
                     {Event.KeyboardEvent("^r"), view.ReinitComponents},
@@ -224,7 +225,8 @@ namespace  UnityEditor.VFX.UI
 
         void OnFocus()
         {
-            graphView.OnFocus();
+            if(graphView != null) // OnFocus can be somehow called before OnEnable
+                graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }

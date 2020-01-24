@@ -31,6 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
+        private int m_Layer;
+#endif
+
         [SerializeField]
         private float m_DrawDistance = 1000.0f;
         /// <summary>
@@ -225,7 +229,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            m_OldMaterial = m_Material;
+                  
+#if UNITY_EDITOR
+            m_Layer = gameObject.layer;
+            // Handle scene visibility
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+#endif
         }
+
+#if UNITY_EDITOR
+        void UpdateDecalVisibility()
+        {
+            // Fade out the decal when it is hidden by the scene visibility
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
+            {
+                DecalSystem.instance.RemoveDecal(m_Handle);
+                m_Handle = null;
+            }
+            else if (m_Handle == null)
+            {
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+                m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            }
+        }
+#endif
 
         void OnDisable()
         {
@@ -234,6 +262,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+#endif
         }
 
         /// <summary>
@@ -245,17 +276,28 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
+                if (m_Material == null)
+                {
+                    DecalSystem.instance.RemoveDecal(m_Handle);
+                }
+
                 Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
                 // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
                 if (m_OldMaterial != m_Material)
                 {
-                    DecalSystem.instance.RemoveDecal(m_Handle);
-                    m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
-                    m_OldMaterial = m_Material;
-
-                    if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                    if (m_OldMaterial != null)
                     {
-                        m_AffectsTransparency = false;
+                        DecalSystem.instance.RemoveDecal(m_Handle);
+                    }
+
+                    if (m_Material != null)
+                    {
+                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+
+                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                        {
+                            m_AffectsTransparency = false;
+                        }
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
@@ -263,6 +305,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         OnMaterialChange();
                     }
+
+                    m_OldMaterial = m_Material;
                 }
                 else // no material change, just update whatever else changed
                 {
@@ -270,6 +314,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+#if UNITY_EDITOR
+        void Update() // only run in editor
+        {
+            if(m_Layer != gameObject.layer)
+            {
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+                m_Layer = gameObject.layer;
+                DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
+            }
+        }
+#endif
 
         void LateUpdate()
         {

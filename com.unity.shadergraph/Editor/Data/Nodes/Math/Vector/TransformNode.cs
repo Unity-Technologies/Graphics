@@ -100,8 +100,8 @@ namespace UnityEditor.ShaderGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
             string inputValue = string.Format("{0}.xyz", GetSlotValue(InputSlotId, generationMode));
-            string targetTransformString = "tangentTransform_" + conversion.from.ToString();
-            string transposeTargetTransformString = "transposeTangent";
+            string targetTransformString = GetVariableNameForNode() + "_tangentTransform_" + conversion.from.ToString();
+            string transposeTargetTransformString = GetVariableNameForNode() + "_transposeTangent";
             string transformString = "";
             string tangentTransformSpace = conversion.from.ToString();
             bool requiresTangentTransform = false;
@@ -144,6 +144,7 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
+                    tangentTransformSpace = CoordinateSpace.World.ToString();
                     transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToTangent(TransformObjectToWorldDir({0}), {1})" : "TransformWorldToTangent(TransformObjectToWorld({0}), {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
@@ -160,7 +161,7 @@ namespace UnityEditor.ShaderGraph
                 if (conversion.to == CoordinateSpace.World)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = string.Format("mul({0}, {1}).xyz", transposeTargetTransformString, inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "normalize(mul({0}, {1}).xyz)" : "mul({0}, {1}).xyz", transposeTargetTransformString, inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
@@ -215,7 +216,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir({0})" : "TransformWorldToObject({0})", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(GetCameraRelativePositionWS({0}))" : "TransformWorldToObject(GetCameraRelativePositionWS({0}))", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
@@ -245,6 +246,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.AbsoluteWorld && conversion.to == CoordinateSpace.Tangent
+                || conversion.from == CoordinateSpace.Object && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.Tangent)
                 return true;
             else

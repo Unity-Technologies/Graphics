@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Sky/Gradient Sky")]
@@ -13,24 +15,33 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the size of the horizon (Middle color).")]
         public FloatParameter gradientDiffusion = new FloatParameter(1);
 
-        public override SkyRenderer CreateRenderer()
-        {
-            return new GradientSkyRenderer(this);
-        }
-
         public override int GetHashCode()
         {
             int hash = base.GetHashCode();
 
             unchecked
             {
+#if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
+                hash = hash * 23 + bottom.value.GetHashCode();
+                hash = hash * 23 + top.value.GetHashCode();
+                hash = hash * 23 + middle.value.GetHashCode();
+                hash = hash * 23 + gradientDiffusion.value.GetHashCode();
+                
+                hash = hash * 23 + bottom.overrideState.GetHashCode();
+                hash = hash * 23 + top.overrideState.GetHashCode();
+                hash = hash * 23 + middle.overrideState.GetHashCode();
+                hash = hash * 23 + gradientDiffusion.overrideState.GetHashCode();
+#else
                 hash = hash * 23 + bottom.GetHashCode();
                 hash = hash * 23 + top.GetHashCode();
                 hash = hash * 23 + middle.GetHashCode();
                 hash = hash * 23 + gradientDiffusion.GetHashCode();
+#endif
             }
 
             return hash;
         }
+
+        public override Type GetSkyRendererType() { return typeof(GradientSkyRenderer); }
     }
 }

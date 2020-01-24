@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
 {
-    class ToolbarRadio : Toolbar, INotifyValueChanged<int>
+    class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
     {
         public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
         public new class UxmlTraits : Button.UxmlTraits { }
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.LookDev
 
         public ToolbarRadio(string label = null, bool canDeselectAll = false)
         {
-            RemoveFromClassList(Toolbar.ussClassName);
+            RemoveFromClassList(UIElements.Toolbar.ussClassName);
             AddToClassList(ussClassName);
 
             m_CanDeselectAll = canDeselectAll;

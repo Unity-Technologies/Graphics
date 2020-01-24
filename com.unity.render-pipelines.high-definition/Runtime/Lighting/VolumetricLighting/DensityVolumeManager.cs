@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
             TriggerVolumeAtlasRefresh();
         }
 
+        public bool ContainsVolume(DensityVolume volume) => volumes.Contains(volume);
+
         public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
             //Update volumes

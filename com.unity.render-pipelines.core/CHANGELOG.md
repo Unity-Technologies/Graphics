@@ -4,11 +4,32 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [Unreleased]
+
+### Added
+- Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
+- Add api documentation for TextureCombiner.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
-- Only call SetDirty on an object when actually modifying it in SRP updater utility 
+- Only call SetDirty on an object when actually modifying it in SRP updater utility
+- Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
+- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
+- Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
+- Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
+- Updated macros to be compatible with the new shader preprocessor.
+
+### Fixed
+- Fixed compile errors for platforms with no VR support
+- Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
+- Fixed LighProbes when using LookDev.
+- Fix LookDev minimal window size.
+- Fix object rotation at instentiation to keep the one in prefab or used in hierarchy.
+- Fixed shader compile errors when trying to use tessellation shaders with PlayStation VR on PS4.
+- Fixed shader compile errors about LODDitheringTransition not being supported in GLES2.
+- Fix `WaveIsFirstLane()` to ignore helper lanes in fragment shaders on PS4.
+- Fixed a bug where Unity would crash if you tried to remove a Camera component from a GameObject using the Inspector window, while other components dependended on the Camera component.
+- Fixed errors due to the debug menu when enabling the new input system.
 
 ## [7.1.1] - 2019-09-05
 

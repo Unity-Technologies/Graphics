@@ -21,19 +21,15 @@ namespace UnityEditor.Rendering.HighDefinition
             NormalBlend = 1 << 2,
             CapturePosition = 1 << 3,
             MirrorPosition = 1 << 4,
-            MirrorRotation = 1 << 5
+            MirrorRotation = 1 << 5,
+            ShowChromeGizmo = 1 << 6, //not really an edit mode. Should be move later to contextual tool overlay
         }
 
         internal interface IProbeUISettingsProvider
         {
             ProbeSettingsOverride displayedCaptureSettings { get; }
             ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
-            ProbeSettingsOverride overrideableCaptureSettings { get; }
-            ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
             ProbeSettingsOverride displayedCustomSettings { get; }
-            ProbeSettingsOverride displayedAdvancedCustomSettings { get; }
-            ProbeSettingsOverride overrideableCustomSettings { get; }
-            ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
             Type customTextureType { get; }
             ToolBar[] toolbars { get; }
             Dictionary<KeyCode, ToolBar> shortcuts { get; }
@@ -63,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent[] k_ModeContents = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_ModeValues = { (int)ProbeSettings.Mode.Baked, (int)ProbeSettings.Mode.Custom, (int)ProbeSettings.Mode.Realtime };
 
-        protected internal struct Drawer<TProvider>
+        internal struct Drawer<TProvider>
             where TProvider : struct, IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         {
             // Toolbar content cache
@@ -92,8 +88,15 @@ namespace UnityEditor.Rendering.HighDefinition
                         var toolbarJ = (ToolBar)(1 << j);
                         if ((toolBar & toolbarJ) > 0)
                         {
-                            listMode.Add(k_ToolbarMode[toolbarJ]);
-                            listContent.Add(k_ToolbarContents[toolbarJ]);
+                            if (toolBar == ToolBar.ShowChromeGizmo)
+                            {
+                                listContent.Add(k_ToolbarContents[toolbarJ]);
+                            }
+                            else
+                            {
+                                listMode.Add(k_ToolbarMode[toolbarJ]);
+                                listContent.Add(k_ToolbarContents[toolbarJ]);
+                            }
                         }
                     }
                     k_ListContent[i] = listContent.ToArray();
@@ -111,13 +114,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUILayout.FlexibleSpace();
                 GUI.changed = false;
 
-                for (int i = 0; i < k_ListModes.Length; ++i)
+                for (int i = 0; i < k_ListModes.Length - 1; ++i)
                     EditMode.DoInspectorToolbar(k_ListModes[i], k_ListContent[i], HDEditorUtils.GetBoundsGetter(owner), owner);
+
+                //Special case: show chrome gizmo should be mouved to overlay tool.
+                //meanwhile, display it as an option of toolbar
+                EditorGUI.BeginChangeCheck();
+                IHDProbeEditor probeEditor = owner as IHDProbeEditor;
+                int selected = probeEditor.showChromeGizmo ? 0 : -1;
+                int newSelected = GUILayout.Toolbar(selected, new[] { k_ListContent[k_ListModes.Length - 1][0] }, GUILayout.Height(20), GUILayout.Width(30));
+                if(EditorGUI.EndChangeCheck())
+                {
+                    //allow deselection
+                    if (selected >= 0 && newSelected == selected)
+                        selected = -1;
+                    else
+                        selected = newSelected;
+                    probeEditor.showChromeGizmo = selected == 0;
+                    SceneView.RepaintAll();
+                }
 
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
-
+            
             public static void DoToolbarShortcutKey(Editor owner)
             {
                 var provider = new TProvider();
@@ -152,11 +172,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Drawers
             public static void DrawPrimarySettings(SerializedHDProbe serialized, Editor owner)
             {
-                const string modeTooltip = "'Baked' uses the 'Auto Baking' mode from the Lighting window. " +
-                    "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
-                    "'Custom' can be used if a custom capture is wanted. \n" +
-                    "'Realtime' can be used to dynamically re-render the capture during runtime (every frame).";
-
                 var provider = new TProvider();
 
 #if !ENABLE_BAKED_PLANAR
@@ -169,9 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 // Probe Mode
-                EditorGUI.showMixedValue = serialized.probeSettings.mode.hasMultipleDifferentValues;
-                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, EditorGUIUtility.TrTextContent("Type", modeTooltip));
-                EditorGUI.showMixedValue = false;
+                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, k_BakeTypeContent);
 
 #if !ENABLE_BAKED_PLANAR
                 }
@@ -181,21 +194,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     case ProbeSettings.Mode.Realtime:
                         {
-                            EditorGUI.showMixedValue = serialized.probeSettings.realtimeMode.hasMultipleDifferentValues;
                             EditorGUILayout.PropertyField(serialized.probeSettings.realtimeMode);
-                            EditorGUI.showMixedValue = false;
                             break;
                         }
                     case ProbeSettings.Mode.Custom:
                         {
-                            EditorGUI.showMixedValue = serialized.customTexture.hasMultipleDifferentValues;
-                            EditorGUI.BeginChangeCheck();
-                            var customTexture = EditorGUILayout.ObjectField(
-                                EditorGUIUtility.TrTextContent("Texture"), serialized.customTexture.objectReferenceValue, provider.customTextureType, false
-                            );
-                            EditorGUI.showMixedValue = false;
-                            if (EditorGUI.EndChangeCheck())
-                                serialized.customTexture.objectReferenceValue = customTexture;
+                            Rect lineRect = EditorGUILayout.GetControlRect(true, 64);
+                            EditorGUI.BeginProperty(lineRect, k_CustomTextureContent, serialized.customTexture);
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                var customTexture = EditorGUI.ObjectField(lineRect, k_CustomTextureContent, serialized.customTexture.objectReferenceValue, provider.customTextureType, false);
+                                if (EditorGUI.EndChangeCheck())
+                                    serialized.customTexture.objectReferenceValue = customTexture;
+                            }
+                            EditorGUI.EndProperty();
                             break;
                         }
                 }
@@ -204,41 +216,19 @@ namespace UnityEditor.Rendering.HighDefinition
             public static void DrawCaptureSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
-                ProbeSettingsUI.Draw(
-                    serialized.probeSettings, owner,
-                    serialized.probeSettingsOverride,
-                    provider.displayedCaptureSettings, provider.overrideableCaptureSettings
-                );
+                ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedCaptureSettings);
             }
 
             public static void DrawAdvancedCaptureSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
-                ProbeSettingsUI.Draw(
-                    serialized.probeSettings, owner,
-                    serialized.probeSettingsOverride,
-                    provider.displayedAdvancedCaptureSettings, provider.overrideableAdvancedCaptureSettings
-                );
+                ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedAdvancedCaptureSettings);
             }
 
             public static void DrawCustomSettings(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
-                ProbeSettingsUI.Draw(
-                    serialized.probeSettings, owner,
-                    serialized.probeSettingsOverride,
-                    provider.displayedCustomSettings, provider.overrideableCustomSettings
-                );
-            }
-
-            public static void DrawAdvancedCustomSettings(SerializedHDProbe serialized, Editor owner)
-            {
-                var provider = new TProvider();
-                ProbeSettingsUI.Draw(
-                    serialized.probeSettings, owner,
-                    serialized.probeSettingsOverride,
-                    provider.displayedAdvancedCustomSettings, provider.overrideableAdvancedCustomSettings
-                );
+                ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedCustomSettings);
             }
 
             public static void DrawInfluenceSettings(SerializedHDProbe serialized, Editor owner)
@@ -262,7 +252,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.proxyVolume.objectReferenceValue != null)
                 {
                     var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
-                    if ((int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
+                    if (proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
                         && proxy.proxyVolume.shape != ProxyShape.Infinite)
                         EditorGUILayout.HelpBox(
                             k_ProxyInfluenceShapeMismatchHelpBoxText,
@@ -342,13 +332,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     case ProbeSettings.Mode.Baked:
                         {
+#pragma warning disable 618
                             if (UnityEditor.Lightmapping.giWorkflowMode
                                 != UnityEditor.Lightmapping.GIWorkflowMode.OnDemand)
                             {
                                 EditorGUILayout.HelpBox("Baking of this probe is automatic because this probe's type is 'Baked' and the Lighting window is using 'Auto Baking'. The texture created is stored in the GI cache.", MessageType.Info);
                                 break;
                             }
-
+#pragma warning restore 618
                             GUI.enabled = serialized.target.enabled;
 
                             // Bake button in non-continous mode
@@ -427,7 +418,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
             if (proxy != null
-                && (int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
+                && proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
                 && proxy.proxyVolume.shape != ProxyShape.Infinite)
             {
                 EditorGUILayout.HelpBox(

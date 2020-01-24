@@ -339,6 +339,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
+
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
@@ -346,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     if (shader != null)
                     {
-                        GraphData.onSaveGraph(shader);
+                        GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
                     }                    
                 }
             }
@@ -377,7 +379,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             if (GraphData.onSaveGraph != null)
                             {
                                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(newPath);
-                                GraphData.onSaveGraph(shader);
+                                // Retrieve graph context, note that if we're here the output node will always be a master node
+                                GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
                             }
                         }
                     }

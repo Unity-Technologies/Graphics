@@ -152,11 +152,13 @@ namespace UnityEditor.VFX
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
             }
+
+            foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
+                subgraphBlocks.RecreateCopy();
             SyncSlots(VFXSlot.Direction.kInput,true);
-            PatchInputExpressions();
         }
         
-        void PatchInputExpressions()
+        public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 
@@ -193,7 +195,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_SubBlocks == null || !isValid? Enumerable.Empty<VFXBlock>() : (m_SubBlocks.SelectMany(t => t is VFXSubgraphBlock ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Repeat(t, 1)));
+                return m_SubBlocks == null || !isActive ? Enumerable.Empty<VFXBlock>() : (m_SubBlocks.SelectMany(t => t is VFXSubgraphBlock ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Repeat(t, 1)));
             }
         }
         public override bool isValid

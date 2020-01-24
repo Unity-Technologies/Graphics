@@ -6,7 +6,7 @@
 
 .unity-toolbar.unity-disabled *
 {
-    background-color: none;
+    background-color: rgba(0,0,0,0);
     color: #555;
 }
 

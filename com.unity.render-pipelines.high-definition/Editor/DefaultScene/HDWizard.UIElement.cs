@@ -37,7 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Type playerSettingsType = typeof(PlayerSettings);
                 Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
                 var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
+#if UNITY_2020_1_OR_NEWER
+                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(UnityEngine.Object), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
+#else
                 var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
+#endif
                 var objectSelectorVariable = Expression.Variable(objectSelectorType, "objectSelector");
                 var objectParameter = Expression.Parameter(typeof(UnityEngine.Object), "unityObject");
                 var typeParameter = Expression.Parameter(typeof(Type), "type");
@@ -46,7 +50,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 var showObjectSelectorBlock = Expression.Block(
                     new[] { objectSelectorVariable },
                     Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
+#if UNITY_2020_1_OR_NEWER
+                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(UnityEngine.Object)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
+#else
                     Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
+#endif
                     );
                 var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type, Action<UnityEngine.Object>>>(showObjectSelectorBlock, objectParameter, typeParameter, onChangedObjectParameter);
                 ShowObjectSelector = showObjectSelectorLambda.Compile();
@@ -206,25 +214,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrpAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
             hdrpAsset.name = "HDRenderPipelineAsset";
 
-            int index = 0;
-            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList.Length];
-            foreach (var defaultProfile in hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList)
-            {
-                string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + defaultProfile.name + ".asset";
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultProfile), defaultDiffusionProfileSettingsPath);
-
-                DiffusionProfileSettings defaultDiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-
-                hdrpAsset.diffusionProfileSettingsList[index++] = defaultDiffusionProfile;
-            }
-
             AssetDatabase.CreateAsset(hdrpAsset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.name + ".asset");
 
             GraphicsSettings.renderPipelineAsset = hdrpAsset;
             if (!IsHdrpAssetRuntimeResourcesCorrect())
-                FixHdrpAssetRuntimeResources();
+                FixHdrpAssetRuntimeResources(true);
             if (!IsHdrpAssetEditorResourcesCorrect())
-                FixHdrpAssetEditorResources();
+                FixHdrpAssetEditorResources(true);
 
             CreateDefaultSceneFromPackageAnsAssignIt(forDXR: false);
         }
@@ -233,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region UIELEMENT
 
-        class ToolbarRadio : Toolbar, INotifyValueChanged<int>
+        class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
         {
             public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
             public new class UxmlTraits : Button.UxmlTraits { }
@@ -395,7 +391,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly Texture ok = CoreEditorUtils.LoadIcon(k_IconFolder, "OK");
                 public static readonly Texture error = CoreEditorUtils.LoadIcon(k_IconFolder, "Error");
 
-                public const int k_IndentStepSize = 13;
+                public const int k_IndentStepSize = 15;
             }
 
             public ConfigInfoLine(string label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
@@ -425,18 +421,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 testRow.Add(statusOK);
                 testRow.Add(statusKO);
                 testRow.Add(fixer);
-
-                var errorLabel = new Label(error);
-                var icon = new Image()
-                {
-                    image = EditorGUIUtility.IconContent("console.erroricon").image
-                };
-                var helpBox = new VisualElement() { name = "HelpBox" };
-                helpBox.Add(icon);
-                helpBox.Add(errorLabel);
-
+                
                 Add(testRow);
-                Add(helpBox);
+                Add(new HelpBox(HelpBox.Kind.Error, error));
 
                 testLabel.style.paddingLeft = style.paddingLeft.value.value + indent * Style.k_IndentStepSize;
 
@@ -459,6 +446,71 @@ namespace UnityEditor.Rendering.HighDefinition
                     this.Q(name: "Resolver").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                     this.Q(name: "HelpBox").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                 }
+            }
+        }
+
+        class HelpBox : VisualElement
+        {
+            public enum Kind
+            {
+                None,
+                Info,
+                Warning,
+                Error
+            }
+            
+            readonly Label label;
+            readonly Image icon;
+
+            public string text
+            {
+                get => label.text;
+                set => label.text = value;
+            }
+
+            Kind m_Kind = Kind.None;
+            public Kind kind
+            {
+                get => m_Kind;
+                set
+                {
+                    if (m_Kind != value)
+                    {
+                        m_Kind = value;
+
+                        string iconName;
+                        switch (kind)
+                        {
+                            default:
+                            case Kind.None:
+                                icon.style.display = DisplayStyle.None;
+                                return;
+                            case Kind.Info:
+                                iconName = "console.infoicon";
+                                break;
+                            case Kind.Warning:
+                                iconName = "console.warnicon";
+                                break;
+                            case Kind.Error:
+                                iconName = "console.erroricon";
+                                break;
+                        }
+                        icon.image = EditorGUIUtility.IconContent(iconName).image;
+                        icon.style.display = DisplayStyle.Flex;
+                    }
+                }
+            }
+
+            public HelpBox(Kind kind, string message)
+            {
+                this.label = new Label(message);
+                icon = new Image();
+
+                name = "HelpBox";
+                Add(icon);
+                Add(this.label);
+
+                this.kind = kind;
             }
         }
 

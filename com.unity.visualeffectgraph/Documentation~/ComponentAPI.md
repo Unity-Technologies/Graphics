@@ -9,7 +9,7 @@ This document present common use cases and good practices in order to use the [C
 
 The [Visual Effect Graph](VisualEffectGraphAsset.md) template can be changed at runtime using the `effect.visualEffectAsset ` property.
 
-<u>Changing the Visual Effect Graph asset will also reset the component:</u>
+<u>Changing the Visual Effect Graph Asset will also reset the component:</u>
 
 * Total Time is reset to 0.0 due to `Reset()` being called.
 * Event Attributes are discarded.

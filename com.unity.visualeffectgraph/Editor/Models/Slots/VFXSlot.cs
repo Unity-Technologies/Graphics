@@ -21,19 +21,8 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        protected VFXSlot() {onModified += t => ValueModified(); }
-
 
         FieldInfo m_FieldInfoCache;
-
-        void ValueModified()
-        {
-            m_IsValueCached = false;
-            PropagateToChildren(t => t.m_IsValueCached = false);
-        }
-
-        [System.NonSerialized]
-        bool m_IsValueCached;
 
         [System.NonSerialized]
         object m_CachedValue;
@@ -42,13 +31,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (m_IsValueCached)
-                {
-                    return m_CachedValue;
-                }
                 try
                 {
-                    // m_IsValueCached = true; // TODO Reactivate once invalidation is fixed
                     if (IsMasterSlot())
                     {
                         m_CachedValue = GetMasterData().m_Value.Get();
@@ -81,7 +65,6 @@ namespace UnityEditor.VFX
             }
             set
             {
-                m_IsValueCached = false;
                 try
                 {
                     if (IsMasterSlot())
@@ -803,9 +786,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (direction == Direction.kOutput)
-                InnerLink(this, other);
+                InnerLink(this, other, notify);
             else
-                InnerLink(other, this);
+                InnerLink(other, this, notify);
 
             if (notify)
             {
@@ -1113,10 +1096,10 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        private static void InnerLink(VFXSlot output, VFXSlot input)
+        private static void InnerLink(VFXSlot output, VFXSlot input, bool notify)
         {
-            input.UnlinkAll(); // First disconnect any other linked slot
-            input.PropagateToTree(s => s.UnlinkAll()); // Unlink other links in tree
+            input.UnlinkAll(false, notify); // First disconnect any other linked slot
+            input.PropagateToTree(s => s.UnlinkAll(false, notify)); // Unlink other links in tree
 
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);

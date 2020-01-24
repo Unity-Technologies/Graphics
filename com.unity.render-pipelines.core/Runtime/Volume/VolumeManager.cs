@@ -81,6 +81,15 @@ namespace UnityEngine.Rendering
             return stack;
         }
 
+        /// <summary>
+        /// Destroy a Volume Stack
+        /// </summary>
+        /// <param name="stack">Volume Stack that needs to be destroyed.</param>
+        public void DestroyStack(VolumeStack stack)
+        {
+            stack.Dispose();
+        }
+
         // This will be called only once at runtime and everytime script reload kicks-in in the
         // editor as we need to keep track of any compatible component in the project
         void ReloadBaseTypes()
@@ -124,7 +133,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Unregisters a Volume from the manager. Unity does this automatically when a Volume is
-        /// disabled or goes out of scope, but you can use this function to force-unregister a Volume 
+        /// disabled or goes out of scope, but you can use this function to force-unregister a Volume
         /// that you added manually while it was disabled.
         /// </summary>
         /// <param name="volume">The Volume to unregister.</param>
@@ -220,6 +229,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Checks the state of the base type library. This is only used in the editor to handle
+        /// entering and exiting of play mode and domain reload.
+        /// </summary>
         [Conditional("UNITY_EDITOR")]
         public void CheckBaseTypes()
         {
@@ -228,6 +241,11 @@ namespace UnityEngine.Rendering
                 ReloadBaseTypes();
         }
 
+        /// <summary>
+        /// Checks the state of a given stack. This is only used in the editor to handle entering
+        /// and exiting of play mode and domain reload.
+        /// </summary>
+        /// <param name="stack">The stack to check.</param>
         [Conditional("UNITY_EDITOR")]
         public void CheckStack(VolumeStack stack)
         {
@@ -289,13 +307,23 @@ namespace UnityEngine.Rendering
             // Sort the cached volume list(s) for the given layer mask if needed and return it
             var volumes = GrabVolumes(layerMask);
 
+            Camera camera = null;
+            // Behavior should be fine even if camera is null
+            if (!onlyGlobal)
+                trigger.TryGetComponent<Camera>(out camera);
+
+#if UNITY_EDITOR
+            // requested or prefab isolation mode.
+            bool needIsolation = needIsolationFilteredByRenderer || (UnityEditor.SceneManagement.StageUtility.GetCurrentStageHandle() != UnityEditor.SceneManagement.StageUtility.GetMainStageHandle());
+#endif
+
             // Traverse all volumes
             foreach (var volume in volumes)
             {
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
-                if (needIsolationFilteredByRenderer
-                    && !IsVolumeRenderedByCamera(volume, trigger.GetComponent<Camera>()))
+                if (needIsolation
+                    && !IsVolumeRenderedByCamera(volume, camera))
                     continue;
 #endif
 
@@ -412,7 +440,8 @@ namespace UnityEngine.Rendering
         static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
         {
 #if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
-            return UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
+            // IsGameObjectRenderedByCamera does not behave correctly when camera is null so we have to catch it here.
+            return camera == null ? true : UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
 #else
             return true;
 #endif
@@ -431,6 +460,9 @@ namespace UnityEngine.Rendering
         public VolumeIsolationScope(bool unused)
             => VolumeManager.needIsolationFilteredByRenderer = true;
 
+        /// <summary>
+        /// Stops the Camera from filtering a Volume.
+        /// </summary>
         void IDisposable.Dispose()
             => VolumeManager.needIsolationFilteredByRenderer = false;
     }

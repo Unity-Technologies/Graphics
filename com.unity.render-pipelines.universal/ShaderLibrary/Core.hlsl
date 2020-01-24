@@ -117,6 +117,11 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 #endif
 }
 
+half OutputAlpha(half outputAlpha)
+{
+    return saturate(outputAlpha + _DrawObjectPassData.a);
+}
+
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation.
@@ -244,12 +249,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 // Stereo-related bits
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 
-    // Only single-pass stereo instancing uses array indexing
-    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        #define SLICE_ARRAY_INDEX   unity_StereoEyeIndex
-    #else
-        #define SLICE_ARRAY_INDEX   0
-    #endif
+    #define SLICE_ARRAY_INDEX   unity_StereoEyeIndex
 
     #define TEXTURE2D_X                 TEXTURE2D_ARRAY
     #define TEXTURE2D_X_PARAM           TEXTURE2D_ARRAY_PARAM
@@ -299,6 +299,7 @@ float2 UnityStereoTransformScreenSpaceTex(float2 uv)
 {
     return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
 }
+
 #else
 
 #define UnityStereoTransformScreenSpaceTex(uv) uv

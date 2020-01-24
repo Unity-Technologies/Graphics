@@ -9,11 +9,13 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>Interface that must implement the EnvironmentLibrary view to communicate with the data management</summary>
     public interface IEnvironmentDisplayer
     {
+        /// <summary>Repaint the UI</summary>
         void Repaint();
-        
+
+        /// <summary>Callback on Environment change in the Library</summary>
         event Action<EnvironmentLibrary> OnChangingEnvironmentLibrary;
     }
-    
+
     partial class DisplayWindow : IEnvironmentDisplayer
     {
         static partial class Style
@@ -28,7 +30,7 @@ namespace UnityEditor.Rendering.LookDev
         VisualElement m_EnvironmentContainer;
         ListView m_EnvironmentList;
         EnvironmentElement m_EnvironmentInspector;
-        Toolbar m_EnvironmentListToolbar;
+        UIElements.Toolbar m_EnvironmentListToolbar;
         
         //event Action<UnityEngine.Object> OnAddingEnvironmentInternal;
         //event Action<UnityEngine.Object> IEnvironmentDisplayer.OnAddingEnvironment
@@ -85,9 +87,17 @@ namespace UnityEditor.Rendering.LookDev
                     LookDev.currentContext.environmentLibrary[i],
                     EnvironmentElement.k_SkyThumbnailWidth);
             };
+#if UNITY_2020_1_OR_NEWER
+            m_EnvironmentList.onSelectionChange += objects =>
+            {
+                bool empty = !objects.GetEnumerator().MoveNext();
+                if (empty || (LookDev.currentContext.environmentLibrary?.Count ?? 0) == 0)
+#else
             m_EnvironmentList.onSelectionChanged += objects =>
+
             {
                 if (objects.Count == 0 || (LookDev.currentContext.environmentLibrary?.Count ?? 0) == 0)
+#endif
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Hidden;
                     m_EnvironmentInspector.style.height = 0;
@@ -108,14 +118,22 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentInspector.Bind(environment, deportedLatLong);
                 }
             };
+#if UNITY_2020_1_OR_NEWER
+            m_EnvironmentList.onItemsChosen += objCollection =>
+            {
+                foreach(var obj in objCollection)
+                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+            };
+#else
             m_EnvironmentList.onItemChosen += obj =>
                 EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+#endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
             m_NoEnvironmentList.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_EnvironmentContainer.Add(m_EnvironmentInspector);
 
-            m_EnvironmentListToolbar = new Toolbar();
+            m_EnvironmentListToolbar = new UIElements.Toolbar();
             ToolbarButton addEnvironment = new ToolbarButton(() =>
             {
                 LookDev.currentContext.environmentLibrary.Add();
@@ -186,7 +204,7 @@ namespace UnityEditor.Rendering.LookDev
                 RefreshLibraryDisplay();
             });
 
-            var environmentListCreationToolbar = new Toolbar()
+            var environmentListCreationToolbar = new UIElements.Toolbar()
             {
                 name = "environmentListCreationToolbar"
             };

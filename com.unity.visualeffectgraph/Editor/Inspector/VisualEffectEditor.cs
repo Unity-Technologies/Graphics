@@ -115,6 +115,7 @@ namespace UnityEditor.VFX
             m_RendererEditor = new RendererEditor(renderers);
 
             s_FakeObjectSerializedCache = new SerializedObject(targets[0]);
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         protected void OnDisable()
@@ -125,6 +126,13 @@ namespace UnityEditor.VFX
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+            OnDisableWithoutResetting();
+        }
+        
+        protected void OnDisableWithoutResetting()
+        {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            
             s_AllEditors.Remove(this);
         }
 
@@ -146,6 +154,11 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty,bool overrideMixed,bool valueMixed, out bool overriddenChanged)
         {
+            if (parameter.realType == typeof(Matrix4x4).Name)
+            {
+                overriddenChanged = false;
+                return false;
+            }
             EditorGUILayout.BeginHorizontal();
 
             var height = 16f;
@@ -432,6 +445,8 @@ namespace UnityEditor.VFX
         protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
+            if (effect == null)
+                return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
@@ -489,10 +504,13 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-
             GUILayout.Label("Show Bounds", GUILayout.Width(192));
-
             VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Show Event Tester", GUILayout.Width(192));
+            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, GUILayout.Width(18));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -510,9 +528,9 @@ namespace UnityEditor.VFX
             effect.playRate = rate;
         }
 
-        protected virtual void OnSceneGUI()
+        protected virtual void OnSceneViewGUI(SceneView sv)
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target,SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
 
         private VisualEffectAsset m_asset;
@@ -723,6 +741,14 @@ namespace UnityEditor.VFX
                 EditorPrefs.SetBool(kGeneralFoldoutStatePreferenceName, newShowGeneralCategory);
                 showGeneralCategory = newShowGeneralCategory;
             }
+            m_SingleSerializedObject.Update();
+            if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+            {
+                foreach (var serobj in m_OtherSerializedObjects)
+                {
+                    serobj.Update();
+                }
+            }
 
             if(showGeneralCategory)
             {
@@ -748,10 +774,10 @@ namespace UnityEditor.VFX
             {
                 m_asset = component.visualEffectAsset;
                 if (m_asset != null)
-                {
                     m_graph = m_asset.GetResource().GetOrCreateGraph();
-                }
             }
+            if (m_asset == null)
+                m_graph = null;
 
             GUI.enabled = true;
             if (m_graph != null)
@@ -1175,11 +1201,11 @@ namespace UnityEditor.VFX
             public static readonly GUIContent headerProperties =    EditorGUIUtility.TrTextContent("Properties");
             public static readonly GUIContent headerRenderer =      EditorGUIUtility.TrTextContent("Renderer");
 
-            public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template");
-            public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed");
-            public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play");
-            public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit");
-            public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed");
+            public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
+            public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
+            public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
+            public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
             public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate =            EditorGUIUtility.TrTextContent("Rate");

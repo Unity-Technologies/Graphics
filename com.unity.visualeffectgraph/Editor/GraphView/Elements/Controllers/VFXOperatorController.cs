@@ -32,6 +32,7 @@ namespace UnityEditor.VFX.UI
             if( model is VFXSubgraphOperator)
             {
                 model.ResyncSlots(false);
+                model.UpdateOutputExpressions();
             }
         }
 

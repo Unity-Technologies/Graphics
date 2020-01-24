@@ -1,5 +1,7 @@
 * [High Definition Render Pipeline](index)
-* [Features List](HDRP-Features)
+* Features
+  * [Features List](HDRP-Features)
+  * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
@@ -37,6 +39,8 @@
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
   * [Default Settings](Default-Settings-Window)
+  * [HDRP Config Package](HDRP-Config-Package)
+  * [Scalability](Scalability-Manual)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
@@ -57,7 +61,16 @@
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
+    * [Decal](Master-Node-Decal)
     * [Hair](Master-Node-Hair)
+    * [Unlit](Master-Node-Unlit)
+  * Shader Graph Nodes
+    * [Emission](SGNode-Emission)
+    * [Baked GI](SGNode-Baked-GI)
+    * [Diffusion Profile](SGNode-Diffusion-Profile)
+    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
+    * [Exposure](SGNode-Exposure)
+    * [HD Scene Color](SGNode-HD-Scene-Color)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -100,12 +113,15 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+  * Authoring Lookup Textures
+    * [Overview](Authoring-LUTs)
+    * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
+    * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
-  * Components
-    * [Ray Tracing Environment](Ray-Tracing-Environment)
   * Effects and Volume Overrides
     * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows)
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
@@ -123,8 +139,11 @@
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
+* Consoles
+  * [Building For Consoles](Building-For-Consoles)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
-  * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Sky](Creating-a-Custom-Sky)
+  * [Creating a Custom Post-Process Effect](Custom-Post-Process)
+  * [Creating a Custom Render Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
-

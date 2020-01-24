@@ -243,6 +243,6 @@ Shader "Universal Render Pipeline/Lit"
 
 
     }
-    FallBack "Hidden/InternalErrorShader"
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.LitShader"
 }

@@ -17,13 +17,13 @@ namespace UnityEditor.VFX
             Opaque,
         }
 
-        [VFXSetting, Header("Render States")]
+        [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting,Tooltip("Use Pixel Clipping using an alpha threshold.")]
-        public bool useAlphaClipping = false;
+        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
+        protected bool useAlphaClipping = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
         protected bool generateMotionVector = false;
 
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
@@ -37,6 +37,8 @@ namespace UnityEditor.VFX
                     && generateMotionVector;
             }
         }
+
+        public virtual bool hasAlphaClipping => useAlphaClipping;
 
         public virtual bool implementsMotionVector { get { return false; } }
 
@@ -166,7 +168,7 @@ namespace UnityEditor.VFX
             if (!string.IsNullOrEmpty(blendModeStr))
                 writer.WriteLine(blendModeStr);
             if (hasMotionVector && !isBlendModeOpaque)
-                writer.WriteLine("Blend 1 Off"); //Disable blending for velocity target in forward
+                writer.WriteLine("Blend 1 SrcAlpha OneMinusSrcAlpha"); //Blend 1 Off, but allow clipping in forward pass for second render target
         }
 
         public override void Sanitize(int version)

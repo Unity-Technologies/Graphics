@@ -45,13 +45,13 @@ This section covers all the common settings of every kind of context. For more d
 
 ## Event
 
-Event Contexts only display a Name as a string that need to be called on the Component API in order to Send this event to the graph and activate a workflow from this node.
+Event Contexts only display a Name as a string that need to be called on the Component API in order to Send this event to the graph and activate a workflow from this Node.
 
 ## Spawn
 
 Spawn Contexts are standalone systems that have three States : Playing, Stopped and Delayed. 
 
-* **Looping** (Running) state means that the blocks are computed and will perform spawn of new particles
+* **Looping** (Running) state means that the Blocks are computed and will perform spawn of new particles
 * **Finished** (Idle) state means that the spawn machine is off and will not spawn particles
 * **DelayingBeforeLoop/DelayingAfterLoop** (Waiting) state stops spawning particles until the end of a user-set delay, then restarts spawning particles.
 
@@ -71,11 +71,11 @@ Spawn Contexts expose two [Flow Input Slots](GraphLogicAndPhilosophy.md#processi
 Spawn contexts contains a state and will perform spawning particles based on a looping system.
 
 * The spawn context can emit during **loops of defined duration** (meaning the internal spawn time will reset at each loop's beginning) . By default the duration is **infinite**.
-  * In order to set the loop mode, select the context in the graph and change the loop duration popup in the inspector. (Possible Values : Infinite, Constant, Random)
+  * In order to set the loop mode, select the context in the graph and change the loop duration popup in the Inspector. (Possible Values : Infinite, Constant, Random)
 * Spawn contexts can perform **one**, **many** or an **infinity** of **loops**. 
-  * In order to set this setting, select the spawn context in the graph and change the Loop count popup in the inspector (Possible Values : Infinite, Constant, Random)
+  * In order to set this setting, select the spawn context in the graph and change the Loop count popup in the Inspector (Possible Values : Infinite, Constant, Random)
 * Spawn contexts can perform a **delay** **before** and/or a**delay after** each loop. During a delay, the spawn time elapses normally but no spawn is performed.
-  * In order to set these setting, select the spawn context in the graph and change the Delay Before Loop and Delay After Loop popups in the inspector (Possible Values: None, Constant, Random)
+  * In order to set these setting, select the spawn context in the graph and change the Delay Before Loop and Delay After Loop popups in the Inspector (Possible Values: None, Constant, Random)
 
 Here is a visual illustration of the Looping and Delay System.
 
@@ -91,14 +91,14 @@ Setting a loop count, loop duration and / or delays will display new connectable
 
 GPU Event contexts are experimental contexts that connect inputs to output GPU Events from other systems. They differ from Traditional Spawn as they are computed by the GPU.  Only one kind of Spawn can be connected to an Initialize Context (GPU Event and Spawn/Events are mutually Exclusive) 
 
-> GPU Event contexts cannot be customized with blocks.
+> GPU Event contexts cannot be customized with Blocks.
 >
 
 ## Initialize
 
 Initialize Contexts will generate new particles based on **SpawnEvent** Data, computed from Events, Spawn or GPU Event contexts.
 
-> For example: upon receiving an order of creation of 200 new particles from a spawn context, the context will be processed and will result in executing the context's blocks for all 200 new particles.
+> For example: upon receiving an order of creation of 200 new particles from a spawn context, the context will be processed and will result in executing the context's Blocks for all 200 new particles.
 
 Initialize contexts can be customized using compatible **Blocks**.
 

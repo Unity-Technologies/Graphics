@@ -2,10 +2,18 @@ namespace UnityEngine.Rendering
 {
     // Use this class to get a static instance of a component
     // Mainly used to have a default instance
+
+    /// <summary>
+    /// Singleton of a Component class.
+    /// </summary>
+    /// <typeparam name="TType">Component type.</typeparam>
     public static class ComponentSingleton<TType>
         where TType : Component
     {
         static TType s_Instance = null;
+        /// <summary>
+        /// Instance of the required component type.
+        /// </summary>
         public static TType instance
         {
             get

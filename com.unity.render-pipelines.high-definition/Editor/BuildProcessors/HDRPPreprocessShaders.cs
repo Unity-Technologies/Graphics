@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
-            if ((/*!Debug.isDebugBuild || */ !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
@@ -219,6 +219,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
+            if (HDRenderPipeline.currentAsset == null)
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
@@ -308,7 +311,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void GetAllValidHDRPAssets()
         {
-            if (_hdrpAssets != null) hdrpAssets.Clear();
+            if (HDRenderPipeline.currentAsset == null)
+                return;
+
+            if (_hdrpAssets != null) _hdrpAssets.Clear();
             else _hdrpAssets = new List<HDRenderPipelineAsset>();
 
             using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))

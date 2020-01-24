@@ -101,7 +101,8 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-
+                alpha = OutputAlpha(alpha);
+                
                 return half4(color, alpha);
             }
             ENDHLSL
@@ -156,6 +157,6 @@ Shader "Universal Render Pipeline/Unlit"
             ENDHLSL
         }
     }
-    FallBack "Hidden/InternalErrorShader"
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.UnlitShader"
 }
