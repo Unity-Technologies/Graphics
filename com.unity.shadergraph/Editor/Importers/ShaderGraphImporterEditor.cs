@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             ApplyRevertGUI();
         }
 
-        internal static bool ShowGraphEditWindow(string path)
+        public static bool ShowGraphEditWindow(string path)
         {
             var guid = AssetDatabase.AssetPathToGUID(path);
             var extension = Path.GetExtension(path);

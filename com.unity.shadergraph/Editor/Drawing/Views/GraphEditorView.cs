@@ -55,6 +55,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
 
+        public UserViewSettings viewSettings
+        {
+            get { return m_UserViewSettings; }
+        }
+
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
@@ -257,11 +262,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
+                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
-                
+
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)
@@ -283,8 +288,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
-        void UpdateSubWindowsVisibility()
+        public void UpdateSubWindowsVisibility()
         {
+            Debug.Log("Goose " + m_UserViewSettings.isBlackboardVisible + " " + m_UserViewSettings.isPreviewVisible);
             if (m_UserViewSettings.isBlackboardVisible)
                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
