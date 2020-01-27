@@ -424,6 +424,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                                                   ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
                                                   int istart, int iend, int jstart, int jend)
         {
+            // Interestingly, 2-3% faster when using unsafe arrays.
+            PrePunctualLight* _punctualLights = (PrePunctualLight*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(punctualLights);
+            ushort* _lightIndices = (ushort*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(lightIndices);
+            uint* _tileHeaders = (uint*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_TileHeaders);
+
+            if (lightCount == 0)
+            {
+                for (int j = jstart; j < jend; ++j)
+                for (int i = istart; i < iend; ++i)
+                {
+                    int headerOffset = GetTileHeaderOffset(i, j);
+                    _tileHeaders[headerOffset + 0] = 0;
+                    _tileHeaders[headerOffset + 1] = 0;
+                }
+                return;
+            }
+
             // Store culled result in temporary buffer.
             ushort* tiles = stackalloc ushort[lightCount];
 
@@ -438,8 +455,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                     {
-                        ushort lightIndex = lightIndices[vi];
-                        PrePunctualLight ppl = punctualLights[lightIndex];
+                        ushort lightIndex = _lightIndices[vi];
+                        PrePunctualLight ppl = _punctualLights[lightIndex];
 
                         // This is slightly faster than IntersectionLineSphere().
                         if (!Clip(ref preTile, ppl.posVS, ppl.radius))
@@ -453,8 +470,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int tileOffset = culledLightCount > 0 ? AddTileData(tiles, ref culledLightCount) : 0;
 
                     int headerOffset = GetTileHeaderOffset(i, j);
-                    m_TileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    m_TileHeaders[headerOffset + 1] = (uint)culledLightCount;
+                    _tileHeaders[headerOffset + 0] = (uint)tileOffset;
+                    _tileHeaders[headerOffset + 1] = (uint)culledLightCount;
                 }
             }
         }
