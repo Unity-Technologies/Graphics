@@ -17,9 +17,5 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public ColorPickerDebugMode colorPickerMode = ColorPickerDebugMode.None;
         public Color fontColor = new Color(1.0f, 0.0f, 0.0f);
-
-        public void OnValidate()
-        {
-        }
     }
 }

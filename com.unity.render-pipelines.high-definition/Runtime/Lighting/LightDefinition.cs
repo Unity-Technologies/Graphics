@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
-    public enum GPULightType
+    enum GPULightType
     {
         Directional,
         Point,
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Sphere,
     };
 
-    public static class GPULightTypeExtension
+    static class GPULightTypeExtension
     {
         public static bool IsAreaLight(this GPULightType lightType)
         {
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius) 
+        public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius)
 
         public float   diffuseDimmer;
         public float   specularDimmer;

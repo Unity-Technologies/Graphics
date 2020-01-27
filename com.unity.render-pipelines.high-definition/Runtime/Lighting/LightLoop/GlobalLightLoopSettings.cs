@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Since 2019.3, use GlobalLightLoopSettings.NewDefault() instead.")]
         public static readonly GlobalLightLoopSettings @default = default;
         /// <summary>Default GlobalDecalSettings</summary>
-        public static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
+        internal static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
         {
             cookieAtlasSize = CookieAtlasResolution.CookieResolution2048,
             cookieFormat = CookieAtlasGraphicsFormat.R11G11B10,

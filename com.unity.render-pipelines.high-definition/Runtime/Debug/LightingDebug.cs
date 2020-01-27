@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectPlanarProbe = 1 << 8,
     }
 
-    public static class DebugLightHierarchyExtensions
+    static class DebugLightHierarchyExtensions
     {
         public static bool IsEnabledFor(
             this DebugLightFilterMode mode,
@@ -104,11 +104,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
         }
 
-        public bool IsDebugDisplayRemovePostprocess()
-        {
-            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
-        }
-
         public DebugLightFilterMode debugLightFilterMode = DebugLightFilterMode.None;
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
@@ -161,5 +156,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
         public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
+
+        // Internal APIs
+        internal bool IsDebugDisplayRemovePostprocess()
+        {
+            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
+        }
+
     }
 }
