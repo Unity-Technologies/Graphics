@@ -117,7 +117,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #ifdef ENABLE_ALPHA
     // Preserve the original value of the pixels with zero alpha
-    outColor = lerp(originalColor, outColor, outColor.a);
+    outColor.xyz = outColor.a > 0 ? outColor.xyz : originalColor.xyz;
 #endif
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor;
 }
