@@ -231,20 +231,18 @@ namespace UnityEngine.Rendering.HighDefinition
             );
    
             m_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
-            m_EnableAlpha = false;
             m_KeepAlpha = false;
-            if(m_PostProcessEnabled)
-            {
-                // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-                m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.supportsAlpha;
-            }
-            if(m_EnableAlpha == false)
+
+            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.supportsAlpha;
+
+            if (m_EnableAlpha == false)
             {
                 // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
                 m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
             }
 
-            if(m_KeepAlpha)
+            if (m_KeepAlpha)
             {
                 m_AlphaTexture = RTHandles.Alloc(
                    Vector2.one, slices: TextureXR.slices, dimension: TextureXR.dimension,
