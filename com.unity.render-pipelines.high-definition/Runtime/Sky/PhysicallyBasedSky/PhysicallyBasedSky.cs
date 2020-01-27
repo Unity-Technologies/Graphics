@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return 1 - Mathf.Exp(-optDepth);
         }
 
-        public float GetAirScaleHeight()
+        internal float GetAirScaleHeight()
         {
             if (earthPreset.value)
             {
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public float GetPlanetaryRadius()
+        internal float GetPlanetaryRadius()
         {
             if (earthPreset.value)
             {
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
+        internal Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
         {
             if (sphericalMode.value)
             {
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Vector3 GetAirExtinctionCoefficient()
+        internal Vector3 GetAirExtinctionCoefficient()
         {
             Vector3 airExt = new Vector3();
 
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return airExt;
         }
 
-        public Vector3 GetAirAlbedo()
+        internal Vector3 GetAirAlbedo()
         {
             Vector3 airAlb = new Vector3();
 
@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return airAlb;
         }
 
-        public Vector3 GetAirScatteringCoefficient()
+        internal Vector3 GetAirScatteringCoefficient()
         {
             Vector3 airExt = GetAirExtinctionCoefficient();
             Vector3 airAlb = GetAirAlbedo();
@@ -197,17 +197,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                airExt.z * airAlb.z);
         }
 
-        public float GetAerosolScaleHeight()
+        internal float GetAerosolScaleHeight()
         {
             return ScaleHeightFromLayerDepth(aerosolMaximumAltitude.value);
         }
 
-        public float GetAerosolExtinctionCoefficient()
+        internal float GetAerosolExtinctionCoefficient()
         {
             return ExtinctionFromZenithOpacityAndScaleHeight(aerosolDensity.value, GetAerosolScaleHeight());
         }
 
-        public Vector3 GetAerosolScatteringCoefficient()
+        internal Vector3 GetAerosolScatteringCoefficient()
         {
             float aerExt = GetAerosolExtinctionCoefficient();
 
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             displayName = "Physically Based Sky";
         }
 
-        public int GetPrecomputationHashCode()
+        internal int GetPrecomputationHashCode()
         {
             int hash = base.GetHashCode();
 
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolAnisotropy.value.GetHashCode();
 
                 hash = hash * 23 + numberOfBounces.value.GetHashCode();
-            
+
                 // These parameters affect precomputation.
                 hash = hash * 23 + earthPreset.overrideState.GetHashCode();
                 hash = hash * 23 + planetaryRadius.overrideState.GetHashCode();

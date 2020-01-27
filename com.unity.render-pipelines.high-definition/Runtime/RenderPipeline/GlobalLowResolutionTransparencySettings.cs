@@ -12,11 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public struct GlobalLowResolutionTransparencySettings
     {
-        /// <summary>Default GlobalLowResolutionTransparencySettings</summary>
-        [Obsolete("Since 2019.3, use GlobalLowResolutionTransparencySettings.NewDefault() instead.")]
-        public static readonly GlobalLowResolutionTransparencySettings @default = default;
-        /// <summary>Default GlobalLowResolutionTransparencySettings</summary>
-        public static GlobalLowResolutionTransparencySettings NewDefault() => new GlobalLowResolutionTransparencySettings()
+        internal static GlobalLowResolutionTransparencySettings NewDefault() => new GlobalLowResolutionTransparencySettings()
         {
             enabled = true,
             checkerboardDepthBuffer = true,

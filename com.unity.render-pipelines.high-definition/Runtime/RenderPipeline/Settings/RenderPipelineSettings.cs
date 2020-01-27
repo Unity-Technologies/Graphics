@@ -45,11 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
         }
 
-        /// <summary>Default RenderPipelineSettings</summary>
-        [Obsolete("Since 2019.3, use RenderPipelineSettings.NewDefault() instead.")]
-        public static readonly RenderPipelineSettings @default = default;
-        /// <summary>Default RenderPipelineSettings</summary>
-        public static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
+        internal static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
         {
             supportShadowMask = true,
             supportSSAO = true,

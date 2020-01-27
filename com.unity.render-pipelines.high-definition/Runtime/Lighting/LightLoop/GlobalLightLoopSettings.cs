@@ -104,9 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public struct GlobalLightLoopSettings
     {
-        /// <summary>Default GlobalDecalSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalLightLoopSettings.NewDefault() instead.")]
-        public static readonly GlobalLightLoopSettings @default = default;
+        internal static readonly GlobalLightLoopSettings @default = default;
         /// <summary>Default GlobalDecalSettings</summary>
         internal static GlobalLightLoopSettings NewDefault() => new GlobalLightLoopSettings()
         {

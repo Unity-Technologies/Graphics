@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowData cachedShadowData;
     }
 
-    public enum DirectionalShadowAlgorithm
+    enum DirectionalShadowAlgorithm
     {
         PCF5x5,
         PCF7x7,
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DepthBits shadowAtlasDepthBits;
             public bool useDynamicViewportRescale;
 
-            public static HDShadowAtlasInitParams GetDefault()
+            internal static HDShadowAtlasInitParams GetDefault()
             {
                 return new HDShadowAtlasInitParams()
                 {
@@ -139,11 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Default HDShadowInitParameters</summary>
-        [Obsolete("Since 2019.3, use HDShadowInitParameters.NewDefault() instead.")]
-        public static readonly HDShadowInitParameters @default = default;
-        /// <summary>Default HDShadowInitParameters</summary>
-        public static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
+        internal static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
         {
             maxShadowRequests                   = k_DefaultMaxShadowRequests,
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
@@ -162,9 +158,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         };
 
-        public const int k_DefaultShadowAtlasResolution = 4096;
-        public const int k_DefaultMaxShadowRequests = 128;
-        public const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth32;
+        internal const int k_DefaultShadowAtlasResolution = 4096;
+        internal const int k_DefaultMaxShadowRequests = 128;
+        internal const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth32;
 
         public int maxShadowRequests;
         public DepthBits directionalShadowsDepthBits;

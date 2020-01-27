@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        public bool DoUpdate(BuiltinSkyParameters parameters)
+        internal bool DoUpdate(BuiltinSkyParameters parameters)
         {
             if (m_LastFrameUpdate < parameters.frameIndex)
             {

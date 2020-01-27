@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;

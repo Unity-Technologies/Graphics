@@ -39,17 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public struct GlobalPostProcessSettings
     {
-        /// <summary>
-        /// Default GlobalPostProcessSettings
-        /// </summary>
-        [Obsolete("Since 2019.3, use GlobalPostProcessSettings.NewDefault() instead.")]
-        public static readonly GlobalPostProcessSettings @default = default;
-
-        /// <summary>
-        /// Returns a new instance of the default <c>GlobalPostProcessSettings</c>.
-        /// </summary>
-        /// <returns>A new instance of the default <c>GlobalPostProcessSettings</c>.</returns>
-        public static GlobalPostProcessSettings NewDefault() => new GlobalPostProcessSettings()
+        internal static GlobalPostProcessSettings NewDefault() => new GlobalPostProcessSettings()
         {
             lutSize = 32,
             lutFormat = GradingLutFormat.R16G16B16A16,

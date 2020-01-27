@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
-        public Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
+        Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
         {
             var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
 
@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
-        public struct ScreenSpaceShadowData
+        struct ScreenSpaceShadowData
         {
             public HDAdditionalLightData additionalLightData;
             public int lightDataIndex;
@@ -623,7 +623,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ScreenSpaceShadowIndex = 0;
         int m_ScreenSpaceShadowChannelSlot = 0;
         ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
-        public ScreenSpaceShadowData GetScreenSpaceShadowData(int screenSpaceShadowIndex) { return m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex]; }
 
         // Contact shadow index reseted at the beginning of each frame, used to generate the contact shadow mask
         int m_ContactShadowIndex;
@@ -3081,7 +3080,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
 
             int groupSize = 64;
-            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1); 
+            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
         }
 
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)

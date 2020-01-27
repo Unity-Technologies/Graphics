@@ -356,8 +356,4 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
     }
-
-
-    [Obsolete("DecalProjectorComponent have been renamed DecalProjector for API alignment", true)]
-    public sealed class DecalProjectorComponent { }
 }

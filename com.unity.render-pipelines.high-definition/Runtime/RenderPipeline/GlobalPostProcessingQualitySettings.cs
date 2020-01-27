@@ -83,11 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ChromaticAberrationMaxSamples[(int)ScalableSettingLevelParameter.Level.High] = 12;
         }
 
-        /// <summary>Default GlobalPostProcessingQualitySettings</summary>
-        [Obsolete("Since 2019.3, use GlobalPostProcessingQualitySettings.NewDefault() instead.")]
-        public static readonly GlobalPostProcessingQualitySettings @default = default;
-        /// <summary>Default GlobalPostProcessingQualitySettings</summary>
-        public static GlobalPostProcessingQualitySettings NewDefault() => new GlobalPostProcessingQualitySettings();
+        internal static GlobalPostProcessingQualitySettings NewDefault() => new GlobalPostProcessingQualitySettings();
 
         /*  Depth of field */
         public int[] NearBlurSampleCount                = new int[s_QualitySettingCount];

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
-        public DiffusionProfile this[int index]
+        internal DiffusionProfile this[int index]
         {
             get => profile;
         }
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
-        public DiffusionProfile[] profiles;
+        internal DiffusionProfile[] profiles;
 
         static readonly MigrationDescription<Version, DiffusionProfileSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.DiffusionProfileRework, (DiffusionProfileSettings d) =>

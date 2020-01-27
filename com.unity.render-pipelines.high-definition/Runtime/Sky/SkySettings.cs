@@ -31,14 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Multiplier,
     }
 
-    [System.Flags]
-    public enum SkySettingsPropertyFlags
-    {
-        ShowMultiplierAndEV = (1 << 0),
-        ShowRotation =        (1 << 1),
-        ShowUpdateMode =      (1 << 2),
-    }
-
     public enum BackplateType
     {
         Disc,
@@ -125,12 +117,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int GetUniqueID<T>()
+        internal static int GetUniqueID<T>()
         {
             return GetUniqueID(typeof(T));
         }
 
-        public static int GetUniqueID(Type type)
+        internal static int GetUniqueID(Type type)
         {
             int uniqueID;
 
