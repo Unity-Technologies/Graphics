@@ -57,8 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MsaaEnabled, renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1);
-
 //            if (!stereo) // TODO: investigate how to do this with stereo
 //            {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

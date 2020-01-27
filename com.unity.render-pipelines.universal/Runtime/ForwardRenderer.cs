@@ -76,10 +76,10 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.AfterRenderingPrePasses, data.postProcessData);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask);
 
-            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingSkybox, screenspaceShadowsMaterial);
+           // m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingSkybox, screenspaceShadowsMaterial);
 
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingSkybox, copyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
@@ -204,10 +204,10 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveCameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
-            int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-
-            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-                SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
+//            int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
+//
+//            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
+//                SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -263,16 +263,6 @@ namespace UnityEngine.Rendering.Universal
                 SetBlockDescriptor(RenderPassBlock.BeforeRendering, desc.width, desc.height, 1);
                 EnqueuePass(m_DepthPrepass);
             }
-            // if (resolveShadowsInScreenSpace)
-            // {
-            //     m_ScreenSpaceShadowResolvePass.Setup(desc);
-            //     m_ScreenSpaceShadowResolvePass.Configure(cmd, desc); //TODO: investigate why this needs to be commented when not using RenderPass
-            //     context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
-            //     cmd.Clear();
-            //     m_RenderOpaqueForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
-            //     m_RenderTransparentForwardPass.ConfigureInputAttachment(m_ScreenSpaceShadowResolvePass.colorAttachmentDescriptor);
-            //     EnqueuePass(m_ScreenSpaceShadowResolvePass);
-            // }
 
             m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment); //check if ok with no renderpass
 

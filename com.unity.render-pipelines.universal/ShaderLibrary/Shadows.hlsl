@@ -35,15 +35,6 @@ SAMPLER_CMP(sampler_MainLightShadowmapTexture);
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
 
-#define SHADOWINPUT 0
-
-//TODO: MS framebuffer fetch read, this needs to be done AOT, so PerCameraBuffer probably doesn't work as it's set in runtime
-#ifdef _MSAA_ENABLED
-UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(SHADOWINPUT);
-#else
-UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(SHADOWINPUT);
-#endif
-
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
@@ -139,19 +130,7 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-#ifdef SUBPASS_INPUT_AVAILABLE
-#ifdef _MSAA_ENABLED
-    for(int i = 0; i < _MSAASampleCount; ++i)
-    {
-        attenuation += UNITY_READ_FRAMEBUFFER_INPUT_MS(SHADOWINPUT, i, shadowCoord.xy).x;
-    }
-    attenuation /= _MSAASampleCount;
-#else //_MSAA_ENABLED
-    attenuation = UNITY_READ_FRAMEBUFFER_INPUT(SHADOWINPUT, shadowCoord.xy).x;
-#endif //_MSAA_ENABLED
-#else //SUBPASS_INPUT_AVAILABLE
     attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
-#endif //SUBPASS_INPUT_AVAILABLE
 #endif
     return attenuation;
 }

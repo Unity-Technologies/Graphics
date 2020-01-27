@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering.Universal
             public static int _ScaledScreenParams;
             public static int _ScreenParams;
             public static int _WorldSpaceCameraPos;
-            public static int _SampleCount;
         }
 
         public const string k_ShaderTagName = "UniversalPipeline";
@@ -134,7 +133,6 @@ namespace UnityEngine.Rendering.Universal
             PerCameraBuffer._ScreenParams = Shader.PropertyToID("_ScreenParams");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             PerCameraBuffer._WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
-            PerCameraBuffer._SampleCount = Shader.PropertyToID("_MSAASampleCount");
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
@@ -785,7 +783,6 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-            Shader.SetGlobalInt(PerCameraBuffer._SampleCount, cameraData.cameraTargetDescriptor.msaaSamples);
             Shader.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
         }
     }

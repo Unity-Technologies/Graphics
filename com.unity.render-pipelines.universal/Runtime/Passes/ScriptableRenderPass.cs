@@ -107,10 +107,10 @@ namespace UnityEngine.Rendering.Universal
         //Optional methods for passes to configure Attachments that will be used for the RenderPass
         public void ConfigureColorAttachment(RenderTargetHandle colorHandle)
         {
-            m_ColorAttachment = colorHandle.Identifier();
+            ConfigureTarget(colorHandle.Identifier());
             m_ColorAttachmentDescriptor = colorHandle.targetDescriptor;
             m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
-            m_ColorAttachmentDescriptor.ConfigureTarget(m_ColorAttachment, false, true);
+            m_ColorAttachmentDescriptor.ConfigureTarget(m_ColorAttachments[0], false, true);
         }
 
         public void ConfigureDepthAttachment(RenderTargetHandle depthHandle)
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
 
         public virtual void ConfigureAttachments(RenderTargetHandle colorTarget, RenderTargetHandle depthTarget)
         {
-            m_ColorAttachment = colorTarget.Identifier();
+            ConfigureTarget(colorTarget.Identifier());
             m_ColorAttachmentDescriptor = colorTarget.targetDescriptor;
             m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
             m_ColorAttachmentDescriptor.ConfigureTarget(colorTarget.Identifier(), false, true);

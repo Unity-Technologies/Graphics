@@ -13,7 +13,7 @@
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
 // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
 // We don't use SSBO on Nintendo Switch as UBO path is faster.
-// However here we use same limits as SSBO path. 
+// However here we use same limits as SSBO path.
 #elif defined(SHADER_API_D3D11) || defined(SHADER_API_SWITCH)
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
     #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
@@ -44,7 +44,6 @@ half4 _SubtractiveShadowColor;
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
-int _MSAASampleCount;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;

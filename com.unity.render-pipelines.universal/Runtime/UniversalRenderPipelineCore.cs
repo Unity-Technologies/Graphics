@@ -130,7 +130,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
-        public static readonly string MsaaEnabled = "_MSAA_ENABLED";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
         [Obsolete("The _KILL_ALPHA shader keyword is deprecated in the Universal Render Pipeline.")]
