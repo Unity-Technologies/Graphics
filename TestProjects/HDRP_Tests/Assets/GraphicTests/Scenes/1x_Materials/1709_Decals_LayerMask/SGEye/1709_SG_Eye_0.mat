@@ -23,7 +23,7 @@ Material:
   m_Name: 1709_SG_Eye_0
   m_Shader: {fileID: -6465566751694194690, guid: 845aa620f5d9e0844838c29f5e3c1105,
     type: 3}
-  m_ShaderKeywords: _DISABLE_DECALS _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: WRITE_DECAL_BUFFER _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
