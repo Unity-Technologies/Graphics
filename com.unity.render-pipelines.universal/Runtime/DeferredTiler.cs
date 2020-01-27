@@ -6,7 +6,7 @@ using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class DeferredTiler
+    internal struct DeferredTiler
     {
         // Precomputed light data
         internal struct PrePunctualLight
@@ -39,12 +39,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_TileHeaderSize;
         // Indicative average lights per tile. Only used when initializing the size of m_DataTile for the first time.
         int m_AvgLightPerTile;
-        // Max number of lights per tile. Automatically growing as needed.
-        int m_MaxLightPerTile;
-        // Current used size in m_TileData. It is reset every frame.
-        int m_TileDataSize;
-        // Max size for m_TileData. Automatically growing as needed.
-        int m_TileDataCapacity;
         // 0, 1 or 2 (see DeferredConfig.kTilerDepth)
         int m_TilerLevel;
 
@@ -52,6 +46,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         FrustumPlanes m_FrustumPlanes;
         // Are we dealing with an orthographic projection.
         bool m_IsOrthographic;
+
+        // Atomic counters are put in a NativeArray so they can be accessed/shared from jobs.
+        // [0] maxLightPerTile: Only valid for finest tiler: max light counter per tile. Reset every frame.
+        // [1] tileDataSize: reset every frame.
+        // [2] tileDataCapacity: extra amount of memory required by each tiler (depends on number of lights visible). Externally maintained.
+        [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+        NativeArray<int> m_Counters;
 
         // Store all visible light indices for all tiles.
         // (currently) Contains sequential blocks of ushort values (light indices and optionally lightDepthRange), for each tile
@@ -68,21 +69,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         NativeArray<uint> m_TileHeaders;
 
         // Precompute tile data.
+        [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
         NativeArray<PreTile> m_PreTiles;
 
         public DeferredTiler(int tilePixelWidth, int tilePixelHeight, int avgLightPerTile, int tilerLevel)
         {
             m_TilePixelWidth = tilePixelWidth;
             m_TilePixelHeight = tilePixelHeight;
+            m_TileXCount = 0;
+            m_TileYCount = 0;
             // Finest tiler (at index 0) computes extra tile data stored into the header, so it requires more space. See CullFinalLights() vs CullIntermediateLights().
             // Finest tiler: lightListOffset, lightCount, listDepthRange, listBitMask
             // Coarse tilers: lightListOffset, lightCount
             m_TileHeaderSize = tilerLevel == 0 ? 4 : 2;
             m_AvgLightPerTile = avgLightPerTile;
-            m_MaxLightPerTile = 0;
-            m_TileDataSize = 0;
-            m_TileDataCapacity = 0;
             m_TilerLevel = tilerLevel;
+            m_FrustumPlanes = new FrustumPlanes { left = 0, right = 0, bottom = 0, top = 0, zNear = 0, zFar = 0 };
+            m_IsOrthographic = false;
+            m_Counters = new NativeArray<int>();
+            m_TileData = new NativeArray<ushort>();
+            m_TileHeaders = new NativeArray<uint>();
+            m_PreTiles = new NativeArray<PreTile>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,19 +125,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetMaxLightPerTile()
         {
-            return m_MaxLightPerTile;
+            return m_Counters.IsCreated ? m_Counters[0] : 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref NativeArray<ushort> GetTiles()
+        public int GetTileDataCapacity()
         {
-            return ref m_TileData;
+            return m_Counters.IsCreated ? m_Counters[2] : 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref NativeArray<uint> GetTileHeaders()
+        public NativeArray<ushort> GetTiles()
         {
-            return ref m_TileHeaders;
+            return m_TileData;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArray<uint> GetTileHeaders()
+        {
+            return m_TileHeaders;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -148,14 +161,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
 
-        public void Setup()
+        public void Setup(int tileDataCapacity)
         {
-            m_TileDataSize = 0;
-            if (m_TileDataCapacity <= 0)
-                m_TileDataCapacity = m_TileXCount * m_TileYCount * m_AvgLightPerTile;
+            if (tileDataCapacity <= 0)
+                tileDataCapacity = m_TileXCount * m_TileYCount * m_AvgLightPerTile;
 
-            m_TileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_Counters = new NativeArray<int>(3, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_TileData = new NativeArray<ushort>(tileDataCapacity, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             m_TileHeaders = new NativeArray<uint>(m_TileXCount * m_TileYCount * m_TileHeaderSize, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            m_Counters[0] = 0;
+            m_Counters[1] = 0;
+            m_Counters[2] = tileDataCapacity;
         }
 
         public void FrameCleanup()
@@ -164,6 +181,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_TileHeaders.Dispose();
             if (m_TileData.IsCreated)
                 m_TileData.Dispose();
+            if (m_Counters.IsCreated)
+                m_Counters.Dispose();
         }
 
         public void PrecomputeTiles(Matrix4x4 proj, bool isOrthographic, int renderWidth, int renderHeight)
@@ -397,7 +416,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            m_MaxLightPerTile = max(m_MaxLightPerTile, maxLightPerTile); // TODO make it atomic
+            m_Counters[0] = max(m_Counters[0], maxLightPerTile); // TODO make it atomic
         }
 
         // TODO: finer culling for spot lights
@@ -443,7 +462,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         unsafe int AddTileData(ushort* lightData, ref int size)
         {
-            int tileDataSize = System.Threading.Interlocked.Add(ref m_TileDataSize, size);
+            int* _Counters = (int*)m_Counters.GetUnsafePtr();
+            int tileDataSize = System.Threading.Interlocked.Add(ref _Counters[1], size);
             int offset = tileDataSize - size;
 
             if (tileDataSize <= m_TileData.Length)
@@ -457,7 +477,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Buffer overflow. Ignore data to add.
                 // Gracefully increasing the buffer size is possible but costs extra CPU time (see commented code below) due to the needed critical section.
 
-                m_TileDataCapacity = max(m_TileDataCapacity, tileDataSize); // use an atomic max instead?
+                m_Counters[2] = max(m_Counters[2], tileDataSize); // use an atomic max instead?
                 size = 0;
                 return 0;
             }
