@@ -16,15 +16,15 @@
             case MasterNodeGen.FieldLocation.MasterNode:
             {
 #>
-[SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
-public DecalLayerMask decalLayerMask
+[SerializeField] bool m_ReceiveDecals = true;
+public bool receiveDecals
 {
-    get => m_DecalLayerMask;
+    get => m_ReceiveDecals;
     set
     {
-        if (m_DecalLayerMask == value) return;
+        if (m_ReceiveDecals == value) return;
 
-        m_DecalLayerMask = value;
+        m_ReceiveDecals = value;
         Dirty(ModificationScope.Graph);
     }
 }
@@ -34,26 +34,23 @@ public DecalLayerMask decalLayerMask
             case MasterNodeGen.FieldLocation.SettingsView:
             {
 #>
-void AddDecalLayerMaskField(PropertySheet ps, int indentLevel)
+void AddReceiveDecalsField(PropertySheet ps, int indentLevel)
 {
-    ps.Add(new PropertyRow(CreateLabel("Decal Layer Mask", indentLevel)), (row) =>
+    ps.Add(new PropertyRow(CreateLabel("Receive Decal", indentLevel)), (row) =>
     {
-        row.Add(new MaskField(
-            DecalLayerMask.LayerNames.ToList(),
-            (int)DecalLayerMask.Full,
-            null),
+        row.Add(new Toggle(),
             field =>
             {
-                field.value = (int) m_Node.decalLayerMask;
-                field.RegisterValueChangedCallback(ChangeDecalLayerMask);
+                field.value = m_Node.receiveDecals;
+                field.RegisterValueChangedCallback(ChangeReceiveDecals);
             });
     });
 }
 
-void ChangeDecalLayerMask(ChangeEvent<int> evt)
+void ChangeReceiveDecals(ChangeEvent<bool> evt)
 {
-    m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Layer Mask Change");
-    m_Node.decalLayerMask = (DecalLayerMask)evt.newValue;
+    m_Node.owner.owner.RegisterCompleteObjectUndo("Support Decals Change");
+    m_Node.receiveDecals = evt.newValue;
 }
 <#+
                 break;
@@ -61,36 +58,16 @@ void ChangeDecalLayerMask(ChangeEvent<int> evt)
             case MasterNodeGen.FieldLocation.SubShader:
             {
 #>
-static void SetDecalLayerMaskActiveFields(<#= masterNode.Name #> masterNode, ActiveFields.Base baseActiveFields)
+static void SetReceiveDecalsField(<#= masterNode.Name #> masterNode, ActiveFields.Base baseActiveFields)
 {
-    if (masterNode.decalLayerMask == DecalLayerMask.None)
-    {
+    if (!masterNode.receiveDecals)
         baseActiveFields.AddAll("DisableDecals");
-    }
 }
 <#+
                 break;
             }
             case MasterNodeGen.FieldLocation.Migration:
             {
-#>
-[FormerlySerializedAs("m_ReceiveDecals")]
-[SerializeField]
-[Obsolete("Since 8.0.0, use m_DecalLayerMask instead.")]
-bool m_ObsoleteReceiveDecals = true;
-
-static partial class Migrations
-{
-#pragma warning disable 618
-    public static void UseDecalLayerMask(<#= masterNode.Name #> instance)
-    {
-        instance.m_DecalLayerMask = (instance.m_ObsoleteReceiveDecals
-            ? DecalLayerMask.Full
-            : DecalLayerMask.None);
-    }
-#pragma warning restore 618
-}
-<#+
                 break;
             }
             default:

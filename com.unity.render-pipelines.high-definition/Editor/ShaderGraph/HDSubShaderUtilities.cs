@@ -1200,6 +1200,20 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddDecalLayerMaskProperty(PropertyCollector collector, bool receiveDecals)
+        {
+            if (receiveDecals)
+            {
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    overrideReferenceName = kDecalLayerMask,
+                    hidden = true,
+                    value = (int)DecalLayerMask.Layer0,
+                    displayName = "Decal Layer Mask",
+                });
+            }
+        }
+
         public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
         {
             BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,

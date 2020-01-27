@@ -11,7 +11,6 @@ include file="../Templates/Include.ttinclude" #><#
         Versions = new[]
         {
             (0, "InitialVersion"),
-            (1, "UseDecalLayerMask")
         },
         Fields = new MasterNodeGen.IField[]
         {

@@ -873,6 +873,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
+            HDSubShaderUtilities.AddDecalLayerMaskProperty(collector, receiveDecals);
             HDSubShaderUtilities.AddStencilShaderProperties(collector, false, receiveSSR.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,

@@ -1054,13 +1054,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
                 value = (int)renderingPass,
             });
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = kDecalLayerMask,
-                hidden = true,
-                value = (int)decalLayerMask,
-                displayName = "Decal Layer Mask",
-            });
 
             //See SG-ADDITIONALVELOCITY-NOTE
             if (addPrecomputedVelocity.isOn)
@@ -1074,6 +1067,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
+            HDSubShaderUtilities.AddDecalLayerMaskProperty(collector, receiveDecals);
             HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,

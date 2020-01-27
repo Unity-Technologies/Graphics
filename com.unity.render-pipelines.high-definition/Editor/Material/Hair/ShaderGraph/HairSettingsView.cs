@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 --indentLevel;
             }
 
-            AddDecalLayerMaskField(ps, indentLevel);
+            AddReceiveDecalsField(ps, indentLevel);
 
             ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {

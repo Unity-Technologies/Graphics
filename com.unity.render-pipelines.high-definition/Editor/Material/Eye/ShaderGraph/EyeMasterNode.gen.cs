@@ -1,6 +1,4 @@
 
-
-
 using System;
 using System.Linq;
 using Data.Util;
@@ -20,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Version
         {
             InitialVersion = 0,
-            UseDecalLayerMask = 1,
         }
         [SerializeField] Version m_Version;
         Version IVersionable<Version>.version
@@ -29,55 +26,36 @@ namespace UnityEditor.Rendering.HighDefinition
             set => m_Version = value;
         }
         static readonly MigrationDescription<Version, EyeMasterNode> k_Migrations = new MigrationDescription<Version, EyeMasterNode>(
-            new MigrationStep<Version, EyeMasterNode>(Version.InitialVersion, Migrations.InitialVersion),
-            new MigrationStep<Version, EyeMasterNode>(Version.UseDecalLayerMask, Migrations.UseDecalLayerMask)
+            new MigrationStep<Version, EyeMasterNode>(Version.InitialVersion, Migrations.InitialVersion)
         );
     }
 
     partial class EyeMasterNode
     {
         #region Fields
-        [SerializeField] DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
-        public DecalLayerMask decalLayerMask
+        [SerializeField] bool m_ReceiveDecals = true;
+        public bool receiveDecals
         {
-            get => m_DecalLayerMask;
+            get => m_ReceiveDecals;
             set
             {
-                if (m_DecalLayerMask == value) return;
+                if (m_ReceiveDecals == value) return;
         
-                m_DecalLayerMask = value;
+                m_ReceiveDecals = value;
                 Dirty(ModificationScope.Graph);
             }
         }
         #endregion
         #region Migration
-        [FormerlySerializedAs("m_ReceiveDecals")]
-        [SerializeField]
-        [Obsolete("Since 8.0.0, use m_DecalLayerMask instead.")]
-        bool m_ObsoleteReceiveDecals = true;
-        
-        static partial class Migrations
-        {
-        #pragma warning disable 618
-            public static void UseDecalLayerMask(EyeMasterNode instance)
-            {
-                instance.m_DecalLayerMask = (instance.m_ObsoleteReceiveDecals
-                    ? DecalLayerMask.Full
-                    : DecalLayerMask.None);
-            }
-        #pragma warning restore 618
-        }
         #endregion
     }
 
     partial class EyeSubShader
     {
-        static void SetDecalLayerMaskActiveFields(EyeMasterNode masterNode, ActiveFields.Base baseActiveFields)
+        static void SetReceiveDecalsField(EyeMasterNode masterNode, ActiveFields.Base baseActiveFields)
         {
-            if (masterNode.decalLayerMask == DecalLayerMask.None)
-            {
+            if (!masterNode.receiveDecals)
                 baseActiveFields.AddAll("DisableDecals");
-            }
         }
     }
 }
@@ -86,26 +64,23 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
     partial class EyeSettingsView
     {
-        void AddDecalLayerMaskField(PropertySheet ps, int indentLevel)
+        void AddReceiveDecalsField(PropertySheet ps, int indentLevel)
         {
-            ps.Add(new PropertyRow(CreateLabel("Decal Layer Mask", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Receive Decal", indentLevel)), (row) =>
             {
-                row.Add(new MaskField(
-                    DecalLayerMask.LayerNames.ToList(),
-                    (int)DecalLayerMask.Full,
-                    null),
+                row.Add(new Toggle(),
                     field =>
                     {
-                        field.value = (int) m_Node.decalLayerMask;
-                        field.RegisterValueChangedCallback(ChangeDecalLayerMask);
+                        field.value = m_Node.receiveDecals;
+                        field.RegisterValueChangedCallback(ChangeReceiveDecals);
                     });
             });
         }
         
-        void ChangeDecalLayerMask(ChangeEvent<int> evt)
+        void ChangeReceiveDecals(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Decal Layer Mask Change");
-            m_Node.decalLayerMask = (DecalLayerMask)evt.newValue;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Support Decals Change");
+            m_Node.receiveDecals = evt.newValue;
         }
     }
 }

@@ -319,7 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
             --indentLevel; // ...Material type enables.
 
-            AddDecalLayerMaskField(ps, indentLevel);
+            AddReceiveDecalsField(ps, indentLevel);
 
             ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
             {

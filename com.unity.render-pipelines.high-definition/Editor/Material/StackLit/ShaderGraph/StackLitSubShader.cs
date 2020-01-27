@@ -732,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Other property predicates:
             //
 
-            SetDecalLayerMaskActiveFields(masterNode, baseActiveFields);
+            SetReceiveDecalsField(masterNode, baseActiveFields);
 
             if (!masterNode.receiveSSR.isOn)
             {

@@ -1026,7 +1026,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            SetDecalLayerMaskActiveFields(masterNode, baseActiveFields);
+            SetReceiveDecalsField(masterNode, baseActiveFields);
 
             if (!masterNode.receiveSSR.isOn)
             {
