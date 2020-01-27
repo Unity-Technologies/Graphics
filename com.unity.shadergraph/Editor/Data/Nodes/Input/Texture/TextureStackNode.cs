@@ -213,7 +213,22 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
+            // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
+            // as vt headers get included even if there are no vt nodes yet.
+            sb.AppendLine("#if defined(_SURFACE_TYPE_TRANSPARENT)");
+            sb.AppendLine("#error VT cannot be used on transparent surfaces.");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)"); //SHADERPASS is not defined for preview materials so check this first.
+            sb.AppendLine("#error VT cannot be used on decals. (DBuffer)");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_MESH)");
+            sb.AppendLine("#error VT cannot be used on decals. (Mesh)");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)");
+            sb.AppendLine("#error VT cannot be used on decals. (Projector)");
+            sb.AppendLine("#endif");
+
+            // Not all outputs may be connected (well one is or we wouldn't get called) so we are careful to
             // only generate code for connected outputs
             string stackName = GetStackName();
 
