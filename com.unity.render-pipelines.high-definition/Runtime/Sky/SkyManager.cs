@@ -640,7 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (skyContext.IsValid())
             {
-                skyContext.currentUpdateTime += Time.deltaTime;
+                skyContext.currentUpdateTime += Time.deltaTime; // Consider using HDRenderPipeline.GetTime().
 
                 m_BuiltinParameters.hdCamera = hdCamera;
                 m_BuiltinParameters.commandBuffer = cmd;
