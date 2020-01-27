@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 23056792c7cef9d4ba4dc7a8d1d3c06d,
+  m_LightingDataAsset: {fileID: 112000004, guid: d584543a495bd4746b45da4d6870051d,
     type: 2}
   m_LightingSettings: {fileID: 538854112}
 --- !u!196 &4
@@ -788,17 +788,17 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: backgroundColorHDR.r
-      value: 0.2924528
+      value: 0.7075472
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: backgroundColorHDR.g
-      value: 0.29155314
+      value: 0.12348701
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: backgroundColorHDR.b
-      value: 0.29107332
+      value: 0.12348701
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
