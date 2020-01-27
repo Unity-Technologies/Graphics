@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where boolean keywords in a Shader Graph caused HDRP Material features to fail. [1204827](https://issuetracker.unity3d.com/issues/hdrp-shadergraph-adding-a-boolean-keyword-to-an-hdrp-lit-shader-makes-material-features-not-work)
 - Fixed a bug where Object space normals scaled with Object Scale. 
 - Documentation links on nodes now point to the correct URLs and package versions.
+- Fixed a number of memory leaks that caused Shader Graph assets to stay in memory after closing the Shader Graph window.
 - You can now smoothly edit controls on the `Dielectric Specular` node.
 - Fixed Blackboard Properties to support scientific notation.
 
