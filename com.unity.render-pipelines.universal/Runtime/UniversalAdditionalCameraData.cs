@@ -104,7 +104,10 @@ namespace UnityEngine.Rendering.Universal
             var gameObject = camera.gameObject;
             bool componentExists = gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData);
             if (!componentExists)
+            {
                 cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
+                //cameraData.GetCameraStack().AddBaseCamera(camera);
+            }
 
             return cameraData;
         }
@@ -166,9 +169,6 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
-        // Camera Stack Settings
-        [SerializeField] List<int> m_CameraStackPostProcessingList = new List<int>();
-
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -177,7 +177,12 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (s_DefaultAdditionalCameraData == null)
+                {
                     s_DefaultAdditionalCameraData = new UniversalAdditionalCameraData();
+                    //Debug.Log("HERE????");
+                    // MTT How does this look like?!?!?@#$%^
+                    //s_DefaultAdditionalCameraData.GetCameraStack().AddBaseCamera(s_DefaultAdditionalCameraData.GetComponent<Camera>());
+                }
 
                 return s_DefaultAdditionalCameraData;
             }
@@ -255,6 +260,12 @@ namespace UnityEngine.Rendering.Universal
         [EditorBrowsable(EditorBrowsableState.Never)]
         public List<Camera> cameras => cameraStack;
         #endregion
+
+        // public void Awake()
+        // {
+        //     Debug.Log("AWAKE");
+        //     GetCameraStack().AddBaseCamera(gameObject.GetComponent<Camera>());
+        // }
 
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.

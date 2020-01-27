@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.Universal
         #region Properties
         [SerializeField]
         List<CameraStackEntry> m_Entries = new List<CameraStackEntry>();
+        Camera m_BaseCamera = null;
+        UniversalAdditionalCameraData m_BaseCameraAdditionalData;
 
         #endregion
 
@@ -46,16 +48,16 @@ namespace UnityEngine.Rendering.Universal
             return cameras;
         }
 
+        // public CameraStack()
+        // {
+        //     //var camera = this.GetComponent<Camera>();
+        // }
         /// <summary>
-        /// Add a camera to the end of the Entries.
+        /// Add a camera to the end of the entries.
         /// </summary>
-        public void AddCamera(Camera camera)
+        public bool AddCamera(Camera camera)
         {
-            if (camera != null)
-            {
-                CameraStackEntry cameraEntry = new CameraStackEntry { camera = camera, entryType = EntryType.Camera };
-                m_Entries.Add(cameraEntry);
-            }
+            return AddCameraAtIndex(camera, -1);
         }
 
         /// <summary>
@@ -64,35 +66,27 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera"></param>
         /// <param name="index"></param>
         // MTT: Should we allow any camera in here or only Overlay Cameras?
-        public void AddCameraAtIndex(Camera camera, int index)
+        public bool AddCameraAtIndex(Camera camera, int index)
         {
             // Checking to see that the index is lower than the total amount of entries.
-            if (index <= m_Entries.Count)
+            if (index > m_Entries.Count)
             {
-                // If we only allow Overlay Cameras
-                if (IsOverlayCamera(camera))
-                {
-                    CameraStackEntry cameraEntry = new CameraStackEntry { camera = camera, entryType = EntryType.Camera };
-
-                    // If index is the same amount as count we are adding it at the end of the list.
-                    if (index == m_Entries.Count)
-                    {
-                        m_Entries.Add(cameraEntry);
-                    }
-                    else
-                    {
-                        m_Entries.Insert(index, cameraEntry);
-                    }
-                }
-                else
-                {
-                    throw new ArgumentException($"{camera} is not an Overlay Camera");
-                }
+                throw new ArgumentException($"{index} is out of bounds.");
             }
+
+            // If we only allow Overlay Cameras
+            if (IsOverlayCamera(camera))
+            {
+                CameraStackEntry cameraEntry = new CameraStackEntry { camera = camera, entryType = EntryType.Camera };
+                AddEntryAtIndex(cameraEntry, index == -1 ? m_Entries.Count - 1: index);
+
+                return true;
+            }
+            throw new ArgumentException($"{camera} is not an Overlay Camera");
         }
 
         /// <summary>
-        /// Add a camera to the Entries at a certain index.
+        /// Add cameras to the end of the entries.
         /// </summary>
         /// <param name="cameras"></param>
         public void AddCameras(List<Camera> cameras)
@@ -100,45 +94,66 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < cameras.Count; ++i)
             {
                 CameraStackEntry cameraEntry = new CameraStackEntry { camera = cameras[i], entryType = EntryType.Camera };
-                m_Entries.Add(cameraEntry);
+                AddEntry(cameraEntry);
             }
+        }
+
+        /// <summary>
+        /// Add a cameras to the Entries at a certain index.
+        /// </summary>
+        /// <param name="cameras"></param>
+        /// <param name="index"></param>
+        public bool AddCamerasAtIndex(List<Camera> cameras, int index)
+        {
+            if (index >= Count())
+            {
+                throw new ArgumentException("Index out of bounds.");
+            }
+            bool success = true;
+            for (int i = cameras.Count - 1; i >= 0; i--)
+            {
+                success &= AddCameraAtIndex(cameras[i], index);
+            }
+
+            return success;
         }
 
         /// <summary>
         /// Removes the parsed in camera.
         /// </summary>
-        /// /// <param name="cameras"></param>
-        public void RemoveCamera(Camera camera)
+        /// <param name="camera"></param>
+        public bool RemoveCamera(Camera camera)
         {
-            if (camera != null)
-            {
-                for (int i = 0; i < m_Entries.Count; ++i)
-                {
-                    if (camera == m_Entries[i].camera)
-                    {
-                        m_Entries.Remove(m_Entries[i]);
-                    }
-                }
-            }
-            else
+            if (camera == null)
             {
                 throw new ArgumentException("Camera can not be null.");
             }
+
+            bool success = false;
+            for (int i = 0; i < m_Entries.Count; ++i)
+            {
+                if (camera == m_Entries[i].camera)
+                {
+                    RemoveEntry(m_Entries[i]);
+                    success = true;
+                }
+            }
+
+            return success;
         }
 
         /// <summary>
-        /// Removes the camera entry at index.
+        /// Removes the entry at index.
         /// </summary>
-        public void RemoveCameraAtIndex(int index)
+        public bool RemoveAtIndex(int index)
         {
-            if (index < m_Entries.Count)
+            if (index >= Count())
             {
-                m_Entries.RemoveAt(index);
+                throw new ArgumentException($"{index} is out of bounds. There are only {Count()} entries.");
             }
-            else
-            {
-                throw new ArgumentException("Index is out of bounds.");
-            }
+
+            RemoveEntryAtIndex(index);
+            return true;
         }
 
         bool IsOverlayCamera(Camera camera)
@@ -152,68 +167,45 @@ namespace UnityEngine.Rendering.Universal
         #region Post Process
 
         /// <summary>
-        /// Sets the index in the list of the Post Processing entry.
+        /// Move an entry to another position.
         /// </summary>
-        public void SetPostProcessingEntryIndex(int index)
+        public bool MoveEntryToIndex(int fromIndex, int toIndex)
         {
-            // Checking if Index is a valid entry
-            if (index < m_Entries.Count)
+            if (Count() == 0)
             {
-                // Checking if we have a PostProcessing Entry
-                int prevIndex = GetPostProcessingEntryIndex();
-                if (prevIndex != -1)
-                {
-                    // We only move it if it is not the same index
-                    if (prevIndex != index)
-                    {
-                        // This shouldnt be null since we have already found an entry
-                        CameraStackEntry postProcessingEntry = GetPostProcessingEntry();
-                        if (postProcessingEntry != null)
-                        {
-                            // Removing old Entry and then insert it into the new index
-                            m_Entries.RemoveAt(prevIndex);
-                            m_Entries.Insert(index, postProcessingEntry);
-                        }
-                    }
-                }
-                else
-                {
-                    throw new ArgumentException("There are no Post Processing Entry!");
-                }
+                throw new ArgumentException("There are no entries.");
             }
-            else
+
+            if (fromIndex < 0 || fromIndex >= Count())
             {
-                throw new ArgumentException("Index is out of bounds: " + index);
+                throw new ArgumentException($"{fromIndex} is out of bounds.");
             }
+
+            if (toIndex < 0 || toIndex >= Count())
+            {
+                throw new ArgumentException($"{toIndex} is out of bounds.");
+            }
+
+            CameraStackEntry entry = GetEntry(fromIndex);
+            RemoveEntryAtIndex(fromIndex);
+            AddEntryAtIndex(entry, toIndex);
+
+            return true;
         }
 
         /// <summary>
         /// Returns the index in the list of the Post Processing entry.
         /// </summary>
-        public int GetPostProcessingEntryIndex()
+        public void GetPostProcessingEntries(ref List<int> postProcessingIndices)
         {
+            postProcessingIndices.Clear();
             for (int i = 0; i < m_Entries.Count; ++i)
             {
                 if (m_Entries[i].entryType == EntryType.PostProcessing)
                 {
-                    return i;
+                    postProcessingIndices.Add(i);
                 }
             }
-            // If we do not have a PostProcessing Entry return -1
-            // Maybe -1 is not the best thing...
-            return -1;
-        }
-
-        // This is internal since we do not want users to have to deal with these Entries at the moment.
-        CameraStackEntry GetPostProcessingEntry()
-        {
-            int index = GetPostProcessingEntryIndex();
-            if (index != -1)
-            {
-                return m_Entries[index];
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -223,59 +215,100 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public void AddPostProcessing()
         {
-            if (GetPostProcessingEntryIndex() == -1)
+            // Only add Post Processing if the base camera has Post Processing turned on
+            if (!m_BaseCameraAdditionalData.renderPostProcessing)
             {
-                CameraStackEntry postEntry = new CameraStackEntry { camera = null, entryType = EntryType.PostProcessing };
-                m_Entries.Add(postEntry);
+                throw new ArgumentException($"The base camera {m_BaseCamera.name} has no Post Processing turned on.");
             }
-            else
+            AddPostProcessingAtIndex(-1);
+        }
+
+        public bool HasPostProcessingEntry()
+        {
+            for (int i = 0; i < m_Entries.Count; ++i)
             {
-                throw new ArgumentException("There already exist a Post Processing entry.");
+                if (m_Entries[i].entryType == EntryType.PostProcessing)
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
         /// <summary>
-        /// Add a camera to the end of the Entries.
+        /// Add a post processing to the end of the Entries.
         /// </summary>
         public void AddPostProcessingAtIndex(int index)
         {
-            if (GetPostProcessingEntryIndex() == -1)
-            {
-                CameraStackEntry postEntry = new CameraStackEntry { camera = null, entryType = EntryType.PostProcessing };
-                // Adding it here so that we can use the other Function that already exist to move it to the right index.
-                m_Entries.Add(postEntry);
-                SetPostProcessingEntryIndex(index);
-            }
-            else
+            if (HasPostProcessingEntry())
             {
                 throw new ArgumentException("There already exist a Post Processing entry.");
             }
+
+            if (index > Count())
+            {
+                throw new ArgumentException($"{index} is out of bounds.");
+            }
+
+            CameraStackEntry postEntry = new CameraStackEntry { camera = null, entryType = EntryType.PostProcessing };
+            AddEntryAtIndex(postEntry, index == -1 ? Count() : index);
         }
 
         /// <summary>
         /// Removes the Post Processing entry.
         /// </summary>
-        public void RemovePostProcessing()
+        public bool RemoveAllPostProcessing()
         {
-            int index = GetPostProcessingEntryIndex();
-            if (index != -1)
+            if (!HasPostProcessingEntry())
             {
-                m_Entries.RemoveAt(index);
+                throw new ArgumentException("There are no Post Processing entries.");
             }
-            else
+
+            bool success = false;
+            for (int i = m_Entries.Count - 1; i >= 0; --i)
             {
-                throw new ArgumentException("No Post Processing entry exists.");
+                if (m_Entries[i].entryType == EntryType.PostProcessing)
+                {
+                    success &= RemoveAtIndex(i);
+                }
             }
+
+            return success;
         }
 
-
         #endregion
+
 
         // Maybe we want to use this to internally use for safety????
         // MTT
         internal void AddEntry(CameraStackEntry entry)
         {
+            m_Entries.Add(entry);
+        }
 
+        // Maybe we want to use this to internally use for safety????
+        // MTT
+        internal void AddEntryAtIndex(CameraStackEntry entry, int index)
+        {
+            m_Entries.Insert(index, entry);
+        }
+
+        internal void RemoveEntry(CameraStackEntry entry)
+        {
+            m_Entries.Remove(entry);
+        }
+
+        internal void RemoveEntryAtIndex(int index)
+        {
+            m_Entries.RemoveAt(index);
+        }
+
+        // Maybe we want to use this to internally use for safety????
+        // MTT
+        internal CameraStackEntry GetEntry(int index)
+        {
+            return m_Entries[index];
         }
 
         /// <summary>
@@ -294,17 +327,11 @@ namespace UnityEngine.Rendering.Universal
             return m_Entries.Count;
         }
 
-        // This might be a bit confusing
-        // MTT
-        // public List<Camera> GetAllEntries()
-        // {
-        //     // Returning cameras from all entries.
-        //     List<Camera> cameras = new List<Camera>();
-        //     for (int i = 0; i < m_Entries.Count; ++i)
-        //     {
-        //         cameras.Add(m_Entries[i].camera);
-        //     }
-        //     return cameras;
-        // }
+        internal void AddBaseCamera(Camera baseCamera)
+        {
+            m_BaseCamera = baseCamera;
+            m_BaseCameraAdditionalData = baseCamera.GetComponent<UniversalAdditionalCameraData>();
+            Debug.Log("Muppets");
+        }
     }
 }
