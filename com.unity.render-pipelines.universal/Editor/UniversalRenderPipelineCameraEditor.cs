@@ -300,7 +300,6 @@ namespace UnityEditor.Rendering.Universal
 
             // Might not need this
             m_StackEntriesProp.serializedObject.Update();
-            Debug.Log($"Entry:: {index}");
             var stackEntry = m_StackEntriesProp.GetArrayElementAtIndex(index);
             if (stackEntry != null)
             {

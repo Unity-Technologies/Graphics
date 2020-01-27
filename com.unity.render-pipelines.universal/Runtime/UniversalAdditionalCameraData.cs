@@ -186,15 +186,6 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls if this camera should render shadows.
         /// </summary>
-        public List<int> cameraStackPostProcessingList
-        {
-            get => m_CameraStackPostProcessingList;
-            set => m_CameraStackPostProcessingList = value;
-        }
-
-        /// <summary>
-        /// Controls if this camera should render shadows.
-        /// </summary>
         public bool renderShadows
         {
             get => m_RenderShadows;
@@ -265,19 +256,10 @@ namespace UnityEngine.Rendering.Universal
         public List<Camera> cameras => cameraStack;
         #endregion
 
-        // /// <summary>
-        // /// Returns true if the Post Processing will run after this camera.
-        // /// </summary>
-        // public bool runPostProcessingAfterThisCamera
-        // {
-        //     get => m_RunPostProcessingAfterThisCamera;
-        //     set => m_RunPostProcessingAfterThisCamera = value;
-        // }
-
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
-        /// Overlay cameras have no stack and will return null.
-        /// <seealso cref="CameraRenderType"/>.
+        /// MTT
+        /// <seealso cref="CameraStack"/>.
         /// </summary>
         public CameraStack GetCameraStack()
         {
@@ -477,78 +459,6 @@ namespace UnityEngine.Rendering.Universal
             }
             Gizmos.DrawIcon(transform.position, gizmoName);
 #endif
-        }
-    }
-
-    // public interface ICameraStackEntry{}
-    //
-    //
-    // [Serializable]
-    // public class StackCameraEntry : ICameraStackEntry
-    // {
-    //     public Camera camera;
-    // }
-    //
-    // [Serializable]
-    // public class StackPostEffectEntry : ICameraStackEntry
-    // {
-    //     public string name = "PostEffectEntry";
-    // }
-
-    internal enum EntryType
-    {
-        Camera,
-        PostProcessing,
-    }
-
-    [Serializable]
-    internal class CameraStackEntry
-    {
-        public Camera camera;
-        public EntryType entryType;
-    }
-
-    [Serializable]
-    public class CameraStack : System.Object
-    {
-        [SerializeField]
-        List<Camera> cameras = new List<Camera>();
-
-        // [SerializeReference]
-        // List<ICameraStackEntry> m_Entries = new List<ICameraStackEntry>();
-
-        [SerializeField]
-        List<CameraStackEntry> m_Entries = new List<CameraStackEntry>();
-
-        [SerializeField]
-        List<int> m_PostProcessingIndexes = new List<int>();
-
-        public List<Camera> GetAllCameras()
-        {
-            return cameras;
-        }
-
-        public void SetPostProcessingEntry(int index)
-        {
-
-        }
-
-        public void AddCamera(Camera camera)
-        {
-
-        }
-
-        public override string ToString()
-        {
-            string names = "";
-            //if (cameras != null)
-            //{
-                foreach (Camera camera in cameras)
-                {
-                    names += camera.name;
-                }
-            //}
-            return names;
         }
     }
 }
