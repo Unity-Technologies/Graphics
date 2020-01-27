@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class MaterialReimporter : Editor
     {
+        static bool s_NeedToCheckProjSettingExistence = true;
+
         static internal void ReimportAllMaterials()
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
@@ -47,6 +49,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (Time.renderedFrameCount > 0)
                 {
+                    bool fileExist = true;
+                    // We check the file existence only once to avoid IO operations every frame.
+                    if(s_NeedToCheckProjSettingExistence)
+                    {
+                        fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
+                        s_NeedToCheckProjSettingExistence = false;
+                    }
+
                     //This method is called at opening and when HDRP package change (update of manifest.json)
                     var curUpgradeVersion = HDProjectSettings.materialVersionForUpgrade;
 
@@ -54,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite)
+                        if (!inTestSuite && fileExist && curUpgradeVersion != HDProjectSettings.k_NeverProcessedMaterialVersion)
                         {
                             EditorUtility.DisplayDialog("HDRP Material Migration", "Your High Definition Render Pipeline version requires a material upgrade." +
                                                         " All materials in the project will be re-imported and saved to disk (and checked out if relevant) if changed. \n" +
