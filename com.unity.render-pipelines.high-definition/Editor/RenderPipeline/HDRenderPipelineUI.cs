@@ -845,7 +845,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, Styles.raytracingTier);
             }
 
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
