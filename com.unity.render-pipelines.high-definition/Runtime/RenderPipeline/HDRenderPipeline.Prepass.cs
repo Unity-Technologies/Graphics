@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.dbuffer = m_DBufferOutput;
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera);
+            bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
 
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
