@@ -142,6 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     mrts.Add(m_NormalRT.nameID);
                 }
 
+                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                    mrts.Add(m_DecalPrePassBuffer);
+
                 switch (mrts.Count)
                 {
                     case 1:
@@ -150,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     case 2:
                         mrts.CopyTo(m_RTIDs2);
                         return m_RTIDs2;
+                    case 3:
+                        mrts.CopyTo(m_RTIDs3);
+                        return m_RTIDs3;
                     default: throw new Exception("Unreachable");
                 }
             }
