@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
                     UpdateAsset();
                 Undo.ClearUndo(graphObject);
-                DestroyImmediate(graphObject);
+                graphObject = null;
             }
 
             graphEditorView = null;
