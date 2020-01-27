@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
         public BoolParameter denoise = new BoolParameter(false);
         public ClampedIntParameter denoiserRadius = new ClampedIntParameter(16, 1, 32);
+        public RayTracingTierParameter tier = new RayTracingTierParameter(RayTracingTier.Tier2);
 
         // Tier 1 code
         public IntParameter upscaleRadius = new ClampedIntParameter(4, 2, 6);

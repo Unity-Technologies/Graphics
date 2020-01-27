@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
+        SerializedDataParameter m_Tier;
 
         // Tier 1
         SerializedDataParameter m_DeferredMode;
@@ -38,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
+            m_Tier = Unpack(o.Find(x => x.tier));
 
             // Tier 1
             m_DeferredMode = Unpack(o.Find(x => x.deferredMode));
@@ -78,11 +80,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_RayLength);
                     PropertyField(m_ClampValue);
+                    PropertyField(m_Tier);
 
-                    RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-                    switch (currentTier)
+                    EditorGUI.indentLevel++;
+                    switch (m_Tier.value.GetEnumValue<RayTracingTier>())
                     {
-                        case RenderPipelineSettings.RaytracingTier.Tier1:
+                        case RayTracingTier.Tier1:
                             {
                                 PropertyField(m_DeferredMode);
                                 PropertyField(m_RayBinning);
@@ -90,13 +93,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 PropertyField(m_UpscaleRadius);
                             }
                             break;
-                        case RenderPipelineSettings.RaytracingTier.Tier2:
+                        case RayTracingTier.Tier2:
                             {
                                 PropertyField(m_SampleCount);
                                 PropertyField(m_BounceCount);
                             }
                             break;
                     }
+                    EditorGUI.indentLevel--;
 
                     PropertyField(m_Denoise);
                     {

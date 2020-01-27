@@ -26,12 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Both = ForwardOnly | DeferredOnly
         }
 
-        public enum RaytracingTier
-        {
-            Tier1 = 1 << 0,
-            Tier2 = 1 << 1
-        }
-
         public enum ColorBufferFormat
         {
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
@@ -77,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
 
             supportRayTracing = false,
-            supportedRaytracingTier = RaytracingTier.Tier2,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
             maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
             lightLayerName0 = "Light Layer default",
@@ -136,7 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDitheringCrossFade;
         public bool supportTerrainHole;
         public bool supportRayTracing;
-        public RaytracingTier supportedRaytracingTier;
 
         public GlobalLightLoopSettings lightLoopSettings;
         public HDShadowInitParameters hdShadowInitParams;

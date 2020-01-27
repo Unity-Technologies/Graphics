@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
+        SerializedDataParameter m_Tier;
 
         // Tier 1
         SerializedDataParameter m_UpscaleRadius;
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_Denoise                       = Unpack(o.Find(x => x.denoise));
             m_DenoiserRadius                = Unpack(o.Find(x => x.denoiserRadius));
+            m_Tier                          = Unpack(o.Find(x => x.tier));
 
             // Tier 1
             m_UpscaleRadius                 = Unpack(o.Find(x => x.upscaleRadius));
@@ -98,10 +100,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays."));
                 PropertyField(m_ClampValue, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-                switch (currentTier)
+                PropertyField(m_Tier, EditorGUIUtility.TrTextContent("Ray Tracing Tier", "Controls which version of the effect should be used."));
+
+                EditorGUI.indentLevel++;
+                switch (m_Tier.value.GetEnumValue<RayTracingTier>())
                 {
-                    case RenderPipelineSettings.RaytracingTier.Tier1:
+                    case RayTracingTier.Tier1:
                     {
                         PropertyField(m_UpscaleRadius, EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius."));
                         PropertyField(m_FullResolution, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
@@ -115,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                     break;
-                    case RenderPipelineSettings.RaytracingTier.Tier2:
+                    case RayTracingTier.Tier2:
                     {
                         PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections."));
                         PropertyField(m_BounceCount, EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays."));
@@ -128,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     break;
                 }
+                EditorGUI.indentLevel--;
             }
             else
             {

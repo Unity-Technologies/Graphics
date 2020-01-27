@@ -26,15 +26,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderRayTracedReflections(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
-            RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-            switch (currentTier)
+            ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
+            switch (reflectionSettings.tier.value)
             {
-                case RenderPipelineSettings.RaytracingTier.Tier1:
+                case RayTracingTier.Tier1:
                 {
                     RenderReflectionsT1(hdCamera, cmd, outputTexture, renderContext, frameCount);
                 }
                 break;
-                case RenderPipelineSettings.RaytracingTier.Tier2:
+                case RayTracingTier.Tier2:
                 {
                     RenderReflectionsT2(hdCamera, cmd, outputTexture, renderContext, frameCount);
                 }

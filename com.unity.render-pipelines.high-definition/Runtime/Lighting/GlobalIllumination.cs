@@ -17,6 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the clamp of intensity.")]
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
+        [Tooltip("Controls which version of the effect should be used.")]
+        public RayTracingTierParameter tier = new RayTracingTierParameter(RayTracingTier.Tier2);
+
         // Tier 1
         [Tooltip("Enables deferred mode")]
         public BoolParameter deferredMode = new BoolParameter(false);

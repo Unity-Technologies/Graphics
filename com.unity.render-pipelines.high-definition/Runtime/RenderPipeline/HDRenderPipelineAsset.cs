@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(HDRenderPipeline.AggreateRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(HDRenderPipeline.GatherRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)

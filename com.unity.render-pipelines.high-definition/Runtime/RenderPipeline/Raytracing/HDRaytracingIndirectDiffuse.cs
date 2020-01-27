@@ -54,19 +54,20 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!ValidIndirectDiffuseState(hdCamera))
                 return;
 
-            RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-            switch (currentTier)
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+
+            switch (giSettings.tier.value)
             {
-                case RenderPipelineSettings.RaytracingTier.Tier1:
-                    {
-                        RenderIndirectDiffuseT1(hdCamera, cmd, renderContext, frameCount);
-                    }
-                    break;
-                case RenderPipelineSettings.RaytracingTier.Tier2:
-                    {
-                        RenderIndirectDiffuseT2(hdCamera, cmd, renderContext, frameCount);
-                    }
-                    break;
+                case RayTracingTier.Tier1:
+                {
+                    RenderIndirectDiffuseT1(hdCamera, cmd, renderContext, frameCount);
+                }
+                break;
+                case RayTracingTier.Tier2:
+                {
+                    RenderIndirectDiffuseT2(hdCamera, cmd, renderContext, frameCount);
+                }
+                break;
             }
 
             // Bind the indirect diffuse texture (for forward materials)
