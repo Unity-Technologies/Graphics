@@ -354,9 +354,10 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        //Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
+        //We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
+        //This is a limitation of the current MRT approach.
         $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
-#endif
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
