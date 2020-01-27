@@ -234,9 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool hasPersistentHistory = false;
 
-        // Event used to override HDRP rendering for this particular camera.
+        /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
-        internal bool hasCustomRender { get { return customRender != null; } }
+        /// <summary>True if any Custom Render event is registered for this camera.</summary>
+        public bool hasCustomRender { get { return customRender != null; } }
 
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
         public event RequestAccessDelegate requestGraphicsBuffer;
