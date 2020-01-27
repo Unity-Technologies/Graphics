@@ -6,6 +6,8 @@ using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
+    // This structure is designed to be Burst friendly.
+    // It can be copied by value.
     internal struct DeferredTiler
     {
         // Precomputed light data
@@ -90,6 +92,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileData = new NativeArray<ushort>();
             m_TileHeaders = new NativeArray<uint>();
             m_PreTiles = new NativeArray<PreTile>();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetTilerLevel()
+        {
+            return m_TilerLevel;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

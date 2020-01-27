@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // For platforms using 16x16 px tiles, we use a 16x16px tiles grid, a 64x64px tiles grid, and a 256x256px tiles grid
         // For platforms using  8x8  px tiles, we use a  8x8px  tiles grid, a 32x32px tiles grid, and a 128x128px tiles grid
         public const int kTilerDepth = 3;
+        public const int kTilerSubdivisions = 4;
 
         public const int kAvgLightPerTile = 32;
 
@@ -126,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         [Unity.Burst.BurstCompile(CompileSynchronously = true)]
-        struct CullIntermediateLightsJob : IJob
+        struct CullLightsJob : IJob
         {
             public DeferredTiler tiler;
             [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
@@ -146,40 +147,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int coarseTileOffset = (int)coarseTileHeaders[coarseHeaderOffset + 0];
                 int coarseVisLightCount = (int)coarseTileHeaders[coarseHeaderOffset + 1];
 
-                tiler.CullIntermediateLights(
-                    ref prePunctualLights,
-                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                    istart, iend, jstart, jend
-                );
-            }
-        }
-
-        [Unity.Burst.BurstCompile(CompileSynchronously = true)]
-        struct CullFinalLightsJob : IJob
-        {
-            public DeferredTiler tiler;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
-            public NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
-            public NativeArray<ushort> coarseTiles;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
-            public NativeArray<uint> coarseTileHeaders;
-            public int coarseHeaderOffset;
-            public int istart;
-            public int iend;
-            public int jstart;
-            public int jend;
-
-            public void Execute()
-            {
-                int coarseTileOffset = (int)coarseTileHeaders[coarseHeaderOffset + 0];
-                int coarseVisLightCount = (int)coarseTileHeaders[coarseHeaderOffset + 1];
-
-                tiler.CullFinalLights(
-                    ref prePunctualLights,
-                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                    istart, iend, jstart, jend
-                );
+                if (tiler.GetTilerLevel() != 0)
+                {
+                    tiler.CullIntermediateLights(
+                        ref prePunctualLights,
+                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                        istart, iend, jstart, jend
+                    );
+                }
+                else
+                {
+                    tiler.CullFinalLights(
+                        ref prePunctualLights,
+                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                        istart, iend, jstart, jend
+                    );
+                }
             }
         }
 
@@ -289,7 +272,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Tiler 0 has finest tiles, coarser tilers follow.
             for (int tilerLevel = 0; tilerLevel < DeferredConfig.kTilerDepth; ++tilerLevel)
             {
-                int scale = (int)Mathf.Pow(4, tilerLevel);
+                int scale = (int)Mathf.Pow(DeferredConfig.kTilerSubdivisions, tilerLevel);
                 m_Tilers[tilerLevel] = new DeferredTiler(
                     DeferredConfig.kTilePixelWidth * scale,
                     DeferredConfig.kTilePixelHeight * scale,
@@ -453,178 +436,96 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ref DeferredTiler coarsestTiler = ref m_Tilers[m_Tilers.Length - 1];
                 if (m_Tilers.Length != 1)
                 {
+                    NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>();
+                    int jobOffset = 0;
+                    int jobCount = 0;
+
                     if (this.useJobSystem)
                     {
                         int totalJobCount = 1;
-                        for (int t = m_Tilers.Length - 2; t >= 0; --t)
+                        for (int t = m_Tilers.Length - 1; t > 0; --t)
                         {
-                            ref DeferredTiler coarseTiler = ref m_Tilers[t + 1];
+                            ref DeferredTiler coarseTiler = ref m_Tilers[t];
                             totalJobCount += coarseTiler.GetTileXCount() * coarseTiler.GetTileYCount();
                         }
+                        jobHandles = new NativeArray<JobHandle>(totalJobCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                    }
 
-                        NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(totalJobCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                        int jobCount = 0;
-                        int jobOffset = 0;
-
-                        // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePunctualLights that intersect the tile
-                        CullIntermediateLightsJob coarsestJob = new CullIntermediateLightsJob
-                        {
-                            tiler = coarsestTiler,
-                            prePunctualLights = prePunctualLights,
-                            coarseTiles = defaultIndices,
-                            coarseTileHeaders = defaultHeaders,
-                            coarseHeaderOffset = 0,
-                            istart = 0,
-                            iend = coarsestTiler.GetTileXCount(),
-                            jstart = 0,
-                            jend = coarsestTiler.GetTileYCount(),
-                        };
+                    // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePunctualLights that intersect the tile
+                    CullLightsJob coarsestJob = new CullLightsJob
+                    {
+                        tiler = coarsestTiler,
+                        prePunctualLights = prePunctualLights,
+                        coarseTiles = defaultIndices,
+                        coarseTileHeaders = defaultHeaders,
+                        coarseHeaderOffset = 0,
+                        istart = 0,
+                        iend = coarsestTiler.GetTileXCount(),
+                        jstart = 0,
+                        jend = coarsestTiler.GetTileYCount(),
+                    };
+                    if (this.useJobSystem)
+                    {
                         jobHandles[jobCount++] = coarsestJob.Schedule();
+                        // Start this job now, as the main thread will be busy setting up all the dependent jobs.
                         JobHandle.ScheduleBatchedJobs();
-
-                        // Filter to fine tile structure.
-                        for (int t = m_Tilers.Length - 2; t >= 0; --t)
-                        {
-                            ref DeferredTiler fineTiler = ref m_Tilers[t];
-                            ref DeferredTiler coarseTiler = ref m_Tilers[t + 1];
-                            int fineTileXCount = fineTiler.GetTileXCount();
-                            int fineTileYCount = fineTiler.GetTileYCount();
-                            int coarseTileXCount = coarseTiler.GetTileXCount();
-                            int coarseTileYCount = coarseTiler.GetTileYCount();
-                            int superCoarseTileXCount = (t == m_Tilers.Length - 2) ? 1 : (coarseTileXCount + 3) / 4; // TODO: make this better
-                            int superCoarseTileYCount = (t == m_Tilers.Length - 2) ? 1 : (coarseTileYCount + 3) / 4;
-                            NativeArray<ushort> coarseTiles = coarseTiler.GetTiles();
-                            NativeArray<uint> coarseTileHeaders = coarseTiler.GetTileHeaders();
-                            int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
-                            int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
-
-                            for (int j = 0; j < coarseTileYCount; ++j)
-                            for (int i = 0; i < coarseTileXCount; ++i)
-                            {
-                                int fine_istart = i * fineStepX;
-                                int fine_jstart = j * fineStepY;
-                                int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
-                                int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
-                                int coarseHeaderOffset = coarseTiler.GetTileHeaderOffset(i, j);
-
-                                if (t == m_Tilers.Length - 2)
-                                {
-                                    CullIntermediateLightsJob job = new CullIntermediateLightsJob
-                                    {
-                                        tiler = m_Tilers[t],
-                                        prePunctualLights = prePunctualLights,
-                                        coarseTiles = coarseTiles,
-                                        coarseTileHeaders = coarseTileHeaders,
-                                        coarseHeaderOffset = coarseHeaderOffset,
-                                        istart = fine_istart,
-                                        iend = fine_iend,
-                                        jstart = fine_jstart,
-                                        jend = fine_jend,
-                                    };
-
-                                    jobHandles[jobCount++] = job.Schedule(jobHandles[0]);
-                                }
-                                else if (t > 0)
-                                {
-                                    CullIntermediateLightsJob job = new CullIntermediateLightsJob
-                                    {
-                                        tiler = m_Tilers[t],
-                                        prePunctualLights = prePunctualLights,
-                                        coarseTiles = coarseTiles,
-                                        coarseTileHeaders = coarseTileHeaders,
-                                        coarseHeaderOffset = coarseHeaderOffset,
-                                        istart = fine_istart,
-                                        iend = fine_iend,
-                                        jstart = fine_jstart,
-                                        jend = fine_jend,
-                                    };
-
-                                    int parentIndex = jobOffset + (i/4) + (j/4) * superCoarseTileXCount;
-                                    Assertions.Assert.IsTrue(parentIndex < jobCount);
-                                    jobHandles[jobCount++] = job.Schedule(jobHandles[parentIndex]);
-                                }
-                                else
-                                {
-                                    CullFinalLightsJob job = new CullFinalLightsJob
-                                    {
-                                        tiler = m_Tilers[t],
-                                        prePunctualLights = prePunctualLights,
-                                        coarseTiles = coarseTiles,
-                                        coarseTileHeaders = coarseTileHeaders,
-                                        coarseHeaderOffset = coarseHeaderOffset,
-                                        istart = fine_istart,
-                                        iend = fine_iend,
-                                        jstart = fine_jstart,
-                                        jend = fine_jend,
-                                    };
-
-                                    int parentIndex = jobOffset + (i/4) + (j/4) * superCoarseTileXCount;
-                                    Assertions.Assert.IsTrue(parentIndex < jobCount);
-                                    jobHandles[jobCount++] = job.Schedule(jobHandles[parentIndex]);
-                                }
-                            }
-
-                            jobOffset += superCoarseTileXCount * superCoarseTileYCount;
-                        }
-
-                        JobHandle.CompleteAll(jobHandles);
-                        jobHandles.Dispose();
                     }
                     else
+                        coarsestJob.Execute();
+
+                    // Filter to fine tile structure.
+                    for (int t = m_Tilers.Length - 1; t > 0; --t)
                     {
-                        // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePunctualLights that intersect the tile
-                        coarsestTiler.CullIntermediateLights(ref prePunctualLights,
-                            ref defaultIndices, 0, prePunctualLights.Length,
-                            0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
-                        );
+                        ref DeferredTiler fineTiler = ref m_Tilers[t - 1];
+                        ref DeferredTiler coarseTiler = ref m_Tilers[t];
+                        int fineTileXCount = fineTiler.GetTileXCount();
+                        int fineTileYCount = fineTiler.GetTileYCount();
+                        int coarseTileXCount = coarseTiler.GetTileXCount();
+                        int coarseTileYCount = coarseTiler.GetTileYCount();
+                        int subdivX = (t == m_Tilers.Length - 1) ? coarseTileXCount : DeferredConfig.kTilerSubdivisions;
+                        int subdivY = (t == m_Tilers.Length - 1) ? coarseTileYCount : DeferredConfig.kTilerSubdivisions;
+                        int superCoarseTileXCount = (coarseTileXCount + subdivX - 1) / subdivX;
+                        int superCoarseTileYCount = (coarseTileYCount + subdivY - 1) / subdivY;
+                        NativeArray<ushort> coarseTiles = coarseTiler.GetTiles();
+                        NativeArray<uint> coarseTileHeaders = coarseTiler.GetTileHeaders();
+                        int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
+                        int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
 
-                        // Filter to fine tile structure.
-                        for (int t = m_Tilers.Length - 2; t >= 0; --t)
+                        for (int j = 0; j < coarseTileYCount; ++j)
+                        for (int i = 0; i < coarseTileXCount; ++i)
                         {
-                            ref DeferredTiler fineTiler = ref m_Tilers[t];
-                            ref DeferredTiler coarseTiler = ref m_Tilers[t + 1];
-                            int fineTileXCount = fineTiler.GetTileXCount();
-                            int fineTileYCount = fineTiler.GetTileYCount();
-                            int coarseTileXCount = coarseTiler.GetTileXCount();
-                            int coarseTileYCount = coarseTiler.GetTileYCount();
-                            NativeArray<ushort> coarseTiles = coarseTiler.GetTiles();
-                            int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
-                            int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
+                            int fine_istart = i * fineStepX;
+                            int fine_jstart = j * fineStepY;
+                            int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
+                            int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
+                            int coarseHeaderOffset = coarseTiler.GetTileHeaderOffset(i, j);
 
-                            for (int j = 0; j < coarseTileYCount; ++j)
-                            for (int i = 0; i < coarseTileXCount; ++i)
+                            CullLightsJob job = new CullLightsJob
                             {
-                                int fine_istart = i * fineStepX;
-                                int fine_jstart = j * fineStepY;
-                                int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
-                                int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
-                                int coarseTileOffset;
-                                int coarseVisLightCount;
-                                coarseTiler.GetTileOffsetAndCount(i, j, out coarseTileOffset, out coarseVisLightCount);
-
-                                if (t != 0)
-                                {
-                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePunctualLights that intersect the tile
-                                    // (The prePunctualLights excluded during previous coarser tiler Culling are not processed any more)
-                                    fineTiler.CullIntermediateLights(
-                                        ref prePunctualLights,
-                                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                                        fine_istart, fine_iend, fine_jstart, fine_jend
-                                    );
-                                }
-                                else
-                                {
-                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePunctualLights that intersect the tile
-                                    // (The prePunctualLights excluded during previous coarser tiler Culling are not processed any more)
-                                    // Also fills additional per-tile "m_TileHeaders"
-                                    fineTiler.CullFinalLights(
-                                        ref prePunctualLights,
-                                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                                        fine_istart, fine_iend, fine_jstart, fine_jend
-                                    );
-                                }
-                            }
+                                tiler = m_Tilers[t-1],
+                                prePunctualLights = prePunctualLights,
+                                coarseTiles = coarseTiles,
+                                coarseTileHeaders = coarseTileHeaders,
+                                coarseHeaderOffset = coarseHeaderOffset,
+                                istart = fine_istart,
+                                iend = fine_iend,
+                                jstart = fine_jstart,
+                                jend = fine_jend,
+                            };
+                                
+                            if (this.useJobSystem)
+                                jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
+                            else
+                                job.Execute();
                         }
+
+                        jobOffset += superCoarseTileXCount * superCoarseTileYCount;
+                    }
+
+                    if (this.useJobSystem)
+                    {
+                        JobHandle.CompleteAll(jobHandles);
+                        jobHandles.Dispose();
                     }
                 }
                 else
