@@ -208,10 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
         const int k_ThreadGroupOptimalSize = 64;
         #endif
 
-        // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
-        ComputeBuffer m_DirectionalLightDatas = null;
-        public ComputeBuffer directionalLightDatas { get { return m_DirectionalLightDatas; } }
-
         int m_MaxDirectionalLightsOnScreen;
         int m_MaxPunctualLightsOnScreen;
         int m_MaxAreaLightsOnScreen;
@@ -2129,7 +2125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect);
                 }
-                
+
                 // Reserve the cookie resolution in the 2D atlas
                 ReserveCookieAtlasTexture(additionalData, light.light);
 
@@ -2156,7 +2152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
             m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
-            
+
             // Using the same pattern than shadowmaps, light have requested space in the atlas for their
             // cookies and now we can layout the atlas (re-insert all entries by order of size) if needed
             m_TextureCaches.lightCookieManager.LayoutIfNeeded();
@@ -2488,7 +2484,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
-                
+
                 // Because we don't support baking planar reflection probe, we can clear the atlas.
                 // Every visible probe will be blitted again.
                 m_TextureCaches.reflectionPlanarProbeCache.ClearAtlasAllocator();
