@@ -3608,6 +3608,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, resources.colorBuffers[0]);
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, resources.colorBuffers[1]);
 
+                    cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, resources.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
+
                     // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
                     if (parameters.enableFeatureVariants)
                     {

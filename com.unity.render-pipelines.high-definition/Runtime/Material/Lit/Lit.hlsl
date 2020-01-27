@@ -39,7 +39,6 @@
 
 // GBuffer texture declaration
 TEXTURE2D_X(_GBufferTexture0);
-TEXTURE2D_X(_GBufferTexture1);
 TEXTURE2D_X(_GBufferTexture2);
 TEXTURE2D_X(_GBufferTexture3); // Bake lighting and/or emissive
 TEXTURE2D_X(_GBufferTexture4); // Light layer or shadow mask
@@ -649,13 +648,14 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     ZERO_INITIALIZE(BSDFData, bsdfData);
     // Note: Some properties of builtinData are not used, just init all at 0 to silent the compiler
     ZERO_INITIALIZE(BuiltinData, builtinData);
+    NormalData normalData;
 
     // Isolate material features.
     tileFeatureFlags &= MATERIAL_FEATURE_MASK_FLAGS;
 
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D_X(_GBufferTexture0, positionSS);
-    GBufferType1 inGBuffer1 = LOAD_TEXTURE2D_X(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D_X(_GBufferTexture2, positionSS);
+    DecodeFromNormalBuffer(positionSS, normalData);
 
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
@@ -742,8 +742,6 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
 
-    NormalData normalData;
-    DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
     bsdfData.normalWS = normalData.normalWS;
     bsdfData.geomNormalWS = bsdfData.normalWS; // No geometric normal in deferred, use normal map
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;
