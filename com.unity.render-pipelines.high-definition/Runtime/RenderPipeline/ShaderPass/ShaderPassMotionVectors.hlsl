@@ -4,7 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/MotionVectorVertexShaderCommon.hlsl"
 
-#if WRITE_DECAL_BUFFER
+#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
 
@@ -61,7 +61,7 @@ void Frag(  PackedVaryingsToPS packedInput
             #define __DECAL_BUFFER_TARGET SV_Target3
             #endif
 
-            #if defined(WRITE_DECAL_BUFFER)
+            #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
             , out float4 decalBuffer: __DECAL_BUFFER_TARGET
             #endif
 
@@ -128,7 +128,7 @@ void Frag(  PackedVaryingsToPS packedInput
     outputDepth = posInput.deviceDepth;
 #endif
 
-#ifdef WRITE_DECAL_BUFFER
+#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
     EncodeIntoDecalPrepass(surfaceData.geomNormalWS, _DecalLayerMask, decalBuffer);
 #endif
 }

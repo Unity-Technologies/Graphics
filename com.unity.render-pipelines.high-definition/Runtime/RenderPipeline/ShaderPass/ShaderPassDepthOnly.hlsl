@@ -4,7 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
-#if WRITE_DECAL_BUFFER
+#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
 
@@ -49,7 +49,7 @@ void Frag(  PackedVaryingsToPS packedInput
             , out float4 outColor : SV_Target0
             #endif
 
-            #if defined(WRITE_DECAL_BUFFER)
+            #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
             , out float4 decalBuffer: __DECAL_BUFFER_TARGET
             #endif
 
@@ -96,7 +96,7 @@ void Frag(  PackedVaryingsToPS packedInput
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif
 
-#ifdef WRITE_DECAL_BUFFER
+#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
     EncodeIntoDecalPrepass(surfaceData.geomNormalWS, _DecalLayerMask, decalBuffer);
 #endif
 }
