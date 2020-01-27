@@ -2,14 +2,7 @@ Pass
 {		
 	Tags { "LightMode"="GBuffer" }
 
-    // TODO: Use value from C# (Update GetStencilStateForDepthOrMV )
-	Stencil
-	{
-		WriteMask 3  // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
-		Ref  2 // StencilUsage.RequiresDeferredLighting
-		Comp Always
-		Pass Replace
-	}	
+    ${VFXStencilGBuffer}
 		
 	HLSLPROGRAM
 	#pragma target 4.5
