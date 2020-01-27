@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     }
 
-    public class XRPass
+    class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);
 

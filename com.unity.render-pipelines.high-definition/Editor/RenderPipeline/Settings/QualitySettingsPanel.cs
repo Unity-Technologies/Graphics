@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Defines the provider of the quality settings panel for HDRP.
     /// </summary>
-    public class QualitySettingsPanel
+    class QualitySettingsPanel
     {
         static QualitySettingsPanelIMGUI s_IMGUIImpl = new QualitySettingsPanelIMGUI();
 

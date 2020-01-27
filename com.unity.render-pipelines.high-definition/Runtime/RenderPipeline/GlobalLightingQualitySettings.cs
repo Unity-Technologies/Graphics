@@ -41,8 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
         }
 
-        /// <summary>Default GlobalLightingQualitySettings</summary>
-        public static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
+        internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
 
         // SSAO
         public int[] AOStepCount = new int[s_QualitySettingCount];

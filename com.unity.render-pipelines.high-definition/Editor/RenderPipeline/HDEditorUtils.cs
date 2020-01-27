@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// A collection of utilities used by editor code of the HDRP.
     /// </summary>
-    public class HDEditorUtils
+    class HDEditorUtils
     {
         internal const string FormatingPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";

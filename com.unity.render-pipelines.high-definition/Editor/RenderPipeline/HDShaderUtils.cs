@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public class HDShaderUtils
     {
         //enum representing all shader and shadergraph that we expose to user
-        public enum ShaderID
+        internal enum ShaderID
         {
             Lit,
             LitTesselation,

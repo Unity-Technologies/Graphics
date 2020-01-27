@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Count
     }
 
-    public struct VBufferParameters
+    struct VBufferParameters
     {
         public Vector3Int viewportSize;
         public Vector4 depthEncodingParams;
