@@ -53,6 +53,7 @@ Material:
     - _TransparentBackfaceEnable: 1
     - _TransparentCullMode: 1
     - _TransparentSortPriority: 0
+    - _TransparentZWrite: 1
     - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 7
     - _ZTestGBuffer: 4
@@ -75,4 +76,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 2
