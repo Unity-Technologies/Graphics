@@ -342,6 +342,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed mouseover on Move and Rotate tool while DecalProjector is selected.
 - Fixed wrong stencil state on some of the pixel shader versions of deferred shader.
 - Fixed an issue where creating decals at runtime could cause a null reference exception.
+- Fixed issue that displayed material migration dialog on the creation of new project.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
