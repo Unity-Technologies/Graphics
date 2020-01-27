@@ -48,12 +48,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
         public BoolParameter filter = new BoolParameter(false);
 
-        public static bool IsFogEnabled(HDCamera hdCamera)
+        internal static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricFogEnabled(HDCamera hdCamera)
+        internal static bool IsVolumetricFogEnabled(HDCamera hdCamera)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
@@ -64,14 +64,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return a && b && c;
         }
 
-        public static bool IsPBRFogEnabled(HDCamera hdCamera)
+        internal static bool IsPBRFogEnabled(HDCamera hdCamera)
         {
             var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             // For now PBR fog (coming from the PBR sky) is disabled until we improve it
             return false;
             //return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
         }
-
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -81,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        public static void PushNeutralShaderParameters(CommandBuffer cmd)
+        internal static void PushNeutralShaderParameters(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 0);
             cmd.SetGlobalInt(HDShaderIDs._EnableVolumetricFog, 0);
@@ -92,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
         }
 
-        public static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
@@ -108,8 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._PBRFogEnabled, IsPBRFogEnabled(hdCamera) ? 1 : 0);
         }
 
-        //internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
-        public virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 1);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
@@ -151,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogTypeParameter : VolumeParameter<FogType>
+    sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
             : base(value, overrideState) { }

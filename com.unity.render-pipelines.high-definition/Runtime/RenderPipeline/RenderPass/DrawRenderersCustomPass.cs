@@ -9,10 +9,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// DrawRenderers Custom Pass
     /// </summary>
     [System.Serializable]
-    public class DrawRenderersCustomPass : CustomPass
+    class DrawRenderersCustomPass : CustomPass
     {
         /// <summary>
-        /// HDRP Shader passes 
+        /// HDRP Shader passes
         /// </summary>
         public enum ShaderPass
         {
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool depthWrite = true;
 
         public ShaderPass shaderPass = ShaderPass.Forward;
-    
+
         int fadeValueId;
 
         static ShaderTagId[] forwardShaderTags;

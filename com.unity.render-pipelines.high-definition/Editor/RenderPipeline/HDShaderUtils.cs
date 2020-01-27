@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             typeof(DecalMasterNode),
             typeof(EyeMasterNode),
         };
-        
+
         // list of methods for resetting keywords
         delegate void MaterialResetter(Material material);
         static Dictionary<ShaderID, MaterialResetter> k_MaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 .Cast<BaseShaderPreprocessor>()
                 .OrderByDescending(spp => spp.Priority)
                 .ToList();
-        
+
         internal static bool IsHDRPShader(Shader shader, bool upgradable = false)
         {
             if (shader == null)

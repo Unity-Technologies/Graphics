@@ -2582,8 +2582,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_DebugDisplaySettings.IsCameraFreezeEnabled())
             {
-                bool cameraIsFrozen = camera.name.Equals(m_DebugDisplaySettings.GetFrozenCameraName());
-                if (cameraIsFrozen)
+                if (m_DebugDisplaySettings.IsCameraFrozen(camera))
                 {
                     if (!frozenCullingParamAvailable)
                     {

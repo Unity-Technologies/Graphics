@@ -9,7 +9,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public enum EmissiveIntensityUnit
+    enum EmissiveIntensityUnit
     {
         Nits,
         EV100,

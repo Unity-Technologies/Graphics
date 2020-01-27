@@ -112,26 +112,26 @@ namespace UnityEngine.Rendering.HighDefinition
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
             // Once we refactor material/engine debug to avoid repeating values, we should be able to remove that.
             //saved enum fields for when repainting
-            public int lightingDebugModeEnumIndex;
-            public int lightingFulscreenDebugModeEnumIndex;
-            public int materialValidatorDebugModeEnumIndex;
-            public int tileClusterDebugEnumIndex;
-            public int mipMapsEnumIndex;
-            public int engineEnumIndex;
-            public int attributesEnumIndex;
-            public int propertiesEnumIndex;
-            public int gBufferEnumIndex;
-            public int shadowDebugModeEnumIndex;
-            public int tileClusterDebugByCategoryEnumIndex;
-            public int lightVolumeDebugTypeEnumIndex;
-            public int renderingFulscreenDebugModeEnumIndex;
-            public int terrainTextureEnumIndex;
-            public int colorPickerDebugModeEnumIndex;
-            public int msaaSampleDebugModeEnumIndex;
-            public int debugCameraToFreezeEnumIndex;
+            internal int lightingDebugModeEnumIndex;
+            internal int lightingFulscreenDebugModeEnumIndex;
+            internal int materialValidatorDebugModeEnumIndex;
+            internal int tileClusterDebugEnumIndex;
+            internal int mipMapsEnumIndex;
+            internal int engineEnumIndex;
+            internal int attributesEnumIndex;
+            internal int propertiesEnumIndex;
+            internal int gBufferEnumIndex;
+            internal int shadowDebugModeEnumIndex;
+            internal int tileClusterDebugByCategoryEnumIndex;
+            internal int lightVolumeDebugTypeEnumIndex;
+            internal int renderingFulscreenDebugModeEnumIndex;
+            internal int terrainTextureEnumIndex;
+            internal int colorPickerDebugModeEnumIndex;
+            internal int msaaSampleDebugModeEnumIndex;
+            internal int debugCameraToFreezeEnumIndex;
 
             // When settings mutually exclusives enum values, we need to reset the other ones.
-            public void ResetExclusiveEnumIndices()
+            internal void ResetExclusiveEnumIndices()
             {
                 materialDebugSettings.materialEnumIndex = 0;
                 lightingDebugModeEnumIndex = 0;
@@ -148,10 +148,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public DebugData data { get => m_Data; }
 
+        // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
         public static GUIContent[] renderingFullScreenDebugStrings => s_RenderingFullScreenDebugStrings;
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
 
-        public DebugDisplaySettings()
+        internal DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
@@ -209,20 +210,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return data.debugCameraToFreeze != 0;
         }
-        public string GetFrozenCameraName()
+
+        public bool IsCameraFrozen(Camera camera)
         {
-            return s_CameraNamesStrings[data.debugCameraToFreeze].text;
+            return IsCameraFreezeEnabled() && camera.name.Equals(s_CameraNamesStrings[data.debugCameraToFreeze].text);
         }
 
         public bool IsDebugDisplayEnabled()
         {
             return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayEnabled() || data.mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
-        }
-
-        public bool IsDebugDisplayRemovePostprocess()
-        {
-            // We want to keep post process when only the override more are enabled and none of the other
-            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
         public bool IsDebugMaterialDisplayEnabled()
@@ -353,37 +349,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.mipMapDebugSettings.debugMipMapMode = value;
         }
 
-        public void UpdateMaterials()
-        {
-            if (data.mipMapDebugSettings.debugMipMapMode != 0)
-                Texture.SetStreamingTextureMaterialDebugProperties();
-        }
-
-        public void UpdateCameraFreezeOptions()
-        {
-            if (needsRefreshingCameraFreezeList)
-            {
-                s_CameraNames.Insert(0, new GUIContent("None"));
-
-                s_CameraNamesStrings = s_CameraNames.ToArray();
-                s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
-
-                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-                RegisterRenderingDebug();
-                needsRefreshingCameraFreezeList = false;
-            }
-        }
-
-        public bool DebugNeedsExposure()
-        {
-            DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
-            DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
-            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
-                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
-                (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination;
-        }
-
         void EnableProfilingRecorders()
         {
             Debug.Assert(m_RecordedSamplers.Count == 0);
@@ -485,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDisplayStatsItems);
         }
 
-        public void RegisterMaterialDebug()
+        void RegisterMaterialDebug()
         {
             var list = new List<DebugUI.Widget>();
 
@@ -547,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterMaterialDebug();
         }
 
-        public void RegisterLightingDebug()
+        void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
 
@@ -848,7 +813,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
             panel.children.Add(m_DebugLightingItems);
         }
-        public void RegisterRenderingDebug()
+
+        void RegisterRenderingDebug()
         {
             var widgetList = new List<DebugUI.Widget>();
 
@@ -932,7 +898,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugRenderingItems);
         }
 
-        public void RegisterDecalsDebug()
+        void RegisterDecalsDebug()
         {
             m_DebugDecalsItems = new DebugUI.Widget[]
             {
@@ -944,7 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDecalsItems);
         }
 
-        public void RegisterDebug()
+        internal void RegisterDebug()
         {
             RegisterDecalsDebug();
             RegisterDisplayStatsDebug();
@@ -954,7 +920,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugManager.instance.RegisterData(this);
         }
 
-        public void UnregisterDebug()
+        internal void UnregisterDebug()
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
 
@@ -1026,6 +992,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 DebugManager.instance.UnregisterData(container);
                 FrameSettingsHistory.UnRegisterDebug(container);
             }
+        }
+
+        internal bool IsDebugDisplayRemovePostprocess()
+        {
+            // We want to keep post process when only the override more are enabled and none of the other
+            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
+        }
+
+        internal void UpdateMaterials()
+        {
+            if (data.mipMapDebugSettings.debugMipMapMode != 0)
+                Texture.SetStreamingTextureMaterialDebugProperties();
+        }
+
+        internal void UpdateCameraFreezeOptions()
+        {
+            if (needsRefreshingCameraFreezeList)
+            {
+                s_CameraNames.Insert(0, new GUIContent("None"));
+
+                s_CameraNamesStrings = s_CameraNames.ToArray();
+                s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
+
+                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+                RegisterRenderingDebug();
+                needsRefreshingCameraFreezeList = false;
+            }
+        }
+
+        internal bool DebugNeedsExposure()
+        {
+            DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
+            DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
+            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
+                (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination;
         }
     }
 }

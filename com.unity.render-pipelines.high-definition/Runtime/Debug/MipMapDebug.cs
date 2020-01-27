@@ -37,9 +37,5 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return debugMipMapMode != DebugMipMapMode.None;
         }
-
-        public void OnValidate()
-        {
-        }
     }
 }

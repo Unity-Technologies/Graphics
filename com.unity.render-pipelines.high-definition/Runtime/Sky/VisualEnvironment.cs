@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
 
         // Deprecated, kept for migration
-        public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
+        internal FogTypeParameter fogType = new FogTypeParameter(FogType.None);
     }
 
     // This enum is just here to centralize UniqueID values for skies provided with HDRP
