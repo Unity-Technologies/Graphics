@@ -22,6 +22,9 @@ namespace UnityEditor.VFX
         {
             get
             {
+                if (owner.isBlendModeOpaque)
+                    return true;
+
                 return transparentRenderQueue != TransparentRenderQueue.LowResolution
                     && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
             }
