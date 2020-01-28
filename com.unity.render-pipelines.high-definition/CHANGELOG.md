@@ -418,6 +418,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default FrameSettings for ScreenSpaceShadows is set to true for Camera in order to give a better workflow for DXR.
 - Refactor internal usage of Stencil bits.
 - Changed how the material upgrader works and added documentation for it.
+- Custom passes now disable the stencil when overwriting the depth and not writing into it.
 
 ## [7.1.1] - 2019-09-05
 
