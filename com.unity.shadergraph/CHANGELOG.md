@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where `GetWorldSpaceNormalizeViewDir()` could cause undeclared indentifier errors. [1190606](https://issuetracker.unity3d.com/issues/view-dir-node-plugged-into-vertex-position-creates-error-undeclared-identifier-getworldspacenormalizeviewdir)
 - Fixed a bug where Emission on PBR Shader Graphs in the Universal RP would not bake to lightmaps. [1190225](https://issuetracker.unity3d.com/issues/emissive-custom-pbr-shadergraph-material-only-works-for-primitive-unity-objects)
 - Fixed a bug where Shader Graph shaders were writing to `POSITION` instead of `SV_POSITION`, which caused PS4 builds to fail.
+- Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Documentation links on nodes now point to the correct URLs and package versions.
 - Fixed a number of memory leaks causing Shader Graph assets to stay in memory after closing the Shader Graph window.
 
