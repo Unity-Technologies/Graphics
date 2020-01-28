@@ -140,7 +140,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     #ifdef RENDER_WITH_MODE_TEST
-    return half4(inputData.normalWS,1.0f);
+    return half4(inputData.positionWS,1.0f);
     #endif
     return color;
 }
