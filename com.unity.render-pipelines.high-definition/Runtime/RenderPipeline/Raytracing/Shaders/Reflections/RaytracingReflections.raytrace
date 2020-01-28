@@ -29,7 +29,8 @@ TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
 
 // Flag value that defines if a given pixel recieves reflections or not
-// int                                       _SsrStencilExclusionValue;
+TEXTURE2D_X_UINT2(_StencilTexture);
+int _SsrStencilBit;
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
@@ -65,6 +66,11 @@ void RayGenIntegration()
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
         return;
 
     // Convert this to a world space position

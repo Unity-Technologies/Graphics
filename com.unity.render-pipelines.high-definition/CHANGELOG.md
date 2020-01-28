@@ -350,6 +350,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that displayed material migration dialog on the creation of new project.
 - Fixed various issues with time and animated materials (cases 1210068, 1210064).
 - Updated light explorer with latest changes to the Fog and fixed issues when no visual environment was present.
+- Fixed not handleling properly the recieve SSR feature with ray traced reflections
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

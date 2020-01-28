@@ -77,7 +77,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SsrHitPointTexture, outputHitPointBuffer);
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-
+            cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
+            cmd.SetRayTracingIntParams(reflectionShader, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+            
             // Set ray count tex
             RayCountManager rayCountManager = GetRayCountManager();
             cmd.SetRayTracingIntParam(reflectionShader, HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
@@ -193,6 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
                 clearCoatMaskTexture = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffersRTI()[2] : TextureXR.GetBlackTexture();
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
+                cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+                cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._StencilTexture, m_SharedRTManager.GetDepthStencilBuffer(), 0, RenderTextureSubElement.Stencil);
 
                 // Bind all the required scalars
                 cmd.SetComputeFloatParam(reflectionShaderCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
