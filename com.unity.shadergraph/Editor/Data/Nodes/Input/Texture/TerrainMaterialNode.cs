@@ -146,19 +146,17 @@ namespace UnityEditor.ShaderGraph
 
             string stackName = GetTerrainMaterialStackName();
 
-            bool specularConnected =
-                IsSlotConnected(SmoothnessOutputId) ||
-                IsSlotConnected(AmbientOcclusionOutputId) ||
-                IsSlotConnected(MetallicOutputId);
+            bool albedoConnected = IsSlotConnected(AlbedoOutputId);
+            bool normalConnected = IsSlotConnected(NormalOutputId);
+            bool smoothnessConnected = IsSlotConnected(SmoothnessOutputId);
+            bool ambientOcclusionConnected = IsSlotConnected(AmbientOcclusionOutputId);
+            bool metallicConnected = IsSlotConnected(MetallicOutputId);
 
-            bool outputConnected =
-                IsSlotConnected(AlbedoOutputId) ||
-                IsSlotConnected(NormalOutputId) ||
-                specularConnected;
+            bool anyOutputConnected = smoothnessConnected || ambientOcclusionConnected || metallicConnected || albedoConnected || normalConnected;
 
             bool feedbackConnected = IsSlotConnected(FeedbackSlotId); ;
 
-            if (outputConnected || feedbackConnected)
+            if (anyOutputConnected || feedbackConnected)
             {
                 string result;
                 if (explicitMip)
@@ -177,20 +175,33 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine(result);
             }
 
-            if (outputConnected)
+            if (anyOutputConnected)
             {
-                // TODO : the decoding here needs to match what the pixel cache
-                if (IsSlotConnected(AlbedoOutputId))
+                if (albedoConnected || smoothnessConnected)
                 {
-                    string albedo = string.Format("$precision3 {0} = {3}({1}_info, {2});"
-                            , GetVariableNameForSlot(AlbedoOutputId)
+                    string albedoSlot = string.Format("$precision4 {0} = {3}({1}_info, {2});"
+                            , "albedoSlotSample"
                             , stackName
                             , GetTerrainAlbedoLayerName()
                             , explicitMip ? "SampleStack_Lod" : "SampleStack");
-                    sb.AppendLine(albedo);
+                    sb.AppendLine(albedoSlot);
+
+                    if (albedoConnected)
+                    {
+                        string albedo = string.Format("$precision3 {0} = albedoSlotSample.rgb;"
+                                , GetVariableNameForSlot(AlbedoOutputId));
+                        sb.AppendLine(albedo);
+                    }
+
+                    if (smoothnessConnected)
+                    {
+                        string smoothness = string.Format("$precision {0} = albedoSlotSample.a;"
+                                , GetVariableNameForSlot(SmoothnessOutputId));
+                        sb.AppendLine(smoothness);
+                    }
                 }
 
-                if (IsSlotConnected(NormalOutputId))
+                if (normalConnected)
                 {
                     string normal = string.Format("$precision3 {0} = {3}({1}_info, {2}) * 2.0f - 1.0f;"
                             , GetVariableNameForSlot(NormalOutputId)
@@ -200,32 +211,25 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine(normal);
                 }
 
-                if (specularConnected)
+                if (ambientOcclusionConnected || metallicConnected)
                 {
                     string specular = string.Format("$precision4 {0} = {3}({1}_info, {2});"
-                            , "specularSample"
+                            , "maskSlotSample"
                             , stackName
                             , GetTerrainSpecularLayerName()
                             , explicitMip ? "SampleStack_Lod" : "SampleStack");
                     sb.AppendLine(specular);
 
-                    if (IsSlotConnected(SmoothnessOutputId))
+                    if (ambientOcclusionConnected)
                     {
-                        string smoothness = string.Format("$precision {0} = specularSample.x;"
-                                , GetVariableNameForSlot(SmoothnessOutputId));
-                        sb.AppendLine(smoothness);
-                    }
-
-                    if (IsSlotConnected(AmbientOcclusionOutputId))
-                    {
-                        string ao = string.Format("$precision {0} = specularSample.y;"
+                        string ao = string.Format("$precision {0} = maskSlotSample.g;"
                                 , GetVariableNameForSlot(AmbientOcclusionOutputId));
                         sb.AppendLine(ao);
                     }
 
-                    if (IsSlotConnected(MetallicOutputId))
+                    if (metallicConnected)
                     {
-                        string metallic = string.Format("$precision {0} = specularSample.z;"
+                        string metallic = string.Format("$precision {0} = maskSlotSample.r;"
                                 , GetVariableNameForSlot(MetallicOutputId));
                         sb.AppendLine(metallic);
                     }
