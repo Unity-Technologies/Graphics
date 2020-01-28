@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused errors if you disabled the VR Module when building a project.
 - Fixed an issue with the null check when `UniversalRenderPipelineLightEditor.cs` tries to access `SceneView.lastActiveSceneView`.
 - Fixed an issue where the 'Depth Texture' drop down was incorrectly disabled in the Camera Inspector. 
+- Fixed issue where normal maps on terrain appeared to have flipped X-components when compared to the same normal map on a mesh. [case 1181518](https://fogbugz.unity3d.com/f/cases/1181518/)
 - Fixed RemoveComponent on Camera contextual menu to not remove Camera while a component depend on it.
 - Fixed an issue where right eye is not rendered to. [case 1170619](https://issuetracker.unity3d.com/issues/vr-lwrp-terrain-is-not-rendered-in-the-right-eye-of-an-hmd-when-using-single-pass-instanced-stereo-rendering-mode-with-lwrp)
 - Fixed issue where TerrainDetailLit.shader fails to compile when XR is enabled.

@@ -72,14 +72,14 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
     SH = SampleSH(input.normalWS.xyz);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = IN.viewDir;
     float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
     half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
     half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS, cross(normalWS, tangentWS), normalWS));
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
     SH = SampleSH(input.normalWS.xyz);
 #else
     half3 viewDirWS = IN.viewDir;
