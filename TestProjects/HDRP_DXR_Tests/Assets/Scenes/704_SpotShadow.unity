@@ -147,7 +147,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 449519494}
   m_LocalRotation: {x: 0.51404643, y: -0, z: -0, w: 0.8577624}
-  m_LocalPosition: {x: 2.9, y: 12.4, z: -10.19}
+  m_LocalPosition: {x: 2.9, y: 12.4, z: -12.89}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1461086242}
@@ -393,7 +393,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 0b1a9cbbeabf35a41824425f06bfc137, type: 3}
 --- !u!4 &538423526 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 6727135330431752688, guid: 0b1a9cbbeabf35a41824425f06bfc137,
+  m_CorrespondingSourceObject: {fileID: 6209802546477248631, guid: 0b1a9cbbeabf35a41824425f06bfc137,
     type: 3}
   m_PrefabInstance: {fileID: 538423525}
   m_PrefabAsset: {fileID: 0}
@@ -425,7 +425,7 @@ Transform:
   m_GameObject: {fileID: 629741462}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 2.86, y: 0, z: -1.59}
-  m_LocalScale: {x: 2, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 1461086242}
   m_RootOrder: 2
@@ -564,7 +564,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 0b1a9cbbeabf35a41824425f06bfc137, type: 3}
 --- !u!4 &1235844623 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 6727135330431752688, guid: 0b1a9cbbeabf35a41824425f06bfc137,
+  m_CorrespondingSourceObject: {fileID: 6209802546477248631, guid: 0b1a9cbbeabf35a41824425f06bfc137,
     type: 3}
   m_PrefabInstance: {fileID: 1235844622}
   m_PrefabAsset: {fileID: 0}
@@ -594,7 +594,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1244798183}
   m_LocalRotation: {x: 0.51404643, y: -0, z: -0, w: 0.8577624}
-  m_LocalPosition: {x: 2.9, y: 12.4, z: -10.19}
+  m_LocalPosition: {x: 2.9, y: 12.4, z: -12.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1387793890}
@@ -863,7 +863,7 @@ Transform:
   m_GameObject: {fileID: 1834584684}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 2.86, y: 0, z: -1.59}
-  m_LocalScale: {x: 2, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 1387793890}
   m_RootOrder: 2
@@ -1002,6 +1002,16 @@ PrefabInstance:
         type: 3}
       propertyPath: far clip plane
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755202032487953091, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: m_FocalLength
+      value: 23.500607
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755202032487953091, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: field of view
+      value: 54.1
       objectReference: {fileID: 0}
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
