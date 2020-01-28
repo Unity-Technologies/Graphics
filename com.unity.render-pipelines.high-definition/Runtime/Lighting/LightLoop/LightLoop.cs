@@ -1458,10 +1458,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the next available slot to the light
                 lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
 
-                // Keep track of the slot and screen space shadow index that was assignel to this light
-                additionalLightData.screenSpaceShadowSlot = lightData.screenSpaceShadowIndex;
-                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
-
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
@@ -1476,12 +1472,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     screenSpaceChannelSlot += 2;
                 else
                     screenSpaceChannelSlot++;
-            }
-            else
-            {
-                // Invalidate the references in the additional light data
-                additionalLightData.screenSpaceShadowSlot = -1;
-                additionalLightData.screenSpaceShadowIndex = -1;
             }
 
             lightData.shadowIndex = shadowIndex;
