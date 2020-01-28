@@ -28,16 +28,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            switch (reflectionSettings.tier.value)
+            switch (reflectionSettings.mode.value)
             {
-                case RayTracingTier.Tier1:
+                case RayTracingMode.Performance:
                 {
-                    RenderReflectionsT1(hdCamera, cmd, outputTexture, renderContext, frameCount);
+                    RenderReflectionsPerformance(hdCamera, cmd, outputTexture, renderContext, frameCount);
                 }
                 break;
-                case RayTracingTier.Tier2:
+                case RayTracingMode.Quality:
                 {
-                    RenderReflectionsT2(hdCamera, cmd, outputTexture, renderContext, frameCount);
+                    RenderReflectionsQuality(hdCamera, cmd, outputTexture, renderContext, frameCount);
                 }
                 break;
             }
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CheckBinningBuffersSize(hdCamera);
 
             // Generic attributes
-            deferredParameters.rayBinning = settings.rayBinning.value;
+            deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.Reflection;
             deferredParameters.rayBias = rTSettings.rayBias.value;
             deferredParameters.maxRayLength = settings.rayLength.value;
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsPerformance(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
             BlueNoise blueNoise = GetBlueNoiseManager();
@@ -182,71 +182,52 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIntegrateReflection)))
             {
-                if (settings.deferredMode.value)
+                // Fetch the new sample kernel
+                currentKernel = reflectionShaderCS.FindKernel(settings.fullResolution.value ? "RaytracingReflectionsFullRes" : "RaytracingReflectionsHalfRes");
+
+                // Inject the ray-tracing sampling data
+                blueNoise.BindDitheredRNGData8SPP(cmd);
+
+                // Bind all the required textures
+                cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                clearCoatMaskTexture = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffersRTI()[2] : TextureXR.GetBlackTexture();
+                cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
+
+                // Bind all the required scalars
+                cmd.SetComputeFloatParam(reflectionShaderCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
+                cmd.SetComputeFloatParam(reflectionShaderCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
+                cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingIncludeSky, settings.reflectSky.value ? 1 : 0);
+
+                // Bind the sampling data
+                int frameIndex = RayTracingFrameIndex(hdCamera);
+                cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
+
+                // Bind the output buffers
+                cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, intermediateBuffer1);
+
+                if (settings.fullResolution.value)
                 {
-                    // Fetch the new sample kernel
-                    currentKernel = reflectionShaderCS.FindKernel(settings.fullResolution.value ? "RaytracingReflectionsFullRes" : "RaytracingReflectionsHalfRes");
-
-                    // Inject the ray-tracing sampling data
-                    blueNoise.BindDitheredRNGData8SPP(cmd);
-
-                    // Bind all the required textures
-                    cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                    cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                    clearCoatMaskTexture = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffersRTI()[2] : TextureXR.GetBlackTexture();
-                    cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
-
-                    // Bind all the required scalars
-                    cmd.SetComputeFloatParam(reflectionShaderCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
-                    cmd.SetComputeFloatParam(reflectionShaderCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
-                    cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingIncludeSky, settings.reflectSky.value ? 1 : 0);
-
-                    // Bind the sampling data
-                    int frameIndex = RayTracingFrameIndex(hdCamera);
-                    cmd.SetComputeIntParam(reflectionShaderCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
-
-                    // Bind the output buffers
-                    cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, intermediateBuffer1);
-
-                    if (settings.fullResolution.value)
-                    {
-                        // Evaluate the dispatch parameters
-                        numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                        numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
-                    }
-                    else
-                    {
-                        // Evaluate the dispatch parameters
-                        numTilesXHR = (texWidth / 2 + (areaTileSize - 1)) / areaTileSize;
-                        numTilesYHR = (texHeight / 2 + (areaTileSize - 1)) / areaTileSize;
-                    }
-
-                    // Compute the directions
-                    cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
-
-                    // Prepare the components for the deferred lighting
-                    DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera);
-                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, intermediateBuffer1, intermediateBuffer0);
-
-                    // Evaluate the deferred lighting
-                    RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
+                    // Evaluate the dispatch parameters
+                    numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                    numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
                 }
                 else
                 {
-                    // Bind all the required data for ray tracing
-                    BindRayTracedReflectionData(cmd, hdCamera, reflectionShaderRT, settings, lightClusterSettings, rtSettings, intermediateBuffer0, intermediateBuffer1);
-
-                    // Run the computation
-                    if (settings.fullResolution.value)
-                    {
-                        cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
-                    }
-                    else
-                    {
-                        // Run the computation
-                        cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionHalfResName, (uint)(hdCamera.actualWidth / 2), (uint)(hdCamera.actualHeight / 2), (uint)hdCamera.viewCount);
-                    }
+                    // Evaluate the dispatch parameters
+                    numTilesXHR = (texWidth / 2 + (areaTileSize - 1)) / areaTileSize;
+                    numTilesYHR = (texHeight / 2 + (areaTileSize - 1)) / areaTileSize;
                 }
+
+                // Compute the directions
+                cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+
+                // Prepare the components for the deferred lighting
+                DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera);
+                DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, intermediateBuffer1, intermediateBuffer0);
+
+                // Evaluate the deferred lighting
+                RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
 
                 // Fetch the right filter to use
                 if (settings.fullResolution.value)
@@ -305,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderReflectionsQuality(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the shaders that we will be using
             ComputeShader reflectionFilter = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;

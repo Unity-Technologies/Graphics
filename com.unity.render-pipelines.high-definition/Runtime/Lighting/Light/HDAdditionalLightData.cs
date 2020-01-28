@@ -1395,9 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex;
-        [System.NonSerialized] internal int screenSpaceShadowSlot;
-        [System.NonSerialized] internal int screenSpaceShadowIndex;
+        [System.NonSerialized] internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
         Light m_Light;
