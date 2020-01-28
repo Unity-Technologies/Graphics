@@ -12,7 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition
         AllShaders,
     }
 
-    // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
+    /// <summary>
+    /// High Definition Render Pipeline asset.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
@@ -23,9 +25,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => OnValidate();
 
+        /// <summary>
+        /// CreatePipeline implementation.
+        /// </summary>
+        /// <returns>A new HDRenderPipeline instance.</returns>
         protected override RenderPipeline CreatePipeline()
             => new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
 
+        /// <summary>
+        /// OnValidate implementation.
+        /// </summary>
         protected override void OnValidate()
         {
             //Do not reconstruct the pipeline if we modify other assets.
@@ -156,12 +165,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
+        /// <summary>Available material quality levels for this asset.</summary>
         [FormerlySerializedAs("materialQualityLevels")]
         public MaterialQuality availableMaterialQualityLevels = (MaterialQuality)(-1);
 
         [SerializeField, FormerlySerializedAs("m_CurrentMaterialQualityLevel")]
         private MaterialQuality m_DefaultMaterialQualityLevel = MaterialQuality.High;
 
+        /// <summary>Default material quality level for this asset.</summary>
         public MaterialQuality defaultMaterialQualityLevel { get => m_DefaultMaterialQualityLevel; }
 
         [SerializeField]
@@ -208,11 +219,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
             => renderingLayerNames;
 
         [System.NonSerialized]
         string[] m_LightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
         public string[] lightLayerNames
         {
             get
@@ -231,6 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
 
@@ -243,39 +259,50 @@ namespace UnityEngine.Rendering.HighDefinition
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
 
 #if UNITY_EDITOR
+        /// <summary>HDRP default material.</summary>
         public override Material defaultMaterial
             => renderPipelineEditorResources?.materials.defaultDiffuseMat;
 
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
+        /// <summary>HDRP default autodesk interactive shader.</summary>
         public override Shader autodeskInteractiveShader
             => renderPipelineEditorResources?.shaderGraphs.autodeskInteractive;
 
+        /// <summary>HDRP default autodesk interactive transparent shader.</summary>
         public override Shader autodeskInteractiveTransparentShader
             => renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveTransparent;
 
+        /// <summary>HDRP default autodesk interactive masked shader.</summary>
         public override Shader autodeskInteractiveMaskedShader
             => renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveMasked;
 
+        /// <summary>HDRP default terrain detail lit shader.</summary>
         public override Shader terrainDetailLitShader
             => renderPipelineEditorResources?.shaders.terrainDetailLitShader;
 
+        /// <summary>HDRP default terrain detail grass shader.</summary>
         public override Shader terrainDetailGrassShader
             => renderPipelineEditorResources?.shaders.terrainDetailGrassShader;
 
+        /// <summary>HDRP default terrain detail grass billboard shader.</summary>
         public override Shader terrainDetailGrassBillboardShader
             => renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
 
         // Note: This function is HD specific
+        /// <summary>HDRP default Decal material.</summary>
         public Material GetDefaultDecalMaterial()
             => renderPipelineEditorResources?.materials.defaultDecalMat;
 
         // Note: This function is HD specific
+        /// <summary>HDRP default mirror material.</summary>
         public Material GetDefaultMirrorMaterial()
             => renderPipelineEditorResources?.materials.defaultMirrorMat;
 
+        /// <summary>HDRP default particles material.</summary>
         public override Material defaultParticleMaterial
             => renderPipelineEditorResources?.materials.defaultParticleMat;
 
+        /// <summary>HDRP default terrain material.</summary>
         public override Material defaultTerrainMaterial
             => renderPipelineEditorResources?.materials.defaultTerrainMat;
 
@@ -305,7 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
-        public void EvaluateSettings()
+        internal void EvaluateSettings()
         {
             // Grab the current set of defines and split them
             string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
@@ -323,7 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public bool AddDiffusionProfile(DiffusionProfileSettings profile)
+        internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
         {
             if (diffusionProfileSettingsList.Length < 15)
             {
