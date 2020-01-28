@@ -12,17 +12,24 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
     {
         worldTransform = GetObjectToWorldMatrix();
     }
-
     else
     {
         worldTransform = GetWorldToObjectMatrix();
     }
 
-    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    // In the specific case of pixel displacement mapping, to get a consistent behavior compare to tessellation we require to not take into account y scale if lock object scale is not enabled
-#if !defined(_PIXEL_DISPLACEMENT) || (defined(_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE))
-    objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+#if defined(_PIXEL_DISPLACEMENT)
+    bool applyObjectScale = (_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0);
+#else
+    bool applyObjectScale = true;
 #endif
+
+    objectScale.x = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+
+    if (applyObjectScale)
+    {
+        objectScale.y = length(float3(worldTransform._m10, worldTransform._m11, worldTransform._m12));
+    }
+
     objectScale.z = length(float3(worldTransform._m20, worldTransform._m21, worldTransform._m22));
 
     return objectScale;
@@ -79,9 +86,10 @@ void ApplyDisplacementTileScale(inout float height)
 {
     // Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y)
     // Inverse tiling scale *= (1 / _TexWorldScale) if planar or triplanar
-#ifdef _DISPLACEMENT_LOCK_TILING_SCALE
-    height *= _InvTilingScale;
-#endif
+    if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_TILING_SCALE) != 0)
+    {
+        height *= _InvTilingScale;
+    }
 }
 
 float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord layerTexCoord)
@@ -209,15 +217,24 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height);
+
+    float3 scale;
+
     // Applying scaling of the object if requested
-#ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementObjectScale(true);
-    // Reminder: mappingType is know statically, so code below is optimize by the compiler
-    // Planar and Triplanar are in world space thus it is independent of object scale
-    return height.xxx * ((layerTexCoord.base.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0));
-#else
-    return height.xxx;
-#endif
+    if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0)
+    {
+        float3 objectScale = GetDisplacementObjectScale(true);
+        // Reminder: mappingType is know statically, so code below is optimize by the compiler
+        // Planar and Triplanar are in world space thus it is independent of object scale
+        scale = (layerTexCoord.base.mappingType == UV_MAPPING_UVSET) ? objectScale : 1;
+    }
+    else
+    {
+        scale = 1;
+
+    }
+
+    return scale * height;
 }
 
 #endif // #ifndef LAYERED_LIT_SHADER

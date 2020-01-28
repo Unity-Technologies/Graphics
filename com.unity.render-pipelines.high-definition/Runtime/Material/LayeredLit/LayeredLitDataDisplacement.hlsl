@@ -342,18 +342,25 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
-   // Applying scaling of the object if requested
-    #ifdef _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    float3 objectScale = GetDisplacementObjectScale(true);
-    // Reminder: mappingType is know statically, so code below is optimize by the compiler
-    // Planar and Triplanar are in world space thus it is independent of object scale
-    return heightResult.xxx * BlendLayeredVector3( ((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                                   ((layerTexCoord.base1.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                                   ((layerTexCoord.base2.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)),
-                                                   ((layerTexCoord.base3.mappingType == UV_MAPPING_UVSET) ? objectScale : float3(1.0, 1.0, 1.0)), weights);
-    #else
-    return heightResult.xxx;
-    #endif
+    float3 scale;
+
+    // Applying scaling of the object if requested
+    if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0)
+    {
+        float3 objectScale = GetDisplacementObjectScale(true);
+        // Reminder: mappingType is know statically, so code below is optimize by the compiler
+        // Planar and Triplanar are in world space thus it is independent of object scale
+        scale = BlendLayeredVector3(((layerTexCoord.base0.mappingType == UV_MAPPING_UVSET) ? objectScale : 1),
+                                    ((layerTexCoord.base1.mappingType == UV_MAPPING_UVSET) ? objectScale : 1),
+                                    ((layerTexCoord.base2.mappingType == UV_MAPPING_UVSET) ? objectScale : 1),
+                                    ((layerTexCoord.base3.mappingType == UV_MAPPING_UVSET) ? objectScale : 1), weights);
+    }
+    else
+    {
+        scale = 1;
+    }
+
+    return scale * heightResult;
 #else
     return float3(0.0, 0.0, 0.0);
 #endif

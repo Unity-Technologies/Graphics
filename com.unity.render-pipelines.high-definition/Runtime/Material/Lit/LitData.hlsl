@@ -10,6 +10,7 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialInstanceFlags.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #ifndef SHADER_STAGE_RAY_TRACING
@@ -214,7 +215,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     alphaCutoff = _AlphaCutoffPostpass;
     #endif
 
-    #if SHADERPASS == SHADERPASS_SHADOWS 
+    #if SHADERPASS == SHADERPASS_SHADOWS
         GENERIC_ALPHA_TEST(alphaValue, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
     #else
         GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);

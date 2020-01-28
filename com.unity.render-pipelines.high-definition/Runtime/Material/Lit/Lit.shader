@@ -5,6 +5,12 @@ Shader "HDRP/Lit"
         // Versioning of material to help for upgrading
         [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
+        // A bit field containing up to 24 bits. See the "MaterialInstanceFlags" enum.
+        // Used to enable a material feature at runtime rather than compile time
+        // (to reduce the number of variants that must be compiled in advance).
+        // Do not use this in performance-critical parts of code.
+        [HideInInspector] _MaterialInstanceFlags("_MaterialInstanceFlags", Int) = 0
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -240,9 +246,9 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
+    // #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR

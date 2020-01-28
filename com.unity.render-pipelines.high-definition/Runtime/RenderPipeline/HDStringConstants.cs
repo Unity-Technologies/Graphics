@@ -897,6 +897,8 @@ namespace UnityEngine.Rendering.HighDefinition
     // Shared material property names
     static class HDMaterialProperties
     {
+        public const string kMaterialInstanceFlags = "_MaterialInstanceFlags";
+
         // Stencil properties
         public const string kStencilRef = "_StencilRef";
         public const string kStencilWriteMask = "_StencilWriteMask";

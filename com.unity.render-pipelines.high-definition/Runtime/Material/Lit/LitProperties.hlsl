@@ -100,6 +100,7 @@ SAMPLER(sampler_LayerInfluenceMaskMap);
 CBUFFER_START(UnityPerMaterial)
 
 // shared constant between lit and layered lit
+int   _MaterialInstanceFlags;
 float _AlphaCutoff;
 float _UseShadowThreshold;
 float _AlphaCutoffShadow;

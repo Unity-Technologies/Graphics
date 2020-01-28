@@ -403,24 +403,26 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
 {
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
-#ifdef _DISPLACEMENT_LOCK_TILING_SCALE
-    float tileObjectScale = 1.0;
-    #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    // Extract scaling from world transform
-    float4x4 worldTransform = GetObjectToWorldMatrix();
-    // assuming uniform scaling, take only the first column
-    tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    #endif
+    if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_TILING_SCALE) != 0)
+    {
 
-    // TODO: precompute all these scaling factors!
-    height0 *= _InvTilingScale0;
-    #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
-    height0 /= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
-    #endif
-    height1 = (height1 / tileObjectScale) * _InvTilingScale1;
-    height2 = (height2 / tileObjectScale) * _InvTilingScale2;
-    height3 = (height3 / tileObjectScale) * _InvTilingScale3;
-#endif
+        float tileObjectScale = 1.0;
+        #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+        // Extract scaling from world transform
+        float4x4 worldTransform = GetObjectToWorldMatrix();
+        // assuming uniform scaling, take only the first column
+        tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
+        #endif
+
+        // TODO: precompute all these scaling factors!
+        height0 *= _InvTilingScale0;
+        #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
+        height0 /= tileObjectScale;  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
+        #endif
+        height1 = (height1 / tileObjectScale) * _InvTilingScale1;
+        height2 = (height2 / tileObjectScale) * _InvTilingScale2;
+        height3 = (height3 / tileObjectScale) * _InvTilingScale3;
+    }
 }
 
 // This function is just syntaxic sugar to nullify height not used based on heightmap avaibility and layer
