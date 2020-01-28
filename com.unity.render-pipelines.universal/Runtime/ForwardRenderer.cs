@@ -328,6 +328,9 @@ namespace UnityEngine.Rendering.Universal
             // we need to stay in a RT
             SetBlockDescriptor(RenderPassBlock.AfterRendering, 1, 1, 1);
 
+            if (desc.msaaSamples > 1)
+                m_ActiveCameraColorAttachment = m_MsaaResolveTarget;
+            
             if (afterRenderExists)
             {
                 bool willRenderFinalPass = (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget);
@@ -354,7 +357,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_FinalBlitPass.Setup(cameraTargetDescriptor, desc.msaaSamples == 1 ? m_ActiveCameraColorAttachment : m_MsaaResolveTarget);
+                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                         m_FinalBlitPass.ConfigureColorAttachment(RenderTargetHandle.CameraTarget);
                         EnqueuePass(m_FinalBlitPass);
                     }
@@ -380,7 +383,7 @@ namespace UnityEngine.Rendering.Universal
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget && resolveFinalTarget)
                 {
 
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, desc.msaaSamples == 1 ? m_ActiveCameraColorAttachment : m_MsaaResolveTarget);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     m_FinalBlitPass.ConfigureColorAttachment(RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_FinalBlitPass);
                 }
