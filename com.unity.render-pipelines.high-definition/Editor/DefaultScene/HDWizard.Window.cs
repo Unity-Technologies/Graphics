@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 button: resolveAllBuildTarget);
             public static readonly ConfigStyle hdrpShadow = new ConfigStyle(
                 label: "Shadows",
-                error: "Shadow must be set to activated! (either on hard or soft)");
+                error: "Shadow must be set to activated! (both hard and soft)");
             public static readonly ConfigStyle hdrpShadowmask = new ConfigStyle(
                 label: "Shadowmask mode",
                 error: "Only distance shadowmask supported at the project level! (You can still change this per light.)",
@@ -112,6 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "VR activated",
                 error: "VR need to be enabled in Player Settings!");
 
+            public static readonly ConfigStyle dxrSupported = new ConfigStyle(
+                label: "Hardware and OS",
+                error: "You hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: "Auto graphics API",
                 error: "Auto Graphics API is not supported!");
@@ -485,7 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     entry.configStyle.error,
                     entry.configStyle.button,
                     () => entry.check(),
-                    () => entry.fix(fromAsync: false),
+                    entry.fix == null ? (Action)null : () => entry.fix(fromAsync: false),
                     entry.indent));
         }
 
