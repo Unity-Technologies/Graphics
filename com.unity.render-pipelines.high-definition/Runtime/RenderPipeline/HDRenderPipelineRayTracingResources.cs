@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Shadows
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.raytrace")]
         public RayTracingShader shadowRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingContactShadow.raytrace")]
+        public RayTracingShader contactShadowRayTracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.compute")]
         public ComputeShader shadowRaytracingCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]

@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
         // We keep this property for the migration code (we need to know how many cookies we could have before).
-        [Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.")]
+        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.")]
         internal int cookieTexArraySize;
 
         /// <summary>Planar reflections atlas resolution.</summary>

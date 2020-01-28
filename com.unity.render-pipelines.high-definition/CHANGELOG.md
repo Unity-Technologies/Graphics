@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added history rejection based on velocity of intersected objects for directional, point and spot lights.
 - Added a affectsVolumetric field to the HDAdditionalLightData API to know if light affects volumetric fog.
 - Add OS and Hardware check in the Wizard fixes for DXR.
+- Added option to exclude camera motion from motion blur.
+- Added semi-transparent shadows for point and spot lights.
+- Added support for semi-transparent shadow for unlit shader and unlit shader graph.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -347,6 +350,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that displayed material migration dialog on the creation of new project.
 - Fixed various issues with time and animated materials (cases 1210068, 1210064).
 - Updated light explorer with latest changes to the Fog and fixed issues when no visual environment was present.
+- Fixed not handleling properly the recieve SSR feature with ray traced reflections
 - Shadow Atlas is no longer allocated for area lights when they are disabled in the shader config file.
 
 ### Changed
@@ -420,6 +424,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor internal usage of Stencil bits.
 - Changed how the material upgrader works and added documentation for it.
 - Custom passes now disable the stencil when overwriting the depth and not writing into it.
+- Renamed the camera profiling sample to include the camera name
+- Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
 
 ## [7.1.1] - 2019-09-05
 

@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
 
         // Deprecated, kept for migration
+        [SerializeField]
         internal FogTypeParameter fogType = new FogTypeParameter(FogType.None);
     }
 

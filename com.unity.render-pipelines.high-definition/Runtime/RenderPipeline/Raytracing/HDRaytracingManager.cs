@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
     internal enum RayTracingRendererFlag
     {
         Opaque = 0x01,
-        Transparent = 0x02,
-        CastShadow = 0x04,
+        CastShadowTransparent = 0x02,
+        CastShadowOpaque = 0x04,
+        CastShadow = CastShadowOpaque | CastShadowTransparent,
         AmbientOcclusion = 0x08,
         Reflection = 0x10,
         GlobalIllumination = 0x20,
@@ -232,17 +233,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Propagate the right mask
-            instanceFlag |= materialIsOnlyTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
-
-            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
-            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
+            // Propagate the opacity mask only if all submaterials are opaque
+            if (!hasTransparentSubMaterial)
+            {
+                instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
+            }
 
             if (rayTracedShadow)
             {
-                // Raise the shadow casting flag if needed
-                instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
+                if (hasTransparentSubMaterial)
+                {
+                    // Raise the shadow casting flag if needed
+                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowTransparent) : 0x00);
+                }
+                else
+                {
+                    // Raise the shadow casting flag if needed
+                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowOpaque) : 0x00);
+                }
             }
+
+            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
+            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
 
             if (aoEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {

@@ -905,9 +905,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (HDRenderPipeline.pipelineSupportsRayTracing)
                 {
-                    if (lightType == HDLightType.Point
-                        || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone)
-                        || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
+                    bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
+                    if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
                     {
                         EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
                         if(serialized.useRayTracedShadows.boolValue)
@@ -917,6 +916,11 @@ namespace UnityEditor.Rendering.HighDefinition
                                 EditorGUILayout.HelpBox("Ray traced area light shadows are only available in deferred mode.", MessageType.Warning);
 
                             EditorGUI.indentLevel++;
+
+                            // We only support semi transparent shadows for punctual lights
+                            if (isPunctual)
+                                EditorGUILayout.PropertyField(serialized.semiTransparentShadow, s_Styles.semiTransparentShadow);
+
                             EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
                             EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
