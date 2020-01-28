@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const string m_RayGenDirectionalShadowSingleName = "RayGenDirectionalShadowSingle";
         const string m_RayGenDirectionalColorShadowSingleName = "RayGenDirectionalColorShadowSingle";
         const string m_RayGenShadowSegmentSingleName = "RayGenShadowSegmentSingle";
+        const string m_RayGenSemiTransparentShadowSegmentSingleName = "RayGenSemiTransparentShadowSegmentSingle";
 
         // Output shadow texture
         RTHandle m_ScreenSpaceShadowTextureArray;
@@ -783,8 +784,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer0);
                     cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._VelocityBuffer, velocityBuffer);
 
-                    // Evaluate the visibility
-                    cmd.DispatchRays(m_ScreenSpaceShadowsRT, m_RayGenShadowSegmentSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                    CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", additionalLightData.semiTransparentShadow);
+                    cmd.DispatchRays(m_ScreenSpaceShadowsRT, additionalLightData.semiTransparentShadow ? m_RayGenSemiTransparentShadowSegmentSingleName : m_RayGenShadowSegmentSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                    CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", false);
                 }
 
                 // Apply the simple denoiser (if required)
