@@ -227,6 +227,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_AdditionalCameraData == null)
             {
                 m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                m_AdditionalCameraData.cameraStack.AddBaseCamera(camera);
             }
             init(m_AdditionalCameraData);
 
@@ -408,7 +409,7 @@ namespace UnityEditor.Rendering.Universal
 
             return false;
         }
-        
+
         void AddPostProcessingEntry()
         {
             var length = m_StackEntriesProp.arraySize;
@@ -420,7 +421,6 @@ namespace UnityEditor.Rendering.Universal
             stackEntry.FindPropertyRelative("entryType").intValue = (int)EntryType.PostProcessing;
             m_StackEntriesProp.serializedObject.ApplyModifiedProperties();
             m_AdditionalCameraDataSO.ApplyModifiedProperties();
-
         }
 
         void RemovePostProcessingEntry()

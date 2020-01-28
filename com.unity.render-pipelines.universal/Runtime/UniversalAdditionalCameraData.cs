@@ -106,7 +106,6 @@ namespace UnityEngine.Rendering.Universal
             if (!componentExists)
             {
                 cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
-                //cameraData.GetCameraStack().AddBaseCamera(camera);
             }
 
             return cameraData;
@@ -258,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
 
         [Obsolete("cameras property has been deprecated. Use cameraStack property instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public List<Camera> cameras => cameraStack;
+        public List<Camera> cameras => cameraStack.GetAllCameras();
         #endregion
 
         // public void Awake()
@@ -272,9 +271,9 @@ namespace UnityEngine.Rendering.Universal
         /// MTT
         /// <seealso cref="CameraStack"/>.
         /// </summary>
-        public CameraStack GetCameraStack()
+        public CameraStack cameraStack
         {
-            return m_CameraStack;
+            get => m_CameraStack;
         }
 
         /// <summary>
@@ -282,27 +281,27 @@ namespace UnityEngine.Rendering.Universal
         /// Overlay cameras have no stack and will return null.
         /// <seealso cref="CameraRenderType"/>.
         /// </summary>
-        public List<Camera> cameraStack
-        {
-            get
-            {
-                if (renderType != CameraRenderType.Base)
-                {
-                    var camera = gameObject.GetComponent<Camera>();
-                    Debug.LogWarning(string.Format("{0}: This camera is of {1} type. Only Base cameras can have a camera stack.", camera.name, renderType));
-                    return null;
-                }
-
-                if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
-                {
-                    var camera = gameObject.GetComponent<Camera>();
-                    Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
-                    return null;
-                }
-
-                return m_Cameras;
-            }
-        }
+        // public List<Camera> cameraStack
+        // {
+        //     get
+        //     {
+        //         if (renderType != CameraRenderType.Base)
+        //         {
+        //             var camera = gameObject.GetComponent<Camera>();
+        //             Debug.LogWarning(string.Format("{0}: This camera is of {1} type. Only Base cameras can have a camera stack.", camera.name, renderType));
+        //             return null;
+        //         }
+        //
+        //         if (scriptableRenderer.supportedRenderingFeatures.cameraStacking == false)
+        //         {
+        //             var camera = gameObject.GetComponent<Camera>();
+        //             Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
+        //             return null;
+        //         }
+        //
+        //         return m_Cameras;
+        //     }
+        // }
 
         /// <summary>
         /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
