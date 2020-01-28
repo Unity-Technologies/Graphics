@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
             },
             pragmas = new List<string>()
             {
@@ -130,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
             },
             pragmas = new List<string>()
             {
@@ -179,6 +181,7 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
             },
             pragmas = new List<string>()
             {
@@ -324,6 +327,7 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl",
+                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
             },
             pragmas = new List<string>()
             {
@@ -366,6 +370,7 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
             },
             pragmas = new List<string>()
             {
@@ -588,6 +593,8 @@ namespace UnityEditor.Rendering.Universal
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
+
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.ShaderGraph.PBRMasterGUI""");
 
             return subShader.GetShaderString(0);
         }

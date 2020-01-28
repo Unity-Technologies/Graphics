@@ -10,7 +10,7 @@ For example, you can use it to:
 
 ## Using the HDRP Config package
 
-To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](HDRP-Wizard.html).
+To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](Render-Pipeline-Wizard.html).
 
 * **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
 * **HDRP Wizard**: Open the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package. 

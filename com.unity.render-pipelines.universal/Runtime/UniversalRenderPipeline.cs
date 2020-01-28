@@ -104,20 +104,18 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
-        /// <summary>
-        /// Returns the current render pipeline asset for the current quality setting.
-        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
-        /// </summary>
-        public static UniversalRenderPipelineAsset asset
-        {
-            get
-            {
-                return GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            }
-        }
+        ScriptableRenderer[] renderers = null;
+        int m_DefaultRendererIndex = -1;
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
+            m_DefaultRendererIndex = asset.m_DefaultRendererIndex;
+
+            int rendererCount = asset.m_RendererDataList.Length;
+            renderers = new ScriptableRenderer[rendererCount];
+            for (int i = 0; i < rendererCount; ++i)
+                renderers[i] = asset.m_RendererDataList[i]?.InternalCreateRenderer();
+
             SetSupportedRenderingFeatures();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
@@ -152,9 +150,8 @@ namespace UnityEngine.Rendering.Universal
         {
             base.Dispose(disposing);
 
-            if (asset != null)
-                foreach (var renderer in asset.m_Renderers)
-                    renderer?.Cleanup();
+            foreach (var renderer in renderers)
+                renderer?.Dispose();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();

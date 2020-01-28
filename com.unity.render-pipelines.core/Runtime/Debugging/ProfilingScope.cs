@@ -200,11 +200,20 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
-            m_Name = sampler.name; // Don't use CustomSampler.name because it causes garbage
             m_Cmd = cmd;
             m_Disposed = false;
-            m_Sampler = sampler.sampler;
-            m_InlineSampler = sampler.inlineSampler;
+            if (sampler != null)
+            {
+                m_Name = sampler.name; // Don't use CustomSampler.name because it causes garbage
+                m_Sampler = sampler.sampler;
+                m_InlineSampler = sampler.inlineSampler;
+            }
+            else
+            {
+                m_Name = "NullProfilingSampler"; // Don't use CustomSampler.name because it causes garbage
+                m_Sampler = null;
+                m_InlineSampler = null;
+            }
 
             if (cmd != null)
 #if UNITY_USE_RECORDER

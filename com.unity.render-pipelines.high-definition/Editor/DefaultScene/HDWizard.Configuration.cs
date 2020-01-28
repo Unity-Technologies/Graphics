@@ -455,9 +455,10 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
 
+        static bool reloadNeeded = false;
         bool IsDXRDirect3D12Correct()
-            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12;
-        void FixDXRDirect3D12(bool fromAsync)
+            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !reloadNeeded;
+        void FixDXRDirect3D12(bool fromAsyncUnused)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
             {
@@ -480,9 +481,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                if (fromAsync)
-                    m_Fixer.Stop();
-                ChangedFirstGraphicAPI(buidTarget);
+                reloadNeeded = true;
+                m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
 
@@ -501,6 +501,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
+                        reloadNeeded = false;
                         RequestCloseAndRelaunchWithCurrentArguments();
                         GUIUtility.ExitGUI();
                     }
