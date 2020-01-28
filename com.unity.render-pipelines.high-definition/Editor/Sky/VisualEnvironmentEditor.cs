@@ -14,8 +14,26 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_SkyAmbientMode;
 
-        List<GUIContent> m_SkyClassNames = null;
-        List<int> m_SkyUniqueIDs = null;
+        static List<GUIContent> m_SkyClassNames = null;
+        static List<int> m_SkyUniqueIDs = null;
+
+        public static List<GUIContent> skyClassNames
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyClassNames;
+            }
+        }
+
+        public static List<int> skyUniqueIDs
+        {
+            get
+            {
+                UpdateSkyAndFogIntPopupData();
+                return m_SkyUniqueIDs;
+            }
+        }
 
         public override void OnEnable()
         {
@@ -26,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
         }
 
-        void UpdateSkyAndFogIntPopupData()
+        static void UpdateSkyAndFogIntPopupData()
         {
             if (m_SkyClassNames == null)
             {
