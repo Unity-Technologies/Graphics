@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -74,6 +74,67 @@ namespace UnityEditor.VFX.Test
             Assert.IsInstanceOf<VFXDataParticle>(output.GetData());
         }
 
+        string tempFilePath = "Assets/Temp_vfxTest_Ddata.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+            graph.visualEffectResource = resource;
+            return graph;
+        }
+
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            AssetDatabase.DeleteAsset(tempFilePath);
+        }
+
+        [Test]
+        public void CheckData_Sharing_Between_Output_Event()
+        {
+            var graph = MakeTemporaryGraph();
+
+            var eventOutput_A = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var eventOutput_B = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            graph.AddChild(eventOutput_A);
+            graph.AddChild(eventOutput_B);
+
+            var name_A = eventOutput_A.GetSetting("eventName").value as string;
+            var name_B = eventOutput_B.GetSetting("eventName").value as string;
+
+            //Equals names
+            Assert.AreEqual(name_A, name_B);
+            Assert.AreEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+            Assert.AreEqual(eventOutput_A.GetData().title, name_A);
+
+            var newName = "miaou";
+            eventOutput_A.SetSettingValue("eventName", newName);
+            name_A = eventOutput_A.GetSetting("eventName").value as string;
+            name_B = eventOutput_B.GetSetting("eventName").value as string;
+
+            //Now, different names
+            Assert.AreNotEqual(name_A, name_B);
+            Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+            Assert.AreEqual(eventOutput_A.GetData().title, name_A);
+            Assert.AreEqual(eventOutput_B.GetData().title, name_B);
+
+            //Back to equals names
+            eventOutput_B.SetSettingValue("eventName", newName);
+            name_A = eventOutput_A.GetSetting("eventName").value as string;
+            name_B = eventOutput_B.GetSetting("eventName").value as string;
+
+            Assert.AreEqual(name_A, name_B);
+            Assert.AreEqual(eventOutput_A.GetData(), eventOutput_B.GetData());
+            Assert.AreEqual(eventOutput_A.GetData().title, name_A);
+
+        }
+
         [Test]
         public void CheckDataPropagation_Link()
         {
@@ -92,7 +153,7 @@ namespace UnityEditor.VFX.Test
             var spawnData = spawn.GetData();
             var particleData = init.GetData();
 
-            Assert.IsNull(spawnData);
+            Assert.IsNotNull(spawnData);
             Assert.IsNotNull(particleData);
             Assert.AreEqual(particleData, update.GetData());
             Assert.AreEqual(particleData, output0.GetData());

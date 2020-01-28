@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         // special case for spawner or output event
         private static bool DoesLabelControlActualName(VFXContextType type)
         {
-            return type == VFXContextType.Spawner || type == VFXContextType.OutputEvent;
+            return type == VFXContextType.Spawner;
         }
 
         public static readonly string DefaultSystemName = "System";
@@ -110,7 +110,7 @@ namespace UnityEditor.VFX
                 return newName;
             }
             if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not registered.");
+                throw new InvalidOperationException("SystemNames : Model is not registered " + model);
             return GetSystemName(model);
         }
 

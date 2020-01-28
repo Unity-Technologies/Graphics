@@ -59,8 +59,7 @@ namespace UnityEditor.VFX.UI
         public void UpdateLabel()
         {
             var graph = controller.model.GetGraph();
-
-            if (graph != null && (controller.model.contextType == VFXContextType.Spawner || controller.model.contextType == VFXContextType.OutputEvent) )
+            if (graph != null && (controller.model.contextType == VFXContextType.Spawner))
                 m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
             else
                 m_Label.text = controller.model.label;

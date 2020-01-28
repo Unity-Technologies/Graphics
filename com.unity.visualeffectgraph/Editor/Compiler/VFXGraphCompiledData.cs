@@ -174,7 +174,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var linked in context.outputContexts)
                 {
-                    var data = linked.GetData();
+                    var data = linked.GetData(); //*/*/ <========= here (this is not the data for output event...)
                     if (data)
                     {
                         foreach (var attribute in data.GetAttributes())
@@ -850,13 +850,20 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models,false);
 
-                var contexts = models.OfType<VFXContext>().ToArray();
+                var contexts = models.OfType<VFXContext>();
 
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
                 IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
+
+                //Temp : Check Name uniqueness among VFXDataOutputEvent
+                var outputEventTitles = compilableData.OfType<VFXDataOutputEvent>().Select(o => o.title).ToArray();
+                if (outputEventTitles.Count() != outputEventTitles.Distinct().Count())
+                {
+                    throw new InvalidOperationException("Unexpected unmerged VFXDataOutputEvent");
+                }
 
                 IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();
                 foreach (var d in compilableData) // Flag compiled contexts
@@ -905,8 +912,6 @@ namespace UnityEditor.VFX
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
-
-
 
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();

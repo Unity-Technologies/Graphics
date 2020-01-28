@@ -899,8 +899,8 @@ namespace UnityEditor.VFX.UI
                 models.Clear();
                 subgraph.controller.model.CollectDependencies(models, false);
                 var subSystems = models.OfType<VFXContext>()
-                    .Where(c => c.contextType == VFXContextType.Spawner || c.contextType == VFXContextType.OutputEvent || c.GetData() != null)
-                    .Select(c => c.contextType == VFXContextType.Spawner || c.contextType == VFXContextType.OutputEvent ? c as VFXModel : c.GetData())
+                    .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
+                    .Select(c => c.contextType == VFXContextType.Spawner ? c as VFXModel : c.GetData())
                     .Distinct().ToList();
                 foreach (var subSystem in subSystems)
                 {

@@ -17,6 +17,11 @@ namespace UnityEditor.VFX
             //There is nothing serialized here
         }
 
+        public override bool CanBeCompiled()
+        {
+            return m_Owners.Any(o => o.inputContexts.Any());
+        }
+
         public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
@@ -26,16 +31,25 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
-            VFXSystemNames systemNames = null)
+            VFXSystemNames systemNames)
         {
-            if (m_Contexts.Count != 1)
+            if (m_Contexts.Count == 0)
                 throw new InvalidOperationException("VFXDataOutputEvent unexpected context count : " + m_Contexts.Count);
 
-            if (m_Contexts[0].contextType != VFXContextType.OutputEvent)
-                throw new InvalidOperationException("VFXDataOutputEvent unexpected context type : " + m_Contexts[0].contextType);
+            if (m_Contexts.Any(o => o.contextType != VFXContextType.OutputEvent))
+                throw new InvalidOperationException("VFXDataOutputEvent unexpected context type");
 
-            var flowInputLinks = effectiveFlowInputLinks[m_Contexts[0]];
-            var inputSpawnerContext = flowInputLinks.SelectMany(o => o.Select(p => p.context));
+            var flowInputLinks = m_Contexts.SelectMany(context =>
+            {
+                if (effectiveFlowInputLinks.ContainsKey(context))
+                {
+                    var r = effectiveFlowInputLinks[context];
+                    return r.SelectMany(o => o);
+                }
+                //A context could have been filtered out due because there isn't any flow input link
+                return Enumerable.Empty<VFXContextLink>();
+            });
+            var inputSpawnerContext = flowInputLinks.Select(l => l.context);
 
             var systemBufferMappings = new List<VFXMapping>();
             foreach (var spawner in inputSpawnerContext)
@@ -52,7 +66,7 @@ namespace UnityEditor.VFX
 
             string nativeName = string.Empty;
             if (systemNames != null)
-                nativeName = systemNames.GetUniqueSystemName(m_Owners.First());
+                nativeName = systemNames.GetUniqueSystemName(this);
             else
                 throw new InvalidOperationException("system names manager cannot be null");
 

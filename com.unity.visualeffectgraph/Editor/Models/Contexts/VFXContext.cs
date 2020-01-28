@@ -69,8 +69,7 @@ namespace UnityEditor.VFX
             get { return m_Label; }
             set {
                 var invalidationCause = InvalidationCause.kUIChanged;
-                if (    (contextType == VFXContextType.Spawner || contextType == VFXContextType.OutputEvent)
-                    &&  m_Label != value)
+                if (contextType == VFXContextType.Spawner && m_Label != value)
                     invalidationCause = InvalidationCause.kSettingChanged;
                 m_Label = value;
                 Invalidate(invalidationCause);
@@ -383,7 +382,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        private void InnerSetData(VFXData data, bool notify)
+        protected void InnerSetData(VFXData data, bool notify)
         {
             if (m_Data != data)
             {
