@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
-        public override void Cleanup()
+        protected override void Dispose(bool disposing)
         {
             m_PostProcessPass.Cleanup();
             // m_FinalPostProcessPass.Cleanup() ?
