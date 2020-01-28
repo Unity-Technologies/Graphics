@@ -18,7 +18,7 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
     }
 
 #if defined(_PIXEL_DISPLACEMENT)
-    bool applyObjectScale = (_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0);
+    bool applyObjectScale = (_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0;
 #else
     bool applyObjectScale = true;
 #endif
