@@ -26,6 +26,14 @@ projects:
     folder: UniversalGraphicsTest
   - name: Universal_Foundation
     folder: UniversalGraphicsTest_Foundation
+  - name: Universal_2D
+    folder: UniversalGraphicsTest_2D
+  - name: Universal_Lighting
+    folder: UniversalGraphicsTest_Lighting
+  - name: Universal_PostPro
+    folder: UniversalGraphicsTest_PostPro
+  - name: Universal_Terrain
+    folder: UniversalGraphicsTest_Terrain
 win_apis:
   - name: DX11
     cmd: -force-d3d11
