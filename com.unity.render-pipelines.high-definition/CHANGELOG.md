@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add OS and Hardware check in the Wizard fixes for DXR.
 - Added option to exclude camera motion from motion blur.
 - Added semi-transparent shadows for point and spot lights.
+- Added support for semi-transparent shadow for unlit shader and unlit shader graph.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
