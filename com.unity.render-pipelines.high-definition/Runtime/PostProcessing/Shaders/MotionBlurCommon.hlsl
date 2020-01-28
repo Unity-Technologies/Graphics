@@ -44,6 +44,7 @@ CBUFFER_END
 #define _SampleCount                        uint(_MotionBlurParams2.x)
 #define _TileSize                           uint(_MotionBlurParams2.y)
 #define _DepthScale                         _MotionBlurParams2.z
+#define _DisableCameraMotion                (_MotionBlurParams2.w > 0.0f)
 
 
 #if defined(USING_STEREO_MATRICES)

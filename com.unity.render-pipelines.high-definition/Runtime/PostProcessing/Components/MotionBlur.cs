@@ -40,6 +40,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
 
         /// <summary>
+        /// If toggled on, the motion caused by the camera is not considered when doing motion blur.
+        /// </summary>
+        [Tooltip("If toggled on, the motion caused by the camera is not considered when doing motion blur.")]
+        public BoolParameter disableCameraMotionBlur = new BoolParameter(false);
+
+        /// <summary>
         /// Sets the maximum number of sample points that HDRP uses to compute motion blur.
         /// </summary>
         public int sampleCount

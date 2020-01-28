@@ -1569,6 +1569,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionBlur.cameraRotationVelocityClamp.value
             );
 
+            uint sampleCount = (uint)m_MotionBlur.sampleCount;
+            Vector4 motionBlurParams2 = new Vector4(
+                m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
+                tileSize,
+                m_MotionBlur.depthComparisonExtent.value,
+                m_MotionBlur.disableCameraMotionBlur.value ? 1.0f : 0.0f
+            );
             // -----------------------------------------------------------------------------
             // Prep motion vectors
 
@@ -1587,6 +1594,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams2);
+
                 cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
@@ -1672,14 +1681,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Blur kernel
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
-                uint sampleCount = (uint)m_MotionBlur.sampleCount;
-                Vector4 motionBlurParams2 = new Vector4(
-                    m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
-                    tileSize,
-                    m_MotionBlur.depthComparisonExtent.value,
-                    0.0f
-                    );
-
                 cs = m_Resources.shaders.motionBlurCS;
                 kernel = cs.FindKernel("MotionBlurCS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
