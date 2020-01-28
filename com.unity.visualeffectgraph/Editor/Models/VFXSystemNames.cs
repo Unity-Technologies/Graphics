@@ -13,12 +13,6 @@ namespace UnityEditor.VFX
 {
     internal class VFXSystemNames
     {
-        // special case for spawner or output event
-        private static bool DoesLabelControlActualName(VFXContextType type)
-        {
-            return type == VFXContextType.Spawner;
-        }
-
         public static readonly string DefaultSystemName = "System";
 
         private static readonly string IndexPattern = @" (\(([0-9])*\))$";
@@ -33,10 +27,11 @@ namespace UnityEditor.VFX
                 return data.title;
             }
 
+            // special case for spawners
             var context = model as VFXContext;
             if (context != null)
             {
-                if (DoesLabelControlActualName(context.contextType))
+                if (context.contextType == VFXContextType.Spawner)
                     return context.label;
                 else
                 {
@@ -59,10 +54,11 @@ namespace UnityEditor.VFX
                 return;
             }
 
+            // special case for spawner
             var context = model as VFXContext;
             if (context != null)
             {
-                if (DoesLabelControlActualName(context.contextType))
+                if (context.contextType == VFXContextType.Spawner)
                 {
                     context.label = name;
                     return;
@@ -120,8 +116,8 @@ namespace UnityEditor.VFX
             graph.CollectDependencies(models, false);
 
             var systems = models.OfType<VFXContext>()
-                .Where(c => DoesLabelControlActualName(c.contextType) || c.GetData() != null)
-                .Select(c => DoesLabelControlActualName(c.contextType) ? c as VFXModel : c.GetData())
+                .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
+                .Select(c => c.contextType == VFXContextType.Spawner ? c as VFXModel : c.GetData())
                 .Distinct();
 
             Init(systems);

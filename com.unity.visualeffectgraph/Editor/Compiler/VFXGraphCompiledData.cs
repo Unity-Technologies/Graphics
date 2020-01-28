@@ -174,7 +174,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var linked in context.outputContexts)
                 {
-                    var data = linked.GetData(); //*/*/ <========= here (this is not the data for output event...)
+                    var data = linked.GetData();
                     if (data)
                     {
                         foreach (var attribute in data.GetAttributes())
@@ -828,7 +828,7 @@ namespace UnityEditor.VFX
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progresses) in an empty graph.
+            // Prevent doing anything ( and especially showing progress) in an empty graph.
             if (m_Graph.children.Count() < 1)
             {
                 // Cleaning
@@ -850,7 +850,7 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models,false);
 
-                var contexts = models.OfType<VFXContext>();
+                var contexts = models.OfType<VFXContext>().ToArray();
 
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
@@ -858,7 +858,7 @@ namespace UnityEditor.VFX
                 IEnumerable<VFXContext> compilableContexts = contexts.Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
-                //Temp : Check Name uniqueness among VFXDataOutputEvent
+                //Temp TODOPAUL : Check Name uniqueness among VFXDataOutputEvent
                 var outputEventTitles = compilableData.OfType<VFXDataOutputEvent>().Select(o => o.title).ToArray();
                 if (outputEventTitles.Count() != outputEventTitles.Distinct().Count())
                 {
