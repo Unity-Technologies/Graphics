@@ -135,30 +135,54 @@ namespace UnityEngine.Rendering.HighDefinition
         public float unused2;
     };
 
+    /// <summary>
+    /// Tile and Cluster Debug Mode.
+    /// </summary>
     public enum TileClusterDebug : int
     {
+        /// <summary>No Tile and Cluster debug.</summary>
         None,
+        /// <summary>Display lighting tiles debug.</summary>
         Tile,
+        /// <summary>Display lighting clusters debug.</summary>
         Cluster,
+        /// <summary>Display material feautre variants.</summary>
         MaterialFeatureVariants
     };
 
+    /// <summary>
+    /// Light Volume Debug Mode.
+    /// </summary>
     public enum LightVolumeDebug : int
     {
+        /// <summary>Display light volumes as a gradient.</summary>
         Gradient,
+        /// <summary>Display light volumes as shapes will color and edges depending on the light type.</summary>
         ColorAndEdge
     };
 
+    /// <summary>
+    /// Tile and Cluster Debug Categories.
+    /// </summary>
     public enum TileClusterCategoryDebug : int
     {
+        /// <summary>Punctual lights.</summary>
         Punctual = 1,
+        /// <summary>Area lights.</summary>
         Area = 2,
+        /// <summary>Area and punctual lights.</summary>
         AreaAndPunctual = 3,
+        /// <summary>Environment lights.</summary>
         Environment = 4,
+        /// <summary>Environment and punctual lights.</summary>
         EnvironmentAndPunctual = 5,
+        /// <summary>Environment and area lights.</summary>
         EnvironmentAndArea = 6,
+        /// <summary>All lights.</summary>
         EnvironmentAndAreaAndPunctual = 7,
+        /// <summary>Decals.</summary>
         Decal = 8,
+        /// <summary>Density Volumes.</summary>
         DensityVolumes = 16
     };
 
