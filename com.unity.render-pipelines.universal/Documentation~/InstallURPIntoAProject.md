@@ -4,9 +4,9 @@ You can download and install the latest version of the Universal Render Pipeline
 
 ## Before you begin
 
-URP uses its own [integrated post-processing solution](integration-with-post-processing.md). If you have the Post Processing Version 2 package installed in your Project, you need to delete the Post Processing Version 2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
+URP supports both [Post Processing Version 2 (PPV2) and its own integrated post-processing solution](integration-with-post-processing.md). If you have the Post Processing Version 2 package installed in your Project and you want to use URP's integrated post-processing solution, you need to delete the Post Processing Version 2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
 
-URP does not currently support custom post-processing effects. If your Project uses custom post-processing effects, these cannot currently be recreated in URP. Custom post-processing effects will be supported in a forthcoming release of URP.
+URP's integrated post-processing solution does not currently support custom post-processing effects. If your Project uses custom post-processing effects, these cannot currently be recreated in URP's integrated post-processing solution. Custom post-processing effects will be supported in a forthcoming release of URP.
 
 ## Installing URP
 

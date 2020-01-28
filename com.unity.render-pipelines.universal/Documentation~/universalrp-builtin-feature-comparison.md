@@ -121,7 +121,7 @@ This table provides an overview of the current features supported in the Univers
 | UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
-| ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md) |
+| ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses Post-Processing Version 2 package and integrated [post-processing solution](integration-with-post-processing.md) |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
 | Auto Exposure                                                | Yes                                                          | Not supported                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
