@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditorInternal;
 using System.IO;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 #pragma warning disable 414 // never used
         [SerializeField]
-        Version version = Version.First;
+        Version version = MigrationDescription.LastVersion<Version>();
 #pragma warning restore 414
 
         [SerializeField]

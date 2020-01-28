@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_Version: 11
+  m_Version: 13
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -152,13 +152,13 @@ MonoBehaviour:
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
     type: 2}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 3043edc9d9a47704fad99f10fea80a08,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
     type: 2}
   m_DefaultLookDevProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 65899829919581
-      data2: 4539628424926265344
+      data2: 4539628425396027392
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -270,7 +270,8 @@ MonoBehaviour:
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 1
-      maxScreenSpaceShadows: 10
+      maxScreenSpaceShadowSlots: 10
+      screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
@@ -279,6 +280,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
+      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100

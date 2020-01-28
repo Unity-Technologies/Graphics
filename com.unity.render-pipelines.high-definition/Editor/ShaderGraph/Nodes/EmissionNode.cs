@@ -25,11 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // TODO: write the doc
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Emission-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Emission");
 
         [SerializeField]
         EmissiveIntensityUnit _intensityUnit;

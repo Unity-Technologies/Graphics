@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/103_RTRecursiveRendering.unity
     guid: 9a47aa07fa8a82341a976363fec6b1d2
   - enabled: 1
+    path: Assets/Scenes/104_RTShadows.unity
+    guid: 4aaf485f4ac39ff4e9fd997caff44abe
+  - enabled: 1
     path: Assets/Scenes/1001_AmbientOcclusion.unity
     guid: 991ce8d8cc8714b4a93dad50967f7961
   - enabled: 1
@@ -41,7 +44,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/4003_GlobalIllumination_SecondDenoiser.unity
     guid: 2550044b85f2fa24680c68307e532a70
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/5001_PathTracing.unity
     guid: 3666dc8006745714997c368c4375f316
   m_configObjects: {}

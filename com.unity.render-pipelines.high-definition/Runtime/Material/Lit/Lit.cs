@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float coatRoughness; // Automatically fill
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal (Forward only)", "Geometric Normal View Space (Forward only)" }, true, precision = FieldPrecision.Real)]
             public Vector3 geomNormalWS;
 
             // Transparency

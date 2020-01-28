@@ -137,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (xrEnabled && xrSupported)
                 {
+                    // Disable vsync on the main display when rendering to a XR device
+                    QualitySettings.vSyncCount = 0;
+
                     if (XRGraphics.renderViewportScale != 1.0f)
                     {
                         Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
