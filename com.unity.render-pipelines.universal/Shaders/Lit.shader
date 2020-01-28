@@ -77,6 +77,8 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma enable_d3d11_debug_symbols
+
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
@@ -112,6 +114,38 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fog
 
             #pragma multi_compile _ RENDER_WITH_MODE_TEST
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment
+
+            #include "LitInput.hlsl"
+            #include "LitForwardPass.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Render Pipeline
+            Name "DataExtraction"
+            Tags{"LightMode" = "DataExtraction"}
+
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma enable_d3d11_debug_symbols
+
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+
+            #pragma multi_compile _ WORLD_NORMAL WORLD_POSITION OBJECT_ID
 
             //--------------------------------------
             // GPU Instancing
