@@ -17,6 +17,7 @@ RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
 // Cannot use (MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS) since
 // the thread group becomes too large for some platforms.
+// We do not need to filter the MIP 0, so we start sampling at the MIP level 1.
 [numthreads(8, UNITY_SPECCUBE_LOD_STEPS, 1)]
 void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 {
@@ -25,7 +26,7 @@ void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
     for (uint s = 0; s < numSamplesPerThread; s++)
     {
         uint  sampleIndex = groupThreadId.x * numSamplesPerThread + s;
-        uint  mipLevel    = groupThreadId.y + 1;
+        uint  mipLevel    = groupThreadId.y + 1; // We do not filter the MIP 0
         float roughness   = PerceptualRoughnessToRoughness(MipmapLevelToPerceptualRoughness(mipLevel));
         uint  sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
 

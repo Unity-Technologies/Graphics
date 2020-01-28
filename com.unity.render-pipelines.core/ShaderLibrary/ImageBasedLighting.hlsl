@@ -8,7 +8,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
-    #define UNITY_SPECCUBE_LOD_STEPS 6
+    #define UNITY_SPECCUBE_LOD_STEPS 6 // (MipCount - 1) : [0, 6]
 #endif
 
 //-----------------------------------------------------------------------------
