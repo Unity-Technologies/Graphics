@@ -39,6 +39,7 @@ mobiles:
     type: Unity::mobile::android
     image: mobile/android-execution-r19:stable
     flavor: b1.large
+projects:
   - name: Universal_Main
     folder: UniversalGraphicsTest
   - name: Universal_Foundation
