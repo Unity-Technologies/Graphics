@@ -1,9 +1,9 @@
+#if ENABLE_VIRTUALTEXTURES
+using VirtualTexturing = UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Experimental.Rendering;
-
 
 namespace  UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_VIRTUALTEXTURES
     public class VTBufferManager
     {
         public static GraphicsFormat GetFeedbackBufferFormat()
@@ -12,7 +12,7 @@ namespace  UnityEngine.Rendering.HighDefinition
         }
 
         RTHandle m_VTFeedbackBuffer;
-        VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
+        VirtualTexturing.Resolver m_Resolver = new VirtualTexturing.Resolver();
         public static int AdditionalForwardRT = 1;
         int resolveScale = 16;
         RTHandle lowresResolver;
@@ -44,7 +44,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             lowresResolver = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
 
 
-            m_Resolver.Init((uint)width, (uint)height);
+            m_Resolver.UpdateSize((uint)width, (uint)height);
         }
 
         public void Resolve(CommandBuffer cmd, RTHandle rt, int width, int height)
@@ -100,5 +100,5 @@ namespace  UnityEngine.Rendering.HighDefinition
 
 
     }
-#endif
 }
+#endif
