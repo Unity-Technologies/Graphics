@@ -1,4 +1,4 @@
-# Creating and editing Materials that use HDRP Shader Graphs
+# Customizing HDRP materials with Shader Graph
 
 The High Definition Render Pipeline (HDRP) uses Unity's [Shader Graph](<https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1>) for all of its Shaders, except the AxF Shader. This means that, for [some Materials](#MaterialList), you do not create and edit them in the same way as normal Materials.
 
@@ -74,7 +74,17 @@ If you want a property value to be the same for every Material that uses the Sha
 
 Concrete nodes that define a Texture (or a Texture array) define an unexposed property in the Shader. This means that they contribute to the size of the Material on disk, just like Blackboard properties.
 
+<a name="MaterialSurfaceOptionProperties"></a>
 
+### Material Surface Option properties
+
+By default HDRP master nodes exposes a bunch of **Surface Options** properties, they allow you to control common settings from the Material instead of in the ShaderGraph and thus avoid having to duplicate the whole graph to change for example the **Sorting Priority** or the **Surface Type**. In the master node, these settings act as a default value in the Shader so when you create a material from the **Shader Graph** (**Right Click on the Shader Graph asset > Create > Material**) it will have the configuration of the master node.  
+
+![](Images/ShaderGraphMaterialUI_Default.png)
+
+This system is great to avoid duplicating graphs but it have some problem related to the synchronization of properties. For example if you create a material from a Transparent **Shader Graph** and then decide to switch the **Surface Type** to Opaque in the master node settings, then the created material will still be Opaque. Once you created the material, all it's properties are saved and never synchronized back with the **Shader Graph**, even if you didn't changed anything on the material (mainly because there is no override system).
+
+**Note that switching these surface options is only possible in edit mode, not in the player.** Thanks to this, it doesn't add any extra variants to the shader compilation process (we use shader features instead of multi compiles).
 
 <a name="KnownIssues"></a>
 
