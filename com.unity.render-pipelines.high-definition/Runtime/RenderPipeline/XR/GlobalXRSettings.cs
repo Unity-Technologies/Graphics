@@ -2,6 +2,9 @@ using System;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Global XR Settings.
+    /// </summary>
     [Serializable]
     public struct GlobalXRSettings
     {
@@ -11,7 +14,9 @@ namespace UnityEngine.Rendering
             occlusionMesh = true
         };
 
+        /// <summary>Use single pass.</summary>
         public bool singlePass;
+        /// <summary>Use occlusion mesh.</summary>
         public bool occlusionMesh;
     }
 }

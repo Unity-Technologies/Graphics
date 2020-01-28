@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderTexture m_TempRenderTexture0 = null;
         RenderTexture m_TempRenderTexture1 = null;
-        
+
         // Structure for cookies used by directional and spotlights
         PowerOfTwoTextureAtlas m_CookieAtlas;
 
@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Create the texture cookie cache that we shall be using for the area lights
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-            int cookieSize = gLightLoopSettings.cookieAreaTextureArraySize;
 
             // Also make sure to create the engine material that is used for the filtering
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(hdResources.shaders.filterAreaLightCookiesPS);
@@ -211,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_2DCookieAtlasNeedsLayouting)
                 return;
-            
+
             if (!m_CookieAtlas.RelayoutEntries())
             {
                 Debug.LogError($"No more space in the 2D Cookie Texture Atlas. To solve this issue, increase the resolution of the cookie atlas in the HDRP settings.");
@@ -256,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (cookie == null)
                 return;
-            
+
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return;
 

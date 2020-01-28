@@ -111,21 +111,34 @@ namespace UnityEngine.Rendering.HighDefinition
         IMS
     }
 
+    /// <summary>
+    /// Screen Space Shadows format.
+    /// </summary>
     public enum ScreenSpaceShadowFormat
     {
+        /// <summary>R8G8B8A8 format for fastest rendering.</summary>
         R8G8B8A8 = GraphicsFormat.R8G8B8A8_UNorm,
+        /// <summary>R16G16B16A16 format for better quality.</summary>
         R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat
     }
 
+    /// <summary>
+    /// Shadows Global Settings.
+    /// </summary>
     [Serializable]
     public struct HDShadowInitParameters
     {
-
+        /// <summary>
+        /// Shadow Atlases parameters.
+        /// </summary>
         [Serializable]
         public struct HDShadowAtlasInitParams
         {
+            /// <summary>Shadow Atlas resolution.</summary>
             public int shadowAtlasResolution;
+            /// <summary>Shadow Atlas depth bits.</summary>
             public DepthBits shadowAtlasDepthBits;
+            /// <summary>Enable dynamic rescale of the atlas.</summary>
             public bool useDynamicViewportRescale;
 
             internal static HDShadowAtlasInitParams GetDefault()
@@ -162,26 +175,39 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_DefaultMaxShadowRequests = 128;
         internal const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth32;
 
+        /// <summary>Maximum number of shadow requests at the same time.</summary>
         public int maxShadowRequests;
+        /// <summary>Depth bits for directional shadows.</summary>
         public DepthBits directionalShadowsDepthBits;
 
+        /// <summary>Shadow filtering quality.</summary>
         [FormerlySerializedAs("shadowQuality")]
         public HDShadowFilteringQuality shadowFilteringQuality;
 
+        /// <summary>Initialization parameters for punctual shadows atlas.</summary>
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
+        /// <summary>Initialization parameters for area shadows atlas.</summary>
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
+        /// <summary>Shadow scalable resolution for directional lights.</summary>
         public IntScalableSetting shadowResolutionDirectional;
+        /// <summary>Shadow scalable resolution for point lights.</summary>
         public IntScalableSetting shadowResolutionPunctual;
+        /// <summary>Shadow scalable resolution for area lights.</summary>
         public IntScalableSetting shadowResolutionArea;
 
+        /// <summary>Maximum shadow map resolution for directional lights.</summary>
         public int maxDirectionalShadowMapResolution;
+        /// <summary>Maximum shadow map resolution for punctual lights.</summary>
         public int maxPunctualShadowMapResolution;
+        /// <summary>Maximum shadow map resolution for area lights.</summary>
         public int maxAreaShadowMapResolution;
 
-        // Screen space shadow data
+        /// <summary>Enable support for screen space shadows.</summary>
         public bool supportScreenSpaceShadows;
+        /// <summary>Maximum number of screen space shadows.</summary>
         public int maxScreenSpaceShadowSlots;
+        /// <summary>Format for screen space shadows.</summary>
         public ScreenSpaceShadowFormat screenSpaceShadowBufferFormat;
     }
 
