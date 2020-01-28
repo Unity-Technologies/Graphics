@@ -66,9 +66,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
                         if (!inTestSuite && fileExist && curUpgradeVersion != HDProjectSettings.k_NeverProcessedMaterialVersion)
                         {
-                            EditorUtility.DisplayDialog("HDRP Material Migration", "Your High Definition Render Pipeline version requires a material upgrade." +
-                                                        " All materials in the project will be re-imported and saved to disk (and checked out if relevant) if changed. \n" +
-                                                        " Please consult the upgrade guide in the HDRP documentation for more information.", "Ok");
+                            EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
+                                                        " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
+                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n"+
+                                                        " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
                         }
 
                         ReimportAllMaterials();

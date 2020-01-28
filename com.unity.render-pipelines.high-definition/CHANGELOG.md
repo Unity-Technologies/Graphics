@@ -416,6 +416,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the tier defining from the asset to the concerned volume components.
 - Changing from a tier management to a "mode" management for reflection and GI and removing the ability to enable/disable deferred and ray bining (they are now implied by performance mode)
 - The default FrameSettings for ScreenSpaceShadows is set to true for Camera in order to give a better workflow for DXR.
+- Refactor internal usage of Stencil bits.
+- Changed how the material upgrader works and added documentation for it.
 
 ## [7.1.1] - 2019-09-05
 
