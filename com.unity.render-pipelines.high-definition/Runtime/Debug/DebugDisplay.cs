@@ -5,45 +5,75 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Full Screen Debug Mode.
+    /// </summary>
     [GenerateHLSL]
     public enum FullScreenDebugMode
     {
+        /// <summary>No Full Screen debug mode.</summary>
         None,
 
         // Lighting
+        /// <summary>Minimum Full Screen Lighting debug mode value (used internally).</summary>
         MinLightingFullScreenDebug,
+        /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
         SSAO,
+        /// <summary>Display SCreen Space Reflections buffer.</summary>
         ScreenSpaceReflections,
+        /// <summary>Display Contact Shadows buffer.</summary>
         ContactShadows,
+        /// <summary>Display Contact Shadows fade.</summary>
         ContactShadowsFade,
+        /// <summary>Display Screen Space Shadows.</summary>
         ScreenSpaceShadows,
+        /// <summary>Displays the color pyramid before the refraction pass.</summary>
         PreRefractionColorPyramid,
+        /// <summary>Display the Depth Pyramid.</summary>
         DepthPyramid,
+        /// <summary>Display the final color pyramid for the frame.</summary>
         FinalColorPyramid,
 
         // Raytracing Only
+        /// <summary>Display ray tracing light cluster.</summary>
         LightCluster,
+        /// <summary>Display ray tracing global illumination.</summary>
         RayTracedGlobalIllumination,
+        /// <summary>Display recursive ray tracing.</summary>
         RecursiveRayTracing,
+        /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 
         // Rendering
+        /// <summary>Minimum Full Screen Rendering debug mode value (used internally).</summary>
         MinRenderingFullScreenDebug,
+        /// <summary>Display Motion Vectors.</summary>
         MotionVectors,
+        /// <summary>Display NaNs.</summary>
         NanTracker,
+        /// <summary>Display Log of the color buffer.</summary>
         ColorLog,
+        /// <summary>Display Depth of Field circle of confusion.</summary>
         DepthOfFieldCoc,
+        /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
         //Material
+        /// <summary>Minimum Full Screen Material debug mode value (used internally).</summary>
         MinMaterialFullScreenDebug,
+        /// <summary>Display Diffuse Color validation mode.</summary>
         ValidateDiffuseColor,
+        /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
+        /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug
     }
 
-
+    /// <summary>
+    /// Class managing debug display in HDRP.
+    /// </summary>
     public class DebugDisplaySettings : IDebugData
     {
         static string k_PanelDisplayStats = "Display Stats";
@@ -81,31 +111,44 @@ namespace UnityEngine.Rendering.HighDefinition
             InlineCPU
         }
 
+        /// <summary>
+        /// Debug data.
+        /// </summary>
         public class DebugData
         {
+            /// <summary>Ratio of the screen size in which overlays are rendered.</summary>
             public float debugOverlayRatio = 0.33f;
+            /// <summary>Current full screen debug mode.</summary>
             public FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
+            /// <summary>Current full screen debug mode mip level (when applicable).</summary>
             public float fullscreenDebugMip = 0.0f;
+            /// <summary>Index of the light used for contact shadows display.</summary>
             public int fullScreenContactShadowLightIndex = 0;
-            public bool showSSSampledColor = false;
-            public bool showContactShadowFade = false;
+            /// <summary>XR single pass test mode.</summary>
             public bool xrSinglePassTestMode = false;
 
+            /// <summary>Current material debug settings.</summary>
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
+            /// <summary>Current lighting debug settings.</summary>
             public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
+            /// <summary>Current mip map debug settings.</summary>
             public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
+            /// <summary>Current colorr picker debug settings.</summary>
             public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
+            /// <summary>Current false color debug settings.</summary>
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
+            /// <summary>Current decals debug settings.</summary>
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
+            /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
+            /// <summary>Current number of samples for MSAA textures.</summary>
             public MSAASamples msaaSamples = MSAASamples.None;
-
+            /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
-            // Raytracing
+            /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
-            public bool showRaysPerFrame = false;
-            public Color raysPerFrameFontColor = Color.white;
 
+            /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
 
             // TODO: The only reason this exist is because of Material/Engine debug enums
@@ -146,10 +189,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         DebugData m_Data;
 
+        /// <summary>
+        /// Debug data.
+        /// </summary>
         public DebugData data { get => m_Data; }
 
         // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
+        /// <summary>List of Full Screen Rendering Debug mode names.</summary>
         public static GUIContent[] renderingFullScreenDebugStrings => s_RenderingFullScreenDebugStrings;
+        /// <summary>List of Full Screen Rendering Debug mode values.</summary>
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
 
         internal DebugDisplaySettings()
@@ -169,78 +217,140 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Data = new DebugData();
         }
 
+        /// <summary>
+        /// Get Reset action.
+        /// </summary>
+        /// <returns></returns>
         Action IDebugData.GetReset() => () => m_Data = new DebugData();
 
-        public float[] GetDebugMaterialIndexes()
+        internal float[] GetDebugMaterialIndexes()
         {
             return data.materialDebugSettings.GetDebugMaterialIndexes();
         }
 
+        /// <summary>
+        /// Returns the current Light filtering mode.
+        /// </summary>
+        /// <returns>Current Light filtering mode.</returns>
         public DebugLightFilterMode GetDebugLightFilterMode()
         {
             return data.lightingDebugSettings.debugLightFilterMode;
         }
 
+        /// <summary>
+        /// Returns the current Lighting Debug Mode.
+        /// </summary>
+        /// <returns>Current Lighting Debug Mode.</returns>
         public DebugLightingMode GetDebugLightingMode()
         {
             return data.lightingDebugSettings.debugLightingMode;
         }
 
+        /// <summary>
+        /// Returns the current Shadow Map Debug Mode.
+        /// </summary>
+        /// <returns>Current Shadow Map Debug Mode.</returns>
         public ShadowMapDebugMode GetDebugShadowMapMode()
         {
             return data.lightingDebugSettings.shadowDebugMode;
         }
 
+        /// <summary>
+        /// Returns the current Mip Map Debug Mode.
+        /// </summary>
+        /// <returns>Current Mip Map Debug Mode.</returns>
         public DebugMipMapMode GetDebugMipMapMode()
         {
             return data.mipMapDebugSettings.debugMipMapMode;
         }
 
+        /// <summary>
+        /// Returns the current Terrain Texture Mip Map Debug Mode.
+        /// </summary>
+        /// <returns>Current Terrain Texture Mip Map Debug Mode.</returns>
         public DebugMipMapModeTerrainTexture GetDebugMipMapModeTerrainTexture()
         {
             return data.mipMapDebugSettings.terrainTexture;
         }
 
+        /// <summary>
+        /// Returns the current Color Picker Mode.
+        /// </summary>
+        /// <returns>Current Color Picker Mode.</returns>
         public ColorPickerDebugMode GetDebugColorPickerMode()
         {
             return data.colorPickerDebugSettings.colorPickerMode;
         }
 
+        /// <summary>
+        /// Returns true if camera visibility is frozen.
+        /// </summary>
+        /// <returns>True if camera visibility is frozen</returns>
         public bool IsCameraFreezeEnabled()
         {
             return data.debugCameraToFreeze != 0;
         }
 
+        /// <summary>
+        /// Returns true if a specific camera is frozen for visibility.
+        /// </summary>
+        /// <param name="camera">Camera to be tested.</param>
+        /// <returns>True if a specific camera is frozen for visibility.</returns>
         public bool IsCameraFrozen(Camera camera)
         {
             return IsCameraFreezeEnabled() && camera.name.Equals(s_CameraNamesStrings[data.debugCameraToFreeze].text);
         }
 
+        /// <summary>
+        /// Returns true if any debug display is enabled.
+        /// </summary>
+        /// <returns>True if any debug display is enabled.</returns>
         public bool IsDebugDisplayEnabled()
         {
             return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayEnabled() || data.mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
         }
 
+        /// <summary>
+        /// Returns true if any material debug display is enabled.
+        /// </summary>
+        /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
             return data.materialDebugSettings.IsDebugDisplayEnabled();
         }
 
+        /// <summary>
+        /// Returns true if any full screen debug display is enabled.
+        /// </summary>
+        /// <returns>True if any full screen debug display is enabled.</returns>
         public bool IsDebugFullScreenEnabled()
         {
             return data.fullScreenDebugMode != FullScreenDebugMode.None;
         }
 
+        /// <summary>
+        /// Returns true if material validation is enabled.
+        /// </summary>
+        /// <returns>True if any material validation is enabled.</returns>
         public bool IsMaterialValidationEnabled()
         {
             return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor);
         }
 
+        /// <summary>
+        /// Returns true if mip map debug display is enabled.
+        /// </summary>
+        /// <returns>True if any mip mapdebug display is enabled.</returns>
         public bool IsDebugMipMapDisplayEnabled()
         {
             return data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
+        /// <summary>
+        /// Returns true if matcap view is enabled for a particular camera.
+        /// </summary>
+        /// <param name="camera">Input camera.</param>
+        /// <returns>True if matcap view is enabled for a particular camera.</returns>
         public bool IsMatcapViewEnabled(HDCamera camera)
         {
             bool sceneViewLightingDisabled = CoreUtils.IsSceneLightingDisabled(camera.camera);
@@ -254,6 +364,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
         }
 
+        /// <summary>
+        /// Set the current shared material properties debug view.
+        /// </summary>
+        /// <param name="value">Desired shared material property to display.</param>
         public void SetDebugViewCommonMaterialProperty(MaterialSharedProperty value)
         {
             if (value != MaterialSharedProperty.None)
@@ -261,6 +375,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewCommonMaterialProperty(value);
         }
 
+        /// <summary>
+        /// Set the current material debug view.
+        /// </summary>
+        /// <param name="value">Desired material debug view.</param>
         public void SetDebugViewMaterial(int value)
         {
             if (value != 0)
@@ -268,6 +386,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewMaterial(value);
         }
 
+        /// <summary>
+        /// Set the current engine debug view.
+        /// </summary>
+        /// <param name="value">Desired engine debug view.</param>
         public void SetDebugViewEngine(int value)
         {
             if (value != 0)
@@ -275,6 +397,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewEngine(value);
         }
 
+        /// <summary>
+        /// Set current varying debug view.
+        /// </summary>
+        /// <param name="value">Desired varying debug view.</param>
         public void SetDebugViewVarying(DebugViewVarying value)
         {
             if (value != 0)
@@ -282,6 +408,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewVarying(value);
         }
 
+        /// <summary>
+        /// Set the current Material Property debug view.
+        /// </summary>
+        /// <param name="value">Desired property debug view.</param>
         public void SetDebugViewProperties(DebugViewProperties value)
         {
             if (value != 0)
@@ -289,6 +419,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewProperties(value);
         }
 
+        /// <summary>
+        /// Set the current GBuffer debug view.
+        /// </summary>
+        /// <param name="value">Desired GBuffer debug view.</param>
         public void SetDebugViewGBuffer(int value)
         {
             if (value != 0)
@@ -296,6 +430,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.materialDebugSettings.SetDebugViewGBuffer(value);
         }
 
+        /// <summary>
+        /// Set the current Full Screen Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Full Screen Debug mode.</param>
         public void SetFullScreenDebugMode(FullScreenDebugMode value)
         {
             if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
@@ -310,6 +448,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.fullScreenDebugMode = value;
         }
 
+        /// <summary>
+        /// Set the current Shadow Map Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Shadow Map debug mode.</param>
         public void SetShadowDebugMode(ShadowMapDebugMode value)
         {
             // When SingleShadow is enabled, we don't render full screen debug modes
@@ -318,6 +460,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.shadowDebugMode = value;
         }
 
+        /// <summary>
+        /// Set the current Light Filtering.
+        /// </summary>
+        /// <param name="value">Desired Light Filtering.</param>
         public void SetDebugLightFilterMode(DebugLightFilterMode value)
         {
             if (value != 0)
@@ -328,6 +474,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.debugLightFilterMode = value;
         }
 
+        /// <summary>
+        /// Set the current Lighting Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Lighting Debug Mode.</param>
         public void SetDebugLightingMode(DebugLightingMode value)
         {
             if (value != 0)
@@ -339,6 +489,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.debugLightingMode = value;
         }
 
+        /// <summary>
+        /// Set the current Mip Map Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Mip Map debug mode.</param>
         public void SetMipMapMode(DebugMipMapMode value)
         {
             if (value != 0)
@@ -425,10 +579,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.Value { displayName = "Diffuse GI Deferred", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.DiffuseGI_Deferred)) / 1e6f, refreshRate = 1f / 30f },
                         new DebugUI.Value { displayName = "Recursive Rendering", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Recursive)) / 1e6f, refreshRate = 1f / 30f },
                         new DebugUI.Value { displayName = "Total", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
-                        /*
-                        new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.showRaysPerFrame, setter = value => data.showRaysPerFrame = value, onValueChanged = RefreshDisplayStatsDebug },
-                        new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.raysPerFrameFontColor, setter = value => data.raysPerFrameFontColor = value },
-                        */
                     }
                 });
             }
@@ -802,7 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
-            
+
             if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection
                     || data.lightingDebugSettings.displayPlanarReflectionProbeAtlas
                     || data.lightingDebugSettings.displayCookieAtlas
