@@ -12,15 +12,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
-        SerializedDataParameter m_Tier;
+        SerializedDataParameter m_Mode;
 
-        // Tier 1
-        SerializedDataParameter m_DeferredMode;
-        SerializedDataParameter m_RayBinning;
+        // Performance
         SerializedDataParameter m_FullResolution;
         SerializedDataParameter m_UpscaleRadius;
 
-        // Tier 2
+        // Quality
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
@@ -39,15 +37,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
-            m_Tier = Unpack(o.Find(x => x.tier));
+            m_Mode = Unpack(o.Find(x => x.mode));
 
-            // Tier 1
-            m_DeferredMode = Unpack(o.Find(x => x.deferredMode));
-            m_RayBinning = Unpack(o.Find(x => x.rayBinning));
+            // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
             m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
-            // Tier 2
+            // Quality
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount = Unpack(o.Find(x => x.bounceCount));
 
@@ -80,20 +76,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_RayLength);
                     PropertyField(m_ClampValue);
-                    PropertyField(m_Tier);
+                    PropertyField(m_Mode);
 
                     EditorGUI.indentLevel++;
-                    switch (m_Tier.value.GetEnumValue<RayTracingTier>())
+                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                     {
-                        case RayTracingTier.Tier1:
+                        case RayTracingMode.Performance:
                             {
-                                PropertyField(m_DeferredMode);
-                                PropertyField(m_RayBinning);
                                 PropertyField(m_FullResolution);
                                 PropertyField(m_UpscaleRadius);
                             }
                             break;
-                        case RayTracingTier.Tier2:
+                        case RayTracingMode.Quality:
                             {
                                 PropertyField(m_SampleCount);
                                 PropertyField(m_BounceCount);

@@ -90,16 +90,13 @@ MonoBehaviour:
     m_Value: 16
     min: 1
     max: 32
+  mode:
+    m_OverrideState: 0
+    m_Value: 2
   upscaleRadius:
     m_OverrideState: 0
     m_Value: 4
   fullResolution:
-    m_OverrideState: 0
-    m_Value: 0
-  deferredMode:
-    m_OverrideState: 0
-    m_Value: 0
-  rayBinning:
     m_OverrideState: 0
     m_Value: 0
   sampleCount:
@@ -133,9 +130,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   skyAmbientMode:
-    m_OverrideState: 0
-    m_Value: 0
-  fogType:
     m_OverrideState: 0
     m_Value: 0
 --- !u!114 &-4352462795588872122

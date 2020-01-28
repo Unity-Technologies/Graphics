@@ -18,22 +18,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
         [Tooltip("Controls which version of the effect should be used.")]
-        public RayTracingTierParameter tier = new RayTracingTierParameter(RayTracingTier.Tier2);
+        public RayTracingModeParameter mode = new RayTracingModeParameter(RayTracingMode.Quality);
 
-        // Tier 1
-        [Tooltip("Enables deferred mode")]
-        public BoolParameter deferredMode = new BoolParameter(false);
-        
-        [Tooltip("Enables ray binning")]
-        public BoolParameter rayBinning = new BoolParameter(false);
-
+        // Performance
         [Tooltip("Full Resolution")]
         public BoolParameter fullResolution = new BoolParameter(false);
 
         [Tooltip("Upscale Radius")]
         public ClampedIntParameter upscaleRadius = new ClampedIntParameter(2, 2, 4);
 
-        // Tier 2
+        // Quality
         [Tooltip("Number of samples for GI.")]
         public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
 
@@ -55,7 +49,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Controls the radius of GI denoiser (Second Pass).")]
         public ClampedFloatParameter secondDenoiserRadius = new ClampedFloatParameter(0.3f, 0.001f, 0.5f);
-
-
     }
 }
