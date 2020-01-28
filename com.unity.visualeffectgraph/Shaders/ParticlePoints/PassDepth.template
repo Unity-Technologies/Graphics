@@ -8,7 +8,7 @@ Pass
 
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
-	${VFXInclude("Shaders/ParticlePoints/PassDepthOrMV.template")}
 	${VFXPassDepthDefine}
+	${VFXInclude("Shaders/ParticlePoints/PassDepthOrMV.template")}
 	ENDHLSL
 }

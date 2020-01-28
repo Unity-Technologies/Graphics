@@ -17,7 +17,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Fabric")]
+    [Title("Master", "Fabric (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
     class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
@@ -821,7 +821,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                false
+                false,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);

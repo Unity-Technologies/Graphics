@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/006_StripAttributes.unity
     guid: 6cf5bcccabd797d4db3c44a0d4ac7389
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/008_AssetBundle.unity
+    guid: 3144ec9758afdcf4482416ecbc5c193c
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

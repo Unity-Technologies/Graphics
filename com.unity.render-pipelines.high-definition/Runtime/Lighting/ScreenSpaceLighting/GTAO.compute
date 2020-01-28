@@ -143,7 +143,7 @@ float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, f
     return maxHorizon;
 }
 
-RW_TEXTURE2D_X(uint, _AOPackedData);
+RW_TEXTURE2D_X(float, _AOPackedData);
 
 [numthreads(8,8,1)]
 void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -209,7 +209,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         maxHorizons.y = GTAOFastAcos(maxHorizons.y);
         maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
         maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
-        integral += any(isnan(maxHorizons)) ? 1 : IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
+        integral += AnyIsNaN(maxHorizons) ? 1 : IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
     }
 
     integral /= dirCount;

@@ -144,6 +144,7 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
+                    tangentTransformSpace = CoordinateSpace.World.ToString();
                     transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToTangent(TransformObjectToWorldDir({0}), {1})" : "TransformWorldToTangent(TransformObjectToWorld({0}), {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
@@ -160,7 +161,7 @@ namespace UnityEditor.ShaderGraph
                 if (conversion.to == CoordinateSpace.World)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = string.Format("mul({0}, {1}).xyz", transposeTargetTransformString, inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "normalize(mul({0}, {1}).xyz)" : "mul({0}, {1}).xyz", transposeTargetTransformString, inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
@@ -245,6 +246,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.AbsoluteWorld && conversion.to == CoordinateSpace.Tangent
+                || conversion.from == CoordinateSpace.Object && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.Tangent)
                 return true;
             else

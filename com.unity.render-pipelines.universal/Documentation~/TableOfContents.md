@@ -6,6 +6,15 @@
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
 
 * [Rendering](rendering-in-universalrp.md)
+* [Cameras](cameras.md)
+  * [The UniversalAdditionalCameraData component](universal-additional-camera-data.md)
+  * [Render Mode and types of Camera](camera-types-and-render-mode.md)
+  * [Working with multiple cameras](cameras-multiple.md)
+    * [Camera Stacking](camera-stacking.md)
+    * [Rendering from multiple Cameras to the same render target](rendering-to-the-same-render-target.md)
+    * [Rendering to a Render Texture](rendering-to-a-render-texture.md)
+  * [Camera rendering order and overdraw](cameras-advanced.md)
+  * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
   * [Volumes](Volumes.md)
@@ -59,6 +68,8 @@
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
+* [Building for consoles](Building-For-Consoles.md)
+  
 * [Frequently asked questions (FAQ)](faq.md)
 
 * [Feature Comparison with Built-in](universalrp-builtin-feature-comparison.md)

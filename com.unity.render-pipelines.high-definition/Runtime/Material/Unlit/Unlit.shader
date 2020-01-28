@@ -403,7 +403,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -416,7 +416,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
 
             ENDHLSL
@@ -429,7 +429,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -441,7 +441,7 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
 
             ENDHLSL
@@ -454,7 +454,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma raytracing surface_shader
 
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -473,7 +473,7 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl"
 
@@ -487,7 +487,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma raytracing surface_shader
 
             #define SHADOW_LOW
 
@@ -500,7 +500,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
 
             ENDHLSL
@@ -513,7 +513,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma raytracing test
+            #pragma raytracing surface_shader
 
             #define SHADOW_LOW
             #define SHADERPASS SHADERPASS_PATH_TRACING
@@ -528,7 +528,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
 
             ENDHLSL

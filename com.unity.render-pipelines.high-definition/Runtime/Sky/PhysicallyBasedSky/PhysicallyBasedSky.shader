@@ -76,6 +76,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         float3 N; float r; // These params correspond to the entry point
         float tEntry = IntersectAtmosphere(O, V, N, r).x;
+        float tExit  = IntersectAtmosphere(O, V, N, r).y;
 
         float NdotV  = dot(N, V);
         float cosChi = -NdotV;
@@ -98,7 +99,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // Use scalar or integer cores (more efficient).
                 bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
 
-                if (interactsWithSky && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
+                // Celestial body must be outside the atmosphere (request from Pierre D).
+                float lightDist = max(light.distanceFromCamera, tExit);
+
+                if (interactsWithSky && asint(light.angularDiameter) != 0 && lightDist < tFrag)
                 {
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
@@ -109,8 +113,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float cosInner = cos(radInner);
                     float cosOuter = cos(radInner + light.flareSize);
 
-                    float solidAngle = 1; // Don't scale...
                     // float solidAngle = TWO_PI * (1 - cosInner);
+                    float solidAngle = 1; // Don't scale...
 
                     if (LdotV >= cosOuter)
                     {
@@ -121,7 +125,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                         if (LdotV >= cosInner) // Sun disk.
                         {
-                            tFrag = light.distanceFromCamera;
+                            tFrag = lightDist;
 
                             if (light.surfaceTextureIndex != -1)
                             {
@@ -143,7 +147,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             scale *= pow(w, light.flareFalloff);
                         }
 
-                        radiance = color * scale;
+                        radiance += color * scale;
                     }
                 }
             }
