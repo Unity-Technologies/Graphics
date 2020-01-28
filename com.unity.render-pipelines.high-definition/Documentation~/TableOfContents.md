@@ -10,6 +10,7 @@
   * [Exposing More Options](More-Options)
   * [VR in HDRP](VR-in-HDRP)
 * Upgrading HDRP between Unity Versions
+  * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
   * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
 * Volume Framework
