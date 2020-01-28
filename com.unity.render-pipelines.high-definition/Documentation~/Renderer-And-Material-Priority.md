@@ -37,6 +37,8 @@ When the **Sort Priority** properties of different Materials are not the same, H
 
 ![](Images/RendererAndMaterialPriority4.png)
 
+**⚠ Note that when the Depth Write is enabled on the material, the Sort Priority is ignored.** This is because the **Depth Test** performed in the Shader overwrites the **Sort Priority** of the material.
+
 <a name="SortingByRenderer"></a>
 
 ## Sorting by Renderer
@@ -50,8 +52,6 @@ When you want to modify the render order for GameObjects using the same Material
 HDRP displays Renderers with higher **Priority** values in front of those with lower **Priority** values.
 
 You can also edit the Renderer **Priority** for Mesh Renderers in scripts by setting the [rendererPriority](https://docs.unity3d.com/2018.3/Documentation/ScriptReference/Renderer-rendererPriority.html) value.
-
- 
 
 ## Example usage
 
