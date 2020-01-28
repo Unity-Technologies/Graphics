@@ -1315,6 +1315,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// True if the light affects volumetric fog, false otherwise 
+        /// </summary>
+        public bool affectsVolumetric
+        {
+            get => useVolumetric;
+            set => useVolumetric = value;
+        }
+
 #endregion
 
 #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData
