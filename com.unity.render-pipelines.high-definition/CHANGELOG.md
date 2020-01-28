@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a affectsVolumetric field to the HDAdditionalLightData API to know if light affects volumetric fog.
 - Add OS and Hardware check in the Wizard fixes for DXR.
 - Added option to exclude camera motion from motion blur.
+- Added semi-transparent shadows for point and spot lights.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -420,6 +421,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor internal usage of Stencil bits.
 - Changed how the material upgrader works and added documentation for it.
 - Custom passes now disable the stencil when overwriting the depth and not writing into it.
+- Renamed the camera profiling sample to include the camera name
+- Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
 
 ## [7.1.1] - 2019-09-05
 

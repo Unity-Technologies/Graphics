@@ -822,9 +822,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_SemiTransparentShadow = false;
+        /// <summary>
+        /// Enable semi-transparent shadows on the light.
+        /// </summary>
+        public bool semiTransparentShadow
+        {
+            get => m_SemiTransparentShadow;
+            set
+            {
+                if (m_SemiTransparentShadow == value)
+                    return;
+
+                m_SemiTransparentShadow = value;
+            }
+        }
+
+        [SerializeField]
         bool m_ColorShadow = true;
         /// <summary>
-        /// Toggle the filtering of ray traced shadows.
+        /// Enable color shadows on the light.
         /// </summary>
         public bool colorShadow
         {
