@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed Stencil bits that can be used by the user.
 - Added history rejection based on velocity of intersected objects for directional, point and spot lights.
 - Added a affectsVolumetric field to the HDAdditionalLightData API to know if light affects volumetric fog.
+- Add OS and Hardware check in the Wizard fixes for DXR.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -414,6 +415,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced the Texture array for 2D cookies (spot, area and directional lights) and for planar reflections by an atlas.
 - Moved the tier defining from the asset to the concerned volume components.
 - Changing from a tier management to a "mode" management for reflection and GI and removing the ability to enable/disable deferred and ray bining (they are now implied by performance mode)
+- The default FrameSettings for ScreenSpaceShadows is set to true for Camera in order to give a better workflow for DXR.
 
 ## [7.1.1] - 2019-09-05
 

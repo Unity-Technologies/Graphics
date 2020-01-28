@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             if (hdrp != null && hdrp.rayTracingSupported)
-            EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
 
             // Not serialized as editor only datas... Retrieve them in data
             EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
