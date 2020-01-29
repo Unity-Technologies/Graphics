@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
     internal enum RayTracingRendererFlag
     {
         Opaque = 0x01,
-        Transparent = 0x02,
-        CastShadow = 0x04,
+        CastShadowTransparent = 0x02,
+        CastShadowOpaque = 0x04,
+        CastShadow = CastShadowOpaque | CastShadowTransparent,
         AmbientOcclusion = 0x08,
         Reflection = 0x10,
         GlobalIllumination = 0x20,
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Distance,
         Direction,
         R0,
+        R1,
         RG0,
         RGBA0,
         RGBA1
@@ -87,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Set of intermediate textures that will be used by ray tracing effects
         RTHandle m_RayTracingIntermediateBufferR0;
+        RTHandle m_RayTracingIntermediateBufferR1;
         RTHandle m_RayTracingIntermediateBufferRG0;
         RTHandle m_RayTracingIntermediateBufferRGBA0;
         RTHandle m_RayTracingIntermediateBufferRGBA1;
@@ -111,6 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the intermediate buffers
             m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
+            m_RayTracingIntermediateBufferR1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR1");
             m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
             m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
             m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
@@ -122,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_RayTracingDirectionBuffer);
 
             RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            RTHandles.Release(m_RayTracingIntermediateBufferR1);
             RTHandles.Release(m_RayTracingIntermediateBufferRG0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
@@ -228,17 +233,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // Propagate the right mask
-            instanceFlag |= materialIsOnlyTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
-
-            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
-            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
+            // Propagate the opacity mask only if all submaterials are opaque
+            if (!hasTransparentSubMaterial)
+            {
+                instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
+            }
 
             if (rayTracedShadow)
             {
-                // Raise the shadow casting flag if needed
-                instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
+                if (hasTransparentSubMaterial)
+                {
+                    // Raise the shadow casting flag if needed
+                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowTransparent) : 0x00);
+                }
+                else
+                {
+                    // Raise the shadow casting flag if needed
+                    instanceFlag |= ((currentRenderer.shadowCastingMode != ShadowCastingMode.Off) ? (uint)(RayTracingRendererFlag.CastShadowOpaque) : 0x00);
+                }
             }
+
+            // We consider a mesh visible by reflection, gi, etc if it is not in the shadow only mode.
+            bool meshIsVisible = currentRenderer.shadowCastingMode != ShadowCastingMode.ShadowsOnly;
 
             if (aoEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
@@ -488,15 +504,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ray Tracing is supported if the asset setting supports it and the platform supports it
-        static internal bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
-        {
-            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing
+        static internal bool GatherRayTracingSupport(RenderPipelineSettings rpSetting)
+            => rpSetting.supportRayTracing && rayTracingSupportedBySystem;
+
+        static internal bool rayTracingSupportedBySystem
+            => UnityEngine.SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
                 && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
                     || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
 #endif
             ;
-        }
 
         internal BlueNoise GetBlueNoiseManager()
         {
@@ -548,6 +565,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_RayTracingDirectionBuffer;
                 case InternalRayTracingBuffers.R0:
                     return m_RayTracingIntermediateBufferR0;
+                case InternalRayTracingBuffers.R1:
+                    return m_RayTracingIntermediateBufferR1;
                 case InternalRayTracingBuffers.RG0:
                     return m_RayTracingIntermediateBufferRG0;
                 case InternalRayTracingBuffers.RGBA0:

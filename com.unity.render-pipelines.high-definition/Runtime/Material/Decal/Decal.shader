@@ -33,8 +33,8 @@ Shader "HDRP/Decal"
 
 
         // Stencil state
-        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8
-        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 8
+        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
+        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
 
         // Remapping
         [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
@@ -101,8 +101,8 @@ Shader "HDRP/Decal"
 
             Stencil
             {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
+                WriteMask [_DecalStencilWriteMask]
+                Ref [_DecalStencilRef]
                 Comp Always
                 Pass Replace
             }

@@ -49,6 +49,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 
 //--------------------------------------------------------------------------------------------------
@@ -58,8 +59,9 @@
 float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D_X(_DepthTexture);                           // Z-buffer
-TEXTURE2D_X(_SSSHTile);                               // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D_X(_IrradianceSource);                       // Includes transmitted light
+
+StructuredBuffer<uint>  _CoarseStencilBuffer;
 
 #ifdef USE_INTERMEDIATE_BUFFER
     RW_TEXTURE2D_X(float4, _CameraFilteringTexture);  // Target texture
@@ -249,16 +251,22 @@ void SubsurfaceScattering(uint2 groupId          : SV_GroupID,
 
     UNITY_BRANCH if (groupThreadId == 0)
     {
-        float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+        uint stencilRef = STENCILUSAGE_SUBSURFACE_SCATTERING;
 
         // Check whether the thread group needs to perform any work.
-        float s00 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(0, 0)).r;
-        float s10 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(1, 0)).r;
-        float s01 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(0, 1)).r;
-        float s11 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(1, 1)).r;
+        uint s00Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 0), _CoarseStencilBufferSize.xy);
+        uint s10Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 0), _CoarseStencilBufferSize.xy);
+        uint s01Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 1), _CoarseStencilBufferSize.xy);
+        uint s11Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 1), _CoarseStencilBufferSize.xy);
 
+        uint s00 = _CoarseStencilBuffer[s00Address];
+        uint s10 = _CoarseStencilBuffer[s10Address];
+        uint s01 = _CoarseStencilBuffer[s01Address];
+        uint s11 = _CoarseStencilBuffer[s11Address];
+
+        uint HTileValue = s00 | s10 | s01 | s11;
         // Perform the stencil test (reject at the tile rate).
-        processGroup = (stencilRef == s00 || stencilRef == s10 || stencilRef == s01 || stencilRef == s11);
+        processGroup = ((HTileValue & stencilRef) != 0);
     }
 
     // Wait for the LDS.

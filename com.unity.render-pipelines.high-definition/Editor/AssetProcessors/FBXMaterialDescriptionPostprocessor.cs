@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
+    class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var shader = Shader.Find("HDRP/Lit");
                 if (shader == null)
-                    return; 
+                    return;
                 material.shader = shader;
 
                 material.SetShaderPassEnabled("DistortionVectors", false);
@@ -243,7 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        
+
         static float ConvertFloatLinearToGamma(float value)
         {
             return Mathf.LinearToGammaSpace(value);
