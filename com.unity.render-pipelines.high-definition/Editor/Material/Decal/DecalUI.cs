@@ -10,6 +10,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class DecalUI : ShaderGUI
     {
+        // Same hack as in HDShaderGUI but for some reason, this editor does not inherit from HDShaderGUI
+        bool m_FirstFrame = true;
+
         [Flags]
         enum Expandable : uint
         {
@@ -22,6 +25,12 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSurfaceInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Input),
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
+
+        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+        {
+            base.AssignNewShaderToMaterial(material, oldShader, newShader);
+            SetupMaterialKeywordsAndPassInternal(material);
+        }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -37,8 +46,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 var surfaceInputs = uiBlocks.FetchUIBlock< DecalSurfaceInputsUIBlock >();
 
                 // Apply material keywords and pass:
-                if (changed.changed)
+                if (changed.changed || m_FirstFrame)
                 {
+                    m_FirstFrame = false;
+
                     normalBlendSrc.floatValue = surfaceInputs.normalBlendSrcValue;
                     maskBlendSrc.floatValue = surfaceInputs.maskBlendSrcValue;
                     maskBlendMode.floatValue = (float)surfaceInputs.maskBlendFlags;
@@ -167,8 +178,8 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
 
-            material.SetInt(kDecalStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Decals);
-            material.SetInt(kDecalStencilRef, (int)HDRenderPipeline.StencilBitMask.Decals);
+            material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
+            material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, false);

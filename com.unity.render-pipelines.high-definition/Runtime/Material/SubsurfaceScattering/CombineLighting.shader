@@ -3,6 +3,7 @@ Shader "Hidden/HDRP/CombineLighting"
     Properties
     {
         [HideInInspector] _StencilMask("_StencilMask", Int) = 7
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 1
     }
 
     SubShader
@@ -13,7 +14,7 @@ Shader "Hidden/HDRP/CombineLighting"
             Stencil
             {
                 ReadMask [_StencilMask]
-                Ref  1 // StencilLightingUsage.SplitLighting
+                Ref  [_StencilRef]
                 Comp Equal
                 Pass Keep
             }
