@@ -111,7 +111,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!success)
                     return false;
             }
-
+            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight,
+                1);
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
             m_MainLightShadowmap.InitDescriptor(m_MainLightShadowmapTexture.format); //handle is worthless, need to connect to tthe texture
             return true;

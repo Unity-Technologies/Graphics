@@ -65,6 +65,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_InputAttachmentDescriptor;
         }
 
+        public RenderPassDescriptor renderPassDescriptor
+        {
+            get => m_RenderPassDescriptor;
+        }
+
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -82,13 +87,23 @@ namespace UnityEngine.Rendering.Universal
         internal bool hasInputAttachment { get; set; } //need this as input attachment is never == null
         internal bool depthAsColor { get; set; } //requires some special magic when doing a depth-only pass
 
+        internal bool useNativeRenderPass { get; set; }
+
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        RenderPassDescriptor m_RenderPassDescriptor;
         AttachmentDescriptor m_ColorAttachmentDescriptor;
         AttachmentDescriptor m_DepthAttachmentDescriptor;
         AttachmentDescriptor m_InputAttachmentDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+
+        public struct RenderPassDescriptor
+        {
+            internal int width;
+            internal int height;
+            internal int sampleCount;
+        }
 
         public ScriptableRenderPass()
         {
@@ -109,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ConfigureTarget(colorHandle.Identifier());
             m_ColorAttachmentDescriptor = colorHandle.targetDescriptor;
-            m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            //m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
             m_ColorAttachmentDescriptor.ConfigureTarget(m_ColorAttachments[0], false, true);
         }
 
@@ -124,12 +139,17 @@ namespace UnityEngine.Rendering.Universal
         {
             ConfigureTarget(colorTarget.Identifier());
             m_ColorAttachmentDescriptor = colorTarget.targetDescriptor;
-            m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            //m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
             m_ColorAttachmentDescriptor.ConfigureTarget(colorTarget.Identifier(), false, true);
 
             m_DepthAttachment = depthTarget.Identifier();
             m_DepthAttachmentDescriptor = depthTarget.targetDescriptor;
-            m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            //m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+        }
+
+        public virtual void ConfigureClear(Color color, float depth, int stencil)
+        {
+            m_ColorAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
         }
 
         public virtual void ConfigureResolveTarget(RenderTargetIdentifier id)
@@ -154,6 +174,20 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachmentDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
 
         }
+
+        public void EnableNativeRenderPass()
+        {
+            useNativeRenderPass = true;
+        }
+
+        public void ConfigureRenderPassDescriptor(int width, int height, int sampleCount)
+        {
+            m_RenderPassDescriptor.width = width;
+            m_RenderPassDescriptor.height = height;
+            m_RenderPassDescriptor.sampleCount = sampleCount;
+            EnableNativeRenderPass();
+        }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.

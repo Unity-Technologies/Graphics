@@ -41,7 +41,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
+            ConfigureRenderPassDescriptor(descriptor.width, descriptor.height,
+                1);
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            ConfigureTarget(destination.Identifier());
+            ConfigureClear(ClearFlag.All, Color.black);
+
+            ConfigureColorAttachment(destination);
         }
 
         /// <inheritdoc/>
@@ -76,27 +82,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
-                
-                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
+//                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             else
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial, renderingData.cameraData.camera);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material, Camera camera)
         {
             // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
             //    cmd.CopyTexture(source, dest);
             //else
             Blit(cmd, source, dest, material);
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         /// <inheritdoc/>

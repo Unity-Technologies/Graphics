@@ -228,23 +228,22 @@ namespace UnityEngine.Rendering.Universal
             if (mainLightShadows)
             {
                 m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
+                m_MainLightShadowCasterPass.ConfigureClear(Color.black, 1.0f, 0);
 
                 var width = renderingData.shadowData.mainLightShadowmapWidth;
                 var height = (renderingData.shadowData.mainLightShadowCascadesCount == 2) ?
                     renderingData.shadowData.mainLightShadowmapHeight >> 1 :
                     renderingData.shadowData.mainLightShadowmapHeight;
-                SetBlockDescriptor(RenderPassBlock.Shadowmaps, width, height, 1);
                 EnqueuePass(m_MainLightShadowCasterPass);
             }
 
             if (additionalLightShadows)
             {
 				m_AdditionalLightsShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-                SetBlockDescriptor(RenderPassBlock.AdditionalShadowmaps, renderingData.shadowData.additionalLightsShadowmapWidth, renderingData.shadowData.additionalLightsShadowmapHeight, 1);
+                m_AdditionalLightsShadowCasterPass.ConfigureClear(Color.black, 1.0f, 0);
+
 				EnqueuePass(m_AdditionalLightsShadowCasterPass);
             }
-
-            SetBlockDescriptor(RenderPassBlock.ColorGrading, 1, 1, 1);
 
             if (generateColorGradingLUT)
             {
@@ -260,11 +259,13 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthPrepass.Configure(cmd, desc);
                 context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
                 cmd.Clear();
-                SetBlockDescriptor(RenderPassBlock.BeforeRendering, desc.width, desc.height, 1);
                 EnqueuePass(m_DepthPrepass);
             }
 
             m_RenderOpaqueForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment); //check if ok with no renderpass
+            m_RenderOpaqueForwardPass.ConfigureClear(Color.black, 1.0f, 0);
+            m_RenderOpaqueForwardPass.ConfigureRenderPassDescriptor(desc.width, desc.height,
+                desc.msaaSamples);
 
             if (desc.msaaSamples > 1)
 			{
@@ -275,29 +276,28 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
             }
 
-            SetBlockDescriptor(RenderPassBlock.MainRendering, desc.width, desc.height, desc.msaaSamples);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
+                m_DrawSkyboxPass.ConfigureRenderPassDescriptor(desc.width, desc.height,
+                    desc.msaaSamples);
                 m_DrawSkyboxPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment);
                 if (desc.msaaSamples > 1)
                     m_DrawSkyboxPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            m_RenderTransparentForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-            if (desc.msaaSamples > 1)
-                m_RenderTransparentForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
-
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 m_CopyDepthPass.Configure(cmd, desc);
-             //   EnqueuePass(m_CopyDepthPass); //TODO: how to approach this? it could be avoided as input attachment
+                context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
+                cmd.Clear();
+                EnqueuePass(m_CopyDepthPass); //TODO: how to approach this? it could be avoided as input attachment
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture)
@@ -306,13 +306,23 @@ namespace UnityEngine.Rendering.Universal
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
-               // EnqueuePass(m_CopyColorPass); //TODO: how to approach this? it could be avoided as input attachment
+                m_CopyColorPass.Configure(cmd, desc);
+                m_CopyColorPass.ConfigureColorAttachment(m_OpaqueColor);
+                context.ExecuteCommandBuffer(cmd); //TODO: investigate why this causes flickering while not using RenderPass
+                cmd.Clear();
+                EnqueuePass(m_CopyColorPass); //TODO: how to approach this? it could be avoided as input attachment
             }
 
             if (transparentsNeedSettingsPass)
             {
-                EnqueuePass(m_TransparentSettingsPass);
+               // EnqueuePass(m_TransparentSettingsPass);
             }
+
+            m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(desc.width, desc.height,
+                desc.msaaSamples);
+            m_RenderTransparentForwardPass.ConfigureAttachments(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            if (desc.msaaSamples > 1)
+                m_RenderTransparentForwardPass.ConfigureResolveTarget(m_MsaaResolveTarget.Identifier());
 
             EnqueuePass(m_RenderTransparentForwardPass);
             EnqueuePass(m_OnRenderObjectCallbackPass);
@@ -326,7 +336,6 @@ namespace UnityEngine.Rendering.Universal
 
             // if we have additional filters
             // we need to stay in a RT
-            SetBlockDescriptor(RenderPassBlock.AfterRendering, 1, 1, 1);
 
             if (desc.msaaSamples > 1)
                 m_ActiveCameraColorAttachment = m_MsaaResolveTarget;

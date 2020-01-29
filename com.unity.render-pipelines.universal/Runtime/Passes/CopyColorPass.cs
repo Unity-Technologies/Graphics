@@ -76,8 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    Blit(cmd, source, opaqueColorRT);
-                    break;
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_SamplingMaterial);
+                    cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);                    break;
                 case Downsampling._2xBilinear:
                     Blit(cmd, source, opaqueColorRT);
                     break;

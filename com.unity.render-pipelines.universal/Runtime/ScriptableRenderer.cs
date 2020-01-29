@@ -96,18 +96,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
-        public struct BlockDescriptor
-        {
-            internal int width;
-            internal int height;
-            internal int sampleCount;
-        };
         const int k_RenderPassBlockCount = 6;
 
         internal static class RenderPassBlock
         {
-
-            public static BlockDescriptor[] BlockDescriptors = new BlockDescriptor[k_RenderPassBlockCount];
 
             //Shadowmaps require their own separate renderpass due to explicit resolution
             public static readonly int Shadowmaps = 0;
@@ -189,13 +181,6 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
             Clear();
-        }
-
-        public void SetBlockDescriptor(int idx, int width, int height, int sampleCount)
-        {
-            RenderPassBlock.BlockDescriptors[idx].width = width;
-            RenderPassBlock.BlockDescriptors[idx].height = height;
-            RenderPassBlock.BlockDescriptors[idx].sampleCount = sampleCount;
         }
         /// <summary>
         /// Configures the camera target.
@@ -487,88 +472,76 @@ namespace UnityEngine.Rendering.Universal
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges, ScriptableRenderContext context, ref RenderingData renderingData, int eyeIndex = 0, bool useRenderPass = false, bool submit = false)
         {
-            BlockDescriptor block = RenderPassBlock.BlockDescriptors[blockIndex];
-            if (block.height == 0 &&
-                block.width == 0)
-                return;
             int endIndex = blockRanges[blockIndex + 1];
-
             int depthAttachmentIdx = 0;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
-            if (!useRenderPass)
-            {
+//            if (!useRenderPass)
+//            {
+//                for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
+//                {
+//                    var renderPass = m_ActiveRenderPassQueue[currIndex];
+//                    ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex, true);
+//                }
+//                return;
+//            }
+//            else
+//            {
+
                 for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
                 {
                     var renderPass = m_ActiveRenderPassQueue[currIndex];
-                    ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex, true);
+                    var desc = renderPass.renderPassDescriptor;
+                    if (!renderPass.useNativeRenderPass)
+                    {
+                        ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex, true);
+                    }
+                    else
+                    {
+                        if (desc.height == 0 &&
+                            desc.width == 0)
+                            return;
+                        if (renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Depth ||
+                            renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Shadowmap)
+                            renderPass.depthAsColor = true;
+
+                        if (!attachmentList.Contains(renderPass.colorAttachmentDescriptor))
+                        {
+                            attachmentList.Add(renderPass.colorAttachmentDescriptor);
+                            //maybe map attachment descriptor with index right here?
+                        }
+                        if (renderPass.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && !attachmentList.Contains(renderPass.depthAttachmentDescriptor)) //only the z-buffer should be bound as depthAttachmentDescriptor, though depth attachments can also be used as color attachments
+                        {
+                            attachmentList.Add(renderPass.depthAttachmentDescriptor);
+                            depthAttachmentIdx = attachmentList.IndexOf(renderPass.depthAttachmentDescriptor);
+                        }
+
+                        NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
+
+                        if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
+                            return;
+                        context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
+                        var colors = renderPass.depthAsColor
+                                ? new NativeArray<int>(0, Allocator.Temp)
+                                : new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.colorAttachmentDescriptor) }, Allocator.Temp);
+
+                        if (renderPass.hasInputAttachment)
+                        {
+                            var inputs = new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.inputAttachmentDescriptor) }, Allocator.Temp);
+                            context.BeginSubPass(colors, inputs);
+                            inputs.Dispose();
+                        }
+                        else
+                            context.BeginSubPass(colors);
+
+                        colors.Dispose();
+                        ExecuteNativeRenderPass(context, renderPass, ref renderingData);
+                        context.EndSubPass();
+                        context.EndRenderPass();
+                        descriptors.Dispose();
+                    }
                 }
-                return;
-            }
-            else
-            {
-                for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
-                {
-                    var renderPass = m_ActiveRenderPassQueue[currIndex];
-                    if (renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Depth ||
-                        renderPass.colorAttachmentDescriptor.format == RenderTextureFormat.Shadowmap)
-                        renderPass.depthAsColor = true;
-
-                    if (!attachmentList.Contains(renderPass.colorAttachmentDescriptor))
-                   {
-                       attachmentList.Add(renderPass.colorAttachmentDescriptor);
-                       //maybe map attachment descriptor with index right here?
-                   }
-                   if (renderPass.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None && !attachmentList.Contains(renderPass.depthAttachmentDescriptor)) //only the z-buffer should be bound as depthAttachmentDescriptor, though depth attachments can also be used as color attachments
-                   {
-                       attachmentList.Add(renderPass.depthAttachmentDescriptor);
-                       depthAttachmentIdx = attachmentList.IndexOf(renderPass.depthAttachmentDescriptor);
-                   }
-                }
-            }
-            if (attachmentList.Count == 0 || depthAttachmentIdx >= attachmentList.Count)
-                return;
-
-            NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
-
-            if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
-                return;
-            context.BeginRenderPass(block.width, block.height, block.sampleCount, descriptors, depthAttachmentIdx);
-            for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
-            {
-                var renderPass = m_ActiveRenderPassQueue[currIndex];
-                NativeArray<int> colors;
-                if (renderPass.depthAsColor)
-                {
-                    colors = new NativeArray<int>(0, Allocator.Temp);
-                }
-                else
-                {
-                    colors = new NativeArray<int>(new int [] { attachmentList.IndexOf(renderPass.colorAttachmentDescriptor) }, Allocator.Temp);
-                }
-
-                NativeArray<int> inputs;
-                if (renderPass.hasInputAttachment)
-                {
-                    inputs = new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.inputAttachmentDescriptor) }, Allocator.Temp); //TODO attachment inputs
-
-                    context.BeginSubPass(colors, inputs);
-                    inputs.Dispose();
-                }
-                else
-                    context.BeginSubPass(colors);
-
-                colors.Dispose();
-                ExecuteNativeRenderPass(context, renderPass, ref renderingData);
-                context.EndSubPass();
-            }
-
-
-
-
-            context.EndRenderPass();
-            descriptors.Dispose();
             attachmentList.Clear();
             if (submit)
                 context.Submit();
