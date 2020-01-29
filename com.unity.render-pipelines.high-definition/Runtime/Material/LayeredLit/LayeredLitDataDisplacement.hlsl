@@ -342,7 +342,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 
     float heightResult = BlendLayeredScalar(height0, height1, height2, height3, weights);
 
-    float3 scale;
+    float3 scale = 1;
 
     // Applying scaling of the object if requested
     if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0)
@@ -354,10 +354,6 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
                                     ((layerTexCoord.base1.mappingType == UV_MAPPING_UVSET) ? objectScale : 1),
                                     ((layerTexCoord.base2.mappingType == UV_MAPPING_UVSET) ? objectScale : 1),
                                     ((layerTexCoord.base3.mappingType == UV_MAPPING_UVSET) ? objectScale : 1), weights);
-    }
-    else
-    {
-        scale = 1;
     }
 
     return scale * heightResult;

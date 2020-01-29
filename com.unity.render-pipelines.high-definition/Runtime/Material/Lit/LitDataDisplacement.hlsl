@@ -218,7 +218,7 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)
     ApplyDisplacementTileScale(height);
 
-    float3 scale;
+    float3 scale = 1;
 
     // Applying scaling of the object if requested
     if ((_MaterialInstanceFlags & MATERIALINSTANCEFLAGS_DISPLACEMENT_LOCK_OBJECT_SCALE) != 0)
@@ -227,11 +227,6 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
         // Reminder: mappingType is know statically, so code below is optimize by the compiler
         // Planar and Triplanar are in world space thus it is independent of object scale
         scale = (layerTexCoord.base.mappingType == UV_MAPPING_UVSET) ? objectScale : 1;
-    }
-    else
-    {
-        scale = 1;
-
     }
 
     return scale * height;
