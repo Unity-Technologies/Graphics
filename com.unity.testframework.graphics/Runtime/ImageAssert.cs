@@ -122,6 +122,13 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="settings">Optional settings that control how the comparison is performed. Can be null, in which case the images are required to be exactly identical.</param>
         public static void AreEqual(Texture2D expected, Texture2D actual, ImageComparisonSettings settings = null)
         {
+            Debug.Log(expected);
+            Debug.Log(actual);
+
+            if (settings.UseBlockMeanValueHash) {
+                CompareHashes(expected, actual, settings);
+            }
+
             if (actual == null)
                 throw new ArgumentNullException(nameof(actual));
 
@@ -197,6 +204,12 @@ namespace UnityEngine.TestTools.Graphics
                 TestContext.CurrentContext.Test.Properties.Set("Image", Convert.ToBase64String(actual.EncodeToPNG()));
                 throw;
             }
+        }
+
+        private static void CompareHashes(Texture2D expected, Texture2D actual, ImageComparisonSettings settings) {
+            BlockMeanValueHash lhs = new BlockMeanValueHash(expected);
+            BlockMeanValueHash rhs = new BlockMeanValueHash(actual);
+            Assert.LessOrEqual(BlockMeanValueHash.Compare(lhs, rhs), settings.HashThreshold);
         }
 
         /// <summary>

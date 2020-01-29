@@ -44,5 +44,17 @@ namespace UnityEngine.TestTools.Graphics
         /// </summary>
         [Tooltip("If enabled, render textures will be created with DefaultHDR format.")]
         public bool UseHDR = false;
+
+        /// <summary>
+        /// Enables the block mean value hash algorithm over threshold pixel comparison
+        /// </summary>
+        [Tooltip("If enabled, the Block Mean Value Hash algorithm will be used to compare images")]
+        public bool UseBlockMeanValueHash = false;
+
+        /// <summary>
+        /// The number of blocks used in the block mean value hash algorithm before failing a test
+        /// </summary>
+        [Tooltip("The number of blocks allowed to differ before failing an image comparison test")]
+        public int HashThreshold = 9;
     }
 }

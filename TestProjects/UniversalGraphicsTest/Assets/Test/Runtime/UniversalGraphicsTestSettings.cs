@@ -1,6 +1,6 @@
 using UnityEngine.TestTools.Graphics;
 
-public class UniversalGraphicsTestSettings : GraphicsTestSettings
+public class UniversalGraphicsTestSettings : UnityEngine.TestTools.Graphics.UniversalGraphicsTestSettings
 {
     public int WaitFrames = 0;
 
