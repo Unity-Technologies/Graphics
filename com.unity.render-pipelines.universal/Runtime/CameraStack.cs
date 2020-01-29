@@ -25,8 +25,18 @@ namespace UnityEngine.Rendering.Universal
         #region Properties
         [SerializeField]
         List<CameraStackEntry> m_Entries = new List<CameraStackEntry>();
-        Camera m_BaseCamera = null;
-        UniversalAdditionalCameraData m_BaseCameraAdditionalData;
+
+        [SerializeField]
+        Camera m_BaseCamera;
+
+        public Camera baseCamera
+        {
+            get => m_BaseCamera;
+            internal set => m_BaseCamera = value;
+        }
+
+        // In the future we might want this one
+        //UniversalAdditionalCameraData m_BaseCameraAdditionalData;
 
         #endregion
 
@@ -49,10 +59,6 @@ namespace UnityEngine.Rendering.Universal
             return cameras;
         }
 
-        // public CameraStack()
-        // {
-        //     //var camera = this.GetComponent<Camera>();
-        // }
         /// <summary>
         /// Add a camera to the end of the entries.
         /// </summary>
@@ -218,6 +224,7 @@ namespace UnityEngine.Rendering.Universal
         // public void AddPostProcessing()
         // {
         //     // Only add Post Processing if the base camera has Post Processing turned on
+        //     // Will have to get Additional camera data here.
         //     if (!m_BaseCameraAdditionalData.renderPostProcessing)
         //     {
         //         throw new ArgumentException($"The base camera {m_BaseCamera.name} has no Post Processing turned on.");
@@ -360,14 +367,6 @@ namespace UnityEngine.Rendering.Universal
             return m_Entries[index];
         }
 
-        internal void AddBaseCamera(Camera baseCamera)
-        {
-            m_BaseCamera = baseCamera;
-            m_BaseCameraAdditionalData = baseCamera.GetComponent<UniversalAdditionalCameraData>();
-        }
-
         #endregion
-
-
     }
 }

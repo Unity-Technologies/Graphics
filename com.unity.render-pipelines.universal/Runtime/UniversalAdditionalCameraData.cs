@@ -5,8 +5,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.LWRP
 {

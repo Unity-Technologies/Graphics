@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_AdditionalCameraData == null)
             {
                 m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
-                m_AdditionalCameraData.cameraStack.AddBaseCamera(camera);
+                m_AdditionalCameraData.cameraStack.baseCamera = camera;
             }
             init(m_AdditionalCameraData);
 
