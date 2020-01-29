@@ -167,6 +167,9 @@ namespace UnityEditor.ShaderGraph
             protected set { m_HasError = value; }
         }
 
+        //needed for HDRP material update system
+        public virtual object saveContext => null;
+
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
         Guid m_GuidForDefaultVariableName;
