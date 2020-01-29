@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.dbuffer = m_DBufferOutput;
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera);
+            bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
 
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
@@ -145,9 +145,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
-                RenderDecals(renderGraph, hdCamera, ref result, cullingResults);
+                RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
                 RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
+
+                DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // TODO RENDERGRAPH
                 //// After Depth and Normals/roughness including decals
@@ -489,34 +491,38 @@ namespace UnityEngine.Rendering.HighDefinition
         class ResolveStencilPassData
         {
             public RenderGraphResource inputDepth;
-            public RenderGraphMutableResource outputStencil;
+            public RenderGraphMutableResource resolvedStencil;
+            public ComputeBuffer coarseStencilBuffer;
         }
 
         void ResolveStencilBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
-            bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            if (isMSAAEnabled)
+            using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
             {
-                using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
+                passData.inputDepth = output.depthBuffer;
+                passData.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+                passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+                builder.SetRenderFunc(
+                (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
-                    passData.inputDepth = output.depthBuffer;
-                    passData.outputStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, name = "StencilBufferResolved" }));
-                    builder.SetRenderFunc(
-                       (ResolveStencilPassData data, RenderGraphContext context) =>
-                       {
-                           var res = context.resources;
-                           ResolveStencilBufferIfNeeded(hdCamera,
-                               res.GetTexture(data.inputDepth),
-                               res.GetTexture(data.outputStencil),
-                               context.cmd);
-                       }
-                    );
-                    output.stencilBuffer = passData.outputStencil;
+                    var res = context.resources;
+                    BuildCoarseStencilAndResolveIfNeeded(hdCamera,
+                        res.GetTexture(data.inputDepth),
+                        res.GetTexture(data.resolvedStencil),
+                        data.coarseStencilBuffer,
+                        context.cmd);
                 }
-            }
-            else
-            {
-                output.stencilBuffer = output.depthBuffer;
+                );
+                bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
+                if (isMSAAEnabled)
+                {
+                    output.stencilBuffer = passData.resolvedStencil;
+                }
+                else
+                {
+                    output.stencilBuffer = output.depthBuffer;
+                }
             }
         }
 
@@ -570,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        void RenderDecals(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output, CullingResults cullingResults)
+        void RenderDBuffer(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output, CullingResults cullingResults)
         {
             bool use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
@@ -621,8 +627,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                     context.cmd);
                 });
             }
+        }
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) // MSAA not supported
+        void DecalNormalPatch(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) // MSAA not supported
             {
                 using (var builder = renderGraph.AddRenderPass<DBufferNormalPatchData>("DBuffer Normal (forward)", out var passData, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
                 {
@@ -635,12 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (DBufferNormalPatchData data, RenderGraphContext context) =>
                     {
-                        // We can call DBufferNormalPatch after RenderDBuffer as it only affect forward material and isn't affected by RenderGBuffer
-                        // This reduce lifeteime of stencil bit
-                        DBufferNormalPatch( data.parameters,
-                                            context.resources.GetTexture(data.normalBuffer),
-                                            context.resources.GetTexture(data.depthStencilBuffer),
-                                            context.cmd, context.renderContext);
+                        DecalNormalPatch(hdCamera, context.cmd, context.renderContext);
                     });
                 }
             }

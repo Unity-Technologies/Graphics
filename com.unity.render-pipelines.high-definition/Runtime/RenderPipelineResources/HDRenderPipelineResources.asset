@@ -27,6 +27,7 @@ MonoBehaviour:
       type: 3}
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184,
       type: 3}
+    debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
@@ -61,6 +62,8 @@ MonoBehaviour:
       type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
     cameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9,
+      type: 3}
+    clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040,
       type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec,
       type: 3}

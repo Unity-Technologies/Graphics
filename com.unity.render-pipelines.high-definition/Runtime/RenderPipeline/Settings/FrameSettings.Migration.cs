@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete("For data migration")]
-    public enum ObsoleteLitShaderMode
+    enum ObsoleteLitShaderMode
     {
         Forward,
         Deferred
@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
-        
+
         internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.CustomPass, true);
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
-        
+
         internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);

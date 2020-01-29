@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ior                = 1.4f; // Typical value for skin specular reflectance
         }
 
-        public void Validate()
+        internal void Validate()
         {
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
-        public void UpdateKernel()
+        void UpdateKernel()
         {
             if (filterKernelNearField == null || filterKernelNearField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD)
                 filterKernelNearField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        public void UpdateCache()
+        internal void UpdateCache()
         {
             if (filterKernels == null)
                 filterKernels = new Vector4[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
