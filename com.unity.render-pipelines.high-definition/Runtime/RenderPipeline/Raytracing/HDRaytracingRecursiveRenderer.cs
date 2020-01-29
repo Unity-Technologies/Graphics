@@ -85,8 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check the validity of the state before computing the effect
             bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                || !recursiveSettings.enable.value
-                || m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
+                || !recursiveSettings.enable.value;
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)

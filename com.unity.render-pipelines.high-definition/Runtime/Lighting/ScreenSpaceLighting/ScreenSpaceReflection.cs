@@ -21,15 +21,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0.001f, 50f);
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
         public BoolParameter denoise = new BoolParameter(false);
-        public ClampedIntParameter denoiserRadius = new ClampedIntParameter(16, 1, 32);
+        public ClampedIntParameter denoiserRadius = new ClampedIntParameter(8, 1, 32);
+        public RayTracingModeParameter mode = new RayTracingModeParameter(RayTracingMode.Quality);
 
-        // Tier 1 code
-        public IntParameter upscaleRadius = new ClampedIntParameter(4, 2, 6);
+        // Performance
+        public IntParameter upscaleRadius = new ClampedIntParameter(2, 2, 6);
         public BoolParameter fullResolution = new BoolParameter(false);
-        public BoolParameter deferredMode = new BoolParameter(false);
-        public BoolParameter rayBinning = new BoolParameter(false);
 
-        // Tier 2 code
+        // Quality
         public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
         public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
 

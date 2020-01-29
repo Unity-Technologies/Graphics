@@ -31,7 +31,8 @@ namespace UnityEditor.Rendering.LookDev
         ListView m_EnvironmentList;
         EnvironmentElement m_EnvironmentInspector;
         UIElements.Toolbar m_EnvironmentListToolbar;
-        
+        UIElements.ObjectField m_LibraryField;
+
         //event Action<UnityEngine.Object> OnAddingEnvironmentInternal;
         //event Action<UnityEngine.Object> IEnvironmentDisplayer.OnAddingEnvironment
         //{
@@ -83,6 +84,9 @@ namespace UnityEditor.Rendering.LookDev
             };
             m_EnvironmentList.bindItem = (e, i) =>
             {
+                if (LookDev.currentContext.environmentLibrary == null)
+                    return;
+
                 (e as Image).image = EnvironmentElement.GetLatLongThumbnailTexture(
                     LookDev.currentContext.environmentLibrary[i],
                     EnvironmentElement.k_SkyThumbnailWidth);
@@ -122,11 +126,11 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentList.onItemsChosen += objCollection =>
             {
                 foreach(var obj in objCollection)
-                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
             };
 #else
             m_EnvironmentList.onItemChosen += obj =>
-                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
 #endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
@@ -136,6 +140,9 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentListToolbar = new UIElements.Toolbar();
             ToolbarButton addEnvironment = new ToolbarButton(() =>
             {
+                if (LookDev.currentContext.environmentLibrary == null)
+                    return;
+
                 LookDev.currentContext.environmentLibrary.Add();
                 RefreshLibraryDisplay();
                 m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
@@ -149,9 +156,9 @@ namespace UnityEditor.Rendering.LookDev
             addEnvironment.Add(new Image() { image = Style.k_AddIcon });
             ToolbarButton removeEnvironment = new ToolbarButton(() =>
             {
-                if (m_EnvironmentList.selectedIndex == -1)
+                if (m_EnvironmentList.selectedIndex == -1 || LookDev.currentContext.environmentLibrary == null)
                     return;
-                LookDev.currentContext.environmentLibrary.Remove(m_EnvironmentList.selectedIndex);
+                LookDev.currentContext.environmentLibrary?.Remove(m_EnvironmentList.selectedIndex);
                 RefreshLibraryDisplay();
                 m_EnvironmentList.selectedIndex = -1;
             })
@@ -162,7 +169,7 @@ namespace UnityEditor.Rendering.LookDev
             removeEnvironment.Add(new Image() { image = Style.k_RemoveIcon });
             ToolbarButton duplicateEnvironment = new ToolbarButton(() =>
             {
-                if (m_EnvironmentList.selectedIndex == -1)
+                if (m_EnvironmentList.selectedIndex == -1 || LookDev.currentContext.environmentLibrary == null)
                     return;
                 LookDev.currentContext.environmentLibrary.Duplicate(m_EnvironmentList.selectedIndex);
                 RefreshLibraryDisplay();
@@ -190,14 +197,14 @@ namespace UnityEditor.Rendering.LookDev
             listContainer.Add(m_EnvironmentListToolbar);
 
 
-            var libraryField = new ObjectField("Library")
+            m_LibraryField = new ObjectField("Library")
             {
                 tooltip = "The currently used library"
             };
-            libraryField.allowSceneObjects = false;
-            libraryField.objectType = typeof(EnvironmentLibrary);
-            libraryField.SetValueWithoutNotify(LookDev.currentContext.environmentLibrary);
-            libraryField.RegisterValueChangedCallback(evt =>
+            m_LibraryField.allowSceneObjects = false;
+            m_LibraryField.objectType = typeof(EnvironmentLibrary);
+            m_LibraryField.SetValueWithoutNotify(LookDev.currentContext.environmentLibrary);
+            m_LibraryField.RegisterValueChangedCallback(evt =>
             {
                 m_EnvironmentList.selectedIndex = -1;
                 OnChangingEnvironmentLibraryInternal?.Invoke(evt.newValue as EnvironmentLibrary);
@@ -208,9 +215,9 @@ namespace UnityEditor.Rendering.LookDev
             {
                 name = "environmentListCreationToolbar"
             };
-            environmentListCreationToolbar.Add(libraryField);
+            environmentListCreationToolbar.Add(m_LibraryField);
             environmentListCreationToolbar.Add(new ToolbarButton(()
-                => EnvironmentLibraryCreator.CreateAndAssignTo(libraryField))
+                => EnvironmentLibraryCreator.CreateAndAssignTo(m_LibraryField))
             {
                 text = "New",
                 tooltip = "Create a new EnvironmentLibrary"
@@ -292,7 +299,10 @@ namespace UnityEditor.Rendering.LookDev
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
         {
-            Environment environment = LookDev.currentContext.environmentLibrary[context.draggedIndex];
+            Environment environment = LookDev.currentContext.environmentLibrary?[context.draggedIndex];
+            if (environment == null)
+                return;
+
             if (m_Views[(int)ViewIndex.First].ContainsPoint(mouseWorldPosition))
             {
                 if (viewLayout == Layout.CustomSplit)
@@ -410,8 +420,14 @@ namespace UnityEditor.Rendering.LookDev
                 s_Context.UpdateCursorFollower(evt.mousePosition);
             }
         }
-        
+
         void IEnvironmentDisplayer.Repaint()
-            => RefreshLibraryDisplay();
+        {
+            //can be unsync if library asset is destroy by user, so if null force sync
+            if (LookDev.currentContext.environmentLibrary == null)
+                m_LibraryField.value = null;
+
+            RefreshLibraryDisplay();
+        }
     }
 }

@@ -822,9 +822,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_SemiTransparentShadow = false;
+        /// <summary>
+        /// Enable semi-transparent shadows on the light.
+        /// </summary>
+        public bool semiTransparentShadow
+        {
+            get => m_SemiTransparentShadow;
+            set
+            {
+                if (m_SemiTransparentShadow == value)
+                    return;
+
+                m_SemiTransparentShadow = value;
+            }
+        }
+
+        [SerializeField]
         bool m_ColorShadow = true;
         /// <summary>
-        /// Toggle the filtering of ray traced shadows.
+        /// Enable color shadows on the light.
         /// </summary>
         public bool colorShadow
         {
@@ -1315,6 +1332,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// True if the light affects volumetric fog, false otherwise 
+        /// </summary>
+        public bool affectsVolumetric
+        {
+            get => useVolumetric;
+            set => useVolumetric = value;
+        }
+
 #endregion
 
 #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData
@@ -1395,9 +1421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex;
-        [System.NonSerialized] internal int screenSpaceShadowSlot;
-        [System.NonSerialized] internal int screenSpaceShadowIndex;
+        [System.NonSerialized] internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
         Light m_Light;
