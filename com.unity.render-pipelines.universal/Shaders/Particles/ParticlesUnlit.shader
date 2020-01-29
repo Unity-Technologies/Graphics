@@ -94,7 +94,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
-            #pragma multi_compile _ _DEPTH_TEXTURE_AVAILABLE
 
             #pragma vertex vertParticleUnlit
             #pragma fragment fragParticleUnlit

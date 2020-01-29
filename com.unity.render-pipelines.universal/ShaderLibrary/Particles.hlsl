@@ -43,7 +43,7 @@ float4 MixParticleColor(float4 baseColor, float4 particleColor, float4 colorAddS
 float SoftParticles(float near, float far, float4 projection)
 {
     float fade = 1;
-    if (near > 0.0 || far > 0.0)
+    if (HasDepthTexture() > 0.0 && (near > 0.0 || far > 0.0))
     {
         float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, projection.xy / projection.w), _ZBufferParams);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);

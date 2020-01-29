@@ -122,6 +122,11 @@ half OutputAlpha(half outputAlpha)
     return saturate(outputAlpha + _DrawObjectPassData.a);
 }
 
+half HasDepthTexture()
+{
+    return _DrawObjectPassData.z;
+}
+
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation. 
