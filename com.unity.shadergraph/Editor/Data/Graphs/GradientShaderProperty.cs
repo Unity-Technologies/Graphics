@@ -37,10 +37,10 @@ namespace UnityEditor.ShaderGraph
                     colors[i] = string.Format("g.colors[{0}] = {1}4({2}, {3}, {4}, {5});"
                         , i
                         , concretePrecision.ToShaderString()
-                        , value.colorKeys[i].color.r
-                        , value.colorKeys[i].color.g
-                        , value.colorKeys[i].color.b
-                        , value.colorKeys[i].time);
+                        , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.r)
+                        , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.g)
+                        , NodeUtils.FloatToShaderValue(value.colorKeys[i].color.b)
+                        , NodeUtils.FloatToShaderValue(value.colorKeys[i].time));
 
                 string[] alphas = new string[8];
                 for (int i = 0; i < alphas.Length; i++)
@@ -49,8 +49,8 @@ namespace UnityEditor.ShaderGraph
                     alphas[i] = string.Format("g.alphas[{0}] = {1}2({2}, {3});"
                         , i
                         , concretePrecision.ToShaderString()
-                        , value.alphaKeys[i].alpha
-                        , value.alphaKeys[i].time);
+                        , NodeUtils.FloatToShaderValue(value.alphaKeys[i].alpha)
+                        , NodeUtils.FloatToShaderValue(value.alphaKeys[i].time));
 
                 s.AppendLine("Gradient g;");
                 s.AppendLine("g.type = {0};",

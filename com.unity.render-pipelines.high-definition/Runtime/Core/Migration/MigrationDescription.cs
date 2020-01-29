@@ -4,8 +4,13 @@ using JetBrains.Annotations;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Helpers to manipulate <see cref="MigrationDescription{TVersion, TTarget}"/></summary>
-    public static class MigrationDescription
+    static class MigrationDescription
     {
+        public static T LastVersion<T>() where T : struct, IConvertible
+        {
+            return TypeInfo.GetEnumLastValue<T>();
+        }
+
         /// <summary>Create a new migration description.</summary>
         /// <typeparam name="TVersion">An enum identifying the version.</typeparam>
         /// <typeparam name="TTarget">The type to migrate.</typeparam>

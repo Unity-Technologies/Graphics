@@ -628,10 +628,10 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
-    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
-    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
-    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
-    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_LOD(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_LOD(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
+    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_LOD(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
+    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_LOD(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
 
     float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 
@@ -643,11 +643,12 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
     return influenceFactor * factor + baseColor;
 }
-
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitDataDisplacement.hlsl"
+#endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
@@ -666,12 +667,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input, layerTexCoord);
 
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
+#ifndef SHADER_STAGE_RAY_TRACING
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks);
-
-#ifdef _DEPTHOFFSET_ON
+    #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+    #endif
+#else
+    float depthOffset = 0.0;
 #endif
-
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;
     float3 normalTS0, normalTS1, normalTS2, normalTS3;
     float3 bentNormalTS0, bentNormalTS1, bentNormalTS2, bentNormalTS3;
@@ -688,7 +691,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
 
 #ifdef _ALPHATEST_ON
-    DoAlphaTest(alpha, _AlphaCutoff);
+    GENERIC_ALPHA_TEST(alpha, _AlphaCutoff);
 #endif
 
     float3 normalTS;
@@ -786,12 +789,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
-#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
     // Specular AA
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base0.uv, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
@@ -804,6 +807,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
-}
 
+    RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
+}
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"
+#endif

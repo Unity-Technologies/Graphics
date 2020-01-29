@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -280,8 +281,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
-                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                string.Format("   WriteMask {0}", (int)StencilUsage.DistortionVectors),
+                string.Format("   Ref  {0}", (int)StencilUsage.DistortionVectors),
                 "   Comp Always",
                 "   Pass Replace",
                 "}"
@@ -625,6 +626,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     baseActiveFields.Add("BlendMode.PreserveSpecular");
                 }
+            }
+
+            switch(masterNode.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Tangent:
+                    baseActiveFields.AddAll("NormalDropOffTS");
+                    break;
+                case NormalDropOffSpace.Object:
+                    baseActiveFields.AddAll("NormalDropOffOS");
+                    break;
+                case NormalDropOffSpace.World:
+                    baseActiveFields.AddAll("NormalDropOffWS");
+                    break;
+                default:
+                    UnityEngine.Debug.LogError("Unknown normal drop off space: " + masterNode.normalDropOffSpace);
+                    break;
             }
 
             //

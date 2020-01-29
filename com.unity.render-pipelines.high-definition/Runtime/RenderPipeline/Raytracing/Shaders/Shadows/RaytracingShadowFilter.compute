@@ -115,7 +115,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
     float historyAnalyticValue = dot(_DenoisingHistoryMask, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
 
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f || _HistoryValidity == 0.0)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
