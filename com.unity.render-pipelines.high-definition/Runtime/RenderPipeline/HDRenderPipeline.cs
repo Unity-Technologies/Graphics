@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
-            m_ProbeVolumeSystem.Cleanup(); // TODO(Kuba)
+            m_ProbeVolumeSystem.Cleanup();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {

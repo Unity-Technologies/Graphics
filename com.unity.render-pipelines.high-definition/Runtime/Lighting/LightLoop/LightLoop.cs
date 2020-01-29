@@ -870,7 +870,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
-			CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
+            CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
         }
 
         void LightLoopNewRender()
