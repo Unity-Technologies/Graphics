@@ -2523,7 +2523,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera
-            hdCamera.Update(currentFrameSettings, this, m_ProbeVolumeSystem, m_MSAASamples, xrPass); // TODO(Kuba) this probably doesn't actually want the  m_ProbeVolumeSystem
+            hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)

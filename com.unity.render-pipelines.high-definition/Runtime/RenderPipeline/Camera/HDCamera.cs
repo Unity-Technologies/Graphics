@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, ProbeVolumeSystem pvSys, MSAASamples msaaSamples, XRPass xrPass)
+        public void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples msaaSamples, XRPass xrPass)
         {
             bool ignoreVolumeStack = true; // Unfortunately, it is initialized after this function call
 
