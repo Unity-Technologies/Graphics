@@ -272,11 +272,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        class DoCreateNewAssetVirtualTexturingSettings : DoCreateNewAsset<VirtualTexturingSettings>
+        {
+            protected override void PostCreateAssetWork(VirtualTexturingSettings asset)
+            {
+                
+            }
+        }
+
         [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/Rendering/Virtual Texturing Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        static void MenuCreateVirtualTexturingSettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetVirtualTexturingSettings>(), "New Virtual Texturing Settings.asset", icon, null);
         }
 
         [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]

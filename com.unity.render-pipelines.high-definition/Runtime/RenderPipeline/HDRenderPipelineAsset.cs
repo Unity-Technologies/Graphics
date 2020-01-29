@@ -19,6 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
+            
+        }
+
+        public void OnEnable()
+        {
+            //virtualTexturingSettings = new VirtualTexturingSettings();
         }
 
         void Reset() => OnValidate();
@@ -170,6 +176,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+
+        [SerializeField]
+        internal VirtualTexturingSettings virtualTexturingSettings;
 
         void UpdateRenderingLayerNames()
         {
