@@ -105,8 +105,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
-        public override void Cleanup()
+        protected override void Dispose(bool disposing)
         {
+            // always dispose unmanaged resources
             m_PostProcessPass.Cleanup();
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);

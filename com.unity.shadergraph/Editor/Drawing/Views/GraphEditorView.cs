@@ -257,11 +257,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
+                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
-                
+
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)
@@ -1043,8 +1043,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 saveAsRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
+                isCheckedOut = null;
+                checkOut = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
                     node.Dispose();
+                m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
             if (previewManager != null)
