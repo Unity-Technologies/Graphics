@@ -360,6 +360,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shadow Atlas is no longer allocated for area lights when they are disabled in the shader config file.
 - Avoid MRT Clear on PS4 as it is not implemented yet.
 - Fixed runtime debug menu BitField control.
+- Fixed the radius value used for ray traced directional light.
+- Fixed compilation issues with the layered lit in ray tracing shaders.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -437,6 +439,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
 - Changed inspector materials stencil setting code to have more sharing.
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
+- Changed the way the length parameter is used for ray traced contact shadows.
 
 ## [7.1.1] - 2019-09-05
 
