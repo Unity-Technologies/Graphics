@@ -275,12 +275,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #endif // SCALARIZE_LIGHT_LOOP
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = ((1 << s_decalData.decalLayer) & _DecalLayerMask) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
         // end up with a unique v_decalIdx value that is smaller than s_decalIdx hence being stuck in a loop. All the active lanes will not have this problem.
-        if (!isRejected && s_decalIdx >= v_decalIdx)
+        if (s_decalIdx >= v_decalIdx)
         {
             v_decalListOffset++;
             EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, mask, alpha);
