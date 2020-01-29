@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
-            if (HDRenderPipeline.AggreateRayTracingSupport(m_Settings))
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
             {
                 m_RaytracingAmbientOcclusion.Release();
             }

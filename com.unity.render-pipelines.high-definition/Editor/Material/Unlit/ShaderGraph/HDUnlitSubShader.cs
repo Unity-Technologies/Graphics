@@ -342,6 +342,10 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ TRANSPARENT_COLOR_SHADOW",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",

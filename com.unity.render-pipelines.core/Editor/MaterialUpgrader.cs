@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering
                 if (IsMaterialPath(s))
                     totalMaterialCount++;
             }
-
+            
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
@@ -354,7 +354,7 @@ namespace UnityEditor.Rendering
 
                     if (!ShouldUpgradeShader(m, shaderNamesToIgnore))
                         continue;
-
+                    
                     Upgrade(m, upgraders, flags);
 
                     //SaveAssetsAndFreeMemory();

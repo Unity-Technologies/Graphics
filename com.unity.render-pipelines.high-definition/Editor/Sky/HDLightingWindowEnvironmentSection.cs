@@ -12,7 +12,7 @@ using System.Linq;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
-    public class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
+    class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
     {
         class Styles
         {

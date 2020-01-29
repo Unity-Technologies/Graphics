@@ -192,7 +192,9 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
@@ -330,7 +332,9 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;

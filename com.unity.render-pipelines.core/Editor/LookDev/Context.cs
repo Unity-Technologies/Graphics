@@ -84,8 +84,27 @@ namespace UnityEditor.Rendering.LookDev
         [SerializeField]
         bool m_CameraSynced = true;
 
+        EnvironmentLibrary m_EnvironmentLibrary;
+
         /// <summary>The currently used Environment</summary>
-        public EnvironmentLibrary environmentLibrary { get; private set; }
+        public EnvironmentLibrary environmentLibrary
+        {
+            get
+            {
+                //check if asset deleted by user
+                if (m_EnvironmentLibrary != null && AssetDatabase.Contains(m_EnvironmentLibrary))
+                    return m_EnvironmentLibrary;
+
+                if (!String.IsNullOrEmpty(m_EnvironmentLibraryGUID))
+                {
+                    //user deleted the EnvironmentLibrary asset
+                    m_EnvironmentLibraryGUID = ""; //Empty GUID
+                    LookDev.currentEnvironmentDisplayer.Repaint();
+                }
+                return null;
+            }
+            private set => m_EnvironmentLibrary = value;
+        }
 
         /// <summary>The currently used layout</summary>
         [field: SerializeField]

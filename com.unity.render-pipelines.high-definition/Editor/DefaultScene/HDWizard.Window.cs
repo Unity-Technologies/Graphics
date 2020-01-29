@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
+            public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
             public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
@@ -76,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 button: resolveAllBuildTarget);
             public static readonly ConfigStyle hdrpShadow = new ConfigStyle(
                 label: "Shadows",
-                error: "Shadow must be set to activated! (either on hard or soft)");
+                error: "Shadow must be set to activated! (both hard and soft)");
             public static readonly ConfigStyle hdrpShadowmask = new ConfigStyle(
                 label: "Shadowmask mode",
                 error: "Only distance shadowmask supported at the project level! (You can still change this per light.)",
@@ -111,6 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "VR activated",
                 error: "VR need to be enabled in Player Settings!");
 
+            public static readonly ConfigStyle dxrSupported = new ConfigStyle(
+                label: "Hardware and OS",
+                error: "You hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: "Auto graphics API",
                 error: "Auto Graphics API is not supported!");
@@ -316,6 +320,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
             container.Add(CreateLargeButton(Style.migrateLights, UpgradeStandardShaderMaterials.UpgradeLights));
+            container.Add(CreateLargeButton(Style.migrateMaterials, UpgradeStandardShaderMaterials.UpgradeMaterials));
 
             container.Add(CreateWizardBehaviour());
         }
@@ -483,7 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     entry.configStyle.error,
                     entry.configStyle.button,
                     () => entry.check(),
-                    () => entry.fix(fromAsync: false),
+                    entry.fix == null ? (Action)null : () => entry.fix(fromAsync: false),
                     entry.indent));
         }
 
