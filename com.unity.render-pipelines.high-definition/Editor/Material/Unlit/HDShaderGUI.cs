@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         readonly static string[] floatPropertiesToSynchronize = {
-            kAlphaCutoffEnabled, "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
+            "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
         };
 
         protected static void SynchronizeShaderGraphProperties(Material material)
