@@ -104,144 +104,147 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicSlots = ListPool<DynamicValueMaterialSlot>.Get();
 
             // iterate the input slots
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var inputSlot in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                inputSlot.hasError = false;
-                
-                // if there is a connection
-                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
-                if (!edges.Any())
+                GetInputSlots(tempSlots);
+                foreach (var inputSlot in tempSlots)
                 {
+                    inputSlot.hasError = false;
+
+                    // if there is a connection
+                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    if (!edges.Any())
+                    {
+                        if (inputSlot is DynamicValueMaterialSlot)
+                            skippedDynamicSlots.Add(inputSlot as DynamicValueMaterialSlot);
+                        continue;
+                    }
+
+                    // get the output details
+                    var outputSlotRef = edges[0].outputSlot;
+                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    if (outputNode == null)
+                        continue;
+
+                    var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
+                    if (outputSlot == null)
+                        continue;
+
+                    if (outputSlot.hasError)
+                    {
+                        inputSlot.hasError = true;
+                        continue;
+                    }
+
+                    var outputConcreteType = outputSlot.concreteValueType;
+                    // dynamic input... depends on output from other node.
+                    // we need to compare ALL dynamic inputs to make sure they
+                    // are compatable.
                     if (inputSlot is DynamicValueMaterialSlot)
-                        skippedDynamicSlots.Add(inputSlot as DynamicValueMaterialSlot);
-                    continue;
+                    {
+                        dynamicInputSlotsToCompare.Add((DynamicValueMaterialSlot)inputSlot, outputConcreteType);
+                        continue;
+                    }
                 }
 
-                // get the output details
-                var outputSlotRef = edges[0].outputSlot;
-                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                if (outputNode == null)
-                    continue;
+                m_MultiplyType = GetMultiplyType(dynamicInputSlotsToCompare.Values);
 
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
-                if (outputSlot == null)
-                    continue;
-
-                if (outputSlot.hasError)
+                // Resolve dynamics depending on matrix/vector configuration
+                switch (m_MultiplyType)
                 {
-                    inputSlot.hasError = true;
-                    continue;
+                    // If all matrix resolve as per dynamic matrix
+                    case MultiplyType.Matrix:
+                        var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                        foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                            dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
+                        foreach (var skippedSlot in skippedDynamicSlots)
+                            skippedSlot.SetConcreteType(dynamicMatrixType);
+                        break;
+                    // If mixed handle differently:
+                    // Iterate all slots and set their concretes based on their edges
+                    // Find matrix slot and convert its type to a vector type
+                    // Reiterate all slots and set non matrix slots to the vector type
+                    case MultiplyType.Mixed:
+                        foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                        {
+                            SetConcreteValueTypeFromEdge(dynamicKvP.Key);
+                        }
+                        MaterialSlot matrixSlot = GetMatrixSlot();
+                        ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
+                        foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                        {
+                            if (dynamicKvP.Key != matrixSlot)
+                                dynamicKvP.Key.SetConcreteType(vectorType);
+                        }
+                        foreach (var skippedSlot in skippedDynamicSlots)
+                        {
+                            skippedSlot.SetConcreteType(vectorType);
+                        }
+                        break;
+                    // If all vector resolve as per dynamic vector
+                    default:
+                        var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                        foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                            dynamicKvP.Key.SetConcreteType(dynamicVectorType);
+                        foreach (var skippedSlot in skippedDynamicSlots)
+                            skippedSlot.SetConcreteType(dynamicVectorType);
+                        break;
                 }
 
-                var outputConcreteType = outputSlot.concreteValueType;
-                // dynamic input... depends on output from other node.
-                // we need to compare ALL dynamic inputs to make sure they
-                // are compatable.
-                if (inputSlot is DynamicValueMaterialSlot)
+                tempSlots.Clear();
+                GetInputSlots(tempSlots);
+                var inputError = tempSlots.Any(x => x.hasError);
+
+                // configure the output slots now
+                // their slotType will either be the default output slotType
+                // or the above dynanic slotType for dynamic nodes
+                // or error if there is an input error
+                tempSlots.Clear();
+                GetOutputSlots(tempSlots);
+                foreach (var outputSlot in tempSlots)
                 {
-                    dynamicInputSlotsToCompare.Add((DynamicValueMaterialSlot)inputSlot, outputConcreteType);
-                    continue;
+                    outputSlot.hasError = false;
+
+                    if (inputError)
+                    {
+                        outputSlot.hasError = true;
+                        continue;
+                    }
+
+                    if (outputSlot is DynamicValueMaterialSlot)
+                    {
+                        // Apply similar logic to output slot
+                        switch (m_MultiplyType)
+                        {
+                            // As per dynamic matrix
+                            case MultiplyType.Matrix:
+                                var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                                (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicMatrixType);
+                                break;
+                            // Mixed configuration
+                            // Find matrix slot and convert type to vector
+                            // Set output concrete to vector
+                            case MultiplyType.Mixed:
+                                MaterialSlot matrixSlot = GetMatrixSlot();
+                                ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
+                                (outputSlot as DynamicValueMaterialSlot).SetConcreteType(vectorType);
+                                break;
+                            // As per dynamic vector
+                            default:
+                                var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+                                (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicVectorType);
+                                break;
+                        }
+                        continue;
+                    }
                 }
+
+                isInError |= inputError;
+                tempSlots.Clear();
+                GetOutputSlots(tempSlots);
+                isInError |= tempSlots.Any(x => x.hasError);
             }
 
-            m_MultiplyType = GetMultiplyType(dynamicInputSlotsToCompare.Values);
-
-            // Resolve dynamics depending on matrix/vector configuration
-            switch (m_MultiplyType)
-            {
-                // If all matrix resolve as per dynamic matrix
-                case MultiplyType.Matrix:
-                    var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-                    foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                        dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
-                    foreach (var skippedSlot in skippedDynamicSlots)
-                        skippedSlot.SetConcreteType(dynamicMatrixType);
-                    break;
-                // If mixed handle differently:
-                // Iterate all slots and set their concretes based on their edges
-                // Find matrix slot and convert its type to a vector type
-                // Reiterate all slots and set non matrix slots to the vector type
-                case MultiplyType.Mixed:
-                    foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                    {
-                        SetConcreteValueTypeFromEdge(dynamicKvP.Key);
-                    }
-                    MaterialSlot matrixSlot = GetMatrixSlot();
-                    ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
-                    foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                    {
-                        if (dynamicKvP.Key != matrixSlot)
-                            dynamicKvP.Key.SetConcreteType(vectorType);
-                    }
-                    foreach (var skippedSlot in skippedDynamicSlots)
-                    {
-                        skippedSlot.SetConcreteType(vectorType);
-                    }
-                    break;
-                // If all vector resolve as per dynamic vector
-                default:
-                    var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-                    foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                        dynamicKvP.Key.SetConcreteType(dynamicVectorType);
-                    foreach (var skippedSlot in skippedDynamicSlots)
-                        skippedSlot.SetConcreteType(dynamicVectorType);
-                    break;
-            }
-
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            var inputError = s_TempSlots.Any(x => x.hasError);
-
-            // configure the output slots now
-            // their slotType will either be the default output slotType
-            // or the above dynanic slotType for dynamic nodes
-            // or error if there is an input error
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            foreach (var outputSlot in s_TempSlots)
-            {
-                outputSlot.hasError = false;
-
-                if (inputError)
-                {
-                    outputSlot.hasError = true;
-                    continue;
-                }
-
-                if (outputSlot is DynamicValueMaterialSlot)
-                {
-                    // Apply similar logic to output slot
-                    switch (m_MultiplyType)
-                    {
-                        // As per dynamic matrix
-                        case MultiplyType.Matrix:
-                            var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-                            (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicMatrixType);
-                            break;
-                        // Mixed configuration
-                        // Find matrix slot and convert type to vector
-                        // Set output concrete to vector
-                        case MultiplyType.Mixed:
-                            MaterialSlot matrixSlot = GetMatrixSlot();
-                            ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
-                            (outputSlot as DynamicValueMaterialSlot).SetConcreteType(vectorType);
-                            break;
-                        // As per dynamic vector
-                        default:
-                            var dynamicVectorType = ConvertDynamicVectorInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
-                            (outputSlot as DynamicValueMaterialSlot).SetConcreteType(dynamicVectorType);
-                            break;
-                    }
-                    continue;
-                }
-            }
-
-            isInError |= inputError;
-            s_TempSlots.Clear();
-            GetOutputSlots(s_TempSlots);
-            isInError |= s_TempSlots.Any(x => x.hasError);
             isInError |= CalculateNodeHasError(ref errorMessage);
             isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;

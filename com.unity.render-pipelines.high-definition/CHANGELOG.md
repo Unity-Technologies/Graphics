@@ -343,6 +343,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Decal Projectors created from script where rotated around the X axis by 90°.
 - Fixed frustum used to compute Density Volumes visibility when projection matrix is oblique.
 - Fixed a null reference exception in Path Tracing, Recursive Rendering and raytraced Global Illumination editors when no HDRP asset is present.
+- Fixed an issue where ambient occlusion and screen space reflections editors would generate null ref exceptions when HDRP was not set as the current pipeline.
+- Fixed a null reference exception in the probe UI when no HDRP asset is present.
+- Fixed the outline example in the doc (sampling range was dependent on screen resolution)
+- Fixed a null reference exception in the HDRI Sky editor when no HDRP asset is present.
 - Fixed an issue where materials newly created from the contextual menu would have an invalid state, causing various problems until it was edited.
 - Fixed transparent material created with ZWrite enabled (now it is disabled by default for new transparent materials)
 - Fixed mouseover on Move and Rotate tool while DecalProjector is selected.
@@ -417,6 +421,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactoring pre-existing materials to share more shader code between rasterization and ray tracing.
 - Setting a material's Refraction Model to Thin does not overwrite the Thickness and Transmission Absorption Distance anymore.
 - Removed Wind textures from runtime as wind is no longer built into the pipeline
+- Changed Shader Graph titles of master nodes to be more easily searchable ("HDRP/x" -> "x (HDRP)")
 - Expose StartSinglePass() and StopSinglePass() as public interface for XRPass
 - Replaced the Texture array for 2D cookies (spot, area and directional lights) and for planar reflections by an atlas.
 - Moved the tier defining from the asset to the concerned volume components.
