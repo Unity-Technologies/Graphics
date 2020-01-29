@@ -278,7 +278,10 @@ namespace UnityEditor.Rendering.HighDefinition
             //     [HideInInspector] _MaterialInstanceFlags("_MaterialInstanceFlags", Int) = 0
 
             // Try not to touch irrelevant materials.
-            if (material.shader.name.Contains("HDRP") && material.shader.name.Contains("Lit"))
+            if (id == HDShaderUtils.ShaderID.Lit ||
+                id == HDShaderUtils.ShaderID.LitTesselation ||
+                id == HDShaderUtils.ShaderID.LayeredLit ||
+                id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
                 if (material.HasProperty(BaseLitGUI.kDisplacementMode))
                 {
