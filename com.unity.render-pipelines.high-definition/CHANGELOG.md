@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added semi-transparent shadows for point and spot lights.
 - Added support for semi-transparent shadow for unlit shader and unlit shader graph.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
+- Added Material Samples to explain how to use the lit shader features
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
