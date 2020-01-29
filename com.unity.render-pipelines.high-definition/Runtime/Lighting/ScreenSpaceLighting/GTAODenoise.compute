@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 #pragma kernel GTAODenoise_Spatial_To_Temporal          SPATIAL_DENOISE_KERNEL_NAME=GTAODenoise_Spatial_To_Temporal TO_TEMPORAL SPATIAL
-#pragma kernel GTAODenoise_Spatial                      SPATIAL_DENOISE_KERNEL_NAME=GTAODenoise_Spatial SPATIAL 
+#pragma kernel GTAODenoise_Spatial                      SPATIAL_DENOISE_KERNEL_NAME=GTAODenoise_Spatial SPATIAL
 #pragma kernel GTAODenoise_Temporal                     TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal         TEMPORAL  HALF_RES
 #pragma kernel GTAODenoise_Temporal_FullRes             TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal_FullRes TEMPORAL  FULL_RES
 
@@ -47,7 +47,7 @@ float Blur(float2 centralPos, out float centralDepth, out float centralAO)
     float total = UnpackedAOs.y;
     float totalWeight = 1;
 
-    // This manual unrolling is horrible looking, but I found it hard to please the PS4 compiler otherwise. TODO: Make this nicer. 
+    // This manual unrolling is horrible looking, but I found it hard to please the PS4 compiler otherwise. TODO: Make this nicer.
 
     // First set of gathered data.
     float weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
@@ -262,7 +262,7 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #ifdef HISTORY_COPY
 RW_TEXTURE2D_X(uint, _OutputTexture);
-TEXTURE2D_X_UINT(_InputTexture);
+TEXTURE2D_X(_InputTexture);
 
 [numthreads(8, 8, 1)]
 void GTAODenoise_CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
