@@ -185,6 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
              StencilRefactor,
              ZWriteForTransparent,
+             MaterialInstanceProperties
         };
 
         #region Migrations
@@ -265,6 +266,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetFloat(kTransparentZWrite, material.GetZWrite() ? 1.0f : 0.0f);
 
             HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void MaterialInstanceProperties(Material material, HDShaderUtils.ShaderID id)
+        {
+            // For Lit/LitTessellation/LayeredLit/LayeredLitTessellation shaders, we replaced
+            //     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+            //     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
+            //     #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+            // with
+            //     [HideInInspector] _MaterialInstanceFlags("_MaterialInstanceFlags", Int) = 0
+
+            // Try not to touch irrelevant materials.
+            if (material.shader.name.Contains("HDRP") && material.shader.name.Contains("Lit"))
+            {
+                if (material.HasProperty(BaseLitGUI.kDisplacementMode))
+                {
+                    BaseLitGUI.SetDisplacementScaleLocks(material);
+                }
+
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
         }
 
         #endregion

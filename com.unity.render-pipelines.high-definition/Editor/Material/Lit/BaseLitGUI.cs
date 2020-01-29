@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
-        protected const string kDisplacementMode = "_DisplacementMode";
+        internal  const string kDisplacementMode = "_DisplacementMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
@@ -31,12 +31,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual void UpdateDisplacement() {}
 
+        static internal void SetDisplacementScaleLocks(Material material)
+        {
+            bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
+            bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
+
+            int materialInstanceFlags = 0;
+
+            materialInstanceFlags |= displacementLockObjectScale ? (int)MaterialInstanceFlags.DisplacementLockObjectScale : 0;
+            materialInstanceFlags |= displacementLockTilingScale ? (int)MaterialInstanceFlags.DisplacementLockTilingScale : 0;
+
+            // In the future, we are likely to want to pull the flags outside the function, and set them only once.
+            material.SetInt(kMaterialInstanceFlags, materialInstanceFlags);
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupBaseLitKeywords(Material material)
         {
             material.SetupBaseUnlitKeywords();
-
-            int materialInstanceFlags = 0;
 
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) ? material.GetFloat(kDoubleSidedEnable) > 0.0f : false;
             if (doubleSidedEnable)
@@ -70,16 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Only set if tessellation exist
                 CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
-
-                // Tessellation reuse vertex flag.
-                //CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-                //CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
-                //CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
-
-                materialInstanceFlags |= displacementLockObjectScale ? (int)MaterialInstanceFlags.DisplacementLockObjectScale : 0;
-                materialInstanceFlags |= displacementLockTilingScale ? (int)MaterialInstanceFlags.DisplacementLockTilingScale : 0;
+                SetDisplacementScaleLocks(material);
 
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
@@ -101,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
 
-            material.SetInt(kMaterialInstanceFlags, materialInstanceFlags);
+
         }
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
