@@ -394,9 +394,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
-    // #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    // #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
-    // #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _TESSELLATION_PHONG
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
@@ -430,7 +427,7 @@ Shader "HDRP/LayeredLitTessellation"
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
