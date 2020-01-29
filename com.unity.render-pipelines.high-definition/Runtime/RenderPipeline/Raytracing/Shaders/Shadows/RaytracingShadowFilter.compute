@@ -45,6 +45,8 @@ TEXTURE2D_X(_AreaShadowHistory);
 RW_TEXTURE2D_X(float4, _AreaShadowHistoryRW);
 // Output buffer for our temporal accumulation pass
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Value that tells us if the current history should be discarded based on scene-level data
+float _HistoryValidity;
 
 // Given that area shadows history buffer are stored as buffers, we need data to know where to read and where to write
 uint _DenoisingHistorySlice;
@@ -113,7 +115,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x;
     float historyAnalyticValue = dot(_DenoisingHistoryMask, _AnalyticHistoryBuffer[uint3(historyPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
 
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f || _HistoryValidity == 0.0)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;

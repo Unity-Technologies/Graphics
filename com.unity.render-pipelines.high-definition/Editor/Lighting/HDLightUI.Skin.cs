@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Headers
             public readonly GUIContent generalHeader = new GUIContent("General");
             public readonly GUIContent shapeHeader = new GUIContent("Shape");
-            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body (Preview)");
+            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body");
             public readonly GUIContent emissionHeader = new GUIContent("Emission");
             public readonly GUIContent volumetricHeader = new GUIContent("Volumetrics");
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");

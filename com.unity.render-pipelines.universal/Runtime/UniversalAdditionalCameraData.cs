@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering;
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -274,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
         public CameraStack cameraStack
         {
             get => m_CameraStack;
-        }
+                }
 
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
@@ -324,8 +326,8 @@ namespace UnityEngine.Rendering.Universal
                     return UniversalRenderPipeline.asset.supportsCameraDepthTexture;
                 }
 
-                return m_RequiresDepthTextureOption == CameraOverrideOption.On;
-            }
+                    return m_RequiresDepthTextureOption == CameraOverrideOption.On;
+                }
             set { m_RequiresDepthTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
@@ -342,17 +344,17 @@ namespace UnityEngine.Rendering.Universal
                     return UniversalRenderPipeline.asset.supportsCameraOpaqueTexture;
                 }
 
-                return m_RequiresOpaqueTextureOption == CameraOverrideOption.On;
-            }
+                    return m_RequiresOpaqueTextureOption == CameraOverrideOption.On;
+                }
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
         /// <summary>
-        /// Returns the <see cref="ScriptableRenderer"/> that is used to render this cameras.
+        /// Returns the <see cref="ScriptableRenderer"/> that is used to render this camera.
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+            get => UniversalRenderPipeline.currentRenderPipeline?.GetRenderer(m_RendererIndex);
         }
 
         /// <summary>

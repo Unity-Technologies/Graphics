@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [InterpolatorPack]
         internal struct VaryingsMeshToPS
         {
-            [Semantic("SV_Position")]                                               Vector4 positionCS;
+            [Semantic("SV_POSITION")]                                               Vector4 positionCS;
             [Optional]                                                              Vector3 positionRWS;
             [Optional]                                                              Vector3 normalWS;
             [Optional]                                                              Vector4 tangentWS;      // w contain mirror sign
@@ -522,6 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> Includes;
         public string TemplateName;
         public string MaterialName;
+        public List<string> ShaderStages;
         public List<string> ExtraInstancingOptions;
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
@@ -812,6 +813,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+            ShaderGenerator shaderStages = new ShaderGenerator();
+            {
+                if (pass.ShaderStages != null)
+                {
+                    foreach (var shaderStage in pass.ShaderStages)
+                        shaderStages.AddShaderChunk(shaderStage);
+                }
+            }
 
             ShaderGenerator defines = new ShaderGenerator();
             {
@@ -919,6 +928,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
             namedFragments.Add("InstancingOptions", instancingOptions.GetShaderString(0, false));
+            namedFragments.Add("ShaderStages", shaderStages.GetShaderString(2, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
             namedFragments.Add("LightMode", pass.LightMode);
@@ -1038,6 +1048,17 @@ namespace UnityEditor.Rendering.HighDefinition
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
             "#pragma multi_compile _ WRITE_MSAA_DEPTH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
+        };
+
+        public static List<string> s_ShaderStagesRasterization = new List<string>()
+        {
+            "#pragma vertex Vert",
+            "#pragma fragment Frag",
+        };
+
+        public static List<string> s_ShaderStagesRayTracing = new List<string>()
+        {
+            "#pragma raytracing surface_shader",
         };
 
         public static void SetStencilStateForDepth(ref Pass pass)

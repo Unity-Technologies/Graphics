@@ -8,7 +8,7 @@ This document explains how to convert the **3D With Extras** template Project to
 
 2. In the **Projects** tab, select **New**.
 
-3. In the **Template **section, select **3D With Extras**.
+3. In the **Template** section, select **3D With Extras**.
 
 4. Enter a **Project Name** and set the **Location** for Unity to save the Project to.
 
@@ -39,7 +39,7 @@ HDRP includes its own [implementation for post-processing](Post-Processing-Main.
 
 1. In the Unity Editor, open the Package Manager window (menu: **Window > Package Manager**).
 
-2. Find and select the** Post Processing **package, and click **Remove**.
+2. Find and select the **Post Processing** package, and click **Remove**.
 
 For details on how to add and customize post-processing effects to the template Project, see the [post-processing](#Post-processing) section.
 
@@ -55,7 +55,7 @@ To upgrade the Materials in your Scene to HDRP-compatible Materials, either:
 
 You can find these options in either:
 
-* The **Edit > Render Pipeline **menu.
+* The **Edit > Render Pipeline** menu.
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
@@ -96,7 +96,7 @@ To set up lighting in your HDRP Project:
 
     4. Optionally, if you don't want Unity to re-bake the Scene''s lighting when you make the rest of the changes in this section, you can disable the **Auto Generate** checkbox at the bottom of the window.
 3. Currently, the shadows are low quality. To increase their quality, you can change shadow properties:
-    1. Create a new **Global Volume **GameObject (menu: **GameObject > Volume > Global Volume**) and name it **Global Settings**.
+    1. Create a new **Global Volume** GameObject (menu: **GameObject > Volume > Global Volume**) and name it **Global Settings**.
 
     2. Create a new Volume Profile for this Volume. To do this, open the Inspector for the Volume and click the **New** button.
 
@@ -129,12 +129,12 @@ To set up lighting in your HDRP Project:
 
 ## Post-processing
 
-HDRP no longer supports the **Post Processing **package and instead includes its own [implementation for post-processing](Post-Processing-Main.html). To convert the Scene to HDRP post-processing:
+HDRP no longer supports the **Post Processing** package and instead includes its own [implementation for post-processing](Post-Processing-Main.html). To convert the Scene to HDRP post-processing:
 
-1. In the Hierarchy, delete the** Post-process Volume** GameObject.
+1. In the Hierarchy, delete the **Post-process Volume** GameObject.
 
     1. If your Project used the Post Processing package's Scripting API to edit post-processing effects, you need to update your scripts to work with the new post-processing effects.
-2. Create a new **Global Volume **GameObject (menu: **GameObject > Volume > Global Volume**) and name it "**Post-processes**". You can find all the post processes in the **Post-processing** sub-menu when you select **Add Override** in the Volume Inspector.
+2. Create a new **Global Volume** GameObject (menu: **GameObject > Volume > Global Volume**) and name it "**Post-processes**". You can find all the post processes in the **Post-processing** sub-menu when you select **Add Override** in the Volume Inspector.
 3. Add a **Tonemapping** override to the Volume (**Add Override > Post-processing > Tonemapping**) then enable **Mode** and set it to **ACES**.
 4. Add a **Bloom** override to the Volume (**Add Override > Post-processing > Bloom**) then enable **Intensity** and set it to **0.2**.
     Note that the result of the bloom is not the same as the one in the Post Processing package. This is because HDRP's bloom effect is physically accurate, and mimics the quality of a camera lens.
