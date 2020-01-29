@@ -1,0 +1,32 @@
+# HDRP Sample Content
+
+The [High Definition Render Pipeline (HDRP)](index.html) comes with a set of Samples to help you getting started.
+
+A Sample is a set of assets that you can import in your project and use as a base to build your project or learn how a feature can be used.
+
+To find these samples, go **to Windows > Package Manager**, and **select High Definition RP** in the list. On the right side of the window you will see the Package's details, and a **Samples** category. In order to import a Sample in your project, simply click the **Import into Project** button. This will create a Samples folder in your project in which all the samples will get imported.
+
+## Additional Post-Processing Data
+
+Additional Post-Processing Data gives you access to textures you can use with the Post-Processing Effects :
+
+- Lens Dirt Textures (designed to be used in Bloom)
+- Spectral Look-up Textures (designed to be used in Chromatic Aberrations)
+- Look-Up Textures
+
+## Shader Graph Samples
+
+These Shader Graph Samples show how one can use the Fabric Master Node, the Hair Master Node, and the Decal Master Node.
+
+## Procedural Sky
+
+The Procedural Sky shows you how to create a custom sky in your project so that it's compatible with the Volume framework.
+
+## Particle System Shader Samples
+
+The Paricle System Shader Samples show examples of various lit and unlit particle effects.
+
+## Material Samples
+
+The Materials Samples bring into your project examples of materials based on the lit shader using effects such as subsurface scattering, displacement, anisotropy and more. The MaterialSamples scene requires Text Mesh Pro to display text explanations.
+
