@@ -362,6 +362,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed runtime debug menu BitField control.
 - Fixed the radius value used for ray traced directional light.
 - Fixed compilation issues with the layered lit in ray tracing shaders.
+- Fixed XR autotests viewport size rounding
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
