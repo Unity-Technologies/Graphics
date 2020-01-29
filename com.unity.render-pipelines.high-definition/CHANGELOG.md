@@ -359,6 +359,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not handleling properly the recieve SSR feature with ray traced reflections
 - Shadow Atlas is no longer allocated for area lights when they are disabled in the shader config file.
 - Avoid MRT Clear on PS4 as it is not implemented yet.
+- Fixed runtime debug menu BitField control.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
