@@ -433,6 +433,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom passes now disable the stencil when overwriting the depth and not writing into it.
 - Renamed the camera profiling sample to include the camera name
 - Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
+- Changed inspector materials stencil setting code to have more sharing.
 
 ## [7.1.1] - 2019-09-05
 

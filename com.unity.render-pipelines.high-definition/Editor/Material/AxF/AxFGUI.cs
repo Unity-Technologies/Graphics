@@ -66,45 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
 
-            // Set the reference values for the stencil test
-
-            // Stencil usage rules:
-            // TraceReflectionRay need to be tagged during depth prepass
-            // RequiresDeferredLighting need to be tagged during GBuffer
-            // SubsurfaceScattering need to be tagged during either GBuffer or Forward pass
-            // ObjectMotionVectors need to be tagged in motion vectors pass.
-            // As motion vectors pass can be use as a replacement of depth prepass it also need to have TraceReflectionRay
-            // Object motion vectors is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
-            // so we have a guarantee than when we write object motion vectors no other object will be draw on top (and so would have require to overwrite motion vectors).
-            // Final combination is:
-            // Prepass: TraceReflectionRay
-            // Motion vectors: TraceReflectionRay, ObjectMotionVectors
-            // GBuffer: RequiresDeferredLighting, SubsurfaceScattering, ObjectMotionVectors
-            // Forward: SubsurfaceScattering
-
-            int stencilRef = (int)StencilUsage.Clear;
-            int stencilWriteMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
-            int stencilRefDepth = 0;
-            int stencilWriteMaskDepth = 0;
-            int stencilRefMV = (int)StencilUsage.ObjectMotionVector;
-            int stencilWriteMaskMV = (int)StencilUsage.ObjectMotionVector;
-
-            if (ssrEnabled)
-            {
-                stencilRefDepth |= (int)StencilUsage.TraceReflectionRay;
-                stencilRefMV |= (int)StencilUsage.TraceReflectionRay;
-            }
-
-            stencilWriteMaskDepth |= (int)StencilUsage.TraceReflectionRay;
-            stencilWriteMaskMV |= (int)StencilUsage.TraceReflectionRay;
-
-            // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
-            material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, stencilWriteMask);
-            material.SetInt(kStencilRefDepth, stencilRefDepth);
-            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
-            material.SetInt(kStencilRefMV, stencilRefMV);
-            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
