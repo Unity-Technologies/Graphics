@@ -411,6 +411,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Expose StartSinglePass() and StopSinglePass() as public interface for XRPass
 - Replaced the Texture array for 2D cookies (spot, area and directional lights) and for planar reflections by an atlas.
 - Moved the tier defining from the asset to the concerned volume components.
+- For Lit/LitTessellation/LayeredLit/LayeredLitTessellation shaders, replaced _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE, _DISPLACEMENT_LOCK_TILING_SCALE, and _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE with _MaterialInstanceFlags.
 
 ## [7.1.1] - 2019-09-05
 
