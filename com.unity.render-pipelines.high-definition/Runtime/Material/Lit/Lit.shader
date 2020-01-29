@@ -7,7 +7,7 @@ Shader "HDRP/Lit"
 
         // A bit field containing up to 24 bits. See the "MaterialInstanceFlags" enum.
         // Used to enable a material feature at runtime rather than compile time
-        // (to reduce the number of variants that must be compiled in advance).
+        // (to reduce the number of shader variants that must be compiled in advance).
         // Do not use this in performance-critical parts of code.
         [HideInInspector] _MaterialInstanceFlags("_MaterialInstanceFlags", Int) = 0
 
