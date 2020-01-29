@@ -459,7 +459,7 @@ $include("SharedCode.template.hlsl")
         if (_EnableDecals)
         {
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, uint(_DecalLayerMask), surfaceDescription.Alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif

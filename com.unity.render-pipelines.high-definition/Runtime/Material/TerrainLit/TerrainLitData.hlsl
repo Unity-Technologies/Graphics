@@ -223,7 +223,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     {
         float alpha = 1.0; // unused
                            // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, uint(_DecalLayerMask), alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
 #endif
