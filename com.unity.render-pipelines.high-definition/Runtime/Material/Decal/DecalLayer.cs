@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly DecalLayer Layer6 = new DecalLayer(6);
         /// <summary>Decal Layer 7.</summary>
         public static readonly DecalLayer Layer7 = new DecalLayer(7);
+        /// <summary>An invalid decal layer.</summary>
+        public static readonly DecalLayer Invalid = new DecalLayer { m_Value = (1 << LayerCount) - 1 };
 
         [SerializeField]
         int m_Value;

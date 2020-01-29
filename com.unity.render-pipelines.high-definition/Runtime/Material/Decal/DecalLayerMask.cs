@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly DecalLayerMask Layer0 = new DecalLayerMask(1);
         /// <summary>All layers are accepted.</summary>
         public static readonly DecalLayerMask Full = new DecalLayerMask((1 << Capacity) - 1);
+        /// <summary>An invalid layer mask.</summary>
+        public static readonly DecalLayerMask Invalid = new DecalLayerMask { m_Value = (1 << Capacity) - 1 };
 
         [SerializeField]
         int m_Value;
