@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     //This method is called at opening and when HDRP package change (update of manifest.json)
                     var curUpgradeVersion = HDProjectSettings.materialVersionForUpgrade;
 
-                    if (curUpgradeVersion != MaterialPostprocessor.k_Migrations.Length)
+                    if (curUpgradeVersion != MaterialPostprocessor.LatestVersionNumber)
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
@@ -85,9 +85,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class MaterialPostprocessor : AssetPostprocessor
     {
+        /// <summary>Define for all version which migration functions must be applied.</summary>
+        delegate void MigrationAction(Material material, HDShaderUtils.ShaderID id);
+
         internal static List<string> s_CreatedAssets = new List<string>();
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
+
+        internal static int LatestVersionNumber => k_Migrations.Keys.Max();
 
         static internal void SaveAssetsToDisk()
         {
@@ -103,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             AssetDatabase.SaveAssets();
             //to prevent data loss, only update the saved version if user applied change and assets are written to
-            HDProjectSettings.materialVersionForUpgrade = MaterialPostprocessor.k_Migrations.Length;
+            HDProjectSettings.materialVersionForUpgrade = LatestVersionNumber;
 
             s_ImportedAssetThatNeedSaving.Clear();
             s_NeedsSavingAssets = false;
@@ -121,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
 
                 HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
-                var latestVersion = k_Migrations.Keys.Max();
+                var latestVersion = LatestVersionNumber;
                 var wasUpgraded = false;
                 var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
                 AssetVersion assetVersion = null;
@@ -187,14 +192,11 @@ namespace UnityEditor.Rendering.HighDefinition
         // So we must have migration step that work on every materials at once.
         // Which also means that if we want to update only one shader, we need
         // to bump all materials version...
-
-        /// <summary>Define for all version which migration functions must be applied.</summary>
-        delegate void MigrationAction(Material material, HDShaderUtils.ShaderID id);
         static readonly Dictionary<int, MigrationAction[]> k_Migrations = new Dictionary<int, MigrationAction[]>
         {
-             { 1, new [] { StencilRefactor, } },
-             { 2, new [] { ZWriteForTransparent, } },
-             { 3, new [] { MigrateDecalLayerMask, } },
+             { 1, new MigrationAction[] { StencilRefactor, } },
+             { 2, new MigrationAction[] { ZWriteForTransparent, } },
+             { 3, new MigrationAction[] { MigrateDecalLayerMask, } },
         };
 
         #region Migrations
