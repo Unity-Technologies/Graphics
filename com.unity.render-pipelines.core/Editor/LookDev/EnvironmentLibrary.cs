@@ -3,10 +3,7 @@ using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
-using System.Linq;
 using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
 using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
@@ -14,7 +11,8 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    public class EnvironmentLibrary : BaseEnvironmentLibrary
+    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Environment-Library" + Documentation.endURL)]
+    public class EnvironmentLibrary : ScriptableObject
     {
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();
@@ -103,7 +101,6 @@ namespace UnityEditor.Rendering.LookDev
     [CustomEditor(typeof(EnvironmentLibrary))]
     class EnvironmentLibraryEditor : Editor
     {
-
         VisualElement root;
 
         public sealed override VisualElement CreateInspectorGUI()
@@ -169,12 +166,6 @@ namespace UnityEditor.Rendering.LookDev
 
     static class EnvironmentLibraryLoader
     {
-        public static void Load(Action onInspectorRedrawRequested)
-        {
-            UnityEngine.Object target = LookDev.currentContext.environmentLibrary;
-            UIElementObjectSelectorWorkaround.Show(target, typeof(EnvironmentLibrary), LoadCallback(onInspectorRedrawRequested));
-        }
-
         static Action<UnityEngine.Object> LoadCallback(Action onUpdate)
         {
             return (UnityEngine.Object newLibrary) =>
@@ -182,37 +173,6 @@ namespace UnityEditor.Rendering.LookDev
                 LookDev.currentContext.UpdateEnvironmentLibrary(newLibrary as EnvironmentLibrary);
                 onUpdate?.Invoke();
             };
-        }
-
-
-        // As in UIElement.ObjectField we cannot support cancel when closing window
-        static class UIElementObjectSelectorWorkaround
-        {
-            static Action<UnityEngine.Object, Type, Action<UnityEngine.Object>> ShowObjectSelector;
-
-            static UIElementObjectSelectorWorkaround()
-            {
-                Type playerSettingsType = typeof(PlayerSettings);
-                Type objectSelectorType = playerSettingsType.Assembly.GetType("UnityEditor.ObjectSelector");
-                var instanceObjectSelectorInfo = objectSelectorType.GetProperty("get", BindingFlags.Static | BindingFlags.Public);
-                var showInfo = objectSelectorType.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>) }, null);
-                var objectSelectorVariable = Expression.Variable(objectSelectorType, "objectSelector");
-                var objectParameter = Expression.Parameter(typeof(UnityEngine.Object), "unityObject");
-                var typeParameter = Expression.Parameter(typeof(Type), "type");
-                var onChangedObjectParameter = Expression.Parameter(typeof(Action<UnityEngine.Object>), "onChangedObject");
-                var showObjectSelectorBlock = Expression.Block(
-                    new[] { objectSelectorVariable },
-                    Expression.Assign(objectSelectorVariable, Expression.Call(null, instanceObjectSelectorInfo.GetGetMethod())),
-                    Expression.Call(objectSelectorVariable, showInfo, objectParameter, typeParameter, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(false), Expression.Constant(null, typeof(List<int>)), Expression.Constant(null, typeof(Action<UnityEngine.Object>)), onChangedObjectParameter)
-                    );
-                var showObjectSelectorLambda = Expression.Lambda<Action<UnityEngine.Object, Type, Action<UnityEngine.Object>>>(showObjectSelectorBlock, objectParameter, typeParameter, onChangedObjectParameter);
-                ShowObjectSelector = showObjectSelectorLambda.Compile();
-            }
-
-            public static void Show(UnityEngine.Object obj, Type type, Action<UnityEngine.Object> onObjectChanged)
-            {
-                ShowObjectSelector(obj, type, onObjectChanged);
-            }
         }
     }
 }

@@ -32,9 +32,6 @@ namespace UnityEngine.TestTools.Graphics.Tests
                 DiffImage = diffImage,
             };
 
-            var data = message.Serialize();
-            var deserialized = FailedImageMessage.Deserialize(data);
-
             AssertAreEqual(deserialized, message);
         }
 #endif

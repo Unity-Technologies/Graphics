@@ -8,6 +8,8 @@ using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEngine.SceneManagement;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -186,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Materials BlendStates (Scene)")]
         static public void UpgradeAllShaderGraphMaterialBlendStatesScene()
         {
-            var materials = Resources.FindObjectsOfTypeAll< Material >();
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
 
             foreach (var mat in materials)
             {
@@ -195,6 +197,51 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!string.IsNullOrEmpty(path))
                     UpdateMaterial_ShaderGraphRenderStates(path, mat);
             }
+        }
+
+        [MenuItem("Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes")]
+        static public void FixWarningGameObjectSceneIDMapIsMissingInLoadedScenes()
+        {
+            var rootCache = new List<GameObject>();
+            for (var i = 0; i < SceneManager.sceneCount; ++i)
+                FixWarningGameObjectSceneIDMapIsMissingFor(SceneManager.GetSceneAt(i), rootCache);
+        }
+
+        static void FixWarningGameObjectSceneIDMapIsMissingFor(Scene scene, List<GameObject> rootCache)
+        {
+            Assert.IsTrue(scene.isLoaded);
+
+            var roots = rootCache ?? new List<GameObject>();
+            roots.Clear();
+            scene.GetRootGameObjects(roots);
+            bool markSceneAsDirty = false;
+            for (var i = roots.Count - 1; i >= 0; --i)
+            {
+                if (roots[i].name == "SceneIDMap")
+                {
+                    if (roots[i].GetComponent<SceneObjectIDMapSceneAsset>() == null)
+                    {
+                        // This gameObject must have SceneObjectIDMapSceneAsset
+                        // If not, then Unity can't find the component.
+                        // We can remove it, it will be regenerated properly by rebaking
+                        // the probes.
+                        //
+                        // This happens for scene with baked probes authored before renaming
+                        // the HDRP's namespaces without the 'Experiemental' prefix.
+                        // The serialization used this path explicitly, thus the Unity serialization
+                        // system lost the reference to the MonoBehaviour
+                        Object.DestroyImmediate(roots[i]);
+
+                        // If we do any any modification on the scene
+                        // we need to dirty it, otherwise, the editor won't commit the change to the disk
+                        // and the issue will still persist.
+                        if (!markSceneAsDirty)
+                            markSceneAsDirty = true;
+                    }
+                }
+            }
+            if(markSceneAsDirty)
+                SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
         }
     }
 }

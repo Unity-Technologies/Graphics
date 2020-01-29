@@ -96,7 +96,6 @@ Pass
     // _SURFACE_TYPE_TRANSPARENT
     // _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     // _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // handled in material.hlsl
-    // _ENABLE_FOG_ON_TRANSPARENT
 
     // // MaterialFeature used as shader feature
     // _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
@@ -141,6 +140,9 @@ Pass
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    $NormalDropOffTS:		                         #define _NORMAL_DROPOFF_TS 1
+    $NormalDropOffOS:		                         #define _NORMAL_DROPOFF_OS 1
+    $NormalDropOffWS:		                         #define _NORMAL_DROPOFF_WS 1
 
     // StackLit.hlsl config defines (direct, no feature keywords):
     // _SCREENSPACE_SPECULAROCCLUSION_METHOD, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
@@ -390,12 +392,18 @@ Pass
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
-        // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+        // normal delivered to master node
+        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
+#if _NORMAL_DROPOFF_TS
+        GetNormalWS(fragInputs, normalSrc, surfaceData.normalWS, doubleSidedConstants);
+#elif _NORMAL_DROPOFF_OS
+		surfaceData.normalWS = TransformObjectToWorldNormal(normalSrc);
+#elif _NORMAL_DROPOFF_WS
+		surfaceData.normalWS = normalSrc;
+#endif
 
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
         $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
@@ -472,8 +480,7 @@ Pass
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-            LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+            LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
         #endif
 
         #ifdef _DOUBLESIDED_ON

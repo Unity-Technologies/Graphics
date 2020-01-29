@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderGraphResource areaShadowResult;
     }
 
-    public partial class HDShadowManager
+    partial class HDShadowManager
     {
         internal static ShadowResult ReadShadowResult(ShadowResult shadowResult, RenderGraphBuilder builder)
         {
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class HDShadowAtlas
+    partial class HDShadowAtlas
     {
         class RenderShadowsPassData
         {
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowRequests.Count == 0)
                 return result;
 
-            using (var builder = renderGraph.AddRenderPass<RenderShadowsPassData>(shadowPassName, out var passData, CustomSamplerId.RenderShadowMaps.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<RenderShadowsPassData>(shadowPassName, out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
                 passData.parameters = PrepareRenderShadowsParameters();
                 // TODO: Get rid of this and refactor to use the same kind of API than RendererList

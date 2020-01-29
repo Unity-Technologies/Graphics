@@ -73,20 +73,20 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); // StencilLightingUsage.NoLighting
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRef", stencilRef); 
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
-            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // DoesntReceiveSSR
+            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
             // Motion vector pass
-            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilBitMask.ObjectMotionVectors
-            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
+            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", 64); // StencilBitMask.DistortionVectors
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", 64); // StencilBitMask.DistortionVectors
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors); 
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors); 
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); // StencilMask.Lighting
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); // StencilLightingUsage.RegularLighting
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -96,7 +96,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest, bool backThenFrontRendering)
+            bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
             collector.AddFloatProperty("_BlendMode", (int)blend);
@@ -106,9 +107,11 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
-            collector.AddToggleProperty("_ZWrite", zWrite);
+            collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
+            collector.AddToggleProperty(kTransparentZWrite, zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
             collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
+            collector.AddToggleProperty(kEnableFogOnTransparent, fogOnTransparent);
             collector.AddFloatProperty("_CullModeForward", (int)CullMode.Back);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 overrideReferenceName = kTransparentCullMode,
@@ -195,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
-            bool supportsRayTracing = HDRenderPipeline.AggreateRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
+            bool supportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {

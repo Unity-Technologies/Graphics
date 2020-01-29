@@ -5,6 +5,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING
 
+#pragma only_renderers d3d11
+
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -18,14 +20,16 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
 
-#pragma only_renderers d3d11
-
 // Tile size of this compute
 #define RAYTRACING_REFLECTIONS_TILE_SIZE 8
 
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
+
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
+int _SsrStencilBit;
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
 void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -49,8 +53,16 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
 
+    // In the second texture, we store the sampled direction and the invPDF of the sample
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0);
+
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sourceCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
         return;
 
     // Convert this to a world space position 
@@ -130,6 +142,11 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
         return;
 
     // Convert this to a world space position

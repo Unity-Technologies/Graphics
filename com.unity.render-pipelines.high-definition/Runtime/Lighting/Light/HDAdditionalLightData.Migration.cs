@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResolution,
             RemoveAdditionalShadowData,
             AreaLightShapeTypeLogicIsolation,
+            PCSSUIUpdate,
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 0618, 0612
         [SerializeField]
-        private Version m_Version = Version.ShadowResolution;
+        private Version m_Version = MigrationDescription.LastVersion<Version>();
 
         private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
             = MigrationDescription.New(
@@ -135,7 +136,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         //No other AreaLight types where supported at this time
                     }
+                }),
+                MigrationStep.New(Version.PCSSUIUpdate, (HDAdditionalLightData data) =>
+                {
+                    // The min filter size is now in the [0..1] range when user facing
+                    data.minFilterSize = data.minFilterSize * 1000.0f;
                 })
+
             );
 #pragma warning restore 0618, 0612
 

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
-    public enum GPULightType
+    enum GPULightType
     {
         Directional,
         Point,
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Sphere,
     };
 
-    public static class GPULightTypeExtension
+    static class GPULightTypeExtension
     {
         public static bool IsAreaLight(this GPULightType lightType)
         {
@@ -43,6 +43,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Refraction
     };
 
+    [GenerateHLSL]
+    public enum CookieMode
+    {
+        None,
+        Clamp,
+        Repeat,
+    }
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL(PackingRules.Exact, false)]
     struct DirectionalLightData
@@ -56,13 +64,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   volumetricLightDimmer;   // Replaces 'lightDimer'
 
         public Vector3 forward;
-        public int     cookieIndex;             // -1 if unused (TODO: 16 bit)
+        public CookieMode cookieMode;
+        
+        public Vector4 cookieScaleOffset;
 
         public Vector3 right;                   // Rescaled by (2 / shapeWidth)
-        public int     tileCookie;              // (TODO: use a bitfield)
+        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector3 up;                      // Rescaled by (2 / shapeHeight)
-        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
 
         public Vector3 color;
         public int     contactShadowMask;       // 0 if unused (TODO: 16 bit)
@@ -81,9 +91,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   angularDiameter;         // Units: radians
-        public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
+        public float   penumbraTint;
         public float   isRayTracedContactShadow;
+
+        public float   distanceFromCamera;      // -1 -> no sky interaction
+        public float   angularDiameter;         // Units: radians
+        public float   flareFalloff;
+        public float   __unused__;
+
+        public Vector3 flareTint;
+        public float   flareSize;               // Units: radians
+
+        public Vector3 surfaceTint;
+
+        public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -114,9 +135,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 color;
         public float   rangeAttenuationBias;
 
-        public int     cookieIndex;             // -1 if unused
-        public int     tileCookie;              // (TODO: use a bitfield)
+        public CookieMode cookieMode;
+        public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
+        
+        public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas
         public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
         public Vector3 shadowTint;              // Use to tint shadow color
@@ -133,10 +156,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
+        public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius)
+
         public float   diffuseDimmer;
         public float   specularDimmer;
         public float   isRayTracedContactShadow;
+        public float   penumbraTint;
+
+        public Vector3 padding;
+        public float   boxLightSafeExtent;
     };
 
 
@@ -214,20 +242,5 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Texture2D,
         Cubemap
-    }
-
-    // Usage of StencilBits.Lighting on 2 bits.
-    // We support both deferred and forward renderer.  Here is the current usage of this 2 bits:
-    // 0. Everything except case below. This include any forward opaque object. No lighting in deferred lighting path.
-    // 1. All deferred opaque object that require split lighting (i.e output both specular and diffuse in two different render target). Typically Subsurface scattering material.
-    // 2. All deferred opaque object.
-    // 3. unused
-    [GenerateHLSL]
-    // Caution: Value below are hardcoded in some shader (because properties doesn't support include). If order or value is change, please update corresponding ".shader"
-    enum StencilLightingUsage
-    {
-        NoLighting,
-        SplitLighting,
-        RegularLighting
     }
 }

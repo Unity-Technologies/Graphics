@@ -18,7 +18,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Hair")]
+    [Title("Master", "Hair (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
     class HairMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -366,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_DoubleSidedMode = value;
-                Dirty(ModificationScope.Graph);
+                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -606,15 +606,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        int m_MaterialNeedsUpdateHash = 0;
+
+        int ComputeMaterialNeedsUpdateHash()
+        {
+            int hash = 0;
+
+            hash |= (alphaTest.isOn ? 0 : 1) << 0;
+            hash |= (alphaTestShadow.isOn ? 0 : 1) << 1;
+            hash |= (receiveSSR.isOn ? 0 : 1) << 2;
+
+            return hash;
+        }
+
         public HairMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return null; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("Master-Node-Hair");
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -957,7 +968,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                backThenFrontRendering.isOn
+                backThenFrontRendering.isOn,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class RenderPipelineResources : ScriptableObject
+    partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
             public ComputeShader debugLightVolumeCS;
+            [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
+            public Shader debugBlitQuad;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -47,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
             public ComputeShader clearDispatchIndirectCS;
+            [Reload("Runtime/Lighting/LightLoop/ClearLightLists.compute")]
+            public ComputeShader clearLightListsCS;
             [Reload("Runtime/Lighting/LightLoop/builddispatchindirect.compute")]
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
@@ -80,6 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
             public Shader cameraMotionVectorsPS;
+            [Reload("Runtime/ShaderLibrary/ClearStencilBuffer.shader")]
+            public Shader clearStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyStencilBuffer.shader")]
             public Shader copyStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyDepthBuffer.shader")]
@@ -91,6 +97,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
             public Shader upsampleTransparentPS;
+
+            [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
+            public ComputeShader resolveStencilCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
@@ -131,8 +140,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/CustomPass/DefaultRenderer.shader")]
-            public Shader defaultRendererCustomPass;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -189,6 +196,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
+            public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]
@@ -237,6 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+            [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
+            public ComputeShader contrastAdaptiveSharpenCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -347,11 +358,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                var resources = target as RenderPipelineResources;
-                resources.materials = null;
-                resources.textures = null;
-                resources.shaders = null;
-                resources.shaderGraphs = null;
+                foreach (var field in typeof(RenderPipelineResources).GetFields())
+                    field.SetValue(target, null);
+
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }

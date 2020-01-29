@@ -15,7 +15,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Decal")]
+    [Title("Master", "Decal (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
     class DecalMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {

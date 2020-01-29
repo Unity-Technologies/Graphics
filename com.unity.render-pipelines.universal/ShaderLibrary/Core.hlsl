@@ -117,6 +117,11 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 #endif
 }
 
+half OutputAlpha(half outputAlpha)
+{
+    return saturate(outputAlpha + _DrawObjectPassData.a);
+}
+
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation. 
@@ -258,6 +263,7 @@ float2 UnityStereoTransformScreenSpaceTex(float2 uv)
 {
     return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
 }
+
 #else
 
 #define UnityStereoTransformScreenSpaceTex(uv) uv

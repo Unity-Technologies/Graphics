@@ -32,6 +32,7 @@ Material:
     - _DecalMeshDepthBias: 0
     - _DrawOrder: 0
     m_Colors: []
+  m_BuildTextureStacks: []
 --- !u!114 &4214647986503617249
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -44,4 +45,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 2

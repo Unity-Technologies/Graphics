@@ -306,8 +306,26 @@ namespace UnityEditor.VFX.Block
                         var attrib = currentAttribute;
 
                         VFXPropertyAttribute[] attr = null;
+                        var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper() + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+
+                        TooltipAttribute tooltip = null;
+
+                        if( field != null)
+                            tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
+
                         if (attrib.Equals(VFXAttribute.Color))
-                            attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+                        {
+                            if (tooltip != null)
+                                attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute(), tooltip);
+                            else
+                                attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+                        }
+                        else
+                        {
+                            if(tooltip != null)
+                                attr = VFXPropertyAttribute.Create(tooltip);
+                        }
+                            
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
                         object content = attrib.value.GetContent();

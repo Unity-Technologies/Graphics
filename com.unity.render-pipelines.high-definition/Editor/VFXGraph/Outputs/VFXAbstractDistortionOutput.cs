@@ -9,6 +9,8 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractDistortionOutput : VFXAbstractParticleOutput
     {
+        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) { }
+
         public enum DistortionMode
         {
             ScreenSpace,
@@ -58,6 +60,7 @@ namespace UnityEditor.VFX
                 yield return "blendMode";
                 yield return "castShadows";
                 yield return "sort";
+                yield return "useAlphaClipping";
             }
         }
 
@@ -118,6 +121,11 @@ namespace UnityEditor.VFX
                 shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+
+                foreach (var additionnalStencilReplacement in subOutput.GetStencilStateOverridesStr())
+                {
+                    yield return additionnalStencilReplacement;
+                }
             }
         }
 

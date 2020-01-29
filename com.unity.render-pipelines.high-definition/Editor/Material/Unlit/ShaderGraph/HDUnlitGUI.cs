@@ -24,18 +24,12 @@ namespace UnityEditor.Rendering.HighDefinition
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph, ShaderGraphUIBlock.Features.Unlit),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }
 

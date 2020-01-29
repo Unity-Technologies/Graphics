@@ -19,11 +19,17 @@ For information on how to use a Texture to specify ambient occlusion caused by d
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Intensity**                | Use the slider to guide the intensity of the ambient occlusion. Higher values lead to darker results. HDRP uses this value as an exponent to evaluate a pixel's final value for ambient occlusion. |
+| **Direct Lighting Strength** | Use this slider to change how much the occlusion affects direct diffuse lighting. |
 | **Step Count**               | Use the slider to set the number of steps HDRP takes to search for occluders. Increase this value to produce more precise results. This might produce a darker result as HDRP finds more occluders. |
 | **Radius**                   | Use the slider to set the distance that HDRP searches around a point for occluders. Set a higher value to make ambient occlusion cover larger scale features. Be aware that a higher distance value often produces a lower quality result. **Note:** HDRP clamps the radius in screen space to the value you set in **Maximum Radius in Pixels**. |
 | **Maximum Radius In Pixels** | Use the slider to set an upper limit, in pixels, for the area that HDRP searches for occluders. The numerical value assumes that you are using a resolution of 1920 x 1080. HDRP scales this value accordingly when you use a different resolution.  Keep this value as low as possible in order to achieve good performance. |
 | **Full Resolution**          | Enable the checkbox to process the ambient occlusion algorithm in full resolution. This improves quality significantly but is a resource-intensive operation and has an impact on performance. Disable the checkbox to process the ambient occlusion algorithm at half the resolution your application runs at. This setting is disabled by default. |
-| **Direct Lighting Strength** | Use this slider to change how much the occlusion affects direct diffuse lighting. |
+| **Temporal Accumulation**    | Enable the checkbox to accumulate the result of AO over time. This will lead to better quality, but it might result in artifacts like non instant convergence and ghosting. **Note:** This mode will not lead to good results if motion vectors are not available. |
+| **Ghosting Reduction**       | This is only available when Temporal Accumulation is enabled.<br />Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise. Moving the value closer to 1 will reduce the ghosting, at expense of more visible temporal noise. |
+| **Bilateral Upsample**       | Enable the checkbox to upsample the low resolution AO through bilateral upsampling. This preserves sharp edges better, however it is slightly more expensive and might result is more visible aliasing.  **Note:** This mode is available only when Full Resolution is set to false. |
+| **Direction Count**       | Determines how many directions are searched for occlusion, increasing this will impact performance considerably.  **Note:** This mode is available only when Temporal Accumulation is set to false. |
+| **Blur sharpness**       | Determines the sharpness of the non-temporal blur. Higher values preserve sharp features better (with higher risk of noise), lower values have a softer look. **Note:** This mode is available only when Temporal Accumulation is set to false. |
+
 
 ## Details
 

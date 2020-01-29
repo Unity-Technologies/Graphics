@@ -62,13 +62,8 @@ namespace UnityEngine.TestTools.Graphics
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
             int dummyRenderedFrameCount = 1;
 
-            bool linearColorSpace = QualitySettings.activeColorSpace == ColorSpace.Linear;
-
-            // TODO: Expose API to get URP Default HDR Format
-            // TODO: URP uses GraphicsFormat.B10G11R11_UFloatPack32 but for some reason if we use it here Test 079_TonemappingNeutralLDR fails.
-            GraphicsFormat defaultHDRFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            GraphicsFormat defaultLDRFormat = (linearColorSpace) ? GraphicsFormat.B8G8R8A8_SRGB : GraphicsFormat.B8G8R8A8_UNorm;
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? defaultHDRFormat : defaultLDRFormat, 24);
+            var defaultFormat = (settings.UseHDR) ? SystemInfo.GetGraphicsFormat(DefaultFormat.HDR) : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, defaultFormat, 24);
 
             var rt = RenderTexture.GetTemporary(desc);
             Texture2D actual = null;
@@ -91,7 +86,7 @@ namespace UnityEngine.TestTools.Graphics
 
                         if (settings.UseHDR)
                         {
-                            desc.graphicsFormat = defaultLDRFormat;
+                            desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                             dummy = RenderTexture.GetTemporary(desc);
                             UnityEngine.Graphics.Blit(rt, dummy);
                         }
@@ -210,19 +205,30 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="camera">The camera to render from.</param>
         /// <param name="width"> width of the image to be rendered</param>
         /// <param name="height"> height of the image to be rendered</param>
-        public static void AllocatesMemory(Camera camera, int width, int height)
+        public static void AllocatesMemory(Camera camera, ImageComparisonSettings settings = null, int gcAllocThreshold = 2)
         {
             if (camera == null)
                 throw new ArgumentNullException(nameof(camera));
+            
+            if (settings == null)
+                settings = new ImageComparisonSettings();
 
-            var rt = RenderTexture.GetTemporary(width, height, 24);
+            int width = settings.TargetWidth;
+            int height = settings.TargetHeight;
+
+            var defaultFormat = (settings.UseHDR) ? SystemInfo.GetGraphicsFormat(DefaultFormat.HDR) : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, defaultFormat, 24);
+
+            var rt = RenderTexture.GetTemporary(desc);
             try
             {
                 camera.targetTexture = rt;
-                var gcAllocRecorder = Recorder.Get("GC.Alloc");
 
                 // Render the first frame at this resolution (Alloc are allowed here)
                 camera.Render();
+
+                var gcAllocRecorder = Recorder.Get("GC.Alloc");
+                gcAllocRecorder.FilterToCurrentThread();
 
                 Profiler.BeginSample("GraphicTests_GC_Alloc_Check");
                 {
@@ -232,10 +238,9 @@ namespace UnityEngine.TestTools.Graphics
                 }
                 Profiler.EndSample();
 
-                // Note: Currently there are some allocs between the Camera.Render and the begining of the render pipeline rendering.
-                // Because of that, we can't enable this test.
-                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount;
-                
+                // There are 2 GC.Alloc overhead for calling Camera.CustomRender
+                int allocationCountOfRenderPipeline = gcAllocRecorder.sampleBlockCount - gcAllocThreshold;
+
                 if (allocationCountOfRenderPipeline > 0)
                     throw new Exception($"Memory allocation test failed, {allocationCountOfRenderPipeline} allocations detected. Look for GraphicTests_GC_Alloc_Check in the profiler for more details");
 

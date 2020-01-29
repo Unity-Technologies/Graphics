@@ -289,7 +289,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (IsDirty() && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
                     UpdateAsset();
                 Undo.ClearUndo(graphObject);
-                DestroyImmediate(graphObject);
+                graphObject = null;
             }
 
             graphEditorView = null;
@@ -339,6 +339,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
+
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
@@ -346,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     if (shader != null)
                     {
-                        GraphData.onSaveGraph(shader);
+                        GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
                     }                    
                 }
             }
@@ -377,7 +379,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             if (GraphData.onSaveGraph != null)
                             {
                                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(newPath);
-                                GraphData.onSaveGraph(shader);
+                                // Retrieve graph context, note that if we're here the output node will always be a master node
+                                GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
                             }
                         }
                     }
