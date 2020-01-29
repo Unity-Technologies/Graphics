@@ -649,7 +649,7 @@ namespace UnityEditor.VFX.Test
             var graph = MakeTemporaryGraph();
             var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
                         .Where(e => e != VFXValueType.Spline
-                                && e != VFXValueType.Buffer //TODO : Remove this when Buffer as exposed property is possible
+                                //&& e != VFXValueType.Buffer //TODO : Remove this when Buffer as exposed property is possible (not available on 2020.1)
                                 && e != VFXValueType.None).ToArray();
 
             foreach (var type in types)
