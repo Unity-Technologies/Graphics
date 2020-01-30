@@ -68,6 +68,15 @@ float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 }
 float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata) { return LoadDOTSInstancedData_float4x4(metadata); }
 
+float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8);
+    return float2x4(
+        asfloat(unity_DOTSInstanceData.Load4(address + 0 * 8)),
+        asfloat(unity_DOTSInstanceData.Load4(address + 1 * 8)));
+}
+float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSInstancedData_float2x4(metadata); }
+
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
 

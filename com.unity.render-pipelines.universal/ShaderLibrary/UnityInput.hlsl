@@ -121,6 +121,48 @@ real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
 
+#undef unity_ObjectToWorld
+#undef unity_WorldToObject
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+// TODO: This might not work correctly in all cases, double check!
+UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(unity_LODFade)
+    UNITY_DOTS_INSTANCED_PROP(unity_WorldTransformParams)
+    UNITY_DOTS_INSTANCED_PROP(unity_LightData)
+    UNITY_DOTS_INSTANCED_PROP(unity_LightIndices)
+    UNITY_DOTS_INSTANCED_PROP(unity_ProbesOcclusion)
+    UNITY_DOTS_INSTANCED_PROP(unity_SpecCube0_HDR)
+    UNITY_DOTS_INSTANCED_PROP(unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP(unity_DynamicLightmapST)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAr)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAg)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHAb)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBr)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBg)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHBb)
+    UNITY_DOTS_INSTANCED_PROP(unity_SHC)
+UNITY_DOTS_INSTANCING_END
+
+// Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
+#define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
+#define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
+#define unity_LightData             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightData)
+#define unity_LightIndices          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float2x4, Metadata_unity_LightIndices)
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
+#define unity_SpecCube0_HDR         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SpecCube0_HDR)
+#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
+#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
+#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
+#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
+#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
+#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
+#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
+#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
+#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
+#endif
+
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
     #define GLOBAL_CBUFFER_START(name)    cbuffer name {
     #define GLOBAL_CBUFFER_END            }

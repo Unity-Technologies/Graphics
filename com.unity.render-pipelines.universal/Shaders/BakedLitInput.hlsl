@@ -11,4 +11,20 @@ half _Glossiness;
 half _Metallic;
 CBUFFER_END
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(_BaseMap_ST)
+    UNITY_DOTS_INSTANCED_PROP(_BaseColor)
+    UNITY_DOTS_INSTANCED_PROP(_Cutoff)
+    UNITY_DOTS_INSTANCED_PROP(_Glossiness)
+    UNITY_DOTS_INSTANCED_PROP(_Metallic)
+UNITY_DOTS_INSTANCING_END
+
+#define _BaseMap_ST         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseMap_ST)
+#define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__BaseColor)
+#define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Cutoff)
+#define _Glossiness         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Glossiness)
+#define _Metallic           UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic)
+#endif
+
 #endif

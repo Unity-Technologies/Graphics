@@ -91,6 +91,7 @@
 
 #define real2x2 half2x2
 #define real2x3 half2x3
+#define real2x4 half2x4
 #define real3x2 half3x2
 #define real3x3 half3x3
 #define real3x4 half3x4
@@ -126,6 +127,7 @@
 
 #define real2x2 float2x2
 #define real2x3 float2x3
+#define real2x4 float2x4
 #define real3x2 float3x2
 #define real3x3 float3x3
 #define real3x4 float3x4

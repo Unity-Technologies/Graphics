@@ -17,6 +17,30 @@ half _BumpScale;
 half _OcclusionStrength;
 CBUFFER_END
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(_BaseMap_ST)
+    UNITY_DOTS_INSTANCED_PROP(_BaseColor)
+    UNITY_DOTS_INSTANCED_PROP(_SpecColor)
+    UNITY_DOTS_INSTANCED_PROP(_EmissionColor)
+    UNITY_DOTS_INSTANCED_PROP(_Cutoff)
+    UNITY_DOTS_INSTANCED_PROP(_Smoothness)
+    UNITY_DOTS_INSTANCED_PROP(_Metallic)
+    UNITY_DOTS_INSTANCED_PROP(_BumpScale)
+    UNITY_DOTS_INSTANCED_PROP(_OcclusionStrength)
+UNITY_DOTS_INSTANCING_END
+
+#define _BaseMap_ST         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseMap_ST)
+#define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__BaseColor)
+#define _SpecColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SpecColor)
+#define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__EmissionColor)
+#define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Cutoff)
+#define _Smoothness         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness)
+#define _Metallic           UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic)
+#define _BumpScale          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__BumpScale)
+#define _OcclusionStrength  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__OcclusionStrength)
+#endif
+
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
