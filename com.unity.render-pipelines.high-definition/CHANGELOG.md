@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for semi-transparent shadow for unlit shader and unlit shader graph.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
 - Added Material Samples to explain how to use the lit shader features
+- Added an initial implementation of ray traced sub surface scattering
 - Added decal layer masks on materials and decal layer on decal material.
 
 ### Fixed
@@ -365,6 +366,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the radius value used for ray traced directional light.
 - Fixed compilation issues with the layered lit in ray tracing shaders.
 - Fixed XR autotests viewport size rounding
+- Fixed mip map slider knob displayed when cubemap have no mipmap
+- Remove unnecessary skip of material upgrade dialog box.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -443,6 +446,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed inspector materials stencil setting code to have more sharing.
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Changed the way the length parameter is used for ray traced contact shadows.
+- Improved the coherency of PCSS blur between cascades.
 
 ## [7.1.1] - 2019-09-05
 
