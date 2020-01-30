@@ -926,7 +926,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
                 m_DbufferManager.AllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-                m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight);
+                m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, hdCamera.viewCount);
             }
         }
 
@@ -1038,9 +1038,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
-
+                  
                 ComputeShader cs = defaultResources.shaders.resolveStencilCS;
-                int kernel = SampleCountToPassIndex(hdCamera.msaaSamples);
+                int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
                 kernel = resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
                 int coarseStencilWidth = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
                 int coarseStencilHeight = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);

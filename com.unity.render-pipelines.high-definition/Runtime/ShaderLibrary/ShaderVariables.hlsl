@@ -459,9 +459,15 @@ float2 ClampAndScaleUVForPoint(float2 UV)
     return min(UV, 1.0f) * _RTHandleScale.xy;
 }
 
+uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
+{
+    // We need to shift the index to look up the right eye info.
+    return (pixCoord.y * screenSize.x + pixCoord.x) + eye * (screenSize.x * screenSize.y);
+}
+
 uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 {
-    return pixCoord.y * screenSize.x + pixCoord.x;
+    return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
 // Define Model Matrix Macro
