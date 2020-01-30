@@ -335,6 +335,7 @@ namespace UnityEngine.Rendering.Universal
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
             VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, out var baseCameraData);
             RenderSingleCamera(context, baseCameraData, !isStackedRendering);
             EndCameraRendering(context, baseCamera);
@@ -362,11 +363,54 @@ namespace UnityEngine.Rendering.Universal
                     //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                     VFX.VFXManager.PrepareCamera(currCamera);
 #endif
+                    UpdateVolumeFramework(currCamera, currCameraData);
                     InitializeAdditionalCameraData(currCamera, currCameraData, ref overlayCameraData);
                     RenderSingleCamera(context, overlayCameraData, lastCamera);
                     EndCameraRendering(context, currCamera);
                 }
             }
+        }
+
+        static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
+        {
+            // Default values when there's no additional camera data available
+            LayerMask layerMask = 1; // "Default"
+            Transform trigger = null;
+
+            if (additionalCameraData != null)
+            {
+                layerMask = additionalCameraData.volumeLayerMask;
+                trigger = additionalCameraData.volumeTrigger ?? camera.transform;
+            }
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
+                var mainCamera = Camera.main;
+
+                if (mainCamera != null && mainCamera.TryGetComponent<UniversalAdditionalCameraData>(out var mainAdditionalCameraData))
+                    layerMask = mainAdditionalCameraData.volumeLayerMask;
+            }
+
+            VolumeManager.instance.Update(trigger, layerMask);
+        }
+
+        static bool CheckPostProcessForDepth(in CameraData cameraData)
+        {
+            if (!cameraData.postProcessEnabled)
+                return false;
+
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                return true;
+
+            var stack = VolumeManager.instance.stack;
+
+            if (stack.GetComponent<DepthOfField>().IsActive())
+                return true;
+
+            if (stack.GetComponent<MotionBlur>().IsActive())
+                return true;
+
+            return false;
         }
 
         static void SetSupportedRenderingFeatures()
@@ -423,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Environment and Post-processing settings                       /
             ///////////////////////////////////////////////////////////////////
-            if (baseCamera.cameraType == CameraType.SceneView)
+            if (cameraData.isSceneViewCamera)
             {
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
@@ -516,7 +560,7 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4.Perspective(camera.fieldOfView, cameraData.aspectRatio, camera.nearClipPlane, camera.farClipPlane) :
                 camera.projectionMatrix;
 
-            if (camera.cameraType == CameraType.SceneView)
+            if (cameraData.isSceneViewCamera)
             {
                 cameraData.renderType = CameraRenderType.Base;
                 cameraData.clearDepth = true;
@@ -542,7 +586,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderer = asset.scriptableRenderer;
             }
 
-            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
+            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || CheckPostProcessForDepth(cameraData);
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
