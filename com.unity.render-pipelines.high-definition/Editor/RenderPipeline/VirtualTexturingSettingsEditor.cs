@@ -36,8 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 self = serializedSettings,
                 objReference = m_Target.settings,
 
-                cpuCacheSize = rp.Find(x => x.cpuCache.size),
-                gpuCacheSize = rp.Find(x => x.gpuCache.size),
+                cpuCacheSize = rp.Find(x => x.cpuCache.sizeInMegaBytes),
+                gpuCacheSize = rp.Find(x => x.gpuCache.sizeInMegaBytes),
                 gpuCacheSizeOverrides = rp.Find(x => x.gpuCache.sizeOverrides),
             };
 
