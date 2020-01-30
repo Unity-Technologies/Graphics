@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { UniversalPasses.Meta },
                 { UniversalPasses._2D },
             },
+            customEditorOverride = @"CustomEditor ""UnityEditor.ShaderGraph.PBRMasterGUI""",
         };
 
         public static SubShaderDescriptor Unlit = new SubShaderDescriptor()

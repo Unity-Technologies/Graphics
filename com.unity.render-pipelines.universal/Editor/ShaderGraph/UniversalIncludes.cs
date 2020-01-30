@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
+        const string kGraphVariables = "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl";
         const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
         const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
         const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
@@ -36,6 +37,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kLighting, IncludeLocation.Pregraph },
             { kShadows, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { kShaderPass, IncludeLocation.Postgraph },
@@ -50,6 +52,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { kShaderPass, IncludeLocation.Postgraph },
@@ -64,6 +67,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { kShaderPass, IncludeLocation.Postgraph },
@@ -78,6 +82,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
             { kMetaInput, IncludeLocation.Pregraph },
 
             // Post-graph
@@ -107,6 +112,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
+            { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
             { kShaderPass, IncludeLocation.Postgraph },
