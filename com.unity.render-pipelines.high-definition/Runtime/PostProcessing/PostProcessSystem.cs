@@ -8,11 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
-    /*public static class ClusterBridge
-    {
-        static public Vector4 ViewportSubsection; // static for easy testing
-    }*/
-
     // Main class for all post-processing related features - only includes camera effects, no
     // lighting/surface effect like SSR/AO
     sealed class PostProcessSystem
@@ -100,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
-        bool m_GlobalScreenSpaceFS;
+        bool m_ClusterDisplayFS;
 
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
@@ -161,14 +156,14 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             // Global Screen Space Variants
-            PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.GlobalScreenSpace);
+            PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
+            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -346,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
-            m_GlobalScreenSpaceFS   = frameSettings.IsEnabled(FrameSettingsField.GlobalScreenSpace);
+            m_ClusterDisplayFS   = frameSettings.IsEnabled(FrameSettingsField.ClusterDisplay);
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
@@ -644,8 +639,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
 
-            if (m_GlobalScreenSpaceFS)
-                flags |= UberPostFeatureFlags.GlobalScreenSpace;
+            if (m_ClusterDisplayFS)
+                flags |= UberPostFeatureFlags.ClusterDisplay;
 
             return flags;
         }

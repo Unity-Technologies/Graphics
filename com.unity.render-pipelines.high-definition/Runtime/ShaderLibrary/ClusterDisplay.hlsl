@@ -1,58 +1,64 @@
-// Cluster Display Uniforms And Utilities
-#ifndef UNITY_GLOBAL_SCREEN_SPACE_INCLUDED
-#define UNITY_GLOBAL_SCREEN_SPACE_INCLUDED
+#ifndef UNITY_CLUSTER_DISPLAY_INCLUDED
+#define UNITY_CLUSTER_DISPLAY_INCLUDED
 
-// row 0: translation2d, scale 2d
+// _ClusterParams holds all cluster related data:
+// row 0: normalized viewport subsection, (0, 0) is bottom-left, (1, 1) is top-right
 // row 1: global screensize (xy) and its reciprocate (zw)
-float4x4 _GlobalScreenSpaceParams;
+// row 2: grid size expressed in tiles (x:int, y:int, 0, 0)
+// row 3: unused
+float4x4 _ClusterParams;
 
-float2 ScreenSpaceLocalToGlobalUV(float2 uv)
+float2 DeviceToClusterFullscreenUV(float2 xy)
 {
-    return uv * _GlobalScreenSpaceParams[0].zw + _GlobalScreenSpaceParams[0].xy;
+    return _ClusterParams[0].xy + xy * _ClusterParams[0].zw;
 }
 
-float2 ScreenSpaceGlobalToLocalUV(float2 uv)
+float2 ClusterToDeviceFullscreenUV(float2 xy)
 {
-    return (uv - _GlobalScreenSpaceParams[0].xy) / _GlobalScreenSpaceParams[0].zw;
+    return (xy - _ClusterParams[0].xy) / _ClusterParams[0].zw;
 }
 
-float2 ClipSpaceLocalToGlobal(float2 pos)
+// from normalized-device-coordinates to normalized-cluster-coordinates
+float2 NdcToNcc(float2 xy)
 {
-    // clip to UV
-	pos.y = -pos.y; // flip Y
-	pos = (pos + 1) * 0.5; // [0, 1] local
-	pos = ScreenSpaceLocalToGlobalUV(pos); // [0, 1] global
-	// UV to clip
-    pos = pos * 2 - 1; // [-1, 1] global
-    pos.y = -pos.y;
-    return pos;
+    // ndc to device-UV
+	xy.y = -xy.y;
+	xy = (xy + 1) * 0.5;
+	xy = DeviceToClusterFullscreenUV(xy);
+	// cluster-UV to ncc
+    xy = xy * 2 - 1;
+    xy.y = -xy.y;
+    return xy;
 }
 
-float2 ClipSpaceGlobalToLocal(float2 pos)
+// from normalized-cluster-coordinates to normalized-device-coordinates
+float2 NccToNdc(float2 xy)
 {
-    // clip to UV
-    pos.y = -pos.y;
-	pos = (pos + 1) * 0.5; // [0, 1] global
-    pos = ScreenSpaceGlobalToLocalUV(pos); // [0, 1] local
-    // UV to clip
-    pos = pos * 2 - 1; // [-1, 1] local
-    pos.y = -pos.y; // flip Y
-    return pos;
+    // ncc to cluster-UV
+	xy.y = -xy.y;
+	xy = (xy + 1) * 0.5;
+	xy = ClusterToDeviceFullscreenUV(xy);
+	// device-UV to ndc
+    xy = xy * 2 - 1;
+    xy.y = -xy.y;
+    return xy;
 }
 
-// USING_GLOBAL_SCREEN_SPACE is enabled from Cluster Rendering Package
-#if defined(USING_GLOBAL_SCREEN_SPACE)
-    #define SCREEN_SPACE_GLOBAL_UV(uv) (ScreenSpaceLocalToGlobalUV(uv))
-    #define SCREEN_SPACE_LOCAL_UV(uv)  (ScreenSpaceGlobalToLocalUV(uv))
-    #define CLIP_SPACE_GLOBAL(pos)     (ClipSpaceLocalToGlobal(pos))
-    #define CLIP_SPACE_LOCAL(pos)      (ClipSpaceGlobalToLocal(pos))
-    #define ScreenSize _GlobalScreenSpaceParams[1]
+// USING_CLUSTER_DISPLAY keyword is enabled from Cluster Display Graphics Package
+#if defined(USING_CLUSTER_DISPLAY)
+    #define DEVICE_TO_CLUSTER_FULLSCREEN_UV(xy)          DeviceToClusterFullscreenUV(xy)
+    #define CLUSTER_TO_DEVICE_FULLSCREEN_UV(xy)          ClusterToDeviceFullscreenUV(xy)
+    #define DEVICE_TO_CLUSTER_NORMALIZED_COORDINATES(xy) NdcToNcc(xy)
+    #define CLUSTER_TO_DEVICE_NORMALIZED_COORDINATES(xy) NccToNdc(xy)
+    #define CLUSTER_GRID_SIZE                            _ClusterParams[2].xy
+    #define CLUSTER_SCREEN_SIZE                          _ClusterParams[1]
 #else
-    #define SCREEN_SPACE_GLOBAL_UV(uv) uv
-    #define SCREEN_SPACE_LOCAL_UV(uv) uv
-    #define CLIP_SPACE_GLOBAL(pos) pos
-    #define CLIP_SPACE_LOCAL(pos) pos
-    #define ScreenSize _ScreenSize
+    #define DEVICE_TO_CLUSTER_FULLSCREEN_UV(xy)          xy
+    #define CLUSTER_TO_DEVICE_FULLSCREEN_UV(xy)          xy
+    #define DEVICE_TO_CLUSTER_NORMALIZED_COORDINATES(xy) xy
+    #define CLUSTER_TO_DEVICE_NORMALIZED_COORDINATES(xy) xy
+    #define CLUSTER_GRID_SIZE                            float2(1, 1)
+    #define CLUSTER_SCREEN_SIZE                          _ScreenSize
 #endif
 
-#endif // UNITY_GLOBAL_SCREEN_SPACE_INCLUDED
+#endif // UNITY_CLUSTER_DISPLAY_INCLUDED

@@ -59,8 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
         public Rect      finalViewport;
 
-        // viewport subsection for tiled displays
-        public Matrix4x4 globalScreenSpaceParams;
+        public Matrix4x4 clusterDisplayParams;
 
         public RTHandleProperties historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
 
@@ -326,12 +325,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();
-                    globalScreenSpaceParams = xr.GetGlobalScreenSpaceMatrix();
+                    clusterDisplayParams = xr.GetClusterDisplayParams();
                 }
                 else
                 {
                     finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
-                    globalScreenSpaceParams = Matrix4x4.zero;
+                    clusterDisplayParams = Matrix4x4.zero;
                 }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -922,7 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
             // Cluster Display
-            cmd.SetGlobalMatrix(HDShaderIDs._GlobalScreenSpaceParams, globalScreenSpaceParams);
+            cmd.SetGlobalMatrix(HDShaderIDs._ClusterParams, clusterDisplayParams);
 
             // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Matrix4x4 projMatrix;
         public Matrix4x4 viewMatrix;
-        public Matrix4x4 globalScreenSpaceParams;
+        public Matrix4x4 clusterDisplayParams;
         public Rect viewport;
         public int textureArraySlice;
     }
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly Matrix4x4 projMatrix;
         internal readonly Matrix4x4 viewMatrix;
         internal readonly Rect viewport;
-        internal readonly Matrix4x4 globalScreenSpaceParams;
+        internal readonly Matrix4x4 clusterDisplayParams;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
         internal readonly Camera.StereoscopicEye legacyStereoEye;
@@ -46,18 +46,18 @@ namespace UnityEngine.Rendering.HighDefinition
             projMatrix = camera.GetStereoProjectionMatrix(eye);
             viewMatrix = camera.GetStereoViewMatrix(eye);
             viewport = camera.pixelRect;
-            globalScreenSpaceParams = Matrix4x4.zero;
+            clusterDisplayParams = Matrix4x4.zero;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
             legacyStereoEye = eye;
         }
 
-        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 globalScreenSpaceMtx, int dstSlice)
+        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayMtx, int dstSlice)
         {
             projMatrix = proj;
             viewMatrix = view;
             viewport = vp;
-            globalScreenSpaceParams = globalScreenSpaceMtx;
+            clusterDisplayParams = clusterDisplayMtx;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.height *= renderPass.renderTargetDesc.height;
 
             // TODO add viewport subsection to XRDisplaySubsystem.XRRenderParameter?
-            globalScreenSpaceParams = Matrix4x4.zero;
+            clusterDisplayParams = Matrix4x4.zero;
         }
 #endif
     }
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
         internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
         internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
-        internal Matrix4x4 GetGlobalScreenSpaceMatrix(int viewIndex = 0) { return views[viewIndex].globalScreenSpaceParams; }
+        internal Matrix4x4 GetClusterDisplayParams(int viewIndex = 0) { return views[viewIndex].clusterDisplayParams; }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
@@ -160,9 +160,9 @@ namespace UnityEngine.Rendering.HighDefinition
             AddViewInternal(new XRView(camera, eye, textureArraySlice));
         }
 
-        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 globalScreenSpaceMatrix, int textureArraySlice = -1)
+        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayParams, int textureArraySlice = -1)
         {
-            AddViewInternal(new XRView(proj, view, vp, globalScreenSpaceMatrix, textureArraySlice));
+            AddViewInternal(new XRView(proj, view, vp, clusterDisplayParams, textureArraySlice));
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
