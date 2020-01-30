@@ -99,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
-        static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static int s_ProbeVolumeAtlasWidth = 1024;
         static int s_ProbeVolumeAtlasHeight = 1024;
 
@@ -108,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
-        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 3; // one texture per [RGB] SH coefficients + one texture for float4(validity, unassigned, unassigned, unassigned).
+        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 3; // one texture per [RGB] SH coefficients
         Texture2DAtlasDynamic probeVolumeAtlas = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
@@ -152,7 +151,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
             s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
-            s_ProbeVolumeAtlasBlitDataValidityBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(float)));
 
             m_ProbeVolumeAtlasSHRTHandle = RTHandles.Alloc(
                 width: s_ProbeVolumeAtlasWidth,
@@ -175,7 +173,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
-            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataValidityBuffer);
 
             if (m_ProbeVolumeAtlasSHRTHandle != null)
                 RTHandles.Release(m_ProbeVolumeAtlasSHRTHandle);
@@ -320,10 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(data.Length == size, "ProbeVolumeSystem: The probe volume baked data and its resolution are out of sync! Volume data length is " + data.Length + ", but resolution size is " + size + ".");
 
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
-                    s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(dataValidity);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadBuffer", s_ProbeVolumeAtlasBlitDataBuffer);
-                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadValidityBuffer", s_ProbeVolumeAtlasBlitDataValidityBuffer);
                     cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTextureSH", m_ProbeVolumeAtlasSHRTHandle);
 
                     // TODO: Determine optimal batch size.
