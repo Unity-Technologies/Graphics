@@ -98,7 +98,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 "Varyings.normalWS",
                 "Varyings.tangentWS",
-                "Varyings.bitangentWS",
             },
 
             // Pass setup

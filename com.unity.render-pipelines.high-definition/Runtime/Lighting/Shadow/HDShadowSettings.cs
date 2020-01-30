@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             : base(value, overrideState)
             => this.normalized = normalized;
 
-        public void Init(NoInterpClampedIntParameter cascadeCounts, int minCascadeToAppears, NoInterpMinFloatParameter maxDistance, CascadePartitionSplitParameter previous, CascadePartitionSplitParameter next)
+        internal void Init(NoInterpClampedIntParameter cascadeCounts, int minCascadeToAppears, NoInterpMinFloatParameter maxDistance, CascadePartitionSplitParameter previous, CascadePartitionSplitParameter next)
         {
             this.maxDistance = maxDistance;
             this.previous = previous;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             : base(value, overrideState)
             => this.normalized = normalized;
 
-        public void Init(NoInterpClampedIntParameter cascadeCounts, int minCascadeToAppears, NoInterpMinFloatParameter maxDistance, CascadePartitionSplitParameter min, CascadePartitionSplitParameter max)
+        internal void Init(NoInterpClampedIntParameter cascadeCounts, int minCascadeToAppears, NoInterpMinFloatParameter maxDistance, CascadePartitionSplitParameter min, CascadePartitionSplitParameter max)
         {
             this.maxDistance = maxDistance;
             this.min = min;

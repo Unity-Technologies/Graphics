@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
         [HLSLArray(s_MaxEnv2DLight * 3, typeof(float))]
         public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 3];
+        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
+        public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 3];
 
         public uint _DirectionalLightCount;
 
@@ -25,6 +27,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _EnvProxyCount;
         public int  _EnvLightSkyEnabled;         // TODO: make it a bool
         public int _DirectionalShadowIndex;
+
+        public Vector4 _CookieAtlasSize;
+        public Vector4 _CookieAtlasData;
+        
+        public Vector4 _PlanarAtlasData;
 
         public float _MicroShadowOpacity;
 
@@ -57,7 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _EnvSliceSize;
-        public uint _CookieSizePOT; // Cookie size = 1 << _CookieSizePOT
 
         // Uniform variables that defines if we shall be using the raytraced indirect diffuse
         public int _RaytracedIndirectDiffuse;
