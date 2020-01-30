@@ -21,13 +21,13 @@ struct ps_input
 	// w: smoothness
 	VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
 	#endif
-
+	
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vector scale u
 	// y: motion vector scale v
 	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 	#endif
-
+	
 	#if NEEDS_NORMAL
 	float4 normal : TEXCOORD3; // normal scale is stored in w
 	#endif
@@ -37,12 +37,12 @@ struct ps_input
 	#if USE_NORMAL_BENDING
 	float2 bentFactors : TEXCOORD5;
 	#endif
-
+	
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
-
+    
     ${VFXAdditionalInterpolantsDeclaration}
 
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -88,14 +88,14 @@ ${VFXPassVelocityDefine}
 ${VFXPassDepthDefine}
 #endif
 ${VFXIncludeRP("VFXLit.template")}
-
+	
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
 #endif
-
+  
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED

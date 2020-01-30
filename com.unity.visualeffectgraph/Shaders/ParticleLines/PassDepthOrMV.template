@@ -21,8 +21,6 @@ ${VFXInclude("Shaders/ParticleLines/Pass.template")}
 int _ObjectId;
 int _PassValue;
 #endif
-	
-}
 
 #pragma fragment frag
 float4 frag(ps_input i) : SV_TARGET
@@ -38,4 +36,5 @@ float4 frag(ps_input i) : SV_TARGET
 #else
 #error VFX_PASSDEPTH undefined 
 #endif
+	
 }

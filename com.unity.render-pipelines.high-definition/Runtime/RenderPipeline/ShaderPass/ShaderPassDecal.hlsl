@@ -113,7 +113,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
     #endif
 #endif
-    // TODO: branch here for decallayermask
+
     GetSurfaceData(input, V, posInput, surfaceData);
 
 // Perform HTile optimization only on platform that support it

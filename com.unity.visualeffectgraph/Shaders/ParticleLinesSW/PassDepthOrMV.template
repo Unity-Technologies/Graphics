@@ -35,4 +35,5 @@ float4 frag(ps_input i) : SV_TARGET
 	return (float4)0;
 #else
 #error VFX_PASSDEPTH undefined 
-#endif}
+#endif
+}
