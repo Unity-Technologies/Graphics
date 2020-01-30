@@ -589,6 +589,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
 
+                    int marginalID = ImportanceSamplers.GetIdentifier(cachedContext.renderingContext.skyboxBSDFCubemapArray);
+                    ImportanceSamplers.ScheduleRelease(marginalID);
                     //Texture skyReflection = GetReflectionTexture(updateContext);
                     //if (skyReflection != m_BlackCubemapArray)
                     //{
@@ -810,7 +812,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
 
             //var marginals = ImportanceSamplers.GetMarginals((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount));
-            var marginals = ImportanceSamplers.GetMarginals(reflectionTexture.GetInstanceID());
+            int marginalID = ImportanceSamplers.GetIdentifier(reflectionTexture);
+            var marginals = ImportanceSamplers.GetMarginals(marginalID);
             if (marginals != null)
             {
                 var skyMarginal             = marginals.marginal;
@@ -820,7 +823,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                //ImportanceSamplers.ScheduleMarginalGeneration((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount), reflectionTexture);
+                ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
             }

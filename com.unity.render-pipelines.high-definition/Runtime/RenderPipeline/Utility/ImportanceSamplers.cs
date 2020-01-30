@@ -44,12 +44,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Schedule a release of Marginal Textures
+        /// </summary>
+        /// <param name="identifier">Unique ID to identify this Release.</param>
+        public static bool ScheduleRelease(int identifier)
+        {
+            return s_DefaultInstance.InternalScheduleRelease(identifier);
+        }
+
+        /// <summary>
         /// Update the logics, done once per frame
         /// </summary>
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
         public static void Update(CommandBuffer cmd)
         {
             s_DefaultInstance.Update(cmd);
+        }
+
+        public static int GetIdentifier(Texture texture)
+        {
+            return 23*texture.GetHashCode() + texture.updateCount.GetHashCode();
         }
     }
 }
