@@ -7,6 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
     public sealed class VirtualTexturingSettings : ScriptableObject
     {
-        public UnityEngine.Experimental.Rendering.VirtualTexturingSettings settings = new Experimental.Rendering.VirtualTexturingSettings();
+        public VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
     }
 }

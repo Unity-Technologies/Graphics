@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         sealed class Settings
         {
             internal SerializedProperty self;
-            internal UnityEngine.Experimental.Rendering.VirtualTexturingSettings objReference;
+            internal UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings objReference;
 
             internal SerializedProperty cpuCacheSize;
             internal SerializedProperty gpuCacheSize;
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var serializedSettings = properties.Find(x => x.settings);
 
-            var rp = new RelativePropertyFetcher<UnityEngine.Experimental.Rendering.VirtualTexturingSettings>(serializedSettings);
+            var rp = new RelativePropertyFetcher<UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings>(serializedSettings);
 
             m_Settings = new Settings
             {
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ApplyChanges()
         {
-            VirtualTexturing.ApplyVirtualTexturingSettings(m_Settings.objReference);
+            UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(m_Settings.objReference);
         }
 
         public override void OnInspectorGUI()
