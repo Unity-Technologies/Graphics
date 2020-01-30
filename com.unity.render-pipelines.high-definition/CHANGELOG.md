@@ -367,6 +367,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR autotests viewport size rounding
 - Fixed mip map slider knob displayed when cubemap have no mipmap
 - Remove unnecessary skip of material upgrade dialog box.
+- Fixed the profiling sample mismatch errors when enabling the profiler in play mode
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
