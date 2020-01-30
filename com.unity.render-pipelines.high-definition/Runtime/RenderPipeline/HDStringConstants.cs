@@ -708,6 +708,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");
         public static readonly int _RayBinTileCountX                = Shader.PropertyToID("_RayBinTileCountX");
 
+        // Sub Surface
+        public static readonly int _ThroughputTextureRW             = Shader.PropertyToID("_ThroughputTextureRW");
+        public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
+        public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
+        public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
+        
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");

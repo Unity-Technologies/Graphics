@@ -827,7 +827,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
-            #define RAYTRACING_SURFACE_SHADER
 
             // multi compile that allows us to
             #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
@@ -871,7 +870,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
-            #define RAYTRACING_SURFACE_SHADER
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW
@@ -912,7 +910,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
-            #define RAYTRACING_SURFACE_SHADER
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -942,7 +939,6 @@ Shader "HDRP/LayeredLit"
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
-            #define RAYTRACING_SURFACE_SHADER
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -953,6 +949,38 @@ Shader "HDRP/LayeredLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SubSurfaceDXR"
+            Tags{ "LightMode" = "SubSurfaceDXR" }
+
+            HLSLPROGRAM
+
+            #pragma raytracing surface_shader
+
+            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RaytracingIntersectionSubSurface.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingSubSurface.hlsl"
 
             ENDHLSL
         }
@@ -973,7 +1001,6 @@ Shader "HDRP/LayeredLit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
             #define SKIP_RASTERIZED_SHADOWS
-            #define RAYTRACING_SURFACE_SHADER
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW

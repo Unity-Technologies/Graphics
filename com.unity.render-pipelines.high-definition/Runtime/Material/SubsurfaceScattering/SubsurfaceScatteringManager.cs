@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -35,6 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int                         m_SSSActiveDiffusionProfileCount;
         uint                        m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint                        m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
+
+        // Ray gen shader name for ray tracing
+        const string m_RayGenSubSurfaceShaderName = "RayGenSubSurface";
 
         void InitSSSBuffers()
         {
@@ -279,37 +283,166 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        // History buffer for ray tracing
+        static RTHandle SubSurfaceHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
+                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                                        name: string.Format("SubSurfaceHistoryBuffer{0}", frameIndex));
+        }
+
         void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
             RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle depthTextureRT)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
+            var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
+
+            // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
             {
-                var parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
-                var resources = new SubsurfaceScatteringResources();
-                resources.colorBuffer = colorBufferRT;
-                resources.diffuseBuffer = diffuseBufferRT;
-                resources.depthStencilBuffer = depthStencilBufferRT;
-                resources.depthTexture = depthTextureRT;
-                resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
-                resources.sssBuffer = m_SSSColor;
-
-                // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                if (parameters.needTemporaryBuffer)
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
                 {
-                    // Clear the SSS filtering target
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearSSSFilteringTarget)))
-                    {
-                        CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
-                    }
-                }
+                    // Evaluate the dispatch parameters
+                    int areaTileSize = 8;
+                    int numTilesXHR = (hdCamera.actualWidth + (areaTileSize - 1)) / areaTileSize;
+                    int numTilesYHR = (hdCamera.actualHeight + (areaTileSize - 1)) / areaTileSize;
 
-                RenderSubsurfaceScattering(parameters, resources, cmd);
+                    // Clear the integration texture first
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, diffuseBufferRT);
+                    cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+
+                    // Fetch the volume overrides that we shall be using
+                    RayTracingShader subSurfaceShader = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracing;
+                    RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+                    ComputeShader deferredRayTracing = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+
+                    // Fetch all the intermediate buffers that we need
+                    RTHandle intermediateBuffer0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+                    RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
+                    RTHandle intermediateBuffer2 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
+                    RTHandle intermediateBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
+
+                    // Grab the acceleration structure for the target camera
+                    RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
+
+                    // Define the shader pass to use for the reflection pass
+                    cmd.SetRayTracingShaderPass(subSurfaceShader, "SubSurfaceDXR");
+
+                    // Set the acceleration structure for the pass
+                    cmd.SetRayTracingAccelerationStructure(subSurfaceShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
+
+                    // Inject the ray-tracing sampling data
+                    BlueNoise blueNoise = GetBlueNoiseManager();
+                    blueNoise.BindDitheredRNGData8SPP(cmd);
+
+                    // For every sample that we need to process
+                    for (int sampleIndex = 0; sampleIndex < settings.sampleCount.value; ++sampleIndex)
+                    {
+                        // Inject the ray generation data
+                        cmd.SetRayTracingFloatParams(subSurfaceShader, HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
+                        cmd.SetRayTracingIntParams(subSurfaceShader, HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
+                        cmd.SetRayTracingIntParams(subSurfaceShader, HDShaderIDs._RaytracingSampleIndex, sampleIndex);
+                        int frameIndex = RayTracingFrameIndex(hdCamera);
+                        cmd.SetRayTracingIntParam(subSurfaceShader, HDShaderIDs._RaytracingFrameIndex, frameIndex);
+
+                        // Bind the textures for ray generation
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalBufferTexture, sharedRTManager.GetNormalBuffer());
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._SSSBufferTexture, m_SSSColor);
+                        cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, sharedRTManager.GetDepthStencilBuffer(), RenderTextureSubElement.Stencil);
+
+                        // Set the output textures
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._ThroughputTextureRW, intermediateBuffer0);
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
+                        cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
+
+                        // Run the computation
+                        cmd.DispatchRays(subSurfaceShader, m_RayGenSubSurfaceShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+
+                        // Now let's do the deferred shading pass on the samples
+                        // TODO: Do this only once in the init pass
+                        int currentKernel = deferredRayTracing.FindKernel("RaytracingDiffuseDeferred");
+
+                        // Bind the lightLoop data
+                        HDRaytracingLightCluster lightCluster = RequestLightCluster();
+                        lightCluster.BindLightClusterData(cmd);
+
+                        // Bind the input textures
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._ThroughputTextureRW, intermediateBuffer0);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._NormalTextureRW, intermediateBuffer1);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._PositionTextureRW, intermediateBuffer2);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
+
+                        // Bind the output texture (it is used for accumulation read and write)
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._RaytracingLitBufferRW, diffuseBufferRT);
+
+                        // Compute the Lighting
+                        cmd.DispatchCompute(deferredRayTracing, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+                    }
+
+                    // Grab the history buffer
+                    RTHandle subsurfaceHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RayTracedSubSurface)
+                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RayTracedSubSurface, SubSurfaceHistoryBufferAllocatorFunction, 1);
+
+                    // Check if we need to invalidate the history
+                    float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+#endif
+                        // We need to check if something invalidated the history buffers
+                         historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
+                    // Apply temporal filtering to the buffer
+                    HDTemporalFilter temporalFilter = GetTemporalFilter();
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, diffuseBufferRT, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
+
+                    // Push this version of the texture for debug
+                    PushFullScreenDebugTexture(hdCamera, cmd, intermediateBuffer0, FullScreenDebugMode.RayTracedSubSurface);
+
+                    // Combine it with the rest of the lighting
+                    m_CombineLightingPass.SetTexture(HDShaderIDs._IrradianceSource, intermediateBuffer0);
+                    HDUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
+                }
+            }
+            else
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
+                {
+                    var parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
+                    var resources = new SubsurfaceScatteringResources();
+                    resources.colorBuffer = colorBufferRT;
+                    resources.diffuseBuffer = diffuseBufferRT;
+                    resources.depthStencilBuffer = depthStencilBufferRT;
+                    resources.depthTexture = depthTextureRT;
+                    resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
+                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+                    resources.sssBuffer = m_SSSColor;
+
+                    // For Jimenez we always need an extra buffer, for Disney it depends on platform
+                    if (parameters.needTemporaryBuffer)
+                    {
+                        // Clear the SSS filtering target
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearSSSFilteringTarget)))
+                        {
+                            CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
+                        }
+                    }
+
+                    RenderSubsurfaceScattering(parameters, resources, cmd);
+                }
             }
         }
+            
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA
