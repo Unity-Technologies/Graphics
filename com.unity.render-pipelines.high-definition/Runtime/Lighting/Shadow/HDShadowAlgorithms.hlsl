@@ -182,7 +182,6 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
         float lightLeakBias = sd.shadowFilterParams0.y; 
         float varianceBias = sd.shadowFilterParams0.z;
         return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
-
     }
 }
 
@@ -236,7 +235,10 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.pos = shadowContext.shadowDatas[index].pos;
     sd.worldTexelSize = shadowContext.shadowDatas[index].worldTexelSize;
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
+#if defined(SHADOW_HIGH)
     sd.shadowFilterParams0.x = shadowContext.shadowDatas[index].shadowFilterParams0.x;
+    sd.zBufferParam = shadowContext.shadowDatas[index].zBufferParam;
+#endif
 }
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
