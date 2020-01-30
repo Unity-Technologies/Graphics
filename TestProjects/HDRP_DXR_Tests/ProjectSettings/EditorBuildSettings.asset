@@ -75,6 +75,9 @@ EditorBuildSettings:
     path: Assets/Scenes/704_SpotShadow.unity
     guid: 5a4c020917912884cae832c1a77f6703
   - enabled: 1
+    path: Assets/Scenes/801_SubSurfaceScattering.unity
+    guid: c939ce56b901d264baab16d584624b30
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadows.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
