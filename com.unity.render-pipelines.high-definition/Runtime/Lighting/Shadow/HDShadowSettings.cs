@@ -52,9 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the position of the third cascade split as a percentage of Max Distance.")]
         public CascadePartitionSplitParameter cascadeShadowSplit2 = new CascadePartitionSplitParameter(0.3f);
         [Tooltip("Sets the border size between the first and second cascade split.")]
-        public CascadeEndBorderParameter cascadeShadowBorder0 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder0 = new CascadeEndBorderParameter(0.12f);
         [Tooltip("Sets the border size between the second and third cascade split.")]
-        public CascadeEndBorderParameter cascadeShadowBorder1 = new CascadeEndBorderParameter(0.0f);
+        public CascadeEndBorderParameter cascadeShadowBorder1 = new CascadeEndBorderParameter(0.1f);
         [Tooltip("Sets the border size between the third and last cascade split.")]
         public CascadeEndBorderParameter cascadeShadowBorder2 = new CascadeEndBorderParameter(0.0f);
         [Tooltip("Sets the border size at the end of the last cascade split.")]

@@ -442,6 +442,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed inspector materials stencil setting code to have more sharing.
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Changed the way the length parameter is used for ray traced contact shadows.
+- Added a small cascade border by default on first two cascades.
 
 ## [7.1.1] - 2019-09-05
 
