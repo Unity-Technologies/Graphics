@@ -50,8 +50,6 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor viewDirectionWS = new FieldDescriptor(Varyings.name, "viewDirectionWS", "VARYINGS_NEED_VIEWDIRECTION_WS", ShaderValueType.Float3,
                 subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor bitangentWS = new FieldDescriptor(Varyings.name, "bitangentWS", "VARYINGS_NEED_BITANGENT_WS", ShaderValueType.Float3,
-                subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,

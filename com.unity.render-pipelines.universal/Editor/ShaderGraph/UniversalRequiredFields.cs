@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             StructFields.Varyings.positionWS,
             StructFields.Varyings.normalWS,
             StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-            StructFields.Varyings.bitangentWS,
             StructFields.Varyings.viewDirectionWS,
             UniversalStructFields.Varyings.lightmapUV,
             UniversalStructFields.Varyings.sh,
@@ -40,7 +39,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             StructFields.Varyings.normalWS,
             StructFields.Varyings.tangentWS,
-            StructFields.Varyings.bitangentWS,
         };
 
         public static FieldDescriptor[] SpriteForward = new FieldDescriptor[]

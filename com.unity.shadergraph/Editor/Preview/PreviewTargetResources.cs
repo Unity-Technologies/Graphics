@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Varyings.texCoord3,
                 StructFields.Varyings.color,
                 StructFields.Varyings.viewDirectionWS,
-                StructFields.Varyings.bitangentWS,
                 StructFields.Varyings.screenPosition,
                 StructFields.Varyings.instanceID,
                 StructFields.Varyings.cullFace,

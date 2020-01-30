@@ -234,6 +234,11 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(Fields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
                 new ConditionalField(Fields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
 
+                // Normal Drop Off Space
+                new ConditionalField(Fields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World),
+
                 // Misc
                 new ConditionalField(Fields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),

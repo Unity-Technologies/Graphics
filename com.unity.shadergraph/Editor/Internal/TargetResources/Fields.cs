@@ -23,6 +23,9 @@
         public static FieldDescriptor DoubleSided =           new FieldDescriptor(string.Empty, "DoubleSided", "_DOUBLE_SIDED 1");
         public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup", "_SPECULAR_SETUP");
         public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal", "_NORMALMAP 1");
+        public static FieldDescriptor NormalDropOffTS =       new FieldDescriptor(string.Empty, "NormalDropOffTS", "_NORMAL_DROPOFF_TS 1");
+        public static FieldDescriptor NormalDropOffOS =       new FieldDescriptor(string.Empty, "NormalDropOffOS", "_NORMAL_DROPOFF_OS 1");
+        public static FieldDescriptor NormalDropOffWS =       new FieldDescriptor(string.Empty, "NormalDropOffWS", "_NORMAL_DROPOFF_WS 1");
         public static FieldDescriptor IsPreview =             new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
         public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1");
 #endregion

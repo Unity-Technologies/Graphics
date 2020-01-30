@@ -8,8 +8,6 @@
             new FieldDependency(StructFields.Varyings.positionWS,                                  StructFields.Attributes.positionOS),
             new FieldDependency(StructFields.Varyings.normalWS,                                    StructFields.Attributes.normalOS),
             new FieldDependency(StructFields.Varyings.tangentWS,                                   StructFields.Attributes.tangentOS),
-            new FieldDependency(StructFields.Varyings.bitangentWS,                                 StructFields.Attributes.normalOS),
-            new FieldDependency(StructFields.Varyings.bitangentWS,                                 StructFields.Attributes.tangentOS),
             new FieldDependency(StructFields.Varyings.texCoord0,                                   StructFields.Attributes.uv0),
             new FieldDependency(StructFields.Varyings.texCoord1,                                   StructFields.Attributes.uv1),
             new FieldDependency(StructFields.Varyings.texCoord2,                                   StructFields.Attributes.uv2),
@@ -60,10 +58,12 @@
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,              StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
             new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,            StructFields.Varyings.tangentWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,            StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,           StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,             StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,          StructFields.Varyings.bitangentWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,          StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,          StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,         StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,           StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
 

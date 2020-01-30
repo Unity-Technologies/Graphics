@@ -1108,6 +1108,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.RefractionBox,                HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Box),
                 new ConditionalField(HDFields.RefractionSphere,             HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere),
 
+                //Normal Drop Off Space
+                new ConditionalField(Fields.NormalDropOffOS,                normalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,                normalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
+
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
                 new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn && 

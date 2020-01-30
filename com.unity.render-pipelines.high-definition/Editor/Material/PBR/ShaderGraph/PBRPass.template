@@ -32,6 +32,9 @@ Pass
     $BlendMode.Add:                         #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:                 #define _BLENDMODE_PRE_MULTIPLY 1
     $DoubleSided:                           #define _DOUBLESIDED_ON 1
+    $NormalDropOffTS:                       #define _NORMAL_DROPOFF_TS 1
+    $NormalDropOffOS:                       #define _NORMAL_DROPOFF_OS 1
+    $NormalDropOffWS:                       #define _NORMAL_DROPOFF_WS 1
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
@@ -128,12 +131,18 @@ Pass
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
         $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
 
-        // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+        // normal delivered to master node
+        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
+        #if _NORMAL_DROPOFF_TS
+            GetNormalWS(fragInputs, normalSrc, surfaceData.normalWS, doubleSidedConstants);
+        #elif _NORMAL_DROPOFF_OS
+            surfaceData.normalWS = TransformObjectToWorldNormal(normalSrc);
+        #elif _NORMAL_DROPOFF_WS
+            surfaceData.normalWS = normalSrc;
+        #endif
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT

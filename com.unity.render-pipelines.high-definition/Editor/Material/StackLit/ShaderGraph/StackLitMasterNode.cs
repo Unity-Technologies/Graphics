@@ -1423,6 +1423,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.Transmission,                 transmission.isOn),
                 new ConditionalField(HDFields.DualSpecularLobe,             dualSpecularLobe.isOn),
 
+                // Normal Drop Off Space
+                new ConditionalField(Fields.NormalDropOffOS,                normalDropOffSpace == NormalDropOffSpace.Object),
+                new ConditionalField(Fields.NormalDropOffTS,                normalDropOffSpace == NormalDropOffSpace.Tangent),
+                new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
+
                 // Distortion
                 new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
 
