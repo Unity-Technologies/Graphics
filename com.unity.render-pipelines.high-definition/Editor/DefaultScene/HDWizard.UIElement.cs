@@ -122,20 +122,27 @@ namespace UnityEditor.Rendering.HighDefinition
             string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSkyAndFogProfileAsset.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSkyAndFogProfileAsset), defaultSkyAndFogProfilePath);
 
-            VolumeProfile originalDefaultPostProcessingProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRPostProcessingProfile : hdrpAssetEditorResources.defaultPostProcessingProfile;
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultPostProcessingProfileAsset.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultPostProcessingProfileAsset), defaultPostProcessingProfilePath);
+            VolumeProfile originalDXRSettingsProfileAsset = null;
+            string defaultDXRSettingsProfilePath = null;
+            if (forDXR)
+            {
+                originalDXRSettingsProfileAsset = hdrpAssetEditorResources.defaultDXRSettings;
+                defaultDXRSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDXRSettingsProfileAsset.name + ".asset";
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDXRSettingsProfileAsset), defaultDXRSettingsProfilePath);
+            }
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
             VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
-            VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
+            VolumeProfile defaultDXRSettingsProfile = null;
+            if (forDXR)
+                defaultDXRSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultDXRSettingsProfilePath);
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
                 if (volume.sharedProfile.name.StartsWith(originalDefaultSkyAndFogProfileAsset.name))
                     volume.sharedProfile = defaultSkyAndFogProfile;
-                else if (volume.sharedProfile.name.StartsWith(originalDefaultPostProcessingProfileAsset.name))
-                    volume.sharedProfile = defaultPostProcessingProfile;
+                else if (forDXR && volume.sharedProfile.name.StartsWith(originalDXRSettingsProfileAsset.name))
+                    volume.sharedProfile = defaultDXRSettingsProfile;
             }
 
             if (forDXR)

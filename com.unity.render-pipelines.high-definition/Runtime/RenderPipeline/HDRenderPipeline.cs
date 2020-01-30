@@ -4282,7 +4282,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         // We still clear in case of debug mode or on demand
                         if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers))
                         {
-                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                            // On PS4 we don't have working MRT clear, so need to clear buffers one by one
+                            // https://fogbugz.unity3d.com/f/cases/1182018/
+                            if (Application.platform == RuntimePlatform.PS4)
+                            {
+                                var GBuffers = m_GbufferManager.GetBuffersRTI();
+                                foreach (var gbuffer in GBuffers)
+                                {
+                                    CoreUtils.SetRenderTarget(cmd, gbuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                                }
+                            }
+                            else
+                            {
+                                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                            }
                         }
 
                         // If we are in deferred mode and the ssr is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for
