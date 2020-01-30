@@ -39,8 +39,8 @@ uint UnpackMaterialFlags(float packedMaterialFlags)
 FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
 {
 #if _PACK_NORMALS_OCT
-    half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
-    half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
 #else
     half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
@@ -96,8 +96,8 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
 {
 #if _PACK_NORMALS_OCT
-    half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
-    half2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;   // values between [ 0,  1]
+    float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
+    float2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;             // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
 #else
     half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
