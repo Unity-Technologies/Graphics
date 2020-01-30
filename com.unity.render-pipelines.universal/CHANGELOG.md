@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Blend Style in the 2DRendererData are now automatically enabled/disabled.
 - When using the 2D Renderer, Sprites will render with a faster rendering path when no lights are present.
 - Particle shaders now receive shadows
+- The Scene view now mirrors the Volume Layer Mask set on the Main Camera.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -84,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where TerrainDetailLit.shader fails to compile when XR is enabled.
 - Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported.
 - Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
+- Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
