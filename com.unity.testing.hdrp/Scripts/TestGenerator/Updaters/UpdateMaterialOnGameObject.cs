@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 {
@@ -7,12 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
     [AddComponentMenu("TestGenerator/Updaters/Update Material On GameObjects")]
     public class UpdateMaterialOnGameObject : MonoBehaviour, IUpdateGameObjects
     {
-        #pragma warning disable 649
-        [SerializeField] ExecuteMode m_ExecuteMode = ExecuteMode.All;
-        [SerializeField] bool m_UseSharedMaterial = true;
-        [SerializeField] MaterialModificationList[] m_Modifications;
-        #pragma warning restore 649
-
         public ExecuteMode executeMode => m_ExecuteMode;
 
         public void UpdateInPlayMode(Transform parent, List<GameObject> instances)
@@ -28,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
         void UpdateInstances(List<GameObject> instances)
         {
 #if UNITY_EDITOR
-            UnityEditor.AssetDatabase.StartAssetEditing();
+            AssetDatabase.StartAssetEditing();
 #endif
             var c = Mathf.Min(instances.Count, m_Modifications.Length);
             for (var i = 0; i < c; ++i)
@@ -46,12 +40,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 foreach (var modification in modifications.modifications)
                     modification.ApplyTo(material);
 #if UNITY_EDITOR
-                UnityEditor.EditorUtility.SetDirty(material);
+                EditorUtility.SetDirty(material);
 #endif
             }
 #if UNITY_EDITOR
-            UnityEditor.AssetDatabase.StopAssetEditing();
+            AssetDatabase.StopAssetEditing();
 #endif
         }
+#pragma warning disable 649
+        [Tooltip("When to execute this updater.")] [SerializeField]
+        ExecuteMode m_ExecuteMode = ExecuteMode.All;
+
+        [Tooltip("Tick this to use a shared material.")] [SerializeField]
+        bool m_UseSharedMaterial = true;
+
+        [Tooltip("The modifications to apply to the material.")] [SerializeField]
+        MaterialModificationList[] m_Modifications;
+#pragma warning restore 649
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Rendering;
@@ -9,13 +8,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
     [AddComponentMenu("TestGenerator/Generators/Generate From Prefab")]
     public class GenerateFromPrefab : MonoBehaviour, IGenerateGameObjects
     {
-        #pragma warning disable 649
-        [SerializeField] int m_Count;
-        [SerializeField] GameObject m_Prefab;
-        [Tooltip("0: Index, 1: Prefab name")]
-        [SerializeField] string m_FormatName = "{1}_{0}";
-        #pragma warning restore 649
-
         public void GenerateInPlayMode(Transform parent, List<GameObject> instances)
         {
             if (m_Prefab == null || m_Prefab.Equals(null)) return;
@@ -75,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 
                 if (instance == null || instance.Equals(null))
                 {
-                    instance = (GameObject)PrefabUtility.InstantiatePrefab(m_Prefab, parent);
+                    instance = (GameObject) PrefabUtility.InstantiatePrefab(m_Prefab, parent);
                     SetName(instance, i);
                     instances[i] = instance;
                 }
@@ -95,5 +87,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
         {
             instance.name = string.Format(m_FormatName, index, m_Prefab.name);
         }
+#pragma warning disable 649
+        [Tooltip("Number of game object generated.")] [SerializeField]
+        int m_Count;
+
+        [Tooltip("The prefab to use to generated game objects.")] [SerializeField]
+        GameObject m_Prefab;
+
+        [Tooltip("The format to use when naming generated game objects. (0: Index, 1: Prefab name)")] [SerializeField]
+        string m_FormatName = "{1}_{0}";
+#pragma warning restore 649
     }
 }

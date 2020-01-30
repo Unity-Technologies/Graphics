@@ -3,6 +3,9 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
 {
     // Prototype
+    /// <summary>
+    ///     Describe when an execution should occur
+    /// </summary>
     [Flags]
     public enum ExecuteMode
     {

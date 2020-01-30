@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
@@ -7,11 +6,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
     [AddComponentMenu("TestGenerator/Updaters/Scale GameObjects")]
     public class ScaleGameObjects : MonoBehaviour, IUpdateGameObjects
     {
-        #pragma warning disable 649
-        [SerializeField] ExecuteMode m_ExecuteMode = ExecuteMode.All;
-        [SerializeField] Vector3 m_Scale;
-        #pragma warning restore 649
-
         public ExecuteMode executeMode => m_ExecuteMode;
 
         public void UpdateInPlayMode(Transform parent, List<GameObject> instances)
@@ -32,5 +26,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 tr.localScale = m_Scale;
             }
         }
+#pragma warning disable 649
+        [Tooltip("When to execute this updater.")] [SerializeField]
+        ExecuteMode m_ExecuteMode = ExecuteMode.All;
+
+        [Tooltip("The local scale to set.")] [SerializeField]
+        Vector3 m_Scale;
+#pragma warning restore 649
     }
 }

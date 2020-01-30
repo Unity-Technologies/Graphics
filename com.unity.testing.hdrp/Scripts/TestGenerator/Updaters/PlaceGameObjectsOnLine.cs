@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
@@ -7,12 +6,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
     [AddComponentMenu("TestGenerator/Updaters/Place GameObjects On Line")]
     public class PlaceGameObjectsOnLine : MonoBehaviour, IUpdateGameObjects
     {
-        #pragma warning disable 649
-        [SerializeField] ExecuteMode m_ExecuteMode = ExecuteMode.All;
-        [SerializeField] Vector3 m_Start;
-        [SerializeField] Vector3 m_Offset = Vector3.right;
-        #pragma warning restore 649
-
         public ExecuteMode executeMode => m_ExecuteMode;
 
         public void UpdateInPlayMode(Transform parent, List<GameObject> instances)
@@ -33,5 +26,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest.TestGenerator
                 tr.localPosition = m_Start + m_Offset * i;
             }
         }
+#pragma warning disable 649
+        [Tooltip("When to execute this updater.")] [SerializeField]
+        ExecuteMode m_ExecuteMode = ExecuteMode.All;
+
+        [Tooltip("The start position of the line. (Local space)")] [SerializeField]
+        Vector3 m_Start;
+
+        [Tooltip("The offset between each items. (Local space)")] [SerializeField]
+        Vector3 m_Offset = Vector3.right;
+#pragma warning restore 649
     }
 }
