@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     projMatrix = camera.projectionMatrix,
                     viewMatrix = camera.worldToCameraMatrix,
-                    viewport = camera.pixelRect,
+                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
                     textureArraySlice = -1
                 };
 
