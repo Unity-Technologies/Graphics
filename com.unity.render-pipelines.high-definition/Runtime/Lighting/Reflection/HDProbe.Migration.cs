@@ -123,6 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]
-        protected ObsoleteCaptureSettings m_ObsoleteCaptureSettings;
+        internal ObsoleteCaptureSettings m_ObsoleteCaptureSettings;
     }
 }

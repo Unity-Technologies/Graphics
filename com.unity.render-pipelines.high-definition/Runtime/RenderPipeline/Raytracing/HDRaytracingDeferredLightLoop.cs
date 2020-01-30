@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader rayBinningCS;
         }
 
-        public struct DeferredLightingRTResources
+        struct DeferredLightingRTResources
         {
             // Input Buffer
             public RTHandle directionBuffer;
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
             cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountType, parameters.rayCountType);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
-            
+
             // Bind all input parameter
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rayBias);
             cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, parameters.layerMask);

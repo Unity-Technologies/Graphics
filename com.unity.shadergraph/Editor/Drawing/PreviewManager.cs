@@ -574,9 +574,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyRenderData(PreviewRenderData renderData)
         {
-            if (renderData.shaderData != null
-                && renderData.shaderData.shader != null)
-                Object.DestroyImmediate(renderData.shaderData.shader, true);
+            if (renderData.shaderData != null)
+            {
+                if (renderData.shaderData.mat != null)
+                {
+                    Object.DestroyImmediate(renderData.shaderData.mat, true);
+                }
+                if (renderData.shaderData.shader != null)
+                {
+                    Object.DestroyImmediate(renderData.shaderData.shader, true);
+                }
+            }
+
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
 
