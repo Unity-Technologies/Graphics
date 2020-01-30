@@ -66,9 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
 
-            public static GUIContent    supportDecalsText = new GUIContent("Enable Decal", "Specify whether the material can receive decals.");
-            public static GUIContent    receivesSSRText = new GUIContent("Receives SSR", "Specify whether the material can receive screen space reflection.");
-
             // Misc advanced:
             public const string advancedHeader = "Advanced Per Material Shading Controls";
 
@@ -242,20 +239,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
         MaterialProperty  m_ClearcoatIORMap = null;
 
-        // Stencil refs and masks
-        const string kStencilRef = "_StencilRef";
-        const string kStencilWriteMask = "_StencilWriteMask";
-        const string kStencilRefDepth = "_StencilRefDepth";
-        const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
-        const string kStencilRefMV = "_StencilRefMV";
-        const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
-
-        // Decals and SSR
-        const string kEnableDecals = "_SupportDecals";
-        const string kEnableSSR = "_ReceivesSSR";
-        MaterialProperty m_SupportDecals = null;
-        MaterialProperty m_ReceivesSSR = null;
-
         Expandable  m_ExpandableBit;
 
         public AxfSurfaceInputsUIBlock(Expandable expandableBit)
@@ -329,10 +312,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClearcoatColorMap = FindProperty(m_ClearcoatColorMapText);
             m_ClearcoatNormalMap = FindProperty(m_ClearcoatNormalMapText);
             m_ClearcoatIORMap = FindProperty(m_ClearcoatIORMapText);
-
-            // Decals and SSR
-            m_SupportDecals = FindProperty(kEnableDecals);
-            m_ReceivesSSR = FindProperty(kEnableSSR);
         }
 
         public override void OnGUI()
@@ -611,7 +590,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 //ltcBRDFColorMode = EditorGUILayout.IntField(Styles.ltcBRDFColorModeText, ltcBRDFColorMode);
                 environmentMode = (uint) EditorGUILayout.IntField(Styles.environmentModeText, (int)environmentMode);
 
-                m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, -4, 4);
+                //m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, -4, 4);
+                m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, 0, 4);
                 //m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntField(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue);
                 //materialEditor.ShaderProperty(m_EnvSamplingModeQuality, Styles.envSamplingModeQualityText);
                 materialEditor.ShaderProperty(m_EnvSamplingFilteringAmount, Styles.envSamplingFilteringAmountText);
