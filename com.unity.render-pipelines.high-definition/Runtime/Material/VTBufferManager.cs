@@ -1,9 +1,9 @@
+#if ENABLE_VIRTUALTEXTURES
+using VirtualTexturing = UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Experimental.Rendering;
-
 
 namespace  UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_VIRTUALTEXTURES
     public class VTBufferManager
     {
         public static GraphicsFormat GetFeedbackBufferFormat()
@@ -12,7 +12,7 @@ namespace  UnityEngine.Rendering.HighDefinition
         }
 
         RTHandle m_VTFeedbackBuffer;
-        VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
+        VirtualTexturing.Resolver m_Resolver = new VirtualTexturing.Resolver();
         public static int AdditionalForwardRT = 1;
         const int resolveScaleFactor = 16;
         Vector2 resolverScale = new Vector2(1.0f / (float)resolveScaleFactor, 1.0f / (float)resolveScaleFactor);
@@ -39,7 +39,7 @@ namespace  UnityEngine.Rendering.HighDefinition
         public void BeginRender(int width, int height)
         {
             GetResolveDimensions(ref width, ref height);
-            m_Resolver.Init((uint)width, (uint)height);
+            m_Resolver.UpdateSize(width, height);
         }
 
         public void Resolve(CommandBuffer cmd, RTHandle rt, int width, int height)
@@ -80,7 +80,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             var TGSize = 8; //Match shader
             cmd.DispatchCompute(downSampleCS, kernel, ((int)lowResWidth + (TGSize - 1)) / TGSize, ((int)lowResHeight + (TGSize - 1)) / TGSize, 1);
 
-            m_Resolver.Process(cmd, lowresResolver.nameID, 0, (uint)lowResWidth, 0, (uint)lowResHeight, 0, 0);
+            m_Resolver.Process(cmd, lowresResolver.nameID, 0, lowResWidth, 0, lowResHeight, 0, 0);
         }
 
         void GetResolveDimensions(ref int w, ref int h)
@@ -106,5 +106,5 @@ namespace  UnityEngine.Rendering.HighDefinition
 
 
     }
-#endif
 }
+#endif
