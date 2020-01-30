@@ -378,17 +378,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
-                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
+
+                if (alphaCutoff != null)
                     materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
 
-                if (useShadowThreshold != null)
-                    materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
-
-                if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
                 {
-                    EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
-                    EditorGUI.indentLevel--;
+                    if (useShadowThreshold != null)
+                        materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
+
+                    if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
+                    {
+                        EditorGUI.indentLevel++;
+                        materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
+                        EditorGUI.indentLevel--;
+                    }
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply

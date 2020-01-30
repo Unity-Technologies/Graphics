@@ -59,6 +59,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to exclude camera motion from motion blur.
 - Added semi-transparent shadows for point and spot lights.
 - Added support for semi-transparent shadow for unlit shader and unlit shader graph.
+- Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
+- Added Material Samples to explain how to use the lit shader features
 - Added decal layer masks on materials and decal layer on decal material.
 
 ### Fixed
@@ -359,6 +361,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed not handleling properly the recieve SSR feature with ray traced reflections
 - Shadow Atlas is no longer allocated for area lights when they are disabled in the shader config file.
 - Avoid MRT Clear on PS4 as it is not implemented yet.
+- Fixed runtime debug menu BitField control.
+- Fixed the radius value used for ray traced directional light.
+- Fixed compilation issues with the layered lit in ray tracing shaders.
+- Fixed XR autotests viewport size rounding
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -434,6 +440,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom passes now disable the stencil when overwriting the depth and not writing into it.
 - Renamed the camera profiling sample to include the camera name
 - Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
+- Changed inspector materials stencil setting code to have more sharing.
+- Updated the default scene and default DXR scene and DefaultVolumeProfile.
+- Changed the way the length parameter is used for ray traced contact shadows.
 
 ## [7.1.1] - 2019-09-05
 
