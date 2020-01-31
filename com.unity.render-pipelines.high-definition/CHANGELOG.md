@@ -447,6 +447,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Changed the way the length parameter is used for ray traced contact shadows.
 - Improved the coherency of PCSS blur between cascades.
+- Updated VR checks in Wizard to reflect new XR System.
 
 ## [7.1.1] - 2019-09-05
 
