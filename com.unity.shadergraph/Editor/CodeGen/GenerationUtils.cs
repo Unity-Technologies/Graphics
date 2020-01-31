@@ -244,39 +244,14 @@ namespace UnityEditor.ShaderGraph
             using (var instancingOptions = new ShaderStringBuilder())
             {
                 instancingOptions.AppendLine("#pragma multi_compile_instancing");
-
-                if (masterNode is MasterNode node && node.dotsInstancing.isOn)
-                {
-                    instancingOptions.AppendLine("#define UNITY_DOTS_SHADER");
-                    instancingOptions.AppendLine("#pragma instancing_options nolightprobe");
-                    instancingOptions.AppendLine("#pragma instancing_options nolodfade");
-                }
-
+                
                 if ( instanceCount> 0)
                 {
-                    instancingOptions.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    instancingOptions.AppendLine("#define UNITY_SUPPORT_INSTANCING");
-                    instancingOptions.AppendLine("#endif");
                     instancingOptions.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
                     instancingOptions.AppendLine("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AppendLine("#endif");
                 }
                 spliceCommands.Add("PassInstancing", instancingOptions.ToCodeBlack());
-
-            }
-
-            using (var dotsInstancingCode = new ShaderStringBuilder())
-            {
-                if (instanceCount > 0)
-                {
-                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                    dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                    dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                    dotsInstancingCode.AppendLine("");
-
-                    dotsInstancingCode.Append(propertyCollector.GetDotsInstancingPropertiesDeclaration(mode));
-                }
-                spliceCommands.Add("DotsInstancingVars", dotsInstancingCode.ToCodeBlack());
 
             }
 

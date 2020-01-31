@@ -779,22 +779,15 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs, debugOutput);
 
 
-            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+            int instanceCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
 
-                if (masterNode is MasterNode node && node.dotsInstancing.isOn)
+                if ( instanceCount> 0)
                 {
-                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_SHADER");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
-                }
-
-                if (instancedCount > 0)
-                {
-                    instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
+                    instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
+                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AddShaderChunk("#endif");
                 }
 
@@ -803,15 +796,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     foreach (var instancingOption in pass.ExtraInstancingOptions)
                         instancingOptions.AddShaderChunk(instancingOption);
                 }
-            }
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
-
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
             }
 
             ShaderGenerator shaderStages = new ShaderGenerator();
@@ -1228,8 +1212,8 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); 
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
+            collector.AddIntProperty("_StencilRef", stencilRef);
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask);
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
             collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
@@ -1237,11 +1221,11 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
             collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors); 
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors); 
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
