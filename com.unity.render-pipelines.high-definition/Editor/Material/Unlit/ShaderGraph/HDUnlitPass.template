@@ -25,7 +25,6 @@ Pass
     $splice(GraphKeywords)
 
     // Defines
-    $AlphaFog:                              #define _ENABLE_FOG_ON_TRANSPARENT 1
     $AddPrecomputedVelocity:                #define _ADD_PRECOMPUTED_VELOCITY
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT

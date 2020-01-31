@@ -117,7 +117,6 @@ Pass
     // _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 
     // Defines
-    $AlphaFog:                                           #define _ENABLE_FOG_ON_TRANSPARENT
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
     $AddPrecomputedVelocity:                             #define _ADD_PRECOMPUTED_VELOCITY

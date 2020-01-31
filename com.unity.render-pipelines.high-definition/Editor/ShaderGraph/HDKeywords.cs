@@ -183,6 +183,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             };
 
+            public static KeywordDescriptor FogOnTransparent = new KeywordDescriptor()
+            {
+                displayName = "Enable Fog On Transparent",
+                referenceName = "_ENABLE_FOG_ON_TRANSPARENT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
             public static KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
             {
                 displayName = "Scene Selection Pass",
@@ -289,6 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDDepthMotionVectors = new KeywordCollection
@@ -296,6 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.WriteMsaaDepth },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDUnlitForward = new KeywordCollection
@@ -303,6 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.DebugDisplay },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDGBuffer = new KeywordCollection
@@ -318,6 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.ShadowsShadowmask },
             { Descriptors.LightLayers },
             { Descriptors.Decals },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDBase = new KeywordCollection
@@ -326,6 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDLitDepthMotionVectors = new KeywordCollection
@@ -336,6 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDForward = new KeywordCollection
@@ -352,6 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.Shadow },
             { Descriptors.Decals },
             { Descriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true) },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDDepthMotionVectorsNoNormal = new KeywordCollection
@@ -361,6 +377,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
+            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection RaytracingBasic = new KeywordCollection
