@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                        m_FinalBlitPass.Setup(cameraTargetDescriptor, applyPostProcessing ? m_AfterPostProcessColor : m_ActiveCameraColorAttachment);
                         EnqueuePass(m_FinalBlitPass);
                     }
                 }
