@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.uv3,
                 HDStructFields.AttributesMesh.color,
                 HDStructFields.AttributesMesh.instanceID,
+                HDStructFields.AttributesMesh.weights,
+                HDStructFields.AttributesMesh.indices,
             }
         };
 

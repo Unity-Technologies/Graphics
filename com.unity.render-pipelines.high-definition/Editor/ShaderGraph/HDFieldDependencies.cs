@@ -82,8 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   StructFields.Attributes.weights),
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndicies,                  StructFields.Attributes.indicies),
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   HDStructFields.AttributesMesh.weights),
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   HDStructFields.AttributesMesh.indices),
 
             //Surface Description Dependencies
             new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,              HDStructFields.FragInputs.tangentToWorld),

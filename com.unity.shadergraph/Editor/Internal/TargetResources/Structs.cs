@@ -59,6 +59,8 @@
                 StructFields.VertexDescriptionInputs.uv3,
                 StructFields.VertexDescriptionInputs.VertexColor,
                 StructFields.VertexDescriptionInputs.TimeParameters,
+                StructFields.VertexDescriptionInputs.BoneWeights,
+                StructFields.VertexDescriptionInputs.BoneIndices,
             }
         };
 

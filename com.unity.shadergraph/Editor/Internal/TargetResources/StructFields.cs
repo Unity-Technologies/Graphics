@@ -20,7 +20,7 @@
                 "TEXCOORD3", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor weights = new FieldDescriptor(Attributes.name, "weights", "ATTRIBUTES_NEED_BLENDWEIGHTS", ShaderValueType.Float4,
                 "BLENDWEIGHTS", subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor indicies = new FieldDescriptor(Attributes.name, "indicies", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
+            public static FieldDescriptor indices = new FieldDescriptor(Attributes.name, "indices", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
                 "BLENDINDICES", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(Attributes.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
@@ -126,7 +126,7 @@
             public static FieldDescriptor BoneWeights = new FieldDescriptor(VertexDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
 
-            public static FieldDescriptor BoneIndicies = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndicies", "", ShaderValueType.Uint4,
+            public static FieldDescriptor BoneIndices = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndices", "", ShaderValueType.Uint4,
                 subscriptOptions : StructFieldOptions.Optional);
         }
 

@@ -50,7 +50,7 @@
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                  StructFields.Attributes.color),
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   StructFields.Attributes.weights),
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndicies,                  StructFields.Attributes.indicies),
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   StructFields.Attributes.indices),
 
             //Surface Description Dependencies
             new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,             StructFields.Varyings.normalWS),

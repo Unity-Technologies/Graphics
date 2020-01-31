@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 "TEXCOORD3", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor weights = new FieldDescriptor(AttributesMesh.name, "weights", "ATTRIBUTES_NEED_BLENDWEIGHTS", ShaderValueType.Float4,
                 "BLENDWEIGHTS", subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor indicies = new FieldDescriptor(AttributesMesh.name, "indicies", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
+            public static FieldDescriptor indices = new FieldDescriptor(AttributesMesh.name, "indices", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
                 "BLENDINDICES", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(AttributesMesh.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);

@@ -434,7 +434,7 @@ namespace UnityEditor.ShaderGraph
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
-                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndicies,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
             };
         }
 
