@@ -350,7 +350,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
-            VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.settings);
+            if (asset.virtualTexturingSettings)
+            {
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.settings);
+            }
+            else
+            {
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(VirtualTexturingSettings.Default);
+            }
 #endif
 
             // Initial state of the RTHandle system.

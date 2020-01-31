@@ -8,5 +8,16 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed class VirtualTexturingSettings : ScriptableObject
     {
         public VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
+
+        public static VirtualTexturing.VirtualTexturingSettings Default
+        {
+            get
+            {
+                VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
+                settings.cpuCache.sizeInMegaBytes = 64;
+                settings.gpuCache.sizeInMegaBytes = 128;
+                return settings;
+            }
+        }
     }
 }
