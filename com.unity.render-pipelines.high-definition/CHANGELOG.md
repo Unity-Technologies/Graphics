@@ -367,6 +367,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR autotests viewport size rounding
 - Fixed mip map slider knob displayed when cubemap have no mipmap
 - Remove unnecessary skip of material upgrade dialog box.
+- Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
