@@ -204,10 +204,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
         {
             const string kSupportDecals = "_SupportDecals";
-            if (!material.HasProperty(kSupportDecals))
+            var serializedMaterial = new SerializedObject(material);
+            if (!TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
                 return;
 
-            var decalLayerMask = material.GetFloat(kSupportDecals) == 1.0f ? DecalLayerMask.Full : DecalLayerMask.None;
+            var decalLayerMask = property.floatValue == 1.0f ? DecalLayerMask.Layer0 : DecalLayerMask.None;
             material.SetDecalLayerMask(decalLayerMask);
 
             HDShaderUtils.ResetMaterialKeywords(material);
@@ -277,9 +278,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // do not use directly in migration function
-        static SerializedProperty FindBase(SerializedObject material, SerializedType type)
+        static bool TryFindBase(SerializedObject material, SerializedType type, out SerializedProperty propertyBase)
         {
-            var propertyBase = material.FindProperty("m_SavedProperties");
+            propertyBase = material.FindProperty("m_SavedProperties");
 
             switch (type)
             {
@@ -287,40 +288,54 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SerializedType.Integer:
                 case SerializedType.Float:
                     propertyBase = propertyBase.FindPropertyRelative("m_Floats");
-                    break;
+                    return true;
                 case SerializedType.Color:
                 case SerializedType.Vector:
                     propertyBase = propertyBase.FindPropertyRelative("m_Colors");
-                    break;
+                    return true;
                 case SerializedType.Texture:
                     propertyBase = propertyBase.FindPropertyRelative("m_TexEnvs");
-                    break;
-                default:
-                    throw new ArgumentException($"Unknown SerializedType {type}");
+                    return true;
             }
 
+            return false;
+        }
+
+        static SerializedProperty FindBase(SerializedObject material, SerializedType type)
+        {
+            if (!TryFindBase(material, type, out var propertyBase))
+                throw new ArgumentException($"Unknown SerializedType {type}");
             return propertyBase;
         }
 
         // do not use directly in migration function
-        static (SerializedProperty property, int index, SerializedProperty parent) FindProperty(SerializedObject material, string propertyName, SerializedType type)
+        static bool TryFindProperty(SerializedObject material, string propertyName, SerializedType type, out SerializedProperty property, out int indexOf, out SerializedProperty propertyBase)
         {
-            var propertyBase = FindBase(material, type);
+            propertyBase = FindBase(material, type);
 
-            SerializedProperty property = null;
+            property = null;
             int maxSearch = propertyBase.arraySize;
-            int indexOf = 0;
+            indexOf = 0;
             for (; indexOf < maxSearch; ++indexOf)
             {
                 property = propertyBase.GetArrayElementAtIndex(indexOf);
                 if (property.FindPropertyRelative("first").stringValue == propertyName)
                     break;
             }
+
             if (indexOf == maxSearch)
-                throw new ArgumentException($"Unknown property: {propertyName}");
+                return false;
 
             property = property.FindPropertyRelative("second");
-            return (property, indexOf, propertyBase);
+            return true;
+        }
+
+        static (SerializedProperty property, int index, SerializedProperty parent) FindProperty(SerializedObject material, string propertyName, SerializedType type)
+        {
+            if (!TryFindProperty(material, propertyName, type, out var property, out var index, out var parent))
+                throw new ArgumentException($"Unknown property: {propertyName}");
+
+            return (property, index, parent);
         }
 
         static Color GetSerializedColor(SerializedObject material, string propertyName)
