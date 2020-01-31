@@ -282,6 +282,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                if (oldShader != null)
+                    ShaderUtil.ClearShaderMessages(oldShader);
+
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
@@ -290,7 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
-                    }                    
+                    }
                 }
 
                 graphObject.isDirty = false;
