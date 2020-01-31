@@ -23,8 +23,8 @@ namespace UnityEngine.Rendering.Universal
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        CopyDepthPass m_CopyDepthTempPass;
         CopyDepthPass m_CopyDepthPass;
-        CopyDepthPass m_CopyDepthPass2;
         CopyColorPass m_CopyColorPass;
         TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
@@ -96,12 +96,12 @@ namespace UnityEngine.Rendering.Universal
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, m_CopyDepthMaterial);
+            m_CopyDepthTempPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, m_CopyDepthMaterial);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights);
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 6, m_CopyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
@@ -160,28 +160,48 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
+            // Depth prepass is generated in the following cases:
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            bool requiresDepthPrepass = cameraData.isSceneViewCamera;
+            requiresDepthPrepass |= (cameraData.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData)) || m_DeferredLights.tiledDeferredShading;
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
+            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
+                requiresDepthPrepass = true;
+
+            // Special path for depth only offscreen cameras. Only write opaques + transparents.
+            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+            if (isOffscreenDepthTexture)
+            {
+                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+
+                for (int i = 0; i < rendererFeatures.Count; ++i)
+                    rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass);
+
+                // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
+                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+                EnqueuePass(m_DrawSkyboxPass);
+                // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+                m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+                EnqueuePass(m_RenderTransparentForwardPass);
+                return;
+            }
+
             // We only apply post-processing at the end of the stack, i.e, when we are rendering a camera that resolves rendering to camera target.
             bool applyPostProcessing = cameraData.postProcessEnabled && renderingData.resolveFinalTarget;
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = cameraData.postProcessEnabled && cameraData.renderType == CameraRenderType.Base;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool requiresDepthTexture = cameraData.requiresDepthTexture;
-            bool isStereoEnabled = cameraData.isStereoEnabled;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
-            // Depth prepass is generated in the following cases:
-            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
-            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = isSceneViewCamera;
-            requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData)) || m_DeferredLights.tiledDeferredShading;
-
-            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
-            if (isStereoEnabled && requiresDepthTexture)
-                requiresDepthPrepass = true;
+            // The copying of depth should normally happen after rendering opaques only.
+            // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
+            m_CopyDepthPass.renderPassEvent = (!cameraData.requiresDepthTexture && (applyPostProcessing || cameraData.isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
 
             //bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
             bool createColorTexture = true; // we always create a new colorTexture in this pass: it is used as the 3rd GBuffer slice used in the GBuffer pass, and as lightingBuffer RenderTarget in the Deferred pass
@@ -207,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
 
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
+                SetupBackbufferFormat(backbufferMsaaSamples, cameraData.isStereoEnabled);
             }
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
@@ -242,55 +262,21 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 1];
-            for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
-                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments, requiresDepthPrepass);
-            EnqueuePass(m_GBufferPass);
-
-            m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
-            EnqueuePass(m_CopyDepthPass);
-
-            m_DeferredLights.Setup(ref renderingData, m_AdditionalLightsShadowCasterPass, m_DepthCopyTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DepthTexture, gbufferColorAttachments);
-            // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
-            // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
-            // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.
-            // m_DeferredLights.m_Tilers[x].m_Tiles could be empty if we implemented an algorithm accessing scene depth information on the CPU side, but this (access depth from CPU) will probably not happen.
-            if (m_DeferredLights.HasTileLights())
-            {
-                // Compute for each tile a 32bits bitmask in which a raised bit means "this 1/32th depth slice contains geometry that could intersect with lights".
-                // Per-tile bitmasks are obtained by merging together the per-pixel bitmasks computed for each individual pixel of the tile.
-                EnqueuePass(m_TileDepthRangePass);
-
-                // On some platform, splitting the bitmasks computation into two passes:
-                //   1/ Compute bitmasks for individual or small blocks of pixels
-                //   2/ merge those individual bitmasks into per-tile bitmasks
-                // provides better performance that doing it in a single above pass.
-                if (m_DeferredLights.HasTileDepthRangeExtraPass())
-                    EnqueuePass(m_TileDepthRangeExtraPass);
-            }
-
-            EnqueuePass(m_DeferredPass);
-
-            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
-            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass);
 
 			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
                 // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
-
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            // ForwardOnly pass can have written more pixels needed by post-effects. TODO: Need binding depth render-targets as read-only.
-            if (!requiresDepthPrepass)
+            // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
+            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture)
             {
-                m_CopyDepthPass2.Setup(m_DepthTexture, m_DepthCopyTexture);
-                EnqueuePass(m_CopyDepthPass2);
+                m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
+                EnqueuePass(m_CopyDepthPass);
             }
 
             // This is useful for refraction effects (particle system).
@@ -401,7 +387,6 @@ namespace UnityEngine.Rendering.Universal
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
-            Camera camera = cameraData.camera;
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
@@ -409,9 +394,14 @@ namespace UnityEngine.Rendering.Universal
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
 
-            // If shadow is disabled, disable shadow caster culling
-            if (Mathf.Approximately(cameraData.maxShadowDistance, 0.0f))
+            // We disable shadow casters if both shadow casting modes are turned off
+            // or the shadow distance has been turned down to zero
+            bool isShadowCastingDisabled = !UniversalRenderPipeline.asset.supportsMainLightShadows && !UniversalRenderPipeline.asset.supportsAdditionalLightShadows;
+            bool isShadowDistanceZero = Mathf.Approximately(cameraData.maxShadowDistance, 0.0f);
+            if (isShadowCastingDisabled || isShadowDistanceZero)
+            {
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+            }
 
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
@@ -430,6 +420,51 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(m_ActiveCameraDepthAttachment.id);
                 m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
             }
+        }
+
+        void EnqueueDeferred(ref RenderingData renderingData, bool requiresDepthPrepass)
+        {
+            if (requiresDepthPrepass)
+            {
+                m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_DepthTexture);
+                EnqueuePass(m_DepthPrepass);
+            }
+
+            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 1];
+            for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
+                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
+            gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments, requiresDepthPrepass);
+            EnqueuePass(m_GBufferPass);
+
+            m_CopyDepthTempPass.Setup(m_DepthTexture, m_DepthCopyTexture);
+            EnqueuePass(m_CopyDepthTempPass);
+
+            m_DeferredLights.Setup(ref renderingData, m_AdditionalLightsShadowCasterPass, m_DepthCopyTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DepthTexture, gbufferColorAttachments);
+            // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
+            // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
+            // However HasTileLights uses m_HasTileVisLights which is calculated by CheckHasTileLights from all visibleLights. visibleLights is the list of lights that have passed camera culling, so we know they are in front of the camera. So we can assume m_DeferredLights.m_Tilers[x].m_Tiles will not be empty in that case.
+            // m_DeferredLights.m_Tilers[x].m_Tiles could be empty if we implemented an algorithm accessing scene depth information on the CPU side, but this (access depth from CPU) will probably not happen.
+            if (m_DeferredLights.HasTileLights())
+            {
+                // Compute for each tile a 32bits bitmask in which a raised bit means "this 1/32th depth slice contains geometry that could intersect with lights".
+                // Per-tile bitmasks are obtained by merging together the per-pixel bitmasks computed for each individual pixel of the tile.
+                EnqueuePass(m_TileDepthRangePass);
+
+                // On some platform, splitting the bitmasks computation into two passes:
+                //   1/ Compute bitmasks for individual or small blocks of pixels
+                //   2/ merge those individual bitmasks into per-tile bitmasks    
+                // provides better performance that doing it in a single above pass.
+                if (m_DeferredLights.HasTileDepthRangeExtraPass())
+                    EnqueuePass(m_TileDepthRangeExtraPass);
+            }
+
+            EnqueuePass(m_DeferredPass);
+
+            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
