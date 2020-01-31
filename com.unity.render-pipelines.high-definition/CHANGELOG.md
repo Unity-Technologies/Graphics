@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
 - Added Material Samples to explain how to use the lit shader features
 - Added an initial implementation of ray traced sub surface scattering
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. 
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
