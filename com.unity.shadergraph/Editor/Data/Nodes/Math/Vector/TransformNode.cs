@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
             string inputValue = string.Format("{0}.xyz", GetSlotValue(InputSlotId, generationMode));
@@ -172,17 +172,17 @@ namespace UnityEditor.ShaderGraph
             {
                 if (conversion.to == CoordinateSpace.World)
                 {
-                    transformString = string.Format("mul(UNITY_MATRIX_I_V, float4({0}, 1)).xyz", inputValue);
+                    transformString = string.Format("mul(UNITY_MATRIX_I_V, $precision4({0}, 1)).xyz", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul(UNITY_MATRIX_I_V, float4({0}, 1) ).xyz)" : "TransformWorldToObject(mul(UNITY_MATRIX_I_V, float4({0}, 1) ).xyz)", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)" : "TransformWorldToObject(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
                     tangentTransformSpace = CoordinateSpace.World.ToString();
-                    transformString = string.Format("TransformWorldToTangent(mul(UNITY_MATRIX_I_V, float4({0}, 1) ).xyz, {1})", inputValue, targetTransformString);
+                    transformString = string.Format("TransformWorldToTangent(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz, {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
@@ -190,12 +190,12 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             if (requiresTransposeTangentTransform)
-                visitor.AddShaderChunk(string.Format("float3x3 {0} = transpose(float3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal));", transposeTargetTransformString, CoordinateSpace.World.ToString()), true);
+                sb.AppendLine(string.Format("$precision3x3 {0} = transpose($precision3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal));", transposeTargetTransformString, CoordinateSpace.World.ToString()));
             else if (requiresTangentTransform)
-                visitor.AddShaderChunk(string.Format("float3x3 {0} = float3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal);", targetTransformString, tangentTransformSpace), true);
-            visitor.AddShaderChunk(string.Format("{0} {1} = {2};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                sb.AppendLine(string.Format("$precision3x3 {0} = $precision3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal);", targetTransformString, tangentTransformSpace));
+            sb.AppendLine("{0} {1} = {2};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForSlot(OutputSlotId),
-                    transformString), true);
+                    transformString);
         }
 
         bool RequiresWorldSpaceTangentTransform()

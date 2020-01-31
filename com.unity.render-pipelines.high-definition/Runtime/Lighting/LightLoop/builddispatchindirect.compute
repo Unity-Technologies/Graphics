@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
 #ifdef PLATFORM_LANE_COUNT      // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
-#define NR_THREADS              PLATFORM_LANE_COUNT 
+#define NR_THREADS              PLATFORM_LANE_COUNT
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -41,18 +41,22 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
     if ((featureFlags & MATERIAL_FEATURE_MASK_FLAGS) != 0)
     {
         uint variant = FeatureFlagsToTileVariant(featureFlags);
-        uint offset;
+        uint tileOffset;
 
 #if IS_DRAWINSTANCEDINDIRECT
         // We are filling up an indirect argument buffer for DrawInstancedIndirect.
-        InterlockedAdd(g_DispatchIndirectBuffer[variant * 4 + 1], 1, offset);
+        InterlockedAdd(g_DispatchIndirectBuffer[variant * 4 + 1], 1, tileOffset);
 #else
+        uint prevGroupCnt;
+
         // We are filling up an indirect argument buffer for DispatchIndirect.
-        InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+        // The buffer contains {groupCntX, groupCntY, groupCntZ} = {groupCnt, 0, 0}.
+        InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 4, prevGroupCnt);
+        tileOffset = prevGroupCnt / 4; // 4x 8x8 groups per a 16x16 tile
 #endif
 
         // See LightDefinitions class in LightLoop.cs
         uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (tileY << TILE_INDEX_SHIFT_Y) | (tileX << TILE_INDEX_SHIFT_X);
-        g_TileList[variant * g_NumTiles + offset] = tileIndex;
+        g_TileList[variant * g_NumTiles + tileOffset] = tileIndex;
     }
 }

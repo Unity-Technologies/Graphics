@@ -1,4 +1,6 @@
 using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.Rendering.LWRP;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
@@ -47,6 +49,14 @@ class EditorTests
         {
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }
+    }
+
+    // Validate that resources Guids are valid
+    [Test]
+    public void ValidateBuiltinResourceFiles()
+    {
+        string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
+        Assert.IsFalse(string.IsNullOrEmpty(templatePath));
     }
 
     // When creating LWRP all required resources should be initialized.

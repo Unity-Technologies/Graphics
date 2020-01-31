@@ -28,8 +28,8 @@ namespace UnityEditor.ShaderGraph
                 @"
 {
     Radius = max(min(min(abs(Radius * 2), abs(Width)), abs(Height)), 1e-5);
-    {precision}2 uv = abs(UV * 2 - 1) - {precision}2(Width, Height) + Radius;
-    {precision} d = length(max(0, uv)) / Radius;
+    $precision2 uv = abs(UV * 2 - 1) - $precision2(Width, Height) + Radius;
+    $precision d = length(max(0, uv)) / Radius;
     Out = saturate((1 - d) / fwidth(d));
 }";
         }

@@ -16,6 +16,7 @@ This repository and its documentation is under active development. Everything is
    * [Master Preview](Master-Preview.md)
    * [Create Node Menu](Create-Node-Menu.md)
    * [Shader Graph Asset](Shader-Graph-Asset.md)
+   * [Precision Modes](Precision-Modes.md)
 * [Sub Graph](Sub-graph.md)
    * [Sub Graph Asset](Sub-graph-Asset.md)
 * [Node](Node.md)

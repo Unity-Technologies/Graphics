@@ -94,19 +94,15 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1};", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientForPreview(GetVariableNameForNode())));
+                sb.AppendLine("Gradient {0} = {1};", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientForPreview(GetVariableNameForNode()));
             }
             else
             {
-                visitor.AddShaderChunk(string.Format("Gradient {0} = {1}", 
-                    GetVariableNameForSlot(outputSlotId), 
-                    GradientUtils.GetGradientValue(gradient, precision, true, ";")));
+                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientValue(gradient, true, ";"));
             }
         }
 

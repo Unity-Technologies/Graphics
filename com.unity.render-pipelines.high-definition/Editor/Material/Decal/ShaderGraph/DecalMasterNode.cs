@@ -237,12 +237,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             drawOrder.overrideReferenceName = "_DrawOrder";
             drawOrder.displayName = "Draw Order";
             drawOrder.floatType = FloatType.Integer;
+            drawOrder.hidden = true;
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
 
             Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
             decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
             decalMeshDepthBias.displayName = "DecalMesh DepthBias";
+            decalMeshDepthBias.hidden = true;
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);

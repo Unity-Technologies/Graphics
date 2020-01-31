@@ -33,3 +33,8 @@ Right clicking on a **Node** will open a context menu. This menu contains many o
 | Convert To Inline Node | Converts a [Property Node](Property-Types.md) into a regular node of the appropriate [Data Type](Data-Types.md) |
 | Convert To Property | Converts a **Node** into a new **Property** on the [Blackboard](Blackboard.md) of the appropriate [Property Type](Property-Types.md) |
 | Open Documentation | Opens a new web browser to the selected **Nodes** documentation page in the [Node Library](Node-Library.md) |
+
+## Color Mode
+**Nodes** interact with the [Shader Graph Window's](Shader-Graph-Window.md) [Color Modes](Color-Modes.md). Colors are displayed on nodesunderneath the text on the node title bar. See [Color Modes](Color-Modes.md) for more informatin on available colors for nodes.
+
+<image>

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.LWRP;
@@ -190,26 +191,39 @@ namespace UnityEditor.Rendering.LWRP
         {
             var menu = new GenericMenu();
 
-            foreach (Type type in
-                AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
-                    .Where(myType => myType.IsClass &&
-                                     !myType.IsAbstract &&
-                                     myType.IsSubclassOf(typeof(ScriptableRendererFeature))))
+#if UNITY_2019_2_OR_NEWER
+            var types = TypeCache.GetTypesDerivedFrom<ScriptableRendererFeature>();
+            foreach (Type type in types)
             {
-                var path = type.Name;
-                if (type.Namespace != null)
-                {
-                    if (type.Namespace.Contains("Experimental"))
-                        path += " (Experimental)";
-                }
-
-                path = Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2"),
-                    "([A-Z])([A-Z][a-z])", "$1 $2");
+                string path = GetMenuNameFromType(type);
                 menu.AddItem(new GUIContent(path), false, AddPassHandler, type.Name);
             }
+#else
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in assemblies)
+            {
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    types = e.Types;
+                }
+                foreach (Type type in types.Where(t => t != null))
+                {
+                    if (type.IsSubclassOf(typeof(ScriptableRendererFeature)))
+                    {
+                        string path = GetMenuNameFromType(type);
+                        menu.AddItem(new GUIContent(path), false, AddPassHandler, type.Name);
+                    }
+                }
+            }
+#endif
             menu.ShowAsContext();
         }
-
+        
         private void RemovePass(ReorderableList list)
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
@@ -237,6 +251,20 @@ namespace UnityEditor.Rendering.LWRP
             var newHeaderState = m_Foldouts[newIndex].value;
             m_Foldouts[oldIndex].value = newHeaderState;
             m_Foldouts[newIndex].value = oldHeaderState;
+        }
+
+        private string GetMenuNameFromType(Type type)
+        {
+            var path = type.Name;
+            if (type.Namespace != null)
+            {
+                if (type.Namespace.Contains("Experimental"))
+                    path += " (Experimental)";
+            }
+
+            // Inserts blank space in between camel case strings
+            return Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2", RegexOptions.Compiled),
+                "([A-Z])([A-Z][a-z])", "$1 $2", RegexOptions.Compiled);
         }
 
         private string ValidatePassName(string name)

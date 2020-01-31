@@ -151,97 +151,122 @@ namespace  UnityEditor.VFX.UI
 
             int insertIndex = 0;
 
-            if (m_ExposedProperty == null)
-            {
-                m_ExposedProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Exposed", () => controller.exposed, t => controller.exposed = t), 55);
-                Insert(insertIndex++, m_ExposedProperty);
-            }
-            else
-            {
-                insertIndex++;
-            }
 
-            if (m_Property == null || !m_Property.IsCompatible(controller))
+            bool isOutputParameter = controller.isOutput;
+
+            if (!isOutputParameter)
             {
-                if (m_Property != null)
+                if (m_ExposedProperty == null)
                 {
-                    m_Property.RemoveFromHierarchy();
-                }
-                m_Property = PropertyRM.Create(controller, 55);
-                if (m_Property != null)
-                {
-                    Insert(insertIndex++, m_Property);
-                    RecreateSubproperties(ref insertIndex);
-                    if (m_TooltipProperty == null)
-                    {
-                        m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
-                        TextField field = m_TooltipProperty.Query<TextField>();
-                        field.multiline = true;
-                    }
-                    Insert(insertIndex++, m_TooltipProperty);
+                    m_ExposedProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Exposed", () => controller.exposed, t => controller.exposed = t), 55);
+                    Insert(insertIndex++, m_ExposedProperty);
                 }
                 else
                 {
-                    m_TooltipProperty = null;
-                }
-            }
-            else
-            {
-                insertIndex += 1 + m_SubProperties.Count + 1; //main property + subproperties + tooltip
-            }
-
-            if (controller.canHaveRange)
-            {
-                if (m_MinProperty == null || !m_MinProperty.IsCompatible(controller.minController))
-                {
-                    if (m_MinProperty != null)
-                        m_MinProperty.RemoveFromHierarchy();
-                    m_MinProperty = PropertyRM.Create(controller.minController, 55);
-                }
-                if (m_MaxProperty == null || !m_MaxProperty.IsCompatible(controller.minController))
-                {
-                    if (m_MaxProperty != null)
-                        m_MaxProperty.RemoveFromHierarchy();
-                    m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
+                    insertIndex++;
                 }
 
-                if (m_RangeProperty == null)
+                if (m_Property == null || !m_Property.IsCompatible(controller))
                 {
-                    m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
-                }
-                Insert(insertIndex++, m_RangeProperty);
-
-                if (controller.hasRange)
-                {
-                    if (m_MinProperty.parent == null)
+                    if (m_Property != null)
                     {
-                        Insert(insertIndex++, m_MinProperty);
-                        Insert(insertIndex++, m_MaxProperty);
+                        m_Property.RemoveFromHierarchy();
+                    }
+                    m_Property = PropertyRM.Create(controller, 55);
+                    if (m_Property != null)
+                    {
+                        Insert(insertIndex++, m_Property);
+                        if (!m_Property.showsEverything)
+                        {
+                            RecreateSubproperties(ref insertIndex);
+                        }
+                        List<int> fieldpath = new List<int>();
+
+                        if (m_TooltipProperty == null)
+                        {
+                            m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
+                            TextField field = m_TooltipProperty.Query<TextField>();
+                            field.multiline = true;
+                        }
+                        Insert(insertIndex++, m_TooltipProperty);
+                    }
+                    else
+                    {
+                        m_TooltipProperty = null;
                     }
                 }
-                else if (m_MinProperty.parent != null)
+                else
                 {
-                    m_MinProperty.RemoveFromHierarchy();
-                    m_MaxProperty.RemoveFromHierarchy();
+                    insertIndex += 1 + (m_SubProperties!= null ? m_SubProperties.Count : 0)+ 1; //main property + subproperties + tooltip
+                }
+
+                if (controller.canHaveRange)
+                {
+                    if (m_MinProperty == null || !m_MinProperty.IsCompatible(controller.minController))
+                    {
+                        if (m_MinProperty != null)
+                            m_MinProperty.RemoveFromHierarchy();
+                        m_MinProperty = PropertyRM.Create(controller.minController, 55);
+                    }
+                    if (m_MaxProperty == null || !m_MaxProperty.IsCompatible(controller.minController))
+                    {
+                        if (m_MaxProperty != null)
+                            m_MaxProperty.RemoveFromHierarchy();
+                        m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
+                    }
+
+                    if (m_RangeProperty == null)
+                    {
+                        m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
+                    }
+                    Insert(insertIndex++, m_RangeProperty);
+
+                    if (controller.hasRange)
+                    {
+                        if (m_MinProperty.parent == null)
+                        {
+                            Insert(insertIndex++, m_MinProperty);
+                            Insert(insertIndex++, m_MaxProperty);
+                        }
+                    }
+                    else if (m_MinProperty.parent != null)
+                    {
+                        m_MinProperty.RemoveFromHierarchy();
+                        m_MaxProperty.RemoveFromHierarchy();
+                    }
+                }
+                else
+                {
+                    if (m_MinProperty != null)
+                    {
+                        m_MinProperty.RemoveFromHierarchy();
+                        m_MinProperty = null;
+                    }
+                    if (m_MaxProperty != null)
+                    {
+                        m_MaxProperty.RemoveFromHierarchy();
+                        m_MaxProperty = null;
+                    }
+                    if (m_RangeProperty != null)
+                    {
+                        m_RangeProperty.RemoveFromHierarchy();
+                        m_RangeProperty = null;
+                    }
                 }
             }
             else
             {
-                if (m_MinProperty != null)
+                m_Property = null;
+                m_ExposedProperty = null;
+                m_SubProperties = null;
+                m_MinProperty = null;
+                m_MaxProperty = null;
+                m_RangeProperty = null;
+                if (m_TooltipProperty == null)
                 {
-                    m_MinProperty.RemoveFromHierarchy();
-                    m_MinProperty = null;
+                    m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
                 }
-                if (m_MaxProperty != null)
-                {
-                    m_MaxProperty.RemoveFromHierarchy();
-                    m_MaxProperty = null;
-                }
-                if (m_RangeProperty != null)
-                {
-                    m_RangeProperty.RemoveFromHierarchy();
-                    m_RangeProperty = null;
-                }
+                Insert(insertIndex++, m_TooltipProperty);
             }
 
 

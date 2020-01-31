@@ -6,7 +6,8 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
 		"Unity.ugui",
-        "Unity.ugui.Editor"
+        "Unity.ugui.Editor",
+		"Unity.VisualEffectGraph.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

@@ -44,6 +44,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	float frag(ps_input i) : SV_Target0
 	{
+		VFXTransformPSInputs(i);
 		float alpha = VFXGetFragmentColor(i).a;		
 		alpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i)).a;		
 		VFXClipFragmentColor(alpha,i);

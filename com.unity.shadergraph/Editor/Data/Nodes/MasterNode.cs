@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
@@ -168,5 +167,7 @@ namespace UnityEditor.ShaderGraph
         {
             return null;
         }
+
+        public virtual void ProcessPreviewMaterial(Material Material) {}
     }
 }

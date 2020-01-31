@@ -13,10 +13,11 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
-		nointerpolation float2 builtInInterpolants : TEXCOORD1;
+		// z: exposure weight
+		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
 		
 		#if VFX_USE_RIM_LIGHT
@@ -42,6 +43,9 @@ Pass
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
 
 #if VFX_USE_RIM_LIGHT
 #define VFX_VARYING_OFFSETS offsets
@@ -68,6 +72,8 @@ Pass
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
+		VFXTransformPSInputs(i);
+		
 		o.color = VFXGetFragmentColor(i);
 		
 #if VFX_USE_RIM_LIGHT
@@ -84,7 +90,7 @@ Pass
 		o.color.rgb += saturate(fresnel) * i.rimSettings.rgb;
 #endif
 		
-        o.color = VFXApplyPreExposure(o.color);
+        o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

@@ -1,3 +1,4 @@
+
 VFXBlockUI.VFXNodeUI.node {
     flex:1 0 auto;
     align-items:stretch;
@@ -9,13 +10,19 @@ VFXBlockUI.VFXNodeUI.node {
     padding-bottom: 1px;
     margin-left:0;
     margin-right:0;
+    overflow:hidden;
 }
 VFXBlockUI.VFXNodeUI.node.first
 {
     padding-top:0;
 }
+VFXBlockUI.VFXNodeUI.node.first > #selection-border
+{
+    margin-top:0;
+}
 
-VFXBlockUI.VFXNodeUI.node > #selection-border{
+VFXBlockUI.VFXNodeUI.node > #selection-border
+{
     margin-left:0;
     margin-right:0;
     margin-top: 2px;
@@ -35,6 +42,15 @@ VFXContextUI VFXBlockUI.node #node-border #title
     justify-content:flex-start;
 }
 
+VFXBlockUI.VFXNodeUI.node #node-border
+{
+    border-radius:8;
+}
+
+VFXBlockUI.VFXNodeUI.node.invalid #node-border
+{
+    border-color: #FF0000;
+}
 
 VFXContextUI VFXBlockUI.node #node-border #title.disabled
 {

@@ -57,14 +57,14 @@ namespace UnityEditor.ShaderGraph
                 @"
 {
     // RGB to HSV
-    {precision}4 K = {precision}4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    {precision}4 P = lerp({precision}4(In.bg, K.wz), {precision}4(In.gb, K.xy), step(In.b, In.g));
-    {precision}4 Q = lerp({precision}4(P.xyw, In.r), {precision}4(In.r, P.yzx), step(P.x, In.r));
-    {precision} D = Q.x - min(Q.w, Q.y);
-    {precision} E = 1e-10;
-    {precision}3 hsv = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    $precision4 P = lerp($precision4(In.bg, K.wz), $precision4(In.gb, K.xy), step(In.b, In.g));
+    $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
+    $precision D = Q.x - min(Q.w, Q.y);
+    $precision E = 1e-10;
+    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 
-    {precision} hue = hsv.x + Offset / 360;
+    $precision hue = hsv.x + Offset / 360;
     hsv.x = (hue < 0)
             ? hue + 1
             : (hue > 1)
@@ -72,8 +72,8 @@ namespace UnityEditor.ShaderGraph
                 : hue;
 
     // HSV to RGB
-    {precision}4 K2 = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    {precision}3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);
+    $precision4 K2 = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    $precision3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);
     Out = hsv.z * lerp(K2.xxx, saturate(P2 - K2.xxx), hsv.y);
 }";
         }
@@ -88,14 +88,14 @@ namespace UnityEditor.ShaderGraph
                 @"
 {
     // RGB to HSV
-    {precision}4 K = {precision}4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    {precision}4 P = lerp({precision}4(In.bg, K.wz), {precision}4(In.gb, K.xy), step(In.b, In.g));
-    {precision}4 Q = lerp({precision}4(P.xyw, In.r), {precision}4(In.r, P.yzx), step(P.x, In.r));
-    {precision} D = Q.x - min(Q.w, Q.y);
-    {precision} E = 1e-10;
-    {precision}3 hsv = {precision}3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    $precision4 P = lerp($precision4(In.bg, K.wz), $precision4(In.gb, K.xy), step(In.b, In.g));
+    $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
+    $precision D = Q.x - min(Q.w, Q.y);
+    $precision E = 1e-10;
+    $precision3 hsv = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
 
-    {precision} hue = hsv.x + Offset;
+    $precision hue = hsv.x + Offset;
     hsv.x = (hue < 0)
             ? hue + 1
             : (hue > 1)
@@ -103,8 +103,8 @@ namespace UnityEditor.ShaderGraph
                 : hue;
 
     // HSV to RGB
-    {precision}4 K2 = {precision}4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    {precision}3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);
+    $precision4 K2 = $precision4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    $precision3 P2 = abs(frac(hsv.xxx + K2.xyz) * 6.0 - K2.www);
     Out = hsv.z * lerp(K2.xxx, saturate(P2 - K2.xxx), hsv.y);
 }";
         }

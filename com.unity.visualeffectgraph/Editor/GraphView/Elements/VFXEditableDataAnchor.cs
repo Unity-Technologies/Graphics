@@ -35,6 +35,12 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
+        public void AssetMoved()
+        {
+            m_PropertyRM.UpdateGUI(true);
+        }
+
+
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();

@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 using UnityEditor.Graphs;
 
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
@@ -129,6 +130,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
+                var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
+                {
+                    evt.menu.AppendSeparator();
+                    evt.menu.AppendAction("Color/Change...", ChangeCustomNodeColor,
+                        eventBase => DropdownMenuAction.Status.Normal);
+
+                    evt.menu.AppendAction("Color/Reset", menuAction =>
+                    {
+                        graph.owner.RegisterCompleteObjectUndo("Reset Node Color");
+                        foreach (var selectable in selection)
+                        {
+                            if (selectable is MaterialNodeView nodeView)
+                            {
+                                nodeView.node.ResetColor(editorView.colorManager.activeProviderName);
+                                editorView.colorManager.UpdateNodeView(nodeView);
+                            }
+                        }
+                    }, eventBase => DropdownMenuAction.Status.Normal);
+                }
+
                 if (selection.OfType<IShaderNodeView>().Count() == 1)
                 {
                     evt.menu.AppendSeparator();
@@ -151,6 +173,40 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Expand Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
             }
+        }
+
+        void ChangeCustomNodeColor(DropdownMenuAction menuAction)
+        {
+            // Color Picker is internal :(
+            var t = typeof(EditorWindow).Assembly.GetTypes().FirstOrDefault(ty => ty.Name == "ColorPicker");
+            var m = t?.GetMethod("Show", new[] {typeof(Action<Color>), typeof(Color), typeof(bool), typeof(bool)});
+            if (m == null)
+            {
+                Debug.LogWarning("Could not invoke Color Picker for ShaderGraph.");
+                return;
+            }
+
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var defaultColor = Color.gray;
+            if (selection.FirstOrDefault(sel => sel is MaterialNodeView) is MaterialNodeView selNode1)
+            {
+                defaultColor = selNode1.GetColor();
+                defaultColor.a = 1.0f;
+            }
+
+            void ApplyColor(Color pickedColor)
+            {
+                foreach (var selectable in selection)
+                {
+                    if(selectable is MaterialNodeView nodeView)
+                    {
+                        nodeView.node.SetColor(editorView.colorManager.activeProviderName, pickedColor);
+                        editorView.colorManager.UpdateNodeView(nodeView);
+                    }
+                }
+            }
+            graph.owner.RegisterCompleteObjectUndo("Change Node Color");
+            m.Invoke(null, new object[] {(Action<Color>) ApplyColor, defaultColor, true, false});
         }
 
         protected override bool canDeleteSelection
@@ -221,7 +277,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             SubGraphNode subgraphNode = selection.OfType<IShaderNodeView>().First().node as SubGraphNode;
 
-            var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+            var path = AssetDatabase.GetAssetPath(subgraphNode.asset);
             ShaderGraphImporterEditor.ShowGraphEditWindow(path);
         }
 
@@ -369,12 +425,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         #region Drag and drop
 
-        static bool ValidateObjectForDrop(Object obj)
+        bool ValidateObjectForDrop(Object obj)
         {
-            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is SubGraphAsset || obj is Texture2DArray || obj is Texture3D);
+            return EditorUtility.IsPersistent(obj) && (
+                obj is Texture2D ||
+                obj is Cubemap ||
+                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid) ||
+                obj is Texture2DArray ||
+                obj is Texture3D);
         }
 
-        static void OnDragUpdatedEvent(DragUpdatedEvent e)
+        void OnDragUpdatedEvent(DragUpdatedEvent e)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             bool dragging = false;
@@ -524,7 +585,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
-                node.subGraphAsset = subGraphAsset;
+                node.asset = subGraphAsset;
                 graph.AddNode(node);
             }
 

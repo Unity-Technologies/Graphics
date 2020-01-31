@@ -89,27 +89,24 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m0 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y),
                     NodeUtils.FloatToShaderValue(m_Row0.z));
-                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m1 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y),
                     NodeUtils.FloatToShaderValue(m_Row1.z));
-                sb.AppendLine("{0}3 _{1}_m2 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m2 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row2.x),
                     NodeUtils.FloatToShaderValue(m_Row2.y),
                     NodeUtils.FloatToShaderValue(m_Row2.z));
             }
-            sb.AppendLine("{0}3x3 {1} = {0}3x3 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z);",
-                precision, GetVariableNameForNode());
-            visitor.AddShaderChunk(sb.ToString(), false);
+            sb.AppendLine("$precision3x3 {0} = $precision3x3 (_{0}_m0.x, _{0}_m0.y, _{0}_m0.z, _{0}_m1.x, _{0}_m1.y, _{0}_m1.z, _{0}_m2.x, _{0}_m2.y, _{0}_m2.z);", GetVariableNameForNode());
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

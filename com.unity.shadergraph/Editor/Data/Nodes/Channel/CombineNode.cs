@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
             RG = Vector2.zero;
             return @"
 {
-    RGBA = float4(R, G, B, A);
-    RGB = float3(R, G, B);
-    RG = float2(R, G);
+    RGBA = $precision4(R, G, B, A);
+    RGB = $precision3(R, G, B);
+    RG = $precision2(R, G);
 }
 ";
         }

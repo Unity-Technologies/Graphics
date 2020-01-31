@@ -79,15 +79,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                var node = new SubGraphNode { subGraphAsset = asset };
-                var title = node.subGraphData.path.Split('/').ToList();
+                var node = new SubGraphNode { asset = asset };
+                var title = asset.path.Split('/').ToList();
                 
-                if (node.subGraphData.descendents.Contains(m_Graph.assetGuid) || node.subGraphData.assetGuid == m_Graph.assetGuid)
+                if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(node.subGraphData.path))
+                if (string.IsNullOrEmpty(asset.path))
                 {
                     AddEntries(node, new string[1] { asset.name }, nodeEntries);
                 }

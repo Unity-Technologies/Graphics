@@ -65,11 +65,12 @@
 
 .propertyrm > VFXLabeledField.fieldContainer,.propertyrm > VFXEnumField.fieldContainer
 {
-    padding-top: 1px;
-    padding-bottom: 1px;
     height: 18px;
 }
-
+.propertyrm > VFXEnumField.fieldContainer .unity-enum-field__input
+{
+    height: 16px;
+}
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
 {

@@ -8,13 +8,11 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     BuiltinData builtinData;
     BSDFData bsdfData;
     PreLightData preLightData;
+
     uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 
-    clip(builtinData.opacity - 1e-4);
-
     float3 posRWS = VFXGetPositionRWS(i);
-
     PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
 
     #if IS_OPAQUE_PARTICLE
@@ -39,11 +37,6 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
-
-    #ifdef _BLENDMODE_PRE_MULTIPLY
-    diffuseLighting *= builtinData.opacity;
-    specularLighting *= builtinData.opacity;
-    #endif
 
     float4 outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
     outColor = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posRWS), outColor);

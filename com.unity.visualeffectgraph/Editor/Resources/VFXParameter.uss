@@ -83,7 +83,14 @@ VFXParameterUI.node.superCollapsed > #node-border > #contents > #top > #output
     align-items:flex-end;
 }
 
-VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output
+VFXParameterUI.node.superCollapsed > #node-border > #contents > #top > #input
+{
+    justify-content:space-around;
+    background-color:rgba(0,0,0,0);
+}
+
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output,
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Input
 {
     height:0;
     min-height:0;
@@ -93,20 +100,23 @@ VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Out
     top: 22px; /*hard coding the position so that edge are at the right height*/
 }
 
-VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first,
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Input.first
 {
     height: 20px;
-    width: 20px;
+    width: 24px;
     position:Relative;
     top:0;
 }
 
-VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first #type
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first #type,
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Input.first #type
 {
     max-width:0;
     width:0;
 }
-VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first #icon
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Output.first #icon,
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Input.first #icon
 {
     width:0;
 }
@@ -115,7 +125,10 @@ VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Out
     margin-right: 10px;
     margin-left:0;
 }
-
+VFXParameterUI.node.superCollapsed > #node-border > #contents .VFXDataAnchor.Input.first #connector
+{
+    margin-left:10px;
+}
 
 VFXParameterUI.node > #node-border > #contents > #top
 {

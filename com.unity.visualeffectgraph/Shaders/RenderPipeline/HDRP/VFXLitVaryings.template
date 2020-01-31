@@ -29,7 +29,7 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_EMISSIVE emissiveColor.rgb
 #endif
 
-#if HDRP_USE_EMISSIVE
+#if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
 #endif
 ${VFXEnd}
@@ -93,10 +93,6 @@ o.VFX_VARYING_EMISSIVE = color;
 ${VFXLoadParameter:{emissiveColor}}
 o.VFX_VARYING_EMISSIVE = emissiveColor;
 #endif
-#endif
-#ifdef VFX_VARYING_EXPOSUREWEIGHT
-${VFXLoadParameter:{exposureWeight}}
-o.VFX_VARYING_EXPOSUREWEIGHT = exposureWeight;
 #endif
 #if HDRP_USE_ADDITIONAL_BASE_COLOR
 #ifdef VFX_VARYING_COLOR

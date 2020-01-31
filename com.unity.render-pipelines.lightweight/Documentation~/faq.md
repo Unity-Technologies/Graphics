@@ -81,3 +81,9 @@ For these reasons, we're working on a solution where you can add a render pass w
 
 By default, LWRP uses a linear color space while rendering. You can also use a gamma color space, which is non-linear. To do so, toggle it in the Player Settings.
 
+
+
+## How do I extend LWRP with scriptable render pass?
+
+To create a scriptable render pass, you have to create a `ScriptableRendererFeature` script. This is because the scriptable render feature is a container that can have the pass in it. To create the scriptable render feature in the Editor, click on **Asset** > **Create** > **Rendering** > **Lightweight Render Pipeline** > **Renderer Feature**.
+

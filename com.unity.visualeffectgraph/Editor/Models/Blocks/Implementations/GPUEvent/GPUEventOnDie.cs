@@ -8,8 +8,8 @@ namespace UnityEditor.VFX.Block.Test
     class GPUEventOnDie : VFXBlock
     {
         public override string name { get { return "Trigger Event On Die"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

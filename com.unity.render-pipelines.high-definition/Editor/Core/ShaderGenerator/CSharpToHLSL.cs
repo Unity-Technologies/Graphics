@@ -97,6 +97,35 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
+                if (!skipFile && File.Exists(fileName))
+                {
+                    FileInfo info = null;
+                    try
+                    {
+                        info = new FileInfo(fileName);
+                    }
+
+                    catch (UnauthorizedAccessException )
+
+                    {
+                        Debug.Log("Access to " + fileName + " is denied. Skipping it.");
+                        skipFile = true;
+                    }
+
+                    catch (System.Security.SecurityException )
+
+                    {
+                        Debug.Log("You do not have permission to access " + fileName + ". Skipping it.");
+                        skipFile = true;
+                    }
+
+                    if (info?.IsReadOnly ?? false)
+                    {
+                        Debug.Log(fileName + " is ReadOnly. Skipping it.");
+                        skipFile = true;
+                    }
+                }
+
                 if (skipFile)
                     continue;
 

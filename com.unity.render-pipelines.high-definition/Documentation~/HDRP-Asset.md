@@ -30,6 +30,17 @@ To change the HDRP Asset your render pipeline uses, either manually select an HD
 
 When you create an HDRP Asset, open it in the Inspector to edit its properties. 
 
+## HDRP Asset resources outline
+
+The box at the top of the Inspector for the HDRP Asset provides an outline of all of the features that the HDRP Asset supports. Each bullet point represents a supported feature and describes the resources that the feature requires. Every feature that you enable has an impact on run-time or build-time performance. For information on the performance impact of a resource, see the table below:
+
+| **Resource type** | **Performance impact**                                       |
+| ----------------- | ------------------------------------------------------------ |
+| Shader variant    | Increases build time.                                        |
+| GBuffer           | Affects run-time performance (GPU bandwidth).Increases the amount of GPU memory that an HDRP Project requires. |
+| DBuffer           | Affects run-time performance (GPU bandwidth).Increases the amount of GPU memory that an HDRP Project requires. |
+| GPU memory        | Affects run-time performance.Increases the amount of GPU memory that an HDRP Project requires. |
+
 ## HDRP Asset default Frame Settings
 
 Frame Settings control the rendering passes made by the main Camera at run time. This section describes the Frame Settings that you set on an HDRP Asset. For information about general Frame Settings, and how to use them, see the [HDRP Frame Settings documentation](Frame-Settings.html). 

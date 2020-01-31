@@ -249,7 +249,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         // The sun should have a stable intensity in its course in the sky. Moreover it should match the highlight of a purely specular material.
         // This matching was done using the standard shader BRDF1 on the 5/31/2017
         // Finally we want the sun to be always bright even in LDR thus the normalization of the lightColor for low intensity.
-        float lightColorIntensity = clamp(length(_SunColor.xyz), 0.25, 1);
+        float lightColorIntensity = max(length(_SunColor.xyz), 0.25);
         sunColor    = kHDSundiskIntensityFactor * saturate(cOut) * _SunColor.xyz / lightColorIntensity;
     #endif
 

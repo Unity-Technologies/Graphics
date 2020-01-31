@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-     {precision} randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453);
+     $precision randomno =  frac(sin(dot(Seed, $precision2(12.9898, 78.233)))*43758.5453);
      Out = lerp(Min, Max, randomno);
 }";
         }

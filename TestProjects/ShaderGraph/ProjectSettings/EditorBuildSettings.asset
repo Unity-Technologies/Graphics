@@ -6,6 +6,27 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/ArtisticNodes.unity
+    guid: ef89632b434b9c644a88f827ec7b029d
+  - enabled: 1
+    path: Assets/Scenes/ChannelNodes.unity
+    guid: cc3d7893409e1a34fa72839a8a0655b8
+  - enabled: 1
+    path: Assets/Scenes/InputNodes.unity
+    guid: 1c45ab02ee5353c44b809073fe83edf7
+  - enabled: 1
+    path: Assets/Scenes/LogicNodes.unity
+    guid: c9e604cd31ff2454d9cab4e919cae3c1
+  - enabled: 1
     path: Assets/Scenes/MathNodes.unity
     guid: a57ba07320e44f145ab52a48fadc4dca
+  - enabled: 1
+    path: Assets/Scenes/ProceduralNodes.unity
+    guid: 64ece7a4be4f6294bbdc8cad1cf7f71d
+  - enabled: 1
+    path: Assets/Scenes/UtilityNodes.unity
+    guid: e04b9c7fb71c03448b350d2b652e7301
+  - enabled: 1
+    path: Assets/Scenes/UVNodes.unity
+    guid: 6efc74ac9f48a3243a990cf89991972c
   m_configObjects: {}

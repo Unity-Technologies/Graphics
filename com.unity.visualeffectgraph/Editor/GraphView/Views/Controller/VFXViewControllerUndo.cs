@@ -116,9 +116,13 @@ namespace UnityEditor.VFX.UI
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (cause == VFXModel.InvalidationCause.kParamChanged && model is VFXSlot)
+            if (cause == VFXModel.InvalidationCause.kParamChanged)
             {
-                m_graphUndoStack.AddSlotDelta(model as VFXSlot);
+                if(model is VFXSlot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
+                {
+                    if (m_graphUndoStack != null)
+                        m_graphUndoStack.AddSlotDelta(model as VFXSlot);
+                }
                 return;
             }
 

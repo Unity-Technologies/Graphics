@@ -18,11 +18,12 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
-		nointerpolation float3 builtInInterpolants : TEXCOORD1;
+		// w: exposure weight
+		nointerpolation float4 builtInInterpolants : TEXCOORD1;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vectors scale X
@@ -51,6 +52,9 @@ Pass
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.w
+#endif
 		
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
 		
@@ -58,11 +62,12 @@ Pass
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
-
+		VFXTransformPSInputs(i);
+		
 		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
 		${VFXApplyColor}
 
-		o.color = VFXApplyPreExposure(o.color);
+		o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);

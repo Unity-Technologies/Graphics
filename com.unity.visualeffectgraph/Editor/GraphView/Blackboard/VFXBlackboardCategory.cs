@@ -190,7 +190,7 @@ namespace UnityEditor.VFX.UI
 
                 if (value)
                 {
-                    m_MainContainer.Add(m_Header);
+                    m_MainContainer.Insert(1,m_Header);
                 }
                 else
                 {

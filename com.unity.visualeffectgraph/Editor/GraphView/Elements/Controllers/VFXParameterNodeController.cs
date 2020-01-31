@@ -12,14 +12,12 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterOutputDataAnchorController : VFXDataAnchorController
+    abstract class VFXParameterDataAnchorController : VFXDataAnchorController
     {
-        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        public VFXParameterDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
 
-        public override Direction direction
-        { get { return Direction.Output; } }
         public override string name
         {
             get
@@ -83,6 +81,22 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
+    class VFXParameterOutputDataAnchorController : VFXParameterDataAnchorController
+    {
+        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+        public override Direction direction
+        { get { return Direction.Output; } }
+    }
+    class VFXParameterInputDataAnchorController : VFXParameterDataAnchorController
+    {
+        public VFXParameterInputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        {
+        }
+        public override Direction direction
+        { get { return Direction.Input; } }
+    }
 
     class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider
     {
@@ -100,6 +114,11 @@ namespace UnityEditor.VFX.UI
         {
             base.ModelChanged(obj);
 
+            foreach (var port in inputPorts)
+            {
+                port.ApplyChanges(); // call the port ApplyChange because expanded states are stored in the VFXParameter.Node
+            }
+
             foreach (var port in outputPorts)
             {
                 port.ApplyChanges(); // call the port ApplyChange because expanded states are stored in the VFXParameter.Node
@@ -113,14 +132,19 @@ namespace UnityEditor.VFX.UI
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
-            var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
-            anchor.portType = slot.property.type;
-            return anchor;
+            VFXDataAnchorController newAnchor;
+            if ( input)
+                newAnchor = new VFXParameterInputDataAnchorController(slot, this, hidden);
+            else
+                newAnchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
+
+            newAnchor.portType = slot.property.type;
+            return newAnchor;
         }
 
         public override string title
         {
-            get { return outputPorts.First().name; }
+            get { return parentController.isOutput? inputPorts.First().name : outputPorts.First().name; }
         }
 
         public string exposedName
@@ -223,7 +247,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_ParentController.parameter.GetOutputSlot(0).property.type;
+                return m_ParentController.model.type;
             }
         }
 
@@ -241,12 +265,26 @@ namespace UnityEditor.VFX.UI
 
         public override void DrawGizmos(VisualEffect component)
         {
+            if (parentController.isOutput)
+                return;
             if (VFXGizmoUtility.HasGizmo(m_ParentController.portType))
             {
                 m_ParentController.DrawGizmos(component);
 
                 m_GizmoableAnchors.Add(m_ParentController);
             }
+        }
+        public override void OnEdgeFromInputGoingToBeRemoved(VFXDataAnchorController myInput)
+        {
+            base.OnEdgeFromInputGoingToBeRemoved(myInput);
+            if(parentController.isOutput)
+                infos.linkedSlots.RemoveAll(t => t.inputSlot == myInput.model);
+        }
+        public override void OnEdgeFromOutputGoingToBeRemoved(VFXDataAnchorController myOutput, VFXDataAnchorController otherInput)
+        {
+            base.OnEdgeFromOutputGoingToBeRemoved(myOutput,otherInput);
+            if (!parentController.isOutput)
+                infos.linkedSlots.RemoveAll(t => t.outputSlot == myOutput.model && t.inputSlot == otherInput.model);
         }
 
         public override Bounds GetGizmoBounds(VisualEffect component)
@@ -287,6 +325,8 @@ namespace UnityEditor.VFX.UI
 
         public void ConvertToInline()
         {
+            if (parentController.isOutput)
+                return;
             VFXInlineOperator op = ScriptableObject.CreateInstance<VFXInlineOperator>();
             op.SetSettingValue("m_Type", (SerializableType)parentController.model.type);
 

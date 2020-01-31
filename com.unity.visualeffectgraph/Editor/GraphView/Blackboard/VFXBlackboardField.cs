@@ -50,7 +50,12 @@ namespace  UnityEditor.VFX.UI
 
         public void SelfChange()
         {
-            if (controller.exposed)
+            if(controller.isOutput)
+            {
+                icon = Resources.Load<Texture2D>("VFX/output dot");
+
+            }
+            else if (controller.exposed)
             {
                 icon = Resources.Load<Texture2D>("VFX/exposed dot");
             }

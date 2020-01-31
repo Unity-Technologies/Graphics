@@ -42,6 +42,7 @@ ${VFXEnd}
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
+		VFXTransformPSInputs(i);
 		ps_output o = (ps_output)0;
 		float3 dummy;
 		VFXClipSphereAndGetDepthOffsetAndNormal(o.depth,dummy,i);

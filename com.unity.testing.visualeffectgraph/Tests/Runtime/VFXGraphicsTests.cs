@@ -85,6 +85,7 @@ namespace UnityEngine.VFX.Test
                                                                                         .Where(o => o != null)
                                                                                         .FirstOrDefault();
                     var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
+                    fnGetResource = fnGetResource.MakeGenericMethod(new Type[]{ typeof(VisualEffectAsset)});
                     var resource = fnGetResource.Invoke(null, new object[] { vfx });
                     var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
                     var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;

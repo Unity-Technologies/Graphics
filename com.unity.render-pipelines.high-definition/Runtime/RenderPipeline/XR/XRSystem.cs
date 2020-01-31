@@ -28,6 +28,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         XRDisplaySubsystem display = null;
 #endif
 
+        internal XRSystem()
+        {
+            RefreshXrSdk();
+        }
+
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
         {
             bool xrSdkActive = RefreshXrSdk();
@@ -81,6 +86,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool RefreshXrSdk()
         {
+            TextureXR.maxViews = (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced) ? 2 : 1;
+
 #if USE_XR_SDK
             SubsystemManager.GetInstances(displayList);
 
@@ -89,6 +96,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
+
+                // XRTODO: handle more than 2 instanced views
+                TextureXR.maxViews = 2;
+
                 return true;
             }
             else

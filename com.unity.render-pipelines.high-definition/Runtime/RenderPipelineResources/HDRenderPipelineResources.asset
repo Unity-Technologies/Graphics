@@ -48,13 +48,14 @@ MonoBehaviour:
     buildMaterialFlagsCS: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08,
       type: 3}
     deferredCS: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
-    screenSpaceShadowCS: {fileID: 7200000, guid: 3e6900e06dc185a4380af4dacb4db0a4,
-      type: 3}
+    contactShadowCS: {fileID: 7200000, guid: 3e6900e06dc185a4380af4dacb4db0a4, type: 3}
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
       type: 3}
     volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97,
       type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
+    screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61,
+      type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
       type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
@@ -105,11 +106,9 @@ MonoBehaviour:
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
-    aoDownsample1CS: {fileID: 7200000, guid: 8a771b3139fdbca41a4767875d014786, type: 3}
-    aoDownsample2CS: {fileID: 7200000, guid: 5e0aed0bae0158a4982d1f0778df6eb6, type: 3}
-    aoRenderCS: {fileID: 7200000, guid: 55105671506217840b5ee1b9b936b81d, type: 3}
-    aoUpsampleCS: {fileID: 7200000, guid: 40714a7e6a527c54b8c62860676d6084, type: 3}
-    aoResolvePS: {fileID: 4800000, guid: 0fcef9ef067b4cd44a62bd6ac0166384, type: 3}
+    GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
+    GTAODenoiseCS: {fileID: 7200000, guid: 414b49640e3c719488fae81080e089c5, type: 3}
+    GTAOUpsampleCS: {fileID: 7200000, guid: 61b3fcbcdc928ef4e94363cb25b7cca7, type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
     colorResolvePS: {fileID: 4800000, guid: dd7047092f3c82b40b3a07868f9c4de2, type: 3}
     nanKillerCS: {fileID: 7200000, guid: 83982f199acf927499576a99abc9bea9, type: 3}

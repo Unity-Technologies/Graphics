@@ -201,7 +201,7 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 uint  tilePackIndex = g_TileList[g_TileListOffset + input.instID];
-                uint2 tileCoord   = uint2(tilePackIndex & 0x0000FFFF, tilePackIndex >> 16); // see builddispatchindirect.compute
+                uint2 tileCoord = uint2((tilePackIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tilePackIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
                 uint2 pixelCoord  = tileCoord * GetTileSize();
 
                 uint screenWidth  = (uint)_ScreenSize.x;
@@ -298,9 +298,6 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
@@ -360,11 +357,13 @@ Shader "Hidden/HDRP/DeferredTile"
             struct Attributes
             {
                 uint vertexID  : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             struct Outputs
@@ -380,12 +379,16 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position

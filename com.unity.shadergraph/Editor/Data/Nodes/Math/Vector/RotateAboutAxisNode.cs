@@ -51,16 +51,16 @@ namespace UnityEditor.ShaderGraph
 {
     Rotation = radians(Rotation);
 
-    {precision} s = sin(Rotation);
-    {precision} c = cos(Rotation);
-    {precision} one_minus_c = 1.0 - c;
+    $precision s = sin(Rotation);
+    $precision c = cos(Rotation);
+    $precision one_minus_c = 1.0 - c;
     
     Axis = normalize(Axis);
 
-    {precision}3x3 rot_mat = { one_minus_c * Axis.x * Axis.x + c,            one_minus_c * Axis.x * Axis.y - Axis.z * s,     one_minus_c * Axis.z * Axis.x + Axis.y * s,
-                               one_minus_c * Axis.x * Axis.y + Axis.z * s,   one_minus_c * Axis.y * Axis.y + c,              one_minus_c * Axis.y * Axis.z - Axis.x * s,
-                               one_minus_c * Axis.z * Axis.x - Axis.y * s,   one_minus_c * Axis.y * Axis.z + Axis.x * s,     one_minus_c * Axis.z * Axis.z + c
-                             };
+    $precision3x3 rot_mat = { one_minus_c * Axis.x * Axis.x + c,            one_minus_c * Axis.x * Axis.y - Axis.z * s,     one_minus_c * Axis.z * Axis.x + Axis.y * s,
+                              one_minus_c * Axis.x * Axis.y + Axis.z * s,   one_minus_c * Axis.y * Axis.y + c,              one_minus_c * Axis.y * Axis.z - Axis.x * s,
+                              one_minus_c * Axis.z * Axis.x - Axis.y * s,   one_minus_c * Axis.y * Axis.z + Axis.x * s,     one_minus_c * Axis.z * Axis.z + c
+                            };
 
     Out = mul(rot_mat,  In);
 }
@@ -77,16 +77,16 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} s = sin(Rotation);
-    {precision} c = cos(Rotation);
-    {precision} one_minus_c = 1.0 - c;
+    $precision s = sin(Rotation);
+    $precision c = cos(Rotation);
+    $precision one_minus_c = 1.0 - c;
     
     Axis = normalize(Axis);
 
-    {precision}3x3 rot_mat = { one_minus_c * Axis.x * Axis.x + c,            one_minus_c * Axis.x * Axis.y - Axis.z * s,     one_minus_c * Axis.z * Axis.x + Axis.y * s,
-                               one_minus_c * Axis.x * Axis.y + Axis.z * s,   one_minus_c * Axis.y * Axis.y + c,              one_minus_c * Axis.y * Axis.z - Axis.x * s,
-                               one_minus_c * Axis.z * Axis.x - Axis.y * s,   one_minus_c * Axis.y * Axis.z + Axis.x * s,     one_minus_c * Axis.z * Axis.z + c
-                             };
+    $precision3x3 rot_mat = { one_minus_c * Axis.x * Axis.x + c,            one_minus_c * Axis.x * Axis.y - Axis.z * s,     one_minus_c * Axis.z * Axis.x + Axis.y * s,
+                              one_minus_c * Axis.x * Axis.y + Axis.z * s,   one_minus_c * Axis.y * Axis.y + c,              one_minus_c * Axis.y * Axis.z - Axis.x * s,
+                              one_minus_c * Axis.z * Axis.x - Axis.y * s,   one_minus_c * Axis.y * Axis.z + Axis.x * s,     one_minus_c * Axis.z * Axis.z + c
+                            };
 
     Out = mul(rot_mat,  In);
 }

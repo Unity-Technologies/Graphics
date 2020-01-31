@@ -247,43 +247,6 @@ namespace UnityEditor.Graphing
             }
         }
 
-        public static string ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision p, ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Boolean:
-                    return p.ToString();
-                case ConcreteSlotValueType.Vector1:
-                    return p.ToString();
-                case ConcreteSlotValueType.Vector2:
-                    return p + "2";
-                case ConcreteSlotValueType.Vector3:
-                    return p + "3";
-                case ConcreteSlotValueType.Vector4:
-                    return p + "4";
-                case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
-                case ConcreteSlotValueType.Texture2DArray:
-                    return "Texture2DArray";
-                case ConcreteSlotValueType.Texture3D:
-                    return "Texture3D";
-                case ConcreteSlotValueType.Cubemap:
-                    return "TextureCube";
-                case ConcreteSlotValueType.Gradient:
-                    return "Gradient";
-                case ConcreteSlotValueType.Matrix2:
-                    return p + "2x2";
-                case ConcreteSlotValueType.Matrix3:
-                    return p + "3x3";
-                case ConcreteSlotValueType.Matrix4:
-                    return p + "4x4";
-                case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
-                default:
-                    return "Error";
-            }
-        }
-
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();

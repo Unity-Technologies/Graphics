@@ -1,8 +1,5 @@
 Pass
 {
-    Name "SpriteUnlit"
-    Tags{"LightMode" = "CombinedShapeLight"}
-
 ${Tags}
 ${Blending}
 ${Culling}

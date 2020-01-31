@@ -1,4 +1,5 @@
 * [High Definition Render Pipeline](index)
+* [Features List](HDRP-Features)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
@@ -20,6 +21,8 @@
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Reflection](Override-Screen-Space-Reflection)
+      * [Screen Space Refraction](Override-Screen-Space-Refraction)
       * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
@@ -47,10 +50,13 @@
     - [Diffusion Profile](Diffusion-Profile)
   * [Decal Projector](Decal-Projector)
   * Shader List
+    * [Decal Shader](Decal-Shader)
+    * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
-    * [Decal Shader](Decal-Shader)
 * Lighting
+  * [Reflection in HDRP](Reflection-in-HDRP)
+  * [Refraction in HDRP](Refraction-in-HDRP)
   * Reflection Probes
     * [Reflection Probes Introduction](Reflection-Probes-Intro)
     * [Reflection Probe](Reflection-Probe)
@@ -66,10 +72,31 @@
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Camera
+  * [HD Camera](HDRP-Camera)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Multisampling Anti-Aliasing](MSAA)
+* Post-processing
+  * [Post-processing in HDRP](Post-Processing-Main)
+  * Effect List
+    * [Bloom](Post-Processing-Bloom)
+    * [Channel Mixer](Post-Processing-Channel-Mixer)
+    * [Chromatic Aberration](Post-Processing-Chromatic-Aberration)
+    * [Color Adjustments](Post-Processing-Color-Adjustments)
+    * [Color Curves](Post-Processing-Color-Curves)
+    * [Depth of Field](Post-Processing-Depth-of-Field)
+    * [Film Grain](Post-Processing-Film-Grain)
+    * [Lens Distortion](Post-Processing-Lens-Distortion)
+    * [Lift, Gamma, Gain](Post-Processing-Lift-Gamma-Gain)
+    * [Motion Blur](Post-Processing-Motion-Blur)
+    * [Panini Projection](Post-Processing-Panini-Projection)
+    * [Shadows, Midtones, Highlights](Post-Processing-Shadows-Midtones-Highlights)
+    * [Split Toning](Post-Processing-Split-Toning)
+    * [Tonemapping](Post-Processing-Tonemapping)
+    * [Vignette](Post-Processing-Vignette)
+    * [White Balance](Post-Processing-White-Balance)
 * Debugging
+  * [MatCap](MatCap)
   * Render Pipeline Debug
     * [Overview](Render-Pipeline-Debug-Overview)
     * [Camera](Render-Pipeline-Debug-Camera)

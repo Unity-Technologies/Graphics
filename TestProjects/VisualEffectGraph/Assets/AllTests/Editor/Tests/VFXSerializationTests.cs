@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -118,11 +118,11 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull((graph[1])[0]);
             Assert.IsNotNull((graph[2])[0]);
 
-            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[0])).contextType);
-            Assert.AreEqual(VFXContextType.kUpdate, ((VFXContext)(graph[1])).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[2])).contextType);
-            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[3])).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[4])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[0])).contextType);
+            Assert.AreEqual(VFXContextType.Update, ((VFXContext)(graph[1])).contextType);
+            Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[2])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[3])).contextType);
+            Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[4])).contextType);
 
             Assert.IsNotNull(graph[5] as Operator.Add);
         }
@@ -294,8 +294,8 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
-                parameter.SetSettingValue("m_exposed", true);
-                parameter.SetSettingValue("m_exposedName", name);
+                parameter.SetSettingValue("m_Exposed", true);
+                parameter.SetSettingValue("m_ExposedName", name);
                 asset.GetResource().GetOrCreateGraph().AddChild(parameter);
                 Assert.AreEqual(VFXValueType.Float2, parameter.outputSlots[0].GetExpression().valueType);
             };

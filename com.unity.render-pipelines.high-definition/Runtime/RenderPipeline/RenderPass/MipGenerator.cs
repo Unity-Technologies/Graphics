@@ -114,12 +114,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_TempColorTargets[rtIndex] = RTHandles.Alloc(
                     Vector2.one * 0.5f,
+                    sourceIsArray ? TextureXR.slices : 1,
+                    dimension: source.dimension,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
                     enableMSAA: false,
-                    xrInstancing: sourceIsArray,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
@@ -137,12 +138,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_TempDownsamplePyramid[rtIndex] = RTHandles.Alloc(
                 Vector2.one * 0.5f,
+                sourceIsArray ? TextureXR.slices : 1,
+                dimension: source.dimension,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: destination.graphicsFormat,
                 enableRandomWrite: false,
                 useMipMap: false,
                 enableMSAA: false,
-                xrInstancing: sourceIsArray,
                 useDynamicScale: true,
                 name: "Temporary Downsampled Pyramid"
                 );

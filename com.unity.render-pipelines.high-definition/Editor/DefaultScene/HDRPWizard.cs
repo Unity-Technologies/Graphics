@@ -27,8 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
 
             //configuration debugger
-            public static readonly GUIContent ok = EditorGUIUtility.TrIconContent("Collab");
-            public static readonly GUIContent fail = EditorGUIUtility.TrIconContent("CollabError");
+            public static readonly GUIContent ok = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/OK.png") as Texture2D);
+            public static readonly GUIContent fail = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/Error.png") as Texture2D);
             public static readonly GUIContent resolve = EditorGUIUtility.TrTextContent("Fix");
             public static readonly GUIContent resolveAll = EditorGUIUtility.TrTextContent("Fix All");
             public static readonly GUIContent resolveAllQuality = EditorGUIUtility.TrTextContent("Fix All Qualities");
@@ -328,7 +328,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.EndHorizontal();
 
             ++EditorGUI.indentLevel;
-            DrawConfigInfoLine(Style.scriptingRuntimeVersionLabel, Style.scriptingRuntimeVersionError, Style.ok, Style.resolve, IsScriptRuntimeVersionCorrect, FixScriptRuntimeVersion);
             DrawConfigInfoLine(Style.colorSpaceLabel, Style.colorSpaceError, Style.ok, Style.resolve, IsColorSpaceCorrect, FixColorSpace);
             DrawConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.ok, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap);
             DrawConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError, Style.ok, Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask);
@@ -417,8 +416,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         bool IsAllCorrect() =>
-            IsScriptRuntimeVersionCorrect()
-            && IsLightmapCorrect()
+            IsLightmapCorrect()
             && IsShadowmaskCorrect()
             && IsColorSpaceCorrect()
             && IsHdrpAssetCorrect()
@@ -429,11 +427,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Async will allow to make things green when fixed before asking
             //new confirmation to fix elements. It help the user to know which
             //one is currently being adressed
-            if (!IsScriptRuntimeVersionCorrect())
-            {
-                FixScriptRuntimeVersion();
-                return;
-            }
             if (!IsColorSpaceCorrect())
             {
                 FixColorSpace();
@@ -530,9 +523,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
         }
-
-        bool IsScriptRuntimeVersionCorrect() => PlayerSettings.scriptingRuntimeVersion == ScriptingRuntimeVersion.Latest;
-        void FixScriptRuntimeVersion() => PlayerSettings.scriptingRuntimeVersion = ScriptingRuntimeVersion.Latest;
 
         bool IsHdrpAssetUsedCorrect() => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
         void FixHdrpAssetUsed() => CreateOrLoad<HDRenderPipelineAsset>();

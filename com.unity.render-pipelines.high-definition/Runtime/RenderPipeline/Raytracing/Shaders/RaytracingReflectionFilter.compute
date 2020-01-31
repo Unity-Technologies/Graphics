@@ -17,7 +17,7 @@
 
 // Raytracing Includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingConsts.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
@@ -80,7 +80,7 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
-    // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below. 
+    // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) < _RaytracingReflectionMinSmoothness)
         return;
 
@@ -107,7 +107,7 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     InitializeVarianceEstimator(variance);
 
     float radiusSq = _SpatialFilterRadius * _SpatialFilterRadius;
-    
+
     for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
     {
         for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
@@ -122,10 +122,10 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
             int2 sourceCoord = (halfResCoord + uint2(x,y)) * 2;
 
             // If this pixel is outside of the screen, we cannot use it
-            if(sourceCoord.x < 0 || sourceCoord.x > _ScreenSize.x 
-                || sourceCoord.y < 0 || sourceCoord.y > _ScreenSize.y) 
+            if(sourceCoord.x < 0 || sourceCoord.x > _ScreenSize.x
+                || sourceCoord.y < 0 || sourceCoord.y > _ScreenSize.y)
             continue;
-            
+
             // Fetch the target color
             float4 sampleColor = _SsrLightingTextureRW[COORD_TEXTURE2D_X(sourceCoord)];
 
@@ -214,18 +214,18 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
 
     // check if the previous color is in the bounds
     // TODO: Try to do the comparison in Lab for better results http://www.brucelindbloom.com/index.html?Math.html
-    bool colorInBound = colorMinBound.x < previousColor.x && colorMaxBound.x > previousColor.x 
-                        && colorMinBound.y < previousColor.y && colorMaxBound.y > previousColor.y 
+    bool colorInBound = colorMinBound.x < previousColor.x && colorMaxBound.x > previousColor.x
+                        && colorMinBound.y < previousColor.y && colorMaxBound.y > previousColor.y
                         && colorMinBound.z < previousColor.z && colorMaxBound.z > previousColor.z;
 
     // Validity flag of the current sample
     float validityFlag = all(colorMinBound < colorMaxBound);
-    
+
     float3 combinedColor = float3(0.0f, 0.0f, 0.0f);
     if (previousValidityFlag && colorInBound)
     {
         // Compute the accumulation factor for this surface (using the user parameter and the roughness of the surface)
-        float accumulationFactor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].w < 0.001f ? 1.0 : _TemporalAccumuationWeight;  
+        float accumulationFactor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].w < 0.001f ? 1.0 : _TemporalAccumuationWeight;
 
         // Previous pixel is valid
         combinedColor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].xyz * accumulationFactor + previousColor * (1.0 - accumulationFactor);
@@ -235,7 +235,7 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
         // Previous pixel is invalid, override it
         combinedColor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].xyz;
     }
-    
+
     _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentCoord)] = float4(combinedColor, validityFlag);
     _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)] = float4(combinedColor, 1.0);
 }
@@ -293,7 +293,7 @@ void RaytracingReflectionTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 group
 
     color = Unmap(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
-    
+
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
 }
 

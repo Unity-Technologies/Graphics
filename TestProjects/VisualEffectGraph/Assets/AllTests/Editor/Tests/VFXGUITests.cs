@@ -62,19 +62,19 @@ namespace UnityEditor.VFX.Test
         {
             EditTestAsset(3);
 
-            var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kEvent).First();
+            var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Event).First();
             var eventContext = m_ViewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
 
-            var spawnerContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kSpawner).First();
+            var spawnerContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Spawner).First();
             var spawnerContext = m_ViewController.AddVFXContext(new Vector2(300, 100), spawnerContextDesc);
 
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kInit).First();
+            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Init).First();
             var initContext = m_ViewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
 
-            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kUpdate).First();
+            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Update).First();
             var updateContext = m_ViewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
 
-            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kOutput).First();
+            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Output).First();
             var outputContext = m_ViewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc);
 
             m_ViewController.ApplyChanges();
@@ -168,7 +168,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllInitializeBlocks()
         {
-            return CreateAllBlocks(VFXContextType.kInit);
+            return CreateAllBlocks(VFXContextType.Init);
         }
 
         [Test]
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllUpdateBlocks()
         {
-            return CreateAllBlocks(VFXContextType.kUpdate);
+            return CreateAllBlocks(VFXContextType.Update);
         }
 
         [Test]
@@ -194,14 +194,14 @@ namespace UnityEditor.VFX.Test
         public void CreateAllSpawnerBlocksTest()
         {
             EditTestAsset(0);
-            CreateAllBlocks(VFXContextType.kSpawner);
+            CreateAllBlocks(VFXContextType.Spawner);
         }
 
         [Test]
         public void CreateAllEventBlocksTest()
         {
             EditTestAsset(0);
-            CreateAllBlocks(VFXContextType.kEvent);
+            CreateAllBlocks(VFXContextType.Event);
         }
 
         VFXContextController CreateAllBlocks(VFXContextType type)
@@ -242,7 +242,7 @@ namespace UnityEditor.VFX.Test
 
         VFXContextController CreateAllOutputBlocks()
         {
-            return CreateAllBlocks(VFXContextType.kOutput);
+            return CreateAllBlocks(VFXContextType.Output);
         }
 
         [Test]

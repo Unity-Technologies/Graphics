@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
             return @"
 {
-    Out = normalize({precision}3(A.rg + B.rg, A.b * B.b));
+    Out = normalize($precision3(A.rg + B.rg, A.b * B.b));
 }
 ";
         }
@@ -72,8 +72,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-	{precision}3 t = A.xyz + {precision}3(0.0, 0.0, 1.0);
-	{precision}3 u = B.xyz * {precision}3(-1.0, -1.0, 1.0);
+	$precision3 t = A.xyz + $precision3(0.0, 0.0, 1.0);
+	$precision3 u = B.xyz * $precision3(-1.0, -1.0, 1.0);
 	Out = (t / t.z) * dot(t, u) - u;
 }
 ";

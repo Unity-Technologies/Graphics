@@ -32,8 +32,8 @@ namespace UnityEditor.VFX.Block
 
         public override string libraryName { get { return "Camera Fade"; } }
         public override string name { get { return string.Format("Camera Fade ({0})", ObjectNames.NicifyVariableName(fadeMode.ToString())); } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

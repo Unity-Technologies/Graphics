@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         static SortingLayer[] s_SortingLayers;
         Renderer2DData m_RendererData;
-        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("CombinedShapeLight");
+        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Lightweight2D");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName };

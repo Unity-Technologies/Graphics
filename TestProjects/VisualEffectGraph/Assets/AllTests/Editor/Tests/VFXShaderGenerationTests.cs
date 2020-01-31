@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXContextType.kInitAndUpdate;
+                    return VFXContextType.InitAndUpdate;
                 }
             }
 
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return VFXDataType.kParticle;
+                    return VFXDataType.Particle;
                 }
             }
 

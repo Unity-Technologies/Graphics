@@ -83,6 +83,7 @@ ${VFXEnd}
 	#endif
 	)
 	{
+		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}		
 		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
 	}

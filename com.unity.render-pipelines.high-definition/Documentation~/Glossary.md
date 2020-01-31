@@ -7,10 +7,22 @@
 #### atmospheric scattering
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light, passing through them, in all directions.
 
+<a name="Bokeh"></a>
+
+#### bokeh
+
+The effect that occurs when a camera renders an out-of-focus point of light.
+
 <a name="ChannelPacking"></a>
 
 #### channel packing
 A channel packed Texture is a Texture which has a separate grayscale image in each of its channels.
+
+<a name="f-number"></a>
+
+#### f-number
+
+The ratio of the focal length to the diameter of the camera lens.
 
 <a name="NyquistRate"></a>
 
@@ -51,7 +63,7 @@ Refers to aliasing in digital samples of visual signals.
 <a name="TemporalAntiAliasing"></a>
 
 #### temporal anti-aliasing (TAA):
-An anti-aliasing technique that uses frames from a history buffer to smooth edged more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
+An anti-aliasing technique that uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
 
 
 

@@ -60,7 +60,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	${VFXLoadSize}
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
-		  float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
+	float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 

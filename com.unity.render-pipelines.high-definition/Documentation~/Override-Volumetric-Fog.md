@@ -6,7 +6,7 @@ Volumetric fog is the most advanced implementation of fog available in the High 
 
 **Volumetric Fog** uses the [Volume](Volumes.html) framework, so to enable and modify **Volumetric Fog** properties, you must add an **Volumetric Fog** override to a [Volume](Volumes.html) in your Scene. To add **Volumetric Fog** to a Volume:
 
-1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+1. In the Scene or Hierarchy view, select the GameObject that contains the Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Fog** and click on **Volumetric Fog**.
 
 After you add an **Volumetric  Fog** override, you must set the Volume to use **Volumetric Fog**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the **Visual Environment** override, navigate to the **Fog** section and set the **Type** to **Volumetric Fog**. HDRP now renders **Volumetric Fog** for any Camera this Volume affects.

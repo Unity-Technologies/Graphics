@@ -51,7 +51,14 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] StencilStateData m_DefaultStencilState = null;
 
-        protected override ScriptableRenderer Create() => new ForwardRenderer(this);
+        protected override ScriptableRenderer Create()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+#endif
+            return new ForwardRenderer(this);
+        }
 
         internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
 

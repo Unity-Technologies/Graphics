@@ -3,6 +3,7 @@
 	"displayName":"Graphics Tests Framework",
 	"version": "7.0.0",
 	"unity": "2019.3",
+	"unityRelease": "0a3",
 	"description": "Provides test framework helpers for writing tests for graphics code, such as image comparison assertions and automatic management of reference images.",
 	"keywords": ["qa", "test", "testing", "tests", "graphics"],
 	"dependencies": {

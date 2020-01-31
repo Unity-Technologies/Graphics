@@ -6,6 +6,10 @@ o.VFX_VARYING_COLOR = color;
 o.VFX_VARYING_ALPHA = alpha;
 #endif
 
+#ifdef VFX_VARYING_EXPOSUREWEIGHT
+${VFXLoadParameter:{exposureWeight}}
+o.VFX_VARYING_EXPOSUREWEIGHT = exposureWeight;
+#endif
 
 #if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
 ${VFXLoadParameter:{invSoftParticlesFadeDistance}}
@@ -26,7 +30,6 @@ o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #if defined(VFX_VARYING_POSWS)
 o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
-
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}

@@ -43,6 +43,7 @@ Pass
 	#pragma fragment frag
 	float4 frag(ps_input i) : SV_TARGET
 	{
+		VFXTransformPSInputs(i);
 		float alpha = VFXGetFragmentColor(i).a;
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
 		VFXClipFragmentColor(alpha,i);
