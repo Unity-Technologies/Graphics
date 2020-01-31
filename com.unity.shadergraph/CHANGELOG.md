@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where Shader Graph shaders were writing to `POSITION` instead of `SV_POSITION`, which caused PS4 builds to fail.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Documentation links on nodes now point to the correct URLs and package versions.
+- Fixed a bug where parts of the Blackboard remain visible even after disabling its visibility.
 - Fixed a number of memory leaks causing Shader Graph assets to stay in memory after closing the Shader Graph window.
 
 ## [7.1.1] - 2019-09-05
