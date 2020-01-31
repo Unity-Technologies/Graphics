@@ -62,7 +62,9 @@ Pass
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
+    $splice(PassInstancing)
     $splice(GraphDefines)
+    $splice(DotsInstancingVars)
 
     // Includes
     $splice(PassIncludes)

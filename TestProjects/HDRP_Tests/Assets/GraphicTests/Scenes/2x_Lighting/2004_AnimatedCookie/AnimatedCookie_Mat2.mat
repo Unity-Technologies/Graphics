@@ -173,7 +173,7 @@ Material:
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metallic: 0
-    - _MyTime: 0.13333334
+    - _MyTime: 0.11666667
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
@@ -228,3 +228,4 @@ Material:
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
     - _UnlitColor: {r: 1, g: 1, b: 1, a: 1}
     - _rainbowValues: {r: 10, g: 5, b: 0.05, a: 0.66}
+  m_BuildTextureStacks: []

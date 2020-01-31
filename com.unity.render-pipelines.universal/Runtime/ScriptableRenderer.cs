@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer : IDisposable
     {
         /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
@@ -167,6 +167,16 @@ namespace UnityEngine.Rendering.Universal
             Clear();
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+
         /// <summary>
         /// Configures the camera target.
         /// </summary>
@@ -214,13 +224,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd"></param>
         public virtual void FinishRendering(CommandBuffer cmd)
-        {
-        }
-
-        /// <summary>
-        /// Called when the render pipeline gets destroyed on quit or domain reload.
-        /// </summary>
-        public virtual void Cleanup()
         {
         }
 
@@ -415,9 +418,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
-
-            // Required by VolumeSystem / PostProcessing.
-            VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
         }
 
         internal void Clear()

@@ -38,6 +38,11 @@
         "displayName" : "Particle System Shader Samples",
         "description" : "Adds Particle System Shader samples to your project. Open the SampleScene to see examples of various lit and unlit particle effects.",
         "path" : "Samples~/ParticleSystemShaderSamples"
+    },
+    {
+        "displayName" : "Material Samples",
+        "description" : "Adds Material Samples to your project. Open the MaterialSamples scene to see examples of materials based on the lit shader with effects such as subsurface scattering, displacement, anisotropy and more. This scene requires Text Mesh Pro to render text explanations.",
+        "path" : "Samples~/MaterialSamples"
     }
     ]
 }

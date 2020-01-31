@@ -1030,12 +1030,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="camera">Input camera.</param>
         /// <returns>True if "Animated Materials" are enabled for the view associated with the given camera.</returns>
-        public static  bool AreAnimatedMaterialsEnabled(Camera camera)
+        public static bool AreAnimatedMaterialsEnabled(Camera camera)
         {
             bool animateMaterials = true;
 
         #if UNITY_EDITOR
-            animateMaterials = Application.isPlaying;
+            animateMaterials = Application.isPlaying; // For Game and VR views; Reflection views pass the parent camera
 
             if (camera.cameraType == CameraType.SceneView)
             {
@@ -1054,24 +1054,15 @@ namespace UnityEngine.Rendering
             }
             else if (camera.cameraType == CameraType.Preview)
             {
-                animateMaterials = false;
-
-                // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                foreach (UnityEditor.MaterialEditor med in materialEditors())
-                {
-                    // Warning: currently, there's no way to determine whether a given camera corresponds to this MaterialEditor.
-                    // Therefore, if at least one of the visible MaterialEditors is in Play Mode, all of them will play.
-                    if (med.isVisible && med.RequiresConstantRepaint())
-                    {
-                        animateMaterials = true;
-                        break;
-                    }
-                }
+                // Enable for previews so the shader graph main preview works with time parameters.
+                animateMaterials = true;
+            }
+            else if (camera.cameraType == CameraType.Reflection)
+            {
+                // Reflection cameras should be handled outside this function.
+                // Debug.Assert(false, "Unexpected View type.");
             }
 
-            // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
-            // so we don't know whether we can animate them...
-            //
             // IMHO, a better solution would be:
             // A window invokes a camera render. The camera knows which window called it, so it can query its properies
             // (such as animated materials). This camera provides the space-time position. It should also be able
