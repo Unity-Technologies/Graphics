@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EditorAdvancedFade = false;
         }
 
-        public void Update(bool animate, float time)
+        internal void Update(bool animate, float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Constrain()
+        internal void Constrain()
         {
             albedo.r = Mathf.Clamp01(albedo.r);
             albedo.g = Mathf.Clamp01(albedo.g);

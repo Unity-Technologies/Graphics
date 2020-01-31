@@ -68,6 +68,8 @@
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
+* [Building for consoles](Building-For-Consoles.md)
+  
 * [Frequently asked questions (FAQ)](faq.md)
 
 * [Feature Comparison with Built-in](universalrp-builtin-feature-comparison.md)

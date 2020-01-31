@@ -276,7 +276,8 @@ namespace UnityEditor.Rendering.HighDefinition
             probe = ProbeSettingsFields.frustumFieldOfViewMode
                 | ProbeSettingsFields.frustumAutomaticScale
                 | ProbeSettingsFields.frustumViewerScale
-                | ProbeSettingsFields.frustumFixedValue,
+                | ProbeSettingsFields.frustumFixedValue
+                | ProbeSettingsFields.resolution,
             camera = new CameraSettingsOverride
             {
                 camera = (CameraSettingsFields)(-1) & ~(

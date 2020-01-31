@@ -2,10 +2,15 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// HDRI Sky Volume Component.
+    /// This component setups HDRI sky for rendering.
+    /// </summary>
     [VolumeComponentMenu("Sky/HDRI Sky")]
     [SkyUniqueID((int)SkyType.HDRI)]
     public class HDRISky : SkySettings
     {
+        /// <summary>Cubemap used to render the HDRI sky.</summary>
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
         public CubemapParameter         hdriSky             = new CubemapParameter(null);
         public BoolParameter            enableBackplate     = new BoolParameter(false);
@@ -22,6 +27,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter            dirLightShadow      = new BoolParameter(false);
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
 
+        /// <summary>
+        /// Returns the hash code of the HDRI sky parameters.
+        /// </summary>
+        /// <returns>The hash code of the HDRI sky parameters.</returns>
         public override int GetHashCode()
         {
             int hash = base.GetHashCode();
@@ -43,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + pointLightShadow.value.GetHashCode();
                 hash = hash * 23 + dirLightShadow.value.GetHashCode();
                 hash = hash * 23 + rectLightShadow.value.GetHashCode();
-                
+
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.overrideState.GetHashCode() : hash;
                 hash = hash * 23 + enableBackplate.overrideState.GetHashCode();
                 hash = hash * 23 + backplateType.overrideState.GetHashCode();
@@ -79,6 +88,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return hash;
         }
 
+        /// <summary>
+        /// Returns HDRISkyRenderer type.
+        /// </summary>
+        /// <returns>HDRISkyRenderer type.</returns>
         public override Type GetSkyRendererType() { return typeof(HDRISkyRenderer); }
     }
 }
