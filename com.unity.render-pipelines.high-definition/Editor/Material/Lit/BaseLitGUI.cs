@@ -104,16 +104,31 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
-            material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, stencilWriteMask);
-            material.SetInt(kStencilRefDepth, stencilRefDepth);
-            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
-            material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
-            material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
-            material.SetInt(kStencilRefMV, stencilRefMV);
-            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
-            material.SetInt(kStencilRefDistortionVec, (int)StencilUsage.DistortionVectors);
-            material.SetInt(kStencilWriteMaskDistortionVec, (int)StencilUsage.DistortionVectors);
+            if (material.HasProperty(kStencilRef))
+            {
+                material.SetInt(kStencilRef, stencilRef);
+                material.SetInt(kStencilWriteMask, stencilWriteMask);
+            }
+            if (material.HasProperty(kStencilRefDepth))
+            {
+                material.SetInt(kStencilRefDepth, stencilRefDepth);
+                material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
+            }
+            if (material.HasProperty(kStencilRefGBuffer))
+            {
+                material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
+                material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
+            }
+            if (material.HasProperty(kStencilRefDistortionVec))
+            {
+                material.SetInt(kStencilRefDistortionVec, (int)StencilUsage.DistortionVectors);
+                material.SetInt(kStencilWriteMaskDistortionVec, (int)StencilUsage.DistortionVectors);
+            }
+            if (material.HasProperty(kStencilRefMV))
+            {
+                material.SetInt(kStencilRefMV, stencilRefMV);
+                material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            }
         }
 
         static public void ComputeStencilProperties(bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,

@@ -40,7 +40,7 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position
-        float rayLength = _ContactShadowLength * 0.5;
+        float rayLength = _ContactShadowLength;
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;

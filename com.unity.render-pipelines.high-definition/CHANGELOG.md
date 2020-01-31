@@ -59,6 +59,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to exclude camera motion from motion blur.
 - Added semi-transparent shadows for point and spot lights.
 - Added support for semi-transparent shadow for unlit shader and unlit shader graph.
+- Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
+- Added Material Samples to explain how to use the lit shader features
+- Added an initial implementation of ray traced sub surface scattering
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -357,6 +360,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated light explorer with latest changes to the Fog and fixed issues when no visual environment was present.
 - Fixed not handleling properly the recieve SSR feature with ray traced reflections
 - Shadow Atlas is no longer allocated for area lights when they are disabled in the shader config file.
+- Avoid MRT Clear on PS4 as it is not implemented yet.
+- Fixed runtime debug menu BitField control.
+- Fixed the radius value used for ray traced directional light.
+- Fixed compilation issues with the layered lit in ray tracing shaders.
+- Fixed XR autotests viewport size rounding
+- Fixed mip map slider knob displayed when cubemap have no mipmap
+- Remove unnecessary skip of material upgrade dialog box.
+- Fixed the profiling sample mismatch errors when enabling the profiler in play mode
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -432,6 +443,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom passes now disable the stencil when overwriting the depth and not writing into it.
 - Renamed the camera profiling sample to include the camera name
 - Changed the way the shadow casting property of transparent and tranmissive materials is handeled for ray tracing.
+- Changed inspector materials stencil setting code to have more sharing.
+- Updated the default scene and default DXR scene and DefaultVolumeProfile.
+- Changed the way the length parameter is used for ray traced contact shadows.
+- Improved the coherency of PCSS blur between cascades.
 
 ## [7.1.1] - 2019-09-05
 
@@ -472,6 +487,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph material synchronization issues
 - Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
 - Fixed an issue where area lights and point lights where not counted separately with regards to max lights on screen (case 1183196)
+- Fixed an SSR and Subsurface Scattering issue (appearing black) when using XR.
 
 ### Changed
 - Update Wizard layout.

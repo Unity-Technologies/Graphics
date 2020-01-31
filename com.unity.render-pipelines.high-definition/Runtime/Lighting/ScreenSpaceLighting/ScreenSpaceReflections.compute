@@ -101,8 +101,8 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     uint2 positionSS = dispatchThreadId.xy;
 
     // Check HTile first. Note htileAddress should be already in scalar before WaveReadLaneFirst, but forcing it to be sure.
-    // TODO_FCC: Verify the need of WaveReadLaneFirst
-    uint htileAddress = WaveReadLaneFirst(Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy));
+    // TODO: Verify the need of WaveReadLaneFirst
+    uint htileAddress = WaveReadLaneFirst(Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z));
     uint htileValue   = _CoarseStencilBuffer[htileAddress];
 
     bool doesntReceiveSSR = (htileValue & _SsrStencilBit) == 0;
