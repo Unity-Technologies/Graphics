@@ -204,41 +204,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static void MigrateDecalLayerMask(Material material, HDShaderUtils.ShaderID id)
         {
             const string kSupportDecals = "_SupportDecals";
-            if (!material.HasProperty(kSupportDecals)) return;
+            if (!material.HasProperty(kSupportDecals))
+                return;
 
             var decalLayerMask = material.GetFloat(kSupportDecals) == 1.0f ? DecalLayerMask.Full : DecalLayerMask.None;
             material.SetDecalLayerMask(decalLayerMask);
-        }
 
-        // Not used currently:
-        // TODO: Script like this must also work with embed material in scene (i.e we need to catch
-        // .unity scene and load material and patch in memory. And it must work with perforce
-        // i.e automatically checkout all those files).
-        static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
-        {
-            switch (id)
-            {
-                case HDShaderUtils.ShaderID.Lit:
-                case HDShaderUtils.ShaderID.LayeredLit:
-                case HDShaderUtils.ShaderID.LitTesselation:
-                case HDShaderUtils.ShaderID.LayeredLitTesselation:
-                    var serializedObject = new SerializedObject(material);
-                    var specOcclusionMode = 1;
-                    if (FindProperty(serializedObject, "_EnableSpecularOcclusion", SerializedType.Boolean).property != null)
-                    {
-                        var enableSpecOcclusion = GetSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        if (enableSpecOcclusion)
-                        {
-                            specOcclusionMode = 2;
-                        }
-                        RemoveSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        serializedObject.ApplyModifiedProperties();
-                    }
-                    material.SetInt("_SpecularOcclusionMode", specOcclusionMode);
-
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                    break;
-            }
+            HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
