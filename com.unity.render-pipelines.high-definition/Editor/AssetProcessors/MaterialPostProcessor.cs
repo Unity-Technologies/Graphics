@@ -186,6 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
              StencilRefactor,
              ZWriteForTransparent,
+             RenderQueueUpgrade
         };
 
         #region Migrations
@@ -264,6 +265,32 @@ namespace UnityEditor.Rendering.HighDefinition
             // For transparent materials, the ZWrite property that is now used is _TransparentZWrite.
             if (material.GetSurfaceType() == SurfaceType.Transparent)
                 material.SetFloat(kTransparentZWrite, material.GetZWrite() ? 1.0f : 0.0f);
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
+        {
+            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
+            HDShaderUtils.ResetMaterialKeywords(material);
+
+            // If this was in the previous ray tracing render queue for opaque, move it to the new one
+            if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.OpaqueRayTracing;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+            // If this was in the previous ray tracing render queue for opaque, move it to the new default transparent one
+            else if (material.renderQueue == 3900)
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.TransparentRayTracing;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+            // If this was in the previous after post process opaque range that is now attributes to ray tracing opaque, push it to the first after post process queue value
+            else if (material.renderQueue >= ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 1) && material.renderQueue <= ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 4))
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.AfterPostprocessOpaque;
+            }
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }

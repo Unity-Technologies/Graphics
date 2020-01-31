@@ -193,8 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource rendererListMRT;
             public RenderGraphResource rendererListDepthOnly;
 
-            public RenderGraphResource renderListRayTracingOpaque;
+            public RenderGraphResource renderListRayTracingPreRefraction;
             public RenderGraphResource renderListRayTracingTransparent;
+            public RenderGraphResource renderListRayTracingLowTransparent;
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -234,8 +235,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
+                    passData.renderListRayTracingPreRefraction = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingPreRefractionRLDesc));
                     passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
+                    passData.renderListRayTracingLowTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingLowTransparentRLDesc));
                 }
 
                 output.depthBuffer = passData.depthBuffer;
@@ -258,8 +260,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
-                                    , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingOpaque) : new RendererList()
+                                    , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingPreRefraction) : new RendererList()
                                     , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingTransparent) : new RendererList()
+                                    , useRayTracing ? context.resources.GetRendererList(data.renderListRayTracingLowTransparent) : new RendererList()
                                     , data.renderRayTracingPrepass
                                     );
                 });

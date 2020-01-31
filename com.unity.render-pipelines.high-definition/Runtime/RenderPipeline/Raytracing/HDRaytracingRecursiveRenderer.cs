@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, RTHandle flagBuffer)
         {
-
             // Clear our target
             CoreUtils.SetRenderTarget(cmd, flagBuffer, ClearFlag.Color, Color.black);
 
@@ -50,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 criteria = 0
             };
 
-            var filterSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing)
+            var filterSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_OpaqueRayTracing)
             {
                 excludeMotionVectorObjects = false
             };
@@ -61,21 +60,48 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             // First let's render the opaque objects
-            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.RaytracingOpaque;
+            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.OpaqueRayTracing;
             drawSettings.SetShaderPassName(0, raytracingPassID);
             drawSettings.overrideMaterial = m_RaytracingFlagMaterial;
             drawSettings.overrideMaterialPassIndex = 0;
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
 
             // Set the render queue range for the transparent set
-            filterSettings.renderQueueRange = HDRenderQueue.k_RenderQueue_AllTransparentRaytracing;
-
+            filterSettings.renderQueueRange = HDRenderQueue.k_RenderQueue_PreRefractionRayTracing;
             // Then let's render the transparent objects
-            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.RaytracingTransparent;
+            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.PreRefractionRayTracing;
             drawSettings.SetShaderPassName(0, raytracingPassID);
             drawSettings.overrideMaterial = m_RaytracingFlagMaterial;
             drawSettings.overrideMaterialPassIndex = 0;
             renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+
+            // Set the render queue range for the transparent set
+            filterSettings.renderQueueRange = HDRenderQueue.k_RenderQueue_TransparentRayTracing;
+            // Then let's render the transparent objects
+            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.TransparentRayTracing;
+            drawSettings.SetShaderPassName(0, raytracingPassID);
+            drawSettings.overrideMaterial = m_RaytracingFlagMaterial;
+            drawSettings.overrideMaterialPassIndex = 0;
+            renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+
+            // Set the render queue range for the transparent set
+            filterSettings.renderQueueRange = HDRenderQueue.k_RenderQueue_LowTransparentRayTracing;
+            // Then let's render the transparent objects
+            m_RaytracingFlagMaterial.renderQueue = (int)HDRenderQueue.Priority.LowTransparentRayTracing;
+            drawSettings.SetShaderPassName(0, raytracingPassID);
+            drawSettings.overrideMaterial = m_RaytracingFlagMaterial;
+            drawSettings.overrideMaterialPassIndex = 0;
+            renderContext.DrawRenderers(cull, ref drawSettings, ref filterSettings);
+        }
+
+        bool RecursiveRenderingActive(HDCamera hdCamera)
+        {
+            // First thing to check is: Do we have a valid ray-tracing environment?
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+
+            // Check the validity of the state before computing the effect
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                 && recursiveSettings.enable.value;
         }
 
         void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
@@ -106,63 +132,66 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RaytracingFlagMaterial == null)
                 m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);
 
-            // Before going into ray tracing, we need to flag which pixels needs to be raytracing
-            EvaluateRaytracingMask(cull, hdCamera, cmd, renderContext, flagBuffer);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
+            {
+                // Before going into ray tracing, we need to flag which pixels needs to be ray tracing
+                EvaluateRaytracingMask(cull, hdCamera, cmd, renderContext, flagBuffer);
 
-            // Define the shader pass to use for the reflection pass
-            cmd.SetRayTracingShaderPass(forwardShader, "ForwardDXR");
+                // Define the shader pass to use for the reflection pass
+                cmd.SetRayTracingShaderPass(forwardShader, "ForwardDXR");
 
-            // Set the acceleration structure for the pass
-            cmd.SetRayTracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
+                // Set the acceleration structure for the pass
+                cmd.SetRayTracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Inject the ray-tracing sampling data
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+                // Inject the ray-tracing sampling data
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambledRGBATex);
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
-            // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, recursiveSettings.rayLength.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, recursiveSettings.maxDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
+                // Inject the ray generation data
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, recursiveSettings.rayLength.value);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, recursiveSettings.maxDepth.value);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
-            // Set the data for the ray generation
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingFlagMask, flagBuffer);
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._CameraColorTextureRW, m_CameraColorBuffer);
+                // Set the data for the ray generation
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingFlagMask, flagBuffer);
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._CameraColorTextureRW, m_CameraColorBuffer);
 
-            // Set ray count texture
-            RayCountManager rayCountManager = GetRayCountManager();
-            cmd.SetRayTracingIntParam(forwardShader, HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
-            
-            // Compute an approximate pixel spread angle value (in radians)
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+                // Set ray count texture
+                RayCountManager rayCountManager = GetRayCountManager();
+                cmd.SetRayTracingIntParam(forwardShader, HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
 
-            // LightLoop data
-            cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
-            cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
-            cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
-            cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
-            cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
-            cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
-            cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
+                // Compute an approximate pixel spread angle value (in radians)
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
-            // Note: Just in case, we rebind the directional light data (in case they were not)
-            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-            cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
+                // LightLoop data
+                cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
+                cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
+                cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
+                cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
+                cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
+                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
+                cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
 
-            // Set the data for the ray miss
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
+                // Note: Just in case, we rebind the directional light data (in case they were not)
+                cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
+                cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
 
-            // If this is the right debug mode and we have at least one light, write the first shadow to the de-noised texture
-            RTHandle debugBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, debugBuffer);
+                // Set the data for the ray miss
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
 
-            // Run the computation
-            cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                // If this is the right debug mode and we have at least one light, write the first shadow to the de-noised texture
+                RTHandle debugBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+                cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, debugBuffer);
 
-            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            hdrp.PushFullScreenDebugTexture(hdCamera, cmd, debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+                // Run the computation
+                cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+
+                HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                hdrp.PushFullScreenDebugTexture(hdCamera, cmd, debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+            }
         }
     }
 }

@@ -198,6 +198,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_RayTracing;
+
+        public ToggleData rayTracing
+        {
+            get { return new ToggleData(m_RayTracing); }
+            set
+            {
+                if (m_RayTracing == value.isOn)
+                    return;
+
+                m_RayTracing = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
         SurfaceType m_SurfaceType;
 
         public SurfaceType surfaceType
@@ -1047,7 +1064,7 @@ namespace UnityEditor.Rendering.HighDefinition
             previewMaterial.SetFloat(kTransparentCullMode, (int)transparentCullMode);
             previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
             // No sorting priority for shader graph preview
-            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
+            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn, rayTracing.isOn);
 
             HDLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
