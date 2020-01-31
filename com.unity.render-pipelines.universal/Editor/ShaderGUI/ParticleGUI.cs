@@ -177,16 +177,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     if (enabled >= 0.5f)
                     {
-                        UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-                        if (urpAsset != null)
+                        UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+                        if (urpAsset != null && !urpAsset.supportsCameraDepthTexture)
                         {
-                            if (!urpAsset.supportsCameraDepthTexture)
-                            {
-                                GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
-                                warnStyle.fontStyle = FontStyle.BoldAndItalic;
-                                warnStyle.wordWrap = true;
-                                GUILayout.Label("WARNING: Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", warnStyle);
-                            }
+                            GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                            warnStyle.fontStyle = FontStyle.BoldAndItalic;
+                            warnStyle.wordWrap = true;
+                            GUILayout.Label("WARNING: Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", warnStyle);
                         }
 
                         EditorGUI.indentLevel++;
