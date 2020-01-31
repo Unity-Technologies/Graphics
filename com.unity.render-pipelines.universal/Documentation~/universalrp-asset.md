@@ -79,7 +79,7 @@ These settings affect how shadows look and behave. They also impact performance,
 
 ### Post-processing
 
-This section allows you to fine-tune global post-processing settings.
+This section allows you to fine-tune global settings for URP's integrated post-processing solution.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
