@@ -166,7 +166,7 @@ Material:
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
-    - _DrawOrder: 0
+    - _DrawOrder: 3
     - _DstBlend: 0
     - _Emissive: 0
     - _EmissiveColorMode: 1

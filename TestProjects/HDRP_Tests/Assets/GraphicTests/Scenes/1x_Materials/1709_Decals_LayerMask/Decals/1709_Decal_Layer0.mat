@@ -19,10 +19,10 @@ Material:
   - DBufferMesh_M
   - DBufferMesh_AO
   - DBufferMesh_MAO
-  - Mesh_Emissive
+  - DBufferMesh_MAOS
   - DBufferMesh_MS
   - DBufferMesh_AOS
-  - DBufferMesh_MAOS
+  - Mesh_Emissive
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -166,7 +166,7 @@ Material:
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
-    - _DrawOrder: 0
+    - _DrawOrder: 1
     - _DstBlend: 0
     - _Emissive: 0
     - _EmissiveColorMode: 1
