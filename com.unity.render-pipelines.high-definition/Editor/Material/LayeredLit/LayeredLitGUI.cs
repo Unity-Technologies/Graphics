@@ -110,9 +110,10 @@ namespace UnityEditor.Rendering.HighDefinition
             const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
 
-            // We have to check for each layer if the UV2 or UV3 is needed.
-            bool needUV3 = false;
+            // We have to check for each layer whether the UV set is needed.
+            bool needUV1 = false;
             bool needUV2 = false;
+            bool needUV3 = false;
 
             for (int i = 0; i < numLayer; ++i)
             {
@@ -126,6 +127,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
 
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV1) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV1))
+                {
+                    needUV1 = true;
+                }
+
                 if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
                 {
                     needUV2 = true;
@@ -134,24 +140,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
                 {
                     needUV3 = true;
-                    break; // If we find it UV3 let's early out
                 }
+            }
+
+            material.DisableKeyword("_REQUIRE_UV1");
+            material.DisableKeyword("_REQUIRE_UV2");
+            material.DisableKeyword("_REQUIRE_UV3");
+
+            if (needUV1)
+            {
+                material.EnableKeyword("_REQUIRE_UV1");
+            }
+
+            if (needUV2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
             }
 
             if (needUV3)
             {
-                material.DisableKeyword("_REQUIRE_UV2");
                 material.EnableKeyword("_REQUIRE_UV3");
-            }
-            else if (needUV2)
-            {
-                material.EnableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
             }
         }
 

@@ -5,7 +5,7 @@ struct AttributesMesh
     float3 normalOS     : NORMAL;
 #endif
 #ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentOS    : TANGENT; // Store sign in w
+    float4 tangentOS    : TANGENT; // Store tangent frame handedness in w
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     float2 uv0          : TEXCOORD0;
@@ -32,9 +32,11 @@ struct VaryingsMeshToPS
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 positionRWS;
 #endif
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_NORMAL_WS
     float3 normalWS;
-    float4 tangentWS;  // w contain mirror sign
+#endif
+#ifdef VARYINGS_NEED_TANGENT_WS
+    float4 tangentWS;  // Store tangent frame handedness in w
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD0
     float2 texCoord0;
@@ -62,25 +64,23 @@ struct PackedVaryingsMeshToPS
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 interpolators0 : TEXCOORD0;
 #endif
-
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_NORMAL_WS
     float3 interpolators1 : TEXCOORD1;
+#endif
+#ifdef VARYINGS_NEED_TANGENT_WS
     float4 interpolators2 : TEXCOORD2;
 #endif
-
     // Allocate only necessary space if shader compiler in the future are able to automatically pack
 #ifdef VARYINGS_NEED_TEXCOORD1
     float4 interpolators3 : TEXCOORD3;
 #elif defined(VARYINGS_NEED_TEXCOORD0)
     float2 interpolators3 : TEXCOORD3;
 #endif
-
 #ifdef VARYINGS_NEED_TEXCOORD3
     float4 interpolators4 : TEXCOORD4;
 #elif defined(VARYINGS_NEED_TEXCOORD2)
     float2 interpolators4 : TEXCOORD4;
 #endif
-
 #ifdef VARYINGS_NEED_COLOR
     float4 interpolators5 : TEXCOORD5;
 #endif
@@ -104,12 +104,12 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.interpolators0 = input.positionRWS;
 #endif
-
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_NORMAL_WS
     output.interpolators1 = input.normalWS;
+#endif
+#ifdef VARYINGS_NEED_TANGENT_WS
     output.interpolators2 = input.tangentWS;
 #endif
-
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.interpolators3.xy = input.texCoord0;
 #endif
@@ -122,7 +122,6 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 #ifdef VARYINGS_NEED_TEXCOORD3
     output.interpolators4.zw = input.texCoord3;
 #endif
-
 #ifdef VARYINGS_NEED_COLOR
     output.interpolators5 = input.color;
 #endif
@@ -148,10 +147,10 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.positionRWS.xyz = input.interpolators0.xyz;
 #endif
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_TANGENT_WS
     float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0); // must not be normalized (mikkts requirement)
     output.tangentToWorld = BuildTangentToWorld(tangentWS, input.interpolators1.xyz);
-#endif // VARYINGS_NEED_TANGENT_TO_WORLD
+#endif // VARYINGS_NEED_TANGENT_WS
 
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.texCoord0.xy = input.interpolators3.xy;
@@ -182,7 +181,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 // We can deduce these defines from the other defines
 // We need to pass to DS any varying required by pixel shader
 // If we have required an attributes that is not present in varyings it mean we will be for DS
-#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(ATTRIBUTES_NEED_TANGENT)
+#if defined(VARYINGS_NEED_TANGENT_WS) || defined(ATTRIBUTES_NEED_TANGENT)
 #define VARYINGS_DS_NEED_TANGENT
 #endif
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(ATTRIBUTES_NEED_TEXCOORD0)

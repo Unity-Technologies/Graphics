@@ -2,7 +2,7 @@
 #error Undefine_SHADERPASS
 #endif
 
-// NOTE: Copied from LitSharePass.hlsl, we will need most of this, but at first, vs the unlit, we have 
+// NOTE: Copied from LitSharePass.hlsl, we will need most of this, but at first, vs the unlit, we have
 // diffuse lighting, and also consider the _DOUBLESIDED_ON option.
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
@@ -24,7 +24,7 @@
 // Varying - Use for pixel shader
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #define VARYINGS_NEED_POSITION_WS
-#define VARYINGS_NEED_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_WS
 #define VARYINGS_NEED_TEXCOORD0
 #define VARYINGS_NEED_TEXCOORD1
 #ifdef ATTRIBUTES_NEED_TEXCOORD2

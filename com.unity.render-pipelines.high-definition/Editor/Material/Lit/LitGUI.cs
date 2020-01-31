@@ -168,23 +168,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kUVDetail) || material.HasProperty(kUVBase))
             {
+                bool needUV1 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV1 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV1;
                 bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;
                 bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3;
 
-                if (needUV3)
+                material.DisableKeyword("_REQUIRE_UV1");
+                material.DisableKeyword("_REQUIRE_UV2");
+                material.DisableKeyword("_REQUIRE_UV3");
+
+                if (needUV1)
                 {
-                    material.DisableKeyword("_REQUIRE_UV2");
-                    material.EnableKeyword("_REQUIRE_UV3");
+                    material.EnableKeyword("_REQUIRE_UV1");
                 }
-                else if (needUV2)
+
+                if (needUV2)
                 {
                     material.EnableKeyword("_REQUIRE_UV2");
-                    material.DisableKeyword("_REQUIRE_UV3");
                 }
-                else
+
+                if (needUV3)
                 {
-                    material.DisableKeyword("_REQUIRE_UV2");
-                    material.DisableKeyword("_REQUIRE_UV3");
+                    material.EnableKeyword("_REQUIRE_UV3");
                 }
             }
 

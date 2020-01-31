@@ -1,5 +1,5 @@
 Pass
-{ 
+{
     // based on DecalPass.template
     Name "$splice(PassName)"
     Tags { "LightMode" = "$splice(LightMode)" }
@@ -66,7 +66,7 @@ Pass
     $AttributesMesh.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
     $AttributesMesh.color:                  #define ATTRIBUTES_NEED_COLOR
     $VaryingsMeshToPS.positionRWS:          #define VARYINGS_NEED_POSITION_WS
-    $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.normalWS:             #define VARYINGS_NEED_TANGENT_WS
     $VaryingsMeshToPS.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
     $VaryingsMeshToPS.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
     $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
@@ -88,7 +88,7 @@ Pass
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
+    #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
     //-------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #if _MATERIAL_AFFECTS_NORMAL
-    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
     #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
@@ -166,7 +166,7 @@ $include("SharedCode.template.hlsl")
 #endif
 
 #if _MATERIAL_AFFECTS_MASKMAP
-        $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;                                    
+        $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
     #ifdef DECALS_4RT
         $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
         $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
@@ -181,7 +181,7 @@ $include("SharedCode.template.hlsl")
     if (surfaceData.mask.w > 0)
     {
         surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-    }                                                        
+    }
 #endif
 
     }

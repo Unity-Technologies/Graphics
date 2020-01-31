@@ -37,7 +37,7 @@
 // Varying - Use for pixel shader
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #if REQUIRE_TANGENT_TO_WORLD
-#define VARYINGS_NEED_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_WS
 #endif
 
 #if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
@@ -54,7 +54,7 @@
     #define VARYINGS_NEED_COLOR
     #endif
 #elif defined(LOD_FADE_CROSSFADE)
-    #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect 
+    #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect
 #endif
 
 // This include will define the various Attributes/Varyings structure

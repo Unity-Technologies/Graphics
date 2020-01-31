@@ -18,7 +18,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define ATTRIBUTES_NEED_NORMAL
     #define ATTRIBUTES_NEED_TANGENT
     #define VARYINGS_NEED_POSITION_WS
-    #define VARYINGS_NEED_TANGENT_TO_WORLD
+    #define VARYINGS_NEED_TANGENT_WS
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 

@@ -43,7 +43,7 @@
 #define VARYINGS_NEED_POSITION_WS // Can be require if we have planar or triplanar distortion
 
 #if REQUIRE_TANGENT_TO_WORLD
-#define VARYINGS_NEED_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_WS
 #endif
 
 #if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)

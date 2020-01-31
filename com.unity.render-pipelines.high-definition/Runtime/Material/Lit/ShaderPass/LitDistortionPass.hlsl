@@ -40,7 +40,7 @@
 #define VARYINGS_NEED_POSITION_WS // Can be require if we have planar or triplanar distortion
 
 #if REQUIRE_TANGENT_TO_WORLD
-#define VARYINGS_NEED_TANGENT_TO_WORLD
+#define VARYINGS_NEED_TANGENT_WS
 #endif
 
 #define VARYINGS_NEED_TEXCOORD0 // Always use with distortion

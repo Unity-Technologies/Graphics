@@ -46,7 +46,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.positionRWS = TransformObjectToWorld(inputMesh.positionOS);
 #endif
 
-#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+#ifdef VARYINGS_NEED_TANGENT_WS
     // Normal is required for triplanar mapping
     output.vmesh.normalWS = TransformObjectToWorldNormal(inputMesh.normalOS);
     // Not required but assign to silent compiler warning
