@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
+                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}).r * {0}_heightTransform.x + {0}_heightTransform.y;"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId

@@ -203,7 +203,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (normalConnected)
                 {
-                    string normal = string.Format("$precision3 {0} = {3}({1}_info, {2}) * 2.0f - 1.0f;"
+                    string normal = string.Format("$precision3 {0} = {3}({1}_info, {2}).rgb * 2.0f - 1.0f;"
                             , GetVariableNameForSlot(NormalOutputId)
                             , stackName
                             , GetTerrainNormalLayerName()
