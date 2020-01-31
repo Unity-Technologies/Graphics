@@ -33,6 +33,7 @@ Pass
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ALPHATEST_ON
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions
@@ -551,7 +552,9 @@ $include("SharedCode.template.hlsl")
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+#ifdef _ALPHATEST_ON
         $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+#endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 

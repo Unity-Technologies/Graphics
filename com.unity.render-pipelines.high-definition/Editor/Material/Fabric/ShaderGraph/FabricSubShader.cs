@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
@@ -66,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ColorMaskOverride = "ColorMask 0",
             ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -93,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ColorMaskOverride = "ColorMask 0",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
@@ -126,6 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
 
             Includes = new List<string>()
@@ -182,6 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_MOTION_VECTORS",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             Includes = new List<string>()
@@ -236,6 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_FORWARD",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             CullOverride = HDSubShaderUtilities.cullModeForward,
             ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
             ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
@@ -319,9 +325,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "IndirectDXR",
             LightMode = "IndirectDXR",
-            TemplateName = "FabricRaytracingPass.template",
+            TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ LIGHTMAP_ON",
@@ -368,9 +375,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "VisibilityDXR",
             LightMode = "VisibilityDXR",
-            TemplateName = "FabricRaytracingPass.template",
+            TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
@@ -409,9 +417,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "ForwardDXR",
             LightMode = "ForwardDXR",
-            TemplateName = "FabricRaytracingPass.template",
+            TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ LIGHTMAP_ON",
@@ -457,9 +466,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "GBufferDXR",
             LightMode = "GBufferDXR",
-            TemplateName = "FabricRaytracingPass.template",
+            TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_RAYTRACING_GBUFFER",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ LIGHTMAP_ON",
@@ -470,6 +480,55 @@ namespace UnityEditor.Rendering.HighDefinition
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.AlbedoSlotId,
+                FabricMasterNode.SpecularOcclusionSlotId,
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AmbientOcclusionSlotId,
+                FabricMasterNode.SpecularColorSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
+                FabricMasterNode.SubsurfaceMaskSlotId,
+                FabricMasterNode.ThicknessSlotId,
+                FabricMasterNode.TangentSlotId,
+                FabricMasterNode.AnisotropySlotId,
+                FabricMasterNode.EmissionSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
+            },
+            UseInPreview = false
+        };
+
+        Pass m_PassRaytracingSubSurface = new Pass()
+        {
+            Name = "SubSurfaceDXR",
+            LightMode = "SubSurfaceDXR",
+            TemplateName = "FabricPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#define SHADOW_LOW",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -720,6 +779,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingSubSurface, mode, subShader, sourceAssetDependencyPaths);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);

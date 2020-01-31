@@ -1,14 +1,14 @@
 {
-    "name": "HDRP_Tests_Editor",
+    "name": "Unity.RenderPipelines.HighDefinition-Tests.Editor",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Core.Editor",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:3eae0364be2026648bf74846acb8a731",
         "Unity.Postprocessing.Runtime",
-        "HDRP_Tests",
         "Unity.Postprocessing.Editor",
-        "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Editor",
-        "Unity.ShaderGraph.Editor"
+        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
+        "GUID:78bd2ddd6e276394a9615c203e574844",
+        "GUID:be0903cd8e1546f498710afdc59db5eb",
+        "GUID:5256c28d4a143a6478f4ff8d0feb6e97"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,5 +19,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

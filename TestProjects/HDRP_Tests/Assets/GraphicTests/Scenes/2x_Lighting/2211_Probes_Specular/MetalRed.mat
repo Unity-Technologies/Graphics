@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 2
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -30,10 +30,10 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
+  - MOTIONVECTORS
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -125,12 +125,15 @@ Material:
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
+    - _AddPrecomputedVelocity: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
     - _AlphaCutoffShadow: 0.5
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -210,15 +213,18 @@ Material:
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
+    - _SpecularOcclusionMode: 1
     - _SrcBlend: 1
-    - _StencilRef: 2
-    - _StencilRefDepth: 0
-    - _StencilRefGBuffer: 2
-    - _StencilRefMV: 128
-    - _StencilWriteMask: 3
-    - _StencilWriteMaskDepth: 48
-    - _StencilWriteMaskGBuffer: 51
-    - _StencilWriteMaskMV: 176
+    - _StencilRef: 0
+    - _StencilRefDepth: 8
+    - _StencilRefDistortionVec: 4
+    - _StencilRefGBuffer: 10
+    - _StencilRefMV: 40
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 40
     - _Stiffness: 1
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
@@ -229,10 +235,13 @@ Material:
     - _ThicknessMultiplier: 1
     - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 0
     - _TransparentWritingVelocity: 0
+    - _TransparentZWrite: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
@@ -241,6 +250,7 @@ Material:
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 4
+    - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.78431374, g: 0, b: 0, a: 1}
@@ -259,3 +269,4 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []

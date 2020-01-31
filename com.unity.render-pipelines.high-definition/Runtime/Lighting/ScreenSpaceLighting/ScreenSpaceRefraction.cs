@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Refraction")]
     public class ScreenSpaceRefraction : VolumeComponent
     {
-        public enum RefractionModel
+        internal enum RefractionModel
         {
             None = 0,
             Box = 1,
@@ -20,9 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static ScreenSpaceRefraction s_Default = null;
 
-        [Obsolete("Since 2019.3, use ScreenSpaceRefraction.DefaultInstance instead.")]
-        public static readonly ScreenSpaceRefraction @default = default;
-        public static ScreenSpaceRefraction defaultInstance
+        internal static ScreenSpaceRefraction defaultInstance
         {
             get
             {
@@ -35,12 +33,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public virtual void PushShaderParameters(CommandBuffer cmd)
+        internal virtual void PushShaderParameters(CommandBuffer cmd)
         {
             cmd.SetGlobalFloat(m_InvScreenFadeDistanceID, 1.0f / screenFadeDistance.value);
         }
 
-        protected void FetchIDs(
+        void FetchIDs(
             out int invScreenWeightDistanceID)
         {
             invScreenWeightDistanceID = HDShaderIDs._SSRefractionInvScreenWeightDistance;
