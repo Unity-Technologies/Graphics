@@ -136,6 +136,7 @@ Material:
     - _Cutoff: 0.5
     - _DecalBlend: 0.5
     - _DecalLayer: 1
+    - _DecalLayerMask: 2
     - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
     - _DecalStencilRef: 16
@@ -213,6 +214,7 @@ Material:
     - _Smoothness: 0.5
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
+    - _SourceDecalLayerMask: 2
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
     - _SpecularOcclusionMode: 1

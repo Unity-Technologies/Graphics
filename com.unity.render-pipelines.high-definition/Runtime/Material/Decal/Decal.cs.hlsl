@@ -49,7 +49,7 @@ struct DecalData
     float4 remappingAOS;
     float4 scalingMAB;
     float3 blendParams;
-    uint decalLayer;
+    uint decalLayerMask;
 };
 
 

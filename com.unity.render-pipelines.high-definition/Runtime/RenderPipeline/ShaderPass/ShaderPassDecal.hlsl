@@ -61,8 +61,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     // Clip the decal if it does not pass the decal layer mask of the receiving material.
     // Decal layer of the decal
-    uint decalLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayer).x);
-    uint decalLayerMask = 1 << decalLayer;
+    uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _SourceDecalLayerMask).x);
 
     // Decal layer mask accepted by the receiving material
     DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
@@ -95,8 +94,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
     // Clip the decal if it does not pass the decal layer mask of the receiving material.
     // Decal layer of the decal
-    uint decalLayer = UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayer).x;
-    uint decalLayerMask = 1 << decalLayer;
+    uint decalLayerMask = UNITY_ACCESS_INSTANCED_PROP(Decal, _SourceDecalLayerMask).x;
 
     // Decal layer mask accepted by the receiving material
     DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);

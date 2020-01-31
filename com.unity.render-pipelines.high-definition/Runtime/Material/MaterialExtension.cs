@@ -119,15 +119,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kDecalLayerMask))
                 material.SetInt(kDecalLayerMask, (int)value);
         }
-        public static DecalLayer GetDecalLayer(this Material material) =>
-            material.HasProperty(kDecalLayer)
-                ? (DecalLayer) material.GetInt(kDecalLayer)
-                : DecalLayer.Layer0;
 
-        public static void SetDecalLayer(this Material material, in DecalLayer value)
+        public static DecalLayerMask GetSourceDecalLayerMask(this Material material) =>
+            material.HasProperty(kSourceDecalLayerMask)
+                ? (DecalLayerMask) material.GetInt(kSourceDecalLayerMask)
+                : DecalLayerMask.None;
+
+        public static void SetSourceDecalLayerMask(this Material material, in DecalLayerMask value)
         {
-            if (material.HasProperty(kDecalLayer))
-                material.SetInt(kDecalLayer, (int)value);
+            if (material.HasProperty(kSourceDecalLayerMask))
+                material.SetInt(kSourceDecalLayerMask, (int)value);
         }
 
         public static SurfaceType   GetSurfaceType(this Material material)

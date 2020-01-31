@@ -47,6 +47,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        ///     Convert a decal layer mask to an uint.
+        /// </summary>
+        /// <param name="v">The decal layer mask to convert.</param>
+        /// <returns>The corresponding int value of the layer mask.</returns>
+        public static explicit operator uint(in DecalLayerMask v)
+        {
+            return (uint)v.m_Value;
+        }
+
+        /// <summary>
         ///     Convert a int to a decal layer mask.
         ///     The value provided will be sanitized. <see cref="DecalLayerMask(System.Int32)" />.
         /// </summary>

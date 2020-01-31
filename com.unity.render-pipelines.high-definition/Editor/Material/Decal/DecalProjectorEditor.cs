@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         // Smoothly update the decal image projected
                         Matrix4x4 sizeOffset = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
-                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.fadeFactor, decalProjector.decalLayer);
+                        DecalSystem.instance.UpdateCachedData(decalProjector.position, decalProjector.rotation, sizeOffset, decalProjector.drawDistance, decalProjector.fadeScale, decalProjector.uvScaleBias, decalProjector.affectsTransparency, decalProjector.Handle, decalProjector.gameObject.layer, decalProjector.fadeFactor, decalProjector.decalLayerMask);
                     }
                 }
             }
