@@ -139,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDUnlitMasterNode.AlphaSlotId,
                 HDUnlitMasterNode.AlphaThresholdSlotId,
                 HDUnlitMasterNode.EmissionSlotId,
+                HDUnlitMasterNode.ShadowTintSlotId,
             };
 
             public static int[] HDLitDefault = new int[]

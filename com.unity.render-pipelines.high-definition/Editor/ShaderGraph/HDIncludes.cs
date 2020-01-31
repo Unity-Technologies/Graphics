@@ -58,6 +58,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl", IncludeLocation.Pregraph },
+            //shadow matte includes
+            { "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl", IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl", IncludeLocation.Postgraph },
         };
 

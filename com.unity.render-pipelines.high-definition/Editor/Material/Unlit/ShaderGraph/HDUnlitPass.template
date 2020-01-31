@@ -26,6 +26,7 @@ Pass
 
     // Defines
     $AddPrecomputedVelocity:                #define _ADD_PRECOMPUTED_VELOCITY
+    $EnableShadowMatte:                     #define _ENABLE_SHADOW_MATTE
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
@@ -43,6 +44,12 @@ Pass
     $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
+
+    #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
+        #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+        #define HAS_LIGHTLOOP
+        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
+    #endif
 
     // Dots Instancing
     $splice(DotsInstancingOptions)
