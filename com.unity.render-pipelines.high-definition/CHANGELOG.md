@@ -448,6 +448,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way the length parameter is used for ray traced contact shadows.
 - Improved the coherency of PCSS blur between cascades.
 - Updated VR checks in Wizard to reflect new XR System.
+- Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 
 ## [7.1.1] - 2019-09-05
 
