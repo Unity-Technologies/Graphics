@@ -349,6 +349,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ValidateResources();
 #endif
 
+#if ENABLE_VIRTUALTEXTURES
+            VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.settings);
+#endif
+
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player

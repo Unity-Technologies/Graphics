@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
         public SerializedProperty shaderVariantLogLevel;
+        public SerializedProperty virtualTexturingSettings;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineAsset s) => s.shaderVariantLogLevel);
+            virtualTexturingSettings = serializedObject.Find((HDRenderPipelineAsset s) => s.virtualTexturingSettings);
 
             renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.FindProperty("m_RenderPipelineSettings"));
             defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
