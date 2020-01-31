@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
-    public abstract class AtmosphericScattering : VolumeComponent
+    abstract class AtmosphericScattering : VolumeComponent
     {
         // Fog Color
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Deprecated, kept for migration
-    public enum FogType
+    internal enum FogType
     {
         None = 0,
         Exponential = 2,

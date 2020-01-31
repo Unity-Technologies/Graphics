@@ -1,0 +1,101 @@
+#pragma max_recursion_depth 1
+
+// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+#define SHADOW_LOW
+
+// HDRP include
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RaytracingIntersectionSubSurface.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+// Input texture
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+// Output texture
+RW_TEXTURE2D_X(float4, _ThroughputTextureRW);
+RW_TEXTURE2D_X(float4, _PositionTextureRW);
+RW_TEXTURE2D_X(float4, _NormalTextureRW);
+RW_TEXTURE2D_X(float4, _DiffuseLightingTextureRW);
+
+[shader("miss")]
+void MissShaderSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayPayload)
+{
+}
+
+[shader("raygeneration")]
+void RayGenSubSurface()
+{
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint2 LaunchDim = DispatchRaysDimensions().xy;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
+    // Pixel coordinate of the current pixel
+    uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // Force the throughput value of this pixel to black in case we do not need to compute sss for it
+    _ThroughputTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    // Does this pixel have SSS?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentPixelCoord));
+    if ((stencilValue & STENCILUSAGE_SUBSURFACE_SCATTERING) == 0)
+        return;
+
+    // Read the depth value
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).r;
+    // If this is a background pixel we do not need to do anything
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Convert this to a world space position
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Read the bsdf data and builtin data from the gbuffer
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+    BuiltinData builtinData;
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+    uint featureFlags = MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+    DecodeFromGBuffer(currentPixelCoord, featureFlags, bsdfData, builtinData);
+
+    // Read the SSS Data
+    SSSData sssData;
+    DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
+    float3 shapeParam  = _ShapeParams[sssData.diffusionProfileIndex].rgb;
+
+    // Deduce our scattering distance
+    // For some reason the value in shapeParam is negative, convert it to milimeters while we are there.
+    float3 scatteringDistance = -1.0 / shapeParam * 0.001;
+    
+    // Define which sample in the sequence we are up to.
+    int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
+
+    // Do our walk
+    ScatteringResult scatteringResult;
+    ScatteringWalk(bsdfData.normalWS, bsdfData.diffuseColor, scatteringDistance, currentPixelCoord, globalSampleIndex, posInput.positionWS, scatteringResult);
+
+    // Normalize the throughput
+    scatteringResult.outputThroughput /= (float)_RaytracingNumSamples;
+
+    // Alright we are done, write the data and exit.
+    _ThroughputTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputThroughput, 1.0f);
+    _PositionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputPosition, 1.0f);
+    _NormalTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputNormal, 1.0f);
+    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(scatteringResult.outputDiffuse, 1.0f);
+}

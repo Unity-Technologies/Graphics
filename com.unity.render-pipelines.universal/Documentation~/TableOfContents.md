@@ -1,11 +1,12 @@
 * [Universal Render Pipeline](index.md)
-
 * [Getting started](InstallingAndConfiguringURP.md)
-  * [Create a Project from a Template](CreateNewProjectFromTemplate.md)
+  * [Create a Project from a Template](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
-
 * [Rendering](rendering-in-universalrp.md)
+* [Lighting](lighting.md)
+  * [Light component reference](light-component)
+  * [The Universal Additional Light Data component](universal-additional-light-data.md)
 * [Cameras](cameras.md)
   * [The UniversalAdditionalCameraData component](universal-additional-camera-data.md)
   * [Render Mode and types of Camera](camera-types-and-render-mode.md)
@@ -68,6 +69,8 @@
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
+* [Building for consoles](Building-For-Consoles.md)
+  
 * [Frequently asked questions (FAQ)](faq.md)
 
 * [Feature Comparison with Built-in](universalrp-builtin-feature-comparison.md)

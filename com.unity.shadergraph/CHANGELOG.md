@@ -36,6 +36,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
 - Fixed a bug where the Gradient property didn't work with all system locales. [1140924](https://issuetracker.unity3d.com/issues/shader-graph-shader-doesnt-compile-when-using-a-gradient-property-and-a-regional-format-with-comma-decimal-separator-is-used)
 - Fixed a bug where Properties in the Blackboard could have duplicate names.
+- Fixed a bug where the `Vertex Normal` slot on master nodes needed vertex normal data input to compile. [1193348](https://issuetracker.unity3d.com/issues/hdrp-unlit-shader-plugging-anything-into-the-vertex-normal-input-causes-shader-to-fail-to-compile)
+- Fixed a bug where `GetWorldSpaceNormalizeViewDir()` could cause undeclared indentifier errors. [1190606](https://issuetracker.unity3d.com/issues/view-dir-node-plugged-into-vertex-position-creates-error-undeclared-identifier-getworldspacenormalizeviewdir)
+- Fixed a bug where Emission on PBR Shader Graphs in the Universal RP would not bake to lightmaps. [1190225](https://issuetracker.unity3d.com/issues/emissive-custom-pbr-shadergraph-material-only-works-for-primitive-unity-objects)
+- Fixed a bug where Shader Graph shaders were writing to `POSITION` instead of `SV_POSITION`, which caused PS4 builds to fail.
+- Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
+- Documentation links on nodes now point to the correct URLs and package versions.
+- Fixed a bug where parts of the Blackboard remain visible even after disabling its visibility.
+- Fixed a number of memory leaks causing Shader Graph assets to stay in memory after closing the Shader Graph window.
 
 ## [7.1.1] - 2019-09-05
 ### Added

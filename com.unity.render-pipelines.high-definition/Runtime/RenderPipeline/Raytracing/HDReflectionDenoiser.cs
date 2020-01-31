@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, int maxKernelSize
                                     , RTHandle noisySignal, RTHandle historySignal
-                                    , RTHandle outputSignal)
+                                    , RTHandle outputSignal
+                                    , float historyValidity = 1.0f)
         {
             // Texture dimensions
             int texWidth = hdCamera.actualWidth;
@@ -59,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._HistoryBuffer, historySignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
+            cmd.SetComputeFloatParam(m_ReflectionDenoiserCS, HDShaderIDs._HistoryValidity, historyValidity);
             cmd.DispatchCompute(m_ReflectionDenoiserCS, s_TemporalAccumulationKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_CopyHistoryKernel, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);

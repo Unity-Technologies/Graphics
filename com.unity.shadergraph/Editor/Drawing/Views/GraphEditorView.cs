@@ -207,8 +207,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                         }
 
-                        m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
-                        m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
+                        UpdateSubWindowsVisibility();
+
                         var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
                         EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
                     }
@@ -231,9 +231,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
-                m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
-
                 CreateMasterPreview();
+
+                UpdateSubWindowsVisibility();
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -273,6 +273,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
+        void UpdateSubWindowsVisibility()
+        {
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
+
+            if (m_UserViewSettings.isBlackboardVisible)
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
+            else
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+        }
+
         Action<Group, string> m_GraphViewGroupTitleChanged;
         Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsAddedToGroup;
         Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsRemovedFromGroup;
@@ -301,7 +311,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -1012,8 +1021,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 saveRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
+                isCheckedOut = null;
+                checkOut = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
                     node.Dispose();
+                m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
             if (previewManager != null)

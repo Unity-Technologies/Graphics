@@ -2,9 +2,9 @@ Shader "Hidden/HDRP/DeferredTile"
 {
     Properties
     {
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
-        [HideInInspector] _StencilRef("", Int) = 0
-        [HideInInspector] _StencilCmp("", Int) = 3
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 6 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0
+        [HideInInspector] _StencilCmp("_StencilCmp", Int) = 3
     }
 
     SubShader

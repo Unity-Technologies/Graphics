@@ -100,6 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     ? (int)(Mathf.Log(Mathf.Max(rt.width, rt.height)) / Mathf.Log(2))
                     : 1;
 
+            // If the cubemap texture does not have any mipmaps, then we hide the knob
+            if (mipmapCount == 1)
+                mipmapCount = 0;
+
             GUI.enabled = true;
 
             GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));

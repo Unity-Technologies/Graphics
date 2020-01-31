@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedReflection,
         RaytracedIndirectDiffuseHF,
         RaytracedIndirectDiffuseLF,
+        RayTracedSubSurface,
         PathTracing,
         Count
     }
