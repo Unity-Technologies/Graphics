@@ -15,7 +15,7 @@
 #pragma kernel KMain_Variant5 MAIN=KMain_Variant5 VARIANT=5
 #pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
 #pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
-// "global" screen space variants
+// Cluster Display variants
 #pragma kernel KMain_Variant8  MAIN=KMain_Variant8  VARIANT=0 USING_CLUSTER_DISPLAY
 #pragma kernel KMain_Variant9  MAIN=KMain_Variant9  VARIANT=1 USING_CLUSTER_DISPLAY
 #pragma kernel KMain_Variant10 MAIN=KMain_Variant10 VARIANT=2 USING_CLUSTER_DISPLAY
