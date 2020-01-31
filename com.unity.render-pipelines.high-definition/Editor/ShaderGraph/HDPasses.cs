@@ -1804,6 +1804,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Custom Template
                 passTemplatePath = GetRaytracingPassTemplatePath("Lit"),
             };
+            public static PassDescriptor PathTracing = new PassDescriptor()
+            {
+                //Definition
+                displayName = "PathTracingDXR",
+                referenceName = "SHADERPASS_PATH_TRACING",
+                lightMode = "PathTracingDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingInstanced,
+                defines = HDDefines.HDLitRaytracingPathTracing,
+                includes = HDIncludes.HDLitRaytracingPathTracing,
+
+                //Custom Template
+                passTemplatePath = GetRaytracingPassTemplatePath("Lit"),
+            };
         }
 #endregion
 

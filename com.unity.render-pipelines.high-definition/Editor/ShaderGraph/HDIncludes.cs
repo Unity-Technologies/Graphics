@@ -595,6 +595,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl", IncludeLocation.Postgraph },
         };
+
+        public static IncludeCollection HDLitRaytracingPathTracing = new IncludeCollection
+        {
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl", IncludeLocation.Postgraph },
+        };
 #endregion
 
 #region HDUnlitRaytracing

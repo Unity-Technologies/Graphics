@@ -66,6 +66,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RayTracingNode.GetRayTracingKeyword(), 1 },
         };
+        public static DefineCollection HDLitRaytracingPathTracing = new DefineCollection
+        {
+            { HDKeywords.Descriptors.Shadow, 0 },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+        };
 
         public static DefineCollection FabricRaytracingForwardIndirect = new DefineCollection
         {

@@ -183,6 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLitRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HDLitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
             },
         };
 
