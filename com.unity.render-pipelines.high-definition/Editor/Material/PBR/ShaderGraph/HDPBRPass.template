@@ -121,6 +121,9 @@ Pass
     int _ObjectId;
     int _PassValue;
 
+    //Used by decal layers system. PBR masternode can't control it decal layer mask, so we force the mask to be 1
+    static int _DecalLayerMask = 1;
+
     //-------------------------------------------------------------------------------------
     // Interpolator Packing And Struct Declarations
     //-------------------------------------------------------------------------------------
