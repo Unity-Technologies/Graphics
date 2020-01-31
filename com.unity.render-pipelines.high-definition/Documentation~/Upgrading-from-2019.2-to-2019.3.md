@@ -40,6 +40,14 @@ From Unity 2019.3, the available Light types are Directional, Point, Spot, and A
 
 Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](Light-Component.html)'s **Emissive Mesh** with the [localScale](https://docs.unity3d.com/ScriptReference/Transform-localScale.html) of its Transform. From Unity 2019.3, HDRP uses the [lossyScale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) to make the **Emissive Mesh** account for the scale of the parent Transforms. This means that you must resize every area Light in your Unity Project according to the scale of its parent.
 
+## Cookie textures (Spot, Area and Directional lights) and Planar Reflection Probes
+
+Before Unity 2019.3, we stored cookies of Spot, Area and directional lights and planars into texture arrays. Due to the usage of these arrays, we were limited to use the same size for every element in one array. For cookie textures, a convertion code ensured that if a texture size wasn't exatcly the same as the size of the texture array (defined in the HDRP asset), then it was scaled to fit the size of the array.  
+Now that we're using an atlas we don't have this limitation anymore. It means that the cookie size you were using might differ now that we use the real size of the texture and could result in more sharp / pixelated cokies if your texture were too big or too small. If you encounter this kind of issue, we recommend fixing the images directly.
+For Planar Reflection Probes it also means that you can use different resolution per probe.
+
+You may also encounter this error in the console: `No more space in the 2D Cookie Texture Atlas. To solve this issue, increase the resolution of the cookie atlas in the HDRP settings.` This means that there is no space left in the Cookie atlas because there are too many of them in the view or the cookie textures are too big. To solve this issue you can either lower the resolution of the cookie textures or increase the atlas resolution in the HDRP settings.
+
 ## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
 
 Before Unity 2019.3, Max Smoothness, Emission Radius, and Bake Shadows Radius were separate controls for Point and Spot Lights. From Unity 2019.3, the UI displays a single property, called **Radius** that controls all of the properties mentioned above.

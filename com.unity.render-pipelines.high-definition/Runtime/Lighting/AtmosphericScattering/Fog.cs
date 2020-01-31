@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Fog Volume Component.
+    /// </summary>
     [Serializable, VolumeComponentMenu("Fog/Fog")]
     public class Fog : VolumeComponent
     {
@@ -11,49 +14,65 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly int m_FogColorParam = Shader.PropertyToID("_FogColor");
         static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
 
+        /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
         public BoolParameter         enabled = new BoolParameter(false);
 
-        // Fog Color
+        /// <summary>Fog color mode.</summary>
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
+        /// <summary>Fog color.</summary>
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        /// <summary>Maximum fog distance.</summary>
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
         public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
+        /// <summary>Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).</summary>
         [Tooltip("Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).")]
         public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        /// <summary>Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.</summary>
         [Tooltip("Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.")]
         public MinFloatParameter     mipFogNear = new MinFloatParameter(0.0f, 0.0f);
+        /// <summary>Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.</summary>
         [Tooltip("Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.")]
         public MinFloatParameter     mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
         // Height Fog
+        /// <summary>Height fog base height.</summary>
         public FloatParameter baseHeight = new FloatParameter(0.0f);
+        /// <summary>Height fog maximum height.</summary>
         public FloatParameter maximumHeight = new FloatParameter(50.0f);
 
         // Common Fog Parameters (Exponential/Volumetric)
+        /// <summary>Fog albedo.</summary>
         public ColorParameter albedo = new ColorParameter(Color.white);
+        /// <summary>Fog mean free path.</summary>
         public MinFloatParameter meanFreePath = new MinFloatParameter(400.0f, 1.0f);
 
         // Optional Volumetric Fog
+        /// <summary>Enable volumetric fog.</summary>
         public BoolParameter enableVolumetricFog = new BoolParameter(false);
+        /// <summary>Volumetric fog anisotropy.</summary>
         public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        /// <summary>Multiplier for ambient probe contribution.</summary>
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
+        /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.</summary>
         [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
+        /// <summary>Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.</summary>
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
 
+        /// <summary>Applies a blur to smoothen the volumetric lighting output.</summary>
         [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
         public BoolParameter filter = new BoolParameter(false);
 
-        public static bool IsFogEnabled(HDCamera hdCamera)
+        internal static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
         }
 
-        public static bool IsVolumetricFogEnabled(HDCamera hdCamera)
+        internal static bool IsVolumetricFogEnabled(HDCamera hdCamera)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
@@ -64,14 +83,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return a && b && c;
         }
 
-        public static bool IsPBRFogEnabled(HDCamera hdCamera)
+        internal static bool IsPBRFogEnabled(HDCamera hdCamera)
         {
             var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             // For now PBR fog (coming from the PBR sky) is disabled until we improve it
             return false;
             //return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
         }
-
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -81,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        public static void PushNeutralShaderParameters(CommandBuffer cmd)
+        internal static void PushNeutralShaderParameters(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 0);
             cmd.SetGlobalInt(HDShaderIDs._EnableVolumetricFog, 0);
@@ -92,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
         }
 
-        public static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
@@ -108,8 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._PBRFogEnabled, IsPBRFogEnabled(hdCamera) ? 1 : 0);
         }
 
-        //internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
-        public virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 1);
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
@@ -143,23 +160,36 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Fog Color Mode.
+    /// </summary>
     [GenerateHLSL]
     public enum FogColorMode
     {
+        /// <summary>Fog is a constant color.</summary>
         ConstantColor,
+        /// <summary>Fog uses the current sky to determine its color.</summary>
         SkyColor,
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogTypeParameter : VolumeParameter<FogType>
+    sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
             : base(value, overrideState) { }
     }
 
+    /// <summary>
+    /// Fog Color parameter.
+    /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class FogColorParameter : VolumeParameter<FogColorMode>
     {
+        /// <summary>
+        /// Fog Color Parameter constructor.
+        /// </summary>
+        /// <param name="value">Fog Color Parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
         public FogColorParameter(FogColorMode value, bool overrideState = false)
             : base(value, overrideState) { }
     }

@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         VFXModel[] m_SubChildren;
+        VFXGraph m_UsedSubgraph;
 
         public VisualEffectAsset subgraph
         {
@@ -175,6 +176,7 @@ namespace UnityEditor.VFX
             if (m_Subgraph == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -182,6 +184,7 @@ namespace UnityEditor.VFX
             if( resource == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -191,7 +194,7 @@ namespace UnityEditor.VFX
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();
-
+            m_UsedSubgraph = graph;
             foreach (var child in duplicated.Zip(dependencies, (a, b) => new { copy = a, original = b }))
             {
                 child.copy.hideFlags = HideFlags.HideAndDontSave;
@@ -354,8 +357,8 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-                foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
-                    inputExpressions.Add(subSlot.GetExpression());
+            foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                inputExpressions.Add(subSlot.GetExpression());
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
             foreach (var slot in toInvalidate)
@@ -394,8 +397,8 @@ namespace UnityEditor.VFX
                         }
 
                     }
-                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null)) // do not recreate subchildren if the subgraph is not available but is not null
-                    RecreateCopy();
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph() ) // do not recreate subchildren if the subgraph is not available but is not null
+                        RecreateCopy();
                 }
 
                 base.OnInvalidate(model, cause);
@@ -422,17 +425,17 @@ namespace UnityEditor.VFX
 
             if (m_SubChildren != null)
             {
-            foreach (var child in m_SubChildren)
-            {
-                if( ! (child is VFXParameter) )
+                foreach (var child in m_SubChildren)
                 {
-                    objs.Add(child);
+                if( ! (child is VFXParameter) )
+                    {
+                        objs.Add(child);
 
-                    if (child is VFXModel)
-                        (child as VFXModel).CollectDependencies(objs, false);
+                        if (child is VFXModel)
+                            (child as VFXModel).CollectDependencies(objs, false);
+                    }
                 }
             }
         }
-    }
 }
 }

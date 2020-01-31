@@ -1,14 +1,8 @@
 Pass
 {		
 	Tags { "LightMode"="GBuffer" }
-	
-	Stencil
-	{
-		WriteMask 7
-		Ref  2
-		Comp Always
-		Pass Replace
-	}	
+
+    ${VFXStencilGBuffer}
 		
 	HLSLPROGRAM
 	#pragma target 4.5

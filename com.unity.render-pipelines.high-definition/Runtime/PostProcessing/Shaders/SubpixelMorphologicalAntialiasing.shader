@@ -2,8 +2,8 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
 {
     Properties
     {
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 64
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 64
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 4
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 4
     }
 
     HLSLINCLUDE

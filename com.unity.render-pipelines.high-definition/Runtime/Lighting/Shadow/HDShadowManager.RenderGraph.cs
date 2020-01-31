@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderGraphResource areaShadowResult;
     }
 
-    public partial class HDShadowManager
+    partial class HDShadowManager
     {
         internal static ShadowResult ReadShadowResult(ShadowResult shadowResult, RenderGraphBuilder builder)
         {
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class HDShadowAtlas
+    partial class HDShadowAtlas
     {
         class RenderShadowsPassData
         {
