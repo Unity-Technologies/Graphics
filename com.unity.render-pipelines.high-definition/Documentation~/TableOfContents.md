@@ -63,6 +63,7 @@
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
+    * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
