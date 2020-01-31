@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.PlanarProbe,
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.RayTracing
+                (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
         };

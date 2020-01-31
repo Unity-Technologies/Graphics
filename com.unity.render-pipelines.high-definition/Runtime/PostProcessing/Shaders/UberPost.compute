@@ -119,7 +119,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = DEVICE_TO_CLUSTER_FULLSCREEN_UV(posInputs.positionNDC.xy);
+    float2 uv = DEVICE_TO_CLUSTER_FULLSCREEN_UV(posInputs.positionNDC.xy); // posInputs.positionNDC.xy is in fullscreen uv not ndc space
 
     float2 uvDistorted = DistortUV(uv);
     float3 color = 0.0;

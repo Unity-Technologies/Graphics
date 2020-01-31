@@ -920,7 +920,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
-            // Cluster Display
             cmd.SetGlobalMatrix(HDShaderIDs._ClusterParams, clusterDisplayParams);
 
             // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords

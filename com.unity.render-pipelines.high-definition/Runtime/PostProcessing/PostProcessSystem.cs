@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
-            // Global Screen Space Variants
+            // Cluster Display Variants
             PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.ClusterDisplay);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.ClusterDisplay);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.ClusterDisplay);
@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
-            m_ClusterDisplayFS   = frameSettings.IsEnabled(FrameSettingsField.ClusterDisplay);
+            m_ClusterDisplayFS      = frameSettings.IsEnabled(FrameSettingsField.ClusterDisplay);
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)

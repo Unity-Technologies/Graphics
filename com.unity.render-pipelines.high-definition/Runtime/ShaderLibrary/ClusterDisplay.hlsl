@@ -22,10 +22,10 @@ float2 ClusterToDeviceFullscreenUV(float2 xy)
 float2 NdcToNcc(float2 xy)
 {
     // ndc to device-UV
-	xy.y = -xy.y;
-	xy = (xy + 1) * 0.5;
-	xy = DeviceToClusterFullscreenUV(xy);
-	// cluster-UV to ncc
+    xy.y = -xy.y;
+    xy = (xy + 1) * 0.5;
+    xy = DeviceToClusterFullscreenUV(xy);
+    // cluster-UV to ncc
     xy = xy * 2 - 1;
     xy.y = -xy.y;
     return xy;
@@ -35,10 +35,10 @@ float2 NdcToNcc(float2 xy)
 float2 NccToNdc(float2 xy)
 {
     // ncc to cluster-UV
-	xy.y = -xy.y;
-	xy = (xy + 1) * 0.5;
-	xy = ClusterToDeviceFullscreenUV(xy);
-	// device-UV to ndc
+    xy.y = -xy.y;
+    xy = (xy + 1) * 0.5;
+    xy = ClusterToDeviceFullscreenUV(xy);
+    // device-UV to ndc
     xy = xy * 2 - 1;
     xy.y = -xy.y;
     return xy;

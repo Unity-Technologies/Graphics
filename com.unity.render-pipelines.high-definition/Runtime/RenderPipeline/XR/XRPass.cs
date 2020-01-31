@@ -52,12 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyStereoEye = eye;
         }
 
-        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayMtx, int dstSlice)
+        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, Matrix4x4 clusterDisplayParams_, int dstSlice)
         {
             projMatrix = proj;
             viewMatrix = view;
             viewport = vp;
-            clusterDisplayParams = clusterDisplayMtx;
+            clusterDisplayParams = clusterDisplayParams_;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
@@ -79,7 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
 
-            // TODO add viewport subsection to XRDisplaySubsystem.XRRenderParameter?
             clusterDisplayParams = Matrix4x4.zero;
         }
 #endif
