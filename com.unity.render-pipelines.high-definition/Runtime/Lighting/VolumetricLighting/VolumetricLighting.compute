@@ -223,7 +223,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             float3 shadowN = L;
 
             // This code works for both surface reflection and thin object transmission.
-            float shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
+            DirectionalShadowType shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
             // Important:

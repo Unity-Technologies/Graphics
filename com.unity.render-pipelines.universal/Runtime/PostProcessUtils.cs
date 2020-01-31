@@ -2,7 +2,14 @@ namespace UnityEngine.Rendering.Universal
 {
     public static class PostProcessUtils
     {
+        [System.Obsolete("This method is obsolete. Use ConfigureDithering override that takes camera pixel width and height instead.")]
         public static int ConfigureDithering(PostProcessData data, int index, Camera camera, Material material)
+        {
+            return ConfigureDithering(data, index, camera.pixelWidth, camera.pixelHeight, material);
+        }
+
+        // TODO: Add API docs
+        public static int ConfigureDithering(PostProcessData data, int index, int cameraPixelWidth, int cameraPixelHeight, Material material)
         {
             var blueNoise = data.textures.blueNoise16LTex;
 
@@ -27,8 +34,8 @@ namespace UnityEngine.Rendering.Universal
 
             material.SetTexture(ShaderConstants._BlueNoise_Texture, noiseTex);
             material.SetVector(ShaderConstants._Dithering_Params, new Vector4(
-                camera.pixelWidth / (float)noiseTex.width,
-                camera.pixelHeight / (float)noiseTex.height,
+                cameraPixelWidth / (float)noiseTex.width,
+                cameraPixelHeight / (float)noiseTex.height,
                 rndOffsetX,
                 rndOffsetY
             ));
@@ -36,7 +43,14 @@ namespace UnityEngine.Rendering.Universal
             return index;
         }
 
+        [System.Obsolete("This method is obsolete. Use ConfigureFilmGrain override that takes camera pixel width and height instead.")]
         public static void ConfigureFilmGrain(PostProcessData data, FilmGrain settings, Camera camera, Material material)
+        {
+            ConfigureFilmGrain(data, settings, camera.pixelWidth, camera.pixelHeight, material);
+        }
+
+        // TODO: Add API docs
+        public static void ConfigureFilmGrain(PostProcessData data, FilmGrain settings, int cameraPixelWidth, int cameraPixelHeight, Material material)
         {
             var texture = settings.texture.value;
 
@@ -53,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
 
             var tilingParams = texture == null
                 ? Vector4.zero
-                : new Vector4(camera.pixelWidth / (float)texture.width, camera.pixelHeight / (float)texture.height, offsetX, offsetY);
+                : new Vector4(cameraPixelWidth / (float)texture.width, cameraPixelHeight / (float)texture.height, offsetX, offsetY);
 
             material.SetTexture(ShaderConstants._Grain_Texture, texture);
             material.SetVector(ShaderConstants._Grain_Params, new Vector2(settings.intensity.value * 4f, settings.response.value));

@@ -72,7 +72,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.incidentDirection = rayDescriptor.Direction;
         reflectedIntersection.origin = rayDescriptor.Origin;
         reflectedIntersection.t = -1.0f;
-        reflectedIntersection.remainingDepth = reflectedIntersection.remainingDepth + 1;
+        reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
         reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
         

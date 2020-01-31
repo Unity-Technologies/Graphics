@@ -8,6 +8,8 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public interface ICameraUpdater
     {
+        /// <summary>Method called To update the LookDev camera position</summary>
+        /// <param name="camera">The camera</param>
         void UpdateCamera(Camera camera);
     }
 

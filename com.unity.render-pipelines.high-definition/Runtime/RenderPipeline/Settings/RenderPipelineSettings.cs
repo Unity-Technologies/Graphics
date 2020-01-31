@@ -132,7 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public MSAASamples msaaSampleCount;
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
-        public bool keepAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
+        // Returns true if the output of the rendering passes support an alpha channel
+        public bool supportsAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
 
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;

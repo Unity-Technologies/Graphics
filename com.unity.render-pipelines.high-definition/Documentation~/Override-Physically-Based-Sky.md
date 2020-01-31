@@ -9,6 +9,12 @@ The Physically Based Sky’s atmosphere is composed of two types of particles:
 - Colored air particles with [Rayleigh scattering](https://en.wikipedia.org/wiki/Rayleigh_scattering).
 - Monochromatic aerosol particles with anisotropic [Mie scattering](https://en.wikipedia.org/wiki/Mie_scattering). You can use aerosols to model pollution, height fog, or mist.
 
+You can use Physically Based Sky to simulate the sky during both daytime and night-time. The following images show Physically Based Sky in Unity's Fontainebleau demo. For more information about the Fontainebleau demo, and for instructions on how to download and use the demo yourself, see https://github.com/Unity-Technologies/FontainebleauDemo. Note that the available Fontainebleau demo only uses Physically Based Sky for its daytime setup in version 2019.3.
+
+![](Images/Override-PhysicallyBasedSky2.png)
+
+![](Images/Override-PhysicallyBasedSky3.png)
+
 ## Using Physically Based Sky
 
 Physically Based Sky uses the [Volume](Volumes.html) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.html) in your Scene. To add **Physically Based Sky** to a Volume:
@@ -23,6 +29,8 @@ To change how much the atmosphere attenuates light, you can change the density o
 Real-world air and aerosols can have different chemical compositions depending on their location on the planet. To change the density of the simulated air and aerosol fog, use the **Air** **Attenuation Distance** and **Aerosol Attenuation Distance** properties to specify how far you can see GameObjects clearly through the atmosphere. At the distance you specify, visibility reduces to roughly a half. At double the distance, visibility is roughly a quarter. 
 
 The **Attenuation Distance** properties use a color picker which you can use to set the distance on a per-color channel basis. This makes the Physically Based Sky tint GameObjects that are further away from the Camera. For example, if you set the Attenuation Distance to (1.0, 0.5, 0.5), the red channel maintains its intensity longer and a GameObject that is further away from the Camera appears to be slightly orange to simulate what it would be like at sunset.
+
+![](Images/Override-PhysicallyBasedSky4.png)
 
 ## Properties
 

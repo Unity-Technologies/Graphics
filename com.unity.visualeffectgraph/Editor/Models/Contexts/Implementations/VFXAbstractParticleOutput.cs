@@ -141,7 +141,18 @@ namespace UnityEditor.VFX
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
-        public virtual bool exposeAlphaThreshold { get => useAlphaClipping; }
+        public virtual bool exposeAlphaThreshold
+        {
+            get
+            {
+                if (useAlphaClipping)
+                    return true;
+                //For Motion & Shadow, allow use a alpha clipping and it shares the same value as color clipping for transparent particles
+                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                    return true;
+                return false;
+            }
+        }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {

@@ -158,6 +158,12 @@ namespace UnityEditor.Rendering
             // Remove them
             m_Editors.Clear();
 
+            // Refresh the ref to the serialized components in case the asset got swapped or another
+            // script is editing it while it's active in the inspector
+            m_SerializedObject.Update();
+            m_ComponentsProperty = m_SerializedObject.Find((VolumeProfile x) => x.components);
+            Assert.IsNotNull(m_ComponentsProperty);
+
             // Recreate editors for existing settings, if any
             var components = asset.components;
             for (int i = 0; i < components.Count; i++)
