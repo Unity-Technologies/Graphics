@@ -108,6 +108,7 @@ namespace UnityEditor.ShaderGraph
                         if ( count < instancedCount-1)
                             builder.Append("\\");
                         builder.AppendLine("");
+						count++;
                     }
                 }
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
