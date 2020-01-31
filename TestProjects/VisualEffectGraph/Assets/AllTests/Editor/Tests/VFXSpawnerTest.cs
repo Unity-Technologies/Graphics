@@ -201,7 +201,8 @@ namespace UnityEditor.VFX.Test
             eventStop.eventName = "Dummy";
             graph.AddChild(eventStop);
             graph.children.OfType<VFXBasicSpawner>().First().LinkFrom(eventStop, 0, 1);
-            graph.RecompileIfNeeded();
+            
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
