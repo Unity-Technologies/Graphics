@@ -136,11 +136,11 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     LightLoopContext context;
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
-    int cookieIndex = lightData.cookieIndex;
-    lightData.cookieIndex = -1;
+    int cookieMode = lightData.cookieMode;
+    lightData.cookieMode = COOKIEMODE_NONE;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
-    lightData.cookieIndex = cookieIndex;
+    lightData.cookieMode = cookieMode;
 
     // Compute the non-occluded analytic luminance value
     float U = Luminance(lighting.diffuse + lighting.specular);
@@ -192,7 +192,9 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
@@ -330,7 +332,9 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 lightColor = lightData.color;
     if (lightData.cookieIndex >= 0)
     {
-        lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
+        float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
+        lightColor *= SampleCookie2D(misOutput.sampleUV, lightData.cookieScaleOffset, bsdfData.perceptualRoughness * cookieSizePOT);
     }
 
     diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
@@ -365,18 +369,6 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
-}
-
-RW_TEXTURE2D_X(float4, _RaytracedDirectionalShadowIntegration);
-
-[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the pixel position to process
-    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
-    _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 }
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -416,7 +408,8 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
 
-    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter));
+    // We need to convert the diameter to a radius for our sampling
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter * 0.5));
 
     float3 wsDir = mul(localDir, localToWorld); 
 
@@ -577,6 +570,18 @@ void RaytracingSpotShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
 }
 
+RW_TEXTURE2D_X(float4, _RaytracedShadowIntegration);
+
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+    _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+}
+
 // Slot in which a shadow texture should be copied
 int _RaytracingShadowSlot;
 float4 _RaytracingChannelMask;
@@ -598,11 +603,11 @@ void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
 #if defined(COLOR_SHADOW)
     // If this is a color shadow, then it is must be stored in the first three channels, override those but keeping the previous value in w
-    previousShadowValues.xyz = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].xyz;
+    previousShadowValues.xyz = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].xyz;
     _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = previousShadowValues;
 #else
-    // Otherwise we only override the channel we are interested in
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * previousShadowValues 
-                                                                    + _RaytracingChannelMask * _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
+    // Otherwise we only override the channel we are interested in. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues) 
+                                                                    + _RaytracingChannelMask * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
 #endif
 }

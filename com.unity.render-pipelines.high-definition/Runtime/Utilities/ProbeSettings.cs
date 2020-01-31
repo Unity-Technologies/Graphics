@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         frustumViewerScale = 1 << 14,
         /// <summary>lighting.fadeDistance</summary>
         lightingFadeDistance = 1 << 15,
+        resolution = 1 << 16,
     }
 
     /// <summary>
@@ -232,7 +233,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lighting = Lighting.NewDefault(),
             proxy = null,
             proxySettings = ProxySettings.NewDefault(),
-            frustum = Frustum.NewDefault()
+            frustum = Frustum.NewDefault(),
+            resolution = PlanarReflectionAtlasResolution.PlanarReflectionResolution512,
         };
 
         /// <summary>The way the frustum is handled by the probe.</summary>
@@ -252,6 +254,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
         /// <summary>Camera settings to use when capturing data.</summary>
+        /// <summary>The resolution of the probe.</summary>
+        public PlanarReflectionAtlasResolution resolution;
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
