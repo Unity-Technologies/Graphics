@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
 - Added Material Samples to explain how to use the lit shader features
 - Added an initial implementation of ray traced sub surface scattering
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. 
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -367,6 +368,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR autotests viewport size rounding
 - Fixed mip map slider knob displayed when cubemap have no mipmap
 - Remove unnecessary skip of material upgrade dialog box.
+- Fixed the profiling sample mismatch errors when enabling the profiler in play mode
 - Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
 
 ### Changed
@@ -489,6 +491,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph material synchronization issues
 - Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
 - Fixed an issue where area lights and point lights where not counted separately with regards to max lights on screen (case 1183196)
+- Fixed an SSR and Subsurface Scattering issue (appearing black) when using XR.
 
 ### Changed
 - Update Wizard layout.

@@ -473,7 +473,7 @@ namespace UnityEditor.Rendering.Universal
         void DrawStackSettings()
         {
             m_StackSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_StackSettingsFoldout.value, Styles.stackSettingsText);
-            ScriptableRenderer.RenderingFeatures supportedRenderingFeatures = m_AdditionalCameraData?.scriptableRenderer.supportedRenderingFeatures;
+            ScriptableRenderer.RenderingFeatures supportedRenderingFeatures = m_AdditionalCameraData?.scriptableRenderer?.supportedRenderingFeatures;
 
             if (supportedRenderingFeatures != null && supportedRenderingFeatures.cameraStacking == false)
             {
