@@ -17,9 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Output a specific debug mode.</summary>
     public enum DebugFullScreen
     {
+        /// <summary>No debug output.</summary>
         None,
+        /// <summary>Depth buffer.</summary>
         Depth,
+        /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
+        /// <summary>Motion vectors buffer.</summary>
         MotionVectors
     }
 
