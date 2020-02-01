@@ -370,6 +370,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed mip map slider knob displayed when cubemap have no mipmap
 - Remove unnecessary skip of material upgrade dialog box.
 - Fixed the profiling sample mismatch errors when enabling the profiler in play mode
+- Fixed issue that caused NaNs in reflection probes on consoles.
 - Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.

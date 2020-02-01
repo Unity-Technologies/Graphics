@@ -10,13 +10,12 @@ namespace UnityEditor.VFX
 
     class VFXSubgraphContext : VFXContext
     {
-        public const string triggerEventName = "Trigger";
-
         [VFXSetting,SerializeField]
         protected VisualEffectAsset m_Subgraph;
 
         [NonSerialized]
         VFXModel[] m_SubChildren;
+        VFXGraph m_UsedSubgraph;
 
         public VisualEffectAsset subgraph
         {
@@ -155,6 +154,7 @@ namespace UnityEditor.VFX
             if (m_Subgraph == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -162,6 +162,7 @@ namespace UnityEditor.VFX
             if( resource == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -171,7 +172,7 @@ namespace UnityEditor.VFX
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();
-
+            m_UsedSubgraph = graph;
             foreach (var child in duplicated.Zip(dependencies, (a, b) => new { copy = a, original = b }))
             {
                 child.copy.hideFlags = HideFlags.HideAndDontSave;
@@ -374,7 +375,7 @@ namespace UnityEditor.VFX
                         }
 
                     }
-                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null)) // do not recreate subchildren if the subgraph is not available but is not null
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph() ) // do not recreate subchildren if the subgraph is not available but is not null
                         RecreateCopy();
                 }
 
