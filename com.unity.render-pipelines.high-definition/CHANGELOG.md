@@ -454,6 +454,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved the coherency of PCSS blur between cascades.
 - Updated VR checks in Wizard to reflect new XR System.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
+- Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 
 ## [7.1.1] - 2019-09-05
 
