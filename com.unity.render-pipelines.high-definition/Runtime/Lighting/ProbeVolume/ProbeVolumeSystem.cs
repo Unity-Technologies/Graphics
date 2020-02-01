@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         NormalBias = 0,
         GeometricFilter,
+        ProbeValidityFilter
     }
 
     public struct ProbeVolumeList

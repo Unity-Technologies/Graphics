@@ -9,6 +9,7 @@
 //
 #define LEAKMITIGATIONMODE_NORMAL_BIAS (0)
 #define LEAKMITIGATIONMODE_GEOMETRIC_FILTER (1)
+#define LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 // PackingRules = Exact
