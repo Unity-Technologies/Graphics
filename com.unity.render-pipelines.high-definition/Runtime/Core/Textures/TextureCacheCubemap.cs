@@ -27,6 +27,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlitCubemapFaceProperties = new MaterialPropertyBlock();
         }
 
+        override public bool IsCreated()
+        {
+            return m_Cache.IsCreated();
+        }
+
         override protected bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
             if (!TextureCache.supportsCubemapArrayTextures)
@@ -144,10 +149,31 @@ namespace UnityEngine.Rendering.HighDefinition
                     name = CoreUtils.GetTextureAutoName(width, width, format, desc.dimension, depth: numCubeMaps, name: m_CacheName, mips: isMipMapped)
                 };
 
+                // We need to clear the content in case it is read on first frame, since on console we have no guarantee that
+                // the content won't be NaN
+                ClearCache();
                 m_Cache.Create();
             }
 
             return res;
+        }
+
+        internal void ClearCache()
+        {
+            var desc = m_Cache.descriptor;
+            bool isMipped = desc.useMipMap;
+            int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
+            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
+            {
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    for(int faceIdx = 0; faceIdx < 6; ++faceIdx)
+                    {
+                        Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
+                        GL.Clear(false, true, Color.clear);
+                    }
+                }
+            }
         }
 
         public void Release()
