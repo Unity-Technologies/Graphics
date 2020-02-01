@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 
     internal class OpaqueSettingsPass : ScriptableRenderPass
     {
-        private bool m_HasDepthTexture;
+        private Vector4 m_drawObjectPassData;
 
         private const string m_ProfilerTag = "Opaque Settings Pass";
         private static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
@@ -19,7 +19,13 @@ namespace UnityEngine.Rendering.Universal
 
         public bool Setup(bool hasDepthTexture)
         {
-            m_HasDepthTexture = hasDepthTexture;
+            // Global render pass data containing various settings.
+            m_drawObjectPassData = new Vector4(
+                0.0f,                           // Unused
+                0.0f,                           // Unused
+                hasDepthTexture ? 1.0f : 0.0f,  // Do we have access to a depth texture or not
+                1.0f                            // Are these objects opaque(1) or alpha blended(0)
+            );
 
             return true;
         }
@@ -28,16 +34,10 @@ namespace UnityEngine.Rendering.Universal
         {
             // Get a command buffer...
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-
-            // Global render pass data containing various settings.
-            Vector4 drawObjectPassData = new Vector4(
-                0.0f,                           // Unused
-                0.0f,                           // Unused
-                m_HasDepthTexture ? 1.0f : 0.0f,// Do we have access to a depth texture or not
-                1.0f                            // Are these objects opaque(1) or alpha blended(0)
-            );
-            cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
-
+            
+            // Send the correct draw data for the objects in drawn in this pass
+            cmd.SetGlobalVector(s_DrawObjectPassDataPropID, m_drawObjectPassData);
+            
             // Execute and release the command buffer...
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
