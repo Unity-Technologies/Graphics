@@ -55,6 +55,7 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
@@ -62,6 +63,7 @@
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
+    * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes

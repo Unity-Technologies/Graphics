@@ -150,5 +150,5 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
 
     // Store the intermediate result
     float3 finalColor = colorSum / wSum;
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, 1.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
 }

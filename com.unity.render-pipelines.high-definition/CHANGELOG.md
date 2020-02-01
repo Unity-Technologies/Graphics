@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
 - Added Material Samples to explain how to use the lit shader features
 - Added an initial implementation of ray traced sub surface scattering
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. 
+- Added support for Smoothness Fade start work when enabling ray traced reflections
 - Added decal layer masks on materials and decal layer on decal material.
 
 ### Fixed
@@ -368,6 +370,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR autotests viewport size rounding
 - Fixed mip map slider knob displayed when cubemap have no mipmap
 - Remove unnecessary skip of material upgrade dialog box.
+- Fixed the profiling sample mismatch errors when enabling the profiler in play mode
+- Fixed issue that caused NaNs in reflection probes on consoles.
+- Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
+- Fixed the blend of reflections based on the weight.
+- Fixed fallback for ray traced reflections when denoising is enabled.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -447,6 +454,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the default scene and default DXR scene and DefaultVolumeProfile.
 - Changed the way the length parameter is used for ray traced contact shadows.
 - Improved the coherency of PCSS blur between cascades.
+- Updated VR checks in Wizard to reflect new XR System.
+- Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
+- Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 
 ## [7.1.1] - 2019-09-05
 
@@ -487,6 +497,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph material synchronization issues
 - Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
 - Fixed an issue where area lights and point lights where not counted separately with regards to max lights on screen (case 1183196)
+- Fixed an SSR and Subsurface Scattering issue (appearing black) when using XR.
 
 ### Changed
 - Update Wizard layout.

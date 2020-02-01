@@ -235,38 +235,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_AlphaTestDepthPrepass;
-
-        public ToggleData alphaTestDepthPrepass
-        {
-            get { return new ToggleData(m_AlphaTestDepthPrepass); }
-            set
-            {
-                if (m_AlphaTestDepthPrepass == value.isOn)
-                    return;
-                m_AlphaTestDepthPrepass = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        bool m_AlphaTestDepthPostpass;
-
-        public ToggleData alphaTestDepthPostpass
-        {
-            get { return new ToggleData(m_AlphaTestDepthPostpass); }
-            set
-            {
-                if (m_AlphaTestDepthPostpass == value.isOn)
-                    return;
-                m_AlphaTestDepthPostpass = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
         int m_SortPriority;
 
         public int sortPriority
