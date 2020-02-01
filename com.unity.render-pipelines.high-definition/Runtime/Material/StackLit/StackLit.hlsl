@@ -4159,6 +4159,9 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     InversePreExposeSsrLighting(ssrLighting);
 
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
     // For performance reasons, SSR doesn't allow us to be discriminating per lobe, ie wrt direction, roughness,
     // anisotropy, etc. 
     // At least the vlayered BSDF stack model already represents the stack with a single interface with multiple
@@ -4195,7 +4198,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     }
 
     // Note: RGB is already premultiplied by A.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * reflectanceFactor;
+    lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
     reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;
