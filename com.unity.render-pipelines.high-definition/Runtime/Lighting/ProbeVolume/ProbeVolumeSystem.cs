@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
-        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 3; // one texture per [RGB] SH coefficients
+        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 4; // one texture per [RGB] SH coefficients + one texture for float4(validity, unassigned, unassigned, unassigned).
         Texture2DAtlasDynamic probeVolumeAtlas = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
