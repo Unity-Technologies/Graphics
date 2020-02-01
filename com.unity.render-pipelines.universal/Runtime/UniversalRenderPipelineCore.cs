@@ -26,6 +26,11 @@ namespace UnityEngine.Rendering.Universal
         public PerObjectData perObjectData;
         [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
         public bool killAlphaInFinalBlit;
+
+        /// <summary>
+        /// True if post-processing effect is enabled while rendering the camera stack.
+        /// </summary>
+        public bool postProcessingEnabled;
         internal bool resolveFinalTarget;
     }
 
