@@ -1825,7 +1825,7 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
 
-                if( node.controller.model is VFXSubgraphOperator || node.controller.model is VFXSubgraphContext || node.controller.model is VFXSubgraphBlock)
+                if( (node.controller.model is VFXSubgraphOperator subOp && subOp.subgraph != null )|| (node.controller.model is VFXSubgraphContext subCont && subCont.subgraph != null ) || (node.controller.model is VFXSubgraphBlock subBlk && subBlk.subgraph != null ))
                 {
                     evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
                 }
@@ -1854,7 +1854,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                if( VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
                 {
                     evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
                 }

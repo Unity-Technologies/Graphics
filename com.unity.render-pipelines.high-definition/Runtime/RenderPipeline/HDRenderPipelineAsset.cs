@@ -75,12 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal VolumeProfile defaultLookDevProfile
         {
-            get
-            {
-                if (m_DefaultLookDevProfile == null)
-                    m_DefaultLookDevProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
-                return m_DefaultLookDevProfile;
-            }
+            get => m_DefaultLookDevProfile;
             set => m_DefaultLookDevProfile = value;
         }
 
