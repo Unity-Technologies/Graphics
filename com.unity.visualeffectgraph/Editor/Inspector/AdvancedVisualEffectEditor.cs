@@ -316,7 +316,7 @@ namespace UnityEditor.VFX
         {
             base.OnSceneViewGUI(sv);
 
-            if (m_GizmoDisplayed && m_GizmoedParameter != null)
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
             {
                 ContextAndGizmo context = GetGizmo();
 

@@ -14,9 +14,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom Inspector for Update context, display update position/rotation instead of integration
 - Tooltips to blocks, nodes, contexts, and various menus and options
 - New operators: Exp, Log and LoadTexture
+- Right click on edge to create a interstitial node.
 - New quad distortion output for particle strips
 - New attribute for strips: particleCountInStrip
 - New options for quad strips texture mapping: swap UV and custom mapping
+- Range and Min attributes support on int and uint parameters
+- New Construct Matrix from Vector4 operator
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
