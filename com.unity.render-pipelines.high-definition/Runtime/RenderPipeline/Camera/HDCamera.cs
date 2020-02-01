@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
     // not used during a frame.
+
+    /// <summary>
+    /// HDCamera class.
+    /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
+    /// </summary>
     public class HDCamera
     {
         #region Public API
@@ -1030,7 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 viewDir = -viewConstants.invViewMatrix.GetColumn(2);
             viewDir.Normalize();
-            Frustum.Create(frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
+            Frustum.Create(ref frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
