@@ -70,7 +70,8 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
 
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE || PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) < _RaytracingReflectionMinSmoothness)
+    float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness)
         return;
 
     // Fetch the normal WS
@@ -174,6 +175,8 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     }
     else
     {
-        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, _RaytracingDenoiseRadius > 0 ? roughness : 1.0);
+        // We also need to compute the fade factor for this sample
+        float weightValue = _RaytracingReflectionSmoothnessFadeStart == _RaytracingReflectionMinSmoothness ? 1.0 : saturate((perceptualSmoothness - _RaytracingReflectionMinSmoothness) / (_RaytracingReflectionSmoothnessFadeStart -_RaytracingReflectionMinSmoothness));
+        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, weightValue);
     }
 }
