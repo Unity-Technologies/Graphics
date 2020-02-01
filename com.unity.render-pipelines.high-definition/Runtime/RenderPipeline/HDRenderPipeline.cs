@@ -672,6 +672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesMaximumLODLevel = true
 #if UNITY_2020_1_OR_NEWER
                 , terrainDetailUnsupported = true
+                , rendererProbes = false
 #endif
             };
 
