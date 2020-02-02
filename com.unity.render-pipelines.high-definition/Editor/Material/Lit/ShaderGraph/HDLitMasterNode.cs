@@ -1131,6 +1131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddRayTracingProperty(collector, rayTracing.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }
