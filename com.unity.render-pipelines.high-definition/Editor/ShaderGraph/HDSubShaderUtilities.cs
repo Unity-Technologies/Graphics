@@ -1320,6 +1320,11 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddRayTracingProperty(PropertyCollector collector, bool isRayTracing)
+        {
+            collector.AddToggleProperty("_RayTracing", isRayTracing);
+        }
+        
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
