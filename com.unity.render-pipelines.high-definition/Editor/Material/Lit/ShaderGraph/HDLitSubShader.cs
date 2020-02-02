@@ -632,19 +632,18 @@ namespace UnityEditor.Rendering.HighDefinition
             LightMode = "RayTracingPrepass",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ShaderPassName = "SHADERPASS_CONSTANT",
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
-                "#define RAYTRACINGPREPASS",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {

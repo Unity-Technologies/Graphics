@@ -36,14 +36,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Recursive rendering works as follow:
             // - Shader have a _RayTracing property
-            // When this property is setup to true, a pass RayTracingPrepass is enabled (otherwise it is disabled)
-            // - Before prepass we render all object with a RayTracingPrepass enabled into the depth buffer and output a mask buffer.
+            // When this property is setup to true, a RayTracingPrepass pass on the material is enabled (otherwise it is disabled)
+            // - Before prepass we render all object with a RayTracingPrepass pass enabled into the depth buffer for performance saving.
+            // Note that we will exclude from the rendering of DepthPrepass, GBuffer and Forward pass the raytraced objects but not from
+            // motion vector pass, so we can still benefit from motion vector. This is handled in VertMesh.hlsl (see below).
+            // However currently when rendering motion vector this will tag the stencil for deferred lighting, and thus could produce overshading.
+            // - After Transparent Depth pass we render all object with a RayTracingPrepass pass enabled into output a mask buffer (need to depth test but not to write depth)
+            // Note: we render two times: one to save performance and the other to write the mask, otherwise if we write the mask in the first pass it
+            // will not take into account the objects which could render on top of the raytracing one (If we want to do that we need to perform the pass after that
+            // the depth buffer is ready, which is after the Gbuffer pass, so we can't save performance).
             // - During RaytracingRecursiveRender we perform a RayTracingRendering.raytrace call on all pixel tag in the mask
             // It is require to exclude mesh from regular pass to save performance (for opaque) and get correct result (for transparent)
             // For this we cull the mesh by setuping their position to NaN if _RayTracing is true and _EnableRecursiveRayTracing true.
             // We use this method to avoid to have to deal with RenderQueue and it allow to dynamically disabled Recursive rendering
             // and fallback to classic rasterize transparent this way. The code for the culling is in VertMesh()
-            // If raytracing is disable,  _EnableRecursiveRayTracing is set to false and no culling happen.
+            // If raytracing is disable _EnableRecursiveRayTracing is set to false and no culling happen.
             // Objects are still render in shadow and motion vector pass to keep their properties.
 
             // We render Recursive render object before transparent, so transparent object can be overlayed on top

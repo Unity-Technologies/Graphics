@@ -203,6 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_Decals3RTPassNames = { HDShaderPassNames.s_MeshDecals3RTName , HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT };
 
         RenderStateBlock m_DepthStateOpaque;
+        RenderStateBlock m_DepthStateNoWrite;
 
         // Detect when windows size is changing
         int m_MaxCameraWidth;
@@ -795,6 +796,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthStateOpaque = new RenderStateBlock
             {
                 depthState = new DepthState(true, CompareFunction.LessEqual),
+                mask = RenderStateMask.Depth
+            };
+
+            m_DepthStateNoWrite = new RenderStateBlock
+            {
+                depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
         }
@@ -3579,12 +3586,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RayTracingPrepass)))
                 {
+                    RendererList transparentRendererList;
+                    RendererList opaqueRendererList;
+
+                    // when clear is required, it mean we are before the recursive rendering call, otherwise it mean we are before the depth prepass
+                    // As the pass before depth prepass write depth, we don't need to write it again during the second one, also the buffer is only clear at this time
+                    // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a rendertarget (But it require various headaches to work correctly).
                     if (clear)
+                    {
                         CoreUtils.SetRenderTarget(cmd, GetRayTracingBuffer(InternalRayTracingBuffers.R0), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, Color.black);
+                        transparentRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite));
+                        opaqueRendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite));
+                    }
                     else
+                    {
                         CoreUtils.SetRenderTarget(cmd, GetRayTracingBuffer(InternalRayTracingBuffers.R0), m_SharedRTManager.GetDepthStencilBuffer());
-                    var transparentRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
-                    var opaqueRendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
+                        transparentRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
+                        opaqueRendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames));
+                    }
                     DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueRendererList);
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentRendererList);
                 }

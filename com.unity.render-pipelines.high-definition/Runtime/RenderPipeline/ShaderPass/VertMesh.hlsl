@@ -108,7 +108,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
 #if SHADEROPTIONS_RAYTRACING
 #ifdef HAVE_RECURSIVE_RENDERING
-    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY && !defined(RAYTRACINGPREPASS))
+    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY)
     // Note: Raytrace object can output in motion vector pass and shadow pass
     if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
     {
