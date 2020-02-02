@@ -102,6 +102,24 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 // Make it inout so that MotionVectorPass can get the modified input values later.
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+#if SHADEROPTIONS_RAYTRACING
+#ifdef HAVE_RECURSIVE_RENDERING
+    #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY && !defined(RAYTRACINGPREPASS))
+    // Note: Raytrace object can output in motion vector pass and shadow pass
+    if (_EnableRecursiveRayTracing && _RayTracing)
+    {
+        ZERO_INITIALIZE(VaryingsMeshType, nanOutput);
+        nanOutput.positionCS = float4(0.0, 0.0, 0.0, 0.0); // Divide by 0 should produce a NaN and thus cull the primitive.
+        return nanOutput;
+    }
+    #endif
+#endif // HAVE_RECURSIVE_RENDERING
+#endif // SHADEROPTIONS_RAYTRACING
+
     VaryingsMeshType output;
 
     UNITY_SETUP_INSTANCE_ID(input);

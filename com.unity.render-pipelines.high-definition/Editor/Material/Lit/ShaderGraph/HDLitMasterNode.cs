@@ -198,6 +198,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_RayTracing;
+
+        public ToggleData rayTracing
+        {
+            get { return new ToggleData(m_RayTracing); }
+            set
+            {
+                if (m_RayTracing == value.isOn)
+                    return;
+
+                m_RayTracing = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
         SurfaceType m_SurfaceType;
 
         public SurfaceType surfaceType

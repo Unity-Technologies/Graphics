@@ -458,6 +458,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Hide the Probes section in the Renderer editos because it was unused.
+- Remove the raytracing rendering queue system to make recursive raytraced material work when raytracing is disabled
 
 ## [7.1.1] - 2019-09-05
 
