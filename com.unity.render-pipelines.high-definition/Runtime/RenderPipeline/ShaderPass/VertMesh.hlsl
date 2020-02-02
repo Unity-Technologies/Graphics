@@ -113,8 +113,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
     {
         VaryingsMeshType nanOutput;
-        ZERO_INITIALIZE(VaryingsMeshType, nanOutput);
-        nanOutput.positionCS = float4(0.0, 0.0, 0.0, 0.0); // Divide by 0 should produce a NaN and thus cull the primitive.
+        ZERO_INITIALIZE(VaryingsMeshType, nanOutput); // Divide by 0 should produce a NaN and thus cull the primitive.
         return nanOutput;
     }
     #endif

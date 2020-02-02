@@ -112,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingFilterIndirectDiffuse,
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
+        RayTracingPrepass,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
