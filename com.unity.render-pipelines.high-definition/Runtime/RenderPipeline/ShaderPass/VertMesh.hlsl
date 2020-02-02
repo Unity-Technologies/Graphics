@@ -110,8 +110,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #ifdef HAVE_RECURSIVE_RENDERING
     #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY && !defined(RAYTRACINGPREPASS))
     // Note: Raytrace object can output in motion vector pass and shadow pass
-    if (_EnableRecursiveRayTracing && _RayTracing)
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
     {
+        VaryingsMeshType nanOutput;
         ZERO_INITIALIZE(VaryingsMeshType, nanOutput);
         nanOutput.positionCS = float4(0.0, 0.0, 0.0, 0.0); // Divide by 0 should produce a NaN and thus cull the primitive.
         return nanOutput;

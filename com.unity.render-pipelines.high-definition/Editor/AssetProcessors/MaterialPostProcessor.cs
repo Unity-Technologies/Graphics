@@ -189,46 +189,38 @@ namespace UnityEditor.Rendering.HighDefinition
         {
              StencilRefactor,
              ZWriteForTransparent,
+             RenderQueueUpgrade,
         };
 
-        #region Migrations
+        //example migration method, remove when we have enough examples
+        //static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
+        //{
+        //    switch (id)
+        //    {
+        //        case HDShaderUtils.ShaderID.Lit:
+        //        case HDShaderUtils.ShaderID.LayeredLit:
+        //        case HDShaderUtils.ShaderID.LitTesselation:
+        //        case HDShaderUtils.ShaderID.LayeredLitTesselation:
+        //            var serializedObject = new SerializedObject(material);
+        //            var specOcclusionMode = 1;
+        //            if (FindProperty(serializedObject, "_EnableSpecularOcclusion", SerializedType.Boolean).property != null)
+        //            {
+        //                var enableSpecOcclusion = GetSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
+        //                if (enableSpecOcclusion)
+        //                {
+        //                    specOcclusionMode = 2;
+        //                }
+        //                RemoveSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
+        //                serializedObject.ApplyModifiedProperties();
+        //            }
+        //            material.SetInt("_SpecularOcclusionMode", specOcclusionMode);
 
-        // Not used currently:
-        // TODO: Script like this must also work with embed material in scene (i.e we need to catch
-        // .unity scene and load material and patch in memory. And it must work with perforce
-        // i.e automatically checkout all those files).
-        static void SpecularOcclusionMode(Material material, HDShaderUtils.ShaderID id)
-        {
-            switch (id)
-            {
-                case HDShaderUtils.ShaderID.Lit:
-                case HDShaderUtils.ShaderID.LayeredLit:
-                case HDShaderUtils.ShaderID.LitTesselation:
-                case HDShaderUtils.ShaderID.LayeredLitTesselation:
-                    var serializedObject = new SerializedObject(material);
-                    var specOcclusionMode = 1;
-                    if (FindProperty(serializedObject, "_EnableSpecularOcclusion", SerializedType.Boolean).property != null)
-                    {
-                        var enableSpecOcclusion = GetSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        if (enableSpecOcclusion)
-                        {
-                            specOcclusionMode = 2;
-                        }
-                        RemoveSerializedBoolean(serializedObject, "_EnableSpecularOcclusion");
-                        serializedObject.ApplyModifiedProperties();
-                    }
-                    material.SetInt("_SpecularOcclusionMode", specOcclusionMode);
+        //            HDShaderUtils.ResetMaterialKeywords(material);
+        //            break;
+        //    }
+        //}
 
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                    break;
-            }
-        }
-
-        static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
-        {
-            HDShaderUtils.ResetMaterialKeywords(material);
-        }
-        //example migration method, remove it after first real migration
+        //example migration method, remove when we have enough examples
         //static void EmissiveIntensityToColor(Material material, ShaderID id)
         //{
         //    switch(id)
@@ -262,6 +254,11 @@ namespace UnityEditor.Rendering.HighDefinition
         //    }
         //}
 
+        static void StencilRefactor(Material material, HDShaderUtils.ShaderID id)
+        {
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         static void ZWriteForTransparent(Material material, HDShaderUtils.ShaderID id)
         {
             // For transparent materials, the ZWrite property that is now used is _TransparentZWrite.
@@ -271,7 +268,30 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        #endregion
+        static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
+        {
+            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
+            HDShaderUtils.ResetMaterialKeywords(material);
+
+            // Previously:
+            // RaytracingOpaque = UnityEngine.Rendering.RenderQueue.GeometryLast + 20
+            // RaytracingTransparent = 3900
+
+            // Replace previous ray tracing render queue for opaque to regular opaque with raytracing
+            if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.Opaque;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+            // Replace previous ray tracing render queue for transparent to regular transparent with raytracing
+            else if (material.renderQueue == 3900)
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.Transparent;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
 
         #region Serialization_API
         //Methods in this region interact on the serialized material

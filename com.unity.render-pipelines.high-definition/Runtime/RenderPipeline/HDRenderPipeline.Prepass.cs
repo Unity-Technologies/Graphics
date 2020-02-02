@@ -92,6 +92,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(normalDesc, msaa ? HDShaderIDs._NormalTextureMS : HDShaderIDs._NormalBufferTexture);
         }
 
+        RenderGraphMutableResource CreateRaytracePrepassBufferBuffer(RenderGraph renderGraph, bool msaa)
+        {
+            TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
+            { colorFormat = GraphicsFormat.R8_SNorm, clearBuffer = true, clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "RaytracePrepassBufferMSAA" : "RaytracePrepassBuffer" };
+            return renderGraph.CreateTexture(normalDesc, msaa ? HDShaderIDs._RaytracePrepassBufferMS : HDShaderIDs._RaytracePrepassBufferTexture);
+        }
+
         RenderGraphMutableResource CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
@@ -189,6 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphMutableResource depthBuffer;
             public RenderGraphMutableResource depthAsColorBuffer;
             public RenderGraphMutableResource normalBuffer;
+            public RenderGraphMutableResource raytracePrepassBuffer;
 
             public RenderGraphResource rendererListMRT;
             public RenderGraphResource rendererListDepthOnly;
@@ -232,8 +240,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.rendererListMRT = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.mrtRendererListDesc));
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                if (passData.renderRayTracingPrepass)
                 {
+                    passData.raytracePrepassBuffer = builder.WriteTexture(CreateRaytracePrepassBufferBuffer(renderGraph, msaa));
                     passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
                     passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
                 }
@@ -255,6 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
                                     , mrt
                                     , context.resources.GetTexture(data.depthBuffer)
+                                    , context.resources.GetTexture(data.raytracePrepassBuffer)
                                     , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass

@@ -2972,6 +2972,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         FrameSettings               frameSettings,
                                         RenderTargetIdentifier[]    mrt,
                                         RTHandle                    depthBuffer,
+                                        RTHandle                    raytracePrepassBuffer,
                                         in RendererList             depthOnlyRendererList,
                                         in RendererList             mrtRendererList,
                                         bool                        hasDepthOnlyPass,
@@ -2983,15 +2984,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Any Raytrace prepass objects must be render first, to not waste pixels and not override stencil.
             if (renderRayTracingPrepass)
             {
-                // TODO:
-                RTHandle flagBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);
                 // Clear our target
-                CoreUtils.SetRenderTarget(cmd, flagBuffer, ClearFlag.Color, Color.black);
+                CoreUtils.SetRenderTarget(cmd, raytracePrepassBuffer, depthBuffer, ClearFlag.Color, Color.black);
 
                 // Render transparent first, as there is more likelihood they are in front of the opaque
                 HDUtils.DrawRendererList(renderContext, cmd, rayTracingTransparentRL);
                 HDUtils.DrawRendererList(renderContext, cmd, rayTracingOpaqueRL);
-                
             }
 
             CoreUtils.SetRenderTarget(cmd, depthBuffer);
@@ -3024,6 +3022,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderDepthPrepass(renderContext, cmd, hdCamera.frameSettings,
                                     m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings),
                                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                                    GetRayTracingBuffer(InternalRayTracingBuffers.R0),
                                     depthOnlyRendererList,
                                     mrtDepthRendererList,
                                     depthPrepassParameters.hasDepthOnlyPass,
@@ -3614,17 +3613,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDepthStencilBuffer());
                 var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
-                    var rrSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                    if (rrSettings.enable.value)
-                    {
-                        var rendererListRT = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing));
-                        DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListRT);
-                    }
-                }
             }
         }
 

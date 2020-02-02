@@ -347,6 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
         public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
         public static readonly int _NormalTextureMS = Shader.PropertyToID("_NormalTextureMS");
+        public static readonly int _RaytracePrepassBufferMS = Shader.PropertyToID("_RaytracePrepassBufferMS");     
         public static readonly int _MotionVectorTextureMS = Shader.PropertyToID("_MotionVectorTextureMS");
         public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
 
@@ -384,6 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _SSSBufferTexture = Shader.PropertyToID("_SSSBufferTexture");
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
+        public static readonly int _RaytracePrepassBufferTexture = Shader.PropertyToID("_RaytracePrepassBufferTexture");       
 
         public static readonly int _EnableSSRefraction = Shader.PropertyToID("_EnableSSRefraction");
         public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
