@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 2
+  version: 3
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -53,7 +53,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 10
-    - _AlphaSrcBlend: 1
+    - _AlphaSrcBlend: 0
     - _BlendMode: 0
     - _CullMode: 0
     - _CullModeForward: 0
@@ -73,7 +73,7 @@ Material:
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 3
+    - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
     - _SurfaceType: 1
     - _TransparentBackfaceEnable: 0
