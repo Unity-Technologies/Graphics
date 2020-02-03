@@ -6,48 +6,63 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public partial struct DensityVolumeArtistParameters
     {
-        public Color     albedo;       // Single scattering albedo [0, 1]. Alpha is ignored
-        public float     meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
-        public float     asymmetry;    // [-1, 1]. Not currently available for density volumes
+        /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
+        public Color     albedo;
+        /// <summary>Mean free path, in meters: [1, inf].</summary>
+        public float     meanFreePath; // Should be chromatic - this is an optimization!
+        /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
+        [FormerlySerializedAs("asymmetry")]
+        public float     anisotropy;   // . Not currently available for density volumes
 
+        /// <summary>Texture containing density values.</summary>
         public Texture3D volumeMask;
+        /// <summary>Scrolling speed of the density texture.</summary>
         public Vector3   textureScrollingSpeed;
+        /// <summary>Tiling rate of the density texture.</summary>
         public Vector3   textureTiling;
 
+        /// <summary>Edge fade factor along the positive X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_PositiveFade")]
-        public Vector3  positiveFade;
+        public Vector3   positiveFade;
+        /// <summary>Edge fade factor along the negative X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_NegativeFade")]
-        public Vector3  negativeFade;
+        public Vector3   negativeFade;
 
         [SerializeField, FormerlySerializedAs("m_UniformFade")]
-        internal float    m_EditorUniformFade;
+        internal float   m_EditorUniformFade;
         [SerializeField]
-        internal Vector3  m_EditorPositiveFade;
+        internal Vector3 m_EditorPositiveFade;
         [SerializeField]
-        internal Vector3  m_EditorNegativeFade;
+        internal Vector3 m_EditorNegativeFade;
         [SerializeField, FormerlySerializedAs("advancedFade"), FormerlySerializedAs("m_AdvancedFade")]
-        internal bool     m_EditorAdvancedFade;
+        internal bool    m_EditorAdvancedFade;
 
+        /// <summary>Dimensions of the volume.</summary>
         public Vector3   size;
+        /// <summary>Inverts the fade gradient.</summary>
         public bool      invertFade;
 
+        /// <summary>Distance at which density fading starts.</summary>
         public float     distanceFadeStart;
+        /// <summary>Distance at which density fading ends.</summary>
         public float     distanceFadeEnd;
-
-        public  int      textureIndex; // This shouldn't be public... Internal, maybe?
-        private Vector3  volumeScrollingAmount;
+        [SerializeField]
+        internal int     textureIndex;
+        /// <summary>Allows translation of the tiling density texture.</summary>
+        [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
+        public Vector3   textureOffset;
 
         public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _asymmetry)
         {
             albedo                = color;
             meanFreePath          = _meanFreePath;
-            asymmetry             = _asymmetry;
+            anisotropy            = _asymmetry;
 
             volumeMask            = null;
             textureIndex          = -1;
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;
-            volumeScrollingAmount = textureScrollingSpeed;
+            textureOffset         = textureScrollingSpeed;
 
             size                  = Vector3.one;
 
@@ -70,10 +85,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumeMask != null)
             {
                 float animationTime = animate ? time : 0.0f;
-                volumeScrollingAmount = (textureScrollingSpeed * animationTime);
+                textureOffset = (textureScrollingSpeed * animationTime);
                 // Switch from right-handed to left-handed coordinate system.
-                volumeScrollingAmount.x = -volumeScrollingAmount.x;
-                volumeScrollingAmount.y = -volumeScrollingAmount.y;
+                textureOffset.x = -textureOffset.x;
+                textureOffset.y = -textureOffset.y;
             }
         }
 
@@ -86,9 +101,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
 
-            asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
+            anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
 
-            volumeScrollingAmount = Vector3.zero;
+            textureOffset = Vector3.zero;
 
             distanceFadeStart = Mathf.Max(0, distanceFadeStart);
             distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
@@ -102,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
             data.textureIndex   = textureIndex;
-            data.textureScroll  = volumeScrollingAmount;
+            data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 
             // Clamp to avoid NaNs.
