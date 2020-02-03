@@ -2660,7 +2660,7 @@ float3 EnvSampling_SVBRDF(  LightLoopContext lightLoopContext,
 
 
                 float mipLevel;
-                float envSampleFilterWidthAsRoughness;
+                float envSampleFilterWidthAsRoughness = importanceSamplingRoughness;
 
                 float filteringAmount = GetEnvSamplingFilteringAmount();
 
@@ -3155,7 +3155,7 @@ float3 EnvSampling_CarPaint(  LightLoopContext lightLoopContext,
                         float3 BRDFColor = GetBRDFColor(thetaH, thetaD);
 
                         float mipLevel;
-                        float envSampleFilterWidthAsRoughness;
+                        float envSampleFilterWidthAsRoughness = importanceSamplingRoughness;
 
                         //float filteringAmount = 0.5;
                         float filteringAmount = GetEnvSamplingFilteringAmount();
