@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Artist-friendly density volume parametrization.</summary>
     [Serializable]
-    partial struct DensityVolumeArtistParameters
+    public partial struct DensityVolumeArtistParameters
     {
         /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
         public Color     albedo;
@@ -148,18 +148,22 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class DensityVolumeParameters
 
+    /// <summary>Density volume class.</summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume")]
-    partial class DensityVolume : MonoBehaviour
+    public partial class DensityVolume : MonoBehaviour
     {
+        /// <summary>Density volume parameters.</summary>
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
 
+        /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
-        //Gather and Update any parameters that may have changed
+
+        /// <summary>Gather and Update any parameters that may have changed.</summary>
         internal void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager

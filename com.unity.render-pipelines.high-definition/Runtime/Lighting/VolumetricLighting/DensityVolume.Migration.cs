@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial struct DensityVolumeArtistParameters
+    public partial struct DensityVolumeArtistParameters
     {
         /// <summary>Obsolete, do not use.</summary>
         [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    partial class DensityVolume : IVersionable<DensityVolume.Version>
+    public partial class DensityVolume : IVersionable<DensityVolume.Version>
     {
         enum Version
         {
