@@ -336,7 +336,7 @@ it will allow you to add more layers / custom culling option to the cullingResul
 
 **Scaling issues**, they can appear when you have two cameras that are not using the same resolution (most common case in game and scene views) and can be caused by:
 
-- Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@7.1/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
+- Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
 - In the shader, a missing multiplication by `_RTHandleScale.xy` for the UVs when sampling an RTHandle buffer.
 
 ## Example: Glitch Effect (without code)
