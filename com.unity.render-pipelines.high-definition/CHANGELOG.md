@@ -376,6 +376,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.
+- Fixed Wizard check order for `Hardware and OS` and `Direct3D12`
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
