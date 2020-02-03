@@ -212,8 +212,8 @@ Shader "HDRP/AxF"
 
             Stencil
             {
-                WriteMask[_StencilRefDepth]
-                Ref[_StencilWriteMaskDepth]
+                WriteMask[_StencilWriteMaskDepth]
+                Ref[_StencilRefDepth]
                 Comp Always
                 Pass Replace
             }
