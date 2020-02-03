@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _VxShadowMapParameters = Shader.PropertyToID("_VxShadowMapParameters");
 
             public static int _VxShadowMapsBuffer = Shader.PropertyToID("_VxShadowMapsBuffer");
-            public static int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static int _ScreenSpaceShadowOutput = Shader.PropertyToID("_ScreenSpaceShadowOutput");
         }
 
@@ -34,7 +33,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private ComputeShader _screenSpaceVxShadowCS;
 
         private RenderTextureFormat _shadowFormat;
-        private RenderTargetHandle _cameraDepthTexture;
         private RenderTargetHandle _mainLightShadowmapTexture;
         private RenderTargetHandle _screenSpaceShadowmapTexture;
         private RenderTextureDescriptor _cameraDepthDescriptor;
@@ -57,7 +55,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool R8 = R8_UNorm || R8_SNorm || R8_UInt || R8_SInt;
 
             _shadowFormat = R8 ? RenderTextureFormat.R8 : RenderTextureFormat.RFloat;
-            _cameraDepthTexture.Init("_CameraDepthTexture");
             _mainLightShadowmapTexture.Init("_MainLightShadowmapTexture");
             _screenSpaceShadowmapTexture.Init("_ScreenSpaceShadowmapTexture");
 
@@ -79,7 +76,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             _screenSpaceShadowmapDescriptor.depthBufferBits = 0;
             _screenSpaceShadowmapDescriptor.colorFormat = _shadowFormat;
 
-            cmd.GetTemporaryRT(_cameraDepthTexture.id, _cameraDepthDescriptor, FilterMode.Point);
             cmd.GetTemporaryRT(_screenSpaceShadowmapTexture.id, _screenSpaceShadowmapDescriptor, FilterMode.Point);
 
             ConfigureClear(ClearFlag.None, Color.black);
@@ -140,7 +136,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new System.ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(_cameraDepthTexture.id);
             cmd.ReleaseTemporaryRT(_screenSpaceShadowmapTexture.id);
         }
 
@@ -202,11 +197,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetComputeVectorParam(_screenSpaceVxShadowCS, ShaderIDs._ScreenSize, screenSize);
             cmd.SetComputeIntParams(_screenSpaceVxShadowCS, ShaderIDs._VxShadowMapParameters, parameters);
 
-            var cameraDepthTextureId = _cameraDepthTexture.Identifier();
             var screenSpaceShadowOutputId = _screenSpaceShadowmapTexture.Identifier();
 
             cmd.SetComputeBufferParam(_screenSpaceVxShadowCS, kernel, ShaderIDs._VxShadowMapsBuffer, vxShadowMapsBuffer);
-            cmd.SetComputeTextureParam(_screenSpaceVxShadowCS, kernel, ShaderIDs._CameraDepthTexture, cameraDepthTextureId);
             cmd.SetComputeTextureParam(_screenSpaceVxShadowCS, kernel, ShaderIDs._ScreenSpaceShadowOutput, screenSpaceShadowOutputId);
         }
 
