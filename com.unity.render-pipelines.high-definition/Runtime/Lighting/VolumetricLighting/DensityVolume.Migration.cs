@@ -2,8 +2,9 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial struct DensityVolumeArtistParameters
+    partial struct DensityVolumeArtistParameters
     {
+        /// <summary>Obsolete, do not use.</summary>
         [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
         public bool advancedFade => true;
 
@@ -24,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class DensityVolume : IVersionable<DensityVolume.Version>
+    partial class DensityVolume : IVersionable<DensityVolume.Version>
     {
         enum Version
         {

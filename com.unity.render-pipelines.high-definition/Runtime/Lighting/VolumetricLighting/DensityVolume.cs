@@ -3,8 +3,9 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>Artist-friendly density volume parametrization.</summary>
     [Serializable]
-    public partial struct DensityVolumeArtistParameters
+    partial struct DensityVolumeArtistParameters
     {
         /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
         public Color     albedo;
@@ -52,11 +53,15 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
         public Vector3   textureOffset;
 
-        public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _asymmetry)
+        /// <summary>Constructor.</summary>
+        /// <param name="color">Single scattering albedo.</param>
+        /// <param name="_meanFreePath">Mean free path.</param>
+        /// <param name="_anisotropy">Anisotropy.</param>
+        public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _anisotropy)
         {
             albedo                = color;
             meanFreePath          = _meanFreePath;
-            anisotropy            = _asymmetry;
+            anisotropy            = _anisotropy;
 
             volumeMask            = null;
             textureIndex          = -1;
@@ -146,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume")]
-    public partial class DensityVolume : MonoBehaviour
+    partial class DensityVolume : MonoBehaviour
     {
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
