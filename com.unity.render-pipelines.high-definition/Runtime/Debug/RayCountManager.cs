@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_IsActive)
             {
-                using (new ProfilingSample(cmd, "Raytracing Debug Overlay", CustomSamplerId.RaytracingDebug.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay)))
                 {
                     // Get the size of the viewport to process
                     int currentWidth = camera.actualWidth;
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int dispatchHeight = Mathf.Max(1, (currentHeight + (areaTileSize - 1)) / areaTileSize);
 
                     // Do we need three passes
-                    if (dispatchHeight > 32  || dispatchWidth > 32)
+                    if (dispatchHeight > 32 || dispatchWidth > 32)
                     {
                         // Bind the texture and the 256x256 buffer
                         cmd.SetComputeTextureParam(rayCountCS, currentKenel, HDShaderIDs._InputRayCountTexture, m_RayCountTexture);

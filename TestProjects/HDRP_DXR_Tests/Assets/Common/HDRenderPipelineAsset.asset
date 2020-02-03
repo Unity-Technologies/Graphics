@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_Version: 11
+  m_Version: 14
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -152,12 +152,13 @@ MonoBehaviour:
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196,
     type: 2}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 3043edc9d9a47704fad99f10fea80a08,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 4414889870ba0db42b20b120a434b7f5,
     type: 2}
+  m_DefaultLookDevProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 65899829919581
-      data2: 4539628424926265344
+      data2: 4539628425396027392
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -196,6 +197,14 @@ MonoBehaviour:
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 0
     supportLightLayers: 0
+    lightLayerName0: Light Layer default
+    lightLayerName1: Light Layer 1
+    lightLayerName2: Light Layer 2
+    lightLayerName3: Light Layer 3
+    lightLayerName4: Light Layer 4
+    lightLayerName5: Light Layer 5
+    lightLayerName6: Light Layer 6
+    lightLayerName7: Light Layer 7
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -213,12 +222,14 @@ MonoBehaviour:
     supportRayTracing: 1
     supportedRaytracingTier: 2
     lightLoopSettings:
-      cookieSize: 128
-      cookieTexArraySize: 16
+      cookieAtlasSize: 2048
+      cookieFormat: 74
       pointCookieSize: 128
       cubeCookieTexArraySize: 16
-      planarReflectionProbeCacheSize: 2
-      planarReflectionTextureSize: 1024
+      cookieTexArraySize: 16
+      cookieAtlasLastValidMip: 0
+      cookieAreaTextureArraySize: 16
+      planarReflectionAtlasSize: 8192
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 0
@@ -233,6 +244,7 @@ MonoBehaviour:
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
+      maxPlanarReflectionOnScreen: 16
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -261,7 +273,8 @@ MonoBehaviour:
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 1
-      maxScreenSpaceShadows: 2
+      maxScreenSpaceShadowSlots: 10
+      screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
@@ -270,6 +283,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
+      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
@@ -283,6 +297,7 @@ MonoBehaviour:
       checkerboardDepthBuffer: 1
       upsampleType: 1
     xrSettings:
+      singlePass: 1
       occlusionMesh: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
@@ -317,15 +332,27 @@ MonoBehaviour:
       - 1
       m_SchemaId:
         m_Id: With3Levels
+    lightingQualitySettings:
+      AOStepCount: 040000000600000010000000
+      AOFullRes: 000001
+      AOMaximumRadiusPixels: 200000002800000050000000
+      AOBilateralUpsample: 000101
+      AODirectionCount: 010000000200000004000000
+      ContactShadowSampleCount: 060000000a00000010000000
+      SSRMaxRaySteps: 100000002000000040000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
-  materialQualityLevels: -1
-  m_CurrentMaterialQualityLevel: 4
+  availableMaterialQualityLevels: -1
+  m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+  - {fileID: 11400000, guid: fe1cdcfbe2f6023428af5974e17511c6, type: 2}
+  - {fileID: 11400000, guid: 784637474d9deec43a1d78b2361b9e6f, type: 2}
+  - {fileID: 11400000, guid: 0069ee94e5a66174e8d3393776072a41, type: 2}
+  - {fileID: 11400000, guid: e9b7d3ae706a8c845b9d317e195ff8a0, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []

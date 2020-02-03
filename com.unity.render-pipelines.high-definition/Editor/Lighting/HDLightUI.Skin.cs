@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Headers
             public readonly GUIContent generalHeader = new GUIContent("General");
             public readonly GUIContent shapeHeader = new GUIContent("Shape");
-            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body (Preview)");
+            public readonly GUIContent celestialBodyHeader = new GUIContent("Celestial Body");
             public readonly GUIContent emissionHeader = new GUIContent("Emission");
             public readonly GUIContent volumetricHeader = new GUIContent("Volumetrics");
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
@@ -40,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
             public readonly GUIContent cookieTextureTypeError = new GUIContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
+            public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
+            public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
 
 
             // Additional light data
@@ -48,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
             public readonly GUIContent lightIntensity = new GUIContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
 
-            public readonly GUIContent lightRadius = new GUIContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highligt, and the softness of Ray Traced shadows.");
+            public readonly GUIContent lightRadius = new GUIContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highlight, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
@@ -125,6 +127,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
+            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the light will cast a semi transparent ray traced shadow.");
+            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the directional light will cast a ray traced colored shadow.");
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");

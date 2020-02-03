@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -14,7 +15,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Name of the custom pass
         /// </summary>
-        public string           name = "Custom Pass";
+        public string name
+        {
+            get => m_Name;
+            set
+            {
+                m_Name = value;
+                m_ProfilingSampler = new ProfilingSampler(m_Name);
+            }
+        }
+        [SerializeField, FormerlySerializedAsAttribute("name")]
+        string m_Name = "Custom Pass";
+
+        internal ProfilingSampler   profilingSampler
+        {
+            get
+            {
+                if (m_ProfilingSampler == null)
+                    m_ProfilingSampler = new ProfilingSampler(m_Name ?? "Custom Pass");
+                return m_ProfilingSampler;
+            }
+        }
+        ProfilingSampler            m_ProfilingSampler;
 
         /// <summary>
         /// Is the custom pass enabled or not
@@ -59,30 +81,49 @@ namespace UnityEngine.Rendering.HighDefinition
         protected CustomPassInjectionPoint injectionPoint => owner.injectionPoint;
 
         /// <summary>
+        /// True if you want your custom pass to be executed in the scene view. False for game cameras only.
+        /// </summary>
+        protected virtual bool executeInSceneView => true;
+
+        /// <summary>
         /// Used to select the target buffer when executing the custom pass
         /// </summary>
         public enum TargetBuffer
         {
+            /// <summary>The buffers for the currently rendering Camera.</summary>
             Camera,
+            /// <summary>The custom rendering buffers that HDRP allocates.</summary>
             Custom,
+            /// <summary>No target buffer.</summary>
             None,
         }
 
         /// <summary>
-        /// Render Queue filters for the DrawRenderers custom pass 
+        /// Render Queue filters for the DrawRenderers custom pass
         /// </summary>
         public enum RenderQueueType
         {
+            /// <summary>Opaque GameObjects without alpha test only.</summary>
             OpaqueNoAlphaTest,
+            /// <summary>Opaque GameObjects with alpha test only.</summary>
             OpaqueAlphaTest,
+            /// <summary>All opaque GameObjects.</summary>
             AllOpaque,
+            /// <summary>Opaque GameObjects that use the after post process render pass.</summary>
             AfterPostProcessOpaque,
+            /// <summary>Transparent GameObjects that use the the pre refraction render pass.</summary>
             PreRefraction,
+            /// <summary>Transparent GameObjects that use the default render pass.</summary>
             Transparent,
+            /// <summary>Transparent GameObjects that use the low resolution render pass.</summary>
             LowTransparent,
+            /// <summary>All Transparent GameObjects.</summary>
             AllTransparent,
+            /// <summary>Transparent GameObjects that use the Pre-refraction, Default, or Low resolution render pass.</summary>
             AllTransparentWithLowRes,
+            /// <summary>Transparent GameObjects that use after post process render pass.</summary>
             AfterPostProcessTransparent,
+            /// <summary>All GameObjects</summary>
             All,
         }
 
@@ -100,11 +141,22 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Version     m_Version = Version.Initial;
+        Version     m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version
         {
             get => m_Version;
             set => m_Version = value;
+        }
+
+        internal bool WillBeExecuted(HDCamera hdCamera)
+        {
+            if (!enabled)
+                return false;
+
+            if (hdCamera.camera.cameraType == CameraType.SceneView && !executeInSceneView)
+                return false;
+
+            return true;
         }
 
         internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
@@ -114,27 +166,32 @@ namespace UnityEngine.Rendering.HighDefinition
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            if (!isSetup)
+            using (new ProfilingScope(cmd, profilingSampler))
             {
-                Setup(renderContext, cmd);
-                isSetup = true;
+                if (!isSetup)
+                {
+                    Setup(renderContext, cmd);
+                    isSetup = true;
+                }
+
+                SetCustomPassTarget(cmd);
+
+                isExecuting = true;
+                Execute(renderContext, cmd, hdCamera, cullingResult);
+                isExecuting = false;
+
+                // Set back the camera color buffer if we were using a custom buffer as target
+                if (targetDepthBuffer != TargetBuffer.Camera)
+                    CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
             }
-
-            SetCustomPassTarget(cmd);
-
-            isExecuting = true;
-            Execute(renderContext, cmd, hdCamera, cullingResult);
-            isExecuting = false;
-            
-            // Set back the camera color buffer if we were using a custom buffer as target
-            if (targetDepthBuffer != TargetBuffer.Camera)
-                CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
         }
 
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
 
-        // Hack to cleanup the custom pass when it is unexpectedly destroyed, which happens every time you edit
-        // the UI because of a bug with the SerializeReference attribute.
+        /// <summary>
+        /// Cleans up the custom pass when Unity destroys it unexpectedly. Currently, this happens every time you edit
+        /// the UI because of a bug with the SerializeReference attribute.
+        /// </summary>
         ~CustomPass() { CleanupPassInternal(); }
 
         internal void CleanupPassInternal()
@@ -176,21 +233,21 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
         }
-        
+
         /// <summary>
         /// Use this method if you want to draw objects that are not visible in the camera.
         /// For example if you disable a layer in the camera and add it in the culling parameters, then the culling result will contains your layer.
         /// </summary>
         /// <param name="cullingParameters">Aggregate the parameters in this property (use |= for masks fields, etc.)</param>
         /// <param name="hdCamera">The camera where the culling is being done</param>
-        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
+        protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) {}
 
         /// <summary>
         /// Called when your pass needs to be executed by a camera
         /// </summary>
         /// <param name="renderContext"></param>
         /// <param name="cmd"></param>
-        /// <param name="camera"></param>
+        /// <param name="hdCamera"></param>
         /// <param name="cullingResult"></param>
         protected abstract void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
 
@@ -306,9 +363,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// List all the materials that need to be displayed at the bottom of the component.
+        /// All the materials gathered by this method will be used to create a Material Editor and then can be edited directly on the custom pass.
+        /// </summary>
+        /// <returns>An enumerable of materials to show in the inspector. These materials can be null, the list is cleaned afterwards</returns>
+        public virtual IEnumerable<Material> RegisterMaterialForInspector() { yield break; }
+
+        /// <summary>
         /// Returns the render queue range associated with the custom render queue type
         /// </summary>
-        /// <returns></returns>
+        /// <param name="type">The custom pass render queue type.</param>
+        /// <returns>Returns a render queue range compatible with a ScriptableRenderContext.DrawRenderers.</returns>
         protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
         {
             switch (type)

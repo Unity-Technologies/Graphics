@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
             {
                 // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-                using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process", out var passData, CustomSamplerId.AfterPostProcessing.GetSampler()))
+                using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessing)))
                 {
                     passData.parameters = parameters;
                     passData.afterPostProcessBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(

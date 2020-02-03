@@ -4,12 +4,30 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Holds the physical settings set on cameras.
+    /// </summary>
     [Serializable]
     public class HDPhysicalCamera
     {
+        /// <summary>
+        /// The minimum allowed aperture.
+        /// </summary>
         public const float kMinAperture = 1f;
+
+        /// <summary>
+        /// The maximum allowed aperture.
+        /// </summary>
         public const float kMaxAperture = 32f;
+
+        /// <summary>
+        /// The minimum blade count for the aperture diaphragm.
+        /// </summary>
         public const int kMinBladeCount = 3;
+
+        /// <summary>
+        /// The maximum blade count for the aperture diaphragm.
+        /// </summary>
         public const int kMaxBladeCount = 11;
 
         // Camera body
@@ -26,31 +44,45 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
         [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
 
-        // Property binding / validation
+        /// <summary>
+        /// The sensor sensitivity (ISO).
+        /// </summary>
         public int iso
         {
             get => m_Iso;
             set => m_Iso = Mathf.Max(value, 1);
         }
 
+        /// <summary>
+        /// The exposure time, in second.
+        /// </summary>
         public float shutterSpeed
         {
             get => m_ShutterSpeed;
             set => m_ShutterSpeed = Mathf.Max(value, 0f);
         }
 
+        /// <summary>
+        /// The aperture number, in f-stop.
+        /// </summary>
         public float aperture
         {
             get => m_Aperture;
             set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
         }
 
+        /// <summary>
+        /// The number of diaphragm blades.
+        /// </summary>
         public int bladeCount
         {
             get => m_BladeCount;
             set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
         }
 
+        /// <summary>
+        /// Maps an aperture range to blade curvature.
+        /// </summary>
         public Vector2 curvature
         {
             get => m_Curvature;
@@ -61,18 +93,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// The strength of the "cat eye" effect on bokeh (optical vignetting).
+        /// </summary>
         public float barrelClipping
         {
             get => m_BarrelClipping;
             set => m_BarrelClipping = Mathf.Clamp01(value);
         }
 
+        /// <summary>
+        /// Stretches the sensor to simulate an anamorphic look. Positive values distort the Camera
+        /// vertically, negative will distort the Camera horizontally.
+        /// </summary>
         public float anamorphism
         {
             get => m_Anamorphism;
             set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
         }
 
+        /// <summary>
+        /// Copies the settings of this instance to another instance.
+        /// </summary>
+        /// <param name="c">The instance to copy the settings to.</param>
         public void CopyTo(HDPhysicalCamera c)
         {
             c.iso = iso;
@@ -191,8 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool hasPersistentHistory = false;
 
-        // Event used to override HDRP rendering for this particular camera.
+        /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
+        /// <summary>True if any Custom Render event is registered for this camera.</summary>
         public bool hasCustomRender { get { return customRender != null; } }
 
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
@@ -236,6 +280,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // => m_FrameSettingsHistory.TriggerReset
                 => () => m_RenderingPathHistory.TriggerReset();
 
+        internal ProfilingSampler profilingSampler;
+
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
         /// <summary>Set AOV requests to use.</summary>
@@ -261,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///     [SerializeField] private MaterialSharedProperty m_MaterialSharedProperty;
         ///     [SerializeField] private LightingProperty m_LightingProperty;
         ///     [SerializeField] private AOVBuffers m_BuffersToCopy;
-        ///     [SerializeField] private List<GameObject> m_IncludedLights;
+        ///     [SerializeField] private List&lt;GameObject&gt; m_IncludedLights;
         ///
         ///
         ///     void OnEnable()
@@ -275,12 +321,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ///         if (m_LightingProperty != LightingProperty.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_LightingProperty);
         ///
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(
         ///             new AOVRequestBuilder()
         ///                 .Add(
         ///                     aovRequest,
-        ///                     bufferId => m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
+        ///                     bufferId =&gt; m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
         ///                     m_IncludedLights.Count > 0 ? m_IncludedLights : null,
         ///                     new []{ m_BuffersToCopy },
         ///                     (cmd, textures, properties) =>
@@ -299,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnDisable()
         ///     {
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(null);
         ///     }
         ///
@@ -335,15 +381,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        public bool isDebugRegistred
-        {
-            get => m_IsDebugRegistered;
-            internal set => m_IsDebugRegistered = value;
-        }
-
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
-        public bool isEditorCameraPreview { get; set; }
+        internal bool isEditorCameraPreview { get; set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
         public void CopyTo(HDAdditionalCameraData data)
@@ -426,12 +466,16 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterDebug();
 
 #if UNITY_EDITOR
+            UpdateDebugCameraName();
             UnityEditor.EditorApplication.hierarchyChanged += UpdateDebugCameraName;
 #endif
         }
 
         void UpdateDebugCameraName()
         {
+            // Move the garbage generated by accessing name outside of HDRP
+            profilingSampler = new ProfilingSampler(HDUtils.ComputeCameraName(name));
+
             if (name != m_CameraRegisterName)
             {
                 UnRegisterDebug();
@@ -449,7 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        public static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        internal static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
         {
             var camera = cameraData.gameObject.GetComponent<Camera>();
 
@@ -463,7 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraData.clearColorMode = ClearColorMode.None;
         }
 
-        public void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        internal void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
         {
             if (customRender != null)
             {

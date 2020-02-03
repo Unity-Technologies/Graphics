@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     }
 
-    public class XRPass
+    class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);
 
@@ -204,7 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        /// <summary>
+        /// Enable XR single-pass rendering.
+        /// </summary>
+        public void StartSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -240,7 +243,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        /// <summary>
+        /// Disable XR single-pass rendering.
+        /// </summary>
+        public void StopSinglePass(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
         {
             if (enabled)
             {
@@ -277,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Callback for custom mirror view
             if (customMirrorView != null)
             {
-                using (new ProfilingSample(cmd, "XR Custom Mirror View"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRCustomMirrorView)))
                 {
                     customMirrorView(this, cmd, hdCamera.camera.targetTexture, hdCamera.camera.pixelRect);
                 }
@@ -288,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
             {
-                using (new ProfilingSample(cmd, "XR Occlusion Mesh"))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XROcclusionMesh)))
                 {
                     Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 

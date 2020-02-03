@@ -19,11 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // TODO: write the doc
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Scene-Color-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Color");
 
         [SerializeField]
         bool                m_Exposure;

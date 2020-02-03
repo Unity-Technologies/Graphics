@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //    }
             //}
 
-            using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, CustomSamplerId.FinalPost.GetSampler()))
+            using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
                 passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
                 passData.source = builder.ReadTexture(source);
@@ -251,8 +251,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ctx.cmd);
                 });
             }
-
-            m_ResetHistory = false;
         }
 
         class FinalPassData

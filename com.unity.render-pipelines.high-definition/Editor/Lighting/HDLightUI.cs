@@ -721,12 +721,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
-                ShowCookieTextureTypeWarning(serialized.settings.cookie);
+                ShowCookieTextureWarnings(serialized.settings.cookie);
             }
             else if (serialized.areaLightShape == AreaLightShape.Rectangle)
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
-                ShowCookieTextureTypeWarning(serialized.areaLightCookie.objectReferenceValue as Texture);
+                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -736,7 +736,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ShowCookieTextureTypeWarning(Texture cookie)
+        static void ShowCookieTextureWarnings(Texture cookie)
         {
             if (cookie == null)
                 return;
@@ -765,6 +765,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            if (cookie.width != cookie.height)
+                EditorGUILayout.HelpBox(s_Styles.cookieNonPOT, MessageType.Warning);
+            if (cookie.width < LightCookieManager.k_MinCookieSize || cookie.height < LightCookieManager.k_MinCookieSize)
+                EditorGUILayout.HelpBox(s_Styles.cookieTooSmall, MessageType.Warning);
         }
 
         static void DrawEmissionAdvancedContent(SerializedHDLight serialized, Editor owner)
@@ -868,7 +873,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.shadowResolution.@override.intValue);
                 }
 
-                EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
+                if(lightType != HDLightType.Directional)
+                    EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
                 if (serialized.settings.isMixed)
                 {
@@ -897,16 +903,24 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                if (HDRenderPipeline.pipelineSupportsRayTracing)
                 {
-                    if (lightType == HDLightType.Point
-                        || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone)
-                        || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
+                    bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
+                    if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
                     {
                         EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
                         if(serialized.useRayTracedShadows.boolValue)
                         {
+                            if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
+                                && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+                                EditorGUILayout.HelpBox("Ray traced area light shadows are only available in deferred mode.", MessageType.Warning);
+
                             EditorGUI.indentLevel++;
+
+                            // We only support semi transparent shadows for punctual lights
+                            if (isPunctual)
+                                EditorGUILayout.PropertyField(serialized.semiTransparentShadow, s_Styles.semiTransparentShadow);
+
                             EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
                             EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
@@ -926,6 +940,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 EditorGUI.indentLevel++;
                                 EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                                EditorGUILayout.PropertyField(serialized.colorShadow, s_Styles.colorShadow);
                                 EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
                                 using (new EditorGUI.DisabledScope(!serialized.filterTracedShadow.boolValue))
                                 {
@@ -1025,7 +1040,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported
+            if (HDRenderPipeline.pipelineSupportsRayTracing
                 && serialized.contactShadows.@override.boolValue)
             {
                 EditorGUI.indentLevel++;
@@ -1037,7 +1052,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)
         {
             DrawEnableShadowMap(serialized, owner);
-            EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
+            if (serialized.type != HDLightType.Directional)
+                EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
         }
 
         static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)

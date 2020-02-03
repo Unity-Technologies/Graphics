@@ -10,7 +10,7 @@ The Hair master node is the destination node for the Hair Shader Graph. It conta
 
 ## Creating and editing a Hair Material
 
-Hair Materials use a Shader Graph master node which means that you need to use a specific method to create and edit a Hair Material. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs.html). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
+Hair Materials use a Shader Graph master node which means that you need to use a specific method to create and edit a Hair Material. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph.html). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
 
 ## Properties
 
@@ -72,9 +72,9 @@ To view these properties, click the cog icon in the top right of the master node
 | **- Use Shadow Threshold**       | Enable this setting to set another threshold value for alpha clipping shadows. |
 | **Receive Decals**               | Enable this setting to allow HDRP to draw decals on this Material’s surface. |
 | **Receive SSR**                  | Enable this setting to make HDRP include this Material when it processes the screen space reflection pass. |
-| **Add Precomputed** **Velocity** | Enable this setting to use precomputed velocity information stored in the Alembic file. |
+| **Add Precomputed Velocity** | Enable this setting to use precomputed velocity information stored in an Alembic file. |
 | **Geometric Specular AA**        | Enable this setting to make HDRP perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry to remove specular artifacts. For more information about the feature and for the list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.html). |
-| **Specular Occlusion Mode**      | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**:Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
+| **Specular Occlusion Mode**      | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
 | **Override Baked GI**            | Enable this setting to expose two baked GI [input ports](#InputPorts). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
 | **Depth Offset**                 | Enable this setting to expose the DepthOffset [InputPort](#InputPorts) which you can use to increase the depth value of the fragment and push it away from the Camera. You can use this to reduce the flat appearance of hair cards. |
 | **Use Light Facing Normal**      | Enable this setting to make the hair normals always face towards light. This mimics the behavior of hair. |

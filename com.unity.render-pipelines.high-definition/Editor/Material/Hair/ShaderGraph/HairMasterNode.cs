@@ -17,7 +17,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Hair")]
+    [Title("Master", "Hair (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HairMasterNode")]
     class HairMasterNode : MasterNode<IHairSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
@@ -624,10 +624,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return null; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("Master-Node-Hair");
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -897,7 +894,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                backThenFrontRendering.isOn
+                backThenFrontRendering.isOn,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);

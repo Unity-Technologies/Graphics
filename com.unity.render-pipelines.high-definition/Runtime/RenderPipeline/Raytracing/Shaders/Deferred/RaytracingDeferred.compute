@@ -1,11 +1,14 @@
 #pragma kernel RaytracingDeferred RAYTRACING_DEFERRED=RaytracingDeferred
 #pragma kernel RaytracingDeferredHalf RAYTRACING_DEFERRED=RaytracingDeferredHalf HALF_RESOLUTION
+#pragma kernel RaytracingDiffuseDeferred
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
+
+#pragma only_renderers d3d11
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -93,4 +96,86 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     float3 finalColor = clamp((diffuseLighting + specularLighting) * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp)
                         * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 0.0);
+}
+
+// Input textures for the diffuse deferred lightloop that we will be executing
+    // Position at the exit point
+TEXTURE2D_X(_PositionTextureRW);
+    // Normal value at the exit point
+TEXTURE2D_X(_NormalTextureRW);
+    // Diffuse lighting at the exit point
+TEXTURE2D_X(_DiffuseLightingTextureRW);
+    // Through put of the walk that was calculated
+TEXTURE2D_X(_ThroughputTextureRW);
+
+[numthreads(RAYTRACING_DEFERRED_TILE_SIZE, RAYTRACING_DEFERRED_TILE_SIZE, 1)]
+void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Read the throughput
+    float3 throughput = LOAD_TEXTURE2D_X(_ThroughputTextureRW, currentCoord).xyz;
+
+    // If the path is black, no need to light this
+    if (length(throughput) == 0.0)
+    {
+        // Simply propagate the previous value
+        float3 previousValue = _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)].xyz;
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue, 0.0);
+        return;
+    }
+
+    // Read the normal
+    float3 normalWS = LOAD_TEXTURE2D_X(_NormalTextureRW, currentCoord).xyz;
+
+    // Create our diffuse white BSDF Data
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+    bsdfData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    bsdfData.diffuseColor = float3(1.0, 1.0, 1.0);
+    bsdfData.fresnel0 = DEFAULT_SPECULAR_VALUE;
+    bsdfData.ambientOcclusion = 1.0;
+    bsdfData.perceptualRoughness = 1.0;
+    bsdfData.specularOcclusion = 1.0;
+    bsdfData.normalWS = normalWS;
+    bsdfData.geomNormalWS = normalWS;
+    ConvertAnisotropyToRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+
+    // Create the built-in data
+    BuiltinData builtinData;
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_DiffuseLightingTextureRW, currentCoord).xyz;  // This also contain emissive (and * AO if no lightlayers)
+    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.shadowMask0 = 1.0;
+    builtinData.shadowMask1 = 1.0;
+    builtinData.shadowMask2 = 1.0;
+    builtinData.shadowMask3 = 1.0;
+
+    // We are evaluating a diffuse signal so view does not matter, let's pick the one that is guaranteed to be right
+    float3 viewWS = normalWS;
+
+    // Create the pos input
+    PositionInputs posInput;
+    posInput.positionWS = GetCameraRelativePositionWS(LOAD_TEXTURE2D_X(_PositionTextureRW, currentCoord).xyz);
+    posInput.positionSS = currentCoord;
+
+    // Compute the prelight data
+    PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
+    
+    // Evaluate lighting
+    float3 diffuseLighting;
+    float3 specularLighting;
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+
+    // Read the previous value and combine with the current lighting
+    float3 previousValue = _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)].xyz;
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue + throughput * diffuseLighting, 0.0);
 }

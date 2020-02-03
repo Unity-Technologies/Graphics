@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentDeprecated()]
-    public class VolumetricLightingController : VolumeComponent
+    class VolumetricLightingController : VolumeComponent
     {
         [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);

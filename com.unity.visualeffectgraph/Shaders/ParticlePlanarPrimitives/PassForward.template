@@ -18,7 +18,7 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT || WRITE_MOTION_VECTOR_IN_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -128,6 +128,7 @@ ${VFXPassForwardDefine}
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}
 		o.outMotionVector = encodedMotionVector;
+        o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
 #endif
 		return o;
 	}

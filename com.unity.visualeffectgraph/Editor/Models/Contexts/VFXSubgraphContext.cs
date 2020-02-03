@@ -10,13 +10,12 @@ namespace UnityEditor.VFX
 
     class VFXSubgraphContext : VFXContext
     {
-        public const string triggerEventName = "Trigger";
-
         [VFXSetting,SerializeField]
         protected VisualEffectAsset m_Subgraph;
 
         [NonSerialized]
         VFXModel[] m_SubChildren;
+        VFXGraph m_UsedSubgraph;
 
         public VisualEffectAsset subgraph
         {
@@ -97,7 +96,6 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            PatchInputExpressions();
             return null;
         }
 
@@ -156,6 +154,7 @@ namespace UnityEditor.VFX
             if (m_Subgraph == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -163,6 +162,7 @@ namespace UnityEditor.VFX
             if( resource == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();
-
+            m_UsedSubgraph = graph;
             foreach (var child in duplicated.Zip(dependencies, (a, b) => new { copy = a, original = b }))
             {
                 child.copy.hideFlags = HideFlags.HideAndDontSave;
@@ -187,10 +187,10 @@ namespace UnityEditor.VFX
                     }
                 }
                 else if( child.copy is VFXSubgraphBlock subgraphBlock)
-                {
-                    subgraphBlock.RecreateCopy();
+                    {
+                        subgraphBlock.RecreateCopy();
+                    }
                 }
-            }
 
             List<string> newInputFlowNames = new List<string>();
 
@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
             if (hasStart)
                 newInputFlowNames.Insert(0, VisualEffectAsset.PlayEventName);
 
-            if (!newInputFlowNames.SequenceEqual(m_InputFlowNames) || inputFlowSlot.Length != inputFlowCount)
+            if (m_InputFlowNames == null || !newInputFlowNames.SequenceEqual(m_InputFlowNames) || inputFlowSlot.Length != inputFlowCount)
             {
                 var oldLinks = new Dictionary<string,  List<VFXContextLink> >();
 
@@ -262,7 +262,6 @@ namespace UnityEditor.VFX
                             LinkFrom(link.context,link.slotIndex,i);
                 }
             }
-            PatchInputExpressions();
             SyncSlots(VFXSlot.Direction.kInput,true);
         }
 
@@ -328,7 +327,7 @@ namespace UnityEditor.VFX
 
         Dictionary<VFXSlot, VFXSlot> m_OriginalToCopy = new Dictionary<VFXSlot, VFXSlot>();
 
-        void PatchInputExpressions()
+        public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 
@@ -343,6 +342,20 @@ namespace UnityEditor.VFX
             foreach (var slot in toInvalidate)
                 slot.InvalidateExpressionTree();
         }
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            if (m_Subgraph != null)
+            {
+                var graph = GetGraph();
+                if (graph != null)
+                {
+                    var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                    if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
+                        m_Subgraph = null; // prevent cyclic dependencies.
+                }
+            }
+        }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
@@ -354,12 +367,15 @@ namespace UnityEditor.VFX
                     if (m_Subgraph != null)
                     {
                         var graph = GetGraph();
-                        var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
-                        if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
-                            m_Subgraph = null; // prevent cyclic dependencies.
+                        if (graph != null) // that case it will be checked in OnAdded
+                        {
+                            var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                            if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
+                                m_Subgraph = null; // prevent cyclic dependencies.
+                        }
 
                     }
-                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null)) // do not recreate subchildren if the subgraph is not available but is not null
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph() ) // do not recreate subchildren if the subgraph is not available but is not null
                         RecreateCopy();
                 }
 

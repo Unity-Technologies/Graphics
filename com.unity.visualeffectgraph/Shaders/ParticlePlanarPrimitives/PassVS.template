@@ -79,8 +79,11 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #if HAS_STRIPS
 #if VFX_STRIPS_UV_STRECHED
 	o.VFX_VARYING_UV.x = (float)(currentIndex) / (stripData.nextIndex - 1);
-#else
+#elif VFX_STRIPS_UV_PER_SEGMENT
 	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
+#else
+	${VFXLoadParameter:{texCoord}}
+    o.VFX_VARYING_UV.x = texCoord;
 #endif
 
 	o.VFX_VARYING_UV.y = float((id & 2) >> 1);

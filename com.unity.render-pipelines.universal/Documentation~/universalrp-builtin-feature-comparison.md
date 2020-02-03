@@ -5,7 +5,7 @@ This table provides an overview of the current features supported in the Univers
 **Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
 
 
-| Feature                                                      | Unity Built-in render pipeline                               | Universal Render Pipeline                                    |
+| Feature                                                      | Built-in Render Pipeline<br/>Unity 2019.3                               | Universal Render Pipeline                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR                                                          | Yes                                                          | Yes                                                          |
@@ -13,27 +13,12 @@ This table provides an overview of the current features supported in the Univers
 | Physical Camera                                              | Yes                                                          | Yes                                                          |
 | Dynamic Resolution                                           | Yes                                                          | Yes                                                          |
 | Multi Display                                                | Yes                                                          | Yes                                                          |
-| Stacking                                                     | Yes                                                          | In research                                                  |
+| Stacking                                                     | Yes                                                          | Yes                                                 |
 | Flare Layer                                                  | Yes                                                          | Not supported                                                |
 | Depth Texture                                                | Yes                                                          | Yes                                                          |
 | Depth + Normals Texture                                      | Yes                                                          | Not supported                                                |
 | Color Texture                                                | Not supported                                                | Yes                                                          |
 | Motion vectors                                               | Yes                                                          | In research                                                  |
-| ***Realtime Lights***                                        |                                                              |                                                              |
-| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   |
-| Inner Spot Angle                                             | Not supported                                                | Yes                                                          |
-| Shading                                                      | Multiple Passes                                              | Single Pass                                                  |
-| *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
-| *Light Limits*<br/>Main Directional Light<br/>Per Object<br/>Per Camera | <br/>1<br/>Unlimited<br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (32 on mobile platforms) |
-| Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
-| Vertex LIghts                                                | Yes                                                          | Yes                                                          |
-| SH Lights                                                    | Yes                                                          | In research                                                  |
-| ***Realtime Shadows***                                       |                                                              |                                                              |
-| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes (for Main Directional Light. Additional Directional Lights don't cast shadows.)<br/>Yes<br/>In research<br/>Not supported |
-| *Shadow Projection*<br/>Stable Fit<br/>Close Fit             | <br/>Yes<br/>Yes                                             | <br/>Yes<br>In research                                      |
-| *Shadow Cascades*<br/>Number of Cascades<br/>Control by Percentage<br/>Control by Distance | <br/>1, 2 or 4<br/>Yes<br/>Not supported                     | <br/>1, 2 or 4<br/>Yes<br/>In research                       |
-| *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
-| Shadow Bias                                                  | Constant clip space offset + normal bias                     | Offsets shadowmap texels in the light direction + normal bias. This gives better shadow bias control. |
 | ***Batching***                                               |                                                              |                                                              |
 | Static Batching (By Shader)                                  | Not supported                                                | Yes                                                          |
 | Static Batching (By Material)                                | Yes                                                          | Yes                                                          |
@@ -43,30 +28,46 @@ This table provides an overview of the current features supported in the Univers
 | ***Color Space***                                            |                                                              |                                                              |
 | Linear                                                       | Yes                                                          | Yes                                                          |
 | Gamma                                                        | Yes                                                          | Yes                                                          |
-| ***Global Illumination (Backing Back End)***                 |                                                              |                                                              |
-| Enlighten                                                    | Yes                                                          | Yes                                                          |
-| Enlighten Realtime                                           | Yes                                                          | Not supported                                                |
-| Progressive CPU                                              | Yes                                                          | Yes                                                          |
-| Progressive GPU                                              | Yes                                                          | Yes                                                          |
-| ***Mixed Lighting***                                         |                                                              |                                                              |
+| ***Realtime Lights***                                        |                                                              |                                                              |
+| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Rectangle (Baked)               | <br/>Yes<br/>Yes<br/>Yes<br/>Rectangle (Baked) |
+| Inner Spot Angle                                             | Not supported                                                | Yes                                                          |
+| Shading                                                      | Multiple Passes                                              | Single Pass                                                  |
+| *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
+| *Light Limits*<br/>Main Directional Light<br/>Per Object<br/>Per Camera | <br/>1<br/>Unlimited<br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (32 on mobile platforms) |
+| Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
+| Vertex LIghts                                                | Yes                                                          | Yes                                                          |
+| SH Lights                                                    | Yes                                                          | In research                                                  |
+| ***Realtime Shadows***                                       |                                                              |                                                              |
+| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes - only 1<br/>Yes<br/>In research<br/>Not supported |
+| *Shadow Projection*<br/>Stable Fit<br/>Close Fit             | <br/>Yes<br/>Yes                                             | <br/>Yes<br>In research                                      |
+| *Shadow Cascades*<br/>Number of Cascades<br/>Control by Percentage<br/>Control by Distance | <br/>1, 2 or 4<br/>Yes<br/>Not supported                     | <br/>1, 2 or 4<br/>Yes<br/>In research                       |
+| *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
+| Shadow Bias                                                  | Constant clip space offset + normal bias                     | Offsets shadowmap texels in the light direction + normal bias|
+| ***Lightmapping***                 |                                                              |                                                              |
+| Enlighten                                                    | Yes                                                          | Not supported                                                          |
+| Progressive Lightmapper, CPU                                              | Yes                                                          | Yes                                                          |
+| Progressive Lightmapper, GPU                                              | Yes                                                          | Yes                                                          |
+| ***Realtime Global Illumination***                 |                                                              |                                                              |
+| Enlighten                                                    | Yes                                                          | Not supported                                                          |
+| ***Mixed Lighting Mode***                                         |                                                              |                                                              |
 | Subtractive                                                  | Yes                                                          | Yes                                                          |
 | Baked Indirect                                               | Yes                                                          | Yes                                                          |
 | Shadow Mask                                                  | Yes                                                          | In research                                                  |
 | Distance Shadow Mask                                         | Yes                                                          | In research                                                  |
-| ***Global Illumination (Light Probes)***                     |                                                              |                                                              |
+| ***Light Probes***                     |                                                              |                                                              |
 | Blending                                                     | Yes                                                          | Yes                                                          |
-| Proxy Volume (LPPV)                                          | Yes                                                          | In research                                                  |
+| Proxy Volume (LPPV)                                          | Yes                                                          | Not supported                                                 |
 | Custom Provided                                              | Yes                                                          | Yes                                                          |
 | Occlusion Probes                                             | Yes                                                          | Yes                                                          |
-| ***Global Illumination (Reflection Probes)***                |                                                              |                                                              |
+| ***Reflection Probes***                |                                                              |                                                              |
 | Realtime                                                     | Yes                                                          | Yes                                                          |
 | Baked                                                        | Yes                                                          | Yes                                                          |
 | *Sampling*<br/>Simple<br/>Blend Probes<br/>Blend Probes and Skybox | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes<br/>In research<br/>In research                     |
-| Blox Projection                                              | Yes                                                          | In research                                                  |
-| ***Global Illumination (Lightmap Modes)***                   |                                                              |                                                              |
+| Box Projection                                              | Yes                                                          | In research                                                  |
+| ***Lightmap Modes***                   |                                                              |                                                              |
 | Non-Directional                                              | Yes                                                          | Yes                                                          |
 | Directional                                                  | Yes                                                          | Yes                                                          |
-| ***Global Illumination (Environmental)***                    |                                                              |                                                              |
+| ***Environmental lighting***                    |                                                              |                                                              |
 | *Source*<br/>Skybox<br/>Gradient<br/>Color                   | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes<br/>Yes<br/>Yes                                     |
 | *Ambient Mode*<br/>Realtime<br/>Baked                        | <br/>Yes<br/>Yes                                             | <br/>In research<br/>Yes                                     |
 | ***Skybox***                                                 |                                                              |                                                              |
@@ -88,7 +89,7 @@ This table provides an overview of the current features supported in the Univers
 | Shader Graph                                                 | Not supported                                                | Yes                                                          |
 | Surface Shaders                                              | Yes                                                          | Not supported                                                |
 | Camera-relative Rendering                                    | Not supported                                                | In research                                                  |
-| *Built-in Lit Uber Shader*<br/>Metallic Workflow<br/>Specular Workflow | <br/>Yes<br/>Yes                                             | Called [Lit Shader](lit-shader.md)<br/>Yes<br/>Yes           |
+| *Built-in Lit Uber Shader*<br/>Metallic Workflow<br/>Specular Workflow | Standard Shader<br/>Yes<br/>Yes                                             | [Lit Shader](lit-shader.md)<br/>Yes<br/>Yes           |
 | *Surface Type and Blend Mode*<br/>Opaque<br/>Faded (Alpha Blend)<br/>Transparent<br/>Cutout<br/>Additive<br/>Multiply | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Not supported<br/>Not supported | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes             |
 | *Surface Inputs*<br/>Albedo (Base Map)<br/>Specular<br/>Metallic<br/>Smoothness<br/>Ambient Occlusion<br/>Normal Map<br/>Detail Map<br/>Detail Normal Map<br/>Heightmap | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Not supported<br/>Not supported<br/>Not supported |
 | Light Cookies                                                | Yes                                                          | In research                                                  |
@@ -121,16 +122,16 @@ This table provides an overview of the current features supported in the Univers
 | UniversalRenderPipeline.RenderSingleCamera                   | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
-| ***Post-processing***                                        | Uses post-processing version 2 package.                      | Uses a more performant, native [post-processing solution](integration-with-post-processing.md). Incompatible with post-processing version 2 package. |
+| ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md) |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
-| Auto Exposure                                                | Yes                                                          | Yes                                                          |
+| Auto Exposure                                                | Yes                                                          | Not supported                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
 | Chromatic Aberration                                         | Yes                                                          | Yes                                                          |
 | Color Grading                                                | Yes                                                          | Yes                                                          |
 | Depth of Field                                               | Yes                                                          | Yes                                                          |
 | Grain                                                        | Yes                                                          | Yes                                                          |
 | Lens Distortion                                              | Yes                                                          | Yes                                                          |
-| Motion Blur                                                  | Yes                                                          | In research                                                  |
+| _Motion Blur_<br/>Camera<br/>Object                           | <br/>Yes<br/>Not supported                                   | <br/>Yes<br/>In research                                                |
 | Screen Space Reflections                                     | Yes                                                          | Not supported                                                |
 | Vignette                                                     | Yes                                                          | Yes                                                          |
 | ***Particles***                                              |                                                              |                                                              |
@@ -143,28 +144,26 @@ This table provides an overview of the current features supported in the Univers
 | ***Terrain***                                                |                                                              |                                                              |
 | *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn-Phong)<br/>Unlit<br/>Speed Tree<br/>Vegetation<br/>Detail | <br/>Yes<br/>Yes<br/>Not supported<br/>Yes<br/>Yes<br/>Yes   | <br/>Yes<br/>In research<br/>In research<br/>Yes<br/>Yes<br/>Yes |
 | Wind Zone                                                    | Yes                                                          | Yes                                                          |
-| Number of Layers                                             | Unlimited                                                    | 4                                                            |
+| Number of Layers                                             | Unlimited                                                    | 8                                                             |
 | GPU Patch Generation                                         | Yes                                                          | Yes                                                          |
 | Surface Mask                                                 | Not supported                                                | In research                                                  |
 | ***2D***                                                     |                                                              |                                                              |
 | Sprite                                                       | Yes                                                          | Yes                                                          |
 | Tilemap                                                      | Yes                                                          | Yes                                                          |
 | Sprite Shape                                                 | Yes                                                          | Yes                                                          |
-| Pixel-Perfect                                                | Yes                                                          | In research                                                  |
-| 2D Shape LIghts                                              | Not supported                                                | In research                                                  |
-| 2D Point Lights with Normal Map                              | Not supported                                                | In research                                                  |
-| 2D Point Lights with Shades                                  | Not supported                                                | In research                                                  |
+| Pixel-Perfect                                                | Yes - using the 2D Pixel Perfect Package                     | Yes                                                |
+| 2D Lights                                              | Not supported                                                      | Yes                                                |
 | ***UI (Canvas Renderer)***                                   |                                                              |                                                              |
 | Screen Space - Overlay                                       | Yes                                                          | Yes                                                          |
-| Screen Space - Camera                                        | Yes                                                          | In research                                                  |
+| Screen Space - Camera                                        | Yes                                                          | Yes                                                 |
 | World Space                                                  | Yes                                                          | Yes                                                          |
 | Text Mesh Pro                                                | Yes                                                          | Yes                                                          |
 | ***VR***                                                     |                                                              |                                                              |
 | Mutipass                                                     | Yes                                                          | In research                                                  |
 | Single Pass                                                  | Yes                                                          | Yes                                                          |
 | Single Pass Instanced                                        | Yes                                                          | Yes                                                          |
-| *Post-processing*<br>Oculus Rift<br/>OpenVR<br/>Steam VR<br/>PSVR<br/>WMR<br/>GearVR<br/>Cardboard<br/>Oculus Go<br/>Daydream | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>In research<br/>In research<br/>In research<br/>In research |
+| *Post-processing*<br>Oculus Rift<br/>Oculus Quest</br>Oculus Go<br/>Gear VR<br/>PSVR</br>HoloLens<br/>WMR<br/>Magic Leap One| <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes |
 | ***AR***                                                     |                                                              |                                                              |
-| AR Toolkit                                                   | Yes                                                          | Yes                                                          |
+| AR Foundation                                                   | No                                                          | Yes                                                          |
 | ***Debug***                                                  |                                                              |                                                              |
 | Scene view modes                                             | Yes                                                          | In research                                                  |

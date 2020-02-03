@@ -42,7 +42,7 @@ Pass
 		#if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_FORWARD
 		float4 tangent : TEXCOORD3;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || WRITE_MOTION_VECTOR_IN_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -129,8 +129,9 @@ ${VFXEnd}
         #endif
 		
 		#if WRITE_MOTION_VECTOR_IN_FORWARD
-				${VFXComputeOutputMotionVector}
-				outMotionVector = encodedMotionVector;
+			${VFXComputeOutputMotionVector}
+			outMotionVector = encodedMotionVector;
+			outMotionVector.a = outColor.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
 		#endif
 	}
 	ENDHLSL
