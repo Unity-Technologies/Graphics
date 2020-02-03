@@ -101,6 +101,10 @@ CBUFFER_START(UnityPerMaterial)
 
 
     //////////////////////////////////////////////////////////////////////////////
+    float4  _LightTypeDimmers;
+    int     _EnvSamplingModeQuality;
+    float   _EnvSamplingFilteringAmount;
+    int     _LTCSamplingModeQuality;
 
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
