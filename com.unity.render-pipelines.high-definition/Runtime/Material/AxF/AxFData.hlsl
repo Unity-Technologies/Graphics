@@ -7,7 +7,7 @@
 
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
-#if defined(_AXF_BRDF_TYPE_SVBRDF) && defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
+#if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
     {
@@ -36,7 +36,8 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
         // Note:There is no ambient occlusion with AxF material
 #endif
 
-        surfaceData.specularLobe = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
+        surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
+        surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
     }
 #endif
 }
