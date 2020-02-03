@@ -47,6 +47,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
         public RayTracingShader aoRaytracing;
 
+        // Sub-Surface Scattering
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
+        public RayTracingShader subSurfaceRayTracing;
+
         // Denoising
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
         public ComputeShader temporalFilterCS;
