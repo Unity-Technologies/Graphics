@@ -1604,7 +1604,7 @@ namespace UnityEditor.VFX.UI
             object result = VFXCopy.Copy(sourceControllers, bounds);
 
             var targetControllers = new List<VFXNodeController>();
-            VFXPaste.Paste(controller, pasteCenter, result, null, null, targetControllers);
+            VFXPaste.Paste(controller, pasteCenter, result, this, null, targetControllers);
 
             ClearSelection();
             for (int i = 0; i < sourceControllers.Count; ++i)
@@ -1612,7 +1612,11 @@ namespace UnityEditor.VFX.UI
                 if(targetControllers[i] != null)
                 {
                     CopyInputLinks(sourceControllers[i] as VFXNodeController, targetControllers[i]);
-                    AddToSelection(rootNodes[targetControllers[i]]);
+
+                    if (targetControllers[i] is VFXBlockController blkController)
+                        AddToSelection((rootNodes[blkController.contextController] as VFXContextUI).GetAllBlocks().First(t=> t.controller == blkController));
+                    else
+                        AddToSelection(rootNodes[targetControllers[i]]);
                 }
             }
 
