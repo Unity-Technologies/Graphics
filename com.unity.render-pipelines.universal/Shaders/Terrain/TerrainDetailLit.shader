@@ -73,7 +73,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 Varyings output = (Varyings)0;
 
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 // Vertex attributes
@@ -114,7 +113,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             half4 Frag(Varyings input) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));

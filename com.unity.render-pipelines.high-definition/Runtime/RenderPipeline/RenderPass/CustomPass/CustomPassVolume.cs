@@ -28,8 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// List of custom passes to execute
         /// </summary>
-        /// <typeparam name="CustomPass"></typeparam>
-        /// <returns></returns>
         [SerializeReference]
         public List<CustomPass> customPasses = new List<CustomPass>();
 
@@ -73,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => Cleanup();
+        void OnDestroy() => CleanupPasses();
 
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
@@ -240,6 +238,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Gets the currently active Custom Pass Volume for a given injection point.
+        /// </summary>
+        /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
+        /// <returns>Returns the Custom Pass Volume instance associated with the injection point.</returns>
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
             foreach (var volume in m_OverlappingPassVolumes)
