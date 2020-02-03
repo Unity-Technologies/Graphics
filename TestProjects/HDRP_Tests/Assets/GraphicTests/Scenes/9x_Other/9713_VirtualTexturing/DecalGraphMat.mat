@@ -24,6 +24,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3a5dd8b426778e14cb9f1f2e716841f8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTextureStack1_F1146E9_Texture_5:
+        m_Texture: {fileID: 2800000, guid: 402f77c2ec784934a884d97647d9fe9b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _DecalMeshDepthBias: 0
     - _DrawOrder: 0
@@ -41,4 +45,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 2
