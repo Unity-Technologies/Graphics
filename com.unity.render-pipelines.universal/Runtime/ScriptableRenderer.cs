@@ -418,6 +418,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
         internal void Clear()
@@ -587,8 +588,6 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear)))
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
-
-
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
