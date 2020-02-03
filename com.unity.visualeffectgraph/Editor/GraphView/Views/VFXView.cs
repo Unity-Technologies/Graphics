@@ -1906,6 +1906,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragUpdated(DragUpdatedEvent e)
         {
+            if (controller == null)
+                return;
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is VFXBlackboardField && (t as VFXBlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
                 VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
@@ -1950,6 +1952,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragPerform(DragPerformEvent e)
         {
+            if (controller == null)
+                return;
             var groupNode = GetPickedGroupNode(e.mousePosition);
 
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
