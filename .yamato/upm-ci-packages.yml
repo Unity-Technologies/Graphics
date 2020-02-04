@@ -169,4 +169,4 @@ publish_all:
     image: package-ci/ubuntu:stable
     flavor: b1.large
   commands:
-    - echo "Hello, SRP!'
+    - sleep 1000000
