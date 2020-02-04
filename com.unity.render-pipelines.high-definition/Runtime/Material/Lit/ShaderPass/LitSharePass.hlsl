@@ -4,20 +4,22 @@
 #error Undefine_SHADERPASS
 #endif
 
-// Helper for the layered shader.
-#if (defined(LAYERED_LIT_SHADER) && (defined(_NORMALMAP_TANGENT_SPACE0) || \
-	 								 defined(_NORMALMAP_TANGENT_SPACE1) || \
-	 								 defined(_NORMALMAP_TANGENT_SPACE2) || \
-	 								 defined(_NORMALMAP_TANGENT_SPACE3)))
-	#define _NORMALMAP_TANGENT_SPACE
+// Helper for normal mapping.
+#if (defined(_NORMALMAP_TANGENT_SPACE)  || \
+	 defined(_NORMALMAP_TANGENT_SPACE0) || \
+	 defined(_NORMALMAP_TANGENT_SPACE1) || \
+	 defined(_NORMALMAP_TANGENT_SPACE2) || \
+	 defined(_NORMALMAP_TANGENT_SPACE3))
+// {
+	#define NORMAL_MAP_TS
+// }
 #endif
 
 /* Attributes are vertex shader inputs. */
 
-#define ATTRIBUTES_NEED_NORMAL
-#define ATTRIBUTES_NEED_TEXCOORD0
+#define ATTRIBUTES_NEED_NORMAL // Always!
 
-#if (defined(_MATERIAL_FEATURE_ANISOTROPY) || defined(_NORMALMAP_TANGENT_SPACE) || defined(_PIXEL_DISPLACEMENT) || defined(DEBUG_DISPLAY))
+#if (defined(_MATERIAL_FEATURE_ANISOTROPY) || defined(NORMAL_MAP_TS) || defined(_PIXEL_DISPLACEMENT) || defined(DEBUG_DISPLAY))
 	// Tangent is used for: anisotropic lighting, tangent space (bent) normal maps, and per-pixel displacement.
 	// We use the tangent stored as a vertex attribute only for UV0, and for UV1-3 it is
 	// generated on the fly. However, it doesn't appear to be possible to know which UV set
@@ -25,6 +27,8 @@
 	// so we must conservatively request the tangent.
 	#define ATTRIBUTES_NEED_TANGENT
 #endif
+
+#define ATTRIBUTES_NEED_TEXCOORD0 // Always!
 
 #if (defined(_REQUIRE_UV01) || defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123) || \
 	 defined(LIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || defined(DEBUG_DISPLAY))
@@ -46,7 +50,7 @@
 
 /* Varyings are pixel shader inputs (vertex or domain shader outputs). */
 
-#define VARYINGS_NEED_POSITION_WS // TODO: remove
+#define VARYINGS_NEED_POSITION_WS // TODO: compute from depth
 
 #ifdef ATTRIBUTES_NEED_NORMAL
 	#define VARYINGS_NEED_NORMAL_WS

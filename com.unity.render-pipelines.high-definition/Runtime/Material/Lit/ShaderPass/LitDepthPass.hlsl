@@ -2,59 +2,76 @@
 #error Undefine_SHADERPASS
 #endif
 
-// Attributes
-#define REQUIRE_TANGENT_TO_WORLD defined(_PIXEL_DISPLACEMENT)
-#define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_DISPLACEMENT)
-#define REQUIRE_VERTEX_COLOR (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || (defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))))
-
-// This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
-
-// Tesselation require normal
-#if REQUIRE_NORMAL
-#define ATTRIBUTES_NEED_NORMAL
+// Helper for displacement.
+#if (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || defined(_PIXEL_DISPLACEMENT))
+    #define DISPLACEMENT_MAP
 #endif
-#if REQUIRE_TANGENT_TO_WORLD
-#define ATTRIBUTES_NEED_TANGENT
+
+/* Attributes are vertex shader inputs. */
+
+#ifdef DISPLACEMENT_MAP
+    #define ATTRIBUTES_NEED_NORMAL
 #endif
-#if REQUIRE_VERTEX_COLOR
+#ifdef _PIXEL_DISPLACEMENT
+    #define ATTRIBUTES_NEED_TANGENT
+#endif
+#if (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || \
+     (defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))) \
+    )
 #define ATTRIBUTES_NEED_COLOR
 #endif
 
-// About UV
-// When UVX is present, we assume that UVX - 1 ... UV0 is present
-
-#if defined(_VERTEX_DISPLACEMENT) || REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON) || defined(_TESSELLATION_DISPLACEMENT)
+#if (defined(DISPLACEMENT_MAP) || defined(_ALPHATEST_ON))
+// {
     #define ATTRIBUTES_NEED_TEXCOORD0
+
+#if (defined(_REQUIRE_UV01) || defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123))
     #define ATTRIBUTES_NEED_TEXCOORD1
-    #if defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123)
-        #define ATTRIBUTES_NEED_TEXCOORD2
-    #endif
-    #if defined(_REQUIRE_UV0123)
-        #define ATTRIBUTES_NEED_TEXCOORD3
-    #endif
 #endif
 
-// Varying - Use for pixel shader
-// This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
-#if REQUIRE_TANGENT_TO_WORLD
-#define VARYINGS_NEED_TANGENT_WS
+#if (defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123))
+    #define ATTRIBUTES_NEED_TEXCOORD2
 #endif
 
-#if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
-    #define VARYINGS_NEED_POSITION_WS // Required to get view vector and to get planar/triplanar mapping working
+#if (defined(_REQUIRE_UV0123))
+    #define ATTRIBUTES_NEED_TEXCOORD3
+#endif
+// }
+#endif // (defined(DISPLACEMENT_MAP) || defined(_ALPHATEST_ON))
+
+/* Varyings are pixel shader inputs (vertex or domain shader outputs). */
+
+#ifdef _PIXEL_DISPLACEMENT
+    #define VARYINGS_NEED_NORMAL_WS
+    #define VARYINGS_NEED_TANGENT_WS
+#endif
+
+#if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON))
+// {
+    #define VARYINGS_NEED_POSITION_WS // TODO: compute from depth
+
+#ifdef ATTRIBUTES_NEED_TEXCOORD0
     #define VARYINGS_NEED_TEXCOORD0
+#endif
+
+#ifdef ATTRIBUTES_NEED_TEXCOORD1
     #define VARYINGS_NEED_TEXCOORD1
-    #ifdef ATTRIBUTES_NEED_TEXCOORD2
+#endif
+
+#ifdef ATTRIBUTES_NEED_TEXCOORD2
     #define VARYINGS_NEED_TEXCOORD2
-    #endif
-    #ifdef ATTRIBUTES_NEED_TEXCOORD3
+#endif
+
+#ifdef ATTRIBUTES_NEED_TEXCOORD3
     #define VARYINGS_NEED_TEXCOORD3
-    #endif
-    #ifdef ATTRIBUTES_NEED_COLOR
+#endif
+
+#ifdef ATTRIBUTES_NEED_COLOR
     #define VARYINGS_NEED_COLOR
-    #endif
-#elif defined(LOD_FADE_CROSSFADE)
-    #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect
+#endif
+// }
+#elif (defined(LOD_FADE_CROSSFADE))
+    #define VARYINGS_NEED_POSITION_WS // TODO: compute from depth
 #endif
 
 // This include will define the various Attributes/Varyings structure
