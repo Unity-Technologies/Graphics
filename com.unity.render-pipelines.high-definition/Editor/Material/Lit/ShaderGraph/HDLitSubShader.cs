@@ -359,17 +359,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
-            StencilOverride = new List<string>()
-            {
-                "// Stencil setup",
-                "Stencil",
-                "{",
-                string.Format("   WriteMask {0}", (int)StencilUsage.DistortionVectors),
-                string.Format("   Ref  {0}", (int)StencilUsage.DistortionVectors),
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
-            },
             PixelShaderSlots = new List<int>()
             {
                 HDLitMasterNode.AlphaSlotId,
@@ -634,7 +623,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.VertexNormalSlotID,
                 HDLitMasterNode.VertexTangentSlotID
             },
-            UseInPreview = true,
+            UseInPreview = false,
         };
 
         Pass m_PassRaytracingIndirect = new Pass()
