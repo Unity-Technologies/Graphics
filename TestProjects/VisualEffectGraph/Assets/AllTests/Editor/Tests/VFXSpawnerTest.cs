@@ -210,7 +210,7 @@ namespace UnityEditor.VFX.Test
 
         const float s_Check_Time_Mode_SleepingTimeInSecond = 1.0f;
         const float s_Check_Time_Mode_FixedDeltaTime = 0.1f;
-        const float s_Check_Time_Mode_MaxDeltaTime = 0.5f;
+        const float s_Check_Time_Mode_MaxDeltaTime = 0.6f;
 
         static VFXTimeModeTest[] s_CheckTimeMode = new[]
         {
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX.Test
 
             VFXCustomSpawnerUpdateCounterTest.s_UpdateCount = 0;
             VFXCustomSpawnerUpdateCounterTest.s_LastDeltaTime = 0.0f;
-            Time.captureFramerate = (int)(1.0f / s_Check_Time_Mode_SleepingTimeInSecond);
+            Time.captureDeltaTime = s_Check_Time_Mode_SleepingTimeInSecond;
 
             while (VFXCustomSpawnerUpdateCounterTest.s_UpdateCount == 0)
             {
