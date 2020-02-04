@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
                 //A context could have been filtered out due because there isn't any flow input link
                 return Enumerable.Empty<VFXContextLink>();
             });
-            var inputSpawnerContext = flowInputLinks.Select(l => l.context);
+            var inputSpawnerContext = flowInputLinks.Select(l => l.context).Distinct();
 
             var systemBufferMappings = new List<VFXMapping>();
             foreach (var spawner in inputSpawnerContext)
