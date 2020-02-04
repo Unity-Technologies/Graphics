@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
-    [Title("Master", "HDRP/Unlit")]
+    [Title("Master", "Unlit (HDRP)")]
     class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";

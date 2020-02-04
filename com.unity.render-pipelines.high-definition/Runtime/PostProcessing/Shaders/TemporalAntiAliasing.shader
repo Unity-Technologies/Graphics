@@ -1,5 +1,11 @@
 Shader "Hidden/HDRP/TemporalAntialiasing"
 {
+    Properties
+    {
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 2
+    }
+
     HLSLINCLUDE
 
         #pragma target 4.5
@@ -83,7 +89,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float3 average = Map((corners.xyz + color.xyz) / 7.0);
 
             topLeft.xyz = Map(topLeft.xyz);
-            bottomRight.xyz = Map(bottomRight);
+            bottomRight.xyz = Map(bottomRight.xyz);
             color.xyz = Map(color.xyz);
 
             float colorLuma = Luminance(color.xyz);
@@ -114,7 +120,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             color.w = lerp(color.w, history.w, feedback);
             // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
             CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            color.xyz = lerp(Map(unjitteredColor), color.xyz, color.w);
+            color.xyz = lerp(Map(unjitteredColor.xyz), color.xyz, color.w);
             feedback *= color.w;
     #endif
             color.xyz = Unmap(lerp(color.xyz, history.xyz, feedback));
@@ -144,8 +150,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         {
             Stencil
             {
-                ReadMask 16     // ExcludeFromTAA
-                Ref 16          // ExcludeFromTAA
+                ReadMask [_StencilMask]       // ExcludeFromTAA
+                Ref [_StencilRef]          // ExcludeFromTAA
                 Comp NotEqual
                 Pass Keep
             }
@@ -164,8 +170,8 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         {
             Stencil
             {
-                ReadMask 16     // ExcludeFromTAA
-                Ref 16          // ExcludeFromTAA
+                ReadMask [_StencilMask]    
+                Ref     [_StencilRef]
                 Comp Equal
                 Pass Keep
             }

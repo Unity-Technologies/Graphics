@@ -277,6 +277,8 @@ MonoBehaviour:
   - {fileID: 838494144808503415}
   - {fileID: -8229938433064773883}
   - {fileID: 2514369767842405169}
+  - {fileID: 7373200072652657575}
+  - {fileID: 3884974298407987946}
 --- !u!114 &838494144808503415
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -295,9 +297,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 4
   skyAmbientMode:
-    m_OverrideState: 1
-    m_Value: 0
-  fogType:
     m_OverrideState: 1
     m_Value: 0
 --- !u!114 &2514369767842405169
@@ -349,3 +348,109 @@ MonoBehaviour:
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &3884974298407987946
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f086a068d4c5889438831b3ae9afc11c, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 2
+  toeStrength:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  toeLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  shoulderStrength:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  shoulderLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+  shoulderAngle:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  gamma:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0.001
+  lutTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  lutContribution:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+--- !u!114 &7373200072652657575
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f077503be6ae942a1e1245dbd53ea9, type: 3}
+  m_Name: Bloom
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 1
+    m_Value: 0
+  threshold:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.2
+    min: 0
+    max: 1
+  scatter:
+    m_OverrideState: 0
+    m_Value: 0.7
+    min: 0
+    max: 1
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 0
+    showEyeDropper: 1
+  dirtTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  dirtIntensity:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  anamorphic:
+    m_OverrideState: 0
+    m_Value: 1
+  m_Resolution:
+    m_OverrideState: 0
+    m_Value: 2
+  m_HighQualityFiltering:
+    m_OverrideState: 0
+    m_Value: 1

@@ -1,3 +1,4 @@
+#if !defined(SHADER_STAGE_RAY_TRACING)
     FragInputs BuildFragInputs(VaryingsMeshToPS input)
     {
         FragInputs output;
@@ -24,7 +25,7 @@
 
         return output;
     }
-
+#endif
     SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, float3 viewWS)
     {
         SurfaceDescriptionInputs output;
@@ -64,6 +65,8 @@
         return output;
     }
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
+
     // existing HDRP code uses the combined function to go directly from packed to frag inputs
     FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     {
@@ -71,3 +74,4 @@
         VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
         return BuildFragInputs(unpacked);
     }
+#endif

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
         public ScalableSettingLevelParameter quality = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, false);
 
-        static protected GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
+        static internal GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
         {
             var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             if(pipeline != null)
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        static protected GlobalLightingQualitySettings GetLightingQualitySettings()
+        static internal GlobalLightingQualitySettings GetLightingQualitySettings()
         {
             var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             if (pipeline != null)

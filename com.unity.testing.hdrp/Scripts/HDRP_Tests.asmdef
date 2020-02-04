@@ -1,5 +1,5 @@
 {
-    "name": "HDRP_Tests",
+    "name": "Unity.RenderPipelines.HighDefinition-Tests.Runtime",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Postprocessing.Runtime",
@@ -14,5 +14,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

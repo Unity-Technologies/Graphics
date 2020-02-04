@@ -48,19 +48,21 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
+            string valueString = NodeUtils.FloatToShaderValueShaderLabSafe(value);
+
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {valueString}";
                 case FloatType.Enum:
-                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
                 default:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
             }
         }
-        
+
         [SerializeField]
         FloatType m_FloatType = FloatType.Default;
 

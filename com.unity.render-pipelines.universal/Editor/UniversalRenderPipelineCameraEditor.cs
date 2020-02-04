@@ -1004,8 +1004,16 @@ namespace UnityEditor.Rendering.Universal
     class UniversalRenderPipelineCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
     {
         //The call is delayed to the dispatcher to solve conflict with other SRP
-        public void RemoveComponent(Camera camera)
+        public void RemoveComponent(Camera camera, IEnumerable<Component> dependencies)
         {
+            // do not use keyword is to remove the additional data. It will not work
+            dependencies = dependencies.Where(c => c.GetType() != typeof(UniversalAdditionalCameraData));
+            if (dependencies.Count() > 0)
+            {
+                EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
+                return;
+            }
+
             Undo.SetCurrentGroupName("Remove Universal Camera");
             var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
             if (additionalCameraData)

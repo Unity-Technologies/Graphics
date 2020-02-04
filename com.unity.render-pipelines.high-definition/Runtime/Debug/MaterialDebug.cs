@@ -6,67 +6,108 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     namespace Attributes
     {
-        // 0 is reserved!
+        /// <summary>
+        /// Debug View for attributes interpolated from vertex to pixel shader.
+        /// </summary>
         [GenerateHLSL]
         public enum DebugViewVarying
         {
+            /// <summary>No interpolator debug.</summary>
             None = 0,
+            /// <summary>Display texture coordinate 0.</summary>
             Texcoord0 = 1,
+            /// <summary>Display texture coordinate 1.</summary>
             Texcoord1,
+            /// <summary>Display texture coordinate 2.</summary>
             Texcoord2,
+            /// <summary>Display texture coordinate 3.</summary>
             Texcoord3,
+            /// <summary>Display tangent in world space.</summary>
             VertexTangentWS,
+            /// <summary>Display bi-tangent in world space.</summary>
             VertexBitangentWS,
+            /// <summary>Display vertex normal in world space.</summary>
             VertexNormalWS,
+            /// <summary>Display vertex color.</summary>
             VertexColor,
+            /// <summary>Display vertex color alpha.</summary>
             VertexColorAlpha,
             // if you add more values here, fix the first entry of next enum
         };
 
         // Number must be contiguous
+        /// <summary>
+        /// Debug view for GBuffers.
+        /// </summary>
         [GenerateHLSL]
         public enum DebugViewGbuffer
         {
+            /// <summary>No GBuffer debug.</summary>
             None = 0,
+            /// <summary>Display GBuffer depth.</summary>
             Depth = DebugViewVarying.VertexColorAlpha + 1,
+            /// <summary>Display GBuffer diffuse lighting with albedo and emissive.</summary>
             BakeDiffuseLightingWithAlbedoPlusEmissive,
+            /// <summary>Display GBuffer Shadow Mask 0.</summary>
             BakeShadowMask0,
+            /// <summary>Display GBuffer Shadow Mask 1.</summary>
             BakeShadowMask1,
+            /// <summary>Display GBuffer Shadow Mask 2.</summary>
             BakeShadowMask2,
+            /// <summary>Display GBuffer Shadow Mask 3.</summary>
             BakeShadowMask3,
             // if you add more values here, fix the first entry of next enum
         }
 
         // Number must be contiguous
+        /// <summary>
+        /// Debug view for material properties.
+        /// </summary>
         [GenerateHLSL]
         public enum DebugViewProperties
         {
+            /// <summary>No property debug.</summary>
             None = 0,
+            /// <summary>Display materials with tessellation.</summary>
             Tessellation = DebugViewGbuffer.BakeShadowMask3 + 1,
+            /// <summary>Display materials with pixel displacement.</summary>
             PixelDisplacement,
+            /// <summary>Display materials with vertex displacement.</summary>
             VertexDisplacement,
+            /// <summary>Display materials with tessellation displacement.</summary>
             TessellationDisplacement,
+            /// <summary>Display materials with depth offset.</summary>
             DepthOffset,
+            /// <summary>Display materials with Lightmaps.</summary>
             Lightmap,
+            /// <summary>Display materials using instancing.</summary>
             Instancing,
         }
 
-
+        /// <summary>
+        /// Display material properties shared between all material types.
+        /// </summary>
         public enum MaterialSharedProperty
         {
+            /// <summary>No shared properties debug.</summary>
             None,
+            /// <summary>Display albedo.</summary>
             Albedo,
+            /// <summary>Display normal.</summary>
             Normal,
+            /// <summary>Display smoothness.</summary>
             Smoothness,
-            /// <summary>There is no equivalent for AxF shader.</summary>
+            /// <summary>Display ambient occlusion (N/A for AxF).</summary>
             AmbientOcclusion,
-            /// <summary>There is no equivalent for AxF, Fabric and Hair shaders.</summary>
+            /// <summary>Display metal (N/A for AxF).</summary>
             Metal,
+            /// <summary>Display specular.</summary>
             Specular,
+            /// <summary>Display alpha.</summary>
             Alpha,
         }
 
-        public class MaterialSharedPropertyMappingAttribute : Attribute
+        class MaterialSharedPropertyMappingAttribute : Attribute
         {
             public readonly MaterialSharedProperty property;
 
@@ -75,27 +116,35 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-
+    /// <summary>
+    /// Material Debug Settings.
+    /// </summary>
     [Serializable]
     public class MaterialDebugSettings
     {
         static bool isDebugViewMaterialInit = false;
 
-        public static GUIContent[] debugViewMaterialStrings = null;
-        public static int[] debugViewMaterialValues = null;
-        public static GUIContent[] debugViewEngineStrings = null;
-        public static int[] debugViewEngineValues = null;
-        public static GUIContent[] debugViewMaterialVaryingStrings = null;
-        public static int[] debugViewMaterialVaryingValues = null;
-        public static GUIContent[] debugViewMaterialPropertiesStrings = null;
-        public static int[] debugViewMaterialPropertiesValues = null;
-        public static GUIContent[] debugViewMaterialTextureStrings = null;
-        public static int[] debugViewMaterialTextureValues = null;
+        internal static GUIContent[] debugViewMaterialStrings = null;
+        internal static int[] debugViewMaterialValues = null;
+        internal static GUIContent[] debugViewEngineStrings = null;
+        internal static int[] debugViewEngineValues = null;
+        internal static GUIContent[] debugViewMaterialVaryingStrings = null;
+        internal static int[] debugViewMaterialVaryingValues = null;
+        internal static GUIContent[] debugViewMaterialPropertiesStrings = null;
+        internal static int[] debugViewMaterialPropertiesValues = null;
+        internal static GUIContent[] debugViewMaterialTextureStrings = null;
+        internal static int[] debugViewMaterialTextureValues = null;
+
+        // Had to keep those public because HDRP tests using it (as a workaround to access proper enum values for this debug)
+        /// <summary>List of material debug view names.</summary>
         public static GUIContent[] debugViewMaterialGBufferStrings = null;
+        /// <summary>List of material debug views values.</summary>
         public static int[] debugViewMaterialGBufferValues = null;
 
-        public MaterialSharedProperty debugViewMaterialCommonValue = MaterialSharedProperty.None;
         static Dictionary<MaterialSharedProperty, int[]> s_MaterialPropertyMap = new Dictionary<MaterialSharedProperty, int[]>();
+
+        /// <summary>Current material shared properties debug view.</summary>
+        public MaterialSharedProperty debugViewMaterialCommonValue = MaterialSharedProperty.None;
 
         static MaterialDebugSettings()
         {
@@ -172,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public class MaterialItem
+        internal class MaterialItem
         {
             public String className;
             public Type surfaceDataType;
@@ -388,11 +437,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         //Validator Settings
+        /// <summary>Color for displaying materials using an albedo value that is too low.</summary>
         public Color materialValidateLowColor = new Color(1.0f, 0.0f, 0.0f);
+        /// <summary>Color for displaying materials using an albedo value that is too high.</summary>
         public Color materialValidateHighColor = new Color(0.0f, 0.0f, 1.0f);
+        /// <summary>Color for displaying materials using a true metallic color.</summary>
         public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
+        /// <summary>Enable display of materials using a true metallic value.</summary>
         public bool  materialValidateTrueMetal = false;
 
+        /// <summary>
+        /// Current Debug View Material.
+        /// </summary>
         public int[] debugViewMaterial {
             get => m_DebugViewMaterial;
             internal set
@@ -416,9 +472,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        /// <summary>Current Engine Debug View.</summary>
         public int debugViewEngine { get { return m_DebugViewEngine; } }
+        /// <summary>Current Varying Debug View.</summary>
         public DebugViewVarying debugViewVarying { get { return m_DebugViewVarying; } }
+        /// <summary>Current Properties Debug View.</summary>
         public DebugViewProperties debugViewProperties { get { return m_DebugViewProperties; } }
+        /// <summary>Current GBuffer Debug View.</summary>
         public int debugViewGBuffer { get { return m_DebugViewGBuffer; } }
 
         const int kDebugViewMaterialBufferLength = 10;
@@ -440,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int materialEnumIndex;
 
-        public float[] GetDebugMaterialIndexes()
+        internal float[] GetDebugMaterialIndexes()
         {
             // This value is used in the shader for the actual debug display.
             // There is only one uniform parameter for that so we just add all of them
@@ -454,6 +515,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return s_DebugViewMaterialOffsetedBuffer;
         }
 
+        /// <summary>
+        /// Disable all current material debug views.
+        /// </summary>
         public void DisableMaterialDebug()
         {
             debugViewMaterialCommonValue = MaterialSharedProperty.None;
@@ -465,6 +529,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewGBuffer = 0;
         }
 
+        /// <summary>
+        /// Set the current shared material properties debug view.
+        /// </summary>
+        /// <param name="value">Desired shared material property to display.</param>
         public void SetDebugViewCommonMaterialProperty(MaterialSharedProperty value)
         {
             if (value != 0)
@@ -475,6 +543,10 @@ namespace UnityEngine.Rendering.HighDefinition
             debugViewMaterial = value == MaterialSharedProperty.None ? null : s_MaterialPropertyMap[value];
         }
 
+        /// <summary>
+        /// Set the current material debug view.
+        /// </summary>
+        /// <param name="value">Desired material debug view.</param>
         public void SetDebugViewMaterial(int value)
         {
             debugViewMaterialCommonValue = MaterialSharedProperty.None;
@@ -491,6 +563,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Set the current engine debug view.
+        /// </summary>
+        /// <param name="value">Desired engine debug view.</param>
         public void SetDebugViewEngine(int value)
         {
             if (value != 0)
@@ -498,6 +574,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewEngine = value;
         }
 
+        /// <summary>
+        /// Set current varying debug view.
+        /// </summary>
+        /// <param name="value">Desired varying debug view.</param>
         public void SetDebugViewVarying(DebugViewVarying value)
         {
             if (value != 0)
@@ -505,6 +585,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewVarying = value;
         }
 
+        /// <summary>
+        /// Set the current Material Property debug view.
+        /// </summary>
+        /// <param name="value">Desired property debug view.</param>
         public void SetDebugViewProperties(DebugViewProperties value)
         {
             if (value != 0)
@@ -512,6 +596,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewProperties = value;
         }
 
+        /// <summary>
+        /// Set the current GBuffer debug view.
+        /// </summary>
+        /// <param name="value">Desired GBuffer debug view.</param>
         public void SetDebugViewGBuffer(int value)
         {
             if (value != 0)
@@ -519,8 +607,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewGBuffer = value;
         }
 
+        /// <summary>
+        /// Returns true if GBuffer debug is enabled.
+        /// </summary>
+        /// <returns>True if GBuffer debug is enabled.</returns>
         public bool IsDebugGBufferEnabled() => m_DebugViewGBuffer != 0;
 
+        /// <summary>
+        /// Returns true if Material debug is enabled.
+        /// </summary>
+        /// <returns>True if Material debug is enabled.</returns>
         public bool IsDebugViewMaterialEnabled()
         {
             int size = m_DebugViewMaterial?[0] ?? 0;
@@ -532,6 +628,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return enabled;
         }
 
+        /// <summary>
+        /// Returns true if any material debug display is enabled.
+        /// </summary>
+        /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugDisplayEnabled()
         {
             return (m_DebugViewEngine != 0 || IsDebugViewMaterialEnabled() || m_DebugViewVarying != DebugViewVarying.None || m_DebugViewProperties != DebugViewProperties.None || IsDebugGBufferEnabled());

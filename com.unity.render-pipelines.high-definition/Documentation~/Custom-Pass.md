@@ -109,7 +109,18 @@ Filters allow you to select which objects will be rendered, you have the queue w
 
 By default, the objects are displayed with their material, you can override the material of everything in this custom pass by assigning a material in the `Material` slot. There are a bunch of choices here, both unlit ShaderGraph and unlit HDRP shader works and additionally there is a custom unlit shader that you can create using **Create/Shader/HDRP/Custom Renderers Pass**.
 
-> **Note that Lit Shaders aren't supported on every injection point as they require the lighting data to be ready.**
+**⚠️ Note that not all kind of materials are supported by every injection point. Here is the compatibility table:**
+
+Injection Point               | Material Type
+----------------------------- | -------------------------------------------
+Before Rendering              | Unlit forward but without writing to the camera color
+After Opaque Depth And Normal | Unlit forward
+Before PreRefraction          | Unlit + Lit forward only
+Before Transparent            | Unlit + Lit forward only with refraction
+Before Post Process           | Unlit + Lit forward only with refraction
+After Post Process            | Unlit + Lit forward only with refraction
+
+If you try to render a material in a unsupported configuration, it will result in an undefined behavior. For example rendering lit objects during `After Opaque Depth And Normal` will produce unexpected results.
 
 The pass name is also used to select which pass of the shader we will render, on a ShaderGraph or an HDRP unlit material it is useful because the default pass is the `SceneSelectionPass` and the pass used to render the object is `ForwardOnly`. You might also want to use the `DepthForwardOnly` pass if you want to only render the depth of the object.
 
@@ -488,11 +499,9 @@ Shader "Hidden/Outline"
 
         if (Luminance(outline.rgb) < luminanceThreshold)
         {
-            float3 o = float3(_ScreenSize.zw, 0);
-
             for (int i = 0; i < MAXSAMPLES; i++)
             {
-                float2 uvN = uv + _ScreenSize.zw * samplingPositions[i];
+                float2 uvN = uv + _ScreenSize.zw * _RTHandleScale.xy * samplingPositions[i];
                 float4 neighbour = SAMPLE_TEXTURE2D_X_LOD(_OutlineBuffer, s_linear_clamp_sampler, uvN, 0);
 
                 if (Luminance(neighbour) > luminanceThreshold)

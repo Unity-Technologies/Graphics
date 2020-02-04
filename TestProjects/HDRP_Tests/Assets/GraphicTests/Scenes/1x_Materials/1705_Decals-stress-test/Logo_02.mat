@@ -22,6 +22,7 @@ Material:
   - DBufferMesh_MAOS
   - DBufferMesh_MS
   - DBufferMesh_AOS
+  - Mesh_Emissive
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -126,9 +127,10 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DecalBlend: 1
+    - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
-    - _DecalStencilRef: 8
-    - _DecalStencilWriteMask: 8
+    - _DecalStencilRef: 16
+    - _DecalStencilWriteMask: 16
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
@@ -156,7 +158,11 @@ Material:
     - _Drag: 1
     - _DrawOrder: 2
     - _DstBlend: 0
+    - _Emissive: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -187,6 +193,7 @@ Material:
     - _MaskmapSmoothness: 1
     - _MaterialID: 1
     - _Metallic: 0
+    - _MetallicScale: 1
     - _NormalBlendSrc: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
@@ -225,6 +232,7 @@ Material:
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
     - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 4
     - _ZTestModeDistortion: 8
@@ -235,6 +243,8 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorHDR: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -243,6 +253,7 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!114 &2143023757839615194
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -255,4 +266,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 2

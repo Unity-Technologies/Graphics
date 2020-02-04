@@ -234,8 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool hasPersistentHistory = false;
 
-        // Event used to override HDRP rendering for this particular camera.
+        /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
+        /// <summary>True if any Custom Render event is registered for this camera.</summary>
         public bool hasCustomRender { get { return customRender != null; } }
 
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
@@ -380,15 +381,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        public bool isDebugRegistred
-        {
-            get => m_IsDebugRegistered;
-            internal set => m_IsDebugRegistered = value;
-        }
-
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
-        public bool isEditorCameraPreview { get; set; }
+        internal bool isEditorCameraPreview { get; set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
         public void CopyTo(HDAdditionalCameraData data)
@@ -498,7 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        public static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        internal static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
         {
             var camera = cameraData.gameObject.GetComponent<Camera>();
 
@@ -512,7 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraData.clearColorMode = ClearColorMode.None;
         }
 
-        public void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        internal void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
         {
             if (customRender != null)
             {

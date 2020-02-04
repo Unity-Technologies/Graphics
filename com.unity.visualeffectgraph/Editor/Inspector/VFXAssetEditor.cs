@@ -22,13 +22,9 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 
     void OnPreprocessAsset()
     {
-        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
-        if (isVFX)
-        {
-            VFXManagerEditor.CheckVFXManager();
-        }
         if (!allowExternalization)
             return;
+        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
         if (isVFX)
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);

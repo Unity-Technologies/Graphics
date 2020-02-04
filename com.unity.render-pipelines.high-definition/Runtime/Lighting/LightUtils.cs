@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Light Utils contains function to convert light intensities between units
     /// </summary>
-    public class LightUtils
+    class LightUtils
     {
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)

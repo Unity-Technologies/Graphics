@@ -1604,7 +1604,7 @@ namespace UnityEditor.VFX.UI
             object result = VFXCopy.Copy(sourceControllers, bounds);
 
             var targetControllers = new List<VFXNodeController>();
-            VFXPaste.Paste(controller, pasteCenter, result, null, null, targetControllers);
+            VFXPaste.Paste(controller, pasteCenter, result, this, null, targetControllers);
 
             ClearSelection();
             for (int i = 0; i < sourceControllers.Count; ++i)
@@ -1612,7 +1612,11 @@ namespace UnityEditor.VFX.UI
                 if(targetControllers[i] != null)
                 {
                     CopyInputLinks(sourceControllers[i] as VFXNodeController, targetControllers[i]);
-                    AddToSelection(rootNodes[targetControllers[i]]);
+
+                    if (targetControllers[i] is VFXBlockController blkController)
+                        AddToSelection((rootNodes[blkController.contextController] as VFXContextUI).GetAllBlocks().First(t=> t.controller == blkController));
+                    else
+                        AddToSelection(rootNodes[targetControllers[i]]);
                 }
             }
 
@@ -1980,6 +1984,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragUpdated(DragUpdatedEvent e)
         {
+            if (controller == null)
+                return;
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is VFXBlackboardField && (t as VFXBlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
                 VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
@@ -2024,6 +2030,8 @@ namespace UnityEditor.VFX.UI
 
         void OnDragPerform(DragPerformEvent e)
         {
+            if (controller == null)
+                return;
             var groupNode = GetPickedGroupNode(e.mousePosition);
 
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
