@@ -1,8 +1,8 @@
 editors:
   - version: trunk
-    cmd: -u trunk
+    cmd: -u graphics/remove-additional-data-pattern-for-camera 
   - version: fast-trunk
-    cmd: -u trunk --fast
+    cmd: -u graphics/remove-additional-data-pattern-for-camera  --fast
   - version: CUSTOM-REVISION
     cmdwin: -r %CUSTOM_REVISION%
     cmdposix: -r $CUSTOM_REVISION
