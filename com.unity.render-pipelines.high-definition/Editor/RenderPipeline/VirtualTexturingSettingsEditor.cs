@@ -157,15 +157,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
             GraphicsFormatToFormatAndChannelTransformString(cacheSizeOverride.format, out string formatString, out string channelTransformString);
 
+            // rect goes slightly out of bounds due to the list item handle that can be used to re-order the items.
+            rect.width *= 0.95f;
+
             float overrideWidth = rect.width;
 
+            float formatLabelWidth = overrideWidth * 0.1f;
+            float formatWidth = overrideWidth * 0.25f;
+            float channelTransformWidth = overrideWidth * 0.20f;
+            float usageLabelWidth = overrideWidth * 0.1f;
+            float usageWidth = overrideWidth * 0.15f;
+            float sizeLabelWidth = overrideWidth * 0.1f;
+            float sizeWidth = overrideWidth * 0.1f;
+
             // Format
-            float formatLabelWidth = Math.Min(65, overrideWidth * 0.15f);
             rect.width = formatLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideFormat);
 
             rect.position += new Vector2(formatLabelWidth, 0);
-            float formatWidth = overrideWidth * 0.2f;
             rect.width = formatWidth;
             if (EditorGUI.DropdownButton(rect, new GUIContent(formatString), FocusType.Keyboard))
             {
@@ -198,7 +207,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Channel transform
             rect.position += new Vector2(formatWidth, 0);
-            float channelTransformWidth = overrideWidth * 0.15f; ;
             rect.width = channelTransformWidth;
             if (EditorGUI.DropdownButton(rect, new GUIContent(channelTransformString), FocusType.Keyboard))
             {
@@ -225,12 +233,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Usage
             rect.position += new Vector2(channelTransformWidth + overrideWidth * 0.02f, 0);
-            float usageLabelWidth = Math.Min(60, overrideWidth * 0.20f);
             rect.width = usageLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideUsage);
 
             rect.position += new Vector2(usageLabelWidth, 0);
-            float usageWidth = overrideWidth * 0.15f; ;
             rect.width = usageWidth;
             if (EditorGUI.DropdownButton(rect, new GUIContent(cacheSizeOverride.usage.ToString()), FocusType.Keyboard))
             {
@@ -257,12 +263,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Size
             rect.position += new Vector2(usageWidth + overrideWidth * 0.02f, 0);
-            float sizeLabelWidth = Math.Min(45, overrideWidth * 0.1f);
             rect.width = sizeLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideSize);
 
             rect.position += new Vector2(sizeLabelWidth, 0);
-            float sizeWidth = overrideWidth * 0.1f;
             rect.width = sizeWidth;
 
             cacheSizeOverride.sizeInMegaBytes = (uint)Mathf.Max(2, EditorGUI.IntField(rect, (int)cacheSizeOverride.sizeInMegaBytes));
