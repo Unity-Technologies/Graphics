@@ -73,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader screenSpaceShadowPS;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasBlit.compute")]
             public ComputeShader probeVolumeAtlasBlitCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthBlit.compute")]
+            public ComputeShader probeVolumeAtlasOctahedralDepthBlitCS;
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 

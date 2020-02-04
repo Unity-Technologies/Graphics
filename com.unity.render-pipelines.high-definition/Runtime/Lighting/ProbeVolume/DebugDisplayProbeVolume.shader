@@ -15,6 +15,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE2D_ARRAY(_AtlasTextureSH);
 
+        TEXTURE2D(_AtlasTextureOctahedralDepth);
+        float4 _AtlasTextureOctahedralDepthScaleBias;
+
         struct Attributes
         {
             uint vertexID : VERTEXID_SEMANTIC;
@@ -31,7 +34,11 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
-            output.texcoord = output.texcoord * _TextureScaleBias.xy + _TextureScaleBias.zw;
+
+            float4 scaleBias = (_ProbeVolumeAtlasSliceMode == PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH)
+                ? _AtlasTextureOctahedralDepthScaleBias
+                : _TextureScaleBias;
+            output.texcoord = output.texcoord * scaleBias.xy + scaleBias.zw;
             return output;
         }
     ENDHLSL
@@ -57,7 +64,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 float4 valueShAg = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 1, 0) - _ValidRange.x) * _ValidRange.y);
                 float4 valueShAb = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 2, 0) - _ValidRange.x) * _ValidRange.y);
                 float valueValidity = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 3, 0).x - _ValidRange.x) * _ValidRange.y);
-
+                float valueOctahedralDepth = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord, 0).x - _ValidRange.x) * _ValidRange.y);
 
                 switch (_ProbeVolumeAtlasSliceMode)
                 {
@@ -85,6 +92,11 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                     case PROBEVOLUMEATLASSLICEMODE_VALIDITY:
                     {
                         return float4(lerp(float3(1, 0, 0), float3(0, 1, 0), valueValidity), 1);
+                    }
+
+                    case PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH:
+                    {
+                        return float4(valueOctahedralDepth, valueOctahedralDepth, valueOctahedralDepth, 1.0f);
                     }
 
                     default: return float4(0.0, 0.0, 0.0, 1.0);

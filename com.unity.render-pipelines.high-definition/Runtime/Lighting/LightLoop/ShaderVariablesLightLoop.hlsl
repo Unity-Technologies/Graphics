@@ -50,6 +50,8 @@
 
     TEXTURE2D_ARRAY(_ProbeVolumeAtlasSH);
     float4 _ProbeVolumeAtlasResolutionAndInverse;
+    TEXTURE2D(_ProbeVolumeAtlasOctahedralDepth);
+    float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
     int _ProbeVolumeLeakMitigationMode;
     float _ProbeVolumeNormalBiasWS;
     float _ProbeVolumeBilateralFilterWeightMin;

@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // In an evenly split binary tree, the nodeCount == leafNodeCount * 2
             int capacityNodes = capacityAllocations * 2;
-            Debug.Assert(capacityNodes < (1 << 16));
+            Debug.Assert(capacityNodes < (1 << 16), "Error: AtlasAllocatorDynamic: Attempted to allocate a capacity of " + capacityNodes + ", which is greater than our 16-bit indices can support. Please request a capacity <=" + (1 << 16));
             m_Pool = new AtlasNodePool((Int16)capacityNodes);
 
             m_NodeFromID = new Dictionary<int, Int16>(capacityAllocations);
@@ -356,23 +356,25 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Width = width;
             m_Height = height;
             m_Format = format;
-            m_AtlasTexture = RTHandles.Alloc(m_Width,
-                    m_Height,
-                    1,
-                    DepthBits.None,
-                    m_Format,
-                    FilterMode.Point,
-                    TextureWrapMode.Clamp,
-                    TextureDimension.Tex2D,
-                    false,
-                    true,
-                    false,
-                    false,
-                    1,
-                    0,
-                    MSAASamples.None,
-                    false,
-                    false);
+            m_AtlasTexture = RTHandles.Alloc(
+                m_Width,
+                m_Height,
+                1,
+                DepthBits.None,
+                m_Format,
+                FilterMode.Point,
+                TextureWrapMode.Clamp,
+                TextureDimension.Tex2D,
+                false,
+                true,
+                false,
+                false,
+                1,
+                0,
+                MSAASamples.None,
+                false,
+                false
+            );
             isAtlasTextureOwner = true;
 
             m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
@@ -388,6 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
             isAtlasTextureOwner = false;
 
             m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
+            m_AllocationCache = new Dictionary<int, Vector4>(capacity);
         }
 
         public void Release()

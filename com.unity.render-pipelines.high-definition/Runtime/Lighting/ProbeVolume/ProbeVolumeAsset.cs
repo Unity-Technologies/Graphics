@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public SphericalHarmonicsL1[] data = null;
         public float[] dataValidity = null;
+        public float[] dataOctahedralDepth = null;
 
         public int resolutionX;
         public int resolutionY;

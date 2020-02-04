@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         VisualizeAtlas,
         VisualizeDebugColors,
-        VisualizeValidity,
+        VisualizeValidity
     }
 
     [GenerateHLSL]
@@ -105,7 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
         IrradianceSH1_1,
         IrradianceSH10,
         IrradianceSH11,
-        Validity
+        Validity,
+        OctahedralDepth
     }
 
     [Serializable]

@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFadeEnd;
 
         public Vector4 scaleBias;
+        public Vector4 octahedralDepthScaleBias;
 
         public ProbeSpacingMode probeSpacingMode;
 
@@ -95,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
             this.scaleBias = Vector4.zero;
+            this.octahedralDepthScaleBias = Vector4.zero;
             this.probeSpacingMode = ProbeSpacingMode.Density;
             this.resolutionX = 4;
             this.resolutionY = 4;
@@ -171,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.endTimesRcpDistFadeLen = this.distanceFadeEnd * data.rcpDistFadeLen;
 
             data.scaleBias = this.scaleBias;
+            data.octahedralDepthScaleBias = this.octahedralDepthScaleBias;
 
             data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
             data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
@@ -200,14 +203,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetInstanceID();
         }
 
-        public (SphericalHarmonicsL1[], float[]) GetData()
+        public (SphericalHarmonicsL1[], float[], float[]) GetData()
         {
             dataUpdated = false;
 
             if (!probeVolumeAsset)
-                return (null, null);
+                return (null, null, null);
 
-            return (probeVolumeAsset.data, probeVolumeAsset.dataValidity);
+            return (probeVolumeAsset.data, probeVolumeAsset.dataValidity, probeVolumeAsset.dataOctahedralDepth);
         }
 
         protected void Awake()
@@ -336,17 +339,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnBakeCompleted()
         {
-            if (!this.gameObject.activeInHierarchy)
+            if (this.gameObject == null || !this.gameObject.activeInHierarchy)
                 return;
 
             int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[numProbes];
             float[] dataValidity = new float[numProbes];
+            float[] dataOctahedralDepth = new float[numProbes * 8 * 8];
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity);
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth);
 
             // TODO: Remove this data copy.
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
@@ -355,10 +360,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 data[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
                 data[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
                 dataValidity[i] = validity[i];
+                for (int j = 0; j < 64; ++j)
+                {
+                    dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
+                }
             }
 
             sh.Dispose();
             validity.Dispose();
+            octahedralDepth.Dispose();
 
             if (!probeVolumeAsset)
             {
@@ -368,6 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             probeVolumeAsset.data = data;
             probeVolumeAsset.dataValidity = dataValidity;
+            probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
             probeVolumeAsset.resolutionX = parameters.resolutionX;
             probeVolumeAsset.resolutionY = parameters.resolutionY;
             probeVolumeAsset.resolutionZ = parameters.resolutionZ;
