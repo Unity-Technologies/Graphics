@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fallback for ray traced reflections when denoising is enabled.
 - Fixed error spam issue with terrain detail terrainDetailUnsupported (cases 1211848)
 - Fixed Wizard check order for `Hardware and OS` and `Direct3D12`
+- Fix AO issue turning black when Far/Near plane distance is big.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
