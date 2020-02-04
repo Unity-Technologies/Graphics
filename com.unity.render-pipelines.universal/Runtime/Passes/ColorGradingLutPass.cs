@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        public override void OnFinishCameraStackRendering(CommandBuffer cmd)
+        internal override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
         }
