@@ -1,27 +1,27 @@
-# Render Type and types of Camera
+# Render Type
 There are two types of Camera in the Universal Render Pipeline (URP):
 
 * A [Base Camera](#base-camera) is a general purpose Camera that renders to a render target (a screen, or a [Render Texture](https://docs.unity3d.com/Manual/class-RenderTexture.html)).
 * An [Overlay Camera](#overlay-camera) renders on top of another Camera's output. You can combine the output of a Base Camera with the output of one or more Overlay Cameras. This is called [Camera stacking](CameraStacking.md).
 
-## Render Type
 Use a Camera’s **Render Type** property to make it a Base Camera or an Overlay Camera.  
 
 To change the type of a Camera in the Unity Editor:
 1. Create or select a Camera in your Scene.
 2. In the Camera Inspector, use the **Render Type** drop-down menu to select a different type of Camera. Select either:
-    * Base to change the Camera to a Base Camera
-    * Overlay to change the Camera to an Overlay Camera
+    * **Base** to change the Camera to a Base Camera
+    * **Overlay** to change the Camera to an Overlay Camera
 
 ![Render Type in the Camera component Inspector](Images/camera-inspector-render-type.png)
 
-You can change a Camera’s type in a script, by setting the `renderType` property of the Camera's [UniversalAdditionalCameraData](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.htmll) component, like this:
+You can change a Camera’s type in a script, by setting the `renderType` property of the Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component, like this:
 
 ```
-myUniversalAdditionalCameraData.renderType = CameraRenderType.Base;
+var cameraData = camera.GetUniversalAdditionalCameraData();
+cameraData.renderType = CameraRenderType.Base;
 ```
 
-<a name=”base-camera”></a>
+<a name="base-camera"></a>
 ## Base Camera
 Base Camera is the default type of Camera in URP. A Base Camera is a general purpose Camera that renders to a given render target.
 
