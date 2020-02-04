@@ -32,6 +32,7 @@ namespace UnityEditor
 
         static VisualEffectAssetEditorUtility()
         {
+            VFXManagerEditor.CheckVFXManager();
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
 
