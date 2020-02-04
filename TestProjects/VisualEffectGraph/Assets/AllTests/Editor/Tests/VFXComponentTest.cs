@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
 using UnityEditor.VFX.Block.Test;
+using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
@@ -677,6 +678,63 @@ namespace UnityEditor.VFX.Test
             actualOverriden = vfx.GetVector3(exposedName);
 
             Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
+        }
+
+        [UnityTest]
+        public IEnumerator Create_Component_With_All_Basic_Type_Exposed_Check_Exposed_API()
+        {
+            var graph = MakeTemporaryGraph();
+            var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
+                        .Where(e => e != VFXValueType.Spline
+                                && e != VFXValueType.Buffer //TODO : Remove this when Buffer as exposed property is possible
+                                && e != VFXValueType.None).ToArray();
+
+            foreach (var type in types)
+            {
+                var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == type);
+                var newInstance = parameterDesc.CreateInstance();
+
+                newInstance.SetSettingValue("m_ExposedName", "abcd_" + type.ToString());
+                newInstance.SetSettingValue("m_Exposed", true);
+                graph.AddChild(newInstance);
+            }
+
+            graph.RecompileIfNeeded();
+            yield return null;
+
+            var vfxAsset = graph.visualEffectResource.asset;
+
+            var exposedProperties = new List<VFXExposedProperty>();
+            vfxAsset.GetExposedProperties(exposedProperties);
+            foreach (var type in types)
+            {
+                var expectedType = VFXExpression.TypeToType(type);
+                var whereExpectedType = exposedProperties.Where(o => o.type == expectedType);
+                Assert.IsTrue(whereExpectedType.Any());
+                var expectedName = "abcd_" + type.ToString();
+                var whereExpectedName = whereExpectedType.Where(o => o.name == expectedName);
+                Assert.AreEqual(1, whereExpectedName.Count());
+
+                var entry = whereExpectedName.First();
+                if (entry.type == typeof(Texture))
+                {
+                    var dimension = vfxAsset.GetTextureDimension(entry.name);
+                    switch (dimension)
+                    {
+                        case TextureDimension.Tex2D:        Assert.AreEqual(type, VFXValueType.Texture2D);        break;
+                        case TextureDimension.Tex3D:        Assert.AreEqual(type, VFXValueType.Texture3D);        break;
+                        case TextureDimension.Cube:         Assert.AreEqual(type, VFXValueType.TextureCube);      break;
+                        case TextureDimension.Tex2DArray:   Assert.AreEqual(type, VFXValueType.Texture2DArray);   break;
+                        case TextureDimension.CubeArray:    Assert.AreEqual(type, VFXValueType.TextureCubeArray); break;
+                        default: Assert.Fail("Unknown expected type"); break;
+                    }
+                }
+                else
+                {
+                    Assert.IsFalse(VFXExpression.IsTexture(type));
+                }
+            }
+            Assert.AreEqual(types.Length, exposedProperties.Count);
         }
 
         [UnityTest]
