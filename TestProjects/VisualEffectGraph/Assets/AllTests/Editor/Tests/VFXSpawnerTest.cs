@@ -228,6 +228,10 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded();
 
             var receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += o =>
+            {
+                receivedEvent.Add(o.nameId);
+            };
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -245,15 +249,13 @@ namespace UnityEditor.VFX.Test
             float simulateTime = deltaTime * count;
             uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
 
-            maxFrame = 8; receivedEvent.Clear();
+            maxFrame = 64; receivedEvent.Clear();
             cameraObj.SetActive(false);
             while (receivedEvent.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
-            Assert.IsTrue(maxFrame > 0);
             Assert.AreEqual(expectedEventCount, (uint)receivedEvent.Count);
-
             yield return null;
         }
 
