@@ -668,6 +668,22 @@ namespace UnityEditor.VFX.UI
             fieldControl.indeterminate = indeterminate;
         }
 
+        protected override void UpdateEnabled()
+        {
+            fieldControl.SetEnabled(propertyEnabled);
+
+            if( propertyEnabled)
+            {
+                if (m_TooltipHolder.parent != null)
+                    m_TooltipHolder.RemoveFromHierarchy();
+            }
+            else
+            {
+                if (m_TooltipHolder.parent == null)
+                    m_FieldParent.Add(m_TooltipHolder);
+            }
+        }
+
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);

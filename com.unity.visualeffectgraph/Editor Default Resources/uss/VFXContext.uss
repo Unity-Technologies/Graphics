@@ -10,7 +10,7 @@ VFXContextUI.graphElement {
 }
 VFXContextUI > #node-border
 {
-    width: 384px;
+    width: 416px;
     background-color:rgba(29,29,29,0.8);
     border-radius: 8px;
     border-left-width: 1px;

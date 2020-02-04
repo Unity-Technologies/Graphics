@@ -12,15 +12,34 @@ Ray-Traced Global Illumination is a ray tracing feature in the High Definition R
 
 ## Using Ray-Traced Global Illumination
 
+For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html).
+
+### Camera setup
+
+Cameras use [Frame Settings](Frame-Settings.html) to decide how to render the Scene. To enable ray-traced global illumination for your Cameras by default:
+
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
+2. Select Camera from the Default Frame Settings For drop-down.
+3. In the Rendering section, enable Ray Tracing.
+
+All Cameras can now process ray-traced global illumination unless they use custom [Frame Settings](Frame-Settings.html). If they do:
+
+1. In the Scene view or Hierarchy, select the Camera's GameObject to open it in the Inspector.
+2. In the Custom Frame Settings, navigate to the Rendering section and enable Ray Tracing.
+
+## Volume setup
+
 Ray-Traced Global Illumination uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add a Global Illumination override to a [Volume](Volumes.html) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to Add Override > Ray Tracing and click on Global Illumination.
 3. In the Inspector for the Global Illumination Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html).
 
+![](Images/RayTracedGlobalIllumination3.png)
+
 ## Properties
 
-Alongside the standard properties, Unity makes different properties available depending on the ray tracing tier your HDRP Project is using. For information on what each tier does, and how to select a tier for your HDRP Project, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html#TierTable).
+Alongside the standard properties, Unity makes different properties available depending on the ray tracing mode set for this effect.
 
 ### Shared
 
@@ -36,14 +55,14 @@ Alongside the standard properties, Unity makes different properties available de
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 | - **Second Denoiser Radius**   | Set the radius of the spatio-temporal filter for the second denoiser pass. |
 
-### Tier 1
+### Performance Mode
 
-| Property          | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| **Deferred Mode** | Enable this feature to make HDRP evaluate this as a [deferred effect](Forward-And-Deferred-Rendering.html). This significantly improves performance, but can reduce the visual fidelity. |
-| **Ray Binning**   | Enable this feature to "sort" rays to make them more coherent and reduce the resource intensity of this effect. |
+| Property            | Description                                                  |
+| -----------------   | ------------------------------------------------------------ |
+| **Upscale Radius**  | Controls the radius of the up-scaler that HDRP uses to build the GI. The larger the radius, the more neighbors HDRP uses to build the GI, the better the quality. |
+| **Full Resolution** | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame. |
 
-### Tier 2
+### Quality Mode
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |

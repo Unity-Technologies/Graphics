@@ -60,6 +60,7 @@ namespace UnityEditor.VFX.UI
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
+            m_FieldParent.style.flexDirection = FlexDirection.Row;
         }
 
         public override float GetPreferredControlWidth()

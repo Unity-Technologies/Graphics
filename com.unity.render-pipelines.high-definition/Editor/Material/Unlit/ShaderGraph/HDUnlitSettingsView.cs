@@ -226,6 +226,16 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dotsInstancing.isOn;
+                    toggle.OnToggleChanged(ChangeDotsInstancing);
+                });
+            });
+
+
             Add(ps);
         }
 
@@ -282,6 +292,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             };
             UpdateRenderingPassValue(evt.newValue);
         }
+
+        void ChangeDotsInstancing(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
+            ToggleData td = m_Node.dotsInstancing;
+            td.isOn = evt.newValue;
+            m_Node.dotsInstancing = td;
+        }
+
 
         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
         {

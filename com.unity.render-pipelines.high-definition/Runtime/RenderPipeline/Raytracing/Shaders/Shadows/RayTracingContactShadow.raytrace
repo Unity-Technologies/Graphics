@@ -1,0 +1,142 @@
+// We need only need one bounce given that we want to see the if there is anything that occludes the area light
+#pragma max_recursion_depth 1
+
+// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+#define SHADOW_LOW
+
+// Required for contact shadows
+#define USE_FPTL_LIGHTLIST
+
+// We are using DX12 here
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
+
+// Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
+// The target acceleration structure that we will evaluate the reflexion in
+TEXTURE2D_X(_DepthTexture);
+
+[shader("miss")]
+void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+{
+    rayIntersection.color = float3(1.0, 1.0, 1.0);
+}
+
+bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
+{
+    if (_ContactShadowLength > 0.0f)
+    {
+        //Here LightDirection is not the light direction but the light position
+        float rayLength = _ContactShadowLength;
+
+        // Create the ray descriptor for this pixel
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = GetAbsolutePositionWS(posInput.positionWS) + _RaytracingRayBias * direction;
+        rayDescriptor.Direction = direction;
+        rayDescriptor.TMin = 0.0;
+        rayDescriptor.TMax = rayLength - _RaytracingRayBias;
+
+        // Create and init the RayIntersection structure for this
+        RayIntersection rayIntersection;
+        rayIntersection.color = float3(0.0, 0.0, 0.0);
+        rayIntersection.incidentDirection = rayDescriptor.Direction;
+        rayIntersection.pixelCoord = posInput.positionSS;
+
+        // Evaluate the ray visibility term and PDF
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
+        
+        // Not sure true translates to 1 in every compiler
+        return (rayIntersection.color.x == 0.0) ? 1 : 0;
+    }
+    return 0;
+}
+
+[shader("raygeneration")]
+void RayGenContactShadows()
+{
+    // Grab the dimensions of the current raytrace shader
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
+    // Get the current pixel coordinate
+    uint2 pixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // Fetch the current depth value
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord).x;
+
+    // Reconstruction world space position
+    uint2 tileIndex = pixelCoord / GetTileSize();
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
+
+    // discard the shadow if we're on the sky or outside of the contact shadow range
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1)
+        return;
+
+    float fade = 0.0;
+    // store the 24 bit contact shadow mask mask (1: pixel is in contact shadow, 0: pixel is not shadowed)
+    uint contactShadowMask = 0;
+    UnpackContactShadowData(_ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)], fade, contactShadowMask);
+
+    // Let's first process the directional shadow
+    if (_DirectionalShadowIndex >= 0)
+    {
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+        if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 1.0)
+        {
+            // We store the inverse of the contact shadow:
+            bool occluded = RayTraceContactShadow(posInput, -light.forward);
+
+            // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+            // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+            // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+            contactShadowMask |= (light.contactShadowMask * occluded);
+        }
+    }
+    uint lightCount, lightStart;
+
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+    GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+    lightCount = _PunctualLightCount;
+    lightStart = 0;
+#endif
+
+    uint v_lightListOffset = 0;
+    uint v_lightIdx = lightStart;
+    while (v_lightListOffset < lightCount)
+    {
+        v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
+        LightData s_lightData = FetchLight(v_lightIdx);
+        v_lightListOffset++;
+        if (s_lightData.contactShadowMask != 0 && s_lightData.isRayTracedContactShadow == 1.0)
+        {
+            // Compute light ray direction:
+            float3 direction = normalize(s_lightData.positionRWS.xyz - posInput.positionWS);
+
+            bool occluded = RayTraceContactShadow(posInput, direction);
+
+            // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+            // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+            // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+            contactShadowMask |= (s_lightData.contactShadowMask * occluded);
+        }
+    }
+
+    _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(fade, contactShadowMask);
+}

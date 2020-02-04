@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Renderer2DData = data;
         }
 
-        public override void Cleanup()
+        protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_BlitMaterial);
         }

@@ -1118,11 +1118,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
-      propertyPath: xrThresholdMultiplier
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
       propertyPath: checkMemoryAllocation
       value: 0
       objectReference: {fileID: 0}

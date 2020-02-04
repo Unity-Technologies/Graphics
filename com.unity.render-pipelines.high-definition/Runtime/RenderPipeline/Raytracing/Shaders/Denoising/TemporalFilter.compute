@@ -36,6 +36,8 @@ TEXTURE2D_X(_HistoryDepthTexture);
 TEXTURE2D_X(_HistoryNormalBufferTexture);
 // Buffer that stores the result of the validation pass of the history
 RW_TEXTURE2D_X(float, _ValidationBufferRW);
+// Velocity buffer for history rejection
+TEXTURE2D_X(_VelocityBuffer);
 // This holds the fov angle of a pixel
 float _PixelSpreadAngleTangent;
 // Value that tells us if the current history should be discarded based on scene-level data
@@ -47,6 +49,8 @@ float _HistoryValidity;
 #define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
+// The minimal motion distance
+#define MINIMAL_MOTION_DISTANCE 0.001 
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -83,7 +87,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
     // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
     float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord).r;
-    if ( historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -117,6 +121,14 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     
     // If the current normal is too different from the previous one, discard the history.
     if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)
+    {
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        return;
+    }
+    
+    // We sample the velocity buffer, if not null
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
+    if (sampleVelocity > MINIMAL_MOTION_DISTANCE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -195,17 +207,20 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         float sampleCount = history.w;
     #endif
 #endif
+    
+    // Get the velocity of the current sample
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
 
     // Accumulation factor that tells us how much we need to keep the history data
     float accumulationFactor = 0.0;
 
-    // If we found no history pixel
-    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x < 1.0)
+    // If the history is invalid or the history was flagged as moving (sampleCount == 0.0)
+    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x < 1.0 || sampleCount == 0.0)
     {
         // We only take the current value
         accumulationFactor = 0.0;
-        // And the sample count of history becomes 1
-        sampleCount = 1.0;
+        // And the sample count of history becomes 1 (or 0 if the previous sample was mooving)
+        sampleCount = sampleVelocity > MINIMAL_MOTION_DISTANCE ? 0.0 : 1.0;
     }
     else
     {

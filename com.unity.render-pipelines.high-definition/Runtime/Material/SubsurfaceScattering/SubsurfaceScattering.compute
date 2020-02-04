@@ -49,6 +49,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 
 //--------------------------------------------------------------------------------------------------
@@ -58,8 +59,9 @@
 float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D_X(_DepthTexture);                           // Z-buffer
-TEXTURE2D_X(_SSSHTile);                               // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D_X(_IrradianceSource);                       // Includes transmitted light
+
+StructuredBuffer<uint>  _CoarseStencilBuffer;
 
 #ifdef USE_INTERMEDIATE_BUFFER
     RW_TEXTURE2D_X(float4, _CameraFilteringTexture);  // Target texture
@@ -229,7 +231,7 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 }
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint2 groupId          : SV_GroupID,
+void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
                           uint  groupThreadId    : SV_GroupThreadID,
                           uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -243,22 +245,28 @@ void SubsurfaceScattering(uint2 groupId          : SV_GroupID,
 
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
     uint2 groupCoord  = DecodeMorton2D(groupThreadId);
-    uint2 groupOffset = groupId * GROUP_SIZE_1D;
+    uint2 groupOffset = groupId.xy * GROUP_SIZE_1D;
     uint2 pixelCoord  = groupOffset + groupCoord;
     int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
     UNITY_BRANCH if (groupThreadId == 0)
     {
-        float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
+        uint stencilRef = STENCILUSAGE_SUBSURFACE_SCATTERING;
 
         // Check whether the thread group needs to perform any work.
-        float s00 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(0, 0)).r;
-        float s10 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(1, 0)).r;
-        float s01 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(0, 1)).r;
-        float s11 = LOAD_TEXTURE2D_X(_SSSHTile, 2 * groupId + uint2(1, 1)).r;
+        uint s00Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 0), _CoarseStencilBufferSize.xy, groupId.z);
+        uint s10Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 0), _CoarseStencilBufferSize.xy, groupId.z);
+        uint s01Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(0, 1), _CoarseStencilBufferSize.xy, groupId.z);
+        uint s11Address = Get1DAddressFromPixelCoord(2 * groupId.xy + uint2(1, 1), _CoarseStencilBufferSize.xy, groupId.z);
 
+        uint s00 = _CoarseStencilBuffer[s00Address];
+        uint s10 = _CoarseStencilBuffer[s10Address];
+        uint s01 = _CoarseStencilBuffer[s01Address];
+        uint s11 = _CoarseStencilBuffer[s11Address];
+
+        uint HTileValue = s00 | s10 | s01 | s11;
         // Perform the stencil test (reject at the tile rate).
-        processGroup = (stencilRef == s00 || stencilRef == s10 || stencilRef == s01 || stencilRef == s11);
+        processGroup = ((HTileValue & stencilRef) != 0);
     }
 
     // Wait for the LDS.
