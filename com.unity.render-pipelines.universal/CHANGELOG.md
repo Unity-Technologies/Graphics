@@ -46,6 +46,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported and causes artifacts.
 - Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
 - Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
+- Fixed an issue where post processing disappeared when using custom renderers and SMAA or no AA
+- Fixed an issue with soft particles having dark blending when intersecting with scene geometry [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+- Fixed an issue with additive particles blending incorrectly [case 1215713](https://issuetracker.unity3d.com/issues/universal-render-pipeline-additive-particles-not-using-vertex-alpha)
 
 ## [7.1.8] - 2020-01-20
 
