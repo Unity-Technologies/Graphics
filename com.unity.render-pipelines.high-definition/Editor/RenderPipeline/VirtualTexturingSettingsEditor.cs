@@ -152,22 +152,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 formatGroups[format].Add(channelTransform);
             }
 
-            var cacheSizeOverride = m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx];
+            //var cacheSizeOverride = m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx];
             var cacheSizeOverrideProperty = m_GPUCacheSizeOverrideProperty.GetArrayElementAtIndex(overrideIdx);
+            var cacheSizeOverride = m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx];
 
-            GraphicsFormatToFormatAndChannelTransformString(cacheSizeOverride.format, out string formatString, out string channelTransformString);
-
-            // rect goes slightly out of bounds due to the list item handle that can be used to re-order the items.
-            rect.width *= 0.95f;
+            GraphicsFormatToFormatAndChannelTransformString((GraphicsFormat)cacheSizeOverrideProperty.FindPropertyRelative("format").enumValueIndex, out string formatString, out string channelTransformString);
 
             float overrideWidth = rect.width;
 
-            float formatLabelWidth = overrideWidth * 0.1f;
+            float spacing = Math.Min(5, overrideWidth * 0.02f);
+
+            overrideWidth -= 2 * spacing;
+
+            float formatLabelWidth = Math.Min(45, overrideWidth * 0.1f);
             float formatWidth = overrideWidth * 0.25f;
             float channelTransformWidth = overrideWidth * 0.20f;
-            float usageLabelWidth = overrideWidth * 0.1f;
-            float usageWidth = overrideWidth * 0.15f;
-            float sizeLabelWidth = overrideWidth * 0.1f;
+            float usageLabelWidth = Math.Min(45, overrideWidth * 0.08f);
+            float usageWidth = overrideWidth * 0.2f;
+            float sizeLabelWidth = Math.Min(35, overrideWidth * 0.07f);
             float sizeWidth = overrideWidth * 0.1f;
 
             // Format
@@ -191,17 +193,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             channelTransformString = formatGroup[0];
                         }
 
-                        m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx].format = FormatAndChannelTransformStringToGraphicsFormat(localFormat, channelTransformString);
-                        cacheSizeOverrideProperty.FindPropertyRelative("format").enumValueIndex = (int) cacheSizeOverride.format;
+                        cacheSizeOverrideProperty.FindPropertyRelative("format").enumValueIndex = (int)FormatAndChannelTransformStringToGraphicsFormat(localFormat, channelTransformString);
                         serializedObject.ApplyModifiedProperties();
                         m_Dirty = true;
                     });
                 }
-                if (!formatGroups.ContainsKey(formatString))
-                {
-                    // Already selected so nothing needs to happen.
-                    menu.AddItem(new GUIContent(formatString), true, () => { });
-                }
+
                 menu.ShowAsContext();
             }
 
@@ -219,8 +216,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         string localChannelTransform = possibleChannelTransform;
                         menu.AddItem(new GUIContent(localChannelTransform), false, () =>
                         {
-                            m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx].format = FormatAndChannelTransformStringToGraphicsFormat(formatString, localChannelTransform);
-                            cacheSizeOverrideProperty.FindPropertyRelative("format").enumValueIndex = (int)cacheSizeOverride.format;
+                            GraphicsFormat format = FormatAndChannelTransformStringToGraphicsFormat(formatString, localChannelTransform);
+                            cacheSizeOverrideProperty.FindPropertyRelative("format").enumValueIndex = (int) format;
                             serializedObject.ApplyModifiedProperties();
                             m_Dirty = true;
                         });
@@ -232,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Usage
-            rect.position += new Vector2(channelTransformWidth + overrideWidth * 0.02f, 0);
+            rect.position += new Vector2(channelTransformWidth + spacing, 0);
             rect.width = usageLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideUsage);
 
@@ -248,7 +245,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     VirtualTexturingCacheUsage localEnum = value;
                     menu.AddItem(new GUIContent(localString), false, () =>
                     {
-                        m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx].usage = localEnum;
                         cacheSizeOverrideProperty.FindPropertyRelative("usage").enumValueIndex = (int) localEnum;
                         serializedObject.ApplyModifiedProperties();
                         m_Dirty = true;
@@ -262,7 +258,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Size
-            rect.position += new Vector2(usageWidth + overrideWidth * 0.02f, 0);
+            rect.position += new Vector2(usageWidth + spacing, 0);
             rect.width = sizeLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideSize);
 
@@ -271,8 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             cacheSizeOverride.sizeInMegaBytes = (uint)Mathf.Max(2, EditorGUI.IntField(rect, (int)cacheSizeOverride.sizeInMegaBytes));
             cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue = (int)cacheSizeOverride.sizeInMegaBytes;
-
-            m_Settings.objReference.gpuCache.sizeOverrides[overrideIdx] = cacheSizeOverride;
+            serializedObject.ApplyModifiedProperties();
         }
 
         sealed class Styles
