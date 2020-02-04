@@ -187,6 +187,8 @@ namespace UnityEngine.Rendering.Universal
                     //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                     VFX.VFXManager.PrepareCamera(camera);
 #endif
+                    UpdateVolumeFramework(camera, null);
+                    
                     RenderSingleCamera(renderContext, camera);
                     EndCameraRendering(renderContext, camera);
                 }
@@ -240,21 +242,22 @@ namespace UnityEngine.Rendering.Universal
 
             SetupPerCameraShaderConstants(cameraData);
 
-            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
-            CommandBuffer cmd = CommandBufferPool.Get(tag);
-            using (new ProfilingScope(cmd, _CameraProfilingSampler))
+            ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name): _CameraProfilingSampler;
+            CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
+            using (new ProfilingScope(cmd, sampler))
             {
-                renderer.Clear();
+                renderer.Clear(cameraData.renderType);
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
 #if UNITY_EDITOR
-
                 // Emit scene view UI
                 if (cameraData.isSceneViewCamera)
+                {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                }
 #endif
 
                 var cullResults = context.Cull(ref cullingParameters);
@@ -557,9 +560,10 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.viewMatrix = camera.worldToCameraMatrix;
 
-            // Overlay cameras inherit viewport from base. In this case, we need to guarantee that the aspect ratio is the same in the projection
-            // matrix to not cause squishing when rendering objects in overlay cameras.
-            cameraData.projectionMatrix = (!camera.orthographic) ?
+            // Overlay cameras inherit viewport from base.
+            // If the viewport is different between them we might need to patch the projection
+            // matrix to prevent squishing when rendering objects in overlay cameras.
+            cameraData.projectionMatrix = (!camera.orthographic && !cameraData.isStereoEnabled && cameraData.pixelRect != camera.pixelRect) ?
                 Matrix4x4.Perspective(camera.fieldOfView, cameraData.aspectRatio, camera.nearClipPlane, camera.farClipPlane) :
                 camera.projectionMatrix;
 
