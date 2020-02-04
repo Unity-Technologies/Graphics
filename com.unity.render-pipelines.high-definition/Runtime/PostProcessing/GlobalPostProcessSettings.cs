@@ -13,17 +13,36 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// R11G11B10. Fastest lookup format but can result in a loss of precision in some extreme cases.
         /// </summary>
-        RGB111110Float = GraphicsFormat.B10G11R11_UFloatPack32,
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
 
         /// <summary>
         /// 16 bit per channel.
         /// </summary>
-        ARGBHalf = GraphicsFormat.R16G16B16A16_SFloat,
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
 
         /// <summary>
         /// 32 bit per channel. Should only be used in extreme grading cases.
         /// </summary>
-        ARGBFloat = GraphicsFormat.R32G32B32A32_SFloat
+        R32G32B32A32 = GraphicsFormat.R32G32B32A32_SFloat
+    }
+
+    /// <summary>
+    /// Format of intermediate buffers for post processing.
+    /// </summary>
+    public enum PostProcessBufferFormat
+    {
+        /// <summary>
+        /// R11G11B10. Fastest lookup format but can result in a loss of precision in some extreme cases.
+        /// </summary>
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>
+        /// 16 bit per channel.
+        /// </summary>
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+        /// <summary>
+        /// 32 bit per channel. Should only be used in extreme cases.
+        /// </summary>
+        R32G32B32A32 = GraphicsFormat.R32G32B32A32_SFloat
     }
 
     /// <summary>
@@ -32,21 +51,15 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     public struct GlobalPostProcessSettings
     {
-        /// <summary>
-        /// Default GlobalPostProcessSettings
-        /// </summary>
-        [Obsolete("Since 2019.3, use GlobalPostProcessSettings.NewDefault() instead.")]
-        public static readonly GlobalPostProcessSettings @default = default;
-
-        /// <summary>
-        /// Returns a new instance of the default <c>GlobalPostProcessSettings</c>.
-        /// </summary>
-        /// <returns>A new instance of the default <c>GlobalPostProcessSettings</c>.</returns>
-        public static GlobalPostProcessSettings NewDefault() => new GlobalPostProcessSettings()
+        internal static GlobalPostProcessSettings NewDefault() => new GlobalPostProcessSettings()
         {
             lutSize = 32,
-            lutFormat = GradingLutFormat.ARGBHalf
+            lutFormat = GradingLutFormat.R16G16B16A16,
+            bufferFormat = PostProcessBufferFormat.R11G11B10
         };
+
+        // Returns true if the post-processing passes support an alpha channel
+        internal bool supportsAlpha => bufferFormat != PostProcessBufferFormat.R11G11B10;
 
         // Note: A lut size of 16^3 is barely usable (noticeable color banding in highly contrasted
         // areas and harsh tonemappers like ACES'). 32 should be the minimum, the lut being encoded
@@ -81,5 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <seealso cref="GradingLutFormat"/>
         [FormerlySerializedAs("m_LutFormat")]
         public GradingLutFormat lutFormat;
+
+        /// <summary>
+        /// The texture format to be used for the post-processing passes.
+        /// </summary>
+        public PostProcessBufferFormat bufferFormat;
     }
 }

@@ -7,11 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // String values (ray tracing gen shaders)
-        const string m_RayGenAreaShadowName = "RayGenAreaShadows";
         const string m_RayGenAreaShadowSingleName = "RayGenAreaShadowSingle";
         const string m_RayGenDirectionalShadowSingleName = "RayGenDirectionalShadowSingle";
         const string m_RayGenDirectionalColorShadowSingleName = "RayGenDirectionalColorShadowSingle";
         const string m_RayGenShadowSegmentSingleName = "RayGenShadowSegmentSingle";
+        const string m_RayGenSemiTransparentShadowSegmentSingleName = "RayGenSemiTransparentShadowSegmentSingle";
 
         // Output shadow texture
         RTHandle m_ScreenSpaceShadowTextureArray;
@@ -47,10 +47,116 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Temporary variable that allows us to store the world to local matrix of the lights
         Matrix4x4 m_WorldToLocalArea = new Matrix4x4();
-        Vector4 m_ShadowChannelMask = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        // Temporary variables that allow us to read and write the right channels from the history buffer
+        Vector4 m_ShadowChannelMask0 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 m_ShadowChannelMask1 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 m_ShadowChannelMask2 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
         // Screen space shadow material
         static Material s_ScreenSpaceShadowsMat;
+
+        // This buffer holds the unfiltered, accumulated, shadow values, it is accessed with the same index as the one used at runtime (aka screen space shadow slot)
+        static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            int numShadowSlices = Math.Max((int)Math.Ceiling(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
+            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
+                enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("ScreenSpaceShadowHistoryBuffer{0}", frameIndex));
+        }
+
+
+        // This value holds additional values that are required for the filtering process.
+        // For directional, punctual and spot light it holds the sample accumulation count and for the area light it holds the analytic value.
+        // It is accessed with the same index used at runtime (aka screen space shadow slot)
+        static RTHandle ShadowHistoryValidityBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
+            int numShadowSlices = Math.Max((int)Math.Ceiling(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
+            return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
+                        enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("ShadowHistoryValidityBuffer{0}", frameIndex));
+        }
+
+        // The three types of shadows that we currently support
+        enum ScreenSpaceShadowType
+        {
+            GrayScale,
+            Area,
+            Color
+        }
+
+        // This functions returns a mask that tells us for a given slot and based on the light type, which channels should hold the shadow information.
+        static void GetShadowChannelMask(int shadowSlot, ScreenSpaceShadowType shadowType, ref Vector4 outputMask)
+        {
+            int outputChannel = shadowSlot % 4;
+            if (shadowType == ScreenSpaceShadowType.GrayScale)
+            {
+                switch (outputChannel)
+                {
+                    case 0:
+                        {
+                            outputMask.Set(1.0f, 0.0f, 0.0f, 0.0f);
+                            break;
+                        }
+                    case 1:
+                        {
+                            outputMask.Set(0.0f, 1.0f, 0.0f, 0.0f);
+                            break;
+                        }
+                    case 2:
+                        {
+                            outputMask.Set(0.0f, 0.0f, 1.0f, 0.0f);
+                            break;
+                        }
+                    case 3:
+                        {
+                            outputMask.Set(0.0f, 0.0f, 0.0f, 1.0f);
+                            break;
+                        }
+                }
+            }
+            else if (shadowType == ScreenSpaceShadowType.Area)
+            {
+                switch (outputChannel)
+                {
+                    case 0:
+                        {
+                            outputMask.Set(1.0f, 1.0f, 0.0f, 0.0f);
+                            break;
+                        }
+                    case 1:
+                        {
+                            outputMask.Set(0.0f, 1.0f, 1.0f, 0.0f);
+                            break;
+                        }
+                    case 2:
+                        {
+                            outputMask.Set(0.0f, 0.0f, 1.0f, 1.0f);
+                            break;
+                        }
+                    default:
+                        Debug.Assert(false);
+                        break;
+                }
+            }
+            else if (shadowType == ScreenSpaceShadowType.Color)
+            {
+                switch (outputChannel)
+                {
+                    case 0:
+                        {
+                            outputMask.Set(1.0f, 1.0f, 1.0f, 0.0f);
+                            break;
+                        }
+                    default:
+                        Debug.Assert(false);
+                        break;
+                }
+            }
+        }
 
         void InitializeScreenSpaceShadows()
         {
@@ -105,24 +211,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, TextureXR.GetBlackTextureArray());
         }
 
-        static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
-        {
-            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
-            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            int numMaxShadows = Math.Max(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
-            return rtHandleSystem.Alloc(Vector2.one, slices: numMaxShadows * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
-                enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("ScreenSpaceShadowHistoryBuffer{0}", frameIndex));
-        }
-
-        static RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
-        {
-            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            int numMaxShadows = Math.Max(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
-            return rtHandleSystem.Alloc(Vector2.one, slices: numMaxShadows * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat,
-                        enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaAnalyticHistoryBuffer{0}", frameIndex));
-        }
-
         void RenderScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             // If screen space shadows are not supported for this camera, we are done
@@ -156,6 +244,34 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Generic function that writes in the screen space shadow buffer
+        void WriteToScreenSpaceShadowBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle source, int shadowSlot, ScreenSpaceShadowType shadowType)
+        {
+            // Texture dimensions
+            int texWidth = hdCamera.actualWidth;
+            int texHeight = hdCamera.actualHeight;
+
+            // Evaluate the dispatch parameters
+            int areaTileSize = 8;
+            int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+            int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+            // Define which kernel we should be using
+            int shadowKernel = shadowType == ScreenSpaceShadowType.Color ? m_OutputColorShadowTextureKernel : m_OutputShadowTextureKernel;
+
+            // Bind the input data
+            GetShadowChannelMask(shadowSlot, shadowType, ref m_ShadowChannelMask0);
+            cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingShadowSlot, shadowSlot / 4);
+            cmd.SetComputeVectorParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingChannelMask, m_ShadowChannelMask0);
+            cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._RaytracedShadowIntegration, source);
+
+            // Bind the output texture
+            cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
+
+            //Do our copy
+            cmd.DispatchCompute(m_ScreenSpaceShadowsCS, shadowKernel, numTilesX, numTilesY, hdCamera.viewCount);
+        }
+
         void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
         {
             // Render directional screen space shadow if required
@@ -171,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
                         RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
                         RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
+                        RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R1);
 
                         // Texture dimensions
                         int texWidth = hdCamera.actualWidth;
@@ -182,7 +299,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                         // Clear the integration texture
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer0);
+                        cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesX, numTilesY, hdCamera.viewCount);
+
+                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, velocityBuffer);
                         cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesX, numTilesY, hdCamera.viewCount);
 
                         // Grab and bind the acceleration structure for the target camera
@@ -193,14 +313,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_BlueNoise.BindDitheredRNGData8SPP(cmd);
 
                         // Compute the current frame index
-                        int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                        int frameIndex = RayTracingFrameIndex(hdCamera);
                         cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                         // Inject the ray generation data
-                        RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+                        RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                         cmd.SetRayTracingFloatParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
 
+                        // Make sure the right closest hit/any hit will be triggered by using the right multi compile
                         CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", m_CurrentSunLightAdditionalLightData.colorShadow);
+
+                        // Define which ray generation shaders we shall be using
                         string directionaLightShadowShader = m_CurrentSunLightAdditionalLightData.colorShadow ? m_RayGenDirectionalColorShadowSingleName : m_RayGenDirectionalShadowSingleName;
 
                         // Loop through the samples of this frame
@@ -237,42 +360,57 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.SetRayTracingIntParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingNumSamples, m_CurrentSunLightAdditionalLightData.numRayTracingSamples);
 
                             // Output buffer
-                            cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, m_CurrentSunLightAdditionalLightData.colorShadow ? HDShaderIDs._RaytracedDirectionalColorShadowIntegration : HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
+                            cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, m_CurrentSunLightAdditionalLightData.colorShadow ? HDShaderIDs._RaytracedColorShadowIntegration : HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer0);
+                            cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._VelocityBuffer, velocityBuffer);
 
                             // Evaluate the visibility
                             cmd.DispatchRays(m_ScreenSpaceShadowsRT, directionaLightShadowShader, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
                         }
+
+                        // Now that we are done with the ray tracing bit, disable the multi compile that was potentially enabled
                         CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", false);
 
-                        // Grab the history buffer for shadows
-                        RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
-                            ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow, ShadowHistoryBufferAllocatorFunction, 1);
+                        // Grab the history buffers for shadows
+                        RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                            ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+                        RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                            ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
 
+                        // Grab the slot of the directional light (given that it may be a color shadow, we need to use the mask to get the actual slot index)
                         int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+                        GetShadowChannelMask(dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
+
                         // Apply the simple denoiser (if required)
                         if (m_CurrentSunLightAdditionalLightData.filterTracedShadow)
                         {
                             // We need to set the history as invalid if the directional light has rotated
                             float historyValidity = 1.0f;
-                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation || m_CurrentSunLightAdditionalLightData.screenSpaceShadowIndex != m_CurrentSunLightAdditionalLightData.previousScreenSpaceShadowIndex)
+                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation
+                                || !hdCamera.ValidShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional))
                                 historyValidity = 0.0f;
 
+                        #if UNITY_HDRP_DXR_TESTS_DEFINE
+                            if (Application.isPlaying)
+                                historyValidity = 0.0f;
+                            else
+                        #endif
+                                // We need to check if something invalidated the history buffers
+                                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                        
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
-                            temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, intermediateBuffer1, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, slotIndex: dirShadowIndex, historyValidity: historyValidity);
+                            temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, shadowHistoryValidityArray, velocityBuffer, intermediateBuffer1, dirShadowIndex / 4, m_ShadowChannelMask0, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
 
                             // Apply the spatial denoiser
                             HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
                             simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, intermediateBuffer1, intermediateBuffer0, m_CurrentSunLightAdditionalLightData.filterSizeTraced, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow);
+
+                            // Now that we have overriden this history, mark is as used by this light
+                            hdCamera.PropagateShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional);
                         }
 
-                        int shadowKernel = m_CurrentSunLightAdditionalLightData.colorShadow ? m_OutputColorShadowTextureKernel : m_OutputShadowTextureKernel;
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, shadowKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
-                        cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingShadowSlot, dirShadowIndex / 4);
-                        GetShadowChannelMask(dirShadowIndex, ref m_ShadowChannelMask);
-                        cmd.SetComputeVectorParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingChannelMask, m_ShadowChannelMask);
-                        cmd.DispatchCompute(m_ScreenSpaceShadowsCS, shadowKernel, numTilesX, numTilesY, hdCamera.viewCount);
+                        // Write the result texture to the screen space shadow buffer
+                        WriteToScreenSpaceShadowBuffer(cmd, hdCamera, intermediateBuffer0, dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale);
                     }
                 }
                 else
@@ -287,9 +425,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
             {
-                // Grab the history buffer
-                RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadow, ShadowHistoryBufferAllocatorFunction, 1);
+                // Grab the history buffers for shadows
+                RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
+                RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
 
                 // Grab the acceleration structure for the target camera
                 RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -319,13 +459,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case GPULightType.Rectangle:
                             {
-                                RenderAreaScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray);
+                                RenderAreaScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
                             }
                             break;
                             case GPULightType.Point:
                             case GPULightType.Spot:
                             {
-                                RenderPunctualScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray);
+                                RenderPunctualScreenSpaceShadow(cmd, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex, shadowHistoryArray, shadowHistoryValidityArray);
                             }
                             break;
                         }
@@ -337,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
                 , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
-                , RTHandle shadowHistoryArray)
+                , RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
             {
                 // We only support ray traced area shadows if we are in deferred mode
                 if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
@@ -381,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
-                int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                int frameIndex = RayTracingFrameIndex(hdCamera);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Bind the input buffers
@@ -391,7 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._AreaCookieTextures, m_TextureCaches.areaLightCookieManager.GetTexCache());
+                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._RaytracedAreaShadowIntegration, intermediateBufferRGBA0);
@@ -415,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingDirectionBuffer, directionBuffer);
                 cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingDistanceBuffer, distanceBuffer);
                 cmd.SetRayTracingIntParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
-                RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+                RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                 cmd.SetRayTracingFloatParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
 
                 // Output data
@@ -441,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._AreaCookieTextures, m_TextureCaches.areaLightCookieManager.GetTexCache());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
 
                     // Output buffers
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowNewSampleKernel, HDShaderIDs._RaytracedAreaShadowSample, intermediateBufferRGBA1);
@@ -467,54 +607,45 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.DispatchRays(m_ScreenSpaceShadowsRT, m_RayGenAreaShadowSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
                 }
 
-                /*
-                // This should go in tier2
-                {
-                    // This pass generates the analytic value and will do the full integration
-                    cmd.SetRayTracingBufferParam(shadowRayTrace, HDShaderIDs._LightDatas, m_LightLoopLightData.lightData);
-                    cmd.SetRayTracingIntParam(shadowRayTrace, HDShaderIDs._RaytracingTargetAreaLight, lightIdx);
-                    cmd.SetRayTracingIntParam(shadowRayTrace, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
-                    cmd.SetRayTracingMatrixParam(shadowRayTrace, HDShaderIDs._RaytracingAreaWorldToLocal, worldToLocalArea);
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._GBufferTexture[1], m_GbufferManager.GetBuffer(1));
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._GBufferTexture[2], m_GbufferManager.GetBuffer(2));
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                    cmd.SetRayTracingIntParam(shadowRayTrace, HDShaderIDs._RayCountEnabled, m_RayTracingManager.rayCountManager.RayCountIsEnabled());
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._RayCountTexture, m_RayTracingManager.rayCountManager.GetRayCountTexture());
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._AreaCookieTextures, m_TextureCaches.areaLightCookieManager.GetTexCache());
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._AnalyticProbBuffer, m_AnalyticProbBuffer);
-                    cmd.SetRayTracingTextureParam(shadowRayTrace, HDShaderIDs._RaytracedAreaShadowIntegration, m_DenoiseBuffer0);
-                    cmd.DispatchRays(shadowRayTrace, m_RayGenAreaShadowName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
-                }
-                */
-
                 if (additionalLightData.filterTracedShadow)
                 {
-                    // Fetch the analytic history buffer
-                    RTHandle areaAnalyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic, AreaAnalyticHistoryBufferAllocatorFunction, 1);
+                    int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+                    GetShadowChannelMask(areaShadowSlot, ScreenSpaceShadowType.Area, ref m_ShadowChannelMask0);
+                    GetShadowChannelMask(areaShadowSlot, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
+                    GetShadowChannelMask(areaShadowSlot + 1, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask2);
 
                     // Global parameters
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RaytracingDenoiseRadius, additionalLightData.filterSizeTraced);
-                    cmd.SetComputeIntParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RaytracingShadowSlot, m_lightList.lights[lightIndex].screenSpaceShadowIndex);
+                    cmd.SetComputeIntParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistorySlice, areaShadowSlot / 4);
+                    cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMask, m_ShadowChannelMask0);
+                    cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMaskSn, m_ShadowChannelMask1);
+                    cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMaskUn, m_ShadowChannelMask2);
 
                     // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
                     var historyScale = new Vector2(hdCamera.actualWidth / (float)shadowHistoryArray.rt.width, hdCamera.actualHeight / (float)shadowHistoryArray.rt.height);
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
 
+                    float historyValidity = 1.0f;
+                #if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+                #endif
+                    // We need to check if something invalidated the history buffers
+                    historyValidity = ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AnalyticProbBuffer, intermediateBufferRG0);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AreaShadowHistory, shadowHistoryArray);
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, areaAnalyticHistoryArray);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, shadowHistoryValidityArray);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA0);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA1);
+                    cmd.SetComputeFloatParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._HistoryValidity, historyValidity);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaShadowApplyTAAKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                     // Update the shadow history buffer
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticProbBuffer, intermediateBufferRG0);
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, areaAnalyticHistoryArray);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, shadowHistoryValidityArray);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateAnalyticHistoryKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                     // Update the analytic history buffer
@@ -522,78 +653,57 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateShadowHistoryKernel, HDShaderIDs._AreaShadowHistoryRW, shadowHistoryArray);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaUpdateShadowHistoryKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
-                    if (additionalLightData.filterSizeTraced > 0)
-                    {
-                        // Inject parameters for noise estimation
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+                    // Inject parameters for noise estimation
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
-                        // Noise estimation pre-pass
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA1);
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA0);
-                        cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
+                    // Noise estimation pre-pass
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA1);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA0);
+                    cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaEstimateNoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
-                        // Reinject parameters for denoising
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
+                    // Reinject parameters for denoising
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
 
-                        // First denoising pass
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA0);
-                        cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA1);
-                        cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
-                    }
+                    // First denoising pass
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA0);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA1);
+                    cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaFirstDenoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                     // Re-inject parameters for denoising
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
 
                     // Second (and final) denoising pass
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA1);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBufferRGBA0);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaSecondDenoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
+
+                    // Write the result texture to the screen space shadow buffer
+                    WriteToScreenSpaceShadowBuffer(cmd, hdCamera, intermediateBufferRGBA0, areaShadowSlot, ScreenSpaceShadowType.Area);
+
+                    // Do not forget to update the identification of shadow history usage
+                    hdCamera.PropagateShadowHistory(additionalLightData, areaShadowSlot, GPULightType.Rectangle);
                 }
                 else
                 {
-                    cmd.SetComputeIntParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RaytracingShadowSlot, lightData.screenSpaceShadowIndex);
+                    int areaShadowSlot = lightData.screenSpaceShadowIndex;
+                    int areaShadowSlice = areaShadowSlot / 4;
+                    GetShadowChannelMask(areaShadowSlot, ScreenSpaceShadowType.Area, ref m_ShadowChannelMask0);
+                    cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMask, m_ShadowChannelMask0);
+                    cmd.SetComputeIntParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistorySlice, areaShadowSlice);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowNoDenoiseKernel, HDShaderIDs._DenoiseInputTexture, intermediateBufferRGBA0);
                     cmd.SetComputeTextureParam(m_ScreenSpaceShadowsFilterCS, m_AreaShadowNoDenoiseKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsFilterCS, m_AreaShadowNoDenoiseKernel, numTilesX, numTilesY, hdCamera.viewCount);
                 }
             }
 
-            static void GetShadowChannelMask(int shadowSlot, ref Vector4 outputMask)
-            {
-                int outputChannel = shadowSlot % 4;
-                switch(outputChannel)
-                {
-                    case 0:
-                    {
-                        outputMask.Set(1.0f, 0.0f, 0.0f, 0.0f);
-                        break;
-                    }
-                    case 1:
-                    {
-                        outputMask.Set(0.0f, 1.0f, 0.0f, 0.0f);
-                        break;
-                    }
-                    case 2:
-                    {
-                        outputMask.Set(0.0f, 0.0f, 1.0f, 0.0f);
-                        break;
-                    }
-                    case 3:
-                    {
-                        outputMask.Set(0.0f, 0.0f, 0.0f, 1.0f);
-                        break;
-                    }
-                }
-            }
-
             void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
                 , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex
-                , RTHandle shadowHistoryArray)
+                , RTHandle shadowHistoryArray, RTHandle shadowHistoryValidityArray)
             {
                 // Texture dimensions
                 int texWidth = hdCamera.actualWidth;
@@ -609,11 +719,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
                 RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
                 RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
+                RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R1);
+
                 // Clear the integration texture
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
+                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer0);
                 cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesX, numTilesY, hdCamera.viewCount);
 
-                RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, velocityBuffer);
+                cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesX, numTilesY, hdCamera.viewCount);
+
+                // Bind the ray generation scalars
+                RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                 cmd.SetRayTracingFloatParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
 
                 // Loop through the samples of this frame
@@ -628,7 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
                     cmd.SetComputeFloatParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingLightRadius, additionalLightData.shapeRadius);
-                    int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+                    int frameIndex = RayTracingFrameIndex(hdCamera);
                     cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                     // If this is a spot light, inject the spot angle in radians
@@ -665,36 +781,47 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetRayTracingIntParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
 
                     // Output buffer
-                    cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
+                    cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer0);
+                    cmd.SetRayTracingTextureParam(m_ScreenSpaceShadowsRT, HDShaderIDs._VelocityBuffer, velocityBuffer);
 
-                    // Evaluate the visibility
-                    cmd.DispatchRays(m_ScreenSpaceShadowsRT, m_RayGenShadowSegmentSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                    CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", additionalLightData.semiTransparentShadow);
+                    cmd.DispatchRays(m_ScreenSpaceShadowsRT, additionalLightData.semiTransparentShadow ? m_RayGenSemiTransparentShadowSegmentSingleName : m_RayGenShadowSegmentSingleName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
+                    CoreUtils.SetKeyword(cmd, "TRANSPARENT_COLOR_SHADOW", false);
                 }
 
                 // Apply the simple denoiser (if required)
+                GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
                 if (additionalLightData.filterTracedShadow)
                 {
-                    // We need to set the history as invalid if the directional light has rotated
+                    // We need to set the history as invalid if the light has moved (rotated or translated), 
                     float historyValidity = 1.0f;
-                    if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix || additionalLightData.screenSpaceShadowIndex != additionalLightData.previousScreenSpaceShadowIndex)
+                    if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
+                        || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))
                         historyValidity = 0.0f;
+
+                #if UNITY_HDRP_DXR_TESTS_DEFINE
+                    if (Application.isPlaying)
+                        historyValidity = 0.0f;
+                    else
+                #endif
+                        // We need to check if something invalidated the history buffers
+                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, intermediateBuffer1, singleChannel: true, slotIndex: lightData.screenSpaceShadowIndex, historyValidity: historyValidity);
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray, shadowHistoryValidityArray, velocityBuffer, intermediateBuffer1, lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0, singleChannel: true, historyValidity: historyValidity);
 
                     // Apply the spatial denoiser
                     HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
                     simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, intermediateBuffer1, intermediateBuffer0, additionalLightData.filterSizeTraced, singleChannel: true);
-                }
 
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_OutputShadowTextureKernel, HDShaderIDs._RaytracedDirectionalShadowIntegration, intermediateBuffer0);
-                cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_OutputShadowTextureKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
-                cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingShadowSlot, lightData.screenSpaceShadowIndex / 4);
-                GetShadowChannelMask(lightData.screenSpaceShadowIndex, ref m_ShadowChannelMask);
-                cmd.SetComputeVectorParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingChannelMask, m_ShadowChannelMask);
-                cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_OutputShadowTextureKernel, numTilesX, numTilesY, hdCamera.viewCount);
+                // Now that we have overriden this history, mark is as used by this light
+                hdCamera.PropagateShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType);
             }
+
+                // Write the result texture to the screen space shadow buffer
+                WriteToScreenSpaceShadowBuffer(cmd, hdCamera, intermediateBuffer0, lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale);
+        }
 
         void EvaluateShadowDebugView(CommandBuffer cmd, HDCamera hdCamera)
         {
@@ -722,7 +849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ScreenSpaceShadowChannelSlot > hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex)
                 {
                     int targetKernel = shadowFilter.FindKernel("WriteShadowTextureDebug");
-                    cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingShadowSlot, (int)hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
+                    cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._DenoisingHistorySlot, (int)hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
                     cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, m_ScreenSpaceShadowTextureArray);
                     cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
                     cmd.DispatchCompute(shadowFilter, targetKernel, numTilesX, numTilesY, hdCamera.viewCount);

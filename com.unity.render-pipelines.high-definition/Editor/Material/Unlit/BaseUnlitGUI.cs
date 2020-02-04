@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 material.SetOverrideTag("RenderType", "Transparent");
-                material.SetInt(kZWrite, material.GetZWrite() ? 1 : 0);
+                material.SetInt(kZWrite, material.GetTransparentZWrite() ? 1 : 0);
 
                 if (material.HasProperty(kBlendMode))
                 {

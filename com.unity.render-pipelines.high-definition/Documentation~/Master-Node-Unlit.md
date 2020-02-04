@@ -4,7 +4,7 @@ An Unlit Master node makes the Shader surface appear unlit, which means the surf
 
 ## Creating and editing an Unlit Material
 
-Unlit Materials use a Shader Graph Master node which means that you need to use a specific method to create and edit a Material that uses it. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
+Unlit Materials use a Shader Graph Master node which means that you need to use a specific method to create and edit a Material that uses it. For information on how to do this, see [Creating and Editing HDRP Shader Graphs](Customizing-HDRP-materials-with-Shader-Graph). When you create a Material from the Shader Graph, the properties that you exposed in the Blackboard appear in the **Exposed Properties** section.
 
 ## Properties
 

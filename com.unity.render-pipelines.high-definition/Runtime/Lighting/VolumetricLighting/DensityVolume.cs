@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EditorAdvancedFade = false;
         }
 
-        public void Update(bool animate, float time)
+        internal void Update(bool animate, float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Constrain()
+        internal void Constrain()
         {
             albedo.r = Mathf.Clamp01(albedo.r);
             albedo.g = Mathf.Clamp01(albedo.g);
@@ -163,11 +163,36 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnEnable()
         {
             DensityVolumeManager.manager.RegisterVolume(this);
+
+#if UNITY_EDITOR
+            // Handle scene visibility
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+#endif
         }
+
+#if UNITY_EDITOR
+        void UpdateDecalVisibility()
+        {
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
+            {
+                if (DensityVolumeManager.manager.ContainsVolume(this))
+                    DensityVolumeManager.manager.DeRegisterVolume(this);
+            }
+            else
+            {
+                if (!DensityVolumeManager.manager.ContainsVolume(this))
+                    DensityVolumeManager.manager.RegisterVolume(this);
+            }
+        }
+#endif
 
         private void OnDisable()
         {
             DensityVolumeManager.manager.DeRegisterVolume(this);
+
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+#endif
         }
 
         private void Update()
