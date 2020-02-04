@@ -27,10 +27,10 @@
 
 #if defined(_VERTEX_DISPLACEMENT) || REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON) || defined(_TESSELLATION_DISPLACEMENT)
     #define ATTRIBUTES_NEED_TEXCOORD1
-    #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
+    #if defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123)
         #define ATTRIBUTES_NEED_TEXCOORD2
     #endif
-    #if defined(_REQUIRE_UV3)
+    #if defined(_REQUIRE_UV0123)
         #define ATTRIBUTES_NEED_TEXCOORD3
     #endif
 #endif

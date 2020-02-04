@@ -45,14 +45,14 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.vmesh.positionRWS = TransformObjectToWorld(inputMesh.positionOS);
 #endif
-
-#ifdef VARYINGS_NEED_TANGENT_WS
+#ifdef VARYINGS_NEED_NORMAL_WS
     // Normal is required for triplanar mapping
     output.vmesh.normalWS = TransformObjectToWorldNormal(inputMesh.normalOS);
+#endif
+#ifdef VARYINGS_NEED_TANGENT_WS
     // Not required but assign to silent compiler warning
     output.vmesh.tangentWS = float4(1.0, 0.0, 0.0, 0.0);
 #endif
-
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.vmesh.texCoord0 = inputMesh.uv0;
 #endif

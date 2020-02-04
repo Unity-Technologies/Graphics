@@ -172,23 +172,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;
                 bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3;
 
-                material.DisableKeyword("_REQUIRE_UV1");
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-
-                if (needUV1)
-                {
-                    material.EnableKeyword("_REQUIRE_UV1");
-                }
-
-                if (needUV2)
-                {
-                    material.EnableKeyword("_REQUIRE_UV2");
-                }
+                material.DisableKeyword("_REQUIRE_UV01");
+                material.DisableKeyword("_REQUIRE_UV012");
+                material.DisableKeyword("_REQUIRE_UV0123");
 
                 if (needUV3)
                 {
-                    material.EnableKeyword("_REQUIRE_UV3");
+                    material.EnableKeyword("_REQUIRE_UV0123");
+                }
+                else if (needUV2)
+                {
+                    material.EnableKeyword("_REQUIRE_UV012");
+                }
+                else if (needUV1)
+                {
+                    material.EnableKeyword("_REQUIRE_UV01");
                 }
             }
 
