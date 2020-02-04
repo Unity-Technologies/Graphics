@@ -4,85 +4,50 @@
 #error Undefine_SHADERPASS
 #endif
 
-// Helper for normal mapping.
-#if (defined(_NORMALMAP_TANGENT_SPACE)  || \
-	 defined(_NORMALMAP_TANGENT_SPACE0) || \
-	 defined(_NORMALMAP_TANGENT_SPACE1) || \
-	 defined(_NORMALMAP_TANGENT_SPACE2) || \
-	 defined(_NORMALMAP_TANGENT_SPACE3))
-// {
-	#define NORMAL_MAP_TS
-// }
-#endif
+// Add local helper definitions.
+#include "LitParamDefsAdd.hlsl"
 
-/* Attributes are vertex shader inputs. */
+/* Varyings_PS are pixel shader inputs (vertex or domain shader outputs). */
 
-#define ATTRIBUTES_NEED_NORMAL // Always!
+#define VARYINGS_NEED_POSITION_WS // TODO: remove, compute from depth
+#define VARYINGS_NEED_NORMAL_WS   // Always!
 
 #if (defined(_MATERIAL_FEATURE_ANISOTROPY) || defined(NORMAL_MAP_TS) || defined(_PIXEL_DISPLACEMENT) || defined(DEBUG_DISPLAY))
-	// Tangent is used for: anisotropic lighting, tangent space (bent) normal maps, and per-pixel displacement.
-	// We use the tangent stored as a vertex attribute only for UV0, and for UV1-3 it is
-	// generated on the fly. However, it doesn't appear to be possible to know which UV set
-	// (bent) normal maps and/or per-pixel displacement use at compile time,
-	// so we must conservatively request the tangent.
-	#define ATTRIBUTES_NEED_TANGENT
-#endif
-
-#define ATTRIBUTES_NEED_TEXCOORD0 // Always!
-
-#if (defined(_REQUIRE_UV01) || defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123) || \
-	 defined(LIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || defined(DEBUG_DISPLAY))
-	#define ATTRIBUTES_NEED_TEXCOORD1
-#endif
-
-#if (defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123) || \
-	 defined(DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || defined(DEBUG_DISPLAY))
-	#define ATTRIBUTES_NEED_TEXCOORD2
-#endif
-
-#if (defined(_REQUIRE_UV0123) || defined(DEBUG_DISPLAY))
-	#define ATTRIBUTES_NEED_TEXCOORD3
-#endif
-
-#if (defined(_REQUIRE_VERTEX_COLOR) || defined(DEBUG_DISPLAY))
-	#define ATTRIBUTES_NEED_COLOR
-#endif
-
-/* Varyings are pixel shader inputs (vertex or domain shader outputs). */
-
-#define VARYINGS_NEED_POSITION_WS // TODO: compute from depth
-
-#ifdef ATTRIBUTES_NEED_NORMAL
-	#define VARYINGS_NEED_NORMAL_WS
-#endif
-
-#ifdef ATTRIBUTES_NEED_TANGENT
+	// Tangent is used for: anisotropic lighting, tangent space (bent) normal maps, per-pixel displacement.
+	// We use the tangent stored as a vertex attribute only for UV0, and for UV1-3 it is generated
+	// on the fly. However, it is not possible to know which UV set (bent) normal maps and/or
+	// per-pixel displacement use at compile time, so we must conservatively request the tangent.
 	#define VARYINGS_NEED_TANGENT_WS
 #endif
 
-#ifdef ATTRIBUTES_NEED_TEXCOORD0
-	#define VARYINGS_NEED_TEXCOORD0
-#endif
+#define VARYINGS_NEED_TEXCOORD0 // Always!
 
-#ifdef ATTRIBUTES_NEED_TEXCOORD1
+#if (defined(TEX_UV1) || defined(LIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || defined(DEBUG_DISPLAY))
 	#define VARYINGS_NEED_TEXCOORD1
 #endif
 
-#ifdef ATTRIBUTES_NEED_TEXCOORD2
+#if (defined(TEX_UV2) || defined(DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || defined(DEBUG_DISPLAY))
 	#define VARYINGS_NEED_TEXCOORD2
 #endif
 
-#ifdef ATTRIBUTES_NEED_TEXCOORD3
+#if (defined(TEX_UV3) || defined(DEBUG_DISPLAY))
 	#define VARYINGS_NEED_TEXCOORD3
 #endif
 
-#ifdef ATTRIBUTES_NEED_COLOR
+#if (defined(TEX_COL) || defined(DEBUG_DISPLAY))
 	#define VARYINGS_NEED_COLOR
 #endif
 
 #ifdef _DOUBLESIDED_ON
 	#define VARYINGS_NEED_CULLFACE
 #endif
+
+// Varyings_DS are domain shader inputs.
+// Attributes are vertex shader inputs.
+#include "LitVaryingsDsAndAttributes.hlsl"
+
+// Remove local helper definitions.
+#include "LitParamDefsRem.hlsl"
 
 // This include will define the various Attributes/Varyings structure
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"

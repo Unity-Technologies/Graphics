@@ -408,7 +408,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE3
     #pragma shader_feature_local _ _REQUIRE_UV01 _REQUIRE_UV012 _REQUIRE_UV0123 // _ = UV0
-    #pragma shader_feature_local _REQUIRE_VERTEX_COLOR
 
     // We can only have 64 shader_feature_local
     #pragma shader_feature _NORMALMAP0                                  // Non-local

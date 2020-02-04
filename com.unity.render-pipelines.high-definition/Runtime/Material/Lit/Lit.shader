@@ -252,7 +252,6 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature_local _ _REQUIRE_UV01 _REQUIRE_UV012 _REQUIRE_UV0123 // _ = UV0
-    #pragma shader_feature_local _REQUIRE_VERTEX_COLOR
 
     #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _MASKMAP
