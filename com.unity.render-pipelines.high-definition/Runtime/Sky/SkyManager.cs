@@ -5,40 +5,69 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Resolution of the sky reflection cubemap.
+    /// </summary>
     [Serializable]
     public enum SkyResolution
     {
+        /// <summary>128x128 per face.</summary>
         SkyResolution128 = 128,
+        /// <summary>256x256 per face.</summary>
         SkyResolution256 = 256,
+        /// <summary>512x512 per face.</summary>
         SkyResolution512 = 512,
+        /// <summary>1024x1024 per face.</summary>
         SkyResolution1024 = 1024,
+        /// <summary>2048x2048 per face.</summary>
         SkyResolution2048 = 2048,
+        /// <summary>4096x4096 per face.</summary>
         SkyResolution4096 = 4096
     }
 
+    /// <summary>
+    /// Environment lighting update mode.
+    /// </summary>
     public enum EnvironmentUpdateMode
     {
+        /// <summary>Environment lighting is updated when the sky has changed.</summary>
         OnChanged = 0,
+        /// <summary>Environment lighting is updated on demand.</summary>
         OnDemand,
+        /// <summary>Environment lighting is updated in real time.</summary>
         Realtime
     }
 
+    /// <summary>
+    /// Parameters passed to sky rendering functions.
+    /// </summary>
     public class BuiltinSkyParameters
     {
+        /// <summary>Camera used for rendering.</summary>
         public HDCamera                 hdCamera;
+        /// <summary>Matrix mapping pixel coordinate to view direction.</summary>
         public Matrix4x4                pixelCoordToViewDirMatrix;
+        /// <summary>World space camera position.</summary>
         public Vector3                  worldSpaceCameraPos;
+        /// <summary>Camera view matrix.</summary>
         public Matrix4x4                viewMatrix;
+        /// <summary>Screen size: Width, height, inverse width, inverse height.</summary>
         public Vector4                  screenSize;
+        /// <summary>Command buffer used for rendering.</summary>
         public CommandBuffer            commandBuffer;
+        /// <summary>Current sun light.</summary>
         public Light                    sunLight;
+        /// <summary>Color buffer used for rendering.</summary>
         public RTHandle                 colorBuffer;
+        /// <summary>Depth buffer used for rendering.</summary>
         public RTHandle                 depthBuffer;
+        /// <summary>Current frame index.</summary>
         public int                      frameIndex;
+        /// <summary>Current sky settings.</summary>
         public SkySettings              skySettings;
-
-        public DebugDisplaySettings debugSettings;
-
+        /// <summary>Current debug dsplay settings.</summary>
+        public DebugDisplaySettings     debugSettings;
+        /// <summary>Null color buffer render target identifier.</summary>
         public static RenderTargetIdentifier nullRT = -1;
     }
 
@@ -401,7 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Order is important!
             RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
             RenderSettings.ambientProbe = GetAmbientProbe(hdCamera);
-            
+
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
@@ -640,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (skyContext.IsValid())
             {
-                skyContext.currentUpdateTime += Time.deltaTime;
+                skyContext.currentUpdateTime += Time.deltaTime; // Consider using HDRenderPipeline.GetTime().
 
                 m_BuiltinParameters.hdCamera = hdCamera;
                 m_BuiltinParameters.commandBuffer = cmd;
@@ -680,19 +709,25 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
                                     cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);                                    
+                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
-                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                    // otherwise ambient probe isn't correct for one frame.
-                                    if (m_requireWaitForAsyncReadBackRequest)
+                                    // When the profiler is enabled, we don't want to submit the render context because
+                                    // it will break all the profiling sample Begin() calls issued previously, which leads
+                                    // to profiling sample mismatch errors in the console.
+                                    if (!UnityEngine.Profiling.Profiler.enabled)
                                     {
-                                        cmd.WaitAllAsyncReadbackRequests();
-                                        renderContext.ExecuteCommandBuffer(cmd);
-                                        CommandBufferPool.Release(cmd);
-                                        renderContext.Submit();
-                                        cmd = CommandBufferPool.Get();
-                                        m_requireWaitForAsyncReadBackRequest = false;
-                                    }         
+                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                        // otherwise ambient probe isn't correct for one frame.
+                                        if (m_requireWaitForAsyncReadBackRequest)
+                                        {
+                                            cmd.WaitAllAsyncReadbackRequests();
+                                            renderContext.ExecuteCommandBuffer(cmd);
+                                            CommandBufferPool.Release(cmd);
+                                            renderContext.Submit();
+                                            cmd = CommandBufferPool.Get();
+                                            m_requireWaitForAsyncReadBackRequest = false;
+                                        }
+                                    }
                                 }
                             }
 

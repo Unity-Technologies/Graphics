@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         //  Advanced properties 
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
+        SerializedDataParameter m_CameraMotionBlur;
 
         public override bool hasAdvancedMode => true;
 
@@ -32,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maximumVelocity));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
             m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
+            m_CameraMotionBlur = Unpack(o.Find(x => x.cameraMotionBlur));
         }
 
         public override void OnInspectorGUI()
@@ -53,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_DepthCmpScale);
                 PropertyField(m_CameraRotClamp);
+                PropertyField(m_CameraMotionBlur);
             }
         }
     }

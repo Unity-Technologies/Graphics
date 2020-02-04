@@ -17,7 +17,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Lit")]
+    [Title("Master", "Lit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.HDLitMasterNode")]
     class HDLitMasterNode : MasterNode<IHDLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
@@ -471,6 +471,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        NormalDropOffSpace m_NormalDropOffSpace;
+        public NormalDropOffSpace normalDropOffSpace
+        {
+            get { return m_NormalDropOffSpace; }
+            set
+            {
+                if (m_NormalDropOffSpace == value)
+                    return;
+
+                m_NormalDropOffSpace = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+
+        [SerializeField]
         MaterialType m_MaterialType;
 
         public MaterialType materialType
@@ -672,21 +689,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_DOTSInstancing = false;
-        public ToggleData dotsInstancing
-        {
-            get { return new ToggleData(m_DOTSInstancing); }
-            set
-            {
-                if (m_DOTSInstancing == value.isOn)
-                    return;
-
-                m_DOTSInstancing = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_ZWrite = false;
         public ToggleData zWrite
         {
@@ -812,7 +814,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Normal))
             {
-                AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
+                RemoveSlot(NormalSlotId);
+
+                var coordSpace = CoordinateSpace.Tangent;
+                switch (m_NormalDropOffSpace)
+                {
+                    case NormalDropOffSpace.Tangent:
+                        coordSpace = CoordinateSpace.Tangent;
+                        break;
+                    case NormalDropOffSpace.World:
+                        coordSpace = CoordinateSpace.World;
+                        break;
+                    case NormalDropOffSpace.Object:
+                        coordSpace = CoordinateSpace.Object;
+                        break;
+                }
+
+                AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, coordSpace, ShaderStageCapability.Fragment));
                 validSlots.Add(NormalSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.BentNormal))

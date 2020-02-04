@@ -7,6 +7,20 @@ namespace UnityEditor.Rendering.LookDev
 {
     class CameraController : Manipulator
     {
+        [Flags]
+        enum Direction
+        {
+            None = 0,
+            Up = 1 << 0,
+            Down = 1 << 1,
+            Left = 1 << 2,
+            Right = 1 << 3,
+            Forward = 1 << 4,
+            Backward = 1 << 5,
+            All = Up | Down | Left | Right | Forward | Backward
+        }
+        Direction m_DirectionKeyPressed = Direction.None;
+
         float m_StartZoom = 0.0f;
         float m_ZoomSpeed = 0.0f;
 
@@ -43,14 +57,14 @@ namespace UnityEditor.Rendering.LookDev
                     if (value)
                     {
                         s_Timer.Begin();
-                        EditorApplication.update += UpdateMotion;
+                        EditorApplication.update += UpdateFPSMotion;
                     }
                     else
                     {
                         m_FlySpeedAccelerated = 0f;
                         m_MotionDirection = Vector3.zero;
                         m_ShiftBoostedFly = false;
-                        EditorApplication.update -= UpdateMotion;
+                        EditorApplication.update -= UpdateFPSMotion;
                     }
                     m_InFlyMotion = value;
                 }
@@ -87,7 +101,7 @@ namespace UnityEditor.Rendering.LookDev
                     {
                         target.RegisterCallback<MouseMoveEvent>(OnMouseDrag);
                         target.CaptureMouse();
-                        EditorGUIUtility.SetWantsMouseJumping(1);
+                        EditorGUIUtility.SetWantsMouseJumping(1); //through screen edges
                     }
                     else
                     {
@@ -138,7 +152,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnKeyDown(KeyDownEvent evt)
         {
-            OnKeyDownFPS(evt);
+            OnKeyUpOrDownFPS(evt);
             OnKeyDownReset(evt);
         }
 
@@ -157,14 +171,17 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnZoom(WheelEvent evt)
         {
+            const float deltaCutoff = .3f;
+            const float minZoom = .003f;
             float scrollWheelDelta = evt.delta.y;
             float relativeDelta = m_CameraState.viewSize * scrollWheelDelta * .015f;
-            const float deltaCutoff = .3f;
             if (relativeDelta > 0 && relativeDelta < deltaCutoff)
                 relativeDelta = deltaCutoff;
-            else if (relativeDelta < 0 && relativeDelta > -deltaCutoff)
+            else if (relativeDelta <= 0 && relativeDelta > -deltaCutoff)
                 relativeDelta = -deltaCutoff;
             m_CameraState.viewSize += relativeDelta;
+            if (m_CameraState.viewSize < minZoom)
+                m_CameraState.viewSize = minZoom;
             evt.StopPropagation();
         }
 
@@ -221,7 +238,8 @@ namespace UnityEditor.Rendering.LookDev
             evt.StopPropagation();
         }
 
-        void OnKeyDownFPS(KeyDownEvent evt)
+        void OnKeyUpOrDownFPS<T>(KeyboardEventBase<T> evt)
+            where T : KeyboardEventBase<T>, new()
         {
             if (m_BehaviorState != ViewTool.FPS)
                 return;
@@ -231,48 +249,39 @@ namespace UnityEditor.Rendering.LookDev
             // need to register the UpdateMovement function to the Editor update
             KeyCombination combination;
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Forward", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.forward, evt);
+                RegisterMotionChange(Direction.Forward, evt);
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Backward", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.back, evt);
+                RegisterMotionChange(Direction.Backward, evt);
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Left", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.left, evt);
+                RegisterMotionChange(Direction.Left, evt);
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Right", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.right, evt);
+                RegisterMotionChange(Direction.Right, evt);
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Up", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.up, evt);
+                RegisterMotionChange(Direction.Up, evt);
             if (GetKeyCombinationByID("3D Viewport/Fly Mode Down", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.down, evt);
+                RegisterMotionChange(Direction.Down, evt);
         }
-
-        void OnKeyUpFPS(KeyUpEvent evt)
-        {
-            if (m_BehaviorState != ViewTool.FPS)
-                return;
-
-            KeyCombination combination;
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Forward", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.back, evt);
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Backward", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.forward, evt);
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Left", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.right, evt);
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Right", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.left, evt);
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Up", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.down, evt);
-            if (GetKeyCombinationByID("3D Viewport/Fly Mode Down", out combination) && combination.Match(evt))
-                RegisterMotionChange(Vector3.up, evt);
-        }
-
-        void RegisterMotionChange<T>(Vector3 direction, KeyboardEventBase<T> evt)
+        
+        void RegisterMotionChange<T>(Direction direction, KeyboardEventBase<T> evt)
             where T : KeyboardEventBase<T>, new()
         {
             m_ShiftBoostedFly = evt.shiftKey;
-            m_MotionDirection = new Vector3(
-                Mathf.Clamp(m_MotionDirection.x + direction.x, -1, 1),
-                Mathf.Clamp(m_MotionDirection.y + direction.y, -1, 1),
-                Mathf.Clamp(m_MotionDirection.z + direction.z, -1, 1));
-            inFlyMotion = m_MotionDirection.sqrMagnitude != 0f;
+            Direction formerDirection = m_DirectionKeyPressed;
+            bool keyUp = evt is KeyUpEvent;
+            bool keyDown = evt is KeyDownEvent;
+            if (keyDown)
+                m_DirectionKeyPressed |= direction;
+            else if (keyUp)
+                m_DirectionKeyPressed &= (Direction.All & ~direction);
+            if (formerDirection != m_DirectionKeyPressed)
+            {
+                m_MotionDirection = new Vector3(
+                    ((m_DirectionKeyPressed & Direction.Right) > 0 ? 1 : 0) - ((m_DirectionKeyPressed & Direction.Left) > 0 ? 1 : 0),
+                    ((m_DirectionKeyPressed & Direction.Up) > 0 ? 1 : 0) - ((m_DirectionKeyPressed & Direction.Down) > 0 ? 1 : 0),
+                    ((m_DirectionKeyPressed & Direction.Forward) > 0 ? 1 : 0) - ((m_DirectionKeyPressed & Direction.Backward) > 0 ? 1 : 0));
+
+                inFlyMotion = m_DirectionKeyPressed != Direction.None;
+            }
             evt.StopPropagation();
         }
 
@@ -289,12 +298,10 @@ namespace UnityEditor.Rendering.LookDev
             return result;
         }
 
-        void UpdateMotion()
+        void UpdateFPSMotion()
         {
-            if (Mathf.Approximately(m_MotionDirection.sqrMagnitude, 0f))
-                inFlyMotion = false;
-            else
-                m_CameraState.pivot += m_CameraState.rotation * GetMotionDirection();
+            m_CameraState.pivot += m_CameraState.rotation * GetMotionDirection();
+            m_Window.Repaint(); //this prevent hich on key down as in CameraFlyModeContext.cs
         }
 
         bool GetKeyCombinationByID(string ID, out KeyCombination combination)
@@ -311,8 +318,7 @@ namespace UnityEditor.Rendering.LookDev
                 return false;
             }
         }
-
-
+        
         void OnMouseUp(MouseUpEvent evt)
         {
             ResetCameraControl();
@@ -355,7 +361,7 @@ namespace UnityEditor.Rendering.LookDev
             target.RegisterCallback<MouseDownEvent>(OnMouseDown);
             target.RegisterCallback<WheelEvent>(OnScrollWheel);
             target.RegisterCallback<KeyDownEvent>(OnKeyDown);
-            target.RegisterCallback<KeyUpEvent>(OnKeyUpFPS);
+            target.RegisterCallback<KeyUpEvent>(OnKeyUpOrDownFPS);
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -364,7 +370,7 @@ namespace UnityEditor.Rendering.LookDev
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
             target.UnregisterCallback<WheelEvent>(OnScrollWheel);
             target.UnregisterCallback<KeyDownEvent>(OnKeyDown);
-            target.UnregisterCallback<KeyUpEvent>(OnKeyUpFPS);
+            target.UnregisterCallback<KeyUpEvent>(OnKeyUpOrDownFPS);
         }
 
         struct KeyCombination
