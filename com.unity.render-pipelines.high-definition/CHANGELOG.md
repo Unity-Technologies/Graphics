@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an initial implementation of ray traced sub surface scattering
 - Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. 
 - Added support for Smoothness Fade start work when enabling ray traced reflections
+- Added script documentation for SSR, SSAO (ray tracing), GI, Light Cluster, RayTracingSettings, Ray Counters, etc.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -102,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Decal Projectors created from script where rotated around the X axis by 90°.
 - Fixed frustum used to compute Density Volumes visibility when projection matrix is oblique.
 - Fixed a null reference exception in Path Tracing, Recursive Rendering and raytraced Global Illumination editors when no HDRP asset is present.
+- Fix for NaNs on certain geometry with Lit shader -- [case 1210058](https://fogbugz.unity3d.com/f/cases/1210058/)
 - Fixed an issue where ambient occlusion and screen space reflections editors would generate null ref exceptions when HDRP was not set as the current pipeline.
 - Fixed a null reference exception in the probe UI when no HDRP asset is present.
 - Fixed the outline example in the doc (sampling range was dependent on screen resolution)
@@ -128,6 +130,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed adjusting positive axis of Blend Distance slides the negative axis in the density volume component.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.
+- Fixed error spam issue with terrain detail terrainDetailUnsupported (cases 1211848)
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
@@ -173,6 +176,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated VR checks in Wizard to reflect new XR System.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
+- Hide the Probes section in the Renderer editos because it was unused.
 
 ## [7.1.8] - 2020-01-20
 
