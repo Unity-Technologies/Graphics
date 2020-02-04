@@ -4,9 +4,15 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// A volume component that holds settings for the ambient occlusion.
+    /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
+        /// <summary>
+        /// Enable ray traced ambient occlusion.
+        /// </summary>
         public BoolParameter rayTracing = new BoolParameter(false);
 
         /// <summary>
@@ -39,10 +45,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters
+        /// <summary>
+        /// Defines the layers that ray traced ambient occlusion should include.
+        /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// Controls the length of ray traced ambient occlusion rays.
+        /// </summary>
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+
+        /// <summary>
+        /// Number of samples for evaluating the effect.
+        /// </summary>
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+
+        /// <summary>
+        /// Defines if the ray traced ambient occlusion should be denoised.
+        /// </summary>
         public BoolParameter denoise = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the radius of the ray traced ambient occlusion denoiser.
+        /// </summary>
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
 
         /// <summary>
