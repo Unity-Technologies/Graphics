@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -40,7 +40,7 @@ class Outline : CustomPass
         );
     }
 
-    void DrawOutlineMeshes(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+    void DrawOutlineMeshes(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo hdCamera, CullingResults cullingResult)
     {
         var result = new RendererListDesc(shaderTags, cullingResult, hdCamera.camera)
         {
@@ -56,7 +56,7 @@ class Outline : CustomPass
         HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
     }
 
-    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult)
+    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCameraInfo camera, CullingResults cullingResult)
     {
         DrawOutlineMeshes(renderContext, cmd, camera, cullingResult);
 
