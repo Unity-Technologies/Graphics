@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the editor would sometimes crash when using additional lights [case 1176131](https://issuetracker.unity3d.com/issues/mac-crash-on-processshadowcasternodevisibilityandcullwithoutumbra-when-same-rp-asset-is-set-in-graphics-and-quality-settings)
 - Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported and causes artifacts.
 - Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
+- Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
 
 ## [7.1.8] - 2020-01-20
 

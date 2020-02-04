@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!finishPostProcessOnScreen)
                     {
                         cmd.SetGlobalTexture("_BlitTex", cameraTarget);
-                        Blit(cmd, BuiltinRenderTextureType.CurrentActive, GetSource(), m_BlitMaterial);
+                        Blit(cmd, BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
                     }
                 }
                 else
@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!finishPostProcessOnScreen)
                     {
                         cmd.SetGlobalTexture("_BlitTex", cameraTarget);
-                        cmd.SetRenderTarget(GetSource(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
 
