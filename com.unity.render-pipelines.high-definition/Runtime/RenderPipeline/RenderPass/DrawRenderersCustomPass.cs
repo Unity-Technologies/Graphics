@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="camera"></param>
         /// <param name="cullingResult"></param>
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected override void Execute(CustomPassContext ctx)
         {
             var shaderPasses = GetShaderTagIds();
             if (overrideMaterial != null)
@@ -115,9 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(depthWrite, depthCompareFunction),
             };
 
-            PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
-            var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
+            var result = new RendererListDesc(shaderPasses, ctx.cullingResult, ctx.hdCamera.camera)
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 layerMask = layerMask,
             };
 
-            HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
+            HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
         /// <inheritdoc />

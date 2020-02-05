@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System;
 using UnityEngine.Serialization;
 
@@ -162,8 +160,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 SetCustomPassTarget(cmd);
 
+                // Create the custom pass context:
+                CustomPassContext ctx = new CustomPassContext
+                {
+                    renderContext = renderContext,
+                    cmd = cmd,
+                    hdCamera = hdCamera,
+                    cullingResult = cullingResult,
+                    cameraColorBuffer = targets.cameraColorBuffer,
+                    cameraDepthBuffer = rtManager.GetDepthStencilBuffer(IsMSAAEnabled(hdCamera)),
+                    cameraNormalBuffer = rtManager.GetNormalBuffer(IsMSAAEnabled(hdCamera)),
+                    customColorBuffer = targets.customColorBuffer,
+                    customDepthBuffer = targets.customDepthBuffer,
+                };
+
                 isExecuting = true;
+#pragma warning disable CS0618 // Member is obsolete
                 Execute(renderContext, cmd, hdCamera, cullingResult);
+#pragma warning restore CS0618
+                Execute(ctx);
                 isExecuting = false;
                 
                 // Set back the camera color buffer if we were using a custom buffer as target
@@ -233,7 +248,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="camera"></param>
         /// <param name="cullingResult"></param>
-        protected abstract void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
+        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead")]
+        protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) {}
+
+        /// <summary>
+        /// Called when your pass needs to be executed by a camera
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        // TODO: move this function to abstract when we deprecate the method above
+        protected virtual void Execute(CustomPassContext ctx) {}
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
@@ -310,6 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the camera color buffer</param>
         /// <param name="depthBuffer">outputs the camera depth buffer</param>
+        [Obsolete("GetCameraBuffers is obsolete and will be removed in the future. All camera buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected void GetCameraBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -325,6 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the custom color buffer</param>
         /// <param name="depthBuffer">outputs the custom depth buffer</param>
+        [Obsolete("GetCustomBuffers is obsolete and will be removed in the future. All custom buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected void GetCustomBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -338,6 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the current normal buffer (can be MSAA)
         /// </summary>
         /// <returns></returns>
+        [Obsolete("GetNormalBuffer is obsolete and will be removed in the future. Normal buffer is now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected RTHandle GetNormalBuffer()
         {
             if (!isExecuting)

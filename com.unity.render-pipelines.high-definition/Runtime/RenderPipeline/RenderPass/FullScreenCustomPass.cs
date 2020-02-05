@@ -34,19 +34,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Execute the pass with the fullscreen setup
         /// </summary>
         /// <param name="cmd"></param>
-        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected override void Execute(CustomPassContext ctx)
         {
             if (fullscreenPassMaterial != null)
             {
                 if (fetchColorBuffer)
                 {
-                    ResolveMSAAColorBuffer(cmd, hdCamera);
+                    ResolveMSAAColorBuffer(ctx.cmd, ctx.hdCamera);
                     // reset the render target to the UI 
-                    SetRenderTargetAuto(cmd);
+                    SetRenderTargetAuto(ctx.cmd);
                 }
 
                 fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
-                CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
+                CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
 
