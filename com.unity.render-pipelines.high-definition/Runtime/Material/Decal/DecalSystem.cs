@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.x, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.y, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.z);
             }
 
-            private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, ref float[] decalLayerBatch, int batchCount)
+            private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, ref float[] decalLayerMaskBatch, int batchCount)
             {
                 if (m_DecalToWorld.Count == batchCount)
                 {
@@ -604,14 +604,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_DecalToWorld.Add(decalToWorldBatch);
                     normalToWorldBatch = new Matrix4x4[kDrawIndexedBatchSize];
                     m_NormalToWorld.Add(normalToWorldBatch);
-                    decalLayerBatch = new float[kDrawIndexedBatchSize];
-                    m_DecalLayers.Add(decalLayerBatch);
+                    decalLayerMaskBatch = new float[kDrawIndexedBatchSize];
+                    m_DecalLayerMasks.Add(decalLayerMaskBatch);
                 }
                 else
                 {
                     decalToWorldBatch = m_DecalToWorld[batchCount];
                     normalToWorldBatch = m_NormalToWorld[batchCount];
-                    decalLayerBatch = m_DecalLayers[batchCount];
+                    decalLayerMaskBatch = m_DecalLayerMasks[batchCount];
                 }
             }
 
@@ -627,10 +627,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InstanceCount = 0;
                 Matrix4x4[] decalToWorldBatch = null;
                 Matrix4x4[] normalToWorldBatch = null;
-                float[] decalLayerBatch = null;
+                float[] decalLayerMaskBatch = null;
                 bool anyAffectTransparency = false;
 
-                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerBatch, batchCount);
+                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
 
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(instance.CurrentCamera);
@@ -654,7 +654,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
                             normalToWorldBatch[instanceCount].m13 = m_AlbedoContribution;
                             normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
-                            decalLayerBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
+                            decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
                             // clustered forward data
                             if (m_CachedAffectsTransparency[decalIndex])
@@ -687,7 +687,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 instanceCount = 0;
                                 batchCount++;
-                                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerBatch, batchCount);
+                                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
                             }
                         }
                     }
@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayers[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayers[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayers[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -769,7 +769,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayers[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
@@ -815,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
-            private List<float[]> m_DecalLayers = new List<float[]>();
+            private List<float[]> m_DecalLayerMasks = new List<float[]>();
 
             private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
             private DecalHandle[] m_Handles = new DecalHandle[kDecalBlockSize];
