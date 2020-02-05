@@ -141,6 +141,12 @@ namespace UnityEngine.Rendering.Universal
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+            // PPv2 doesn't need to generate color grading LUT.
+            if (postProcessFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+                generateColorGradingLUT = false;
+#endif
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool isStereoEnabled = cameraData.isStereoEnabled;
@@ -189,6 +195,12 @@ namespace UnityEngine.Rendering.Universal
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
             }
+            else
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+            }
+
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
@@ -231,7 +243,10 @@ namespace UnityEngine.Rendering.Universal
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
             if (hasOpaquePostProcessCompat)
+            {
                 m_OpaquePostProcessPassCompat.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+                EnqueuePass(m_OpaquePostProcessPassCompat);
+            }
 #pragma warning restore 0618
 #endif
 
@@ -490,11 +505,6 @@ namespace UnityEngine.Rendering.Universal
             // We create it upon rendering the Base camera.
             if (renderingData.cameraData.renderType == CameraRenderType.Base && !renderingData.resolveFinalTarget)
                 return true;
-
-            // Only base cameras create working intermediate render texture
-            // Overlay cameras will composite on top of the working texture provided by base camera.
-            if (renderingData.cameraData.renderType != CameraRenderType.Base)
-                return false;
 
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
