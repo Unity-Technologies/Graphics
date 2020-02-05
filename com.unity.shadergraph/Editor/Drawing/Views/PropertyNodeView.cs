@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
-                var icon = (node as PropertyNode).property.generatePropertyBlock ? exposedIcon : null;
+                var icon = (node as PropertyNode).GetShaderProperty().generatePropertyBlock ? exposedIcon : null;
                 this.icon = icon;
             }
 
@@ -100,13 +100,12 @@ namespace UnityEditor.ShaderGraph
 
             UpdateTooltip();
         }
-        
+
         void UpdateTooltip()
         {
-            var shaderProperty = (node as PropertyNode).property;
-            tooltip = shaderProperty.tooltip;
+            tooltip = (node as PropertyNode).GetShaderProperty().tooltip;
         }
-        
+
         public void Dispose()
         {
         }
