@@ -28,11 +28,8 @@ namespace UnityEditor.VFX.Test
             }
 
             var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-
             VisualEffectResource resource = asset.GetResource(); // force resource creation
-
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
             graph.visualEffectResource = resource;
 
             return graph;
@@ -210,14 +207,13 @@ namespace UnityEditor.VFX.Test
 
         const float s_Check_Time_Mode_SleepingTimeInSecond = 1.0f;
         const float s_Check_Time_Mode_FixedDeltaTime = 0.1f;
-        const float s_Check_Time_Mode_MaxDeltaTime = 0.6f;
+        const float s_Check_Time_Mode_MaxDeltaTime = 0.7f;
 
         static VFXTimeModeTest[] s_CheckTimeMode = new[]
         {
             new VFXTimeModeTest("FixedDeltaTime", (uint)VFXUpdateMode.FixedDeltaTime, 1u, s_Check_Time_Mode_MaxDeltaTime),
             new VFXTimeModeTest("ExactFixedDeltaTime", (uint)VFXUpdateMode.ExactFixedTimeStep, (uint)Mathf.Floor(s_Check_Time_Mode_MaxDeltaTime / s_Check_Time_Mode_FixedDeltaTime), s_Check_Time_Mode_FixedDeltaTime),
         };
-
 
         //Fix 1216631 : Check Exact time has actually an effect in low fps condition
         [UnityTest]
@@ -237,7 +233,9 @@ namespace UnityEditor.VFX.Test
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             graph.RecompileIfNeeded();
 
-            vfxComponent.Reinit();
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
 
             UnityEngine.VFX.VFXManager.fixedTimeStep = s_Check_Time_Mode_FixedDeltaTime;
             UnityEngine.VFX.VFXManager.maxDeltaTime = s_Check_Time_Mode_MaxDeltaTime;
@@ -251,6 +249,7 @@ namespace UnityEditor.VFX.Test
             }
             Assert.AreNotEqual(0u, VFXCustomSpawnerUpdateCounterTest.s_UpdateCount);
 
+            vfxComponent.Reinit();
             VFXCustomSpawnerUpdateCounterTest.s_UpdateCount = 0;
             VFXCustomSpawnerUpdateCounterTest.s_LastDeltaTime = 0.0f;
             Time.captureDeltaTime = s_Check_Time_Mode_SleepingTimeInSecond;
@@ -261,6 +260,13 @@ namespace UnityEditor.VFX.Test
             }
             Assert.AreEqual(timeMode.expectedUpdateCount, VFXCustomSpawnerUpdateCounterTest.s_UpdateCount);
             Assert.AreEqual(timeMode.expectedDeltaTime, VFXCustomSpawnerUpdateCounterTest.s_LastDeltaTime);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
         }
 
         [UnityTest]
