@@ -156,7 +156,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Unity's WS is left handed, so this makes a difference here).
 
 #ifdef _ALPHATEST_ON
-    DoAlphaTest(alpha, _AlphaCutoff);
+    // TODO: Move alpha test earlier and test.
+    float alphaCutoff = _AlphaCutoff;
+
+    #if SHADERPASS == SHADERPASS_SHADOWS 
+        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+    #else
+        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
+    #endif
 #endif
 
 

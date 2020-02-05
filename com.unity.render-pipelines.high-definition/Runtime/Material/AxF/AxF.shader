@@ -63,8 +63,11 @@ Shader "HDRP/AxF"
         _CarPaint2_CTCoeffs("_CarPaint2_CTCoeffs", Vector) = (1,1,1,1)
         _CarPaint2_CTSpreads("_CarPaint2_CTSpreads", Vector) = (1,1,1,1)
 
-//      [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
+        [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
+        [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
+
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
