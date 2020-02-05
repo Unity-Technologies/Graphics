@@ -19,7 +19,7 @@
         #define VARYINGS_NEED_TANGENT_WS
     #endif
 
-    #if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON))
+    #if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON)) // PPD may affect the position
             #define VARYINGS_NEED_TEXCOORD0 // Always!
 
         #ifdef TEX_UV1

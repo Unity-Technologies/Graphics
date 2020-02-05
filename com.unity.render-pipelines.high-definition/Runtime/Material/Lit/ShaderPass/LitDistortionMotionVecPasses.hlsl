@@ -2,7 +2,7 @@
     #error Undefined_SHADERPASS
 #endif
 
-#if (SHADERPASS != SHADERPASS_DISTORTION)
+#if ((SHADERPASS != SHADERPASS_DISTORTION) && (SHADERPASS != SHADERPASS_MOTION_VECTORS))
     #error Wrong_SHADERPASS
 #endif
 
@@ -18,9 +18,15 @@
     #define VARYINGS_NEED_TANGENT_WS
 #endif
 
+#if (SHADERPASS == SHADERPASS_DISTORTION)
     #define VARYINGS_NEED_TEXCOORD0 // Used to sample the distortion map
+#endif
 
-#if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON)) // TODO: PPD + distortion is rather weird...
+#if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON)) // PPD may affect the position
+    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+        #define VARYINGS_NEED_TEXCOORD0
+    #endif
+
     #ifdef TEX_UV1
         #define VARYINGS_NEED_TEXCOORD1
     #endif
