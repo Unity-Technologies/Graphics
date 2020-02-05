@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
         protected const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
-        internal  const string kDisplacementMode = "_DisplacementMode";
+        protected const string kDisplacementMode = "_DisplacementMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
@@ -33,13 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static internal void SetDisplacementScaleLocks(Material material)
         {
-            bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-            bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
-
             int materialInstanceFlags = 0;
 
-            materialInstanceFlags |= displacementLockObjectScale ? (int)MaterialInstanceFlags.DisplacementLockObjectScale : 0;
-            materialInstanceFlags |= displacementLockTilingScale ? (int)MaterialInstanceFlags.DisplacementLockTilingScale : 0;
+            if (material.HasProperty(kDisplacementMode))
+            {
+                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0f;
+                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0f;
+
+                materialInstanceFlags |= displacementLockObjectScale ? (int)MaterialInstanceFlags.DisplacementLockObjectScale : 0;
+                materialInstanceFlags |= displacementLockTilingScale ? (int)MaterialInstanceFlags.DisplacementLockTilingScale : 0;
+            }
 
             // In the future, we are likely to want to pull the flags outside the function, and set them only once.
             material.SetInt(kMaterialInstanceFlags, materialInstanceFlags);
@@ -82,12 +85,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Only set if tessellation exist
                 CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-                SetDisplacementScaleLocks(material);
-
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
                 CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
             }
+
+            SetDisplacementScaleLocks(material);
 
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", false);
 

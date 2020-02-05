@@ -283,11 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 id == HDShaderUtils.ShaderID.LayeredLit ||
                 id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
-                if (material.HasProperty(BaseLitGUI.kDisplacementMode))
-                {
-                    BaseLitGUI.SetDisplacementScaleLocks(material);
-                }
-
+                BaseLitGUI.SetDisplacementScaleLocks(material);
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
         }
