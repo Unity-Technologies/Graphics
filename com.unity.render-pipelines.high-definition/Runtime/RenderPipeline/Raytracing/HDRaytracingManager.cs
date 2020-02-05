@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
         HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
         HDReflectionDenoiser m_ReflectionDenoiser = new HDReflectionDenoiser();
+        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -105,6 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
             m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
             m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+            m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
+
 
             // Init the ray count manager
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
@@ -132,7 +135,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_RayTracingDirectionBuffer);
 
             RTHandles.Release(m_RayTracingIntermediateBufferR0);
-            RTHandles.Release(m_RayTracingIntermediateBufferR1);
             RTHandles.Release(m_RayTracingIntermediateBufferRG0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
@@ -140,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
 
             m_RayTracingLightCluster.ReleaseResources();
+            m_DiffuseShadowDenoiser.Release();
             m_ReflectionDenoiser.Release();
             m_TemporalFilter.Release();
             m_SimpleDenoiser.Release();
@@ -552,6 +555,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
             return m_ReflectionDenoiser;
+        }
+        internal HDDiffuseShadowDenoiser GetDiffuseShadowDenoiser()
+        {
+            return m_DiffuseShadowDenoiser;
         }
 
         internal bool GetRayTracingState()

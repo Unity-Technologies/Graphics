@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTilesYHR = (hdCamera.actualHeight + (areaTileSize - 1)) / areaTileSize;
 
                     // Clear the integration texture first
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, diffuseBufferRT);
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RayTracedShadowIntegration, diffuseBufferRT);
                     cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                     // Fetch the volume overrides that we shall be using
@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply temporal filtering to the buffer
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, diffuseBufferRT, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
+                    temporalFilter.DenoiseIntegrationBuffer(cmd, hdCamera, diffuseBufferRT, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
 
                     // Push this version of the texture for debug
                     PushFullScreenDebugTexture(hdCamera, cmd, intermediateBuffer0, FullScreenDebugMode.RayTracedSubSurface);

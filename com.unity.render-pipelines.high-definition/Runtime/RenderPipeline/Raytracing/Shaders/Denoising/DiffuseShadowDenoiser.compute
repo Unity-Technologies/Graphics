@@ -1,0 +1,114 @@
+#pragma only_renderers d3d11
+
+#pragma kernel BilateralFilterHSingle       BILATERAL_FILTER=BilateralFilterHSingle     SINGLE_CHANNEL
+#pragma kernel BilateralFilterVSingle       BILATERAL_FILTER=BilateralFilterVSingle     FINAL_PASS SINGLE_CHANNEL
+
+#pragma kernel BilateralFilterHColor        BILATERAL_FILTER=BilateralFilterHColor
+#pragma kernel BilateralFilterVColor        BILATERAL_FILTER=BilateralFilterVColor     FINAL_PASS
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
+
+#pragma enable_d3d11_debug_symbols
+
+// Tile size of this compute
+#define SHADOW_DENOISER_TILE_SIZE 8
+
+TEXTURE2D_X(_DenoiseInputTexture);
+TEXTURE2D_X(_DenoiseInputDistanceTexture);
+int _DenoiserFilterRadius;
+float3 _LightDirection;
+float _LightRadius;
+// Texture used to adjust the filter size to avoid overblurring
+TEXTURE3D(_ShadowFilterMapping);
+
+#if SINGLE_CHANNEL
+    #ifdef HISTORY_IS_ARRAY
+    RWTexture2DArray<float> _DenoiseOutputTextureRW;
+    #else
+    RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+    #endif
+#else
+    RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+#endif
+
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(SHADOW_DENOISER_TILE_SIZE, SHADOW_DENOISER_TILE_SIZE, 1)]
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * SHADOW_DENOISER_TILE_SIZE + groupThreadId;
+
+    // Read the center pixel
+    const BilateralData center = TapBilateralData(centerCoord);
+
+    // Compute the view vector
+    float distanceValue = clamp(abs(_WorldSpaceCameraPos - center.position) / 50.0f, 0.0, 1.0);
+
+    // Evaluate the normalized solid angle of the light
+    float lightSolidAngle = (_LightRadius  * PI / 180.0f) / (PI * 0.5f);
+
+    // Grab the normalized/clamped distance between the point and its occluder
+    float averageSurfaceDistance = clamp(LOAD_TEXTURE2D_X(_DenoiseInputDistanceTexture, centerCoord).x / 10.0, 0.0, 1.0);
+
+    // Compute the 3d uv value that we shall be using
+    float3 mappingUV = float3(averageSurfaceDistance, lightSolidAngle, distanceValue);
+
+    // Fetch the shadow scaling value
+    float2 radiusScale = SAMPLE_TEXTURE3D_LOD(_ShadowFilterMapping, s_trilinear_clamp_sampler, mappingUV, 0.0f).xy;
+
+    #if FINAL_PASS
+    const float radius = _DenoiserFilterRadius;
+    #else
+    const float radius = _DenoiserFilterRadius;
+    #endif
+    const float sigma = 0.5 * radius;
+    const int effectiveRadius = min(sigma * 2.0, radius);
+
+    // Initialize the accumulation variables
+    #if SINGLE_CHANNEL
+    float colorSum = 0.0;
+    #else
+    float3 colorSum = float3(0.0, 0.0, 0.0);
+    #endif
+    float wSum = 0.0;
+
+    #if FINAL_PASS
+    const uint2 passIncr = uint2(1, 0);
+    #else
+    const uint2 passIncr = uint2(0, 1);
+    #endif
+
+
+    uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+    for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
+    {
+        // Compute the weight (skip computation for the center)
+        const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
+
+        #if SINGLE_CHANNEL
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+        #else
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+        #endif
+        wSum += w;
+    }
+
+    // Store the intermediate result
+    #if SINGLE_CHANNEL
+    float finalColor = colorSum / wSum;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = finalColor;
+    #else
+    float3 finalColor = colorSum / wSum;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, 1.0);
+    #endif
+}
