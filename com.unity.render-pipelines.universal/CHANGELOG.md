@@ -517,7 +517,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - Fixed multiple C# code analysis rule violations.
 - The fullscreen mesh is no longer recreated upon every call to `ScriptableRenderer.fullscreenMesh`.
 
-## [3.3.0-preview]
+## [3.3.0-preview] - 2018-01-01
 ### Added
 - Added callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
 
@@ -534,7 +534,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
 
-## [3.2.0-preview]
+## [3.2.0-preview] - 2018-01-01
 ### Changed
 - Receive Shadows property is now exposed in the material instead of in the renderer.
 - The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
@@ -546,13 +546,13 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
 - Terrain shader optimizations.
 
-## [3.1.0-preview]
+## [3.1.0-preview] - 2018-01-01
 
 ### Fixed
 - Fixed assert errors caused by multi spot lights
 - Fixed LWRP-DirectionalShadowConstantBuffer params setting
 
-## [3.0.0-preview]
+## [3.0.0-preview] - 2018-01-01
 ### Added
 - Added camera additional data component to control shadows, depth and color texture.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR.
@@ -578,7 +578,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - VR Single Pass Instancing shadows
 - Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 
-## [2.0.0-preview]
+## [2.0.0-preview] - 2018-01-01
 
 ### Added
 - Explicit render target load/store actions were added to improve tile utilization
@@ -610,7 +610,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - UWP build issues
 - Prevent nested camera rendering in the pipeline
 
-## [1.1.4-preview]
+## [1.1.4-preview] - 2018-01-01
 
 ### Added
  - Terrain and grass shaders ported
@@ -630,7 +630,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - GI in Unlit shader
  - Null reference in the Unlit material shader GUI
 
-## [1.1.2-preview]
+## [1.1.2-preview] - 2018-01-01
 
 ### Changed
  - Performance improvements in mobile  
@@ -644,7 +644,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Issue that was causing Camera clear flags was being ignored in mobile
 
 
-## [1.1.1-preview]
+## [1.1.1-preview] - 2018-01-01
 
 ### Added
  - Added Cascade Split selection UI
@@ -659,7 +659,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Shadow Distance does not accept negative values anymore
 
 
-## [0.1.24]
+## [0.1.24] - 2018-01-01
 
 ### Added
  - Added Light abstraction layer on lightweight shader library.
@@ -684,7 +684,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Viewport rendering issues when rendering to with MSAA turned off.
  - Multi-camera rendering.
 
-## [0.1.23]
+## [0.1.23] - 2018-01-01
 
 ### Added
  - UI Improvements (Rendering features not supported by LW are hidden)
@@ -703,7 +703,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Fixed spot light attenuation to match Unity Built-in pipeline.
  - Fixed depth pre-pass clearing issue.
 
-## [0.1.12]
+## [0.1.12] - 2018-01-01
 
 ### Added
  - Standard Unlit shader now has an option to sample GI.
@@ -716,7 +716,3 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Fixed
  - Fixed an issue that was including unreferenced shaders in the build.
  - Fixed a null reference caused by Particle System component lights.
-
-
-## [0.1.11]
- Initial Release.

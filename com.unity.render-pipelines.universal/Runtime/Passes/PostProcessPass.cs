@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Material m_BlitMaterial;
 
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial = null)
         {
             renderPassEvent = evt;
             m_Data = data;

@@ -45,15 +45,10 @@ The version number for this package has increased due to a version update of a r
 
 ## [4.0.0-preview] - 2019-09-21
 
-## [3.3.0]
+## [3.3.0] - 2018-01-01
 
-## [3.2.0]
+## [3.2.0] - 2018-01-01
 
-## [3.1.0]
+## [3.1.0] - 2018-01-01
 
-## [0.1.0] - 2018-05-04
-
-### This is the first release of *Unity Package com.unity.testframework.graphics*.
-
-* ImageAssert for comparing images
-* Automatic management of reference images and test case generation
+## [0.1.0] - 2018-01-01

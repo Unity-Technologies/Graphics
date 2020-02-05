@@ -145,11 +145,11 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Removed setting shader inclue path via old API, use package shader include paths
 
-## [3.3.0]
+## [3.3.0] - 2018-01-01
 
-## [3.2.0]
+## [3.2.0] - 2018-01-01
 
-## [3.1.0]
+## [3.1.0] - 2018-01-01
 
 ### Added
 - Add PCSS shadow filter
@@ -163,8 +163,3 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Moved root files into folders for easier maintenance
 
-## [0.1.6] - 2018-xx-yy
-
-### Changelog starting
-
-Started Changelog
