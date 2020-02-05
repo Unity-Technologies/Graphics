@@ -48,7 +48,7 @@
 #endif // DEPTH_PASS_HAS_PS
 
 // Varyings_DS are domain shader inputs.
-// Attributes are vertex shader inputs.
+// Attributes_VS are vertex shader inputs.
 #include "LitVaryingsDsAndAttributes.hlsl"
 
 // Remove local helper definitions.
