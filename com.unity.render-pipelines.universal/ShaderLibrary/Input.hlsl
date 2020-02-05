@@ -13,7 +13,7 @@
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
 // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
 // We don't use SSBO on Nintendo Switch as UBO path is faster.
-// However here we use same limits as SSBO path. 
+// However here we use same limits as SSBO path.
 #elif defined(SHADER_API_D3D11) || defined(SHADER_API_SWITCH)
     #define MAX_VISIBLE_LIGHTS MAX_VISIBLE_LIGHTS_SSBO
     #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
@@ -73,8 +73,13 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+// Note: #include order is important here.
+// UnityInput.hlsl must be included before UnityInstancing.hlsl, so constant buffer
+// declarations don't fail because of instancing macros.
+// UniversalDOTSInstancing.hlsl must be included after UnityInstancing.hlsl
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalDOTSInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 #endif

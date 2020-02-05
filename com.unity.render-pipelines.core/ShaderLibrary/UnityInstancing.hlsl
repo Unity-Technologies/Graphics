@@ -378,13 +378,21 @@
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
-        #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
+
+        // Use #if instead of preprocessor concatenation to avoid really hard to debug
+        // preprocessing issues in some cases.
+        #if UNITY_WORLDTOOBJECTARRAY_CB == 0
+            #define UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY unity_Builtins0
+        #else
+            #define UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY unity_Builtins1
+        #endif
+
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
             #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray))
         #else
             #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray)
         #endif
     #endif
 
