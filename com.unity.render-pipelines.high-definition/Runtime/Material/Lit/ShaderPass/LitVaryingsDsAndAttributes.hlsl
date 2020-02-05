@@ -1,9 +1,8 @@
 /* Varyings_DS are domain shader inputs. */
 
 #ifdef TESSELLATION_ON
-    #if (defined(VARYINGS_NEED_NORMAL_WS) || defined(_TESSELLATION_DISPLACEMENT))
+        // Position and normal are always required for tessellation.
         #define VARYINGS_DS_NEED_NORMAL
-    #endif
 
     #ifdef VARYINGS_NEED_TANGENT_WS
         #define VARYINGS_DS_NEED_TANGENT

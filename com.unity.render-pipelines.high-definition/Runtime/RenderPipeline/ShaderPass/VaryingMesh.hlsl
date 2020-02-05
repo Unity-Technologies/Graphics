@@ -265,7 +265,6 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
     PackedVaryingsMeshToDS output;
 
     UNITY_TRANSFER_INSTANCE_ID(input, output);
-
     output.interpolators0 = input.positionRWS;
     output.interpolators1 = input.normalWS;
 #ifdef VARYINGS_DS_NEED_TANGENT
