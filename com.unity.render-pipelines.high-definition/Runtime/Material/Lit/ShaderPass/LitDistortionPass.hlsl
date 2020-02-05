@@ -1,5 +1,9 @@
 #ifndef SHADERPASS
-#error Undefine_SHADERPASS
+    #error Undefined_SHADERPASS
+#endif
+
+#if (SHADERPASS != SHADERPASS_DISTORTION)
+    #error Wrong_SHADERPASS
 #endif
 
 // Attributes

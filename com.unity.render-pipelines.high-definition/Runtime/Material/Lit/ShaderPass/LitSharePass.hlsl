@@ -1,7 +1,12 @@
-/* Shared by all passes except for: depth, distortion, and motion vector. */
-
 #ifndef SHADERPASS
-#error Undefine_SHADERPASS
+	#error Undefined_SHADERPASS
+#endif
+
+#if ((SHADERPASS == SHADERPASS_DEPTH_ONLY) || (SHADERPASS == SHADERPASS_SHADOWS) || \
+	 (SHADERPASS == SHADERPASS_DISTORTION) || (SHADERPASS == SHADERPASS_MOTION_VECTORS))
+// {
+	#error Wrong_SHADERPASS
+// }
 #endif
 
 // Add local helper definitions.

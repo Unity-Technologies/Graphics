@@ -1,5 +1,9 @@
 #ifndef SHADERPASS
-#error Undefine_SHADERPASS
+    #error Undefined_SHADERPASS
+#endif
+
+#if (SHADERPASS != SHADERPASS_MOTION_VECTORS)
+    #error Wrong_SHADERPASS
 #endif
 
 // TODO: Caution - For now the tesselation doesn't displace along the normal with motion vector shader as the previous previous position

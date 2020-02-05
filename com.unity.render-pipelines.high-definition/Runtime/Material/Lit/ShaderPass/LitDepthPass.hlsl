@@ -1,7 +1,9 @@
-/* Depth and shadow map passes. */
-
 #ifndef SHADERPASS
-#error Undefine_SHADERPASS
+    #error Undefined_SHADERPASS
+#endif
+
+#if ((SHADERPASS != SHADERPASS_DEPTH_ONLY) && (SHADERPASS != SHADERPASS_SHADOWS))
+    #error Wrong_SHADERPASS
 #endif
 
 // Add local helper definitions.
