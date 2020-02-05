@@ -19,11 +19,11 @@ class AmbientOcclusion : VolumeComponent
     // Common Options
     public AOModeParameter type = new AOModeParameter(AOMode.SSAO, false);
     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 2f, false);
-    public ClampedFloatParameter radius = new ClampedFloatParameter(0.025f, 0.005f, 0.25f, false);
+    public ClampedFloatParameter radius = new ClampedFloatParameter(0.025f, 0.001f, 1.0f, false);
 
     //SSAO Options
     public FloatParameter area = new FloatParameter(50, false);
-    public ClampedIntParameter sampleCount = new ClampedIntParameter(16, 2, 16, false);
+    public ClampedIntParameter sampleCount = new ClampedIntParameter(16, 2, 32, false);
     public SSAOQuality quality = SSAOQuality.Medium;
 
     [Serializable]

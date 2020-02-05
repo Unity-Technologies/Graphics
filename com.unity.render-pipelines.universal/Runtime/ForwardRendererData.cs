@@ -48,13 +48,16 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/ScreenSpaceAmbientOcclusion.shader")]
+            public Shader screenSpaceAOPS;
         }
+
+        [Reload("Textures/BlueNoiseNormal.png")]
+        public Texture2D blueNoiseNormal;
 
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
-
-        [Reload("Textures/BlueNoiseNormal.png")]
-        public Texture2D blueNoiseNormal = null; // TODO - make into generic resources
 
         public ShaderResources shaders = null;
 
@@ -62,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] private bool m_ScreenSpaceAO = true;
 
         protected override ScriptableRenderer Create()
         {
@@ -82,6 +86,8 @@ namespace UnityEngine.Rendering.Universal
         public StencilStateData defaultStencilState => m_DefaultStencilState;
 
         public bool shadowTransparentReceive => m_ShadowTransparentReceive;
+
+        public bool screenSpaceAO => m_ScreenSpaceAO;
 
         protected override void OnEnable()
         {

@@ -21,7 +21,6 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
-
 #ifdef LIGHTMAP_ON
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
@@ -31,6 +30,8 @@
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
+
+TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -43,7 +44,6 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
-    half    occlusion;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -115,9 +115,8 @@ Light GetMainLight()
 Light GetMainLight(float4 shadowCoord)
 {
     Light light = GetMainLight();
-    half2 ScreenSpacePass = MainLightRealtimeShadow(shadowCoord); // shadows = x, occlusion = y
-    light.shadowAttenuation = ScreenSpacePass.x;
-    light.occlusion = ScreenSpacePass.y;
+    half ScreenSpacePass = MainLightRealtimeShadow(shadowCoord); // shadows = x, occlusion = y
+    light.shadowAttenuation = ScreenSpacePass;
     return light;
 }
 
@@ -207,7 +206,7 @@ int GetPerObjectLightIndex(uint index)
 #elif !defined(SHADER_API_GLES)
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
-    
+
     // TODO: Can we index a float4? Currently compiler is
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
@@ -368,6 +367,13 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 //                      Global Illumination                                  //
 ///////////////////////////////////////////////////////////////////////////////
 
+// Sample the SSAO map
+half SampleAO(half3 positionCS)
+{
+    half2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS);
+    return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (_ScreenParams.zw - 1)).x;
+}
+
 // Samples SH L0, L1 and L2 terms
 half3 SampleSH(half3 normalWS)
 {
@@ -402,17 +408,17 @@ half3 SampleSHVertex(half3 normalWS)
 
 // SH Pixel Evaluation. Depending on target SH sampling might be done
 // mixed or fully in pixel. See SampleSHVertex
-half3 SampleSHPixel(half3 L2Term, half3 normalWS)
+half3 SampleSHPixel(half3 L2Term, half3 normalWS, half3 positionCS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return L2Term;
+    return L2Term * SampleAO(positionCS);
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term);
+    return max(half3(0, 0, 0), L2Term + L0L1Term) * SampleAO(positionCS);
 #endif
 
     // Default: Evaluate SH fully per-pixel
-    return SampleSH(normalWS);
+    return SampleSH(normalWS) * SampleAO(positionCS);
 }
 
 // Sample baked lightmap. Non-Direction and Directional if available.
@@ -449,7 +455,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #ifdef LIGHTMAP_ON
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(lmName, shName, normalWSName, positionCS) SampleSHPixel(shName, normalWSName, positionCS)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
@@ -572,11 +578,11 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion * mainLight.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
@@ -602,7 +608,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = (inputData.bakedGI * mainLight.occlusion) + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
 
 #ifdef _ADDITIONAL_LIGHTS

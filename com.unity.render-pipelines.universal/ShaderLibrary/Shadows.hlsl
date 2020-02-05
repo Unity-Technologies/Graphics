@@ -216,16 +216,14 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
 
-half2 MainLightRealtimeShadow(float4 shadowCoord)
+half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(_MAIN_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
-    return half2(1.0h, 1.0h);
+    return 1.0h;
 #endif
-
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
-    return half2(SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false), 1.0h);
-#endif
+    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
