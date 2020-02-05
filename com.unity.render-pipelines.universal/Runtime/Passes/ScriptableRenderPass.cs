@@ -183,7 +183,8 @@ namespace UnityEngine.Rendering.Universal
         /// In that case the Base camera is the first and last camera in the stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
-        public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
+        /// NB: We are not so sure about this API. Thus, why internal.
+        internal virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
         {}
 
         /// <summary>
