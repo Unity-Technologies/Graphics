@@ -379,6 +379,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.
 - Fixed error spam issue with terrain detail terrainDetailUnsupported (cases 1211848)
+- Fixed the broken ShaderGraph preview when creating a new Lit graph.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
