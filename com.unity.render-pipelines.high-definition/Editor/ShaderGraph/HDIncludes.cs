@@ -56,9 +56,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
         const string kShaderVariablesRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl";
         const string kRaytracingIntersection = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl";
+        const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
         const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
+        const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
+        const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
         const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
+        const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
         //post graph raytracing includes
         const string kPassRaytracingIndirect = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl";
         const string kPassRaytracingVisbility = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl";
@@ -451,139 +455,96 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CorePregraph },
             { CoreRaytracing },
             { kUnlit, IncludeLocation.Pregraph },
-            { kUnlitRaytracing, IncludeCollection.Pregraph },
+            { kUnlitRaytracing, IncludeLocation.Pregraph },
             { CoreUtility },
             { kRaytracingCommon, IncludeLocation.Pregraph },
+            { kShaderGraphFunctions, IncludeLocation.Pregraph },
         };
         public static IncludeCollection HDUnlitRaytracingIndirect = new IncludeCollection
         {
-            { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl", IncludeLocation.Pregraph },
-            { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl", IncludeLocation.Postgraph },
+            { UnlitRaytracingCommon },
+            { kPassRaytracingIndirect, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection HDUnlitRaytracingForward = new IncludeCollection
         {
-            { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl", IncludeLocation.Pregraph },
-            { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl", IncludeLocation.Postgraph },
+            { UnlitRaytracingCommon },
+            { kPassRaytracingForward, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection HDUnlitRaytracingVisibility = new IncludeCollection
         {
-            { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
-            { kUnlit, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl", IncludeLocation.Pregraph },
-            { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl", IncludeLocation.Postgraph },
+            { UnlitRaytracingCommon },
+            { kPassRaytracingVisbility, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection HDUnlitRaytracingGBuffer = new IncludeCollection
         {
             { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl", IncludeLocation.Pregraph },
+            { CoreRaytracing },
             { kUnlit, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl", IncludeLocation.Pregraph },
+            { kNormalBuffer, IncludeLocation.Pregraph },
+            { kStandardLit, IncludeLocation.Pregraph },
+            { kUnlitRaytracing, IncludeLocation.Pregraph },
             { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
+            { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl", IncludeLocation.Postgraph },
+            { kPassRaytracingGBuffer, IncludeLocation.Postgraph },
         };
 #endregion
 
 #region FabricRaytracing
-        public static IncludeCollection FabricRaytracingIndirect = new IncludeCollection
+        public static IncludeCollection FabricRaytracingCommon = new IncludeCollection
         {
             { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
+            { CoreRaytracing },
             { kLighting, IncludeLocation.Pregraph },
             { kLightLoopDef, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
+            { kFabric, IncludeLocation.Pregraph },
+            { kFabricRaytracing, IncludeLocation.Pregraph },
+            { kRaytracingLightLoop, IncludeLocation.Pregraph },
             { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
+            { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl", IncludeLocation.Postgraph },
+        };
+        public static IncludeCollection FabricRaytracingIndirect = new IncludeCollection
+        {
+            { FabricRaytracingCommon },
+            { kPassRaytracingIndirect, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection FabricRaytracingForward = new IncludeCollection
         {
-            { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
-            { kLightLoopDef, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl", IncludeLocation.Postgraph },
+            { FabricRaytracingCommon },
+            { kPassRaytracingForward, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection FabricRaytracingVisibility = new IncludeCollection
         {
             { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl", IncludeLocation.Pregraph },
+            { CoreRaytracing },
+            { kFabric, IncludeLocation.Pregraph },
+            { kFabricRaytracing, IncludeLocation.Pregraph },
             { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
+            { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl", IncludeLocation.Postgraph },
+            { kPassRaytracingVisbility, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection FabricRaytracingGBuffer = new IncludeCollection
         {
             { CorePregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl", IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl", IncludeLocation.Pregraph },
+            { kRaytracingMacros, IncludeLocation.Pregraph },
+            { kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
+            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph },
+            { kFabric, IncludeLocation.Pregraph },
+            { kStandardLit, IncludeLocation.Pregraph },
+            { kFabricRaytracing, IncludeLocation.Pregraph },
             { CoreUtility },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl", IncludeLocation.Pregraph },
+            { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl", IncludeLocation.Postgraph },
+            { kPassRaytracingGBuffer, IncludeLocation.Postgraph },
         };
 #endregion
     }

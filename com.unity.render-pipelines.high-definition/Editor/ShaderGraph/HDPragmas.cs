@@ -14,39 +14,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection Instanced = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection InstancedEditorSync = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.EditorSyncCompilation },
         };
 
         public static PragmaCollection InstancedRenderingPlayer = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
         public static PragmaCollection InstancedRenderingPlayerEditorSync = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.EditorSyncCompilation },
@@ -54,10 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[] 
             { 
@@ -98,10 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            { Pragma.Target(4.5) },
-            { Pragma.Vertex("Vert") },
-            { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition[] 
