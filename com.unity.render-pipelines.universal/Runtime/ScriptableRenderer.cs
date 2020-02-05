@@ -345,6 +345,29 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveRenderPassQueue.Add(pass);
         }
 
+        #region deprecated
+
+        [Obsolete("Use GetCameraClearFlag(ref CameraData cameraData) instead")]
+        protected static ClearFlag GetCameraClearFlag(CameraClearFlags cameraClearFlags)
+        {
+#if UNITY_EDITOR
+            // We need public API to tell if FrameDebugger is active and enabled. In that case
+            // we want to force a clear to see properly the drawcall stepping.
+            // For now, to fix FrameDebugger in Editor, we force a clear.
+            cameraClearFlags = CameraClearFlags.SolidColor;
+#endif
+            // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
+            if (Application.isMobilePlatform)
+                return ClearFlag.All;
+
+            if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
+                cameraClearFlags == CameraClearFlags.Nothing)
+                return ClearFlag.Depth;
+
+            return ClearFlag.All;
+        }
+        #endregion
+
         /// <summary>
         /// Returns a clear flag based on CameraClearFlags.
         /// </summary>

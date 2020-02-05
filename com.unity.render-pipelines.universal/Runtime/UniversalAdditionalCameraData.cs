@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
     /// Holds information about the output target for a camera.
     /// Only used for cameras of render type Base. <seealso cref="CameraRenderType"/>.
     /// </summary>
-    [Obsolete("This enum is deprecated. You should query camera output target by calling Camera.targetTexture.")]
+    [Obsolete("This enum is deprecated.")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public enum CameraOutput
     {
@@ -236,6 +236,7 @@ namespace UnityEngine.Rendering.Universal
 
                 return CameraOutput.Texture;
             }
+            set { }
         }
 
         [Obsolete("AddCamera has been deprecated. You can add cameras to the stack by calling <c>cameraStack</c> property and modifying the camera stack list.")]

@@ -1,3 +1,5 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -5,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     ///
     /// This pass renders the standard Unity skybox.
     /// </summary>
+    [MovedFrom("UnityEngine.Rendering.Internal.Universal")]
     public class DrawSkyboxPass : ScriptableRenderPass
     {
         public DrawSkyboxPass(RenderPassEvent evt)
