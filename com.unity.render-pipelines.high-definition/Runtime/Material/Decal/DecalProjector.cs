@@ -221,8 +221,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        DecalLayerMask m_LastSynchronizedLayerMask = DecalLayerMask.Invalid;
-
         void OnEnable()
         {
             if (m_Material == null)
@@ -340,15 +338,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LateUpdate()
         {
-            if (m_Handle == null) return;
-
-            var currentDecalLayerMask = decalLayerMask;
-            if (currentDecalLayerMask == m_LastSynchronizedLayerMask && !transform.hasChanged) return;
-
-            var sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-            DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor, currentDecalLayerMask);
-            transform.hasChanged = false;
-            m_LastSynchronizedLayerMask = currentDecalLayerMask;
+            if (m_Handle != null)
+            {
+                if (transform.hasChanged == true)
+                {
+                    Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+                    DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor, decalLayerMask);
+                    transform.hasChanged = false;
+                }
+            }
         }
 
         /// <summary>
