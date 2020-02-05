@@ -1586,7 +1586,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
 float3 GetCarPaintSpecularFGDForLobe(PreLightData preLightData, uint lobeIndex)
 {
-    return lerp(preLightData.specularCTFGDAtZeroF0[lobeIndex], preLightData.specularCTFGDReflectivity[lobeIndex], _CarPaint2_CTF0s[lobeIndex]);
+    return lerp(preLightData.specularCTFGDAtZeroF0[lobeIndex], preLightData.specularCTFGDReflectivity[lobeIndex], _CarPaint2_CTF0s[lobeIndex]*preLightData.singleBRDFColor);
 }
 
 
