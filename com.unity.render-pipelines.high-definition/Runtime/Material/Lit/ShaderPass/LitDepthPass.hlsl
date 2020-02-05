@@ -14,8 +14,11 @@
 #ifdef DEPTH_PASS_HAS_PS
         #define VARYINGS_NEED_POSITION_WS // TODO: remove, compute from depth
 
-    #ifdef _PIXEL_DISPLACEMENT
+    #if (defined(_PIXEL_DISPLACEMENT) || (defined(_ALPHATEST_ON) && defined(_MAPPING_TRIPLANAR)))
         #define VARYINGS_NEED_NORMAL_WS
+    #endif
+
+    #ifdef _PIXEL_DISPLACEMENT
         #define VARYINGS_NEED_TANGENT_WS
     #endif
 

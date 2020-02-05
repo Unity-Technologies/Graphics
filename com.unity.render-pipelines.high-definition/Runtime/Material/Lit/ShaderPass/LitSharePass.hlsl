@@ -18,7 +18,6 @@
 #define VARYINGS_NEED_NORMAL_WS   // Always!
 
 #if (defined(_MATERIAL_FEATURE_ANISOTROPY) || defined(NORMAL_MAP_TS) || defined(_PIXEL_DISPLACEMENT) || defined(DEBUG_DISPLAY))
-	// Tangent is used for: anisotropic lighting, tangent space (bent) normal maps, per-pixel displacement.
 	// We use the tangent stored as a vertex attribute only for UV0, and for UV1-3 it is generated
 	// on the fly. However, it is not possible to know which UV set (bent) normal maps and/or
 	// per-pixel displacement use at compile time, so we must conservatively request the tangent.
