@@ -22,8 +22,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default frame pass settings.</summary>
         [Obsolete("Since 2019.3, use AOVRequestData.NewDefault() instead.")]
         public static readonly AOVRequestData @default = default;
-        /// <summary>Default frame pass settings.</summary>
-        /// <returns>The default value and allocate 64B of garbage.</returns>
+        /// <summary>
+        /// Instantiate a new AOV request data with default values.
+        ///
+        /// Note: Allocates memory by the garbage collector.
+        /// If you intend only to read the default values, you should use <see cref="defaultAOVRequestDataNonAlloc"/>.
+        /// </summary>
+        /// <returns>A new AOV request data with default values.</returns>
         public static AOVRequestData NewDefault() => new AOVRequestData
         {
             m_Settings = AOVRequest.NewDefault(),
@@ -31,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Callback = null
         };
 
+        /// <summary>Default frame pass settings.</summary>
         public static readonly AOVRequestData defaultAOVRequestDataNonAlloc = NewDefault();
 
         private AOVRequest m_Settings;
