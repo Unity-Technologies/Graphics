@@ -42,6 +42,11 @@ namespace UnityEditor.VFX.UI
             ValueToGUI(false);
         }
 
+        public new virtual void SetEnabled(bool value)
+        {
+            
+        }
+
         public void ForceUpdate()
         {
             ValueToGUI(true);

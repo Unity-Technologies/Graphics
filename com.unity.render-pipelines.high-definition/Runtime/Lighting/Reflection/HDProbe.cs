@@ -119,7 +119,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Runtime Data
         RenderTexture m_RealtimeTexture;
         RenderData m_RealtimeRenderData;
-        bool m_WasRenderedSinceLastOnDemandRequest;
+        bool m_WasRenderedSinceLastOnDemandRequest = true;
+
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
 
@@ -136,6 +137,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     case ProbeSettings.RealtimeMode.OnDemand: return !m_WasRenderedSinceLastOnDemandRequest;
                     default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
                 }
+            }
+        }
+
+        internal bool HasValidRenderedData()
+        {
+            bool hasValidTexture = texture != null;
+            if (mode != ProbeSettings.Mode.Realtime)
+            {
+                return hasValidTexture;
+            }
+            else
+            {
+                bool hasEverRendered = lastRenderedFrame != int.MinValue;
+                return hasEverRendered && hasValidTexture;
             }
         }
 

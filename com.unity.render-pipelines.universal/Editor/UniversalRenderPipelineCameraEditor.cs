@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
 
-            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects. Post-processing will be applied while rendering the last camera int the stack.");
+            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
             public static GUIContent antialiasingQuality = EditorGUIUtility.TrTextContent("Quality", "The quality level to use for the selected anti-aliasing method.");
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
@@ -75,11 +75,6 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Off"),
                 new GUIContent("On"),
                 new GUIContent("Use Pipeline Settings"),
-            };
-
-            public static GUIContent[] displayedDepthTextureOverride =
-            {
-                new GUIContent("On (Forced due to Post Processing)"),
             };
 
             public static int[] additionalDataOptions = Enum.GetValues(typeof(CameraOverrideOption)).Cast<int>().ToArray();
@@ -116,7 +111,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("High")
             };
             public static int[] antialiasingQualityValues = { 0, 1, 2 };
-            
+
         };
 
         ReorderableList m_LayerList;
@@ -198,7 +193,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
-        
+
         public new void OnEnable()
         {
             m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
@@ -310,15 +305,27 @@ namespace UnityEditor.Rendering.Universal
                 else
                 {
                     EditorGUI.LabelField(rect, cam.name, type.ToString());
+
+                    // Printing if Post Processing is on or not.
+                    var isPostActive = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderPostProcessing;
+                    if (isPostActive)
+                    {
+                        Rect selectRect = new Rect(rect.width - 20, rect.y, 50, EditorGUIUtility.singleLineHeight);
+
+                        EditorGUI.LabelField(selectRect, "PP");
+                    }
                 }
+
 
                 EditorGUIUtility.labelWidth = labelWidth;
             }
             else
             {
-                // Automagicaly deletes the entry if a user has removed a camera from the scene
-                m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(index);
-                m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                // HIG doesnt allow us to remove data on a re-draw and without a user input.
+                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
+                m_NameContent.text = "MISSING CAMERA";
+                string warningInfo = "Camera is missing";
+                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
@@ -473,7 +480,7 @@ namespace UnityEditor.Rendering.Universal
         void DrawStackSettings()
         {
             m_StackSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_StackSettingsFoldout.value, Styles.stackSettingsText);
-            ScriptableRenderer.RenderingFeatures supportedRenderingFeatures = m_AdditionalCameraData?.scriptableRenderer.supportedRenderingFeatures;
+            ScriptableRenderer.RenderingFeatures supportedRenderingFeatures = m_AdditionalCameraData?.scriptableRenderer?.supportedRenderingFeatures;
 
             if (supportedRenderingFeatures != null && supportedRenderingFeatures.cameraStacking == false)
             {
@@ -557,6 +564,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     EditorGUILayout.PropertyField(m_AdditionalCameraClearDepth, Styles.clearDepth);
                     m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                    DrawPostProcessingOverlay();
                 }
 
                 DrawOpaqueTexture();
@@ -573,6 +581,36 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawPostProcessingOverlay()
+        {
+            bool hasChanged = false;
+            bool selectedRenderPostProcessing;
+
+            if (m_AdditionalCameraDataSO == null)
+            {
+                selectedRenderPostProcessing = false;
+            }
+            else
+            {
+                m_AdditionalCameraDataSO.Update();
+                selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            }
+
+            hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
+
+            if (hasChanged)
+            {
+                if (m_AdditionalCameraDataSO == null)
+                {
+                    m_AdditionalCameraData = Undo.AddComponent<UniversalAdditionalCameraData>(camera.gameObject);
+                    init(m_AdditionalCameraData);
+                }
+
+                m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
+                m_AdditionalCameraDataSO.ApplyModifiedProperties();
+            }
         }
 
         void DrawOutputSettings()
@@ -791,9 +829,8 @@ namespace UnityEditor.Rendering.Universal
 
             hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
 
-            if (selectedRenderPostProcessing)
+            // Draw Final Post-processing
             {
-                EditorGUI.indentLevel++;
                 hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasing, ref selectedAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
 
                 if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
@@ -807,7 +844,6 @@ namespace UnityEditor.Rendering.Universal
 
                 hasChanged |= DrawToggle(m_AdditionalCameraDataStopNaN, ref selectedStopNaN, Styles.stopNaN);
                 hasChanged |= DrawToggle(m_AdditionalCameraDataDithering, ref selectedDithering, Styles.dithering);
-                EditorGUI.indentLevel--;
             }
 
             if (hasChanged)
@@ -880,30 +916,16 @@ namespace UnityEditor.Rendering.Universal
             selectedDepthOption = (CameraOverrideOption)m_AdditionalCameraDataRenderDepthProp.intValue;
             Rect controlRectDepth = EditorGUILayout.GetControlRect(true);
 
-            // Need to check if post processing is added and active.
-            // If it is we will set the int pop to be 1 which is ON and gray it out
-            bool defaultDrawOfDepthTextureUI = true;
-            if (m_AdditionalCameraDataRenderPostProcessing.boolValue)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, 0, Styles.displayedDepthTextureOverride, Styles.additionalDataOptions);
-                EditorGUI.EndDisabledGroup();
-                defaultDrawOfDepthTextureUI = false;
-            }
+            EditorGUI.BeginProperty(controlRectDepth, Styles.requireDepthTexture, m_AdditionalCameraDataRenderDepthProp);
+            EditorGUI.BeginChangeCheck();
 
-            if (defaultDrawOfDepthTextureUI)
+            selectedDepthOption = (CameraOverrideOption)EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, (int)selectedDepthOption, Styles.displayedAdditionalDataOptions, Styles.additionalDataOptions);
+            if (EditorGUI.EndChangeCheck())
             {
-                EditorGUI.BeginProperty(controlRectDepth, Styles.requireDepthTexture, m_AdditionalCameraDataRenderDepthProp);
-                EditorGUI.BeginChangeCheck();
-
-                selectedDepthOption = (CameraOverrideOption)EditorGUI.IntPopup(controlRectDepth, Styles.requireDepthTexture, (int)selectedDepthOption, Styles.displayedAdditionalDataOptions, Styles.additionalDataOptions);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    m_AdditionalCameraDataRenderDepthProp.intValue = (int)selectedDepthOption;
-                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
-                }
-                EditorGUI.EndProperty();
+                m_AdditionalCameraDataRenderDepthProp.intValue = (int)selectedDepthOption;
+                m_AdditionalCameraDataSO.ApplyModifiedProperties();
             }
+            EditorGUI.EndProperty();
         }
 
         void DrawOpaqueTexture()

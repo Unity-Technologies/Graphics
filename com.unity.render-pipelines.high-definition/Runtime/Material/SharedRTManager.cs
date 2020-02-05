@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
             }
 
-            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight);
+            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
 
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
@@ -264,10 +264,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void AllocateCoarseStencilBuffer(int width, int height)
+        public void AllocateCoarseStencilBuffer(int width, int height, int viewCount)
         {
             if(width > 8 && height > 8)
-                m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8), sizeof(uint));
+                m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
         public void DisposeCoarseStencilBuffer()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -27,10 +28,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void ReimportAllMaterials()
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
+            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
+            var distinctGuids = guids.Distinct();
 
             int materialIdx = 0;
-            int totalMaterials = guids.Length;
-            foreach (var asset in guids)
+            int totalMaterials = distinctGuids.Count();
+            foreach (var asset in distinctGuids)
             {
                 materialIdx++;
                 var path = AssetDatabase.GUIDToAssetPath(asset);
@@ -64,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist && curUpgradeVersion != HDProjectSettings.k_NeverProcessedMaterialVersion)
+                        if (!inTestSuite && fileExist)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                                         " Unity must upgrade them to be compatible with your current version of HDRP. \n" +

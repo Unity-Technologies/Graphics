@@ -19,7 +19,7 @@ You can run HDRP Projects on Xbox One, PS4, and compute Shader compatible device
 
 ### Virtual Reality
 
-HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-in-HDRP.html).
+HDRP is compatible with VR and optimized for single-pass rendering. For more information about Virtual Reality, see the [VR documentation](VR-Overview).
 
 ### Camera-relative rendering
 
