@@ -144,6 +144,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Alignment issue in Light Preset
 - Fixed Environment Header in LightingWindow
 - Fixed an issue where hair shader could write garbage in the diffuse lighting buffer, causing NaNs.
+- Fixed an exposure issue with ray traced sub-surface scattering.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
