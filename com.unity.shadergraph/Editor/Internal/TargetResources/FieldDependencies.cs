@@ -2,9 +2,8 @@
 {
     public static class FieldDependencies
     {
-        public static DependencyCollection Default = new DependencyCollection
+        public static DependencyCollection Varyings = new DependencyCollection
         {
-            //Varying Dependencies
             new FieldDependency(StructFields.Varyings.positionWS,                                  StructFields.Attributes.positionOS),
             new FieldDependency(StructFields.Varyings.normalWS,                                    StructFields.Attributes.normalOS),
             new FieldDependency(StructFields.Varyings.tangentWS,                                   StructFields.Attributes.tangentOS),
@@ -14,8 +13,10 @@
             new FieldDependency(StructFields.Varyings.texCoord3,                                   StructFields.Attributes.uv3),
             new FieldDependency(StructFields.Varyings.color,                                       StructFields.Attributes.color),
             new FieldDependency(StructFields.Varyings.instanceID,                                  StructFields.Attributes.instanceID),
-            
-            //Vertex Description Dependencies
+        };
+
+        public static DependencyCollection VertexDescription = new DependencyCollection
+        {
             new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,            StructFields.Attributes.normalOS),
             new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceNormal,             StructFields.Attributes.normalOS),
             new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceNormal,              StructFields.VertexDescriptionInputs.WorldSpaceNormal),
@@ -51,8 +52,10 @@
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   StructFields.Attributes.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   StructFields.Attributes.indices),
+        };
 
-            //Surface Description Dependencies
+        public static DependencyCollection SurfaceDescription = new DependencyCollection
+        {
             new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,             StructFields.Varyings.normalWS),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,            StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,              StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
@@ -87,6 +90,13 @@
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                          StructFields.Varyings.texCoord3),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                  StructFields.Varyings.color),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                     StructFields.Varyings.cullFace),
+        };
+
+        public static DependencyCollection Default = new DependencyCollection
+        {
+            { Varyings },
+            { VertexDescription },
+            { SurfaceDescription },
         };
     }
 }
