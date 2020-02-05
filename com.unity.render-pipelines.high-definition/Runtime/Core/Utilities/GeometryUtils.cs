@@ -2,9 +2,19 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Frustum class.
+    /// </summary>
     public struct Frustum
     {
+        /// <summary>
+        /// Frustum planes.
+        /// In order: left, right, top, bottom, near, far.
+        /// </summary>
         public Plane[] planes;  // Left, right, top, bottom, near, far
+        /// <summary>
+        /// Frustum corner points.
+        /// </summary>
         public Vector3[] corners; // Positions of the 8 corners
 
         static Vector3 IntersectFrustumPlanes(Plane p0, Plane p1, Plane p2)
@@ -17,8 +27,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return (Vector3.Cross(n2, n1) * p0.distance + Vector3.Cross(n0, n2) * p1.distance - Vector3.Cross(n0, n1) * p2.distance) * (1.0f / det);
         }
 
-        // The frustum will be camera-relative if given a camera-relative VP matrix.
-        public static void Create(Frustum frustum, Matrix4x4 viewProjMatrix, Vector3 viewPos, Vector3 viewDir, float nearClipPlane, float farClipPlane)
+        /// <summary>
+        /// Creates a frustum.
+        /// Note: when using a camera-relative matrix, the frustum will be camera-relative.
+        /// </summary>
+        /// <param name="frustum">Inout frustum.</param>
+        /// <param name="viewProjMatrix">View projection matrix from which to build the frustum.</param>
+        /// <param name="viewPos">View position of the frustum.</param>
+        /// <param name="viewDir">Direction of the frustum.</param>
+        /// <param name="nearClipPlane">Near clip plane of the frustum.</param>
+        /// <param name="farClipPlane">Far clip plane of the frustum.</param>
+        public static void Create(ref Frustum frustum, Matrix4x4 viewProjMatrix, Vector3 viewPos, Vector3 viewDir, float nearClipPlane, float farClipPlane)
         {
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
 
