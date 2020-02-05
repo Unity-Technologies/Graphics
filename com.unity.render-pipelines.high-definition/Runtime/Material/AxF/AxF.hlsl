@@ -983,6 +983,38 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 }
 #endif //...#if defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
+float3 FindAverageBaseLobeDirOnTop(BSDFData bsdfData, PreLightData preLightData)
+{
+    float3 outDir;
+
+#if 0 
+    // simple test: eg for carpaint or any material without any normal maps, this should give the same 
+    // fetch alignment as just using the view reflected on top:
+    float3 vRefractedBottomReflected = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    outDir = Refract(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR);
+    return outDir;
+#else
+    float3 vRefractedBottomReflected = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    // First make sure that vRefractedBottomReflected is directed towards the coat surface we want to pass:
+    // ie make sure it is not under the top horizon (let alone in TIR which we ignore!)
+    vRefractedBottomReflected = SaturateDirToHorizon(vRefractedBottomReflected, bsdfData.clearcoatNormalWS);
+
+    //to test SaturateDirToHorizon:
+    //outDir = Refract(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR);
+    //return outDir;
+
+    // Now whether the direction was past the critical angle nor not, refract while making sure that 
+    // in case of TIR, we just output an horizon grazing direction:
+    
+    //to debug when actually TIR happened:
+    float3 incomingSaturated; 
+    float rayIntensity;
+    outDir = RefractSaturateToTIR(-vRefractedBottomReflected, -bsdfData.clearcoatNormalWS, bsdfData.clearcoatIOR, rayIntensity, incomingSaturated);
+#endif    
+    return outDir;
+
+}
+
 
 PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput, inout BSDFData bsdfData)
 {
@@ -1012,8 +1044,9 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     //-----------------------------------------------------------------------------
     // Handle IBL +  multiscattering
     // todo_dir:
-    // todo_dir todo_modes todo_pseudorefract: cant use undercoat like that, but better than to lose coat effect for now...
-    preLightData.iblDominantDirectionWS_UnderCoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
+    // todo_dir todo_modes todo_pseudorefract: cant use undercoat like that, but better than to lose the bottom normal effect for now...
+    preLightData.iblDominantDirectionWS_UnderCoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);    
+    preLightData.iblDominantDirectionWS_UnderCoat = FindAverageBaseLobeDirOnTop(bsdfData, preLightData); // much better
     preLightData.iblDominantDirectionWS_Clearcoat = reflect(-viewWS_Clearcoat, bsdfData.clearcoatNormalWS);
     //preLightData.iblDominantDirectionWS_UnderCoat = preLightData.iblDominantDirectionWS_Clearcoat;
 
