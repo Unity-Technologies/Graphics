@@ -139,6 +139,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when opening lookdev and the lookdev volume have not been assigned yet.
 - Improved memory usage of the sky system.
 - Updated label in HDRP quality preference settings (case 1215100)
+- Fixed Decal Projector gizmo not undoing properly (case 1216629)
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
