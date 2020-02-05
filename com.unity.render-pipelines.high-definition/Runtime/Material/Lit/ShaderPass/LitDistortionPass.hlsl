@@ -6,61 +6,48 @@
     #error Wrong_SHADERPASS
 #endif
 
-// Attributes
-#define REQUIRE_TANGENT_TO_WORLD defined(_PIXEL_DISPLACEMENT)
-#define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_DISPLACEMENT)
-#define REQUIRE_VERTEX_COLOR (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || (defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))))
+// Add local helper definitions.
+#include "LitParamDefsAdd.hlsl"
 
-// This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
+/* Varyings_PS are pixel shader inputs (vertex or domain shader outputs). */
 
-// Tesselation require normal
-#if REQUIRE_NORMAL
-#define ATTRIBUTES_NEED_NORMAL
-#endif
-#if REQUIRE_TANGENT_TO_WORLD
-#define ATTRIBUTES_NEED_TANGENT
-#endif
-#if REQUIRE_VERTEX_COLOR
-#define ATTRIBUTES_NEED_COLOR
+    #define VARYINGS_NEED_POSITION_WS // TODO: remove, compute from depth
+
+#ifdef _PIXEL_DISPLACEMENT
+    #define VARYINGS_NEED_NORMAL_WS
+    #define VARYINGS_NEED_TANGENT_WS
 #endif
 
-// About UV
-// When UVX is present, we assume that UVX - 1 ... UV0 is present
+    #define VARYINGS_NEED_TEXCOORD0 // Used to sample the distortion map
 
-#define ATTRIBUTES_NEED_TEXCOORD0 // Always present, distortion use TexCoord0
-
-#if defined(_VERTEX_DISPLACEMENT) || REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON) || defined(_TESSELLATION_DISPLACEMENT)
-    #define ATTRIBUTES_NEED_TEXCOORD1
-    #if defined(_REQUIRE_UV012) || defined(_REQUIRE_UV0123)
-        #define ATTRIBUTES_NEED_TEXCOORD2
+#if (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON)) // TODO: PPD + distortion is rather weird...
+    #ifdef TEX_UV1
+        #define VARYINGS_NEED_TEXCOORD1
     #endif
-    #if defined(_REQUIRE_UV0123)
-        #define ATTRIBUTES_NEED_TEXCOORD3
+
+    #ifdef TEX_UV2
+        #define VARYINGS_NEED_TEXCOORD2
     #endif
+
+    #ifdef TEX_UV3
+        #define VARYINGS_NEED_TEXCOORD3
+    #endif
+
+    #ifdef TEX_COL
+        #define VARYINGS_NEED_COLOR
+    #endif
+#endif // (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON))
+
+#ifdef _DOUBLESIDED_ON
+    #define VARYINGS_NEED_CULLFACE
 #endif
 
-// Varying - Use for pixel shader
-// This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
-#define VARYINGS_NEED_POSITION_WS // Can be require if we have planar or triplanar distortion
+// Varyings_DS are domain shader inputs.
+// Attributes are vertex shader inputs.
+#include "LitVaryingsDsAndAttributes.hlsl"
 
-#if REQUIRE_TANGENT_TO_WORLD
-#define VARYINGS_NEED_TANGENT_WS
-#endif
-
-#define VARYINGS_NEED_TEXCOORD0 // Always use with distortion
-
-#if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
-    #define VARYINGS_NEED_TEXCOORD1
-    #ifdef ATTRIBUTES_NEED_TEXCOORD2
-    #define VARYINGS_NEED_TEXCOORD2
-    #endif
-    #ifdef ATTRIBUTES_NEED_TEXCOORD3
-    #define VARYINGS_NEED_TEXCOORD3
-    #endif
-    #ifdef ATTRIBUTES_NEED_COLOR
-    #define VARYINGS_NEED_COLOR
-    #endif
-#endif
+// Remove local helper definitions.
+#include "LitParamDefsRem.hlsl"
 
 // This include will define the various Attributes/Varyings structure
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
