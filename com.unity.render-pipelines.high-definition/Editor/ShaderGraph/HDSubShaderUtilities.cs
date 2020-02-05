@@ -786,6 +786,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if ( instanceCount> 0)
                 {
+                    instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
+                    instancingOptions.AddShaderChunk("#endif");
+                    instancingOptions.AddShaderChunk("#if defined(SHADER_API_SWITCH)");
+                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
+                    instancingOptions.AddShaderChunk("#endif");
+
                     instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
                     instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
                     instancingOptions.AddShaderChunk("#endif");
