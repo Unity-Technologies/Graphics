@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                 feature.Create();
                 m_RendererFeatures.Add(feature);
             }
-            Clear();
+            Clear(CameraRenderType.Base);
         }
 
         public void Dispose()
@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
-        internal void Clear()
+        internal void Clear(CameraRenderType cameraType)
         {
             m_ActiveColorAttachments[0] = BuiltinRenderTextureType.CameraTarget;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
@@ -429,10 +429,11 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
-            m_InsideStereoRenderBlock = false;      
-            m_FirstTimeCameraColorTargetIsBound = true;
+            m_InsideStereoRenderBlock = false;
+
+            m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-            
+
             m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
