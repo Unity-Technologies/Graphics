@@ -15,7 +15,7 @@
 
 //-----------------------------------------------------------------------------
 //
-// Hardocded config
+// Hardcoded config
 //
 
 #define FORCE_DISABLE_LIGHT_TYPE_DIMMERS
@@ -513,6 +513,14 @@ real    F_FresnelDieletricSafe(real IOR, real u)
     return 0.5 * Sq((g - u) / max(1e-4, g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0)));
 }
 
+float Fresnel0ToIorSafe(float fresnel0)
+{
+    // We guard against f0 = 1,
+    // we always do conversion as if top has an IOR of 1.0, as the f0 is assumed
+    // measured and baked-in, ie to be evaluated as-is, with whatever was specified
+    // for the top in the rest of the AxF.
+    return Fresnel0ToIor(min(0.999, fresnel0)); 
+}
 
 //----------------------------------------------------------------------
 // Cook-Torrance functions as provided by X-Rite in the "AxF-Decoding-SDK-1.5.1/doc/html/page2.html#carpaint_BrightnessBRDF" document from the SDK
@@ -1375,22 +1383,32 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float  F = 1.0;
     switch (_SVBRDF_BRDFVariants & 3)
     {
-    case 1: F = F_FresnelDieletricSafe(bsdfData.fresnelF0.r, LdotH); break;
+    case 1: F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
     case 2: F = F_Schlick(bsdfData.fresnelF0.r, LdotH); break;
     }
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
-    //float2  rotH = (tsH.x * preLightData.anisoX + tsH.y * preLightData.anisoY) / tsH.z;
-    float2  rotH = tsH.xy / tsH.z;
-    float   N = exp(-Sq(rotH.x / bsdfData.roughness.x) - Sq(rotH.y / bsdfData.roughness.y))
-        / (PI * bsdfData.roughness.x*bsdfData.roughness.y);
+    //float2  rotH = tsH.xy / tsH.z;
+    float2  rotH = tsH.xy / max(0.00001, tsH.z);
+    //float2  roughness = bsdfData.roughness;
+    float2  roughness = max(0.0001, bsdfData.roughness);
+    //if (bsdfData.roughness.y == 0.0) bsdfData.specularColor = float3(1,0,0);
+
+    if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0) 
+    {
+        return 0;
+    }
+    
+    float   N = exp(-Sq(rotH.x / roughness.x) - Sq(rotH.y / roughness.y));
+    N /= max(0.0001, PI * roughness.x * roughness.y);
+    //N /= (PI * roughness.x * roughness.y);    
 
     switch ((_SVBRDF_BRDFVariants >> 2) & 3)
     {
-    case 0: N /= 4.0 * Sq(LdotH) * Sq(Sq(tsH.z)); break; // Moroder
-    case 1: N /= 4.0 * NdotL * NdotV; break;             // Duer
-    case 2: N /= 4.0 * sqrt(NdotL * NdotV); break;       // Ward
+    case 0: N /= max(0.0001, 4.0 * Sq(LdotH) * Sq(Sq(tsH.z))); break; // Moroder
+    case 1: N /= max(0.0001, 4.0 * NdotL * NdotV); break;             // Duer
+    case 2: N /= max(0.0001, 4.0 * sqrt(NdotL * NdotV)); break;       // Ward
     }
 
     return bsdfData.specularColor * F * N;
@@ -1402,9 +1420,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLi
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
-    //float2  rotH = tsH.x * preLightData.anisoX + tsH.y * preLightData.anisoY;
     float2  rotH = tsH.xy;
-
 
     float3  N = 0;
     switch ((_SVBRDF_BRDFVariants >> 4) & 3)
@@ -1412,7 +1428,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLi
     case 0:
     {   // Ashikmin-Shirley
         N = sqrt((1 + exponents.x) * (1 + exponents.y)) / (8 * PI)
-            * pow(saturate(tsH.z), (exponents.x * Sq(rotH.x) + exponents.y * Sq(rotH.y)) / (1 - Sq(tsH.z)))
+            * PositivePow(saturate(tsH.z), SafeDiv( (exponents.x * Sq(rotH.x) + exponents.y * Sq(rotH.y)), (1 - Sq(tsH.z)) ) )
             / (LdotH * max(NdotL, NdotV));
         break;
     }
@@ -1421,7 +1437,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLi
     {   // Blinn
         float   exponent = 0.5 * (exponents.x + exponents.y);    // Should be isotropic anyway...
         N = (exponent + 2) / (8 * PI)
-            * pow(saturate(tsH.z), exponent);
+            * PositivePow(saturate(tsH.z), exponent);
         break;
     }
 
@@ -1443,9 +1459,10 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, Pre
     float  F = F_Schlick(bsdfData.fresnelF0.r, LdotH);
 
     // Evaluate (isotropic) normal distribution function (Beckmann)
-    float   sqAlpha = bsdfData.roughness.x * bsdfData.roughness.y;
-    float   N = exp((sqNdotH - 1) / (sqNdotH * sqAlpha))
-        / (PI * Sq(sqNdotH) * sqAlpha);
+    float   roughness = GetScalarRoughnessFromAnisoRoughness(bsdfData.roughness.x, bsdfData.roughness.y);
+    float   sqAlpha = roughness*roughness;
+    float   N = exp((sqNdotH - 1) / max(0.00001, sqNdotH * sqAlpha))
+        / max(0.00001, PI * Sq(sqNdotH) * sqAlpha);
 
     // Evaluate shadowing/masking term
     float   G = G_CookTorrance(NdotH, NdotV, NdotL, LdotH);
@@ -1475,7 +1492,7 @@ float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     //                     = 1 / (0.5 + 0.5 * sqrt((1/Sq(NdotV) - 1)*a*a + 1))
     // which we have defined as G_MaskingSmithGGX() in  core/ShaderLibrary/BSDF.hlsl
     float   G = G_MaskingSmithGGX(NdotL, roughness) * G_MaskingSmithGGX(NdotV, roughness);
-    G /= 4.0 * NdotL * NdotV;
+    G /= max(0.00001, 4.0 * NdotL * NdotV);
 
     return bsdfData.specularColor * F * N * G;
 }
