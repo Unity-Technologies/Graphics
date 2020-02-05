@@ -140,6 +140,8 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #if defined(VARYINGS_NEED_TANGENT_WS) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
 #endif
+// TODO for tex coords: displacement?
+// See "LitVaryingsDsAndAttributes.hlsl".
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
     output.texCoord0 = input.uv0;
 #endif
