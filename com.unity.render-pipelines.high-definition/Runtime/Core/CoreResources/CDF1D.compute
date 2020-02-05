@@ -64,11 +64,11 @@ void KerName(uint3 id : SV_DispatchThreadID)
         if (k >= off)
         {
     #ifdef HORIZONTAL
-            _Output[id.xy] = 1.0f;
-                //(inVal + _Input[uint2(id.x - off, id.y      )]);
+            _Output[id.xy] = //1.0f;
+                (inVal + _Input[uint2(id.x - off, id.y      )]);
     #else
-            _Output[id.xy] = 1.0f;
-                //(inVal + _Input[uint2(id.x      , id.y - off)]);
+            _Output[id.xy] = //1.0f;
+                (inVal + _Input[uint2(id.x      , id.y - off)]);
     #endif
         }
         else

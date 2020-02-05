@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         });
                     }
 
-                    Debug.Log(String.Format("SKCode: {0}", _Idx));
+                    //Debug.Log(String.Format("SKCode: {0}", _Idx));
                     //cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0, );
 
                     generator.Init(latLongMap, 0, 0, cmd, dumpFile, _Idx);

@@ -42,20 +42,20 @@ namespace UnityEngine.Rendering
                 Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
 
             // Rescale pdf between 0 & 1
-            //RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            //RTHandleDeleter.ScheduleRelease(pdfCopy);
-            RTHandle pdfCopy = RTHandles.Alloc(density);
+            RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+            RTHandleDeleter.ScheduleRelease(pdfCopy);
+            //RTHandle pdfCopy = RTHandles.Alloc(density);
 
             string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
 
-//            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
-//#if DUMP_IMAGE
-//            if (dumpFile)
-//                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-//                {
-//                    Default(request, "___PDFCopy" + strName);
-//                });
-//#endif
+            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
+#if DUMP_IMAGE
+            if (dumpFile)
+                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
+                {
+                    Default(request, "___PDFCopy" + strName);
+                });
+#endif
 
 
 //            Rescale(pdfCopy, new Vector2(0.0f, hdriIntegral.w), cmd);
