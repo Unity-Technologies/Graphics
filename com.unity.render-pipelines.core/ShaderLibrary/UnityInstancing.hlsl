@@ -236,12 +236,12 @@
 
     // TODO: Revisit naming
     #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
-    #define UNITY_DOTS_INSTANCING_END         }
-    #define UNITY_DOTS_INSTANCED_PROP(name) uint unity_DOTSInstancingMetadata_##name;
+    #define UNITY_DOTS_INSTANCING_END(name)   }
+    #define UNITY_DOTS_INSTANCED_PROP(type, name) uint unity_DOTSInstancingMetadata_##name;
 
-    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) LoadDOTSInstancedData_##type(unity_DOTSInstancingMetadata_##var)
     #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) LoadDOTSInstancedData_##type(unity_DOTSInstancing##metadata_underscore_var)
-    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) LoadDOTSInstancedData_##type(unity_DOTSInstancingMetadata_##var)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
@@ -252,12 +252,12 @@
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
 
     #define UNITY_DOTS_INSTANCING_START(name)
-    #define UNITY_DOTS_INSTANCING_END
-    #define UNITY_DOTS_INSTANCED_PROP(name)
+    #define UNITY_DOTS_INSTANCING_END(name)
+    #define UNITY_DOTS_INSTANCED_PROP(type, name)
 
-    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) var
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) var
     #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) This_macro_cannot_be_called_without_UNITY_DOTS_INSTANCING_ENABLED
-    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
 #endif
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.
@@ -367,11 +367,11 @@
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_WorldToObject))
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject))
         #else
-            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_WorldToObject)
+            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
         #endif
     #else
 

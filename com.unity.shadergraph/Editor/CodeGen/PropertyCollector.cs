@@ -112,10 +112,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (prop.gpuInstanced)
                     {
-                        builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({prop.referenceName})");
+                        var n = prop.referenceName;
+                        string type = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
+                        builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({type}, {n})");
                     }
                 }
-                builder.AppendLine("UNITY_DOTS_INSTANCING_END");
+                builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
 
                 builder.AppendLine("// DOTS instancing usage macros");
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
