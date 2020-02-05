@@ -42,7 +42,7 @@
 	#define VARYINGS_NEED_COLOR
 #endif
 
-#ifdef _DOUBLESIDED_ON
+#if (defined(_DOUBLESIDED_ON) && defined(SHADER_STAGE_FRAGMENT))
 	#define VARYINGS_NEED_CULLFACE
 #endif
 

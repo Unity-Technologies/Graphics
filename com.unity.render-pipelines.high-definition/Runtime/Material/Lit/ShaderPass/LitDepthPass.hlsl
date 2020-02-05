@@ -42,7 +42,7 @@
         #endif
     #endif // (defined(_PIXEL_DISPLACEMENT) || defined(_ALPHATEST_ON))
 
-    #ifdef _DOUBLESIDED_ON
+    #if (defined(_DOUBLESIDED_ON) && defined(SHADER_STAGE_FRAGMENT))
         #define VARYINGS_NEED_CULLFACE
     #endif
 #endif // DEPTH_PASS_HAS_PS
