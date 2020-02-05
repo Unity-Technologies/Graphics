@@ -185,7 +185,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
              StencilRefactor,
              ZWriteForTransparent,
-             MaterialInstanceProperties
+             MaterialInstanceProperties,
+             UvProperties
         };
 
         #region Migrations
@@ -284,6 +285,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
                 BaseLitGUI.SetDisplacementScaleLocks(material);
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void UvProperties(Material material, HDShaderUtils.ShaderID id)
+        {
+            // For Lit/LitTessellation/LayeredLit/LayeredLitTessellation shaders, we replaced
+            //     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
+            // with
+            //     #pragma shader_feature_local _ _REQUIRE_UV01 _REQUIRE_UV012 _REQUIRE_UV0123
+
+            // Try not to touch irrelevant materials.
+            if (id == HDShaderUtils.ShaderID.Lit ||
+                id == HDShaderUtils.ShaderID.LitTesselation ||
+                id == HDShaderUtils.ShaderID.LayeredLit ||
+                id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
         }
