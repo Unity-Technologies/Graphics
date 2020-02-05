@@ -24,7 +24,7 @@
 // Tile size of this compute
 #define RAYTRACING_REFLECTIONS_TILE_SIZE 8
 
-//#define ENABLE_HDRISKY_MIS
+#define ENABLE_HDRISKY_MIS
 
 #ifdef ENABLE_HDRISKY_MIS
 // For Multiple Importance Sampling with the HDRI Sky
@@ -104,14 +104,14 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float3 sample;
     sample.x = GetBNDSequenceSample(halfResCoord, globalSampleIndex, 0);
     sample.y = GetBNDSequenceSample(halfResCoord, globalSampleIndex, 1);
-    sample.z = GetBNDSequenceSample(halfResCoord, globalSampleIndex, 2);
+    sample.z = 0*GetBNDSequenceSample(halfResCoord, globalSampleIndex, 2);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
     float  samplePDF;
 
 #ifdef ENABLE_HDRISKY_MIS
-    if (sample.z < 0.5f)
+    if (sample.z < 0.5)
 #endif
     {
         float NdotL, NdotH, VdotH;
@@ -138,6 +138,8 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     {
         float2 latlongUV;
         samplePDF = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+
+        //sampleDir = float3(0, 0, 1);
 
         samplePDF /= max(abs(sin(latlongUV.y*PI)), 1e-4);
     }
@@ -204,14 +206,16 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float3 sample;
     sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
     sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
-    sample.z = GetBNDSequenceSample(currentCoord, globalSampleIndex, 2);
+    sample.z = 0*GetBNDSequenceSample(currentCoord, globalSampleIndex, 2);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
     float  samplePDF;
 
 #ifdef ENABLE_HDRISKY_MIS
-    if (sample.z < 0.5f)
+    //if (sample.z < 0.5)
+    //if (true)
+    if (false)
 #endif
     {
         // If this direction is under the surface, let's generate a new one that won't be
@@ -239,8 +243,11 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
         float2 latlongUV;
         samplePDF = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
 
+        //sampleDir = float3(0, 1, 0);
+
         // Jacobian
-        samplePDF /= max(abs(sin(latlongUV.y*PI)), 1e-4);
+        //samplePDF = 1.0f/samplePDF;
+        samplePDF = max(abs(sin(latlongUV.y*PI)), 1e-4);
     }
 #endif
 

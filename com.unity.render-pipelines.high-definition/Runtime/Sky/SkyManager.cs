@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                //ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
+                ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
             }

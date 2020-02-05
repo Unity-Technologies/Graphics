@@ -60,7 +60,7 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         if (d <= dp)
         {
             _Output[uint2(u1*_InputSize.x, id.y)] = //float4(1, 0, 0, 0);
-                float4(saturate(float(id.x)*dp), TransformPDF(_PDF[uint2(u1*_InputSize.x, id.y)])*integral, 0.0f, 0.0f);
+                float4(saturate(float(id.x)*dp), TransformPDF(_PDF[uint2(u1*_InputSize.x, id.y)])*integral, 0.0f, 1.0f);
         }
         //float  u0    = saturate(_Input[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
         ////float  d     = (u1 - u0)*_InputSize.x;
@@ -119,7 +119,7 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
                     float4(
                     saturate(a*float(xi) + b),
                     //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
+                    TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 1.0f);
             }
         }
     #else
@@ -128,7 +128,7 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float d  = (u1 - u0); // *_OutputSize.y;
         if (d <= dp)
         {
-            _Output[uint2(id.x, u1*_InputSize.y)] = float4(saturate(float(id.y)*dp), TransformPDF(_PDF[uint2(id.x, u1*_InputSize.y)])*integral, 0.0f, 0.0f);
+            _Output[uint2(id.x, u1*_InputSize.y)] = float4(saturate(float(id.y)*dp), TransformPDF(_PDF[uint2(id.x, u1*_InputSize.y)])*integral, 0.0f, 1.0f);
         }
         //if (d > 1.0f)
         //{
@@ -183,7 +183,7 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
                     float4(
                     saturate(a*float(xi) + b),
                     //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
+                    TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 1.0f);
             }
         }
     #endif
