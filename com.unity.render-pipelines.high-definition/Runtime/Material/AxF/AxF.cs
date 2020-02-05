@@ -27,33 +27,14 @@ namespace UnityEngine.Rendering.HighDefinition
             AxfClearCoatRefraction  = 1 << 2,
             AxfUseHeightMap         = 1 << 3,
             AxfBRDFColorDiagonalClamp = 1 << 4,
+            //Some TODO:
             AxfHonorMinRoughness    = 1 << 8,
             AxfHonorMinRoughnessCoat = 1 << 9,  // the X-Rite viewer never shows a specular highlight on coat for dirac lights
             //Experimental:
-            AxfLtcPseudoRefraction  = 1 << 10,
-            AxfLtcFlakeMode         = 1 << 11,  // flake BTF handling mode for LTC lights, 11 and 12
-            AxfLtcBRDFColorMode     = 1 << 13,  // BRDFColor handling mode for LTC lights, 13 and 14
-            AxfEnvironmentMode      = 1 << 15   // Environment (specular indirect, IBL) handling mode, 15 and 16
             //
             // Warning: don't go over 23, or need to use float and bitcast on the UI side, and in the shader,
             // use float property/uniform and bitcast in hlsl code asuint()
         };
-
-        [GenerateHLSL]
-        public class AxFDefinitions
-        {
-            public static int s_AxfLtcFlakeModeNumbits = 2;
-            public static int s_AxfLtcBRDFColorModeNumbits = 2;
-            public static int s_AxfEnvironmentModeNumbits = 2;
-        };
-
-        // automatically set from quality param (0 => disables, eg see _AXF_ENV_SAMPLING_MODE_ON)
-        //[GenerateHLSL(PackingRules.Exact)]
-        //public enum MaterialFeatureFlags
-        //{
-        //    AxfSampleEnvironments   = 1 << 0,
-        //    AxfSampleLTC            = 1 << 1
-        //};
 
         //-----------------------------------------------------------------------------
         // SurfaceData

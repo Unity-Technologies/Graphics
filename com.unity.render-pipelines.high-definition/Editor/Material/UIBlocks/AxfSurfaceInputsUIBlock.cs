@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT");
 
-            public static GUIContent    CarPaintIORText = new GUIContent("IOR");
+            public static GUIContent    CarPaintIORText = new GUIContent("Clearcoat IOR");
 
             public static GUIContent    CarPaintCTDiffuseText = new GUIContent("Diffuse coeff");
             public static GUIContent    CarPaintLobeCountText = new GUIContent("CT Lobes count");
@@ -65,17 +65,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    clearcoatColorMapText = new GUIContent("Clearcoat Color");
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
-
-            // Misc advanced:
-            public const string advancedHeader = "Advanced Per Material Shading Controls";
-
-            public static GUIContent    lightTypeDimmersText  = new GUIContent("Light Type Dimmers", "indirect diffuse (SH), indirect specular (IBL), LTC, SSR.");
-            public static GUIContent    envSamplingModeQualityText  = new GUIContent("Env. Sampling Mode Quality", "0 disabled, up to 4");
-            public static GUIContent    envSamplingFilteringAmountText = new GUIContent("Env. Sampling Filtering Amount", "0 to 1");
-            public static GUIContent    ltcSamplingModeQualityText  = new GUIContent("Area Lights Sampling Mode Quality", "0 disabled, up to 4");
-            public static GUIContent    ltcFlakeModeText  = new GUIContent("Area Lights Flake Mode", "Area Lights Flake Mode");
-            public static GUIContent    ltcBRDFColorModeText  = new GUIContent("Area Lights BRDFColor Mode", "Area Lights BRDFColor Mode");
-            public static GUIContent    environmentModeText =  new GUIContent("Environment Mode", "Environment Mode");
 
         }
 
@@ -134,19 +123,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string               m_FlagsText = "_Flags";
         MaterialProperty  m_Flags;
-
-        // Other advanced controls:
-        static string               m_LightTypeDimmersText = "_LightTypeDimmers";
-        MaterialProperty  m_LightTypeDimmers;
-
-        static string               m_EnvSamplingModeQualityText = "_EnvSamplingModeQuality";
-        MaterialProperty  m_EnvSamplingModeQuality;
-
-        static string               m_EnvSamplingFilteringAmountText = "_EnvSamplingFilteringAmount";
-        MaterialProperty  m_EnvSamplingFilteringAmount;
-
-        static string               m_LTCSamplingModeQualityText = "_LTCSamplingModeQuality";
-        MaterialProperty  m_LTCSamplingModeQuality;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // SVBRDF Parameters
@@ -255,11 +231,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Flags = FindProperty(m_FlagsText);
 
-            m_LightTypeDimmers = FindProperty(m_LightTypeDimmersText);
-            m_EnvSamplingModeQuality = FindProperty(m_EnvSamplingModeQualityText);
-            m_EnvSamplingFilteringAmount = FindProperty(m_EnvSamplingFilteringAmountText);
-            m_LTCSamplingModeQuality = FindProperty(m_LTCSamplingModeQualityText);
-
             //////////////////////////////////////////////////////////////////////////
             // SVBRDF
             m_SVBRDF_BRDFType = FindProperty(m_SVBRDF_BRDFTypeText);
@@ -325,32 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // https://stackoverflow.com/questions/15967240/fastest-implementation-of-log2int-and-log2float
-        // http://aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
-        public static int NumBitsSet(uint x)
-        {
-            x -= ((x >> 1) & 0x55555555);
-            x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
-            x = (((x >> 4) + x) & 0x0f0f0f0f);
-            x += (x >> 8);
-            x += (x >> 16);
-            return (int)(x & 0x0000003f);
-        }
-        public static uint FloorLog2(uint x)
-        {
-            x |= (x >> 1);
-            x |= (x >> 2);
-            x |= (x >> 4);
-            x |= (x >> 8);
-            x |= (x >> 16);
-            return (uint)(NumBitsSet(x) - 1);
-        }
-
         public static uint GenFlags(bool anisotropy = false, bool clearcoat = false, bool clearcoatRefraction = false, bool useHeightMap = false, bool brdfColorDiagonalClamp = false,
-                                    bool honorMinRoughness = false,
-                                    bool ltcPseudoRefraction = false,
-                                    uint ltcFlakeMode = 0, uint ltcBRDFColorMode = 0,
-                                    uint environmentMode = 0)
+                                    bool honorMinRoughness = false)
         {
             uint flags = 0;
             flags |= anisotropy ? (uint) AxF.FeatureFlags.AxfAnisotropy : 0U;
@@ -359,23 +306,12 @@ namespace UnityEditor.Rendering.HighDefinition
             flags |= useHeightMap ? (uint) AxF.FeatureFlags.AxfUseHeightMap : 0U;
             flags |= brdfColorDiagonalClamp ? (uint) AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
             flags |= honorMinRoughness ? (uint) AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
-            flags |= ltcPseudoRefraction ? (uint) AxF.FeatureFlags.AxfLtcPseudoRefraction : 0U;
-            flags |= ( (ltcFlakeMode & ((1U<<AxF.AxFDefinitions.s_AxfLtcFlakeModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcFlakeMode));
-            flags |= ( (ltcBRDFColorMode & ((1U<<AxF.AxFDefinitions.s_AxfLtcBRDFColorModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcBRDFColorMode));
-            //uint envModeMask = ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1);
-            //int envModeOffset = (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode);
-            //environmentMode = environmentMode & envModeMask;
-            //flags |= (environmentMode << envModeOffset);
-            flags |= ( (environmentMode & ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1)) << (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode));
             return flags;
         }
 
         public static void ExtractFlags(uint flags,
                                         out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
-                                        out bool honorMinRoughness,
-                                        out bool ltcPseudoRefraction,
-                                        out uint ltcFlakeMode, out uint ltcBRDFColorMode,
-                                        out uint environmentMode)
+                                        out bool honorMinRoughness)
         {
             anisotropy             = (flags & (uint)AxF.FeatureFlags.AxfAnisotropy) != 0;
             clearcoat              = (flags & (uint)AxF.FeatureFlags.AxfClearCoat) != 0;
@@ -383,10 +319,6 @@ namespace UnityEditor.Rendering.HighDefinition
             useHeightMap           = (flags & (uint)AxF.FeatureFlags.AxfUseHeightMap) != 0;
             brdfColorDiagonalClamp = (flags & (uint)AxF.FeatureFlags.AxfBRDFColorDiagonalClamp) != 0;
             honorMinRoughness      = (flags & (uint)AxF.FeatureFlags.AxfHonorMinRoughness) != 0;
-            ltcPseudoRefraction    = (flags & (uint)AxF.FeatureFlags.AxfLtcPseudoRefraction) != 0;
-            ltcFlakeMode           = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcFlakeMode)) & ((1U<<AxF.AxFDefinitions.s_AxfLtcFlakeModeNumbits)-1);
-            ltcBRDFColorMode       = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfLtcBRDFColorMode)) & ((1U<<AxF.AxFDefinitions.s_AxfLtcBRDFColorModeNumbits)-1);
-            environmentMode        = (flags >> (int)FloorLog2((uint)AxF.FeatureFlags.AxfEnvironmentMode)) & ((1U<<AxF.AxFDefinitions.s_AxfEnvironmentModeNumbits)-1);
         }
 
         void DrawAxfSurfaceOptionsGUI()
@@ -400,23 +332,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Extract flag:
             uint flags = (uint)m_Flags.floatValue;
-            bool anisotropy;
-            bool clearcoat;
-            bool clearcoatRefraction;
-            bool useHeightMap;
-            bool brdfColorDiagonalClamp;
-            bool honorMinRoughness;
-            bool ltcPseudoRefraction;
-            uint ltcFlakeMode;
-            uint ltcBRDFColorMode;
-            uint environmentMode;
-
             ExtractFlags(flags,
-                         out anisotropy, out clearcoat, out clearcoatRefraction, out useHeightMap, out brdfColorDiagonalClamp,
-                         out honorMinRoughness,
-                         out ltcPseudoRefraction,
-                         out ltcFlakeMode, out ltcBRDFColorMode,
-                         out environmentMode);
+                         out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+                         out bool honorMinRoughness);
 
             switch (AxF_BRDFType)
             {
@@ -465,7 +383,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap);
 
                     // Displacement
-                    useHeightMap = EditorGUILayout.Toggle("Enable Displacement Map", useHeightMap);
+                    //TODO: unsupported for now
+                    //useHeightMap = EditorGUILayout.Toggle("Enable Displacement Map", useHeightMap);
+                    useHeightMap = false;
                     if (useHeightMap)
                     {
                         ++EditorGUI.indentLevel;
@@ -575,39 +495,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            // Draw other advanced options:
-            if (Config.s_ShowAdvanced)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(Styles.advancedHeader);
-                EditorGUILayout.Space();
-
-                ++EditorGUI.indentLevel;
-
-                honorMinRoughness = EditorGUILayout.Toggle("Honor Min Roughness", honorMinRoughness);
-                ltcPseudoRefraction = EditorGUILayout.Toggle("Area Lights Pseudo Refraction", ltcPseudoRefraction);
-                //ltcFlakeMode = EditorGUILayout.IntField(Styles.ltcFlakeModeText, ltcFlakeMode);
-                //ltcBRDFColorMode = EditorGUILayout.IntField(Styles.ltcBRDFColorModeText, ltcBRDFColorMode);
-                environmentMode = (uint) EditorGUILayout.IntField(Styles.environmentModeText, (int)environmentMode);
-
-                //m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, -4, 4);
-                m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntSlider(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue, 0, 4);
-                //m_EnvSamplingModeQuality.floatValue = (float) EditorGUILayout.IntField(Styles.envSamplingModeQualityText, (int) m_EnvSamplingModeQuality.floatValue);
-                //materialEditor.ShaderProperty(m_EnvSamplingModeQuality, Styles.envSamplingModeQualityText);
-                materialEditor.ShaderProperty(m_EnvSamplingFilteringAmount, Styles.envSamplingFilteringAmountText);
-                //m_LTCSamplingModeQuality.intValue = EditorGUILayout.IntField(Styles.ltcSamplingModeQualityText, m_LTCSamplingModeQuality.intValue);
-
-                m_LightTypeDimmers.vectorValue = EditorGUILayout.Vector4Field(Styles.lightTypeDimmersText, m_LightTypeDimmers.vectorValue);
-
-                --EditorGUI.indentLevel;
-            }
-
             // Finally write back flags:
             flags = GenFlags(anisotropy, clearcoat, clearcoatRefraction, useHeightMap, brdfColorDiagonalClamp,
-                             honorMinRoughness,
-                             ltcPseudoRefraction,
-                             ltcFlakeMode, ltcBRDFColorMode,
-                             environmentMode);
+                             honorMinRoughness);
             m_Flags.floatValue = (float)flags;
         }//DrawAxfSurfaceOptionsGUI
     }
