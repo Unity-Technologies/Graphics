@@ -115,10 +115,11 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             for (i = 1; i <= maxIter; ++i)
             {
                 uint xi = uint(u0*_InputSize.x + i);
-                _Output[uint2(xi, id.y)] = float4(
-                    saturate(a*float(xi) + b),
-                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
+                _Output[uint2(xi, id.y)] = 1.0f;
+                    //float4(
+                    //saturate(a*float(xi) + b),
+                    ////CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+                    //TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
             }
         }
     #else
@@ -178,10 +179,11 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             {
                 //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
                 uint xi = uint(u0*_InputSize.y + i);
-                _Output[uint2(id.x, xi)] = float4(
-                    saturate(a*float(xi) + b),
-                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
+                _Output[uint2(id.x, xi)] = 1.0f;
+                    //float4(
+                    //saturate(a*float(xi) + b),
+                    ////CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
+                    //TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
             }
         }
     #endif

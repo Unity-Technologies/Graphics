@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var cur in m_InternalData)
             {
                 if (cur.Value.isReady == false || cur.Value.inProgress)
+                //if (cur.Value.input != null && cur.Value.input.isReadable)
                 {
                     // Do only one per frame
                     //      One slice & one mip per frame
@@ -200,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="current">Informations needed to generate the marginal textures.</param>
         internal void GenerateMarginals(KeyValuePair<int, MarginalInfos> current, CommandBuffer cmd)
         {
-            //using( new ProfilingScope)
+            //using(new ProfilingScope)
 
             MarginalInfos value = current.Value;
 
@@ -213,7 +214,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int height      = -1;
             int slicesCount =  1;
 
-            bool dumpFile = true;
+            bool dumpFile =
+                false;
+                //true;
                 //value.currentMip == 0 && value.currentSlice == 0;
 
             if (value.input.dimension == TextureDimension.Tex2D ||
@@ -245,92 +248,121 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("ImportanceSamplerSystem: Marginal texture generator only avaiable for Texture2D{Array?} or Cubemap{Array?}.");
             }
 
-            // Compute one slice & one mip per frame, we allocate the marginals once
-            if (value.marginals.marginal == null)
-            {
-                value.marginals.marginal =
-                    RTHandles.Alloc(1, height, slices: slicesCount, colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
-            }
-            if (value.marginals.conditionalMarginal == null)
-            {
-                value.marginals.conditionalMarginal =
-                    RTHandles.Alloc(width, height, slices: slicesCount, colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
-            }
-
             ImportanceSampler2D generator = new ImportanceSampler2D();
 
-            if (value.input.dimension == TextureDimension.Tex2D ||
-                value.input.dimension == TextureDimension.Tex2DArray)
+            using (new ProfilingScope(cmd, new ProfilingSampler("BuildMarginalsInternal")))
             {
-                generator.Init(value.input, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
-            }
-            else if (value.input.dimension == TextureDimension.Cube ||
-                     value.input.dimension == TextureDimension.CubeArray)
-            {
-                int curWidth    = Mathf.RoundToInt((float)width /Mathf.Pow(2.0f, (float)value.currentMip));
-                int curHeight   = Mathf.RoundToInt((float)height/Mathf.Pow(2.0f, (float)value.currentMip));
-
-                RTHandle latLongMap = RTHandles.Alloc(  curWidth, curHeight,
-                                                        colorFormat: internalFormat,
-                                                        enableRandomWrite: true);
-                RTHandleDeleter.ScheduleRelease(latLongMap);
-                RTHandle cubemap = RTHandles.Alloc( current.Value.input.width, current.Value.input.height,
-                                                    useMipMap: true,
-                                                    autoGenerateMips: false,
-                                                    dimension: TextureDimension.Cube,
-                                                    colorFormat: value.input.graphicsFormat,
-                                                    enableRandomWrite: true);
-                RTHandleDeleter.ScheduleRelease(cubemap);
-                for (int i = 0; i < 6; ++i)
+                // Compute one slice & one mip per frame, we allocate the marginals once
+                if (value.marginals.marginal == null)
                 {
-                    cmd.CopyTexture(value.input, 6*current.Value.currentSlice + i, cubemap, i);
+                    value.marginals.marginal =
+                        RTHandles.Alloc(1, height, slices: slicesCount, colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
+                }
+                if (value.marginals.conditionalMarginal == null)
+                {
+                    value.marginals.conditionalMarginal =
+                        RTHandles.Alloc(width, height, slices: slicesCount, colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
                 }
 
-                var hdrp = HDRenderPipeline.defaultAsset;
-                Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                //cubeToLatLong.SetTexture("_srcCubeTexture", cubemap);
-                //cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
-                m_MaterialBlock.SetTexture("_srcCubeTexture", cubemap);
-                m_MaterialBlock.SetInt("_cubeMipLvl", current.Value.currentMip);
-                //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, (float)latLongMap.rt.width, (float)latLongMap.rt.height), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, 1.0f, 1.0f), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                //current.Value.input.
-                float scale = Mathf.Min(1.0f/RTHandles.rtHandleProperties.rtHandleScale.x, 1.0f/RTHandles.rtHandleProperties.rtHandleScale.y);
-                HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, ((float)latLongMap.rt.width)*scale, ((float)latLongMap.rt.height)*scale), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                if (value.input.dimension == TextureDimension.Tex2D ||
+                    value.input.dimension == TextureDimension.Tex2DArray)
                 {
-                    //DefaultDumper(request, String.Format("___FirstInput_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                    DefaultDumper(request, "___FirstInput_" + current.Key.ToString() +
-                                           "_" + _Idx +
-                                           "_" + current.Value.currentSlice +
-                                           "_" + current.Value.currentMip);
-                });
+                    generator.Init(value.input, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
+                }
+                else if (value.input.dimension == TextureDimension.Cube ||
+                         value.input.dimension == TextureDimension.CubeArray)
+                {
+                    int curWidth  = Mathf.RoundToInt((float)width /Mathf.Pow(2.0f, (float)value.currentMip));
+                    int curHeight = Mathf.RoundToInt((float)height/Mathf.Pow(2.0f, (float)value.currentMip));
 
-                //Debug.Log(String.Format("SKCode: {0}", _Idx));
-                //cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0, );
+                    RTHandle latLongMap = RTHandles.Alloc(  curWidth, curHeight,
+                                                            colorFormat: internalFormat,
+                                                            enableRandomWrite: true);
+                    RTHandleDeleter.ScheduleRelease(latLongMap);
+                    //RTHandle cubemap = RTHandles.Alloc(current.Value.input.width, current.Value.input.height,
+                    //                                    useMipMap: true,
+                    //                                    autoGenerateMips: false,
+                    //                                    dimension: TextureDimension.Cube,
+                    //                                    colorFormat: value.input.graphicsFormat,
+                    //                                    enableRandomWrite: true);
+                    //RTHandleDeleter.ScheduleRelease(cubemap);
+                    //for (int i = 0; i < 6; ++i)
+                    //{
+                    //    cmd.CopyTexture(value.input, 6*current.Value.currentSlice + i, cubemap, i);
+                    //}
 
-                generator.Init(latLongMap, 0, 0, cmd, /*dumpFile*/false, _Idx);
+                    var hdrp = HDRenderPipeline.defaultAsset;
+                    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                    //cubeToLatLong.SetTexture("_srcCubeTexture", cubemap);
+                    //cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
+                    if (value.input.dimension == TextureDimension.Cube)
+                    {
+                        //m_MaterialBlock.SetTexture("_srcCubeTexture", value.input);
+                        cubeToLatLong.SetTexture("_srcCubeTexture", value.input);
+                    }
+                    else
+                    {
+                        //m_MaterialBlock.SetTexture("_srcCubeTextureArray", value.input);
+                        cubeToLatLong.SetTexture("_srcCubeTextureArray", value.input);
+                    }
+                    //m_MaterialBlock.SetInt("_cubeMipLvl", current.Value.currentMip);
+                    //m_MaterialBlock.SetInt("_cubeArrayIndex", current.Value.currentSlice);
+                    cubeToLatLong.SetInt("_cubeMipLvl", 0*current.Value.currentMip);
+                    cubeToLatLong.SetInt("_cubeArrayIndex", 0*current.Value.currentSlice);
+                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, (float)latLongMap.rt.width, (float)latLongMap.rt.height), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, 1.0f, 1.0f), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    //current.Value.input.
+                    //float scale = Mathf.Min(1.0f/RTHandles.rtHandleProperties.rtHandleScale.x, 1.0f/RTHandles.rtHandleProperties.rtHandleScale.y);
+                    //float scale = Mathf.Min(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
+                    //float scale = 1.0f;
+                    //cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, Vector4.one);
+                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, ((float)latLongMap.rt.width)*scale, ((float)latLongMap.rt.height)*scale), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, ((float)latLongMap.rt.width)*scale, ((float)latLongMap.rt.height)*scale), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    //HDUtils.DrawFullScreen(cmd, cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, value.input.dimension == TextureDimension.Cube ? 0 : 1);
+                    if (dumpFile)
+                    {
+                        cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                        {
+                            //DefaultDumper(request, String.Format("___FirstInput_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                            DefaultDumper(request, "___FirstInput_" + current.Key.ToString() +
+                                    "_" + _Idx +
+                                    "_" + current.Value.currentSlice +
+                                    "_" + current.Value.currentMip);
+                        });
+                    }
+
+                    Debug.Log(String.Format("SKCode: {0}", _Idx));
+                    //cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0, );
+
+                    generator.Init(latLongMap, 0, 0, cmd, dumpFile, _Idx);
+                }
+
+                cmd.CopyTexture(generator.invCDFRows, 0, 0, value.marginals.marginal,            current.Value.currentSlice, current.Value.currentMip);
+                cmd.CopyTexture(generator.invCDFFull, 0, 0, value.marginals.conditionalMarginal, current.Value.currentSlice, current.Value.currentMip);
             }
-
-            cmd.CopyTexture(generator.invCDFRows, 0, 0, value.marginals.marginal,            current.Value.currentSlice, current.Value.currentMip);
-            cmd.CopyTexture(generator.invCDFFull, 0, 0, value.marginals.conditionalMarginal, current.Value.currentSlice, current.Value.currentMip);
 
             if (current.Value.currentMip + 1 == value.input.mipmapCount)
             {
                 if (current.Value.currentSlice + 1 == slicesCount)
                 {
                     current.Value.inProgress    = false;
-                    current.Value.isReady       = true;
-                    //cmd.RequestAsyncReadback(generator.invCDFRows, delegate (AsyncGPUReadbackRequest request)
-                    //{
-                    //    //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                    //    DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
-                    //});
-                    //cmd.RequestAsyncReadback(generator.invCDFFull, delegate (AsyncGPUReadbackRequest request)
-                    //{
-                    //    //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                    //    DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
-                    //});
+                    //current.Value.isReady       = true;
+                    current.Value.currentMip    = 0;
+                    current.Value.currentSlice  = 0;
+                    if (dumpFile)
+                    {
+                        cmd.RequestAsyncReadback(generator.invCDFRows, delegate (AsyncGPUReadbackRequest request)
+                        {
+                        //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                        DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                        });
+                        cmd.RequestAsyncReadback(generator.invCDFFull, delegate (AsyncGPUReadbackRequest request)
+                        {
+                        //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+                        DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                        });
+                    }
                 }
                 else
                 {
@@ -344,10 +376,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 current.Value.isReady       = false;
             }
 
-            current.Value.currentMip++;
+            //current.Value.currentMip++;
             if (current.Value.currentMip == value.input.mipmapCount)
             {
-                current.Value.currentSlice++;
+                // SKCode
+                //current.Value.currentSlice++;
                 current.Value.currentMip = 0;
             }
             ++_Idx;

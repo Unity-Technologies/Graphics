@@ -1673,16 +1673,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
-                        // Done (in the best case) once per frame
+                        //// Done (in the best case) once per frame
                         {
                             var cmd = CommandBufferPool.Get("");
-                            // Generate Marginals texture for importance sampling
-                            ImportanceSamplers.Update(cmd);
-                            renderContext.ExecuteCommandBuffer(cmd);
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildMarginals)))
+                            {
+                                // Generate Marginals texture for importance sampling
+                                ImportanceSamplers.Update(cmd);
+                                renderContext.ExecuteCommandBuffer(cmd);
+
+                                RTHandleDeleter.Update();
+                            }
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
-
-                            RTHandleDeleter.Update();
                         }
 
                         // Execute render request graph, in reverse order

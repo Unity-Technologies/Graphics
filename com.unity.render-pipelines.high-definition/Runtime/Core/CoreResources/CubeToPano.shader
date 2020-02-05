@@ -3,32 +3,22 @@ Properties {
     _SrcBlend ("", Float) = 1
     _DstBlend ("", Float) = 1
 }
-SubShader {
 
-
-
-
-Pass
-{
-    ZWrite Off
-    ZTest Always
-    Cull Off
-    Blend Off
-
-
-CGPROGRAM
+HLSLINCLUDE
+#pragma editor_sync_compilation
 #pragma target 4.5
-#pragma vertex vert
-#pragma fragment frag
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "UnityCG.cginc"
 
 UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
+UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
 
 uniform int _cubeMipLvl;
+uniform int _cubeArrayIndex;
 
-
-struct v2f {
+struct v2f
+{
     float4 vertex : SV_POSITION;
     float2 texcoord : TEXCOORD0;
 };
@@ -46,7 +36,7 @@ half2 DirectionToSphericalTexCoordinate(half3 dir_in)      // use this for the l
     half3 dir = normalize(dir_in);
     // coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
     float recipPi = 1.0/3.1415926535897932384626433832795;
-    return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi+0.5 );
+    return half2( 1.0-0.5*recipPi*atan2(dir.x, -dir.z), asin(dir.y)*recipPi + 0.5 );
 }
 
 half3 SphericalTexCoordinateToDirection(half2 sphTexCoord)
@@ -63,18 +53,73 @@ half3 SphericalTexCoordinateToDirection(half2 sphTexCoord)
     return float3(siTh*csPh, siPh, -csTh*csPh);
 }
 
-half4 frag (v2f i) : SV_Target
+half3 GetDir(float2 texCoord)
+{
+    //return SphericalTexCoordinateToDirection(texCoord.xy);
+    float theta = texCoord.y * UNITY_PI;
+    float phi = (texCoord.x * 2.f * UNITY_PI - UNITY_PI * 0.5f);
+
+    float cosTheta = cos(theta);
+    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta * cosTheta));
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
+    direction.xy *= -1.0;
+
+    return direction;
+}
+
+half4 frag(v2f i) : SV_Target
 {
     uint2 pixCoord = ((uint2) i.vertex.xy);
 
-    half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
+    //half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
 
-    return (half4) UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl);
+    half3 dir = GetDir(i.texcoord.xy);
+
+    return (half4)UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl);
 }
 
-ENDCG
+half4 fragArray(v2f i) : SV_Target
+{
+    uint2 pixCoord = ((uint2) i.vertex.xy);
+
+    //half3 dir = SphericalTexCoordinateToDirection(i.texcoord.xy);
+
+    half3 dir = GetDir(i.texcoord.xy);
+
+    return (half4)UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl);
 }
 
+ENDHLSL
+
+SubShader {
+    Pass
+    {
+        ZWrite Off
+        ZTest Always
+        Cull Off
+        Blend Off
+
+        HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+        ENDHLSL
+    }
+
+    Pass
+    {
+        ZWrite Off
+        ZTest Always
+        Cull Off
+        Blend Off
+
+        HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment fragArray
+        ENDHLSL
+    }
 }
 Fallback Off
 }

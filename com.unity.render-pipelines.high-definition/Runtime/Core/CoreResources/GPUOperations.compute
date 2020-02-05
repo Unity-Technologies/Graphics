@@ -121,6 +121,7 @@ void KerName(uint3 id : SV_DispatchThreadID)
 #endif
         }
 
-        _Output[id.xy] = ToOutput(opVal);
+        _Output[id.xy] = 1.0f;
+            //ToOutput(opVal);
     }
 }

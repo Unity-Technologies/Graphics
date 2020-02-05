@@ -42,19 +42,22 @@ namespace UnityEngine.Rendering
                 Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
 
             // Rescale pdf between 0 & 1
-            RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(pdfCopy);
+            //RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+            //RTHandleDeleter.ScheduleRelease(pdfCopy);
+            RTHandle pdfCopy = RTHandles.Alloc(density);
 
             string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
 
-            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "___PDFCopy" + strName);
-                });
-#endif
+//            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
+//#if DUMP_IMAGE
+//            if (dumpFile)
+//                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
+//                {
+//                    Default(request, "___PDFCopy" + strName);
+//                });
+//#endif
+
+
 //            Rescale(pdfCopy, new Vector2(0.0f, hdriIntegral.w), cmd);
 //#if DUMP_IMAGE
 //            cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
@@ -67,274 +70,315 @@ namespace UnityEngine.Rendering
             /// Full
             ////////////////////////////////////////////////////////////////////////////////
             // MinMax of rows
-            RTHandle minMaxFull0 = GPUOperation.ComputeOperation(
-                                    pdfCopy,
-                                    cmd,
-                                    GPUOperation.Operation.MinMax,
-                                    GPUOperation.Direction.Horizontal,
-                                    2, // opPerThread
-                                    true, // isPDF
-                                    internalFormat);
-            RTHandleDeleter.ScheduleRelease(minMaxFull0);
+            RTHandle minMaxFull0;
+            using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRows")))
+            {
+                minMaxFull0 = GPUOperation.ComputeOperation(
+                                                pdfCopy,
+                                                cmd,
+                                                GPUOperation.Operation.MinMax,
+                                                GPUOperation.Direction.Horizontal,
+                                                2, // opPerThread
+                                                true, // isPDF
+                                                internalFormat);
+                RTHandleDeleter.ScheduleRelease(minMaxFull0);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxFull0, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "00_MinMaxOfRows" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(minMaxFull0, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "00_MinMaxOfRows" + strName);
+                    });
+#endif
+            }
+
+            RTHandle minMaxFull1;
+            using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRowsAndRescale")))
+            {
+                // MinMax of the MinMax of rows => Single Pixel
+                minMaxFull1 = GPUOperation.ComputeOperation(
+                                            minMaxFull0,
+                                            cmd,
+                                            GPUOperation.Operation.MinMax,
+                                            GPUOperation.Direction.Vertical,
+                                            2, // opPerThread
+                                            false, // isPDF
+                                            internalFormat);
+                RTHandleDeleter.ScheduleRelease(minMaxFull1);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(minMaxFull1, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "01_MinMaxOfMinMaxOfRows" + strName);
+                    });
+#endif
+                Rescale(pdfCopy, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "02_PDFRescaled" + strName);
+                    });
+#endif
+            }
+            RTHandle cdfFull;
+            using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFRescaled")))
+            {
+                // Compute the CDF of the rows of the rescaled PDF
+                cdfFull = ComputeCDF1D.ComputeCDF(
+                                        pdfCopy,
+                                        cmd,
+                                        ComputeCDF1D.SumDirection.Horizontal,
+                                        internalFormat);
+                RTHandleDeleter.ScheduleRelease(cdfFull);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "03_CDFFull" + strName);
+                    });
+#endif
+            }
+
+            RTHandle minMaxFull;
+            RTHandle sumRows;
+            using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxRowsCDFAndRescale")))
+            {
+                // Rescale between 0 & 1 the rows_cdf: to be inverted in UV
+                minMaxFull = GPUOperation.ComputeOperation(
+                                            cdfFull,
+                                            cmd,
+                                            GPUOperation.Operation.MinMax,
+                                            GPUOperation.Direction.Horizontal,
+                                            2,
+                                            false,
+                                            internalFormat);
+                RTHandleDeleter.ScheduleRelease(minMaxFull);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(minMaxFull, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "04_MinMaxCDF" + strName);
+                    });
 #endif
 
-            // MinMax of the MinMax of rows => Single Pixel
-            RTHandle minMaxFull1 = GPUOperation.ComputeOperation(
-                                    minMaxFull0,
-                                    cmd,
-                                    GPUOperation.Operation.MinMax,
-                                    GPUOperation.Direction.Vertical,
-                                    2, // opPerThread
-                                    false, // isPDF
-                                    internalFormat);
-            RTHandleDeleter.ScheduleRelease(minMaxFull1);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxFull1, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "01_MinMaxOfMinMaxOfRows" + strName);
-                });
-#endif
-            Rescale(pdfCopy, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "02_PDFRescaled" + strName);
-                });
-#endif
+                ////////////////////////////////////////////////////////////////////////////////
+                /// Rows
+                // Before Rescaling the CDFFull
+                sumRows = RTHandles.Alloc(1, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(sumRows);
 
-            // Compute the CDF of the rows of the rescaled PDF
-            RTHandle cdfFull = ComputeCDF1D.ComputeCDF(
-                                    pdfCopy,
-                                    cmd,
-                                    ComputeCDF1D.SumDirection.Horizontal,
-                                    internalFormat);
-            RTHandleDeleter.ScheduleRelease(cdfFull);
+                // Last columns of "CDF of rows" already contains the sum of rows
+                cmd.CopyTexture(cdfFull, 0, 0, width - 1, 0, 1, height, sumRows, 0, 0, 0, 0);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "03_CDFFull" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "05_SumRowsFromCopy" + strName);
+                    });
 #endif
+            ////////////////////////////////////////////////////////////////////////////////
 
-            // Rescale between 0 & 1 the rows_cdf: to be inverted in UV
-            RTHandle minMaxFull = GPUOperation.ComputeOperation(
-                                    cdfFull,
-                                    cmd,
-                                    GPUOperation.Operation.MinMax,
-                                    GPUOperation.Direction.Horizontal,
-                                    2,
-                                    false,
-                                    internalFormat);
-            RTHandleDeleter.ScheduleRelease(minMaxFull);
+                Rescale(cdfFull, minMaxFull, GPUOperation.Direction.Horizontal, cmd);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "04_MinMaxCDF" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "06_CDFRescaled" + strName);
+                    });
 #endif
+            }
 
             ////////////////////////////////////////////////////////////////////////////////
             /// Rows
-            // Before Rescaling the CDFFull
-            RTHandle sumRows = RTHandles.Alloc(1, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(sumRows);
-
-            // Last columns of "CDF of rows" already contains the sum of rows
-            cmd.CopyTexture(cdfFull, 0, 0, width - 1, 0, 1, height, sumRows, 0, 0, 0, 0);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "05_SumRowsFromCopy" + strName);
-                });
-#endif
             ////////////////////////////////////////////////////////////////////////////////
 
-            Rescale(cdfFull, minMaxFull, GPUOperation.Direction.Horizontal, cmd);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "06_CDFRescaled" + strName);
-                });
-#endif
-
-            ////////////////////////////////////////////////////////////////////////////////
-            /// Rows
-            ////////////////////////////////////////////////////////////////////////////////
-
-            // Minmax of rows
-            RTHandle minMaxRows = GPUOperation.ComputeOperation(sumRows,
+            RTHandle minMaxRows;
+            using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxColsCDFAndRescale")))
+            {
+                // Minmax of rows
+                minMaxRows = GPUOperation.ComputeOperation(
+                                                    sumRows,
                                                     cmd,
                                                     GPUOperation.Operation.MinMax,
                                                     GPUOperation.Direction.Vertical,
                                                     2,
                                                     false,
                                                     internalFormat);
-            RTHandleDeleter.ScheduleRelease(minMaxRows);
+                RTHandleDeleter.ScheduleRelease(minMaxRows);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "07_MinMaxSumOfRows" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(minMaxRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "07_MinMaxSumOfRows" + strName);
+                    });
 #endif
 
-            // Rescale sum of rows
-            Rescale(sumRows, minMaxRows, GPUOperation.Direction.Vertical, cmd, true);
+                // Rescale sum of rows
+                Rescale(sumRows, minMaxRows, GPUOperation.Direction.Vertical, cmd, true);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "08_SumRowsRescaled" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "08_SumRowsRescaled" + strName);
+                    });
 #endif
-            RTHandle cdfRows = ComputeCDF1D.ComputeCDF(
+            }
+
+            RTHandle cdfRows;
+            using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFCols")))
+            {
+                cdfRows = ComputeCDF1D.ComputeCDF(
                                     sumRows,
                                     cmd,
                                     ComputeCDF1D.SumDirection.Vertical,
                                     internalFormat);
-            RTHandleDeleter.ScheduleRelease(cdfRows);
+                RTHandleDeleter.ScheduleRelease(cdfRows);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "09_CDFRows" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "09_CDFRows" + strName);
+                    });
 #endif
-            RTHandle minMaxCDFRows = GPUOperation.ComputeOperation(cdfRows,
-                                                    cmd,
-                                                    GPUOperation.Operation.MinMax,
-                                                    GPUOperation.Direction.Vertical,
-                                                    2,
-                                                    false,
-                                                    internalFormat);
-            RTHandleDeleter.ScheduleRelease(minMaxCDFRows);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(minMaxCDFRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "10_MinMaxCDFRows" + strName);
-                });
-#endif
-            Rescale(cdfRows, minMaxCDFRows, GPUOperation.Direction.Vertical, cmd, true);
-#if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "11_MinMaxCDFRowsRescaled" + strName);
-                });
-#endif
+            }
 
-            // Compute inverse of CDFs
-            invCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
-                                                        pdfCopy,
-                                                        Vector4.one,
+            RTHandle minMaxCDFRows;
+            using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxCDFAndRescale_")))
+            {
+                minMaxCDFRows = GPUOperation.ComputeOperation(cdfRows,
                                                         cmd,
-                                                        ComputeCDF1D.SumDirection.Horizontal,
+                                                        GPUOperation.Operation.MinMax,
+                                                        GPUOperation.Direction.Vertical,
+                                                        2,
+                                                        false,
                                                         internalFormat);
+                RTHandleDeleter.ScheduleRelease(minMaxCDFRows);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "12_InvCDFFull" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(minMaxCDFRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "10_MinMaxCDFRows" + strName);
+                    });
 #endif
-            invCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
-                                                        pdfCopy,
-                                                        Vector4.one,
-                                                        //hdriIntegral,
-                                                        cmd,
-                                                        ComputeCDF1D.SumDirection.Vertical,
-                                                        internalFormat);
+                Rescale(cdfRows, minMaxCDFRows, GPUOperation.Direction.Vertical, cmd, true);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "13_InvCDFRows" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "11_MinMaxCDFRowsRescaled" + strName);
+                    });
 #endif
+            }
 
-            // Generate sample from invCDFs
-            uint threadsCount        = 64u;
-            uint samplesPerThread    = 8u;
-            // SamplesCount can only be in the set {32, 64, 512} cf. "ImportanceLatLongIntegration.compute" kernel available 'ThreadsCount'
-            uint samplesCount        = threadsCount*samplesPerThread;
-            RTHandle samples = GenerateSamples(samplesCount, invCDFRows, invCDFFull, GPUOperation.Direction.Horizontal, cmd);
-            RTHandleDeleter.ScheduleRelease(samples);
+            using (new ProfilingScope(cmd, new ProfilingSampler("InverseCDFConditional")))
+            {
+                // Compute inverse of CDFs
+                invCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
+                                                            pdfCopy,
+                                                            Vector4.one,
+                                                            cmd,
+                                                            ComputeCDF1D.SumDirection.Horizontal,
+                                                            internalFormat);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(samples, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "Samples" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "12_InvCDFFull" + strName);
+                    });
 #endif
-
-            int kernel;
-
-            var hdrp = HDRenderPipeline.defaultAsset;
-            /////////////////////////////////////////////////////////
-            /// Integrate Sphere
-            RTHandle sphereIntegralTexture = RTHandles.Alloc(3, 1, colorFormat: internalFormat, enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(sphereIntegralTexture);
-
-            ComputeShader importanceLatLongIntegration = hdrp.renderPipelineResources.shaders.importanceLatLongIntegrationCS;
-
-            kernel = importanceLatLongIntegration.FindKernel("CSMain" + samplesCount.ToString());
-
-            cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Input, density);
-            cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Samples, samples);
-            cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Output, sphereIntegralTexture);
-            cmd.SetComputeIntParams   (importanceLatLongIntegration,         HDShaderIDs._Sizes,
-                                       width, height, (int)samplesCount, 1);
-            cmd.SetComputeIntParams   (importanceLatLongIntegration, "_SamplesPerThread", (int)samplesPerThread);
-            cmd.SetComputeFloatParams (importanceLatLongIntegration,         HDShaderIDs._Params, 1.0f/((float)samplesPerThread), 0.0f, 0.0f, 0.0f);
-
-            cmd.DispatchCompute(importanceLatLongIntegration, kernel, 1, 1, 1);
+            }
+            using (new ProfilingScope(cmd, new ProfilingSampler("InverseCDFRows")))
+            {
+                invCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
+                                                            pdfCopy,
+                                                            Vector4.one,
+                                                            //hdriIntegral,
+                                                            cmd,
+                                                            ComputeCDF1D.SumDirection.Vertical,
+                                                            internalFormat);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(sphereIntegralTexture, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "Integrations" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "13_InvCDFRows" + strName);
+                    });
 #endif
-            /////////////////////////////////////////////////////////
+            }
 
-            //
-            RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(m_OutDebug);
 
-            //var hdrp = HDRenderPipeline.defaultAsset;
-            ComputeShader outputDebug2D = hdrp.renderPipelineResources.shaders.OutputDebugCS;
-
-            kernel = outputDebug2D.FindKernel("CSMain");
-
-            cmd.CopyTexture(density, m_OutDebug);
-
-            cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,  m_OutDebug);
-            cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples, samples);
-            cmd.SetComputeIntParams   (outputDebug2D, HDShaderIDs._Sizes,
-                                       width, height, samples.rt.width, 1);
-
-            int numTilesX = (samples.rt.width  + (8 - 1))/8;
-            cmd.DispatchCompute(outputDebug2D, kernel, numTilesX, 1, 1);
+            using (new ProfilingScope(cmd, new ProfilingSampler("DebugInfos")))
+            {
+                // Generate sample from invCDFs
+                uint threadsCount        = 64u;
+                uint samplesPerThread    = 8u;
+                // SamplesCount can only be in the set {32, 64, 512} cf. "ImportanceLatLongIntegration.compute" kernel available 'ThreadsCount'
+                uint samplesCount        = threadsCount*samplesPerThread;
+                RTHandle samples = GenerateSamples(samplesCount, invCDFRows, invCDFFull, GPUOperation.Direction.Horizontal, cmd);
+                RTHandleDeleter.ScheduleRelease(samples);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(m_OutDebug, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "Debug" + strName);
-                });
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(samples, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "Samples" + strName);
+                    });
 #endif
+
+                int kernel;
+
+                var hdrp = HDRenderPipeline.defaultAsset;
+                /////////////////////////////////////////////////////////
+                /// Integrate Sphere
+                RTHandle sphereIntegralTexture = RTHandles.Alloc(3, 1, colorFormat: internalFormat, enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(sphereIntegralTexture);
+
+                ComputeShader importanceLatLongIntegration = hdrp.renderPipelineResources.shaders.importanceLatLongIntegrationCS;
+
+                kernel = importanceLatLongIntegration.FindKernel("CSMain" + samplesCount.ToString());
+
+                cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Input, density);
+                cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Samples, samples);
+                cmd.SetComputeTextureParam(importanceLatLongIntegration, kernel, HDShaderIDs._Output, sphereIntegralTexture);
+                cmd.SetComputeIntParams   (importanceLatLongIntegration,         HDShaderIDs._Sizes,
+                                           width, height, (int)samplesCount, 1);
+                cmd.SetComputeIntParams   (importanceLatLongIntegration, "_SamplesPerThread", (int)samplesPerThread);
+                cmd.SetComputeFloatParams (importanceLatLongIntegration,         HDShaderIDs._Params, 1.0f/((float)samplesPerThread), 0.0f, 0.0f, 0.0f);
+
+                cmd.DispatchCompute(importanceLatLongIntegration, kernel, 1, 1, 1);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(sphereIntegralTexture, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "Integrations" + strName);
+                    });
+#endif
+                /////////////////////////////////////////////////////////
+
+                //
+                RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(m_OutDebug);
+
+                //var hdrp = HDRenderPipeline.defaultAsset;
+                ComputeShader outputDebug2D = hdrp.renderPipelineResources.shaders.OutputDebugCS;
+
+                kernel = outputDebug2D.FindKernel("CSMain");
+
+                cmd.CopyTexture(density, m_OutDebug);
+
+                cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,  m_OutDebug);
+                cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples, samples);
+                cmd.SetComputeIntParams   (outputDebug2D, HDShaderIDs._Sizes,
+                                           width, height, samples.rt.width, 1);
+
+                int numTilesX = (samples.rt.width  + (8 - 1))/8;
+                cmd.DispatchCompute(outputDebug2D, kernel, numTilesX, 1, 1);
+#if DUMP_IMAGE
+                if (dumpFile)
+                    cmd.RequestAsyncReadback(m_OutDebug, delegate (AsyncGPUReadbackRequest request)
+                    {
+                        Default(request, "Debug" + strName);
+                    });
+#endif
+            }
         }
 
         private void Rescale(RTHandle tex, RTHandle minMax, GPUOperation.Direction direction, CommandBuffer cmd, bool single = false)
