@@ -35,6 +35,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 | ----------------------- | ------------------------------------------------------------ |
 | **Size**                | The 3D size of the projector influence box, and thus the decal. The projector scales the decal to match the **X** and **Z** components of the **Size**. The Decal Projector component projects decals along the local y-axis. |
 | **Material**            | The decal Material to project. The decal Material must use a HDRP/Decal Shader. |
+| **Decal Layer Mask**    | Materials with a decal layer mask intersecting with this value will receive the decal. |
 | **Draw Distance**       | The distance from the Camera to the Decal at which this projector stops projecting the decal and HDRP no longer renders the decal. |
 | **Start Fade**          | Use the slider to set the distance from the Camera at which the projector begins to fade out the decal. Scales from 0 to 1 and represents a percentage of the **Draw Distance**. A value of 0.9 begins fading the decal out at 90% of the **Draw Distance** and finished fading it out at the **Draw Distance**. |
 | **Tiling**              | Scales the decal Material along its UV axes.                 |
