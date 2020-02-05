@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedGlobalIllumination,
         /// <summary>Display recursive ray tracing.</summary>
         RecursiveRayTracing,
+        /// <summary>Display ray-traced sub-surface scattering.</summary>
+        RayTracedSubSurface,
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 

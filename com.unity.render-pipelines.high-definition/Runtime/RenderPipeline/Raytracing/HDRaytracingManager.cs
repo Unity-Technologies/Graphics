@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         R1,
         RG0,
         RGBA0,
-        RGBA1
+        RGBA1,
+        RGBA2,
+        RGBA3
     }
 
     class HDRayTracingLights
@@ -93,6 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingIntermediateBufferRG0;
         RTHandle m_RayTracingIntermediateBufferRGBA0;
         RTHandle m_RayTracingIntermediateBufferRGBA1;
+        RTHandle m_RayTracingIntermediateBufferRGBA2;
+        RTHandle m_RayTracingIntermediateBufferRGBA3;
 
         internal void InitRayTracingManager()
         {
@@ -118,6 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
             m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
             m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
+            m_RayTracingIntermediateBufferRGBA2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA2");
+            m_RayTracingIntermediateBufferRGBA3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA3");
         }
 
         internal void ReleaseRayTracingManager()
@@ -130,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_RayTracingIntermediateBufferRG0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
             RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
+            RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
 
             m_RayTracingLightCluster.ReleaseResources();
             m_ReflectionDenoiser.Release();
@@ -239,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
             }
 
-            if (rayTracedShadow)
+            if (rayTracedShadow || pathTracingEnabled)
             {
                 if (hasTransparentSubMaterial)
                 {
@@ -477,8 +485,9 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value))
+            if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value || subSurface.rayTracing.value))
             {
                 m_RayTracingLightCluster.EvaluateLightClusters(cmd, hdCamera, m_RayTracingLights);
                 m_ValidRayTracingCluster = true;
@@ -573,6 +582,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_RayTracingIntermediateBufferRGBA0;
                 case InternalRayTracingBuffers.RGBA1:
                     return m_RayTracingIntermediateBufferRGBA1;
+                case InternalRayTracingBuffers.RGBA2:
+                    return m_RayTracingIntermediateBufferRGBA2;
+                case InternalRayTracingBuffers.RGBA3:
+                    return m_RayTracingIntermediateBufferRGBA3;
                 default:
                     return null;
             }

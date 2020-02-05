@@ -82,8 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
             collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors); 
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors); 
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
             collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 

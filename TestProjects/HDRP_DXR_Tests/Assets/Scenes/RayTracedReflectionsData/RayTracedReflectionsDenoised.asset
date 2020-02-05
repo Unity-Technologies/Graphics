@@ -235,6 +235,9 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
+  fogType:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &8346464448483503644
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -257,12 +260,12 @@ MonoBehaviour:
     m_Value: 1
   minSmoothness:
     m_OverrideState: 1
-    m_Value: 0.6
+    m_Value: 0.5
     min: 0
     max: 1
   smoothnessFadeStart:
-    m_OverrideState: 0
-    m_Value: 0.9
+    m_OverrideState: 1
+    m_Value: 0.7
     min: 0
     max: 1
   reflectSky:
@@ -302,7 +305,7 @@ MonoBehaviour:
     min: 1
     max: 32
   mode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   upscaleRadius:
     m_OverrideState: 0

@@ -72,6 +72,18 @@ MonoBehaviour:
     m_Value: 1
     min: 0
     max: 1
+  depthExtent:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 0.1
+  sliceDistributionUniformity:
+    m_OverrideState: 0
+    m_Value: 0.75
+    min: 0
+    max: 1
+  filter:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,8 +154,11 @@ MonoBehaviour:
     min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
-    m_Value: 0.46608552
+    m_Value: 0.46607146
     min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0.18750611, y: 0.29181966, z: 0.5}
   desiredLuxValue:
     m_OverrideState: 0
     m_Value: 20000
@@ -160,3 +175,52 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
+  enableBackplate:
+    m_OverrideState: 0
+    m_Value: 0
+  backplateType:
+    m_OverrideState: 0
+    m_Value: 0
+  groundLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  scale:
+    m_OverrideState: 0
+    m_Value: {x: 32, y: 32}
+  projectionDistance:
+    m_OverrideState: 0
+    m_Value: 16
+    min: 0.0000001
+  plateRotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  plateTexRotation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  plateTexOffset:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0}
+  blendAmount:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 100
+  shadowTint:
+    m_OverrideState: 0
+    m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
+  pointLightShadow:
+    m_OverrideState: 0
+    m_Value: 0
+  dirLightShadow:
+    m_OverrideState: 0
+    m_Value: 0
+  rectLightShadow:
+    m_OverrideState: 0
+    m_Value: 0

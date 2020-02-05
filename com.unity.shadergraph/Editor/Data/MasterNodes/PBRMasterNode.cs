@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new NormalMaterialSlot(VertNormalSlotId, NormalName, NormalName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new TangentMaterialSlot(VertTangentSlotId, TangentName, TangentName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
-            //switch drop off delivery space for normal values   
+            //switch drop off delivery space for normal values
             var coordSpace = CoordinateSpace.Tangent;
             switch (m_NormalDropOffSpace)
             {

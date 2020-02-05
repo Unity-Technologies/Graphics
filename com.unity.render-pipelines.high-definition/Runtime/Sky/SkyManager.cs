@@ -711,16 +711,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
                                     cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
-                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                    // otherwise ambient probe isn't correct for one frame.
-                                    if (m_requireWaitForAsyncReadBackRequest)
+                                    // When the profiler is enabled, we don't want to submit the render context because
+                                    // it will break all the profiling sample Begin() calls issued previously, which leads
+                                    // to profiling sample mismatch errors in the console.
+                                    if (!UnityEngine.Profiling.Profiler.enabled)
                                     {
-                                        cmd.WaitAllAsyncReadbackRequests();
-                                        renderContext.ExecuteCommandBuffer(cmd);
-                                        CommandBufferPool.Release(cmd);
-                                        renderContext.Submit();
-                                        cmd = CommandBufferPool.Get();
-                                        m_requireWaitForAsyncReadBackRequest = false;
+                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                        // otherwise ambient probe isn't correct for one frame.
+                                        if (m_requireWaitForAsyncReadBackRequest)
+                                        {
+                                            cmd.WaitAllAsyncReadbackRequests();
+                                            renderContext.ExecuteCommandBuffer(cmd);
+                                            CommandBufferPool.Release(cmd);
+                                            renderContext.Submit();
+                                            cmd = CommandBufferPool.Get();
+                                            m_requireWaitForAsyncReadBackRequest = false;
+                                        }
                                     }
                                 }
                             }

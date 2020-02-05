@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderGraph
                     activeFields.baseInstance.Add(field);
                 } 
             }
-            
+
             // Build graph requirements
             graphRequirements.UnionWith(pixelRequirements);
             graphRequirements.UnionWith(vertexRequirements);
