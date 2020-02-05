@@ -1046,7 +1046,10 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // todo_dir:
     // todo_dir todo_modes todo_pseudorefract: cant use undercoat like that, but better than to lose the bottom normal effect for now...
     preLightData.iblDominantDirectionWS_UnderCoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);    
-    preLightData.iblDominantDirectionWS_UnderCoat = FindAverageBaseLobeDirOnTop(bsdfData, preLightData); // much better
+    if (HasClearcoatAndRefraction())
+    {
+        preLightData.iblDominantDirectionWS_UnderCoat = FindAverageBaseLobeDirOnTop(bsdfData, preLightData); // much better
+    }
     preLightData.iblDominantDirectionWS_Clearcoat = reflect(-viewWS_Clearcoat, bsdfData.clearcoatNormalWS);
     //preLightData.iblDominantDirectionWS_UnderCoat = preLightData.iblDominantDirectionWS_Clearcoat;
 
