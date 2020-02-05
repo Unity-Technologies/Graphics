@@ -69,20 +69,18 @@ To enable MSAA in your HDRP project:
 When you use MSAA, be aware of the following:
 
 - Increasing the sample count makes the MSAA effect more resource intensive.
-
+- HDRP does not disable the following features when you enable MSAA, but instead uses non-MSAA depth which can cause issues on edges:
+  1. [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.html).
 - MSAA does not work with the following features. HDRP disables these features when you enable MSAA:
-
-- 1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.html).
+  1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.html).
   2. Screen space shadows.
-  3. [Contact Shadows](Override-Contact-Shadows.html).
-  4. [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.html).
-  5. [Temporal Anti-aliasing](#TAA).
-
+  3. [Temporal Anti-aliasing](#TAA).
+  4. Distortion.
+  5. Normal Buffer patch up by Decals.
 - MSAA does not affect the following features. HDRP does not disable these effects, it just does not process MSAA for them:
-
-- 1. [Motion vectors](Motion-Vectors.html).
-  2. [Post-processing](Post-Processing-Main.html).
+  1. [Post-processing](Post-Processing-Main.html).
   3. [Subsurface scattering](Subsurface-Scattering.html).
+  3. Low Resolution Transparency.
 
 When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.html). You can do this either globally or on individual Cameras. To enable MSAA globally, go to Project Settings > Frame Settings > HDRP Default Settings. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.html).
 

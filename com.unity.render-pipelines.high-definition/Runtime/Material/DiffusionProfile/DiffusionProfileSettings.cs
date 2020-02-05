@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ior                = 1.4f; // Typical value for skin specular reflectance
         }
 
-        public void Validate()
+        internal void Validate()
         {
             thicknessRemap.y = Mathf.Max(thicknessRemap.y, 0f);
             thicknessRemap.x = Mathf.Clamp(thicknessRemap.x, 0f, thicknessRemap.y);
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
-        public void UpdateKernel()
+        void UpdateKernel()
         {
             if (filterKernelNearField == null || filterKernelNearField.Length != DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD)
                 filterKernelNearField = new Vector2[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
@@ -220,9 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateCache();
 
 #if UNITY_EDITOR
-            if (m_Version != Version.Last)
+            if (m_Version != MigrationDescription.LastVersion<Version>())
             {
-                // We delay the upgrade of the diffusion profile because ni the OnEnable we are still
+                // We delay the upgrade of the diffusion profile because in the OnEnable we are still
                 // in the import of the current diffusion profile, so we can't create new assets of the same
                 // type from here otherwise it will freeze the editor in an infinite import loop.
                 // Thus we delay the upgrade of one editor frame so the import of this asset is finished.
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        public void UpdateCache()
+        internal void UpdateCache()
         {
             if (filterKernels == null)
                 filterKernels = new Vector4[DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];

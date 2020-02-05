@@ -16,15 +16,17 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            if (UniversalRenderPipeline.asset?.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                EditorGUILayout.HelpBox(UniversalRenderPipelineAssetEditor.Styles.postProcessingGlobalWarning, MessageType.Warning);
+                return;
+            }
+
             PropertyField(m_Mode);
 
             // Display a warning if the user is trying to use a tonemap while rendering in LDR
-            var asset = UniversalRenderPipeline.asset;
-            if (asset != null && !asset.supportsHDR)
-            {
+            if (UniversalRenderPipeline.asset?.supportsHDR == false)
                 EditorGUILayout.HelpBox("Tonemapping should only be used when working in HDR.", MessageType.Warning);
-                return;
-            }
         }
     }
 }

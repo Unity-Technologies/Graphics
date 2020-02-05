@@ -41,10 +41,6 @@ struct VaryingsParticle
     float4 projectedPosition        : TEXCOORD6;
 #endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    float4 shadowCoord              : TEXCOORD7;
-#endif
-
     float3 vertexSH                 : TEXCOORD8; // SH
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -73,12 +69,6 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 #endif
 
     output.viewDirectionWS = viewDirWS;
-
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    output.shadowCoord = input.shadowCoord;
-#else
-    output.shadowCoord = float4(0, 0, 0, 0);
-#endif
 
     output.fogCoord = (half)input.positionWS.w;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
@@ -150,15 +140,11 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 #endif
 
     half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
-
     half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
 #if defined (_DISTORTION_ON)
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
 #endif
-
-    half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
-    half alpha = albedo.a;
 
 #if defined(_EMISSION)
     half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
@@ -166,10 +152,10 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half3 emission = half3(0, 0, 0);
 #endif
 
-    half3 result = diffuse + emission;
+    half3 result = albedo.rgb + emission;
     half fogFactor = input.positionWS.w;
     result = MixFogColor(result, half3(0, 0, 0), fogFactor);
-    return half4(result, alpha);
+    return half4(result, albedo.a);
 }
 
 #endif // UNIVERSAL_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED

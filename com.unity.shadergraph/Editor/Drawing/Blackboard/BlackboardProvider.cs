@@ -249,8 +249,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
-                m_Graph.SanitizeGraphInputName(input);
                 input.displayName = newText;
+                m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
                 DirtyNodes();
             }

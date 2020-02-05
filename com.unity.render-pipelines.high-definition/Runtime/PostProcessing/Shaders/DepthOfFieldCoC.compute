@@ -47,7 +47,7 @@ void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float depth = LoadCameraDepth(dispatchThreadId.xy);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
-    float coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
+    float coc = (1.0 - FocusDist / max(linearEyeDepth, 1e-6f)) * MaxCoC;
 
     float nearBlend = GetFixedNearBlend(linearEyeDepth);
 

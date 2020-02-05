@@ -4,26 +4,100 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-11-20
+## [Unreleased]
+
+## [7.2.0] - 2020-03-02
+
 ### Added
-- Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
-- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
+- Added support for a user defined default material to 2DRendererData.
 - Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available.
+- Added the option to toggle shadow receiving on transparent objects.
+- Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
+
+### Changed
+- Remove final blit pass to force alpha to 1.0 on mobile platforms.
+- Particle shaders now receive shadows
+- Blend Style in the 2DRendererData are now automatically enabled/disabled.
+- When using the 2D Renderer, Sprites will render with a faster rendering path when no lights are present.
+- The Scene view now mirrors the Volume Layer Mask set on the Main Camera.
+
+### Fixed
+- Fixed an issue when using the 2D Renderer where some types of renderers would not be assigned the correct material.
+- Fixed an issue where viewport aspect ratio was wrong when using the Stretch Fill option of the Pixel Perfect Camera. [case 1188695](https://issuetracker.unity3d.com/issues/pixel-perfect-camera-component-does-not-maintain-the-aspect-ratio-when-the-stretch-fill-is-enabled)
+- Fixed an issue where the default TerrainLit Material was outdated, which caused the default Terrain to use per-vertex normals instead of per-pixel normals.
+- Fixed shader errors and warnings in the default Universal RP Terrain Shader. [case 1185948](https://issuetracker.unity3d.com/issues/urp-terrain-slash-lit-base-pass-shader-does-not-compile)
+- Fixed broken images in package documentation.
+- Fixed an issue where post-processing was not applied for custom renderers set to run on the "After Rendering" event [case 1196219](https://issuetracker.unity3d.com/issues/urp-post-processing-is-not-applied-to-the-scene-when-render-ui-event-is-set-to-after-rendering)
+- Fixed an issue that caused an extra blit when using custom renderers [case 1156741](https://issuetracker.unity3d.com/issues/lwrp-performance-decrease-when-using-a-scriptablerendererfeature)
+- Fixed an issue with transparent objects not receiving shadows when using shadow cascades. [case 1116936](https://issuetracker.unity3d.com/issues/lwrp-cascaded-shadows-do-not-appear-on-alpha-blended-objects)
+- Fixed issue where using a ForwardRendererData preset would cause a crash. [case 1201052](https://issuetracker.unity3d.com/product/unity/issues/guid/1201052/)
+- Fixed an issue that caused errors if you disabled the VR Module when building a project.
+- Fixed an issue with the null check when `UniversalRenderPipelineLightEditor.cs` tries to access `SceneView.lastActiveSceneView`.
+- Fixed an issue where the 'Depth Texture' drop down was incorrectly disabled in the Camera Inspector. 
+- Fixed issue where normal maps on terrain appeared to have flipped X-components when compared to the same normal map on a mesh. [case 1181518](https://fogbugz.unity3d.com/f/cases/1181518/)
+- Fixed RemoveComponent on Camera contextual menu to not remove Camera while a component depend on it.
+- Fixed an issue where right eye is not rendered to. [case 1170619](https://issuetracker.unity3d.com/issues/vr-lwrp-terrain-is-not-rendered-in-the-right-eye-of-an-hmd-when-using-single-pass-instanced-stereo-rendering-mode-with-lwrp)
+- Fixed issue where TerrainDetailLit.shader fails to compile when XR is enabled.
+- Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported.
+- Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
+- Fixed an issue where the editor would sometimes crash when using additional lights [case 1176131](https://issuetracker.unity3d.com/issues/mac-crash-on-processshadowcasternodevisibilityandcullwithoutumbra-when-same-rp-asset-is-set-in-graphics-and-quality-settings)
+- Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported and causes artifacts.
+- Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
+- Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
+- Fixed an issue where post processing disappeared when using custom renderers and SMAA or no AA
+- Fixed an issue with soft particles having dark blending when intersecting with scene geometry [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+- Fixed an issue with additive particles blending incorrectly [case 1215713](https://issuetracker.unity3d.com/issues/universal-render-pipeline-additive-particles-not-using-vertex-alpha)
+
+## [7.1.8] - 2020-01-20
+
+### Fixed
+- Fixed an issue that caused errors if you disabled the VR Module when building a project.
+
+### Changed
+- On Xbox and PS4 you will also need to download the com.unity.render-pipeline.platform (ps4 or xboxone) package from the appropriate platform developer forum
+
+## [7.1.7] - 2019-12-11
+
+### Fixed
+- Fixed inconsistent lighting between the forward renderer and the deferred renderer that was caused by a missing normalize operation on vertex normals on some SpeedTree shader variants.
+- Fixed issue where the Editor would crash when you used a `ForwardRendererData` preset. [case 1201052](https://issuetracker.unity3d.com/product/unity/issues/guid/1201052/)
+- Fixed an issue where Normal Map Textures didn't apply when you added them to newly-created Materials. [case 1197217](https://issuetracker.unity3d.com/product/unity/issues/guid/1197217/)
+- Fixed an issue with deleting shader passes in the custom renderer features list [case 1201664](https://issuetracker.unity3d.com/issues/urp-remove-button-is-not-activated-in-shader-passes-list-after-creating-objects-from-renderer-features-in-urpassets-renderer)
+- Fixed an issue where particles had dark outlines when blended together [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+
+## [7.1.6] - 2019-11-22
+
+### Fixed
+- Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
+- Fixed lazy initialization with last version of ResourceReloader
+
+## [7.1.5] - 2019-11-15
+
+### Fixed
+- Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
+- Fixed conflicting meta with HDRP
+
+## [7.1.4] - 2019-11-13
+
+### Fixed
+- Terrain Holes fixes
+- Fixed post-processing with XR single-pass rendering modes.
+
+## [7.1.3] - 2019-11-04
+### Added
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
-- Added SceneSelection pass for TerrainLit shader.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
 - Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
-- Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
 - Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
-- Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
-- Fixed Unlit and BakedLit shader compilations in the meta pass.
-- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Fixed an issue where 2D Lighting was broken for Perspective Cameras.
 - Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
 - Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
@@ -42,18 +116,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
 - Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
 - Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
-- Fixed post-processing with XR single-pass rendering modes.
-- Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
-- Fixed conflicting meta with HDRP
-- Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
-- Fixed lazy initialization with last version of ResourceReloader
-- Fixed inconsistent lighting between the forward renderer and the deferred renderer that was caused by a missing normalize operation on vertex normals on some SpeedTree shader variants.
-- Fixed issue where the Editor would crash when you used a `ForwardRendererData` preset. [case 1201052](https://issuetracker.unity3d.com/product/unity/issues/guid/1201052/)
-- Fixed an issue where Normal Map Textures didn't apply when you added them to newly-created Materials. [case 1197217](https://issuetracker.unity3d.com/product/unity/issues/guid/1197217/)
-- Fixed an issue with deleting shader passes in the custom renderer features list [case 1201664](https://issuetracker.unity3d.com/issues/urp-remove-button-is-not-activated-in-shader-passes-list-after-creating-objects-from-renderer-features-in-urpassets-renderer)
-- Fixed an issue where particles had dark outlines when blended together [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
-- Fixed an issue where the default TerrainLit Material was outdated, which caused the default Terrain to use per-vertex normals instead of per-pixel normals.
-- Fixed shader errors and warnings in the default Universal RP Terrain Shader. [case 1185948](https://issuetracker.unity3d.com/issues/urp-terrain-slash-lit-base-pass-shader-does-not-compile)
+
+## [7.1.2] - 2019-09-19
+### Added
+- Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+
+### Fixed
+- Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
+- Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
+- Fixed Unlit and BakedLit shader compilations in the meta pass.
+- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Improved overall memory bandwidth usage.
+- Added SceneSelection pass for TerrainLit shader.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
@@ -114,6 +188,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Terrain shader generated NaNs.
 - Fixed an issue that caused the `Opaque Color` pass to never render at half or quarter resolution.
 - Fixed and issue where stencil state on a `ForwardRendererData` was reset each time rendering happened.
+- Fixed an issue where the URP Material Upgrader tried to upgrade standard Universal Shaders. [case 1144710](https://issuetracker.unity3d.com/issues/upgrading-to-lwrp-materials-is-trying-to-upgrade-lwrp-materials)
+- Fixed an issue where some Materials threw errors when you upgraded them to Universal Shaders. [case 1200938](https://issuetracker.unity3d.com/issues/universal-some-materials-throw-errors-when-updated-to-universal-rp-through-update-materials-to-universal-rp)
 
 ## [7.0.1] - 2019-07-25
 ### Changed

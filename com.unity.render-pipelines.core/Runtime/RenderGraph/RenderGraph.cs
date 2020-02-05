@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             internal string                           name;
             internal int                              index;
-            internal CustomSampler                    customSampler;
+            internal ProfilingSampler                 customSampler;
             internal List<RenderGraphResource>        resourceReadList = new List<RenderGraphResource>();
             internal List<RenderGraphMutableResource> resourceWriteList = new List<RenderGraphMutableResource>();
             internal List<RenderGraphResource>        usedRendererListList = new List<RenderGraphResource>();
@@ -305,16 +305,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
         /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
         /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
-        /// <param name="customSampler">Optional C# profiling object.</param>
+        /// <param name="sampler">Optional profiling sampler.</param>
         /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
-        public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, CustomSampler customSampler = null) where PassData : class, new()
+        public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler = null) where PassData : class, new()
         {
             var renderPass = m_RenderGraphPool.Get<RenderPass<PassData>>();
             renderPass.Clear();
             renderPass.index = m_RenderPasses.Count;
             renderPass.data = m_RenderGraphPool.Get<PassData>();
             renderPass.name = passName;
-            renderPass.customSampler = customSampler;
+            renderPass.customSampler = sampler;
 
             passData = renderPass.data;
 
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
                     }
 
-                    using (new ProfilingSample(cmd, pass.name, pass.customSampler))
+                    using (new ProfilingScope(cmd, pass.customSampler))
                     {
                         LogRenderPassBegin(pass);
                         using (new RenderGraphLogIndent(m_Logger))

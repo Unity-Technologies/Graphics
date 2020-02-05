@@ -19,7 +19,10 @@ namespace UnityEditor.Rendering.Universal
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
 
-            MaterialUpgrader.UpgradeProjectFolder(upgraders, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
+            GetShaderNamesToIgnore(ref shaderNamesToIgnore);
+
+            MaterialUpgrader.UpgradeProjectFolder(upgraders, shaderNamesToIgnore, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
         [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to UniversalRP Materials", priority = CoreUtils.editMenuPriority2)]
@@ -28,7 +31,27 @@ namespace UnityEditor.Rendering.Universal
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
 
-            MaterialUpgrader.UpgradeSelection(upgraders, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
+            GetShaderNamesToIgnore(ref shaderNamesToIgnore);
+
+            MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+        }
+
+        private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
+        {
+            shadersToIgnore.Add("Universal Render Pipeline/Baked Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Particles/Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Particles/Simple Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Particles/Unlit");
+            shadersToIgnore.Add("Universal Render Pipeline/Simple Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
+            shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
+            shadersToIgnore.Add("Universal Render Pipeline/Unlit");
+            shadersToIgnore.Add("Sprites/Default");
         }
 
         private static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
@@ -246,7 +269,7 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_MetallicGlossMap"))
+            if (material.GetTexture("_MetallicGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
@@ -263,7 +286,7 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_SpecGlossMap"))
+            if (material.GetTexture("_SpecGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));

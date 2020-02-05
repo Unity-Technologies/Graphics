@@ -68,8 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", (int) StencilUsage.Decals),
+                        string.Format("   Ref  {0}", (int) StencilUsage.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -134,8 +134,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", (int) StencilUsage.Decals),
+                        string.Format("   Ref  {0}", (int) StencilUsage.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -243,8 +243,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", (int) StencilUsage.Decals),
+                        string.Format("   Ref  {0}", (int) StencilUsage.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"
@@ -316,8 +316,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     "// Stencil setup",
                     "Stencil",
                     "{",
-                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
-                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   WriteMask {0}", (int) StencilUsage.Decals),
+                        string.Format("   Ref  {0}", (int) StencilUsage.Decals),
                         "Comp Always",
                         "Pass Replace",
                     "}"

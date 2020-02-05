@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [HideInInspector, SerializeField]
-        Version m_Version;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
 
         //Note: nothing to migrate at the moment.
         // If any, it must be done at deserialisation time on this component due to lazy init and disk access conflict when rebuilding library folder

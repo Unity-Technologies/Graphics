@@ -81,12 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            RecursiveRendering recursiveSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
 
             // Check the validity of the state before computing the effect
             bool invalidState = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                || !recursiveSettings.enable.value
-                || m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1;
+                || !recursiveSettings.enable.value;
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)
@@ -94,8 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RayTracingShader forwardShader = m_Asset.renderPipelineRayTracingResources.forwardRaytracing;
             Shader raytracingMask = m_Asset.renderPipelineRayTracingResources.raytracingFlagMask;
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rtSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Grab the acceleration structure and the list of HD lights for the target camera
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();

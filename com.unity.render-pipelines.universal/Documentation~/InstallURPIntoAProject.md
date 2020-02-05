@@ -4,9 +4,11 @@ You can download and install the latest version of the Universal Render Pipeline
 
 ## Before you begin
 
-URP uses its own [integrated post-processing solution](integration-with-post-processing.md). If you have the Post Processing Version 2 package installed in your Project, you need to delete the Post Processing Version 2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
+URP contains its own integrated [post-processing solution](integration-with-post-processing.md). This version of URP also supports the Post Processing Version 2 (PPV2) package, for backwards compatibility with existing Projects. Both post-processing solutions will be supported in the versions of URP that are compatible with Unity 2019.4 LTS. From Unity 2020.1, only the integrated solution will be supported.
 
-URP does not currently support custom post-processing effects. If your Project uses custom post-processing effects, these cannot currently be recreated in URP. Custom post-processing effects will be supported in a forthcoming release of URP.
+If you have the Post Processing Version 2 package installed in your Project and you want to use URP's integrated post-processing solution, you need to delete the Post Processing Version 2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
+
+URP's integrated post-processing solution does not currently support custom post-processing effects. If your Project uses custom post-processing effects created in PPV2, these cannot currently be recreated in URP's integrated post-processing solution. Custom post-processing effects will be supported in a forthcoming release of URP.
 
 ## Installing URP
 

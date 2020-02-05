@@ -338,8 +338,6 @@ namespace UnityEditor.VFX
 
                 var usedContexts = new List<VFXContext>();
 
-                var namedEvents = new Dictionary<string,VFXContext>();
-
                 for(int j = 0; j < subgraphAncestors.Count; ++j)
                 {
                     var sg = subgraphAncestors[j];
@@ -348,7 +346,7 @@ namespace UnityEditor.VFX
                     foreach (var path in defaultEventPaths)
                     {
                         int currentFlowIndex = path.Last();
-                        var eventSlot = sg.inputFlowSlot[currentFlowIndex]; // -1 in path is Trigger therefore 2 in subgraph input
+                        var eventSlot = sg.inputFlowSlot[currentFlowIndex];
                         var eventSlotSpawners = eventSlot.link.Where(t => ! (t.context is VFXBasicEvent));
 
                         if (eventSlotSpawners.Any())
@@ -370,10 +368,16 @@ namespace UnityEditor.VFX
                                 switch (eventName)
                                 {
                                     case VisualEffectAsset.PlayEventName:
-                                        newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
+                                        if( nextSg != null)
+                                            newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
+                                        else
+                                            result[i].Add(evt);
                                         break;
                                     case VisualEffectAsset.StopEventName:
-                                        newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
+                                        if(nextSg != null)
+                                            newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
+                                        else
+                                            result[i].Add(evt);
                                         break;
                                     default:
                                         {
@@ -381,35 +385,39 @@ namespace UnityEditor.VFX
                                             {
                                                 int eventIndex = nextSg.GetInputFlowIndex(eventName);
                                                 if(eventIndex != -1)
-                                                {
-                                                    namedEvents[eventName] = evt.context;
                                                     newEventPaths.Add(path.Concat(new int[] { eventIndex }).ToList());
-                                                }
                                             }
                                             else
                                             {
                                                 result[i].Add(evt);
                                             }
                                         }
-                                        
                                         break;
-
                                 }
                             }
                         }
                         else if (!eventSlot.link.Any())
                         {
-                            if( !(sg is VFXSubgraphContext))
-                                newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
+                            if (!(sg is VFXSubgraphContext))
+                            {
+                                if (nextSg != null)
+                                {
+                                    int fixedSlotIndex = currentFlowIndex > 1 ? currentFlowIndex : nextSg.GetInputFlowIndex(currentFlowIndex == 1 ? VisualEffectAsset.StopEventName : VisualEffectAsset.PlayEventName);
+                                    if( fixedSlotIndex >= 0)
+                                        newEventPaths.Add(path.Concat(new int[] { fixedSlotIndex }).ToList());
+                                }
+                                else
+                                    newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
+                            }
                             else
                             {
                                 var sgsg = sg as VFXSubgraphContext;
 
                                 var eventName = sgsg.GetInputFlowName(currentFlowIndex);
-                                
+
                                 var eventCtx = sgsg.GetEventContext(eventName);
-                                if( eventCtx != null)
-                                    result[i].Add(new VFXContextLink(){slotIndex = 0, context = eventCtx});
+                                if (eventCtx != null)
+                                    result[i].Add(new VFXContextLink() { slotIndex = 0, context = eventCtx });
                             }
                         }
                     }
@@ -545,6 +553,24 @@ namespace UnityEditor.VFX
             public Dictionary<VFXContext, VFXSubgraphContext> spawnerSubgraph;
             public List<VFXSubgraphContext> subgraphs;
             public Dictionary<VFXContext,List<VFXContextLink>[]> contextEffectiveInputLinks;
+
+            public List<VFXContextLink> GetContextEffectiveOutputLinks(VFXContext context,int slot)
+            {
+                List<VFXContextLink> effectiveOuts = new List<VFXContextLink>();
+
+                foreach (var kv in contextEffectiveInputLinks)
+                {
+                    for (int i = 0; i < kv.Value.Length; ++i)
+                    {
+                        foreach (var link in kv.Value[i])
+                        {
+                            if (link.context == context && link.slotIndex == slot)
+                                effectiveOuts.Add(new VFXContextLink() { context = kv.Key, slotIndex = i });
+                        }
+                    }
+                }
+                return effectiveOuts;
+            }
         }
 
         private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts,ref SubgraphInfos subgraphInfos)
@@ -560,7 +586,7 @@ namespace UnityEditor.VFX
                 new { eventName = "OnStop", playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName,VisualEffectAsset.StopEventName,VFXSubgraphContext.triggerEventName});
+            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName,VisualEffectAsset.StopEventName});
 
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
@@ -571,7 +597,9 @@ namespace UnityEditor.VFX
                 if( subgraphInfos.spawnerSubgraph.ContainsKey(evt) && specialNames.Contains(eventName))
                     continue;
 
-                foreach (var link in evt.outputFlowSlot[0].link)
+                List<VFXContextLink> effecitveOuts = subgraphInfos.GetContextEffectiveOutputLinks(evt, 0);
+
+                foreach (var link in effecitveOuts)
                 {
                     if (contextSpawnToSpawnInfo.ContainsKey(link.context))
                     {

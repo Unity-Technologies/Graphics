@@ -289,6 +289,17 @@ namespace UnityEditor.VFX.UI
         SelectionDragger m_SelectionDragger;
         RectangleSelector m_RectangleSelector;
 
+        public void OnCreateAsset()
+        {
+            string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
+            if( !string.IsNullOrEmpty(filePath))
+            {
+                VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+
+                VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+            }
+        }
+
         public VFXView()
         {
             SetupZoom(0.125f, 8);
@@ -372,7 +383,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Open An Asset");
+            m_NoAssetLabel = new Label("Please Open An Asset") { name = "no-asset"};
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = 0f;
             m_NoAssetLabel.style.right = new StyleLength(0f);
@@ -383,6 +394,11 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+
+            var createButton = new Button() { text = "Create Graph" };
+            m_NoAssetLabel.Add(createButton);
+            createButton.clicked += OnCreateAsset;
 
             m_LockedElement = new Label("Asset is Locked");
             m_LockedElement.style.position = PositionType.Absolute;
@@ -1094,7 +1110,11 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
+                if(edge != null)
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
+                else
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1709,6 +1729,37 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnCreateNodeOnEdge(DropdownMenuAction e)
+        {
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d,v)=>AddNodeOnEdge(d,v,e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator)}));
+        }
+
+        void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position,VFXDataEdgeController edge)
+        {
+            position = this.ChangeCoordinatesTo(contentViewContainer, position);
+
+            position.x -= 60;
+            position.y -= 60;
+
+            position = contentViewContainer.ChangeCoordinatesTo(this, position);
+
+            var newNodeController = AddNode(desc, position);
+
+            if (newNodeController == null)
+                return;
+
+            foreach (var outputPort in newNodeController.outputPorts)
+            {
+                if (controller.CreateLink(edge.input, outputPort))
+                    break;
+            }
+            foreach (var inputPort in newNodeController.inputPorts)
+            {
+                if (controller.CreateLink(inputPort,edge.output))
+                    break;
+            }
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
@@ -1723,10 +1774,15 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertAction(evt.target is VFXContextUI ? 1 : 0, "Group Selection", (e) => { GroupSelection(); },
                     (e) => { return canGroupSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
 
-                if( node.controller.model is VFXSubgraphOperator || node.controller.model is VFXSubgraphContext || node.controller.model is VFXSubgraphBlock)
+                if( (node.controller.model is VFXSubgraphOperator subOp && subOp.subgraph != null )|| (node.controller.model is VFXSubgraphContext subCont && subCont.subgraph != null ) || (node.controller.model is VFXSubgraphBlock subBlk && subBlk.subgraph != null ))
                 {
                     evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
                 }
+            }
+
+            if( evt.target is VFXDataEdge edge)
+            {
+                evt.menu.InsertAction(0, "Create Node", OnCreateNodeOnEdge, t=>DropdownMenuAction.Status.Normal,edge.controller) ;
             }
 
             if (evt.target is VFXView)
@@ -1747,7 +1803,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if( VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                if( VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
                 {
                     evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
                 }
