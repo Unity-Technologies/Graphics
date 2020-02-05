@@ -1359,7 +1359,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Done a reorganization of the files (Move ShaderPass to RenderPipeline folder, Move all shadow related files to Lighting/Shadow and others)
 - Improved performance and quality of Screen Space Shadows
 
-## [3.3.0-preview]
+## [3.3.0-preview] - 2018-01-01
 
 ### Added
 - Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
@@ -1382,7 +1382,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased the precision when comparing Planar or HD reflection probe volumes
 - Remove various GC alloc in C#. Slightly better performance
 
-## [3.2.0-preview]
+## [3.2.0-preview] - 2018-01-01
 
 ### Added
 - Added a luminance meter in the debug menu
@@ -1405,7 +1405,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
 - Change screen space shadow rendertarget format from ARGB32 to RG16
 
-## [3.1.0-preview]
+## [3.1.0-preview] - 2018-01-01
 
 ### Added
 - Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
@@ -1449,7 +1449,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor shader code: Added a backBakeDiffuseLighting to BuiltinData to handle lighting for transmission
 - Refactor shader code: Material must now call InitBuiltinData (Init all to zero + init bakeDiffuseLighting and backBakeDiffuseLighting ) and PostInitBuiltinData
 
-## [3.0.0-preview]
+## [3.0.0-preview] - 2018-01-01
 
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
@@ -1458,7 +1458,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
 
-## [2.0.5-preview]
+## [2.0.5-preview] - 2018-01-01
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
@@ -1492,17 +1492,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with color temperature not take correctly into account with static lighting
 - Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
 
-## [2.0.4-preview]
+## [2.0.4-preview] - 2018-01-01
 
 ### Fixed
 - Fix issue when disabling rough refraction and building a player. Was causing a crash.
 
-## [2.0.3-preview]
+## [2.0.3-preview] - 2018-01-01
 
 ### Added
 - Increased debug color picker limit up to 260k lux
 
-## [2.0.2-preview]
+## [2.0.2-preview] - 2018-01-01
 
 ### Added
 - Add Light -> Planar Reflection Probe command
@@ -1525,7 +1525,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where interpolation volumes were not updated correctly for reflection captures.
 - Fixed an exception in Light Loop settings UI
 
-## [2.0.1-preview]
+## [2.0.1-preview] - 2018-01-01
 
 ### Added
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -1562,7 +1562,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
 - Decal atlas texture offset/scale is updated after allocations (used to be before so it was using date from previous frame)
 
-## [2018.1 experimental]
+## [0.0.0-preview] - 2018-01-01
 
 ### Added
 - Configure the VolumetricLightingSystem code path to be on by default
@@ -1606,7 +1606,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with ResetMaterialKeyword not resetting correctly ToggleOff/Roggle Keyword
 - Fix issue with motion vector not render correctly if there is no depth prepass in deferred
 
-## [2018.1.0f2]
+## [0.0.0-preview] - 2018-01-01
 
 ### Added
 - Screen Space Refraction projection model (Proxy raycasting, HiZ raymarching)
@@ -1644,7 +1644,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
 - Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
 - Fix decal atlas debug view to work correctly when shadow atlas view is also enabled
-
-## [2018.1.0b13]
-
-...
