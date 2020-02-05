@@ -747,24 +747,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var zClipCode = new ShaderStringBuilder();
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
-            var dotsInstancingCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
-            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
-
-            // Generate Hybrid V1 code if Hybrid V2 is disabled
-            #if !ENABLE_HYBRID_RENDERER_V2
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
-
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
-            }
-            #endif
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -826,6 +811,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+
+            // Generate Hybrid V1 code if Hybrid V2 is disabled            
+            var dotsInstancingCode = new ShaderStringBuilder();
+            #if !ENABLE_HYBRID_RENDERER_V2
+            if (instanceCount > 0)
+            {
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("// Dots Instancing vars");
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("");
+                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
+
+            }
+            #endif
+            
             ShaderGenerator shaderStages = new ShaderGenerator();
             {
                 if (pass.ShaderStages != null)
