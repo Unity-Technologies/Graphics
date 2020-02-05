@@ -43,7 +43,7 @@ Shader "HDRP/Decal"
         [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
 
-        _SourceDecalLayerMask("_DecalLayerMask", Int) = 1
+        [HideInInspector] _SourceDecalLayerMask("_DecalLayerMask", Int) = 1
     }
 
     HLSLINCLUDE

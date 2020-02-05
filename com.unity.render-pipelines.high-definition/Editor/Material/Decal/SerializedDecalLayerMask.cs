@@ -7,13 +7,13 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     ///     Serialized class for <see cref="DecalLayer" />.
     /// </summary>
-    public struct SerializedDecalLayer
+    public struct SerializedDecalLayerMask
     {
         readonly SerializedProperty m_ValueProperty;
         readonly SerializedProperty m_RootProperty;
 
         /// <summary>
-        ///     Instantiate a SerializedDecalLayer from a <paramref name="serializedProperty" />.
+        ///     Instantiate a SerializedDecalLayerMask from a <paramref name="serializedProperty" />.
         /// </summary>
         /// <param name="serializedProperty">The serialized property to use.</param>
         /// <exception cref="ArgumentNullException">When the <paramref name="serializedProperty" /> is null.</exception>
@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         ///     When the <see cref="DecalLayer" /> properties can't be found in
         ///     <paramref name="serializedProperty" />.
         /// </exception>
-        public SerializedDecalLayer([NotNull] SerializedProperty serializedProperty)
+        public SerializedDecalLayerMask([NotNull] SerializedProperty serializedProperty)
         {
             m_RootProperty = serializedProperty;
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
@@ -34,18 +34,18 @@ namespace UnityEditor.Rendering.HighDefinition
         ///     The underlying decal layer value.
         ///     If there are multiple different value for the serialized property, then it is value is undefined.
         /// </summary>
-        public DecalLayer value
+        public DecalLayerMask value
         {
-            get => (DecalLayer) m_ValueProperty.intValue;
+            get => (DecalLayerMask) m_ValueProperty.intValue;
             set => m_ValueProperty.intValue = (int) value;
         }
 
         /// <summary>
-        ///     Convert the <see cref="SerializedDecalLayer" /> to its root <see cref="SerializedProperty" />.
+        ///     Convert the <see cref="SerializedDecalLayerMask" /> to its root <see cref="SerializedProperty" />.
         /// </summary>
         /// <param name="v">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static explicit operator SerializedProperty(in SerializedDecalLayer v)
+        public static explicit operator SerializedProperty(in SerializedDecalLayerMask v)
         {
             return v.m_RootProperty;
         }

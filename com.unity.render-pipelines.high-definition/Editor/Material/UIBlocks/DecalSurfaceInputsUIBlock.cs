@@ -153,9 +153,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
-        protected MaterialProperty decalLayerMask = null;
-        protected const string kDecalLayerMask = HDMaterialProperties.kSourceDecalLayerMask;
-
         public DecalSurfaceInputsUIBlock(Expandable expandableBit)
         {
             m_ExpandableBit = expandableBit;
@@ -181,7 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax);
             metallicScale = FindProperty(kMetallicScale);
             maskMapBlueScale = FindProperty(kMaskMapBlueScale);
-            decalLayerMask = FindProperty(kDecalLayerMask);
 
             // TODO: move emission to the EmissionUIBlock ?
             emissiveColor = FindProperty(kEmissiveColor);
@@ -327,8 +323,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
-
-                DecalLayerMaskUI.GUILayoutMaterialProperty(Styles.decalLayerText, decalLayerMask);
 
                 EditorGUILayout.HelpBox(
                     "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",

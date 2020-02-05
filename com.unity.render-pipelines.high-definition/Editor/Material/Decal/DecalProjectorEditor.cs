@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
         SerializedProperty m_FadeFactor;
+        SerializedProperty m_DecalLayerMask;
 
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValue
@@ -121,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
+            m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
 
         private void OnDisable()
@@ -320,6 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(m_Size, k_SizeContent);
             EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+            EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);

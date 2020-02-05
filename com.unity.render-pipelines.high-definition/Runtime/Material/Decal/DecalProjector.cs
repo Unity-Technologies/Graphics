@@ -127,10 +127,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        DecalLayerMask m_DecalLayerMask = DecalLayerMask.Layer0;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerMask decalLayerMask => material != null && !material.Equals(null) ? material.GetSourceDecalLayerMask() : DecalLayerMask.Layer0;
+        public DecalLayerMask decalLayerMask
+        {
+            get => m_DecalLayerMask;
+            set => m_DecalLayerMask = value;
+        }
 
         [SerializeField]
         private Vector3 m_Offset = new Vector3(0, -0.5f, 0);

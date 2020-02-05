@@ -50,14 +50,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    [CustomPropertyDrawer(typeof(DecalLayer))]
-    class DecalLayerPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(DecalLayerMask))]
+    class DecalLayerMaskPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             label = EditorGUI.BeginProperty(position, label, property);
-            var decalLayer = new SerializedDecalLayer(property);
-            decalLayer.value = DecalLayerUI.GUIField(position, label, decalLayer.value);
+            var decalLayer = new SerializedDecalLayerMask(property);
+            decalLayer.value = DecalLayerMaskUI.GUIField(position, label, decalLayer.value);
             EditorGUI.EndProperty();
         }
     }
