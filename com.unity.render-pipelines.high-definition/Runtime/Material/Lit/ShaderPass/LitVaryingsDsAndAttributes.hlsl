@@ -42,7 +42,7 @@
     #define ATTRIBUTES_NEED_TANGENT
 #endif
 
-#if (defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0) || defined(_TESSELLATION_DISPLACEMENT)) // UV0 is always available
+#if (defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0) || defined(_VERTEX_DISPLACEMENT)) // UV0 is always available
     #define ATTRIBUTES_NEED_TEXCOORD0
 #endif
 
