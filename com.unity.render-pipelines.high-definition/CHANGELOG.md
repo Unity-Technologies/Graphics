@@ -141,6 +141,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated label in HDRP quality preference settings (case 1215100)
 - Fixed Decal Projector gizmo not undoing properly (case 1216629)
 - Fix a leak in the denoising of ray traced reflections.
+- Fixed Alignment issue in Light Preset
+- Fixed Environment Header in LightingWindow
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
