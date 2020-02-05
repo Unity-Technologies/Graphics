@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    ///     Serialized class for <see cref="DecalLayer" />.
+    ///     Serialized class for <see cref="DecalLayerMask" />.
     /// </summary>
     public struct SerializedDecalLayerMask
     {
