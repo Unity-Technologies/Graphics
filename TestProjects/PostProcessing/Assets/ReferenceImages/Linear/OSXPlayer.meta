@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/PostProcessing/Assets/ReferenceImages/Linear/OSXPlayer.meta
+guid: 48969fe82ee72a50eb63b249caa28e96
+<<<<<<< HEAD
+=======
+guid: 4dff64b7d1a0d8349a9a72c58231e74b
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb:TestProjects/SRP_SmokeTest/Assets/CommonAssets/Editor/Setup.meta
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+=======
+folderAsset: yes
+DefaultImporter:
+=======
+guid: b5f0f640d1c62fa4db25d5f4d69453cc
+NativeFormatImporter:
+>>>>>>> 0e604b48b19ab8d54e58036a8850b2bb126642e5:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/2x_Lighting/2205_LightLoopCullWOblique/Dark_Smooth.mat.meta
+  externalObjects: {}
+  mainObjectFileID: 0
+>>>>>>> d88f208066b40a1db0f3362707bb2638081a8448
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
