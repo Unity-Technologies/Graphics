@@ -41,6 +41,7 @@ linux_apis:
 {% for editor in editors %}
 
 {% for testplatform in testplatforms %}
+
 {{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
   agent:
@@ -63,7 +64,6 @@ linux_apis:
       paths:
         - "**/test-results/**"
 {% endfor %}
-
 
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
@@ -94,7 +94,6 @@ linux_apis:
         - "**/test-results/**"
 {% endfor %}    
 {% endfor %}
-
 
 {% for testplatform in testplatforms %}
 {% if testplatform.name == "editmode" %}
