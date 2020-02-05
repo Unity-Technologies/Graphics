@@ -177,28 +177,30 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #ifdef TESSELLATION_ON
 
-// Varying DS - use for domain shader
-// We can deduce these defines from the other defines
-// We need to pass to DS any varying required by pixel shader
-// If we have required an attributes that is not present in varyings it mean we will be for DS
-#if defined(VARYINGS_NEED_TANGENT_WS) || defined(ATTRIBUTES_NEED_TANGENT)
-#define VARYINGS_DS_NEED_TANGENT
-#endif
-#if defined(VARYINGS_NEED_TEXCOORD0) || defined(ATTRIBUTES_NEED_TEXCOORD0)
-#define VARYINGS_DS_NEED_TEXCOORD0
-#endif
-#if defined(VARYINGS_NEED_TEXCOORD1) || defined(ATTRIBUTES_NEED_TEXCOORD1)
-#define VARYINGS_DS_NEED_TEXCOORD1
-#endif
-#if defined(VARYINGS_NEED_TEXCOORD2) || defined(ATTRIBUTES_NEED_TEXCOORD2)
-#define VARYINGS_DS_NEED_TEXCOORD2
-#endif
-#if defined(VARYINGS_NEED_TEXCOORD3) || defined(ATTRIBUTES_NEED_TEXCOORD3)
-#define VARYINGS_DS_NEED_TEXCOORD3
-#endif
-#if defined(VARYINGS_NEED_COLOR) || defined(ATTRIBUTES_NEED_COLOR)
-#define VARYINGS_DS_NEED_COLOR
-#endif
+#ifndef VARYINGS_DS_HAVE_BEEN_DEFINED
+    // Varying DS - use for domain shader
+    // We can deduce these defines from the other defines
+    // We need to pass to DS any varying required by pixel shader
+    // If we have required an attributes that is not present in varyings it mean we will be for DS
+    #if defined(VARYINGS_NEED_TANGENT_WS) || defined(ATTRIBUTES_NEED_TANGENT)
+    #define VARYINGS_DS_NEED_TANGENT
+    #endif
+    #if defined(VARYINGS_NEED_TEXCOORD0) || defined(ATTRIBUTES_NEED_TEXCOORD0)
+    #define VARYINGS_DS_NEED_TEXCOORD0
+    #endif
+    #if defined(VARYINGS_NEED_TEXCOORD1) || defined(ATTRIBUTES_NEED_TEXCOORD1)
+    #define VARYINGS_DS_NEED_TEXCOORD1
+    #endif
+    #if defined(VARYINGS_NEED_TEXCOORD2) || defined(ATTRIBUTES_NEED_TEXCOORD2)
+    #define VARYINGS_DS_NEED_TEXCOORD2
+    #endif
+    #if defined(VARYINGS_NEED_TEXCOORD3) || defined(ATTRIBUTES_NEED_TEXCOORD3)
+    #define VARYINGS_DS_NEED_TEXCOORD3
+    #endif
+    #if defined(VARYINGS_NEED_COLOR) || defined(ATTRIBUTES_NEED_COLOR)
+    #define VARYINGS_DS_NEED_COLOR
+    #endif
+#endif // VARYINGS_DS_HAVE_BEEN_DEFINED
 
 // Varying for domain shader
 // Position and normal are always present (for tessellation) and in world space

@@ -24,6 +24,7 @@
 // Varying - Use for pixel shader
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #define VARYINGS_NEED_POSITION_WS
+#define VARYINGS_NEED_NORMAL_WS
 #define VARYINGS_NEED_TANGENT_WS
 #define VARYINGS_NEED_TEXCOORD0
 #define VARYINGS_NEED_TEXCOORD1

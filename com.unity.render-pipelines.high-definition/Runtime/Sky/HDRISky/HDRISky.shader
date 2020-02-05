@@ -15,9 +15,11 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
+    // Really?
     #define ATTRIBUTES_NEED_NORMAL
     #define ATTRIBUTES_NEED_TANGENT
     #define VARYINGS_NEED_POSITION_WS
+    #define VARYINGS_NEED_NORMAL_WS
     #define VARYINGS_NEED_TANGENT_WS
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"

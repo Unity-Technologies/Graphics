@@ -28,6 +28,9 @@
     #if (defined(VARYINGS_NEED_COLOR) || (defined(_TESSELLATION_DISPLACEMENT) && defined(TEX_COL)))
         #define VARYINGS_DS_NEED_COLOR
     #endif
+
+#define VARYINGS_DS_HAVE_BEEN_DEFINED // Avoid multiple definitions
+
 #endif // TESSELLATION_ON
 
 /* Attributes are vertex shader inputs. */

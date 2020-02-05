@@ -176,6 +176,7 @@ Here is the list of all the defines you can enable
 #define ATTRIBUTES_NEED_COLOR
 
 #define VARYINGS_NEED_POSITION_WS
+#define VARYINGS_NEED_NORMAL_WS
 #define VARYINGS_NEED_TANGENT_WS
 #define VARYINGS_NEED_TEXCOORD0
 #define VARYINGS_NEED_TEXCOORD1

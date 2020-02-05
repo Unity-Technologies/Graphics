@@ -73,6 +73,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
     //float flipSign = dot(sigmaY, cross(vertexNormalWS, sigmaX) ) ? -1.0 : 1.0;
     float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
 
+    // TODO: Optimize! // TODO: Optimize! // TODO: Optimize! // TODO: Optimize!
     // TODO: Optimize! The compiler will not be able to remove the tangent space that are not use because it can't know due to our UVMapping constant we use for both base and details
     // To solve this we should track which UVSet is use for normal mapping... Maybe not as simple as it sounds
     SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1.xy, layerTexCoord.vertexTangentWS1, layerTexCoord.vertexBitangentWS1);
