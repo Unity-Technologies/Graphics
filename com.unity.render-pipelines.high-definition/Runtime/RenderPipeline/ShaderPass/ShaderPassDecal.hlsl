@@ -92,18 +92,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
 
-    // Clip the decal if it does not pass the decal layer mask of the receiving material.
-    // Decal layer of the decal
-    uint decalLayerMask = UNITY_ACCESS_INSTANCED_PROP(Decal, _SourceDecalLayerMask).x;
-
-    // Decal layer mask accepted by the receiving material
-    DecalPrepassData decalPrepassData = GetDecalPrepassData(posInput.positionSS);
-    if ((decalLayerMask & decalPrepassData.decalLayerMask) == 0)
-    {
-        clipValue = -1.0;
-        clip(clipValue);
-    }
-
     #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
     #else
