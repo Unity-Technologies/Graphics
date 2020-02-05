@@ -28,7 +28,7 @@ The Paricle System Shader Samples show examples of various lit and unlit particl
 
 ## Material Samples
 
-![Material Samples](Images/MaterialSamples.jpg)
+![Material Samples](Images/MaterialSamples.png)
 
 The Materials Samples bring into your project examples of materials based on the lit shader using effects such as subsurface scattering, displacement, anisotropy and more. The MaterialSamples scene requires Text Mesh Pro to display text explanations.
 

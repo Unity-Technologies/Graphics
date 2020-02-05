@@ -10,7 +10,7 @@ Make sure you clone the projects using git or a git client and not using the Gre
 
 https://github.com/Unity-Technologies/FontainebleauDemo
 
-![Fontainebleau](Images/HDRPDemos-Fontainebleau.jpg)
+![Fontainebleau](Images/HDRPDemos-Fontainebleau.png)
 
 This project demonstrates how to use Photogrammetry in order to create game ready assets.
 
@@ -25,7 +25,7 @@ Graphics Features used :
 
 https://github.com/Unity-Technologies/SpaceshipDemo
 
-![Spaceship](Images/HDRPDemos-Spaceship.jpg)
+![Spaceship](Images/HDRPDemos-Spaceship.png)
 
 This project demonstrates the use of Visual Effect Graph for the creation of interactive AAA grade Visual Effects.
 
@@ -42,7 +42,7 @@ Graphics features used :
 
 https://github.com/Unity-Technologies/VRAlchemyLab
 
-![VR Alchemy Lab](Images/HDRPDemos-VRAlchemyLab.jpg)
+![VR Alchemy Lab](Images/HDRPDemos-VRAlchemyLab.png)
 
 This project demonstrates the use of HDRP rendering features in the context of a VR interactive demo.
 
