@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ComputeBuffer m_CoarseStencilBuffer = null;
         RTHandle m_DecalPrePassBuffer = null;
+        RTHandle m_DecalPrePassBufferMSAA = null;
 
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
@@ -100,7 +101,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
+
+                if (m_DecalsSupported)
+                    m_DecalPrePassBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableMSAA: true, useDynamicScale: true, name: "Decal PrePass Buffer MSAA");
             }
+
+            if (m_DecalsSupported)
+                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
 
             AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
 
@@ -117,9 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
             }
-
-            if (m_DecalsSupported)
-                m_DecalPrePassBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "Decal PrePass Buffer");
         }
 
         public bool IsConsolePlatform()
@@ -139,14 +143,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(m_MSAASupported);
                     mrts.Add(m_NormalMSAART.nameID);
                     mrts.Add(m_DepthAsColorMSAART.nameID);
+
+                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        mrts.Add(m_DecalPrePassBufferMSAA);
                 }
                 else
                 {
                     mrts.Add(m_NormalRT.nameID);
-                }
 
-                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
-                    mrts.Add(m_DecalPrePassBuffer);
+                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        mrts.Add(m_DecalPrePassBuffer);
+                }
 
                 switch (mrts.Count)
                 {
@@ -370,6 +377,9 @@ namespace UnityEngine.Rendering.HighDefinition
                  // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
+
+                if (m_DecalsSupported)
+                    RTHandles.Release(m_DecalPrePassBufferMSAA);
             }
 
             if (m_DecalsSupported)
