@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDFieldDependencies
     {
-        public static FieldDependency[] Default = new FieldDependency[]
+        public static DependencyCollection Varying = new DependencyCollection
         {
             //Standard Varying Dependencies
             new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.AttributesMesh.positionOS),
@@ -16,7 +16,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.AttributesMesh.color),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
+        };
 
+        public static DependencyCollection Tessellation = new DependencyCollection
+        {
             //Tessellation Varying Dependencies
             new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.VaryingsMeshToDS.positionRWS),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                            HDStructFields.VaryingsMeshToDS.normalWS),
@@ -36,7 +39,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.VaryingsMeshToPS.color),
             new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.VaryingsMeshToPS.instanceID),
-            
+        };
+
+        public static DependencyCollection FragInput = new DependencyCollection
+        {    
             //FragInput dependencies
             new FieldDependency(HDStructFields.FragInputs.positionRWS,                               HDStructFields.VaryingsMeshToPS.positionRWS),
             new FieldDependency(HDStructFields.FragInputs.tangentToWorld,                            HDStructFields.VaryingsMeshToPS.tangentWS),
@@ -47,7 +53,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
             new FieldDependency(HDStructFields.FragInputs.IsFrontFace,                               HDStructFields.VaryingsMeshToPS.cullFace),
-            
+        };
+
+        public static DependencyCollection VertexDescription = new DependencyCollection
+        {    
             //Vertex Description Dependencies
             new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,              HDStructFields.AttributesMesh.normalOS),
             new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceNormal,               HDStructFields.AttributesMesh.normalOS),
@@ -84,7 +93,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   HDStructFields.AttributesMesh.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   HDStructFields.AttributesMesh.indices),
+        };
 
+        public static DependencyCollection SurfaceDescription = new DependencyCollection
+        {
             //Surface Description Dependencies
             new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,              HDStructFields.FragInputs.tangentToWorld),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
@@ -120,6 +132,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
 
             new FieldDependency(HDFields.DepthOffset,                                                HDStructFields.FragInputs.positionRWS),
+        };
+
+        public static DependencyCollection Default = new DependencyCollection
+        {
+            { Varying },
+            { Tessellation },
+            { FragInput },
+            { VertexDescription },
+            { SurfaceDescription },
         };
     }
 }
