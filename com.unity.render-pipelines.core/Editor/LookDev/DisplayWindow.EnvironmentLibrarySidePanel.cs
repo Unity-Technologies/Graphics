@@ -195,8 +195,7 @@ namespace UnityEditor.Rendering.LookDev
             listContainer.AddToClassList("list-environment");
             listContainer.Add(m_EnvironmentList);
             listContainer.Add(m_EnvironmentListToolbar);
-
-
+            
             m_LibraryField = new ObjectField("Library")
             {
                 tooltip = "The currently used library"
@@ -428,6 +427,41 @@ namespace UnityEditor.Rendering.LookDev
                 m_LibraryField.value = null;
 
             RefreshLibraryDisplay();
+        }
+        
+        void OnFocus()
+        {
+            //OnFocus is called before OnEnable that open backend if not already opened, so only sync if backend is open
+            if (LookDev.open)
+            {
+                //If EnvironmentLibrary asset as been edited by the user (deletion),
+                //update all view to use null environment if it was not temporary ones
+                if (LookDev.currentContext.HasLibraryAssetChanged(m_LibraryField.value as EnvironmentLibrary))
+                {
+                    ViewContext viewContext = LookDev.currentContext.GetViewContent(ViewIndex.First);
+                    if (!(viewContext.environment?.isCubemapOnly ?? false))
+                        OnChangingEnvironmentInViewInternal?.Invoke(viewContext.environment, ViewCompositionIndex.First, default);
+                    viewContext = LookDev.currentContext.GetViewContent(ViewIndex.Second);
+                    if (!(viewContext.environment?.isCubemapOnly ?? false))
+                        OnChangingEnvironmentInViewInternal?.Invoke(viewContext.environment, ViewCompositionIndex.Second, default);
+                }
+
+                //If Cubemap asset as been edited by the user (deletion),
+                //update all views to use null environment if it was temporary ones
+                //and update all other views' environment to not use cubemap anymore
+                foreach (ViewContext viewContext in LookDev.currentContext.viewContexts)
+                {
+                    if (viewContext.environment == null || !viewContext.environment.HasCubemapAssetChanged(viewContext.environment.cubemap))
+                        continue;
+
+                    if (viewContext.environment.isCubemapOnly)
+                        viewContext.UpdateEnvironment(null);
+                    else
+                        viewContext.environment.cubemap = null;
+                }
+
+                ((IEnvironmentDisplayer)this).Repaint();
+            }
         }
     }
 }

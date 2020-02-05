@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev zoom being stuck when going near camera pivot position
 - Fix LookDev manipulation in view non responsive if directly using an HDRI
 - Fix LookDev behaviour when user delete the EnvironmentLibrary asset
+- Fix LookDev SunPosition button position
+- Fix LookDev EnvironmentLibrary tab when asset is deleted
+- Fix LookDev used Cubemap when asset is deleted
 
 ### Changed
 - Updated macros to be compatible with the new shader preprocessor.
