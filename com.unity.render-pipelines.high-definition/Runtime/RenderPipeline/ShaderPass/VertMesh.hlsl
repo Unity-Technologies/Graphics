@@ -128,24 +128,18 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     ApplyVertexModification(input, normalWS, positionRWS, _TimeParameters.xyz);
 #endif
 
-#ifdef VARYINGS_NEED_POSITION_WS
+#ifndef TESSELLATION_ON
+    output.positionCS = TransformWorldToHClip(positionRWS);
+#endif
+#if (defined(VARYINGS_NEED_POSITION_WS) || defined(VARYINGS_DS_NEED_POSITION))
     output.positionRWS = positionRWS;
 #endif
-#ifdef VARYINGS_NEED_NORMAL_WS
+#if (defined(VARYINGS_NEED_NORMAL_WS) || defined(VARYINGS_DS_NEED_NORMAL))
     output.normalWS = normalWS;
 #endif
-
-#ifdef TESSELLATION_ON
-    #if defined(VARYINGS_NEED_TANGENT_WS) || defined(VARYINGS_DS_NEED_TANGENT)
+#if defined(VARYINGS_NEED_TANGENT_WS) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
-    #endif
-#else
-    output.positionCS = TransformWorldToHClip(positionRWS);
-    #ifdef VARYINGS_NEED_TANGENT_WS
-    output.tangentWS = tangentWS;
-    #endif
 #endif
-
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
     output.texCoord0 = input.uv0;
 #endif

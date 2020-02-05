@@ -2,6 +2,7 @@
 
 #ifdef TESSELLATION_ON
         // Position and normal are always required for tessellation.
+        #define VARYINGS_DS_NEED_POSITION
         #define VARYINGS_DS_NEED_NORMAL
 
     #ifdef VARYINGS_NEED_TANGENT_WS
