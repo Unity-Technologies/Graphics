@@ -25,6 +25,56 @@ namespace UnityEditor.ShaderGraph
 
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
+            // Hybrid V1 generates a special version of UnityPerMaterial, which has dummy constants for
+            // instanced properties, and regular constants for other properties.
+            // Hybrid V2 generates a perfectly normal UnityPerMaterial, but needs to append
+            // a UNITY_DOTS_INSTANCING_START/END block after it that contains the instanced properties.
+            #if !ENABLE_HYBRID_RENDERER_V2
+
+            foreach (var prop in properties)
+            {
+                prop.ValidateConcretePrecision(inheritedPrecision);
+            }
+
+            var batchAll = mode == GenerationMode.Preview;
+            builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
+            int instancedCount = 0;
+            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+            {
+                if (!prop.gpuInstanced)
+                    builder.AppendLine(prop.GetPropertyDeclarationString());
+                else
+                    instancedCount++;
+            }
+
+            if (instancedCount > 0)
+            {
+                builder.AppendLine("#ifdef UNITY_HYBRID_V1_INSTANCING_ENABLED");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                        builder.AppendLine(prop.GetPropertyDeclarationString("_dummy;"));
+                }
+                builder.AppendLine("#else");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                        builder.AppendLine(prop.GetPropertyDeclarationString());
+                }
+                builder.AppendLine("#endif");
+            }
+            builder.AppendLine("CBUFFER_END");
+
+            if (batchAll)
+                return;
+
+            foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
+            {
+                builder.AppendLine(prop.GetPropertyDeclarationString());
+            }
+
+            #else
+
             foreach (var prop in properties)
             {
                 prop.ValidateConcretePrecision(inheritedPrecision);
@@ -88,19 +138,60 @@ namespace UnityEditor.ShaderGraph
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
+
+            #endif
         }
 
         public int GetDotsInstancingPropertiesCount(GenerationMode mode)
         {
-            // TODO: Refactor how DOTS instancing properties work
             var batchAll = mode == GenerationMode.Preview;
             return properties.Where(n => (batchAll || (n.generatePropertyBlock && n.isBatchable)) && n.gpuInstanced).Count();
         }
 
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
         {
-            // TODO: Refactor how DOTS instancing properties work
+            // Hybrid V1 needs to declare a special macro to that is injected into
+            // builtin instancing variables.
+            // Hybrid V2 does not need it.
+            #if !ENABLE_HYBRID_RENDERER_V2
+            var builder = new ShaderStringBuilder();
+            var batchAll = mode == GenerationMode.Preview;
+
+            int instancedCount = GetDotsInstancingPropertiesCount(mode);
+
+            if (instancedCount > 0)
+            {
+                builder.AppendLine("#if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED)");
+                builder.Append("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
+
+                int count = 0;
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        string varName = $"{prop.referenceName}_Array";
+                        string sType = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
+                        builder.Append("UNITY_DEFINE_INSTANCED_PROP({0}, {1})", sType, varName);
+                        if (count < instancedCount - 1)
+                            builder.Append("\\");
+                        builder.AppendLine("");
+                        count++;
+                    }
+                }
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        string varName = $"{prop.referenceName}_Array";
+                        builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.referenceName, varName);
+                    }
+                }
+            }
+            builder.AppendLine("#endif");
+            return builder.ToString();
+            #else
             return "";
+            #endif
         }
 
         public List<TextureInfo> GetConfiguredTexutres()
