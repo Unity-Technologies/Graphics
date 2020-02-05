@@ -11,6 +11,8 @@ When the upgrade is done and the materials are written to disk, the value of *m_
 
 When a material saved with an older version of HDRP is imported, then this will also be upgraded automatically and written to disk when done.
 
+Please note that if a version control system that requires check out operations is in use (e.g. Perforce), it is important that it is correctly setup in the project before the upgrade operation happens. If this is not the case, the material will be upgraded and the file marked as non read-only, but they will not be checked out by the VCS.
+
 ## Manual Material Upgrade
 
 In case the above process fails and a material is not working as expected when upgrading HDRP version, it is suggested to run the upgrade process manually. To do so, you can either: 

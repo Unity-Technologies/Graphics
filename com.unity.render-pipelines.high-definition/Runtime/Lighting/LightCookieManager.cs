@@ -2,10 +2,15 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Available graphic formats for the cookie atlas texture.
+    /// </summary>
     [System.Serializable]
     public enum CookieAtlasGraphicsFormat
     {
+        /// <summary>Faster sampling but at the cost of precision.</summary>
         R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>Better quality and more precision for HDR cookies but uses twice as much memory compared to R11G11B10.</summary>
         R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
     }
 
