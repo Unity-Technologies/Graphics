@@ -27,6 +27,14 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Items = new List<Item>();
         }
 
+        public void Add(DefineCollection defines)
+        {
+            foreach(DefineCollection.Item item in defines)
+            {
+                m_Items.Add(item);
+            }
+        }
+
         public void Add(KeywordDescriptor descriptor, int index)
         {
             m_Items.Add(new Item(descriptor, index, null));

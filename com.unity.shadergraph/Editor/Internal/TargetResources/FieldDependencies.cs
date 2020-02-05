@@ -2,7 +2,7 @@
 {
     public static class FieldDependencies
     {
-        public static FieldDependency[] Default = new FieldDependency[]
+        public static DependencyCollection Default = new DependencyCollection
         {
             //Varying Dependencies
             new FieldDependency(StructFields.Varyings.positionWS,                                  StructFields.Attributes.positionOS),

@@ -24,6 +24,14 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Items = new List<StructCollection.Item>();
         }
 
+        public void Add(StructCollection structs)
+        {
+            foreach(StructCollection.Item item in structs)
+            {
+                m_Items.Add(item);
+            }
+        }
+
         public void Add(StructDescriptor descriptor)
         {
             m_Items.Add(new StructCollection.Item(descriptor, null));

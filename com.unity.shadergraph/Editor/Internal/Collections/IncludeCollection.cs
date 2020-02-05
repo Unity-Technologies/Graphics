@@ -24,6 +24,14 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             m_Items = new List<Item>();
         }
+        
+        public void Add(IncludeCollection includes)
+        {
+            foreach(IncludeCollection.Item item in includes)
+            {
+                m_Items.Add(item);
+            }
+        }
 
         public void Add(string include, IncludeLocation location)
         {

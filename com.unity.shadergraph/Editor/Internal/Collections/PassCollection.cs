@@ -24,6 +24,14 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Items = new List<Item>();
         }
 
+        public void Add(PassCollection passes)
+        {
+            foreach(PassCollection.Item item in passes)
+            {
+                m_Items.Add(item);
+            }
+        }
+
         public void Add(PassDescriptor descriptor)
         {
             m_Items.Add(new Item(descriptor, null));
