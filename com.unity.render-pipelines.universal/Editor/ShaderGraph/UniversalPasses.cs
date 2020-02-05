@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.PBRForward,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Fields
             structs = UniversalStructCollections.Default,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.DepthOnly,
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.PBRShadowCaster,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.ShadowCasterMeta,
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.PBRMeta,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.ShadowCasterMeta,
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Fields
             structs = UniversalStructCollections.Default,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Fields
             structs = UniversalStructCollections.Default,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -163,7 +163,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.SpriteLit,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.SpriteNormal,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.SpriteForward,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Fields
             structs = UniversalStructCollections.Default,
             requiredFields = UniversalRequiredFields.SpriteUnlit,
-            fieldDependencies = FieldDependencies.Default,
+            fieldDependencies = UniversalFieldDependencies.UniversalDefault,
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,

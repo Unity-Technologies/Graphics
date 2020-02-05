@@ -29,152 +29,135 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl";
         const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
 
-        public static IncludeCollection Forward = new IncludeCollection
+        public static IncludeCollection CorePregraph = new IncludeCollection
         {
-            // Pre-graph
             { kColor, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
+        };
+
+        public static IncludeCollection CorePostgraph = new IncludeCollection
+        {
+            { kShaderPass, IncludeLocation.Postgraph },
+            { kVaryings, IncludeLocation.Postgraph },
+        };
+
+        public static IncludeCollection Forward = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
             { kShadows, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kPBRForwardPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection DepthOnly = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kDepthOnlyPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection ShadowCaster = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection Meta = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { kGraphVariables, IncludeLocation.Pregraph },
             { kMetaInput, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kLightingMetaPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection PBR2D = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kPBR2DPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection Unlit = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { kGraphVariables, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kUnlitPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection SpriteLit = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { k2DLightingUtil, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kSpriteLitPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection SpriteNormal = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
             { k2DNormal, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kSpriteNormalPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection SpriteForward = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kSpriteForwardPass, IncludeLocation.Postgraph },
         };
 
         public static IncludeCollection SpriteUnlit = new IncludeCollection
         {
             // Pre-graph
-            { kColor, IncludeLocation.Pregraph },
-            { kCore, IncludeLocation.Pregraph },
-            { kLighting, IncludeLocation.Pregraph },
+            { CorePregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
 
             // Post-graph
-            { kShaderPass, IncludeLocation.Postgraph },
-            { kVaryings, IncludeLocation.Postgraph },
+            { CorePostgraph },
             { kSpriteUnlitPass, IncludeLocation.Postgraph },
         };
     }
