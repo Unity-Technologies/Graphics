@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Decal Projector component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR

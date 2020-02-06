@@ -146,8 +146,14 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 #pragma warning restore 0618, 0612
 
+        /// <summary>
+        /// Deserialization callback
+        /// </summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize() {}
 
+        /// <summary>
+        /// Serialization callback
+        /// </summary>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             UpdateBounds();
