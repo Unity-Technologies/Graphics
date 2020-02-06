@@ -24,7 +24,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         float2 dp = 1.0f/_IOSize;
 
-        const int r = 1;
+        const int r = 0;
         UNITY_LOOP
         for (int i = -r; i <= r; ++i)
         {

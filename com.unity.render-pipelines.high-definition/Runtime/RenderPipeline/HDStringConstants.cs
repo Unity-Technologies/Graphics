@@ -716,7 +716,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
-        
+
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");
@@ -735,6 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
         public static readonly int _Input                          = Shader.PropertyToID("_Input");
+        public static readonly int _InputVal                       = Shader.PropertyToID("_InputVal");
         public static readonly int _Output                         = Shader.PropertyToID("_Output");
         public static readonly int _Samples                        = Shader.PropertyToID("_Samples");
         public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");

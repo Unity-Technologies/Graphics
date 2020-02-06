@@ -115,6 +115,42 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
+
+                {
+                    //int width   = 4 * hdriSky.hdriSky.value.width;
+                    //int height  = 2 * hdriSky.hdriSky.value.height;
+                    int width  = 256;
+                    int height = 128;
+                    RTHandle latLongMap = RTHandles.Alloc(width, height,
+                                                            colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                                                            //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                                            enableRandomWrite: true);
+                    RTHandleDeleter.ScheduleRelease(latLongMap, 4);
+
+                    var hdrp = HDRenderPipeline.defaultAsset;
+                    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    //materialBlock.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    //materialBlock.SetInt("_cubeMipLvl", 0);
+                    //materialBlock.SetInt("_cubeArrayIndex", 0);
+                    cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    cubeToLatLong.SetInt("_cubeMipLvl", 0);
+                    cubeToLatLong.SetInt("_cubeArrayIndex", 0);
+                    builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong, 0);
+                    //Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong, 0);
+
+                    ///Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
+                    //builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+                    //HDUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToLatLong, latLongMap, materialBlock, 0);
+                    //builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
+                    //builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                    //{
+                    //    Default(request, "___CurrentLatLongTested");
+                    //});
+                    //notDone = false;
+                    ImportanceSampler2D generator = new ImportanceSampler2D();
+                    generator.Init(latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
+                }
             }
         }
 
@@ -201,37 +237,44 @@ namespace UnityEngine.Rendering.HighDefinition
             //    //});
             //}
             //if (notDone)
-            //if (hdriSky.hdriSky.value != null && notDone)
-            //{
-            //    int width   = 4*hdriSky.hdriSky.value.width;
-            //    int height  = 2*hdriSky.hdriSky.value.height;
-            //    RTHandle latLongMap = RTHandles.Alloc(  width, height,
-            //                                            colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
-            //                                            enableRandomWrite: true);
-            //    RTHandleDeleter.ScheduleRelease(latLongMap, 4);
-            //
-            //    var hdrp = HDRenderPipeline.defaultAsset;
-            //    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-            //    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-            //    materialBlock.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
-            //    materialBlock.SetInt("_cubeMipLvl", 0);
-            //    materialBlock.SetInt("_cubeArrayIndex", 0);
-            //    //cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
-            //    //cubeToLatLong.SetInt("_cubeMipLvl", 0);
-            //    //cubeToLatLong.SetInt("_cubeArrayIndex", 0);
-            //    //builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong);
-            //    //Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong);
-            //
-            //    ///Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
-            //    //builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
-            //    HDUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToLatLong, latLongMap, materialBlock, 0);
-            //    //builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
-            //    //builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-            //    //{
-            //    //    Default(request, "___CurrentLatLongTested");
-            //    //});
-            //    //notDone = false;
-            //}
+            /*
+                //if (hdriSky.hdriSky.value != null && notDone)
+                {
+                    //int width   = 4 * hdriSky.hdriSky.value.width;
+                    //int height  = 2 * hdriSky.hdriSky.value.height;
+                    int width   = 128;
+                    int height  =  64;
+                    RTHandle latLongMap = RTHandles.Alloc(width, height,
+                                                            colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                                                            //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                                            enableRandomWrite: true);
+                    RTHandleDeleter.ScheduleRelease(latLongMap, 4);
+
+                    var hdrp = HDRenderPipeline.defaultAsset;
+                    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    //materialBlock.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    //materialBlock.SetInt("_cubeMipLvl", 0);
+                    //materialBlock.SetInt("_cubeArrayIndex", 0);
+                    cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    cubeToLatLong.SetInt("_cubeMipLvl", 0);
+                    cubeToLatLong.SetInt("_cubeArrayIndex", 0);
+                    builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong, 0);
+                //Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong, 0);
+
+                ///Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
+                //builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+                //HDUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToLatLong, latLongMap, materialBlock, 0);
+                //builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
+                //builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                //{
+                //    Default(request, "___CurrentLatLongTested");
+                //});
+                //notDone = false;
+                    ImportanceSampler2D generator = new ImportanceSampler2D();
+                    generator.Init(latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
+                }
+            */
 
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);

@@ -39,7 +39,8 @@ namespace UnityEngine.Rendering
 
             UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
                 //density.graphicsFormat;
-                Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
+                //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
+                Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
 
             // Rescale pdf between 0 & 1
             RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
@@ -56,7 +57,6 @@ namespace UnityEngine.Rendering
                     Default(request, "___PDFCopy" + strName);
                 });
 #endif
-
 
 //            Rescale(pdfCopy, new Vector2(0.0f, hdriIntegral.w), cmd);
 //#if DUMP_IMAGE
@@ -305,7 +305,6 @@ namespace UnityEngine.Rendering
 #endif
             }
 
-
             using (new ProfilingScope(cmd, new ProfilingSampler("DebugInfos")))
             {
                 // Generate sample from invCDFs
@@ -351,6 +350,31 @@ namespace UnityEngine.Rendering
                         Default(request, "Integrations" + strName);
                     });
 #endif
+
+                /////////////////////////////////////////////////////////
+                /// Store the Integral
+                {
+                    ComputeShader setChannel = hdrp.renderPipelineResources.shaders.setChannelCS;
+                    //sphereIntegralTexture;
+
+                    kernel = setChannel.FindKernel("SetBT");
+
+                    cmd.SetComputeTextureParam(setChannel, kernel, HDShaderIDs._InputTex, sphereIntegralTexture);
+                    cmd.SetComputeTextureParam(setChannel, kernel, HDShaderIDs._Output, invCDFFull);
+                    cmd.SetComputeIntParams   (setChannel,         HDShaderIDs._Sizes,
+                                               invCDFFull.rt.width, invCDFFull.rt.height, invCDFFull.rt.width, invCDFFull.rt.height);
+
+                    int localTilesX = (invCDFFull.rt.width  + (8 - 1))/8;
+                    int localTilesY = (invCDFFull.rt.height + (8 - 1))/8;
+                    cmd.DispatchCompute(setChannel, kernel, localTilesX, localTilesY, 1);
+#if DUMP_IMAGE
+                    if (dumpFile)
+                        cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
+                        {
+                            Default(request, "invCDFFullWithIntegral" + strName);
+                        });
+#endif
+                }
                 /////////////////////////////////////////////////////////
 
                 //

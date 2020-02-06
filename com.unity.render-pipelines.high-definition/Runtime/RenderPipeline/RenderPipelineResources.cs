@@ -164,6 +164,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader importanceSample2DCS;
             [Reload("Runtime/Core/CoreResources/ImportanceLatLongIntegration.compute")]
             public ComputeShader importanceLatLongIntegrationCS;
+            [Reload("Runtime/Core/CoreResources/SetChannel.compute")]
+            public ComputeShader setChannelCS;
             // TODO Remove
             [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
             public ComputeShader OutputDebugCS;

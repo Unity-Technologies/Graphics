@@ -201,13 +201,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="current">Informations needed to generate the marginal textures.</param>
         internal void GenerateMarginals(KeyValuePair<int, MarginalInfos> current, CommandBuffer cmd)
         {
-            //using(new ProfilingScope)
-
             MarginalInfos value = current.Value;
 
             bool hasMip = value.input.mipmapCount > 1;
             UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
-                Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
+                //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
+                Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
                 //value.input.graphicsFormat;
 
             int width       = -1;
@@ -300,32 +299,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var hdrp = HDRenderPipeline.defaultAsset;
                     Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                    //cubeToLatLong.SetTexture("_srcCubeTexture", cubemap);
-                    //cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
                     if (value.input.dimension == TextureDimension.Cube)
                     {
-                        //m_MaterialBlock.SetTexture("_srcCubeTexture", value.input);
                         cubeToLatLong.SetTexture("_srcCubeTexture", value.input);
                     }
                     else
                     {
-                        //m_MaterialBlock.SetTexture("_srcCubeTextureArray", value.input);
                         cubeToLatLong.SetTexture("_srcCubeTextureArray", value.input);
                     }
-                    //m_MaterialBlock.SetInt("_cubeMipLvl", current.Value.currentMip);
-                    //m_MaterialBlock.SetInt("_cubeArrayIndex", current.Value.currentSlice);
-                    cubeToLatLong.SetInt("_cubeMipLvl", 0*current.Value.currentMip);
-                    cubeToLatLong.SetInt("_cubeArrayIndex", 0*current.Value.currentSlice);
-                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, (float)latLongMap.rt.width, (float)latLongMap.rt.height), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, 1.0f, 1.0f), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                    //current.Value.input.
-                    //float scale = Mathf.Min(1.0f/RTHandles.rtHandleProperties.rtHandleScale.x, 1.0f/RTHandles.rtHandleProperties.rtHandleScale.y);
-                    //float scale = Mathf.Min(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
-                    //float scale = 1.0f;
-                    //cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, Vector4.one);
-                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, ((float)latLongMap.rt.width)*scale, ((float)latLongMap.rt.height)*scale), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                    //HDUtils.DrawFullScreen(cmd, new Rect(0.0f, 0.0f, ((float)latLongMap.rt.width)*scale, ((float)latLongMap.rt.height)*scale), cubeToLatLong, latLongMap, m_MaterialBlock, 0);
-                    //HDUtils.DrawFullScreen(cmd, cubeToLatLong, latLongMap, m_MaterialBlock, 0);
+                    cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
+                    cubeToLatLong.SetInt("_cubeArrayIndex", current.Value.currentSlice);
                     cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, value.input.dimension == TextureDimension.Cube ? 0 : 1);
                     if (dumpFile)
                     {
@@ -338,9 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     "_" + current.Value.currentMip);
                         });
                     }
-
-                    //Debug.Log(String.Format("SKCode: {0}", _Idx));
-                    //cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0, );
 
                     generator.Init(latLongMap, 0, 0, cmd, dumpFile, _Idx);
                 }

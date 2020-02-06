@@ -1060,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
-                  
+
                 ComputeShader cs = defaultResources.shaders.resolveStencilCS;
                 int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
                 kernel = resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
@@ -1706,7 +1706,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildMarginals)))
                             {
                                 // Generate Marginals texture for importance sampling
-                                ImportanceSamplers.Update(cmd);
+                                //ImportanceSamplers.Update(cmd);
                                 renderContext.ExecuteCommandBuffer(cmd);
 
                                 RTHandleDeleter.Update();

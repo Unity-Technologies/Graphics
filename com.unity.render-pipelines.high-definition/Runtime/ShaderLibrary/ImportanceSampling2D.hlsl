@@ -12,7 +12,8 @@ float ImportanceSamplingLatLong(out float2 uv, out float3 w, float2 xi, TEXTURE2
 
     // The pdf (without jacobian) stored on the y channel
     //return SAMPLE_TEXTURE2D_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0).y;
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).y;
+    float2 info = SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).yz;
+    return info.x/info.z;
 }
 
 #endif // UNITY_IMPORTANCE_SAMPLING_2D

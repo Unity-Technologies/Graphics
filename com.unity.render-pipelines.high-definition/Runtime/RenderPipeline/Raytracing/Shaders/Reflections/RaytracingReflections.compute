@@ -24,7 +24,7 @@
 // Tile size of this compute
 #define RAYTRACING_REFLECTIONS_TILE_SIZE 8
 
-#define ENABLE_HDRISKY_MIS
+//#define ENABLE_HDRISKY_MIS
 
 #ifdef ENABLE_HDRISKY_MIS
 // For Multiple Importance Sampling with the HDRI Sky
