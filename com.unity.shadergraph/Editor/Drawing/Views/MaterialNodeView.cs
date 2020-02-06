@@ -311,6 +311,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
                 }
 
+                // We can't generate code for VFX master, so disable the option
                 var canViewShader = !(node is VfxMasterNode) && (node.hasPreview || node is IMasterNode || node is SubGraphOutputNode);
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
