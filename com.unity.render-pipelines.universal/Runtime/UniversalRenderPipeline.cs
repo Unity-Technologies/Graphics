@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.Universal
             // rendering to screen when rendering it. The last camera in the stack is not
             // necessarily the last active one as it users might disable it.
             int lastActiveOverlayCameraIndex = -1;
-            if (cameraStack != null)
+            if (cameraStack != null && cameraStack.Count > 0)
             {
 #if POST_PROCESSING_STACK_2_0_0_OR_NEWER
                 if (asset.postProcessingFeatureSet != PostProcessingFeatureSet.PostProcessingV2)
@@ -460,6 +460,41 @@ namespace UnityEngine.Rendering.Universal
             InitializeAdditionalCameraData(camera, additionalCameraData, ref cameraData);
         }
 
+        static bool CanXRSDKUseSinglePass(Camera camera)
+        {
+            List<XR.XRDisplaySubsystem> displayList = new List<XR.XRDisplaySubsystem>();
+            XR.XRDisplaySubsystem display = null;
+            SubsystemManager.GetInstances(displayList);
+
+            if (displayList.Count > 0)
+            {
+                XR.XRDisplaySubsystem.XRRenderPass renderPass;
+                display = displayList[0];
+                if (display.GetRenderPassCount() > 0)
+                {
+                    display.GetRenderPass(0, out renderPass);
+
+                    if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
+                        return false;
+
+                    if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+                        return false;
+
+                    renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+                    renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+
+                    if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+                        return false;
+
+                    if (renderParam0.viewport != renderParam1.viewport)
+                        return false;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Initialize camera data settings common for all cameras in the stack. Overlay cameras will inherit
         /// settings from base camera.
@@ -478,7 +513,8 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isXRMultipass = false;
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
+            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera &&
+                !CanXRSDKUseSinglePass(baseCamera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
             {
                 cameraData.numberOfXRPasses = 2;
                 cameraData.isXRMultipass = true;
