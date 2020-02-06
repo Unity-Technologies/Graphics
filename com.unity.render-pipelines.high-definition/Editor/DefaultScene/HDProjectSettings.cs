@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         int m_WizardActiveTab = 0;
         [SerializeField]
+        bool m_WizardNeedRestartAfterChangingToDX12 = false;
+        [SerializeField]
         bool m_WizardNeedToRunFixAllAgainAfterDomainReload = false;
         [SerializeField]
         int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
@@ -95,6 +97,16 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedRestartAfterChangingToDX12
+        {
+            get => instance.m_WizardNeedRestartAfterChangingToDX12;
+            set
+            {
+                instance.m_WizardNeedRestartAfterChangingToDX12 = value;
                 Save();
             }
         }

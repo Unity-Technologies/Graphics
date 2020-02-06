@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed!");
+                error: "Direct3D 12 is needed! (Editor restart is required)");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadow",
                 error: "Screen Space Shadow is required!");
@@ -340,7 +340,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateWizardBehaviour());
 
-            CheckPersistentFixAll();
+            CheckPersistantNeedReboot();
+            CheckPersistentFixAll(); 
         }
 
         VisualElement CreateFolderData()
