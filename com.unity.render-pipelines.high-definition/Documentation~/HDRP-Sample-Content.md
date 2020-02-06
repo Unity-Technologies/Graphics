@@ -1,36 +1,44 @@
 # HDRP Sample Content
 
-The High Definition Render Pipeline (HDRP) comes with a set of Samples to help you getting started.
+The High Definition Render Pipeline (HDRP) comes with a set of Samples to help you get started.
 
-A Sample is a set of assets that you can import in your project and use as a base to build your project or learn how a feature can be used.
+A Sample is a set of Assets that you can import into your Project and use as a base to build upon or learn how to use a feature.
 
-To find these samples, go **to Windows > Package Manager**, and **select High Definition RP** in the list. On the right side of the window you will see the Package's details, and a **Samples** category. In order to import a Sample in your project, simply click the **Import into Project** button. This will create a Samples folder in your project in which all the samples will get imported.
+To find these Samples:
+
+1. Go to **Windows > Package Manager**, and select **High Definition RP** from the package list.
+2. In the main window that shows the package's details, find the **Samples** section.
+3. To import a Sample into your Project, click the **Import into Project** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
 
 ## Additional Post-Processing Data
 
-Additional Post-Processing Data gives you access to textures you can use with the Post-Processing Effects :
+Additional Post-Processing Data gives you access to Textures you can use with post-processing effects. It provides:
 
-- Lens Dirt Textures (designed to be used in Bloom)
-- Spectral Look-up Textures (designed to be used in Chromatic Aberrations)
-- Look-Up Textures
+- Lens Dirt Textures (designed for use in [Bloom](Post-Processing-Bloom.html)).
+- Spectral Look-up Textures (designed for use in [Chromatic Aberrations](Post-Processing-Chromatic-Aberration.html)).
+- Look-Up Textures.
 
 ## Shader Graph Samples
 
-These Shader Graph Samples show how one can use the advanced master nodes: Fabric Master Node and the Hair Master Node. Those requires various work from the artists inside the shader graph and the provided example are a good start to play with them.
+This Sample includes example Shader Graphs that show you how to use the following Master Nodes: 
 
- There is also an example of Decal Master Node.
+* [Fabric Master Node](Master-Node-Fabric.html).
+* [Hair Master Node](Master-Node-Hair.html).
+* [Decal Master Node](Master-Node-Decal.html).
+
+The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
 
 ## Procedural Sky
 
-The Procedural Sky is a deprecated Sky from older version of HDRP which can be use for compatibility. It will be remove in future version. It have various wrong behavior with the physically based light unit of HDRP. It is also an example showing how to create a custom sky in your project so that it's compatible with the Volume framework.
+The [Procedural Sky](Override-Procedural-Sky.html) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.html). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
 
 ## Particle System Shader Samples
 
-The Paricle System Shader Samples show examples of various lit and unlit particle effects.
+This Sample includes various examples of lit and unlit particle effects.
 
 ## Material Samples
 
 ![Material Samples](Images/MaterialSamples.png)
 
-The Materials Samples bring into your project examples of materials based on the lit shader using effects such as subsurface scattering, displacement, anisotropy and more. The MaterialSamples scene requires Text Mesh Pro to display text explanations.
+This Sample includes various examples of Materials that use the [Lit Shader](Lit-Shader.html). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
 
