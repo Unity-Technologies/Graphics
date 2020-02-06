@@ -1541,6 +1541,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: 1709_Row_LayeredLit_Opaque
       objectReference: {fileID: 0}
+    - target: {fileID: 3038641105861952787, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3118787056160014206, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
       propertyPath: m_Text
@@ -6012,6 +6017,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: 1709_Row_SGLit_Transparent
       objectReference: {fileID: 0}
+    - target: {fileID: 3038641105861952787, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3118787056160014206, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
       propertyPath: m_Text
@@ -6794,6 +6804,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: 1709_Row_HDLit_Transparents
+      objectReference: {fileID: 0}
+    - target: {fileID: 3038641105861952787, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3118787056160014206, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
@@ -8793,6 +8808,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: 1709_Row_SGLit_Opaque
       objectReference: {fileID: 0}
+    - target: {fileID: 3038641105861952787, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3118787056160014206, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
       propertyPath: m_Text
@@ -8808,10 +8828,25 @@ PrefabInstance:
       propertyPath: m_ExecuteMode
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6592592598862184741, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7067400912616542823, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
       propertyPath: m_ExecuteMode
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7826444963270767461, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8243605031556964192, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9033265264375869793, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}
@@ -9247,6 +9282,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ExecuteMode
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9183962595299680032, guid: f39782b7c05ef6a4f9b02329722c604a,
+        type: 3}
+      propertyPath: m_DecalLayerMask.m_Value
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 9208448640285314028, guid: f39782b7c05ef6a4f9b02329722c604a,
         type: 3}

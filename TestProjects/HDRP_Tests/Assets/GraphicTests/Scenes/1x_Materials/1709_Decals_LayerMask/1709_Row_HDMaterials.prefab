@@ -112,6 +112,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2936605275236208489, guid: 39aba97b0a3a8d846ab0aff5bee3fe89,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.125
+      objectReference: {fileID: 0}
     - target: {fileID: 2958264923250878831, guid: 39aba97b0a3a8d846ab0aff5bee3fe89,
         type: 3}
       propertyPath: m_IsActive
@@ -226,6 +231,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: 1709_Row_HDMaterials
+      objectReference: {fileID: 0}
+    - target: {fileID: 8261699308649621212, guid: 39aba97b0a3a8d846ab0aff5bee3fe89,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.23500001
+      objectReference: {fileID: 0}
+    - target: {fileID: 8472204059214638592, guid: 39aba97b0a3a8d846ab0aff5bee3fe89,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.051
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39aba97b0a3a8d846ab0aff5bee3fe89, type: 3}
