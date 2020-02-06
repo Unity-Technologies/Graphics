@@ -149,7 +149,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the broken ShaderGraph preview when creating a new Lit graph.
 - Fix indentation issue in preset of LayeredLit material.
 - Fixed wrong build error message when building for android on mac.
-- Fixed an issue related to denoising ray trace area shadows.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
