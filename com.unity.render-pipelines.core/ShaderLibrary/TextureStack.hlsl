@@ -8,7 +8,6 @@
 #if SHADER_API_PSSL
 #define GRA_NO_UNORM 1
 #endif
-#define GRA_DEBUG 1
 #include "GraniteShaderLib3.cginc"
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
