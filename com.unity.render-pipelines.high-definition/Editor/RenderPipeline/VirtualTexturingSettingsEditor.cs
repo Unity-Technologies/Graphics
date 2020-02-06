@@ -136,10 +136,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             list.onAddCallback = (l) =>
             {
+                List<GraphicsFormat> availableFormats = new List<GraphicsFormat>(EditorHelpers.QuerySupportedFormats());
+
+                // We can't just pass in existing overrides as a paramater to CreateGPUCacheSizeOverrideList() because lambdas can't capture ref params.
+                VirtualTexturingGPUCacheSizeOverride[] existingOverrides = m_Settings.objReference.gpuCache.gpuCacheSizeOverridesShared;
+                if (usage == VirtualTexturingCacheUsage.Streaming)
+                    existingOverrides = m_Settings.objReference.gpuCache.gpuCacheSizeOverridesStreaming;
+                if (usage == VirtualTexturingCacheUsage.Procedural)
+                    existingOverrides = m_Settings.objReference.gpuCache.gpuCacheSizeOverridesProcedural;
+                RemoveOverriddenFormats(availableFormats, existingOverrides);
+
                 int index = property.arraySize;
                 property.InsertArrayElementAtIndex(index);
                 var newItemProperty = property.GetArrayElementAtIndex(index);
-                newItemProperty.FindPropertyRelative("usage").enumValueIndex = (int)usage;
+                newItemProperty.FindPropertyRelative("format").intValue = availableFormats.Count > 0 ? (int)availableFormats[0] : 0;
+                newItemProperty.FindPropertyRelative("usage").intValue = (int)usage;
                 newItemProperty.FindPropertyRelative("sizeInMegaBytes").intValue = 64;
             };
 
@@ -164,6 +175,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return (GraphicsFormat)Enum.Parse(typeof(GraphicsFormat), $"{format}_{channelTransform}");
         }
 
+        void RemoveOverriddenFormats(List<GraphicsFormat> formats, VirtualTexturingGPUCacheSizeOverride[] overrides)
+        {
+            foreach (var existingCacheSizeOverride in overrides)
+            {
+                formats.Remove(existingCacheSizeOverride.format);
+            }
+        }
+
         void GPUCacheSizeOverridesGUI(Rect rect, int overrideIdx, SerializedProperty overrideListProperty, VirtualTexturingGPUCacheSizeOverride[] overrideList)
         {
             var cacheSizeOverrideProperty = overrideListProperty.GetArrayElementAtIndex(overrideIdx);
@@ -185,11 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_OverrideOverlap |= overrideOverlap;
 
-            // Remove formats already overridden
-            foreach (var existingCacheSizeOverride in overrideList)
-            {
-                availableFormats.Remove(existingCacheSizeOverride.format);
-            }
+            RemoveOverriddenFormats(availableFormats, overrideList);
 
             // Group formats
             Dictionary<string, List<string>> formatGroups = new Dictionary<string, List<string>>();
@@ -254,7 +269,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         cacheSizeOverrideProperty.FindPropertyRelative("format").intValue = (int)FormatAndChannelTransformStringToGraphicsFormat(localFormat, channelTransformString);
                         serializedObject.ApplyModifiedProperties();
-                        m_Dirty = true;
                     });
                 }
 
@@ -278,7 +292,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             GraphicsFormat format = FormatAndChannelTransformStringToGraphicsFormat(formatString, localChannelTransform);
                             cacheSizeOverrideProperty.FindPropertyRelative("format").intValue = (int)format;
                             serializedObject.ApplyModifiedProperties();
-                            m_Dirty = true;
                         });
                     }
                 }

@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void OnEnable()
         {
-            //virtualTexturingSettings = new VirtualTexturingSettings();
+
         }
 
         void Reset() => OnValidate();
