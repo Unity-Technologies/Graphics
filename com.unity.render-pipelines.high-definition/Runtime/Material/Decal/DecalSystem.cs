@@ -737,7 +737,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kSourceDecalLayerMask, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kSourceDecalLayerMask, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kSourceDecalLayerMask, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
@@ -769,7 +769,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kDecalLayer, m_DecalLayerMasks[batchIndex]);
+                    m_PropertyBlock.SetFloatArray(HDMaterialProperties.kSourceDecalLayerMask, m_DecalLayerMasks[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }

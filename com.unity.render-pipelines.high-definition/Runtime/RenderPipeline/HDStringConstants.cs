@@ -930,7 +930,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kTransmissionEnable = "_TransmissionEnable";
         public const string kDecalLayerMask = "_DecalLayerMask";
         public const string kSourceDecalLayerMask = "_SourceDecalLayerMask";
-        public const string kDecalLayer = "_DecalLayer";
         public const string kEnableSSR = "_ReceivesSSR";
 
         public const string kLayerCount = "_LayerCount";
