@@ -3,8 +3,7 @@
      (defined(_NORMALMAP_TANGENT_SPACE0) && (defined(_NORMALMAP0) || defined(_BENTNORMALMAP0))) || \
      (defined(_NORMALMAP_TANGENT_SPACE1) && (defined(_NORMALMAP1) || defined(_BENTNORMALMAP1))) || \
      (defined(_NORMALMAP_TANGENT_SPACE2) && (defined(_NORMALMAP2) || defined(_BENTNORMALMAP2))) || \
-     (defined(_NORMALMAP_TANGENT_SPACE3) && (defined(_NORMALMAP3) || defined(_BENTNORMALMAP3)))    \
-     )
+     (defined(_NORMALMAP_TANGENT_SPACE3) && (defined(_NORMALMAP3) || defined(_BENTNORMALMAP3))))
 // {
     #define NORMAL_MAP_TS
 // }
@@ -34,4 +33,4 @@
     #define DEPTH_PASS_HAS_PS
 #endif
 
-// Remember to #undef in
+// Remember to #undef in "LitParamDefsRem.hlsl".

@@ -182,6 +182,9 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     // We can deduce these defines from the other defines
     // We need to pass to DS any varying required by pixel shader
     // If we have required an attributes that is not present in varyings it mean we will be for DS
+    // Position and normal are always required for tessellation.
+    #define VARYINGS_DS_NEED_POSITION
+    #define VARYINGS_DS_NEED_NORMAL
     #if defined(VARYINGS_NEED_TANGENT_WS) || defined(ATTRIBUTES_NEED_TANGENT)
     #define VARYINGS_DS_NEED_TANGENT
     #endif
