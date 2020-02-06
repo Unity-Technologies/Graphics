@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
         float m_CameraPhi = 0.75f;
         float m_CameraTheta = 0.5f;
         float m_CameraDistance = 2.0f;
-        NavMode m_NavMode = NavMode.None;
         Vector2 m_PreviousMousePosition = Vector2.zero;
 
         Cubemap cubemap => target as Cubemap;
