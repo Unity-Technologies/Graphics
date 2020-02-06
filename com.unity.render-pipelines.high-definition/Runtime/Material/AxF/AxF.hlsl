@@ -1556,7 +1556,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
     // Apply clearcoat
     float  clearcoatExtinction = 1.0;
-    float3  clearcoatReflectionLobe = 0.0;
+    float3  clearcoatReflectionLobeNdotL = 0.0;
     if (HasClearcoat())
     {
         NdotL = dot(bsdfData.clearcoatNormalWS, lightWS_Clearcoat);
@@ -1576,7 +1576,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
         // There's nothing said about clearcoatColor, and it doesn't make sense to actually color its reflections but we
         // treat clearcoatColor as other specular colors (as the AxF SVBRDF model includes both a general coloring term
         // that they call "specular color" while the f0 is actually another term)
-        clearcoatReflectionLobe = bsdfData.clearcoatColor * reflectionCoeff * DV_SmithJointGGX(coatNdotH, NdotL, coatNdotV, CLEAR_COAT_ROUGHNESS, preLightData.coatPartLambdaV);
+        clearcoatReflectionLobeNdotL = saturate(NdotL) * bsdfData.clearcoatColor * reflectionCoeff * DV_SmithJointGGX(coatNdotH, NdotL, coatNdotV, CLEAR_COAT_ROUGHNESS, preLightData.coatPartLambdaV);
     }
 
     // undercoat values:
@@ -1611,7 +1611,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
-    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
+    cbsdf.specR = (clearcoatExtinction * specularTerm * saturate(NdotL) + clearcoatReflectionLobeNdotL);
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;
@@ -1650,7 +1650,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
     // Apply clearcoat
     float  clearcoatExtinction = 1.0;
-    float3  clearcoatReflectionLobe = 0.0;
+    float3  clearcoatReflectionLobeNdotL = 0.0;
     if (HasClearcoat())
     {
         NdotL = dot(bsdfData.clearcoatNormalWS, lightWS_Clearcoat);
@@ -1670,7 +1670,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
         // There's nothing said about clearcoatColor, and it doesn't make sense to actually color its reflections but we
         // treat clearcoatColor as other specular colors (as the AxF SVBRDF model includes both a general coloring term
         // that they call "specular color" while the f0 is actually another term)
-        clearcoatReflectionLobe = bsdfData.clearcoatColor * reflectionCoeff * DV_SmithJointGGX(coatNdotH, NdotL, coatNdotV, CLEAR_COAT_ROUGHNESS, preLightData.coatPartLambdaV);
+        clearcoatReflectionLobeNdotL = saturate(NdotL) * bsdfData.clearcoatColor * reflectionCoeff * DV_SmithJointGGX(coatNdotH, NdotL, coatNdotV, CLEAR_COAT_ROUGHNESS, preLightData.coatPartLambdaV);
     }
 
     // undercoat values:
@@ -1703,8 +1703,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
     specularTerm += CarPaint_BTF(thetaH, thetaD, bsdfData);
 
     cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
-    cbsdf.specR = (clearcoatExtinction * specularTerm + clearcoatReflectionLobe) * saturate(NdotL);
-    cbsdf.specR = (specularTerm) * saturate(NdotL);
+    cbsdf.specR = (clearcoatExtinction * specularTerm * saturate(NdotL) + clearcoatReflectionLobeNdotL);
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;
