@@ -6,39 +6,51 @@ using UnityEngine.Rendering.VirtualTexturing;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
-    public sealed class VirtualTexturingSettings : ScriptableObject
+    // On the UI side we split the GPU cache size overrides into different lists based on the usage value.
+    // To have the serialized side be a 1:1 match with what's shown in the UI we have an HDRP side version of the GPU cache size settings.
+    [Serializable]
+    public struct VirtualTexturingGPUCacheSettings
     {
-        // Do not directly feed this to VirtualTexturing.ApplyVirtualTexturingSettings(). Pass the result of GetSettings() instead.
-        public VirtualTexturing.VirtualTexturingSettings settings;
-
+        public uint sizeInMegaBytes;
         public VirtualTexturingGPUCacheSizeOverride[] gpuCacheSizeOverridesShared;
         public VirtualTexturingGPUCacheSizeOverride[] gpuCacheSizeOverridesStreaming;
         public VirtualTexturingGPUCacheSizeOverride[] gpuCacheSizeOverridesProcedural;
+    }
+
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
+    public sealed class VirtualTexturingSettings : ScriptableObject
+    {
+        public VirtualTexturingCPUCacheSettings cpuCache;
+        public VirtualTexturingGPUCacheSettings gpuCache;
 
         // Get settings as passed to the Virtual Texturing API
         public VirtualTexturing.VirtualTexturingSettings GetSettings()
         {
-            List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
+            VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
 
-            overrides.AddRange(gpuCacheSizeOverridesShared);
-            overrides.AddRange(gpuCacheSizeOverridesStreaming);
-            overrides.AddRange(gpuCacheSizeOverridesProcedural);
+            settings.cpuCache = cpuCache;
+
+            List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
+            overrides.AddRange(gpuCache.gpuCacheSizeOverridesShared);
+            overrides.AddRange(gpuCache.gpuCacheSizeOverridesStreaming);
+            overrides.AddRange(gpuCache.gpuCacheSizeOverridesProcedural);
 
             settings.gpuCache.sizeOverrides = overrides.ToArray();
+            settings.gpuCache.sizeInMegaBytes = gpuCache.sizeInMegaBytes;
 
             return settings;
         }
 
         public VirtualTexturingSettings()
         {
-            settings = new VirtualTexturing.VirtualTexturingSettings();
-            settings.cpuCache.sizeInMegaBytes = 256;
-            settings.gpuCache.sizeInMegaBytes = 64;
+            cpuCache = new VirtualTexturingCPUCacheSettings();
+            cpuCache.sizeInMegaBytes = 256;
+            gpuCache = new VirtualTexturingGPUCacheSettings();
+            gpuCache.sizeInMegaBytes = 64;
 
-            gpuCacheSizeOverridesShared = new VirtualTexturingGPUCacheSizeOverride[] { };
-            gpuCacheSizeOverridesStreaming = new VirtualTexturingGPUCacheSizeOverride[] { };
-            gpuCacheSizeOverridesProcedural = new VirtualTexturingGPUCacheSizeOverride[] { };
+            gpuCache.gpuCacheSizeOverridesShared = new VirtualTexturingGPUCacheSizeOverride[] { };
+            gpuCache.gpuCacheSizeOverridesStreaming = new VirtualTexturingGPUCacheSizeOverride[] { };
+            gpuCache.gpuCacheSizeOverridesProcedural = new VirtualTexturingGPUCacheSizeOverride[] { };
         }
     }
 }

@@ -19,7 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal SerializedProperty cpuCacheSize;
             internal SerializedProperty gpuCacheSize;
-            internal SerializedProperty gpuCacheSizeOverrides;
 
             internal SerializedProperty gpuCacheSizeOverridesShared;
             internal SerializedProperty gpuCacheSizeOverridesStreaming;
@@ -29,8 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Settings m_Settings;
 
         private bool m_Dirty = false;
-
-        private SerializedProperty m_GPUCacheSizeOverridesProperty;
+        private bool m_OverrideOverlap = false;
 
         private ReorderableList m_GPUCacheSizeOverrideListShared;
         private SerializedProperty m_GPUCacheSizeOverridesPropertyShared;
@@ -45,21 +43,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnEnable();
 
-            var serializedNativeSettings = properties.Find(x => x.settings);
-
-            var nativeSettings = new RelativePropertyFetcher<UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings>(serializedNativeSettings);
-
             m_Settings = new Settings
             {
                 objReference = m_Target,
 
-                cpuCacheSize = nativeSettings.Find(x => x.cpuCache.sizeInMegaBytes),
-                gpuCacheSize = nativeSettings.Find(x => x.gpuCache.sizeInMegaBytes),
-                gpuCacheSizeOverrides = nativeSettings.Find(x => x.gpuCache.sizeOverrides),
+                cpuCacheSize = properties.Find(x => x.cpuCache.sizeInMegaBytes),
+                gpuCacheSize = properties.Find(x => x.gpuCache.sizeInMegaBytes),
 
-                gpuCacheSizeOverridesShared = properties.Find(x => x.gpuCacheSizeOverridesShared),
-                gpuCacheSizeOverridesStreaming = properties.Find(x => x.gpuCacheSizeOverridesStreaming),
-                gpuCacheSizeOverridesProcedural = properties.Find(x => x.gpuCacheSizeOverridesProcedural),
+                gpuCacheSizeOverridesShared = properties.Find(x => x.gpuCache.gpuCacheSizeOverridesShared),
+                gpuCacheSizeOverridesStreaming = properties.Find(x => x.gpuCache.gpuCacheSizeOverridesStreaming),
+                gpuCacheSizeOverridesProcedural = properties.Find(x => x.gpuCache.gpuCacheSizeOverridesProcedural),
 
             };
         }
@@ -74,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CheckStyles();
 
             serializedObject.Update();
+            m_OverrideOverlap = false;
 
             EditorGUILayout.Space();
 
@@ -84,9 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // GPU Cache size overrides
                 if (m_GPUCacheSizeOverrideListShared == null ||
-                    m_GPUCacheSizeOverridesProperty != m_Settings.gpuCacheSizeOverrides)
+                    m_GPUCacheSizeOverridesPropertyShared != m_Settings.gpuCacheSizeOverridesShared)
                 {
-                    m_GPUCacheSizeOverridesProperty = m_Settings.gpuCacheSizeOverrides;
                     m_GPUCacheSizeOverridesPropertyShared = m_Settings.gpuCacheSizeOverridesShared;
                     m_GPUCacheSizeOverridesPropertyStreaming = m_Settings.gpuCacheSizeOverridesStreaming;
                     m_GPUCacheSizeOverridesPropertyProcedural = m_Settings.gpuCacheSizeOverridesProcedural;
@@ -101,6 +94,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_GPUCacheSizeOverrideListShared.DoLayoutList();
                 m_GPUCacheSizeOverrideListStreaming.DoLayoutList();
                 m_GPUCacheSizeOverrideListProcedural.DoLayoutList();
+
+                if (m_OverrideOverlap)
+                {
+                    EditorGUILayout.HelpBox(s_Styles.gpuCacheSizeOverrideOverlap, MessageType.Warning);
+                }
+
                 EditorGUILayout.EndVertical();
 
                 serializedObject.ApplyModifiedProperties();
@@ -167,12 +166,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void GPUCacheSizeOverridesGUI(Rect rect, int overrideIdx, SerializedProperty overrideListProperty, VirtualTexturingGPUCacheSizeOverride[] overrideList)
         {
+            var cacheSizeOverrideProperty = overrideListProperty.GetArrayElementAtIndex(overrideIdx);
+            var cacheSizeOverride = overrideList[overrideIdx];
+
             List<GraphicsFormat> availableFormats = new List<GraphicsFormat>(EditorHelpers.QuerySupportedFormats());
+
+            bool overrideOverlap = false;
+
+            // Remove formats that are already in the shared list.
+            if (overrideListProperty != m_GPUCacheSizeOverridesPropertyShared)
+            {
+                foreach (var existingCacheSizeOverride in m_Settings.objReference.gpuCache.gpuCacheSizeOverridesShared)
+                {
+                    availableFormats.Remove(existingCacheSizeOverride.format);
+                    overrideOverlap |= existingCacheSizeOverride.format == cacheSizeOverride.format;
+                }
+            }
+
+            m_OverrideOverlap |= overrideOverlap;
+
             // Remove formats already overridden
             foreach (var existingCacheSizeOverride in overrideList)
             {
                 availableFormats.Remove(existingCacheSizeOverride.format);
             }
+
             // Group formats
             Dictionary<string, List<string>> formatGroups = new Dictionary<string, List<string>>();
             foreach (GraphicsFormat graphicsFormat in availableFormats)
@@ -185,10 +203,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 formatGroups[format].Add(channelTransform);
             }
 
-            var cacheSizeOverrideProperty = overrideListProperty.GetArrayElementAtIndex(overrideIdx);
-            var cacheSizeOverride = overrideList[overrideIdx];
-
             GraphicsFormatToFormatAndChannelTransformString((GraphicsFormat)cacheSizeOverrideProperty.FindPropertyRelative("format").intValue, out string formatString, out string channelTransformString);
+
+            // GUI Drawing
 
             float overrideWidth = rect.width;
 
@@ -196,13 +213,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             overrideWidth -= 2 * spacing;
 
-            float formatLabelWidth = Math.Min(45, overrideWidth * 0.15f);
+            float overlapWarningWidth = 20;
+            float formatLabelWidth = Math.Min(45, overrideWidth * 0.20f);
             float formatWidth = overrideWidth * 0.3f;
-            float channelTransformWidth = overrideWidth * 0.3f;
-            float sizeLabelWidth = Math.Min(35, overrideWidth * 0.1f);
+            float channelTransformWidth = overrideWidth * 0.25f;
+            float sizeLabelWidth = Math.Min(30, overrideWidth * 0.13f);
             float sizeWidth = overrideWidth * 0.15f;
 
+            // Overlap Warning
+
+            rect.position -= new Vector2(overlapWarningWidth, 0);
+            rect.width = overlapWarningWidth;
+
+            if (overrideOverlap)
+            {
+                EditorGUI.HelpBox(rect, "", MessageType.Warning);
+            }
+
             // Format
+            rect.position += new Vector2(overlapWarningWidth, 0);
             rect.width = formatLabelWidth;
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideFormat);
 
@@ -261,42 +290,46 @@ namespace UnityEditor.Rendering.HighDefinition
             // Size
             rect.position += new Vector2(channelTransformWidth + spacing, 0);
             rect.width = sizeLabelWidth;
+
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideSize);
 
             rect.position += new Vector2(sizeLabelWidth, 0);
             rect.width = sizeWidth;
 
-            cacheSizeOverride.sizeInMegaBytes = (uint)Mathf.Max(2, EditorGUI.IntField(rect, (int)cacheSizeOverride.sizeInMegaBytes));
-            cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue = (int)cacheSizeOverride.sizeInMegaBytes;
+            cacheSizeOverride.sizeInMegaBytes = (uint) Mathf.Max(2,
+                EditorGUI.IntField(rect, (int) cacheSizeOverride.sizeInMegaBytes));
+            cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue =
+                (int) cacheSizeOverride.sizeInMegaBytes;
             serializedObject.ApplyModifiedProperties();
         }
 
         void DrawSharedOverride(Rect rect, int overrideIdx, bool active, bool focused)
         {
-            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyShared, m_Settings.objReference.gpuCacheSizeOverridesShared);
+            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyShared, m_Settings.objReference.gpuCache.gpuCacheSizeOverridesShared);
         }
 
         void DrawStreamingOverride(Rect rect, int overrideIdx, bool active, bool focused)
         {
-            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyStreaming, m_Settings.objReference.gpuCacheSizeOverridesStreaming);
+            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyStreaming, m_Settings.objReference.gpuCache.gpuCacheSizeOverridesStreaming);
         }
 
         void DrawProceduralOverride(Rect rect, int overrideIdx, bool active, bool focused)
         {
-            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyProcedural, m_Settings.objReference.gpuCacheSizeOverridesProcedural);
+            GPUCacheSizeOverridesGUI(rect, overrideIdx, m_GPUCacheSizeOverridesPropertyProcedural, m_Settings.objReference.gpuCache.gpuCacheSizeOverridesProcedural);
         }
 
         sealed class Styles
         {
-            public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size");
-            public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size");
+            public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size", "Amount of CPU memory (in MB) that can be allocated by the Virtual Texturing system to use to cache texture data.");
+            public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to use to cache texture data.");
             public readonly GUIContent gpuCacheSizeOverrides = new GUIContent("GPU Cache Size Overrides", "Override the GPU cache size per format and per usage: Streaming, Procedural or both.");
             public readonly GUIContent gpuCacheSizeOverridesShared = new GUIContent("Shared");
             public readonly GUIContent gpuCacheSizeOverridesStreaming = new GUIContent("Streaming");
             public readonly GUIContent gpuCacheSizeOverridesProcedural = new GUIContent("Procedural");
 
-            public readonly GUIContent gpuCacheSizeOverrideFormat = new GUIContent("Format:", "Format and channel transform");
-            public readonly GUIContent gpuCacheSizeOverrideSize = new GUIContent("Size:", "Size in MegaBytes");
+            public readonly GUIContent gpuCacheSizeOverrideFormat = new GUIContent("Format", "Format and channel transform that will be overridden.");
+            public readonly GUIContent gpuCacheSizeOverrideSize = new GUIContent("Size", "Size (in MB) of the override.");
+            public readonly string gpuCacheSizeOverrideOverlap = "One or more formats are overridden in both the shared list and a specific usage list. Please make sure that overrides do not overlap.";
         }
 
         static Styles s_Styles;
