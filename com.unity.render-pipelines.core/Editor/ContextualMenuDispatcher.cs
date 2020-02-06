@@ -70,8 +70,11 @@ namespace UnityEditor.Rendering
     public interface IRemoveAdditionalDataContextualMenu<T>
         where T : Component
     {
-        /// <summary>Remove the given component</summary>
+        /// <summary>
+        /// Remove the given component
+        /// </summary>
         /// <param name="component">The component to remove</param>
+        /// <param name="dependencies">Dependencies.</param>
         void RemoveComponent(T component, IEnumerable<Component> dependencies);
     }
 }

@@ -8,24 +8,45 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    /// <summary>
+    /// A volume component that holds settings for the Path Tracing effect.
+    /// </summary>
     public sealed class PathTracing : VolumeComponent
     {
+        /// <summary>
+        /// Enables path tracing (thus disabling most other passes).
+        /// </summary>
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
         public BoolParameter enable = new BoolParameter(false);
 
+        /// <summary>
+        /// Defines the layers that path tracing should include.
+        /// </summary>
         [Tooltip("Defines the layers that path tracing should include.")]
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
+        /// <summary>
+        /// Defines the maximum number of paths cast within each pixel, over time (one per frame).
+        /// </summary>
         [Tooltip("Defines the maximum number of paths cast within each pixel, over time (one per frame).")]
         public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
 
+        /// <summary>
+        /// Defines the minimum number of bounces for each path.
+        /// </summary>
         [Tooltip("Defines the minimum number of bounces for each path.")]
         public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
 
+        /// <summary>
+        /// Defines the maximum number of bounces for each path.
+        /// </summary>
         [Tooltip("Defines the maximum number of bounces for each path.")]
         public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
-        [Tooltip("Defines the maximum intensity value computed for a path.")]
+        /// <summary>
+        /// Defines the maximum intensity value computed for a path segment.
+        /// </summary>
+        [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
     }
     public partial class HDRenderPipeline
