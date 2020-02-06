@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         int m_WizardActiveTab = 0;
         [SerializeField]
+        bool m_WizardNeedToRunFixAllAgainAfterDomainReload = false;
+        [SerializeField]
         int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
         internal const int k_NeverProcessedMaterialVersion = -1;
@@ -67,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal static int wizardActiveTab
+        public static int wizardActiveTab
         {
             get => instance.m_WizardActiveTab;
             set
@@ -83,6 +85,16 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardPopupAtStart = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedToRunFixAllAgainAfterDomainReload
+        {
+            get => instance.m_WizardNeedToRunFixAllAgainAfterDomainReload;
+            set
+            {
+                instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
                 Save();
             }
         }

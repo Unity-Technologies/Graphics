@@ -339,6 +339,8 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateLargeButton(Style.migrateMaterials, UpgradeStandardShaderMaterials.UpgradeMaterials));
 
             container.Add(CreateWizardBehaviour());
+
+            CheckPersistentFixAll();
         }
 
         VisualElement CreateFolderData()
