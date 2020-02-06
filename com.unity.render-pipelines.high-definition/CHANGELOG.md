@@ -149,6 +149,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the broken ShaderGraph preview when creating a new Lit graph.
 - Fix indentation issue in preset of LayeredLit material.
 - Fixed wrong build error message when building for android on mac.
+- Fixed Wizard persistency of Direct3D12 change on domain reload.
+- Fixed Wizard persistency of FixAll on domain reload.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
