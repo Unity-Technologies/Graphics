@@ -146,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where hair shader could write garbage in the diffuse lighting buffer, causing NaNs.
 - Fixed an exposure issue with ray traced sub-surface scattering.
 - Fixed runtime debug menu light hierarchy None not doing anything.
+- Fixed the broken ShaderGraph preview when creating a new Lit graph.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
