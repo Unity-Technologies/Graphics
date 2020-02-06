@@ -131,9 +131,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "XR Legacy Helpers Package",
                 error: "XR Legacy Helpers Package will help you to handle inputs.");
 
-            public static readonly ConfigStyle dxrSupported = new ConfigStyle(
-                label: "Hardware and OS",
-                error: "You hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: "Auto graphics API",
                 error: "Auto Graphics API is not supported!");
@@ -154,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "DXR is not activated!");
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
-                error: "There is an issue with the DXR resources!");
+                error: "There is an issue with the DXR resources! Or your hardware and/or OS cannot be used for DXR! (unfixable in second case)");
             public static readonly ConfigStyle dxrShaderConfig = new ConfigStyle(
                 label: "DXR shader config",
                 error: "There is an issue with the DXR shader config!");
