@@ -460,16 +460,17 @@ namespace UnityEngine.Rendering.Universal
             InitializeAdditionalCameraData(camera, additionalCameraData, ref cameraData);
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
         static bool CanXRSDKUseSinglePass(Camera camera)
         {
-            List<XR.XRDisplaySubsystem> displayList = new List<XR.XRDisplaySubsystem>();
             XR.XRDisplaySubsystem display = null;
-            SubsystemManager.GetInstances(displayList);
+            SubsystemManager.GetInstances(displaySubsystemList);
 
-            if (displayList.Count > 0)
+            if (displaySubsystemList.Count > 0)
             {
                 XR.XRDisplaySubsystem.XRRenderPass renderPass;
-                display = displayList[0];
+                display = displaySubsystemList[0];
                 if (display.GetRenderPassCount() > 0)
                 {
                     display.GetRenderPass(0, out renderPass);
@@ -494,6 +495,7 @@ namespace UnityEngine.Rendering.Universal
             }
             return false;
         }
+#endif
 
         /// <summary>
         /// Initialize camera data settings common for all cameras in the stack. Overlay cameras will inherit
