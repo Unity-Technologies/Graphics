@@ -134,7 +134,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.
 - Fixed error spam issue with terrain detail terrainDetailUnsupported (cases 1211848)
-- Fixed the broken ShaderGraph preview when creating a new Lit graph.
+<<<<<<< HEAD
 - Fixed Wizard check order for `Hardware and OS` and `Direct3D12`
 - Fix AO issue turning black when Far/Near plane distance is big.
 - Fixed issue when opening lookdev and the lookdev volume have not been assigned yet.
@@ -147,6 +147,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where hair shader could write garbage in the diffuse lighting buffer, causing NaNs.
 - Fixed an exposure issue with ray traced sub-surface scattering.
 - Fixed runtime debug menu light hierarchy None not doing anything.
+=======
+- Fixed the broken ShaderGraph preview when creating a new Lit graph.
+>>>>>>> 55360b58f2... Fix material properties not up to date when updating the preview (#5775) (#5782)
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
