@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.UI
             UpdateValueLabel();
         }
 
-        void UpdateValueLabel()
+        internal void UpdateValueLabel()
         {
             if (valueToggle != null)
                 valueToggle.isOn = getter(index);
