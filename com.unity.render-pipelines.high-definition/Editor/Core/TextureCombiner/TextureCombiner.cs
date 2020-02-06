@@ -5,7 +5,7 @@ using System.IO;
 
 namespace UnityEditor.Rendering
 {
-    public class TextureCombiner
+    internal class TextureCombiner
     {
         static Texture2D _midGrey;
 

@@ -3,6 +3,7 @@ using System.Linq;
 using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -319,8 +320,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                string.Format("   Ref  {0}", (int)StencilLightingUsage.RegularLighting),
+                string.Format("   WriteMask {0}", (int) StencilUsage.RequiresDeferredLighting | (int) StencilUsage.SubsurfaceScattering),
+                string.Format("   Ref  {0}", (int)StencilUsage.Clear),
                 "   Comp Always",
                 "   Pass Replace",
                 "}"
@@ -373,13 +374,15 @@ namespace UnityEditor.Rendering.HighDefinition
         // These functions are still required because for the PBR shader use hardcoded stencil and render queues
         public static void GetStencilStateForGBuffer(bool receiveSSR, bool useSplitLighting, ref Pass pass)
         {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            int stencilRef = useSplitLighting ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting;
+            int stencilWriteMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
+            int stencilRef = (int)StencilUsage.RequiresDeferredLighting;
+            if(useSplitLighting)
+            {
+                stencilRef |= (int)StencilUsage.SubsurfaceScattering;
+            }
 
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            stencilRef |= !receiveSSR ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
+            stencilRef |= receiveSSR ? (int)StencilUsage.TraceReflectionRay : 0;
 
             pass.StencilOverride = new List<string>()
             {
@@ -396,14 +399,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void GetStencilStateForDepthOrMV(bool receiveDecals, bool receiveSSR, bool useObjectMotionVector, ref Pass pass)
         {
-            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
-            int stencilRef = receiveDecals ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
+            int stencilWriteMask = 0;
+            int stencilRef = 0;
 
-            stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            stencilRef |= !receiveSSR ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
+            stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
+            stencilRef |= receiveSSR ? (int)StencilUsage.TraceReflectionRay : 0;
 
-            stencilWriteMask |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
-            stencilRef |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
+            stencilWriteMask |= useObjectMotionVector ? (int)StencilUsage.ObjectMotionVector : 0;
+            stencilRef |= useObjectMotionVector ? (int)StencilUsage.ObjectMotionVector : 0;
 
             if (stencilWriteMask != 0)
             {
@@ -507,6 +510,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
                 baseActiveFields.Add("AlphaTest");
+            }
+            
+            switch(masterNode.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Tangent:
+                    baseActiveFields.AddAll("features.NormalDropOffTS");
+                    break;
+                case NormalDropOffSpace.Object:
+                    baseActiveFields.AddAll("features.NormalDropOffOS");
+                    break;
+                case NormalDropOffSpace.World:
+                    baseActiveFields.AddAll("features.NormalDropOffWS");
+                    break;
+                default:
+                    UnityEngine.Debug.LogError("Unknown normal drop off space: " + masterNode.normalDropOffSpace);
+                    break;
             }
 
             if (masterNode.surfaceType != UnityEditor.ShaderGraph.SurfaceType.Opaque)

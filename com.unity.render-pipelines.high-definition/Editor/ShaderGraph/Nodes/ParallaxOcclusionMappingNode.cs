@@ -21,11 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // This still needs to be added.
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Parallax-Occlusion-Mapping-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Parallax-Occlusion-Mapping");
 
         // Input slots
         private const int kHeightmapSlotId = 2;
