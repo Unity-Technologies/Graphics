@@ -2,6 +2,10 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Subsurface scattering volume component.
+    /// This component setups subsurface scattering for ray-tracing.
+    /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/SubSurface Scattering (Preview)")]
     public sealed class SubSurfaceScattering : VolumeComponent
     {

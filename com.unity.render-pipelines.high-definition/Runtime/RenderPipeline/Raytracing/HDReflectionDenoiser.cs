@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesX = (texWidth + (tileSize - 1)) / tileSize;
             int numTilesY = (texHeight + (tileSize - 1)) / tileSize;
 
+            // Grab the ray traced reflection volume component
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
             // Request the intermediate buffers that we need
             RTHandle intermediateBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
             RTHandle intermediateBuffer1 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
@@ -74,6 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer1);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, m_ReflectionFilterMapping);
+            cmd.SetComputeFloatParam(m_ReflectionDenoiserCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
             cmd.DispatchCompute(m_ReflectionDenoiserCS, s_BilateralFilterHKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Horizontal pass of the bilateral filter
@@ -83,6 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
             cmd.SetComputeTextureParam(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, m_ReflectionFilterMapping);
+            cmd.SetComputeFloatParam(m_ReflectionDenoiserCS, HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
             cmd.DispatchCompute(m_ReflectionDenoiserCS, s_BilateralFilterVKernel, numTilesX, numTilesY, hdCamera.viewCount);
         }
     }
