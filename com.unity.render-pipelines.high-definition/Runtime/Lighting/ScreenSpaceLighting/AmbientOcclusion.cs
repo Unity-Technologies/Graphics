@@ -15,16 +15,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public BoolParameter rayTracing = new BoolParameter(false);
 
+        /// <summary>
+        /// Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.
+        /// </summary>
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
+        /// <summary>
+        /// Controls how much the ambient occlusion affects direct lighting.
+        /// </summary>
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
-
+        /// <summary>
+        /// Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses.
+        /// </summary>
         public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
+        /// <summary>
+        /// Whether the results are accumulated over time or not. This can get higher quality results at a cheaper cost, but it can lead to temporal artifacts such as ghosting.
+        /// </summary>
         public BoolParameter temporalAccumulation = new BoolParameter(true);
 
         // Temporal only parameters
+        /// <summary>
+        /// Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise.
+        /// </summary>
         public ClampedFloatParameter ghostingReduction = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         // Non-temporal only parameters
+        /// <summary>
+        /// Modify the non-temporal blur to change how sharp features are preserved. Lower values leads to blurrier/softer results, higher values gets a sharper result, but with the risk of noise.
+        /// </summary>
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters
@@ -53,6 +70,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
 
+        /// <summary>
+        /// Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction). Increasing the value can lead to detection
+        /// of finer details, but is not a guarantee of higher quality otherwise. Also note that increasing this value will lead to higher cost.
+        /// </summary>
         public int stepCount
         {
             get
@@ -65,6 +86,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_StepCount.value = value; }
         }
 
+        /// <summary>
+        /// If this option is set to true, the effect runs at full resolution. This will increases quality, but also decreases performance significantly.
+        /// </summary>
         public bool fullResolution
         {
             get
@@ -77,6 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_FullResolution.value = value; }
         }
 
+        /// <summary>
+        /// This field imposes a maximum radius in pixels that will be considered. It is very important to keep this as tight as possible to preserve good performance.
+        /// Note that the pixel value specified for this field is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly
+        /// for other resolutions.
+        /// </summary>
         public int maximumRadiusInPixels
         {
             get
@@ -89,6 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_MaximumRadiusInPixels.value = value; }
         }
 
+        /// <summary>
+        /// This upsample method preserves sharp edges better, however may result in visible aliasing and it is slightly more expensive.
+        /// </summary>
         public bool bilateralUpsample
         {
             get
@@ -101,6 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_BilateralUpsample.value = value; }
         }
 
+        /// <summary>
+        /// Number of directions searched for occlusion at each each pixel when temporal accumulation is disabled.
+        /// </summary>
         public int directionCount
         {
             get
@@ -179,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
         }
 
-        public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        internal AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = defaultResources;
@@ -190,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AllocRT(0.5f);
         }
 
-        public void Cleanup()
+        internal void Cleanup()
         {
             if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
             {
@@ -200,14 +235,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRT();
         }
 
-        public void InitRaytracing(HDRenderPipeline renderPipeline)
+        internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -519,7 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
+        internal void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(camera, settings))
@@ -555,7 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
@@ -564,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
+        internal void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
             var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();

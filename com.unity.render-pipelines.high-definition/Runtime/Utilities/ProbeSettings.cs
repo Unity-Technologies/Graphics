@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         frustumViewerScale = 1 << 14,
         /// <summary>lighting.fadeDistance</summary>
         lightingFadeDistance = 1 << 15,
+        /// <summary>resolution.</summary>
         resolution = 1 << 16,
     }
 
@@ -256,6 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Camera settings to use when capturing data.</summary>
         /// <summary>The resolution of the probe.</summary>
         public PlanarReflectionAtlasResolution resolution;
+        /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
