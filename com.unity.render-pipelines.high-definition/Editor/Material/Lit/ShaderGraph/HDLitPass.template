@@ -65,7 +65,8 @@ Pass
     $RefractionThin:                     #define _REFRACTION_THIN 1
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
-    $AddPrecomputedVelocity:           #define _ADD_PRECOMPUTED_VELOCITY
+    $DisableSSRTransparent:              #define _DISABLE_SSR_TRANSPARENT 1
+    $AddPrecomputedVelocity:             #define _ADD_PRECOMPUTED_VELOCITY
     $TransparentWritesMotionVec:         #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
     $DepthOffset:                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1

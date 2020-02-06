@@ -303,6 +303,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_SSAO_FullRes.unity
     guid: afb9d0b09509f784293f3fa6a218103e
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2701_TransparentSSR.unity
+    guid: c9a611601b514da47a39335dc899c5f3
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
   - enabled: 1

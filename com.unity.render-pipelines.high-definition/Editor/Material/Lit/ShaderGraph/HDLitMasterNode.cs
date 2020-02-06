@@ -548,6 +548,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_ReceivesSSRTransparent = true;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
         public ToggleData addPrecomputedVelocity
@@ -1100,7 +1114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,

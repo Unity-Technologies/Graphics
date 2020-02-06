@@ -217,6 +217,7 @@ Shader "HDRP/Lit"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+        [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
@@ -273,6 +274,7 @@ Shader "HDRP/Lit"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -601,17 +603,35 @@ Shader "HDRP/Lit"
             Name "TransparentDepthPrepass"
             Tags{ "LightMode" = "TransparentDepthPrepass" }
 
+            // To be able to tag stencil with disableSSR information for transparentObjects
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskDepth]
+                Ref [_StencilRefDepth]
+                Comp Always
+                Pass Replace
+            }
+
             Cull[_CullMode]
             ZWrite On
-            ColorMask 0
 
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define CUTOFF_TRANSPARENT_DEPTH_PREPASS
+
+            // If the transparent surface should have reflections, then we should output normal
+            #if !defined(_DISABLE_SSR_TRANSPARENT)
+                #define WRITE_NORMAL_BUFFER
+            #endif
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
