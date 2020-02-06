@@ -339,6 +339,8 @@ it will allow you to add more layers / custom culling option to the cullingResul
 - Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
 - In the shader, a missing multiplication by `_RTHandleScale.xy` for the UVs when sampling an RTHandle buffer.
 
+**Shuriken Particle System**, when you render a particle system that is only visible in the custom pass and your particles are facing the wrong direction it's probably because you didn't override the `AggregateCullingParameters`. The orientation of the particles in Shuriken is computed during the culling so if you don't have the correct setup it will not be rendered properly.
+
 ## Example: Glitch Effect (without code)
 
 To apply a glitch effect on top of objects, we can use ShaderGraph with custom passes:

@@ -137,6 +137,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard check order for `Hardware and OS` and `Direct3D12`
 - Fix AO issue turning black when Far/Near plane distance is big.
 - Fixed issue when opening lookdev and the lookdev volume have not been assigned yet.
+- Improved memory usage of the sky system.
+- Updated label in HDRP quality preference settings (case 1215100)
+- Fixed Decal Projector gizmo not undoing properly (case 1216629)
+- Fix a leak in the denoising of ray traced reflections.
+- Fixed Alignment issue in Light Preset
+- Fixed Environment Header in LightingWindow
+- Fixed an issue where hair shader could write garbage in the diffuse lighting buffer, causing NaNs.
+- Fixed an exposure issue with ray traced sub-surface scattering.
+- Fixed runtime debug menu light hierarchy None not doing anything.
 - Fixed the broken ShaderGraph preview when creating a new Lit graph.
 
 ### Changed
