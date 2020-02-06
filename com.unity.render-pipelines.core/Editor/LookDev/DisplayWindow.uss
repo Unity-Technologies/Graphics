@@ -80,7 +80,16 @@
 
 .unity-composite-field__field > .unity-base-field__label
 {
+    padding-left: 0px;
     min-width: 10px;
+    max-width: 10px;
+}
+
+.unity-composite-field__field > .unity-base-field__input
+{
+    margin-left: 0px;
+    min-width: 38px;
+    max-width: 38px;
 }
 
 #unity-text-input

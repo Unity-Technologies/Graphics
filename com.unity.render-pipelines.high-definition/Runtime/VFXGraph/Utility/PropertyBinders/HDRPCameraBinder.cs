@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,9 +7,15 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
+    /// <summary>
+    /// Camera parameter binding helper class.
+    /// </summary>
     [VFXBinder("HDRP/HDRP Camera")]
     public class HDRPCameraBinder : VFXBinderBase
     {
+        /// <summary>
+        /// Camera HDRP additional data.
+        /// </summary>
         public HDAdditionalCameraData AdditionalData;
         Camera m_Camera;
 
@@ -29,6 +35,10 @@ namespace UnityEngine.VFX.Utility
         ExposedProperty m_DepthBuffer;
         ExposedProperty m_ColorBuffer;
 
+        /// <summary>
+        /// Set a camera property.
+        /// </summary>
+        /// <param name="name">Property name.</param>
         public void SetCameraProperty(string name)
         {
             CameraProperty = name;
@@ -62,6 +72,9 @@ namespace UnityEngine.VFX.Utility
             access.RequestAccess(HDAdditionalCameraData.BufferAccessType.Depth);
         }
 
+        /// <summary>
+        /// OnEnable implementation.
+        /// </summary>
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -71,6 +84,10 @@ namespace UnityEngine.VFX.Utility
 
             UpdateSubProperties();
         }
+
+        /// <summary>
+        /// OnDisable implementation.
+        /// </summary>
         protected override void OnDisable()
         {
             base.OnDisable();
@@ -87,9 +104,14 @@ namespace UnityEngine.VFX.Utility
                 AdditionalData.requestGraphicsBuffer += RequestHDRPBuffersAccess;
         }
 
+        /// <summary>
+        /// Returns true if the Visual Effect and the configuration of the binder are valid to perform the binding.
+        /// </summary>
+        /// <param name="component">Component to be tested.</param>
+        /// <returns>True if the Visual Effect and the configuration of the binder are valid to perform the binding.</returns>
         public override bool IsValid(VisualEffect component)
         {
-            return AdditionalData != null 
+            return AdditionalData != null
                 && m_Camera != null
                 && component.HasVector3(m_Position)
                 && component.HasVector3(m_Angles)
@@ -103,7 +125,10 @@ namespace UnityEngine.VFX.Utility
                 && component.HasTexture(m_ColorBuffer);
         }
 
-
+        /// <summary>
+        /// Update bindings for a visual effect.
+        /// </summary>
+        /// <param name="component">Component to update.</param>
         public override void UpdateBinding(VisualEffect component)
         {
             var depth = AdditionalData.GetGraphicsBuffer(HDAdditionalCameraData.BufferAccessType.Depth);
@@ -132,6 +157,10 @@ namespace UnityEngine.VFX.Utility
 
         }
 
+        /// <summary>
+        /// To string implementation.
+        /// </summary>
+        /// <returns>String containing the binder information.</returns>
         public override string ToString()
         {
             return string.Format($"HDRP Camera : '{(AdditionalData == null? "null" : AdditionalData.gameObject.name)}' -> {CameraProperty}");

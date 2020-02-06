@@ -3,6 +3,10 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Recursive Rendering Volume Component.
+    /// This component setups recursive rendering.
+    /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Recursive Rendering (Preview)")]
     public sealed class RecursiveRendering : VolumeComponent
     {
