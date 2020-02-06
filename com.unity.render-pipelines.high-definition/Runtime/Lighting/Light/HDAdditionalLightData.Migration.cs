@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveAdditionalShadowData,
             AreaLightShapeTypeLogicIsolation,
             PCSSUIUpdate,
+            MoveEmissionMesh,
         }
 
         /// <summary>
@@ -141,8 +142,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // The min filter size is now in the [0..1] range when user facing
                     data.minFilterSize = data.minFilterSize * 1000.0f;
+                }),
+                MigrationStep.New(Version.MoveEmissionMesh, (HDAdditionalLightData data) =>
+                {
+                    CoreUtils.Destroy(data.GetComponent<MeshFilter>());
+                    CoreUtils.Destroy(data.GetComponent<MeshRenderer>());
                 })
-
             );
 #pragma warning restore 0618, 0612
 

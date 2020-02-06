@@ -1445,6 +1445,44 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        const string k_EmissiveMeshViewerName = "EmissiveMeshViewer";
+
+        GameObject m_ChildEmissiveMeshViewer;
+        GameObject childEmissiveMeshViewer
+        {
+            get
+            {
+                //if not here, try to get it
+                if (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null))
+                {
+                    foreach(Transform child in transform)
+                    {
+                        if(child.name == k_EmissiveMeshViewerName
+                            && child.GetComponent<MeshFilter>() != null
+                            && child.GetComponent<MeshRenderer>() != null
+                            && child.gameObject.hideFlags == HideFlags.NotEditable)
+                        {
+                            m_ChildEmissiveMeshViewer = child.gameObject;
+                            return m_ChildEmissiveMeshViewer;
+                        }
+                    }
+                }
+                
+                //if still not here, create it
+                if (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null))
+                {
+                    m_ChildEmissiveMeshViewer = new GameObject(k_EmissiveMeshViewerName, typeof(MeshFilter), typeof(MeshRenderer));
+                    m_ChildEmissiveMeshViewer.hideFlags = HideFlags.NotEditable;
+                    m_ChildEmissiveMeshViewer.transform.SetParent(transform);
+                    m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
+                    m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
+                    m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+                }
+
+                return m_ChildEmissiveMeshViewer;
+            }
+        }
+
         MeshRenderer m_EmissiveMeshRenderer;
         internal MeshRenderer emissiveMeshRenderer
         {
@@ -1452,7 +1490,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_EmissiveMeshRenderer == null)
                 {
-                    TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
+                    childEmissiveMeshViewer.TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
                 }
 
                 return m_EmissiveMeshRenderer;
@@ -1466,7 +1504,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_EmissiveMeshFilter == null)
                 {
-                    TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
+                    childEmissiveMeshViewer.TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
                 }
 
                 return m_EmissiveMeshFilter;
@@ -2273,22 +2311,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            bool displayEmissiveMesh = type == HDLightType.Area && displayAreaLightEmissiveMesh;
+            bool isAreaLight = type == HDLightType.Area;
+            bool displayEmissiveMesh = isAreaLight && displayAreaLightEmissiveMesh;
 
-            // Ensure that the emissive mesh components are here
+            // Only show childEmissiveMeshViewer if type is Area
+            if (isAreaLight)
+            {
+                if (childEmissiveMeshViewer.hideFlags == (HideFlags.NotEditable | HideFlags.HideInHierarchy))
+                    childEmissiveMeshViewer.hideFlags = HideFlags.NotEditable;
+            }
+            else
+            {
+                if (childEmissiveMeshViewer.hideFlags == HideFlags.NotEditable)
+                {
+                    childEmissiveMeshViewer.hideFlags = HideFlags.NotEditable | HideFlags.HideInHierarchy;
+                    EditorApplication.DirtyHierarchyWindowSorting();
+                }
+            }
+
+            // Show Emissive Mesh if needed
             if (displayEmissiveMesh)
             {
-                if (emissiveMeshRenderer == null)
-                    m_EmissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
-                if (emissiveMeshFilter == null)
-                    m_EmissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
+                if (emissiveMeshRenderer)
+                    emissiveMeshRenderer.enabled = true;
             }
             else // Or remove them if the option is disabled
             {
-                if (emissiveMeshRenderer != null)
-                    CoreUtils.Destroy(emissiveMeshRenderer);
-                if (emissiveMeshFilter != null)
-                    CoreUtils.Destroy(emissiveMeshFilter);
+                if (emissiveMeshRenderer)
+                    emissiveMeshRenderer.enabled = false;
 
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return;
