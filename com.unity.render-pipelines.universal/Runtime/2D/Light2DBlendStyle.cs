@@ -47,6 +47,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public float additive;
         }
 
+        [System.Obsolete("This field is obsolete. Blend Styles are now automatically enabled/disabled.")]
+        public bool enabled;
+
         public string name;
 
         [SerializeField]
