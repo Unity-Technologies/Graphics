@@ -175,14 +175,12 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = input.positionRWS;
 #endif
-
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = input.normalWS;
 #endif
 #ifdef VARYINGS_NEED_TANGENT_WS
     output.tangentWS = input.tangentWS;
 #endif
-
 #ifdef VARYINGS_NEED_TEXCOORD0
     output.texCoord0 = input.texCoord0;
 #endif
