@@ -178,6 +178,7 @@ test_win:
     flavor: b1.large
   commands:
     - echo 'Hello'
+test_mac:
   name: Mac-clone-test
   agent:
     type: Unity::VM::osx
