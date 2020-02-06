@@ -163,10 +163,27 @@ publish_{{ package.id }}:
 {% endfor %}
 
 publish_all:
-  name: Publish all packages
+  name: Linux-clone-test
   agent:
     type: Unity::VM
     image: package-ci/ubuntu:stable
     flavor: b1.large
   commands:
-    - sleep 1000000
+    - echo 'Hello'
+test_win:
+  name: Win-clone-test
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - echo 'Hello'
+  name: Mac-clone-test
+  agent:
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac
+  commands:
+    - echo 'Hello'
+    
+
