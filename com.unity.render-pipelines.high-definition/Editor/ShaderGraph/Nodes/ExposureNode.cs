@@ -35,11 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            // TODO: write the doc
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Exposure-Node"; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("SGNode-Exposure");
 
         [SerializeField]
         ExposureType        m_ExposureType;

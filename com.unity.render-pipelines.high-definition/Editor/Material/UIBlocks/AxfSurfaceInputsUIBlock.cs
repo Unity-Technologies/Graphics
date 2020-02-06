@@ -196,14 +196,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
         MaterialProperty  m_ClearcoatIORMap = null;
 
-        // Stencil refs and masks
-        const string kStencilRef = "_StencilRef";
-        const string kStencilWriteMask = "_StencilWriteMask";
-        const string kStencilRefDepth = "_StencilRefDepth";
-        const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
-        const string kStencilRefMV = "_StencilRefMV";
-        const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
-
         // Decals and SSR
         const string kEnableDecals = "_SupportDecals";
         const string kEnableSSR = "_ReceivesSSR";

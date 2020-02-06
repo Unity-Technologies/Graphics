@@ -31,6 +31,8 @@ struct RayIntersection
 	uint2 pixelCoord;
 	// Max roughness (encountered along the path, used in path tracing)
 	float maxRoughness;
+	// Velocity for the intersection point
+	float velocity;
 };
 
 struct AttributeData
