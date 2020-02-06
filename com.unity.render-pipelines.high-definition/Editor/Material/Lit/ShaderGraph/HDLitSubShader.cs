@@ -859,6 +859,62 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = false
         };
 
+        Pass m_PassRaytracingSubSurface = new Pass()
+        {
+            Name = "SubSurfaceDXR",
+            LightMode = "SubSurfaceDXR",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#define SHADOW_LOW",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.BentNormalSlotId,
+                HDLitMasterNode.TangentSlotId,
+                HDLitMasterNode.SubsurfaceMaskSlotId,
+                HDLitMasterNode.ThicknessSlotId,
+                HDLitMasterNode.DiffusionProfileHashSlotId,
+                HDLitMasterNode.IridescenceMaskSlotId,
+                HDLitMasterNode.IridescenceThicknessSlotId,
+                HDLitMasterNode.SpecularColorSlotId,
+                HDLitMasterNode.CoatMaskSlotId,
+                HDLitMasterNode.MetallicSlotId,
+                HDLitMasterNode.EmissionSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
+                HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AnisotropySlotId,
+                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                HDLitMasterNode.SpecularAAThresholdSlotId,
+                HDLitMasterNode.RefractionIndexSlotId,
+                HDLitMasterNode.RefractionColorSlotId,
+                HDLitMasterNode.RefractionDistanceSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
+            },
+            UseInPreview = false
+        };
+
         Pass m_PassPathTracing = new Pass()
         {
             Name = "PathTracingDXR",
@@ -1283,6 +1339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingSubSurface, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassPathTracing, mode, subShader, sourceAssetDependencyPaths);
                 }
                 subShader.Deindent();

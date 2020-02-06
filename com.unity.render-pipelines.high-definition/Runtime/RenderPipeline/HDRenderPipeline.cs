@@ -926,7 +926,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
                 m_DbufferManager.AllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-                m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight);
+                m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, hdCamera.viewCount);
             }
         }
 
@@ -1038,9 +1038,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
-
+                  
                 ComputeShader cs = defaultResources.shaders.resolveStencilCS;
-                int kernel = SampleCountToPassIndex(hdCamera.msaaSamples);
+                int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
                 kernel = resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
                 int coarseStencilWidth = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
                 int coarseStencilHeight = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
@@ -4282,7 +4282,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         // We still clear in case of debug mode or on demand
                         if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers))
                         {
-                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                            // On PS4 we don't have working MRT clear, so need to clear buffers one by one
+                            // https://fogbugz.unity3d.com/f/cases/1182018/
+                            if (Application.platform == RuntimePlatform.PS4)
+                            {
+                                var GBuffers = m_GbufferManager.GetBuffersRTI();
+                                foreach (var gbuffer in GBuffers)
+                                {
+                                    CoreUtils.SetRenderTarget(cmd, gbuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                                }
+                            }
+                            else
+                            {
+                                CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                            }
                         }
 
                         // If we are in deferred mode and the ssr is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for
