@@ -351,44 +351,47 @@ namespace UnityEngine.Rendering.HighDefinition
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth);
-
-            // TODO: Remove this data copy.
-            for (int i = 0, iLen = data.Length; i < iLen; ++i)
-            {
-                data[i].shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]);
-                data[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
-                data[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
-                dataValidity[i] = validity[i];
-                for (int j = 0; j < 64; ++j)
+            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
+            { 
+                // TODO: Remove this data copy.
+                for (int i = 0, iLen = data.Length; i < iLen; ++i)
                 {
-                    dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
+                    data[i].shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]);
+                    data[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
+                    data[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
+
+                    dataValidity[i] = validity[i];
+
+                    for (int j = 0; j < 64; ++j)
+                    {
+                        dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
+                    }
                 }
+
+                if (!probeVolumeAsset)
+                {
+                    probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
+                    UnityEditor.EditorUtility.SetDirty(this);
+                }
+
+                probeVolumeAsset.data = data;
+                probeVolumeAsset.dataValidity = dataValidity;
+                probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
+                probeVolumeAsset.resolutionX = parameters.resolutionX;
+                probeVolumeAsset.resolutionY = parameters.resolutionY;
+                probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+                probeVolumeAsset.Dilate();
+
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                UnityEditor.AssetDatabase.Refresh();
+
+                dataUpdated = true;
             }
 
             sh.Dispose();
             validity.Dispose();
             octahedralDepth.Dispose();
-
-            if (!probeVolumeAsset)
-            {
-                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
-                UnityEditor.EditorUtility.SetDirty(this);
-            }
-
-            probeVolumeAsset.data = data;
-            probeVolumeAsset.dataValidity = dataValidity;
-            probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
-            probeVolumeAsset.resolutionX = parameters.resolutionX;
-            probeVolumeAsset.resolutionY = parameters.resolutionY;
-            probeVolumeAsset.resolutionZ = parameters.resolutionZ;
-
-            probeVolumeAsset.Dilate();
-
-            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
-            UnityEditor.AssetDatabase.Refresh();
-
-            dataUpdated = true;
         }
 
         public void DisableBaking()
