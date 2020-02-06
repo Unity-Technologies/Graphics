@@ -13,6 +13,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Resolution
     };
 
+    [GenerateHLSL]
+    public enum VolumeBlendMode
+    {
+        Normal = 0,
+        Additive,
+        Subtractive
+    }
+
     [Serializable]
     public struct ProbeVolumeArtistParameters
     {
@@ -43,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionY;
         public int resolutionZ;
 
+        public VolumeBlendMode volumeBlendMode;
         public float weight;
 
         public Vector3 positiveFade
@@ -104,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.densityX = (float)this.resolutionX / this.size.x;
             this.densityY = (float)this.resolutionY / this.size.y;
             this.densityZ = (float)this.resolutionZ / this.size.z;
+            this.volumeBlendMode = VolumeBlendMode.Normal;
             this.weight = 1;
         }
 
@@ -167,6 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade.y = Mathf.Min(this.weight / negativeFade.y, float.MaxValue);
             data.rcpNegFaceFade.x = Mathf.Min(this.weight / negativeFade.x, float.MaxValue);
             data.rcpNegFaceFade.z = Mathf.Min(this.weight / negativeFade.z, float.MaxValue);
+
+            data.volumeBlendMode = (int)this.volumeBlendMode;
 
             float distFadeLen = Mathf.Max(this.distanceFadeEnd - this.distanceFadeStart, 0.00001526f);
             data.rcpDistFadeLen = 1.0f / distFadeLen;

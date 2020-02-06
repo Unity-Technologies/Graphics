@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 octahedralDepthScaleBias;
         public Vector3 resolution;
         public Vector3 resolutionInverse;
+        public int     volumeBlendMode;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.octahedralDepthScaleBias = Vector4.zero;
             data.resolution = Vector3.zero;
             data.resolutionInverse = Vector3.zero;
+            data.volumeBlendMode = 0;
 
             return data;
         }

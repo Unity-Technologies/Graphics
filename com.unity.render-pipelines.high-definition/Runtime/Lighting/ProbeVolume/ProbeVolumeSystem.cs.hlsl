@@ -25,6 +25,7 @@ struct ProbeVolumeEngineData
     float4 octahedralDepthScaleBias;
     float3 resolution;
     float3 resolutionInverse;
+    int volumeBlendMode;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
@@ -78,6 +79,10 @@ float3 GetResolution(ProbeVolumeEngineData value)
 float3 GetResolutionInverse(ProbeVolumeEngineData value)
 {
     return value.resolutionInverse;
+}
+int GetVolumeBlendMode(ProbeVolumeEngineData value)
+{
+    return value.volumeBlendMode;
 }
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1

@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
+
 // Copied from VolumeVoxelization.compute
 float ProbeVolumeComputeFadeFactor(
     float3 samplePositionBoxNDC,
@@ -84,7 +86,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
         if (s_probeVolumeIdx >= v_probeVolumeIdx)
         {
             v_probeVolumeListOffset++;
-            if (probeVolumeHierarchyWeight < 1.0)
+            if (probeVolumeHierarchyWeight < 1.0 || s_probeVolumeData.volumeBlendMode != VOLUMEBLENDMODE_NORMAL)
             {
                 // TODO: Implement light layer support for probe volumes.
                 // if (IsMatchingLightLayer(s_probeVolumeData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(s_probeVolumeData, TYPE, type) }
@@ -118,9 +120,15 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
                         s_probeVolumeData.endTimesRcpDistFadeLen
                     );
 
-                    // Alpha composite: weight = (1.0f - probeVolumeHierarchyWeight) * fadeFactor;
-                    weight = probeVolumeHierarchyWeight * -fadeFactor + fadeFactor;
-                    if (weight > 0.0)
+                    if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_ADDITIVE)
+                        weight = fadeFactor;
+                    else if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_SUBTRACTIVE)
+                        weight = -fadeFactor;
+                    else
+                        // Alpha composite: weight = (1.0f - probeVolumeHierarchyWeight) * fadeFactor;
+                        weight = probeVolumeHierarchyWeight * -fadeFactor + fadeFactor;
+
+                    if (weight > 0.0 || s_probeVolumeData.volumeBlendMode != VOLUMEBLENDMODE_NORMAL)
                     {
                         // TODO: Cleanup / optimize this math.
                         float3 probeVolumeUVW = clamp(samplePositionBNDC.xyz, 0.5 * s_probeVolumeData.resolutionInverse, 1.0 - s_probeVolumeData.resolutionInverse * 0.5);

@@ -114,7 +114,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 default: break;
             }
-
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
@@ -223,6 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            EditorGUILayout.PropertyField(serialized.volumeBlendMode, Styles.s_VolumeBlendModeLabel);
             EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
         }

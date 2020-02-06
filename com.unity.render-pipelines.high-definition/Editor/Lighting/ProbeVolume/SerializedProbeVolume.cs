@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty densityY;
         public SerializedProperty densityZ;
 
+        public SerializedProperty volumeBlendMode;
         public SerializedProperty weight;
 
         public SerializedProperty size;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             densityY = probeVolumeParams.FindPropertyRelative("densityY");
             densityZ = probeVolumeParams.FindPropertyRelative("densityZ");
 
+            volumeBlendMode = probeVolumeParams.FindPropertyRelative("volumeBlendMode");
             weight = probeVolumeParams.FindPropertyRelative("weight");
 
             size = probeVolumeParams.FindPropertyRelative("size");
