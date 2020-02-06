@@ -8,19 +8,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2020-03-02
 
+
 ### Added
-- Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
-- Added support for a user defined default material to 2DRendererData.
-- Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available.
+![Camera Stacking in URP](Documentation~/Images/camera-stacking-example.png)
+
+- Added support for [Camera Stacking](Documentation~/camera-stacking.md) when using the Forward Renderer. This introduces the Camera [Render Type](Documentation~/camera-types-and-render-type.md) property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
+- Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available. 
+- Added support for [Post Processing Version 2 (PPv2)](https://docs.unity3d.com/Packages/com.unity.postprocessing@latest) as a fallback post-processing solution, in addition to URP's integrated post-processing solution. This enables developers to use PPv2 with Unity 2019 LTS.
+- Added Transparency Sort Mode, Transparency Sort Axis, and support for a user defined default material to 2DRendererData.
 - Added the option to toggle shadow receiving on transparent objects.
-- Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
-- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
+- Added support for particle shaders to receive shadows.
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. Basic PBR material properties like Base Color, Metalness, Roughness, Specular IOR, Emission and Normals are imported and mapped to custom shaders in Unity.
 
 ### Changed
-- Remove final blit pass to force alpha to 1.0 on mobile platforms.
-- Particle shaders now receive shadows
-- Blend Style in the 2DRendererData are now automatically enabled/disabled.
-- When using the 2D Renderer, Sprites will render with a faster rendering path when no lights are present.
+- Removed final blit pass to force alpha to 1.0 on mobile platforms.
+- Blend Styles in the 2DRendererData are now automatically enabled/disabled.
+- When using the 2D Renderer, Sprites render with a faster rendering path when no lights are present.
 - The Scene view now mirrors the Volume Layer Mask set on the Main Camera.
 
 ### Fixed
