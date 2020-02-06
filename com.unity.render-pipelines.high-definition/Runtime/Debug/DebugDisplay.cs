@@ -19,8 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         MinLightingFullScreenDebug,
         /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
         SSAO,
-        /// <summary>Display SCreen Space Reflections buffer.</summary>
+        /// <summary>Display Screen Space Reflections buffer.</summary>
         ScreenSpaceReflections,
+        /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
+        TransparentScreenSpaceReflections,
         /// <summary>Display Contact Shadows buffer.</summary>
         ContactShadows,
         /// <summary>Display Contact Shadows fade.</summary>

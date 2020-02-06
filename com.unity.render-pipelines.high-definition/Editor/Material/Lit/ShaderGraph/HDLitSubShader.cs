@@ -414,12 +414,14 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
+                "#if !defined(_DISABLE_SSR_TRANSPARENT)",
+                "   #define WRITE_NORMAL_BUFFER",    
+                "#endif",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
@@ -428,6 +430,8 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             PixelShaderSlots = new List<int>()
             {
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
@@ -437,6 +441,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.PositionSlotId,
                 HDLitMasterNode.VertexNormalSlotID,
                 HDLitMasterNode.VertexTangentSlotID
+            },
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                "AttributesMesh.uv0",
+                "AttributesMesh.uv1",
+                "AttributesMesh.color",
+                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                "AttributesMesh.uv3",           // DEBUG_DISPLAY
+
+                "FragInputs.tangentToWorld",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+                "FragInputs.texCoord1",
+                "FragInputs.texCoord2",
+                "FragInputs.texCoord3",
+                "FragInputs.color",
+            },
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDLitMasterNode;
+                HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
             },
             UseInPreview = true,
         };
@@ -1093,6 +1120,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!masterNode.receiveSSR.isOn)
             {
                 baseActiveFields.AddAll("DisableSSR");
+            }
+
+            if (!masterNode.receiveSSRTransparent.isOn)
+            {
+                baseActiveFields.AddAll("DisableSSRTransparent");
             }
 
             if (masterNode.addPrecomputedVelocity.isOn)
