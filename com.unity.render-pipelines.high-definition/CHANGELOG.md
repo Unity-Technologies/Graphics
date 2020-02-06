@@ -147,6 +147,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exposure issue with ray traced sub-surface scattering.
 - Fixed runtime debug menu light hierarchy None not doing anything.
 - Fixed the broken ShaderGraph preview when creating a new Lit graph.
+- Fix indentation issue in preset of LayeredLit material.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
