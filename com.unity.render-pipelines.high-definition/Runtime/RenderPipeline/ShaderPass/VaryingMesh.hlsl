@@ -146,7 +146,9 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS.xyz = input.interpolators0.xyz;
 #endif
-
+#ifdef VARYINGS_NEED_NORMAL_WS
+    output.tangentToWorld[2] = normalize(input.interpolators1.xyz);
+#endif
 #ifdef VARYINGS_NEED_TANGENT_WS
     float4 tangentWS = float4(input.interpolators2.xyz, input.interpolators2.w > 0.0 ? 1.0 : -1.0); // must not be normalized (mikkts requirement)
     output.tangentToWorld = BuildTangentToWorld(tangentWS, input.interpolators1.xyz);
