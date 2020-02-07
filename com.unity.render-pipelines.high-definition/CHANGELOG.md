@@ -135,6 +135,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the blend of reflections based on the weight.
 - Fixed fallback for ray traced reflections when denoising is enabled.
 - Fixed error spam issue with terrain detail terrainDetailUnsupported (cases 1211848)
+- Fixed hardware dynamic resolution causing cropping/scaling issues in scene view (case 1158661)
 - Fixed Wizard check order for `Hardware and OS` and `Direct3D12`
 - Fix AO issue turning black when Far/Near plane distance is big.
 - Fixed issue when opening lookdev and the lookdev volume have not been assigned yet.
