@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Fog color.</summary>
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        /// <summary>Specifies the tint of the fog when using Sky Color.</summary>
         [Tooltip("Specifies the tint of the fog.")]
         public ColorParameter        tint = new ColorParameter(Color.white, hdr: true, showAlpha: false, showEyeDropper: true);
         /// <summary>Maximum fog distance.</summary>
