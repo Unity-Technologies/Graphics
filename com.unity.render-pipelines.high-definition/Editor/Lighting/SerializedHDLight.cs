@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
+        public SerializedProperty shadowRotationAngle;
 
         // Bias control
         public SerializedProperty slopeBias;
@@ -280,6 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
+                shadowRotationAngle = o.Find("m_shadowRotationAngle");
 
 				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");

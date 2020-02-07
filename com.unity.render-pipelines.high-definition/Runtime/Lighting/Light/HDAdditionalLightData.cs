@@ -1304,6 +1304,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        Vector3 m_shadowRotationAngle;
+
+        /// <summary>
+        /// Get/Set the orientation of the shadow maps
+        /// without changing the orientation of the spot light.
+        /// </summary>
+        /// <value></value>
+        public Vector3 shadowRotationAngle
+        {
+            get => m_shadowRotationAngle;
+            set
+            {
+                if (m_shadowRotationAngle == value)
+                    return;
+
+                m_shadowRotationAngle = value;
+            }
+        }
+
         // Only for Rectangle area lights.
         [Range(0.0f, 90.0f)]
         [SerializeField]
@@ -1786,6 +1806,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             );
                             break;
                         case HDLightType.Spot:
+                            var rotatedMatrix = (shadowRotationAngle.Equals(Vector3.zero))
+                                                 ? Matrix4x4.identity
+                                                 : Matrix4x4.Rotate(Quaternion.Euler(shadowRotationAngle));
+
+                            visibleLight.localToWorldMatrix *= rotatedMatrix;
+
                             float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
                             HDShadowUtils.ExtractSpotLightData(
                                 spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,

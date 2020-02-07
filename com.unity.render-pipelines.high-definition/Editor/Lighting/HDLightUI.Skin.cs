@@ -109,6 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
             public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
+            public readonly GUIContent shadowRotationAngle = new GUIContent("Rotation Angle", "Orient the shadow map with a custom angle");
 
             // Bias control
             public readonly GUIContent slopeBias = new GUIContent("Slope-Scale Depth Bias", "Controls the bias that HDRP adds to the rendered shadow map, it is proportional to the slope of the polygons relative to the light.");
