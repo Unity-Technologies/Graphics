@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
             if (asset.virtualTexturingSettings != null)
             {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.GetSettings());
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(asset.virtualTexturingSettings.Settings);
             }
             else
             {

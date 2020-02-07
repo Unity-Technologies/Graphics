@@ -24,22 +24,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public VirtualTexturingCPUCacheSettings cpuCache;
         public VirtualTexturingGPUCacheSettings gpuCache;
 
-        // Get settings as passed to the Virtual Texturing API
-        public VirtualTexturing.VirtualTexturingSettings GetSettings()
+        // Settings as passed to the Virtual Texturing API
+        public VirtualTexturing.VirtualTexturingSettings Settings
         {
-            VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
+            get
+            {
+                VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
 
-            settings.cpuCache = cpuCache;
+                settings.cpuCache = cpuCache;
 
-            List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
-            overrides.AddRange(gpuCache.gpuCacheSizeOverridesShared);
-            overrides.AddRange(gpuCache.gpuCacheSizeOverridesStreaming);
-            overrides.AddRange(gpuCache.gpuCacheSizeOverridesProcedural);
+                List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
+                overrides.AddRange(gpuCache.gpuCacheSizeOverridesShared);
+                overrides.AddRange(gpuCache.gpuCacheSizeOverridesStreaming);
+                overrides.AddRange(gpuCache.gpuCacheSizeOverridesProcedural);
 
-            settings.gpuCache.sizeOverrides = overrides.ToArray();
-            settings.gpuCache.sizeInMegaBytes = gpuCache.sizeInMegaBytes;
+                settings.gpuCache.sizeOverrides = overrides.ToArray();
+                settings.gpuCache.sizeInMegaBytes = gpuCache.sizeInMegaBytes;
 
-            return settings;
+                return settings;
+            }
         }
 
         public VirtualTexturingSettings()
@@ -59,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var pipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             if (pipelineAsset != null && pipelineAsset.virtualTexturingSettings == this)
             {
-                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(pipelineAsset.virtualTexturingSettings.GetSettings());
+                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(pipelineAsset.virtualTexturingSettings.Settings);
             }
         }
 
