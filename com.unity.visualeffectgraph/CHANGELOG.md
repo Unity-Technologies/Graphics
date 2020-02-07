@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove unexpected public API : UnityEditor.VFX.VFXSeedMode & IncrementStripIndexOnStart
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
 - Filter out unrelevant events from event desc while compiling
+- Missing Packing.hlsl include while using an unlit shadergraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
