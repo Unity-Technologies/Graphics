@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added script documentation for SSR, SSAO (ray tracing), GI, Light Cluster, RayTracingSettings, Ray Counters, etc.
 - Added path tracing support for refraction and internal reflections.
 - Added support for Thin Refraction Model and Lit's Clear Coat in Path Tracing.
+- Added the Tint parameter to Sky Colored Fog.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
