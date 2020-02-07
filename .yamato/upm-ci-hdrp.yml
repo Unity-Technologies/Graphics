@@ -40,8 +40,6 @@ mac_apis:
   - name: metal
   - name: openglcore
 linux_apis:
-  - name: OpenGLCore
-    cmd: -force-glcore
   - name: Vulkan
     cmd: -force-vulkan
 ---
@@ -94,7 +92,7 @@ linux_apis:
 {% elsif platform.name == "OSX_Metal" %}
 
 {% for testplatform in testplatforms %}
-{% if testplatform.name == "editmode" %}
+{% if testplatform.name == "editmode" or testplatform.name == "playmode XR" %}
 #skip because we don't need a GPU to run editmode tests
 {% else %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
@@ -138,13 +136,13 @@ linux_apis:
 {% endif %}
 {% endfor %}
 
-{% elsif platform.name == "Linux" %}
+{% elsif platform.name == "Linux"%}
 
 {% for testplatform in testplatforms %}
-{% for linux_api in linux_apis %}
+{% if testplatform.name != "playmode XR" %}
 # Separate block for linux, because the linux agents currently need extra configuration
-{{ project.name }}_Linux_{{ linux_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
-  name : {{ project.name }} on Linux_{{ linux_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
+{{ project.name }}_Linux_Vulkan_{{ testplatform.name }}_{{ editor.version }}:
+  name : {{ project.name }} on Linux_Vulkan_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
@@ -170,15 +168,15 @@ linux_apis:
     {% endif %}
     
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% else %}
-    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{{ linux_api.cmd }}"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="-force-vulkan"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
   artifacts:
     logs:
       paths:
-        - "**/upm-ci~/test-results/**/*"  
-{% endfor %}   
+        - "**/upm-ci~/test-results/**/*"
+{% endif %}
 {% endfor %}
 
 
@@ -211,8 +209,8 @@ All_{{ project.name }}_{{ editor.version }}:
   
   {% elsif platform.name == "OSX_Metal" %}
   #skip
-  {% elsif platform.name == "Linux" %}
-  #skip
+  {% elsif platform.name == "Linux" and testplatform.name != "playmode XR" %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_Vulkan_{{ testplatform.name }}_{{ editor.version }}
   
   {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
@@ -226,7 +224,7 @@ All_{{ project.name }}_{{ editor.version }}:
   {% endfor %}
 
   {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
+  #  - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
   {% endif %}
     
   {% endfor %}
