@@ -52,5 +52,14 @@ namespace UnityEngine.Rendering.HighDefinition
             gpuCache.gpuCacheSizeOverridesStreaming = new VirtualTexturingGPUCacheSizeOverride[] { };
             gpuCache.gpuCacheSizeOverridesProcedural = new VirtualTexturingGPUCacheSizeOverride[] { };
         }
+
+        void OnValidate()
+        {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            if (pipelineAsset != null && pipelineAsset.virtualTexturingSettings == this)
+            {
+                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(pipelineAsset.virtualTexturingSettings.GetSettings());
+            }
+        }
     }
 }

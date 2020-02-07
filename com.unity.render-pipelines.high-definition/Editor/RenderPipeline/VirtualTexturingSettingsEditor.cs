@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         Settings m_Settings;
 
-        private bool m_Dirty = false;
         private bool m_OverrideOverlap = false;
 
         private ReorderableList m_GPUCacheSizeOverrideListShared;
@@ -57,11 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        void ApplyChanges()
-        {
-            UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(m_Settings.objReference.GetSettings());
-        }
-
         public override void OnInspectorGUI()
         {
             CheckStyles();
@@ -73,8 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(m_Settings.cpuCacheSize, s_Styles.cpuCacheSize);
-                EditorGUILayout.PropertyField(m_Settings.gpuCacheSize, s_Styles.gpuCacheSize);
+                EditorGUILayout.DelayedIntField(m_Settings.cpuCacheSize, s_Styles.cpuCacheSize);
+                EditorGUILayout.DelayedIntField(m_Settings.gpuCacheSize, s_Styles.gpuCacheSize);
 
                 // GPU Cache size overrides
                 if (m_GPUCacheSizeOverrideListShared == null ||
@@ -90,6 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 EditorGUILayout.BeginVertical();
+
                 GUILayout.Label(s_Styles.gpuCacheSizeOverrides);
                 m_GPUCacheSizeOverrideListShared.DoLayoutList();
                 m_GPUCacheSizeOverrideListStreaming.DoLayoutList();
@@ -101,27 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 EditorGUILayout.EndVertical();
-
-                serializedObject.ApplyModifiedProperties();
-
-                if (scope.changed)
-                {
-                    m_Dirty = true;
-                }
             }
-
-            EditorGUILayout.Space();
-
-            if (m_Dirty)
-            {
-                if (GUILayout.Button("Apply"))
-                {
-                    ApplyChanges();
-                    m_Dirty = false;
-                }
-            }
-
-            EditorGUILayout.Space();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -310,10 +285,9 @@ namespace UnityEditor.Rendering.HighDefinition
             rect.width = sizeWidth;
 
             cacheSizeOverride.sizeInMegaBytes = (uint) Mathf.Max(2,
-                EditorGUI.IntField(rect, (int) cacheSizeOverride.sizeInMegaBytes));
+                EditorGUI.DelayedIntField(rect, (int) cacheSizeOverride.sizeInMegaBytes));
             cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue =
                 (int) cacheSizeOverride.sizeInMegaBytes;
-            serializedObject.ApplyModifiedProperties();
         }
 
         void DrawSharedOverride(Rect rect, int overrideIdx, bool active, bool focused)
