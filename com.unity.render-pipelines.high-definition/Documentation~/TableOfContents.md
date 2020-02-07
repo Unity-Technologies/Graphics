@@ -8,7 +8,6 @@
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Exposing More Options](More-Options)
-  * [VR in HDRP](VR-in-HDRP)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
@@ -56,6 +55,7 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
@@ -141,6 +141,8 @@
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
+* Virtual Reality
+  * [VR Overview](VR-Overview)
 * Consoles
   * [Building For Consoles](Building-For-Consoles)
 * Customizing HDRP

@@ -103,6 +103,29 @@ namespace UnityEditor.VFX.Test
 
         }
 
+        static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Check_Event_List([ValueSource("k_Create_Asset_And_Check_Event_ListCases")] string playEventName)
+        {
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(123.0f, playEventName, out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var visualEffectAsset = vfxComponent.visualEffectAsset;
+            Assert.IsNotNull(visualEffectAsset);
+
+            var vfxEvents = new List<string>();
+            visualEffectAsset.GetEvents(vfxEvents);
+
+            Assert.IsTrue(vfxEvents.Contains(playEventName));
+            Assert.IsTrue(vfxEvents.Contains("OnStop"));
+            Assert.AreEqual(2, vfxEvents.Count);
+
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_Check_Initial_Event()
         {

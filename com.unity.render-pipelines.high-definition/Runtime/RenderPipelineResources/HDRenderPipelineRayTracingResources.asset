@@ -36,6 +36,8 @@ MonoBehaviour:
     type: 3}
   aoRaytracing: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
     type: 3}
+  subSurfaceRayTracing: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
+    type: 3}
   temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
   simpleDenoiserCS: {fileID: 7200000, guid: 74a980f1da9a4f842996035350fe756c, type: 3}
   diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}

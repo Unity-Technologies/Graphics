@@ -1574,7 +1574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
                 tileSize,
                 m_MotionBlur.depthComparisonExtent.value,
-                m_MotionBlur.disableCameraMotionBlur.value ? 1.0f : 0.0f
+                m_MotionBlur.cameraMotionBlur.value ? 0.0f : 1.0f
             );
             // -----------------------------------------------------------------------------
             // Prep motion vectors

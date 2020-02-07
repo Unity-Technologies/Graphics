@@ -136,11 +136,11 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     LightLoopContext context;
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
-    int cookieIndex = lightData.cookieIndex;
-    lightData.cookieIndex = -1;
+    int cookieMode = lightData.cookieMode;
+    lightData.cookieMode = COOKIEMODE_NONE;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
-    lightData.cookieIndex = cookieIndex;
+    lightData.cookieMode = cookieMode;
 
     // Compute the non-occluded analytic luminance value
     float U = Luminance(lighting.diffuse + lighting.specular);
@@ -408,7 +408,8 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
 
-    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter));
+    // We need to convert the diameter to a radius for our sampling
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter * 0.5));
 
     float3 wsDir = mul(localDir, localToWorld); 
 
