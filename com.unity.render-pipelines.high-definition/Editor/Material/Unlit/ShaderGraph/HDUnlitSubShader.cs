@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
@@ -55,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ColorMaskOverride = "ColorMask 0",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ZWriteOverride = HDSubShaderUtilities.zWriteOn,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
@@ -92,6 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ColorMaskOverride = "ColorMask 0 0",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
 
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
@@ -136,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // This is not a problem in no MSAA mode as there is no buffer bind
             ColorMaskOverride = "ColorMask 0 1",
 
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
@@ -177,6 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderPassName = "SHADERPASS_DISTORTION",
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ZWriteOverride = HDSubShaderUtilities.zWriteOff,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
@@ -237,6 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ZWriteOverride = HDSubShaderUtilities.zWriteOn,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -265,6 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ZTestOverride = HDSubShaderUtilities.zTestTransparent,
             ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ DEBUG_DISPLAY"
@@ -301,9 +308,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "IndirectDXR",
             LightMode = "IndirectDXR",
-            TemplateName = "HDUnlitRaytracingPass.template",
+            TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
             },
@@ -331,9 +339,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "VisibilityDXR",
             LightMode = "VisibilityDXR",
-            TemplateName = "HDUnlitRaytracingPass.template",
+            TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ TRANSPARENT_COLOR_SHADOW",
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
@@ -358,9 +371,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "ForwardDXR",
             LightMode = "ForwardDXR",
-            TemplateName = "HDUnlitRaytracingPass.template",
+            TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
             },
@@ -388,9 +402,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "GBufferDXR",
             LightMode = "GBufferDXR",
-            TemplateName = "HDUnlitRaytracingPass.template",
+            TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_RAYTRACING_GBUFFER",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
             },
@@ -418,9 +433,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Name = "PathTracingDXR",
             LightMode = "PathTracingDXR",
-            TemplateName = "HDUnlitRaytracingPass.template",
+            TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_PATH_TRACING",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
             ExtraDefines = new List<string>()
             {
             },
@@ -455,6 +471,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode == null)
             {
                 return activeFields;
+            }
+
+            if (masterNode.IsSlotConnected(HDUnlitMasterNode.VertexNormalSlotId))
+            {
+                baseActiveFields.Add("AttributesMesh.normalOS");
             }
 
             if (masterNode.alphaTest.isOn && pass.PixelShaderUsesSlot(HDUnlitMasterNode.AlphaThresholdSlotId))

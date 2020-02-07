@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Extension class that contains all the Editor Only functions available for the HDAdditionalLightData component
     /// </summary>
-    public static class HDAdditionalLightDataEditorExtension
+    static class HDAdditionalLightDataEditorExtension
     {
         /// <summary>
         /// Set Lightmap Bake Type.
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             hdLight.UpdateEmissiveMeshComponents();
         }
-        
+
         internal static void UpdateEmissiveMeshComponents(this HDAdditionalLightData hdLight)
         {
             // If the display emissive mesh is disabled, skip to the next selected light

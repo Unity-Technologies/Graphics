@@ -80,6 +80,8 @@ public class HDRP_TestSettings : GraphicsTestSettings
                     textMeshRenderer.material = fontMaterialSG;
                     textMeshRenderer.material.SetTexture("_MainTex", fontTexture);
                     textMeshRenderer.material.SetColor("_Color", fontColor);
+
+                    textMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
                 }
             }
         }

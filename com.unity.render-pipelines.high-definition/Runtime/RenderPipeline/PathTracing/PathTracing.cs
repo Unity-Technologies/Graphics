@@ -29,11 +29,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // String values
         const string m_PathTracingRayGenShaderName = "RayGen";
 
-        public void InitPathTracing()
+        void InitPathTracing()
         {
         }
 
-        public void ReleasePathTracing()
+        void ReleasePathTracing()
         {
         }
 
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         name: string.Format("PathTracingHistoryBuffer{0}", frameIndex));
         }
 
-        public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
