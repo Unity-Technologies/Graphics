@@ -562,6 +562,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
