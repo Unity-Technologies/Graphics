@@ -460,6 +460,43 @@ namespace UnityEngine.Rendering.Universal
             InitializeAdditionalCameraData(camera, additionalCameraData, ref cameraData);
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        static bool CanXRSDKUseSinglePass(Camera camera)
+        {
+            XR.XRDisplaySubsystem display = null;
+            SubsystemManager.GetInstances(displaySubsystemList);
+
+            if (displaySubsystemList.Count > 0)
+            {
+                XR.XRDisplaySubsystem.XRRenderPass renderPass;
+                display = displaySubsystemList[0];
+                if (display.GetRenderPassCount() > 0)
+                {
+                    display.GetRenderPass(0, out renderPass);
+
+                    if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
+                        return false;
+
+                    if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+                        return false;
+
+                    renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+                    renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+
+                    if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+                        return false;
+
+                    if (renderParam0.viewport != renderParam1.viewport)
+                        return false;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+#endif
+
         /// <summary>
         /// Initialize camera data settings common for all cameras in the stack. Overlay cameras will inherit
         /// settings from base camera.
@@ -478,7 +515,8 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isXRMultipass = false;
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
+            if (cameraData.isStereoEnabled && !cameraData.isSceneViewCamera &&
+                !CanXRSDKUseSinglePass(baseCamera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
             {
                 cameraData.numberOfXRPasses = 2;
                 cameraData.isXRMultipass = true;
