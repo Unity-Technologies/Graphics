@@ -4,7 +4,7 @@ HDRP Custom Passes allow you to inject shader and C# at certain points inside th
 
 Here is an example of what can be achieved using custom passes:
 <!-- TODO: move this to a local doc page about custom pass samples in HDRP -->
-[![TIPS_Effect_Size](Images/TIPS_Effect_Size.gif)](https://github.com/alelievr/HDRP-Custom-Passes)
+[![TIPS_Effect_Size](Images/CustomPass_TIPS_Effect.png)](https://github.com/alelievr/HDRP-Custom-Passes)
 
 ## Workflow with volumes
 
