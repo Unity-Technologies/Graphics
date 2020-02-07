@@ -411,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Combine it with the rest of the lighting
                     m_CombineLightingPass.SetTexture(HDShaderIDs._IrradianceSource, intermediateBuffer0);
-                    HDUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
+                    HDUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT, shaderPassId: 1);
                 }
             }
             else

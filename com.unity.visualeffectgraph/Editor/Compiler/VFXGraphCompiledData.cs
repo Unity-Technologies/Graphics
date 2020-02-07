@@ -369,13 +369,13 @@ namespace UnityEditor.VFX
                                 {
                                     case VisualEffectAsset.PlayEventName:
                                         if( nextSg != null)
-                                            newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
+                                        newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
                                         else
                                             result[i].Add(evt);
                                         break;
                                     case VisualEffectAsset.StopEventName:
                                         if(nextSg != null)
-                                            newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
+                                        newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
                                         else
                                             result[i].Add(evt);
                                         break;
@@ -386,7 +386,7 @@ namespace UnityEditor.VFX
                                                 int eventIndex = nextSg.GetInputFlowIndex(eventName);
                                                 if(eventIndex != -1)
                                                     newEventPaths.Add(path.Concat(new int[] { eventIndex }).ToList());
-                                            }
+                                                }
                                             else
                                             {
                                                 result[i].Add(evt);
@@ -407,7 +407,7 @@ namespace UnityEditor.VFX
                                         newEventPaths.Add(path.Concat(new int[] { fixedSlotIndex }).ToList());
                                 }
                                 else
-                                    newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
+                                newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
                             }
                             else
                             {

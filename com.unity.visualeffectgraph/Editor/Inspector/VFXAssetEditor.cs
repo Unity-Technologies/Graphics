@@ -302,13 +302,13 @@ class VisualEffectAssetEditor : Editor
         if (targetResources.Any())
         {
             resourceObject = new SerializedObject(targetResources);
-            resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
-            cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
-            motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
-            prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
-            prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
-            initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
-        }
+        resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
+        cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
+        motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
+        prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+        prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+        initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+    }
     }
 
     PreviewRenderUtility m_PreviewUtility;

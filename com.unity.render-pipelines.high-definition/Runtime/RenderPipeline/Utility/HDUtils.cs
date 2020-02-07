@@ -10,6 +10,9 @@ using UnityEditor.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Various utility functions for HDRP.
+    /// </summary>
     public class HDUtils
     {
         internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
@@ -24,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
+        /// <summary>
+        /// Default 1x1x1 3D texture initialized with Color.clear.
+        /// </summary>
         public static Texture3D clearTexture3D
         {
             get
@@ -41,6 +47,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ClearTexture3D;
             }
         }
+
+        /// <summary>
+        /// Default 1x1x1 3D RTHandle initialized with Color.clear.
+        /// </summary>
         public static RTHandle clearTexture3DRTH
         {
             get
@@ -55,6 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Returns the HDRP default blit material.
+        /// </summary>
+        /// <param name="dimension">Dimension of the texture to blit, either 2D or 2D Array.</param>
+        /// <param name="singleSlice">Blit only a single slice of the array if applicable.</param>
+        /// <returns></returns>
         public static Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -66,6 +82,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        /// <summary>
+        /// Current HDRP settings.
+        /// </summary>
         public static RenderPipelineSettings hdrpSettings
         {
             get
@@ -181,6 +200,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
         }
 
+        /// <summary>
+        /// Blit a texture using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -190,6 +218,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
+        /// <summary>
+        /// Blit a texture using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
         public static void BlitQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -204,6 +243,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
+        /// <summary>
+        /// Blit a RTHandle texture.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -216,6 +263,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
         // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
         // Here, both source and destination are camera-scaled.
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
@@ -225,7 +281,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overload allows user to override the scale and bias used when sampling the input RTHandle.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias used to sample the input RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
             // Will set the correct camera viewport as well.
@@ -233,6 +299,17 @@ namespace UnityEngine.Rendering.HighDefinition
             BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overload allows user to override the viewport of the destination RTHandle.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="destViewport">Viewport of the destination RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
             Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
@@ -243,6 +320,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
+
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffer">Destination RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandle colorBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -252,6 +339,16 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffer">Destination RTHandle.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RTHandle colorBuffer, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -261,6 +358,16 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will automatically set the viewport of the destination RTHandle based on the current camera parameters.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="colorBuffers">Array of RenderTargetIdentifier for multiple render target rendering.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="properties">Optional material property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             RenderTargetIdentifier[] colorBuffers, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -270,15 +377,17 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, RTHandleProperties rtHandleProperties, Material material,
-            RenderTargetIdentifier colorBuffer,
-            MaterialPropertyBlock properties = null, int shaderPassId = 0)
-        {
-            CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, rtHandleProperties.rtHandleScale);
-            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
-        }
-
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will render into the destination texture with the specified viewport.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="viewport">Destination viewport.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="destination">Destination RenderTargetIdentifier.</param>
+        /// <param name="properties">Optional Material Property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
+        /// <param name="depthSlice">Optional depth slice to render to.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
             CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
@@ -286,6 +395,17 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
+        /// <summary>
+        /// Draw a full screen triangle with a material.
+        /// This will render into the destination texture with the specified viewport.
+        /// </summary>
+        /// <param name="commandBuffer">Command Buffer used for rendering.</param>
+        /// <param name="viewport">Destination viewport.</param>
+        /// <param name="material">Material used for rendering.</param>
+        /// <param name="depthStencilBuffer">Destination Depth Stencil RTHandle.</param>
+        /// <param name="destination">Destination RenderTargetIdentifier.</param>
+        /// <param name="properties">Optional Material Property block.</param>
+        /// <param name="shaderPassId">Optional pass index to use.</param>
         public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material,
             RenderTargetIdentifier destination, RTHandle depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -617,6 +737,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Normalize the input color.
+        /// </summary>
+        /// <param name="color">Input color.</param>
+        /// <returns>Normalized color.</returns>
         public static Color NormalizeColor(Color color)
         {
             Vector4 ldrColor = Vector4.Max(color, Vector4.one * 0.0001f);
@@ -626,6 +751,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return color;
         }
 
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
             if (!rendererList.isValid)
@@ -811,7 +942,7 @@ namespace UnityEngine.Rendering.HighDefinition
             graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
-            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
 

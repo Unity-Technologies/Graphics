@@ -409,22 +409,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 public const int k_IndentStepSize = 15;
             }
 
-            public ConfigInfoLine(string label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
+            readonly bool m_VisibleStatus;
+
+            public ConfigInfoLine(string label, string error, MessageType messageType, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0, bool visibleStatus = true)
                 : base(tester, resolver != null)
             {
+                m_VisibleStatus = visibleStatus;
                 var testLabel = new Label(label)
                 {
                     name = "TestLabel"
-                };
-                var statusOK = new Image()
-                {
-                    image = Style.ok,
-                    name = "StatusOK"
-                };
-                var statusKO = new Image()
-                {
-                    image = Style.error,
-                    name = "StatusError"
                 };
                 var fixer = new Button(resolver)
                 {
@@ -433,12 +426,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 };
                 var testRow = new VisualElement() { name = "TestRow" };
                 testRow.Add(testLabel);
-                testRow.Add(statusOK);
-                testRow.Add(statusKO);
+                if (m_VisibleStatus)
+                {
+                    var statusOK = new Image()
+                    {
+                        image = Style.ok,
+                        name = "StatusOK"
+                    };
+                    var statusKO = new Image()
+                    {
+                        image = Style.error,
+                        name = "StatusError"
+                    };
+                    testRow.Add(statusOK);
+                    testRow.Add(statusKO);
+                }
                 testRow.Add(fixer);
                 
                 Add(testRow);
-                Add(new HelpBox(HelpBox.Kind.Error, error));
+                HelpBox.Kind kind;
+                switch(messageType)
+                {
+                    default:
+                    case MessageType.None: kind = HelpBox.Kind.None; break;
+                    case MessageType.Error: kind = HelpBox.Kind.Error; break;
+                    case MessageType.Warning: kind = HelpBox.Kind.Warning; break;
+                    case MessageType.Info: kind = HelpBox.Kind.Info; break;
+                }
+                Add(new HelpBox(kind, error));
 
                 testLabel.style.paddingLeft = style.paddingLeft.value.value + indent * Style.k_IndentStepSize;
 
@@ -449,15 +464,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (!((hierarchy.parent as HiddableUpdatableContainer)?.currentStatus ?? true))
                 {
-                    this.Q(name: "StatusOK").style.display = DisplayStyle.None;
-                    this.Q(name: "StatusError").style.display = DisplayStyle.None;
+                    if (m_VisibleStatus)
+                    {
+                        this.Q(name: "StatusOK").style.display = DisplayStyle.None;
+                        this.Q(name: "StatusError").style.display = DisplayStyle.None;
+                    }
                     this.Q(name: "Resolver").style.display = DisplayStyle.None;
                     this.Q(name: "HelpBox").style.display = DisplayStyle.None;
                 }
                 else
                 {
-                    this.Q(name: "StatusOK").style.display = statusOK ? DisplayStyle.Flex : DisplayStyle.None;
-                    this.Q(name: "StatusError").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
+                    if (m_VisibleStatus)
+                    {
+                        this.Q(name: "StatusOK").style.display = statusOK ? DisplayStyle.Flex : DisplayStyle.None;
+                        this.Q(name: "StatusError").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
+                    }
                     this.Q(name: "Resolver").style.display = statusOK || !haveFixer ? DisplayStyle.None : DisplayStyle.Flex;
                     this.Q(name: "HelpBox").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                 }
