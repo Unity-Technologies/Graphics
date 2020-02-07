@@ -192,15 +192,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     mrts.Add(m_MotionVectorsMSAART.nameID);
                     mrts.Add(m_NormalMSAART.nameID);
                     mrts.Add(m_DepthAsColorMSAART.nameID);
+
+                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        mrts.Add(m_DecalPrePassBufferMSAA.nameID);
                 }
                 else
                 {
                     mrts.Add(m_MotionVectorsRT.nameID);
                     mrts.Add(m_NormalRT.nameID);
-                }
 
-                if (frameSettings.IsEnabled(FrameSettingsField.Decals))
-                    mrts.Add(m_DecalPrePassBuffer.nameID);
+                    if (frameSettings.IsEnabled(FrameSettingsField.Decals))
+                        mrts.Add(m_DecalPrePassBuffer.nameID);
+                }
 
                 switch (mrts.Count)
                 {
