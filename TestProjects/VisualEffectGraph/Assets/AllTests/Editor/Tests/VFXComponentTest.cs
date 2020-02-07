@@ -192,7 +192,7 @@ namespace UnityEditor.VFX.Test
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph)); ;
 
             return graph;
         }
@@ -254,7 +254,7 @@ namespace UnityEditor.VFX.Test
 
             //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
             Debug.unityLogger.logEnabled = false;
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             Debug.unityLogger.logEnabled = true;
             Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
@@ -302,7 +302,7 @@ namespace UnityEditor.VFX.Test
             initializeContext.inputSlots[0][0].value = center;
             initializeContext.inputSlots[0][1].value = size;
             graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             //< Same Behavior as Drag & Drop
             GameObject currentObject = new GameObject("TemporaryGameObject_RenderBounds", /*typeof(Transform),*/ typeof(VisualEffect));
@@ -419,7 +419,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
@@ -469,14 +469,14 @@ namespace UnityEditor.VFX.Test
             parameter_A.SetSettingValue("m_Exposed", true);
             parameter_A.value = new Vector3(0, 0, 0);
             graph_A.AddChild(parameter_A);
-            graph_A.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph_A));
 
             var parameter_B = parametersVector3Desc.CreateInstance();
             parameter_B.SetSettingValue("m_ExposedName", commonExposedName);
             parameter_B.SetSettingValue("m_Exposed", true);
             parameter_B.value = new Vector3(0, 0, 0);
             graph_B.AddChild(parameter_B);
-            graph_B.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph_B));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -531,7 +531,7 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(output);
             output.LinkFrom(contextInitialize);
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -632,7 +632,7 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -669,7 +669,7 @@ namespace UnityEditor.VFX.Test
             parameter_Other.value = new Vector3(6, 6, 6);
             graph.AddChild(parameter_Other);
             parameter.value = new Vector3(5, 5, 5);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             yield return null;
 
@@ -699,7 +699,8 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(newInstance);
             }
 
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             yield return null;
 
             var vfxAsset = graph.visualEffectResource.asset;
@@ -1155,7 +1156,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
