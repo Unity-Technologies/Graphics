@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - OnStop Event to the start of a Spawn Context makes it also trigger when OnPlay is sent [Case 1198339] https://issuetracker.unity3d.com/product/unity/issues/guid/1198339/
 - Remove unexpected public API : UnityEditor.VFX.VFXSeedMode & IncrementStripIndexOnStart
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
+- Missing Packing.hlsl include while using an unlit shadergraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
