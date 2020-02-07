@@ -252,6 +252,7 @@ To do a FullScreen pass using a material, we uses `CoreUtils.DrawFullScreen` whi
 
 ```CSharp
 SetCameraRenderTarget(cmd); // Bind the camera color buffer along with depth without clearing the buffers.
+// Or set the a custom render target with CoreUtils.SetRenderTarget()
 CoreUtils.DrawFullScreen(cmd, material, shaderPassId: 0);
 ```
 
@@ -330,6 +331,15 @@ protected virtual void AggregateCullingParameters(ref ScriptableCullingParameter
 it will allow you to add more layers / custom culling option to the cullingResult you receive in the `Execute` function.
 
 > **⚠️ WARNING: Opaque objects may not be visible** if they are rendered only during the custom pass, because we assume that they already are in the depth pre-pass, we set the `Depth Test` to `Depth Equal`. Because of this you may need to override the `Depth Test` to `Less Equal` using the `depthState` property of the [RenderStateBlock](https://docs.unity3d.com/ScriptReference/Rendering.RenderStateBlock.html).
+
+### Troubleshooting
+
+**Scaling issues**, they can appear when you have two cameras that are not using the same resolution (most common case in game and scene views) and can be caused by:
+
+- Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
+- In the shader, a missing multiplication by `_RTHandleScale.xy` for the UVs when sampling an RTHandle buffer.
+
+**Shuriken Particle System**, when you render a particle system that is only visible in the custom pass and your particles are facing the wrong direction it's probably because you didn't override the `AggregateCullingParameters`. The orientation of the particles in Shuriken is computed during the culling so if you don't have the correct setup it will not be rendered properly.
 
 ## Example: Glitch Effect (without code)
 

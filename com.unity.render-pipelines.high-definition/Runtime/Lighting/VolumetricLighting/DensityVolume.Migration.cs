@@ -4,6 +4,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial struct DensityVolumeArtistParameters
     {
+        /// <summary>Obsolete, do not use.</summary>
         [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
         public bool advancedFade => true;
 

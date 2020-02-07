@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
-        bool m_IsMobileOrSwitch;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -30,7 +29,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
-            m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
         }
 
         /// <inheritdoc/>
