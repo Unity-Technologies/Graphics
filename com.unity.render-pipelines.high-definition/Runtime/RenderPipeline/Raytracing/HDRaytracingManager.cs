@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
             }
 
-            if (rayTracedShadow)
+            if (rayTracedShadow || pathTracingEnabled)
             {
                 if (hasTransparentSubMaterial)
                 {

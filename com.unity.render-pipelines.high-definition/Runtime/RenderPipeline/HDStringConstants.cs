@@ -962,6 +962,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
+        public const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
         public const string kShadowMatteFilter = "_ShadowMatteFilter";
 

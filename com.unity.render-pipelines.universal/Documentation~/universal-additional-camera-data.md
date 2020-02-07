@@ -1,15 +1,17 @@
-# The UniversalAdditionalCameraData component
+# The Universal Additional Camera Data component
 
-[UniversalAdditionalCameraData](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.htmll) is a component that the Universal Render Pipeline (URP) uses for internal data storage. The UniversalAdditionalCameraData component allows URP to extend and override the functionality of Unity's standard Camera component.
+The Universal Additional Camera Data component is a component that the Universal Render Pipeline (URP) uses for internal data storage. The Universal Additional Camera Data component allows URP to extend and override the functionality and appearance of Unity's standard Camera component.
 
-In URP, a GameObject that has a Camera component must also have a UniversalAdditionalCameraData component. If your Project uses URP, Unity automatically adds the UniversalAdditionalCameraData component when you create a Camera GameObject. You cannot remove the UniversalAdditionalCameraData component from a Camera GameObject.
+In URP, a GameObject that has a Camera component must also have a Universal Additional Camera Data component. If your Project uses URP, Unity automatically adds the Universal Additional Camera Data component when you create a Camera GameObject. You cannot remove the Universal Additional Camera Data component from a Camera GameObject.
 
-If you are not using scripts to control and customise URP, you do not need to do anything with the UniversalAdditionaCameraData component.
+If you are not using scripts to control and customise URP, you do not need to do anything with the Universal Additiona Camera Data component.
 
-If you are using scripts to control and customise URP, you can access a Camera's UniversalAdditionalCameraData component in a script by calling [CameraExtensions.GetUniversalAdditionalCameraData()](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.htmll).
+If you are using scripts to control and customise URP, you can access a Camera's Universal Additional Camera Data component in a script like this:
 
 ```
-UniversalAdditionalCameraData myCameraData = CameraExtensions.GetUniversalAdditionalCameraData(myCamera);
+var cameraData = camera.GetUniversalAdditionalCameraData();
 ```
 
-If you need to access the UniversalAdditionalCameraData component frequently in a script, you should cache the reference to it to avoid unnecessary CPU work.
+For more information, see [the UniversalAdditionalCameraData API documentation](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html).
+
+If you need to access the Universal Additional Camera Data component frequently in a script, you should cache the reference to it to avoid unnecessary CPU work.

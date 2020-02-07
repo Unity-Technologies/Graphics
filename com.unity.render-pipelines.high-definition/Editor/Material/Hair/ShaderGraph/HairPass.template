@@ -55,8 +55,8 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
-    $AddPrecomputedVelocity:          #define _ADD_PRECOMPUTED_VELOCITY
-    $TransparentWritesMotionVec:        #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
+    $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
+    $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
@@ -101,6 +101,10 @@ Pass
 // We need isFontFace when using double sided
 #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
     #define VARYINGS_NEED_CULLFACE
+#endif
+
+#if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+    #define _WRITE_TRANSPARENT_MOTION_VECTOR
 #endif
 
     //-------------------------------------------------------------------------------------

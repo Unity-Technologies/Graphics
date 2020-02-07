@@ -1056,7 +1056,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // The following features require a copy of the stencil, if none are active, no need to do the resolve.
                 bool resolveIsNecessary = GetFeatureVariantsEnabled(hdCamera.frameSettings);
-                resolveIsNecessary = resolveIsNecessary || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
+                resolveIsNecessary = resolveIsNecessary || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR)
+                                                        || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR);
 
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
@@ -2238,6 +2239,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 ClearStencilBuffer(hdCamera, cmd);
 
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
+
+                if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
+                {
+                    // We need htile for SSS, but we don't need to resolve again
+                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
+                                                     msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
+                                                     m_SharedRTManager.GetCoarseStencilBuffer(), cmd);
+                }
+
+                RenderSSRTransparent(hdCamera, cmd, renderContext);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
@@ -3591,7 +3602,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render transparent depth prepass after opaque one
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TransparentDepthPrepass)))
                 {
-                    CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDepthStencilBuffer());
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
+                    {
+                        // But we also need to bind the normal buffer for objects that will recieve SSR
+                        CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
+                    }
+                    else
+                        CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetDepthStencilBuffer());
+
                     var rendererList = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_TransparentDepthPrepassNames));
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
                 }
@@ -3845,6 +3863,40 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
 
             PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.ScreenSpaceReflections);
+        }
+
+        void RenderSSRTransparent(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
+                return;
+
+            // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
+            // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareForTransparentSsr)))
+            {
+                // Clear the SSR lighting buffer (not sure it is required)
+                CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
+                CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
+
+                // Invalid the depth pyramid and regenerate the depth pyramid
+                m_IsDepthBufferCopyValid = false;
+                GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
+            }
+
+            // Evaluate the screen space reflection for the transparent pixels
+            var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+            var parameters = PrepareSSRParameters(hdCamera);
+            RenderSSR(parameters, m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
+
+            // If color pyramid was not valid, we bind a black texture 
+            if (!hdCamera.colorPyramidHistoryIsValid)
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
+                hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+            }
+
+            // Push our texture to the debug menu
+            PushFullScreenDebugTexture(hdCamera, cmd, m_SsrLightingTexture, FullScreenDebugMode.TransparentScreenSpaceReflections);
         }
 
         void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, bool isPreRefraction)

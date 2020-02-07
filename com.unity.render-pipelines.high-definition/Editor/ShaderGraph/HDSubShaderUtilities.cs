@@ -1240,7 +1240,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
+        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR, bool recieveSSRTransparent = false)
         {
             BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
@@ -1266,6 +1266,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSR);
+            collector.AddToggleProperty(kReceivesSSRTransparent, recieveSSRTransparent);
 
         }
 

@@ -226,8 +226,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Reflections.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Reflection", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections.")]
         SSR = 23,
-        /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Transparent Screen Space Reflections.</summary>
+        [FrameSettingsField(1, displayedName: "Transparent Screen Space Reflection", customOrderInGroup: 25, positiveDependencies: new[] { SSR }, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.")]
+        TransparentSSR = 94,
         [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.")]
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
         SSAO = 24,
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.</summary>
         [FrameSettingsField(1, autoName: SubsurfaceScattering, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.")]
@@ -655,6 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // No recursive reflections
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;

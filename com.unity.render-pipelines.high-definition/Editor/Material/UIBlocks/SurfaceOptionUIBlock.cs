@@ -165,6 +165,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // SSR
         MaterialProperty receivesSSR = null;
         const string kReceivesSSR = "_ReceivesSSR";
+        MaterialProperty receivesSSRTransparent = null;
+        const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
 
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
@@ -336,7 +338,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             if ((m_Features & Features.ReceiveSSR) != 0)
+            {
                 receivesSSR = FindProperty(kReceivesSSR);
+                receivesSSRTransparent = FindProperty(kReceivesSSRTransparent);
+            }
 
             transparentZWrite = FindProperty(kTransparentZWrite);
             stencilRef = FindProperty(kStencilRef);
@@ -717,7 +722,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (receivesSSR != null)
             {
-                materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
+                // Based on the surface type, display the right recieveSSR option
+                if (surfaceTypeValue == SurfaceType.Transparent)
+                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
+                else
+                    materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
 
             if (enableGeometricSpecularAA != null)

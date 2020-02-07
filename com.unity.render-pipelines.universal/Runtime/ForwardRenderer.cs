@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
             if (isStereoEnabled && requiresDepthTexture)
                 requiresDepthPrepass = true;
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor);
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
@@ -193,6 +193,12 @@ namespace UnityEngine.Rendering.Universal
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
             }
+            else
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+            }
+
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
@@ -433,11 +439,6 @@ namespace UnityEngine.Rendering.Universal
             // We create it upon rendering the Base camera.
             if (renderingData.cameraData.renderType == CameraRenderType.Base && !renderingData.resolveFinalTarget)
                 return true;
-
-            // Only base cameras create working intermediate render texture
-            // Overlay cameras will composite on top of the working texture provided by base camera.
-            if (renderingData.cameraData.renderType != CameraRenderType.Base)
-                return false;
 
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;

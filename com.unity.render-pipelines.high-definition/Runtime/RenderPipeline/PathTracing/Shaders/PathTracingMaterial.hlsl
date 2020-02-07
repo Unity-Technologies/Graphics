@@ -1,4 +1,4 @@
-#define MAX_BSDF_COUNT 3
+#define MAX_BSDF_COUNT 4
 #define BSDF_WEIGHT_EPSILON 0.001
 
 struct MaterialData
