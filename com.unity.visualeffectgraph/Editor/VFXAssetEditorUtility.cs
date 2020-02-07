@@ -10,9 +10,20 @@ using UnityEditor.VFX.UI;
 using UnityEditor.ProjectWindowCallback;
 
 using UnityObject = UnityEngine.Object;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 
 namespace UnityEditor
 {
+    class VFXBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        int IOrderedCallback.callbackOrder => 0;
+
+        void IPreprocessBuildWithReport.OnPreprocessBuild(BuildReport report)
+        {
+            VFXManagerEditor.CheckVFXManager();
+        }
+    }
     [InitializeOnLoad]
     static class VisualEffectAssetEditorUtility
     {
