@@ -1,12 +1,20 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
+guid: b32ad9e59bebb8cb8bf8217a8f9c03f7
+=======
 guid: 2a9acc3eb0e393948b9f56bb9d2591ba
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 10
   mipmaps:
     mipMapMode: 0
+<<<<<<< HEAD
     enableMipMap: 0
+=======
+    enableMipMap: 1
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -20,10 +28,16 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+<<<<<<< HEAD
   isReadable: 1
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+=======
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -38,7 +52,11 @@ TextureImporter:
     wrapU: -1
     wrapV: -1
     wrapW: -1
+<<<<<<< HEAD
   nPOTScale: 0
+=======
+  nPOTScale: 1
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
   lightmap: 0
   compressionQuality: 50
   spriteMode: 0
@@ -58,14 +76,21 @@ TextureImporter:
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+<<<<<<< HEAD
   ignorePngGamma: 0
+=======
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
+<<<<<<< HEAD
     textureCompression: 0
+=======
+    textureCompression: 1
+>>>>>>> da7e7474f883c8500831c17cd0f491a61c7a5a9d
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
