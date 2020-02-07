@@ -1,12 +1,39 @@
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Vertex Skinning", "Linear Blend Skinning")]
     class LinearBlendSkinningNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireVertexSkinning, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
+
+        public enum BoneCountType
+        {
+            PerVerteBoneCount4,
+            PerVerteBoneCount8
+        };
+
+        [SerializeField]
+        private BoneCountType m_BoneCountType = BoneCountType.PerVerteBoneCount4;
+
+        [EnumControl("BoneCount")]
+        public BoneCountType boneCountType
+        {
+            get { return m_BoneCountType; }
+            set
+            {
+                if (m_BoneCountType == value)
+                    return;
+
+                m_BoneCountType = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
         public const int kPositionSlotId = 0;
         public const int kNormalSlotId = 1;
         public const int kTangentSlotId = 2;
@@ -77,15 +104,33 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("$precision3 {0} = 0;", GetVariableNameForSlot(kTangentOutputSlotId));
             if (generationMode == GenerationMode.ForReals)
             {
-                sb.AppendLine("{0}(IN.BoneIndices, (int)(({1})), IN.BoneWeights, {2}, {3}, {4}, {5}, {6}, {7});",
-                    GetFunctionName(),
-                    GetSlotValue(kSkinMatricesOffsetSlotId, generationMode),
-                    GetSlotValue(kPositionSlotId, generationMode),
-                    GetSlotValue(kNormalSlotId, generationMode),
-                    GetSlotValue(kTangentSlotId, generationMode),
-                    GetVariableNameForSlot(kPositionOutputSlotId),
-                    GetVariableNameForSlot(kNormalOutputSlotId),
-                    GetVariableNameForSlot(kTangentOutputSlotId));
+                if(m_BoneCountType == BoneCountType.PerVerteBoneCount8)
+                {
+                    // the first 4 bones were normalized assuming bone count was 4, so we need to denormalize them back to original values
+                    // this should be done in the post processor, but right now there is a bug in mesh API when trying to set bone weights on a mesh imported with custom bone count per vertex setting
+                    sb.AppendLine("$precision1 denormalizeScale = 1.0f - (IN.uv5.x + IN.uv5.y + IN.uv5.z + IN.uv5.w);");                
+                    sb.AppendLine("{0}(IN.BoneIndices, IN.uv4, (int)(({1})), IN.BoneWeights * denormalizeScale, IN.uv5, {2}, {3}, {4}, {5}, {6}, {7});",
+                        GetFunctionName(),
+                        GetSlotValue(kSkinMatricesOffsetSlotId, generationMode),
+                        GetSlotValue(kPositionSlotId, generationMode),
+                        GetSlotValue(kNormalSlotId, generationMode),
+                        GetSlotValue(kTangentSlotId, generationMode),
+                        GetVariableNameForSlot(kPositionOutputSlotId),
+                        GetVariableNameForSlot(kNormalOutputSlotId),
+                        GetVariableNameForSlot(kTangentOutputSlotId));
+                }
+                else
+                {
+                    sb.AppendLine("{0}(IN.BoneIndices, (int)(({1})), IN.BoneWeights, {2}, {3}, {4}, {5}, {6}, {7});",
+                        GetFunctionName(),
+                        GetSlotValue(kSkinMatricesOffsetSlotId, generationMode),
+                        GetSlotValue(kPositionSlotId, generationMode),
+                        GetSlotValue(kNormalSlotId, generationMode),
+                        GetSlotValue(kTangentSlotId, generationMode),
+                        GetVariableNameForSlot(kPositionOutputSlotId),
+                        GetVariableNameForSlot(kNormalOutputSlotId),
+                        GetVariableNameForSlot(kTangentOutputSlotId));
+                }
             }
         }
 
@@ -97,12 +142,21 @@ namespace UnityEditor.ShaderGraph
             });
             registry.ProvideFunction(GetFunctionName(), sb =>
             {
-                sb.AppendLine("void {0}(uint4 indices, int indexOffset, $precision4 weights, $precision3 positionIn, $precision3 normalIn, $precision3 tangentIn, out $precision3 positionOut, out $precision3 normalOut, out $precision3 tangentOut)",
-                    GetFunctionName());
+                if(m_BoneCountType == BoneCountType.PerVerteBoneCount8)
+                {
+                    sb.AppendLine("void {0}(uint4 indices, uint4 indices4_8, int indexOffset, $precision4 weights, $precision4 weights4_8, $precision3 positionIn, $precision3 normalIn, $precision3 tangentIn, out $precision3 positionOut, out $precision3 normalOut, out $precision3 tangentOut)",
+                        GetFunctionName());
+                }
+                else
+                {
+                    sb.AppendLine("void {0}(uint4 indices, int indexOffset, $precision4 weights, $precision3 positionIn, $precision3 normalIn, $precision3 tangentIn, out $precision3 positionOut, out $precision3 normalOut, out $precision3 tangentOut)",
+                        GetFunctionName());            
+                }
                 sb.AppendLine("{");
                 using (sb.IndentScope())
                 {
-                    sb.AppendLine("for (int i = 0; i < 4; i++)");
+                    sb.AppendLine("int i;");
+                    sb.AppendLine("for (i = 0; i < 4; i++)");
                     sb.AppendLine("{");
                     using (sb.IndentScope())
                     {
@@ -116,6 +170,23 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine("tangentOut += ttransformed * weights[i];");
                     }
                     sb.AppendLine("}");
+                    if(m_BoneCountType == BoneCountType.PerVerteBoneCount8)
+                    {
+                        sb.AppendLine("for (i = 0; i < 4; i++)");
+                        sb.AppendLine("{");
+                        using (sb.IndentScope())
+                        {
+                            sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices4_8[i] + indexOffset];");
+                            sb.AppendLine("$precision3 vtransformed = mul(skinMatrix, $precision4(positionIn, 1));");
+                            sb.AppendLine("$precision3 ntransformed = mul(skinMatrix, $precision4(normalIn, 0));");
+                            sb.AppendLine("$precision3 ttransformed = mul(skinMatrix, $precision4(tangentIn, 0));");
+                            sb.AppendLine("");
+                            sb.AppendLine("positionOut += vtransformed * weights4_8[i];");
+                            sb.AppendLine("normalOut += ntransformed * weights4_8[i];");
+                            sb.AppendLine("tangentOut += ttransformed * weights4_8[i];");
+                        }
+                        sb.AppendLine("}");
+                    }
                 }
                 sb.AppendLine("}");
             });

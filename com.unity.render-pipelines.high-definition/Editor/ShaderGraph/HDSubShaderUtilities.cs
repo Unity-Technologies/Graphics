@@ -39,6 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
             [Semantic("TEXCOORD1")][Optional]       Vector4 uv1;
             [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
             [Semantic("TEXCOORD3")][Optional]       Vector4 uv3;
+            [Semantic("TEXCOORD4")][Optional]       Vector4 uv4;
+            [Semantic("TEXCOORD5")][Optional]       Vector4 uv5;
             [Semantic("BLENDWEIGHTS")][Optional]    Vector4 weights;
             [Semantic("BLENDINDICES")][Optional]    UInt32_4 indices;
             [Semantic("COLOR")][Optional]           Vector4 color;
@@ -82,6 +84,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("VaryingsMeshToPS.texCoord1",        "AttributesMesh.uv1"),
                 new Dependency("VaryingsMeshToPS.texCoord2",        "AttributesMesh.uv2"),
                 new Dependency("VaryingsMeshToPS.texCoord3",        "AttributesMesh.uv3"),
+                new Dependency("VaryingsMeshToPS.texCoord4",        "AttributesMesh.uv4"),
+                new Dependency("VaryingsMeshToPS.texCoord5",        "AttributesMesh.uv5"),
                 new Dependency("VaryingsMeshToPS.color",            "AttributesMesh.color"),
                 new Dependency("VaryingsMeshToPS.instanceID",       "AttributesMesh.instanceID"),
             };
@@ -239,6 +243,8 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional] Vector4 uv1;
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
+            [Optional] Vector4 uv4;
+            [Optional] Vector4 uv5;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
             [Optional] Vector4 BoneWeights;
@@ -277,6 +283,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("VertexDescriptionInputs.uv1",                       "AttributesMesh.uv1"),
                 new Dependency("VertexDescriptionInputs.uv2",                       "AttributesMesh.uv2"),
                 new Dependency("VertexDescriptionInputs.uv3",                       "AttributesMesh.uv3"),
+                new Dependency("VertexDescriptionInputs.uv4",                       "AttributesMesh.uv4"),
+                new Dependency("VertexDescriptionInputs.uv5",                       "AttributesMesh.uv5"),
                 new Dependency("VertexDescriptionInputs.VertexColor",               "AttributesMesh.color"),
 
                 new Dependency("VertexDescriptionInputs.BoneWeights",               "AttributesMesh.weights"),
@@ -379,6 +387,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 activeFields.AddAll("VertexDescriptionInputs.BoneWeights");
                 activeFields.AddAll("VertexDescriptionInputs.BoneIndices");
+                activeFields.AddAll("VertexDescriptionInputs.uv4");
+                activeFields.AddAll("VertexDescriptionInputs.uv5");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
