@@ -3,14 +3,24 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Base class for custom sky editor.
+    /// </summary>
     public abstract class SkySettingsEditor : VolumeComponentEditor
     {
+        /// <summary>
+        /// Enum used to determine which comme sky UI elements needs to be displayed.
+        /// </summary>
         [System.Flags]
         protected enum SkySettingsUIElement
         {
+            /// <summary>Sky Intensity UI element.</summary>
             SkyIntensity = 1 << 0,
+            /// <summary>Rotation UI element.</summary>
             Rotation = 1 << 1,
+            /// <summary>Update Mode UI element.</summary>
             UpdateMode = 1 << 2,
+            /// <summary>Include Sun in Baking UI element.</summary>
             IncludeSunInBaking = 1 << 3,
         }
 
@@ -26,7 +36,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
 
+        /// <summary>
+        /// Mask of SkySettingsUIElement used to choose which common UI elements are displayed.
+        /// </summary>
         protected uint m_CommonUIElementsMask = 0xFFFFFFFF;
+        /// <summary>
+        /// Set to true if your custom sky editor should enable the Lux Intensity mode.
+        /// </summary>
         protected bool m_EnableLuxIntensityMode = false;
 
         GUIContent[]    m_IntensityModes = { new GUIContent("Exposure"), new GUIContent("Multiplier"), new GUIContent("Lux") };
@@ -34,7 +50,9 @@ namespace UnityEditor.Rendering.HighDefinition
         GUIContent[]    m_IntensityModesNoLux = { new GUIContent("Exposure"), new GUIContent("Multiplier") };
         int[]           m_IntensityModeValuesNoLux = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier };
 
-
+        /// <summary>
+        /// OnEnable implementation.
+        /// </summary>
         public override void OnEnable()
         {
             var o = new PropertyFetcher<SkySettings>(serializedObject);
@@ -50,6 +68,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
         }
 
+        /// <summary>
+        /// Method used to display common sky UI elements.
+        /// </summary>
         protected void CommonSkySettingsGUI()
         {
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.SkyIntensity) != 0)

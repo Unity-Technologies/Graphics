@@ -60,6 +60,7 @@ struct Varyings
     float4 shadowCoord              : TEXCOORD8;
 #endif
     float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
@@ -71,14 +72,14 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
     SH = SampleSH(input.normalWS.xyz);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = IN.viewDir;
     float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
     half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
     half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(tangentWS, cross(normalWS, tangentWS), normalWS));
+    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
     SH = SampleSH(input.normalWS.xyz);
 #else
     half3 viewDirWS = IN.viewDir;
@@ -177,25 +178,25 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
 #ifdef _TERRAIN_BLEND_HEIGHT
 void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
 {
-#ifndef TERRAIN_SPLAT_ADDPASS   // disable for multi-pass
-    half4 defaultHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b);
-    half maxHeight = max(defaultHeight.r, max(defaultHeight.g, max(defaultHeight.b, defaultHeight.a)));
+    // heights are in mask blue channel, we multiply by the splat Control weights to get combined height
+    half4 splatHeight = half4(masks[0].b, masks[1].b, masks[2].b, masks[3].b) * splatControl.rgba;
+    half maxHeight = max(splatHeight.r, max(splatHeight.g, max(splatHeight.b, splatHeight.a)));
 
     // Ensure that the transition height is not zero.
     half transition = max(_HeightTransition, 1e-5);
 
-    // The goal here is to have all but the highest layer at negative heights,
-    // then we add the transition so that if the next highest layer is near transition it will have a positive value.
-    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
-    half4 weightedHeights = defaultHeight - maxHeight.xxxx;
+    // This sets the highest splat to "transition", and everything else to a lower value relative to that, clamping to zero
+    // Then we clamp this to zero and normalize everything
+    half4 weightedHeights = splatHeight + transition - maxHeight.xxxx;
+    weightedHeights = max(0, weightedHeights);
+
     // We need to add an epsilon here for active layers (hence the blendMask again)
     // so that at least a layer shows up if everything's too low.
-    weightedHeights = (max(0, weightedHeights + transition) + 1e-6) * splatControl;
+    weightedHeights = (weightedHeights + 1e-6) * splatControl;
 
-    // Normalize
-    half sumHeight = dot(weightedHeights, half4(1, 1, 1, 1));
+    // Normalize (and clamp to epsilon to keep from dividing by zero)
+    half sumHeight = max(dot(weightedHeights, half4(1, 1, 1, 1)), 1e-6);
     splatControl = weightedHeights / sumHeight.xxxx;
-#endif
 }
 #endif
 
@@ -246,6 +247,7 @@ Varyings SplatmapVert(Attributes v)
     Varyings o = (Varyings)0;
 
     UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.positionOS, v.normalOS, v.texcoord);
 
     VertexPositionInputs Attributes = GetVertexPositionInputs(v.positionOS.xyz);
@@ -288,31 +290,8 @@ Varyings SplatmapVert(Attributes v)
     return o;
 }
 
-// Used in Standard Terrain shader
-half4 SplatmapFragment(Varyings IN) : SV_TARGET
+void ComputeMasks(out half4 masks[4], half4 hasMask, Varyings IN)
 {
-#ifdef _ALPHATEST_ON
-	ClipHoles(IN.uvMainAndLM.xy);
-#endif	
-
-    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
-#ifdef TERRAIN_SPLAT_BASEPASS
-    half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
-    half smoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).a;
-    half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
-    half alpha = 1;
-    half occlusion = 1;
-#else
-    half4 splatControl;
-    half weight;
-    half4 mixedDiffuse;
-    half4 defaultSmoothness;
-
-    half4 masks[4];
-    half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
-    float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
-
     masks[0] = 0.5h;
     masks[1] = 0.5h;
     masks[2] = 0.5h;
@@ -326,22 +305,47 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 
     masks[0] *= _MaskMapRemapScale0.rgba;
-    masks[0].b *= splatControl.r;
     masks[0] += _MaskMapRemapOffset0.rgba;
     masks[1] *= _MaskMapRemapScale1.rgba;
-    masks[1].b *= splatControl.g;
     masks[1] += _MaskMapRemapOffset1.rgba;
     masks[2] *= _MaskMapRemapScale2.rgba;
-    masks[2].b *= splatControl.b;
     masks[2] += _MaskMapRemapOffset2.rgba;
     masks[3] *= _MaskMapRemapScale3.rgba;
-    masks[3].b *= splatControl.a;
     masks[3] += _MaskMapRemapOffset3.rgba;
+}
 
-#ifdef _TERRAIN_BLEND_HEIGHT
-    HeightBasedSplatModify(splatControl, masks);
+// Used in Standard Terrain shader
+half4 SplatmapFragment(Varyings IN) : SV_TARGET
+{
+#ifdef _ALPHATEST_ON
+    ClipHoles(IN.uvMainAndLM.xy);
 #endif
 
+    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+#ifdef TERRAIN_SPLAT_BASEPASS
+    half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
+    half smoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).a;
+    half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
+    half alpha = 1;
+    half occlusion = 1;
+#else
+
+    half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
+    half4 masks[4];
+    ComputeMasks(masks, hasMask, IN);
+
+    float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+    half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
+
+#ifdef _TERRAIN_BLEND_HEIGHT
+    // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
+    if (_NumLayersCount <= 4)
+        HeightBasedSplatModify(splatControl, masks);
+#endif
+
+    half weight;
+    half4 mixedDiffuse;
+    half4 defaultSmoothness;
     SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
     half3 albedo = mixedDiffuse.rgb;
 

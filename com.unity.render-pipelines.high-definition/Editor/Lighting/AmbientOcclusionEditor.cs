@@ -70,17 +70,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            // If the current pipeline supports ray tracing, display first the ray tracing checkbox
-            bool raytracingSupported = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported;
-            if (raytracingSupported)
-            PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
+            if (HDRenderPipeline.pipelineSupportsRayTracing)
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
             PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
-            if (raytracingSupported && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
