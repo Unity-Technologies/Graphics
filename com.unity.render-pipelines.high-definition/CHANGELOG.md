@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added script documentation for SSR, SSAO (ray tracing), GI, Light Cluster, RayTracingSettings, Ray Counters, etc.
 - Added path tracing support for refraction and internal reflections.
 - Added support for Thin Refraction Model and Lit's Clear Coat in Path Tracing.
+- Added the Tint parameter to Sky Colored Fog.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -394,6 +395,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exposure issue with ray traced sub-surface scattering.
 - Fixed runtime debug menu light hierarchy None not doing anything.
 - Fixed the broken ShaderGraph preview when creating a new Lit graph.
+- Fix indentation issue in preset of LayeredLit material.
+- Fixed minor issues with cubemap preview in the inspector.
+- Fixed wrong build error message when building for android on mac.
+- Fixed an issue related to denoising ray trace area shadows.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -477,6 +482,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Hide the Probes section in the Renderer editos because it was unused.
+- Moved BeginCameraRendering callback right before culling.
 
 ## [7.1.1] - 2019-09-05
 

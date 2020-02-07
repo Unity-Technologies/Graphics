@@ -123,8 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cookieTexArraySize = 1,
 #pragma warning restore 618
 
-            // Note: we need to put 128 here because when we create a new HDRP asset, the upgrade code multiply this value by max planar on screen which gives 2048
-            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution128,
+            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
 
