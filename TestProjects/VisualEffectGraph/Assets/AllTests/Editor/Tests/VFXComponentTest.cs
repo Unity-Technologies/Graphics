@@ -699,7 +699,8 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(newInstance);
             }
 
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             yield return null;
 
             var vfxAsset = graph.visualEffectResource.asset;

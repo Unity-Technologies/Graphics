@@ -268,7 +268,7 @@ namespace UnityEditor.VFX.Test
             {
                 Add_Valid_System(graph);
             }
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var mainObject = MakeTemporaryGameObject();
             GameObject prefabInstanceObject;
