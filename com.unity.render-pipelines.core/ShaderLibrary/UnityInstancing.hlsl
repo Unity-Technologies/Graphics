@@ -234,15 +234,6 @@
     #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
 
-    // TODO: Revisit naming
-    #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
-    #define UNITY_DOTS_INSTANCING_END(name)   }
-    #define UNITY_DOTS_INSTANCED_PROP(type, name) uint unity_DOTSInstancingMetadata_##name;
-
-    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) LoadDOTSInstancedData_##type(unity_DOTSInstancingMetadata_##var)
-    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) LoadDOTSInstancedData_##type(unity_DOTSInstancing##metadata_underscore_var)
-    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) LoadDOTSInstancedData_##type(unity_DOTSInstancingMetadata_##var)
-
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
 #else
