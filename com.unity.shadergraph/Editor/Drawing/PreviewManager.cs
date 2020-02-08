@@ -14,6 +14,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
+    delegate bool GetMasterPreviewStatus();
 
     class PreviewManager : IDisposable
     {
@@ -36,18 +37,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(GraphData graph, MessageManager messenger)
+        public PreviewManager(GraphData graph, MessageManager messenger, OnPrimaryMasterChanged masterChanged, GetMasterPreviewStatus previewStatus)
         {
             m_Graph = graph;
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_SceneResources = new PreviewSceneResources();
 
+            getMasterPreviewStatus = previewStatus;
+
             foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
                 AddPreview(node);
+
+            // Added after adding preview: master cannot have changed during init.
+            onPrimaryMasterChanged = masterChanged;
         }
 
-        public OnPrimaryMasterChanged onPrimaryMasterChanged;
+        OnPrimaryMasterChanged onPrimaryMasterChanged;
+        GetMasterPreviewStatus getMasterPreviewStatus;
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
@@ -77,7 +84,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is IMasterNode || node is SubGraphOutputNode)
             {
-                if (masterRenderData != null || (node is IMasterNode && node.guid != node.owner.activeOutputNodeGuid))
+                // Only add Active Master & if the Main Preview is toggled
+                if (masterRenderData != null || (node is IMasterNode && node.guid != node.owner.activeOutputNodeGuid) || !getMasterPreviewStatus())
                 {
                     return;
                 }
@@ -438,7 +446,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
-                if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
+                if (node is IMasterNode && getMasterPreviewStatus() && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
                 {
                     UpdateMasterNodeShader();
                     continue;
@@ -455,7 +463,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
-                
+
                 BeginCompile(renderData, results.shader);
                 //get the preview mode from generated results
                 renderData.previewMode = results.previewMode;

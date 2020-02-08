@@ -108,11 +108,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-            previewManager = new PreviewManager(graph, messageManager);
-            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
+            previewManager = new PreviewManager(graph, messageManager, OnMasterPreviewChanged, GetMasterPreviewStatus);
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
@@ -286,14 +285,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdateSubWindowsVisibility()
         {
             if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
             else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
 
             if (m_UserViewSettings.isPreviewVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+                m_MasterPreviewView.style.display = DisplayStyle.Flex;
             else
-                m_MasterPreviewView.RemoveFromHierarchy();
+                m_MasterPreviewView.style.display = DisplayStyle.None;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -965,11 +964,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnPrimaryMasterChanged()
+        void OnMasterPreviewChanged()
         {
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+        }
+
+        bool GetMasterPreviewStatus()
+        {
+            return m_UserViewSettings.isPreviewVisible;
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)
