@@ -49,7 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
-                assetPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(scenePath), System.IO.Path.GetFileNameWithoutExtension(scenePath));
+                String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
+                String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+                assetPath = System.IO.Path.Combine(sceneDir, sceneName);
+
+                if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+                    UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+
                 assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + id + ".asset");
             }
 
