@@ -2536,7 +2536,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
             // Final viewport is handled in the final blit in this case
-            if (!HDUtils.PostProcessIsFinalPass())
+            if (!HDUtils.PostProcessIsFinalPass(hdCamera))
             {
                 if (dynResHandler.HardwareDynamicResIsEnabled())
                 {

@@ -169,10 +169,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGraphMutableResource postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, backBuffer, cullingResults, hdCamera);
 
             // TODO RENDERGRAPH
-            //bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
-            bool hasAfterPostProcessCustomPass = false;
-
-            // TODO RENDERGRAPH
             //// Copy and rescale depth buffer for XR devices
             //if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
             //{
@@ -193,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
+            if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
             {
                 hdCamera.ExecuteCaptureActions(m_RenderGraph, colorBuffer);
 

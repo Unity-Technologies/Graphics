@@ -2323,12 +2323,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess);
 
-            bool hasAfterPostProcessCustomPass = WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
-
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
 
-            RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass() ? target.id : m_IntermediateAfterPostProcessBuffer;
-            RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd, !hasAfterPostProcessCustomPass);
+            RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
+            RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
 
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess);
 
@@ -2352,7 +2350,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
+            if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
 
@@ -3565,19 +3563,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPass.Execute(context, cmd, hdCamera, cullingResults, m_SharedRTManager, customPassTargets);
         }
 
-        bool WillCustomPassBeExecuted(HDCamera hdCamera, CustomPassInjectionPoint injectionPoint)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-                return false;
-
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
-
-            if (customPass == null)
-                return false;
-
-            return customPass.WillExecuteInjectionPoint(hdCamera);
-        }
-
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass))
@@ -4343,7 +4328,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct PostProcessParameters
         {
-            public HDCamera         hdCamera;
+            public HDCamera hdCamera;
+            public bool             postProcessIsFinalPass;
             public bool             flipYInPostProcess;
             public BlueNoise        blueNoise;
 
@@ -4360,9 +4346,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PostProcessParameters result = new PostProcessParameters();
             result.hdCamera = hdCamera;
+            result.postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             // Y-Flip needs to happen during the post process pass only if it's the final pass and is the regular game view
             // SceneView flip is handled by the editor internal code and GameView rendering into render textures should not be flipped in order to respect Unity texture coordinates convention
-            result.flipYInPostProcess = HDUtils.PostProcessIsFinalPass() && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            result.flipYInPostProcess = result.postProcessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
             result.blueNoise = m_BlueNoise;
 
             result.useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
