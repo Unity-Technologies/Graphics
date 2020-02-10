@@ -203,15 +203,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
-  - enabled: 0
-    path: Assets/Scenes/107_DepthPrepass.unity
-    guid: 12bed04065c037743845d8a5970cb5d0
   - enabled: 1
     path: Assets/Scenes/108_MoveCamera.unity
     guid: 5365b5739a6ca3c40bd03dc1ee5cb3c6
   - enabled: 1
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
+  - enabled: 1
+    path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
+    guid: f5310a9ab278ec748b2091bf7ba966a7
+  - enabled: 1
+    path: Assets/Scenes/118_SkyboxReflectionTestOrthographic.unity
+    guid: e1fb4b913911b734b88f86697de1b94a
   - enabled: 1
     path: Assets/Scenes/119_CameraToRTWithViewportRect.unity
     guid: c7b61419ee9382545afe530714fda0c2
@@ -224,7 +227,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
-    path: Assets/Scenes/125_CameraStackingVolumes.unity
-    guid: 9173c5ffc1365594aa9b927c4cd84c54
   m_configObjects: {}
