@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [7.2.0] - 2020-03-02
+## [7.2.0] - 2020-02-10
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
