@@ -21,7 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
             "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
         })]
-        public DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
+        [SerializeField]
+        internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
         
         [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
         public VolumeProfile defaultSettingsVolumeProfile;

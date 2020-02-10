@@ -2,6 +2,24 @@
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions of Unity. This document helps you upgrade HDRP from Unity 2019.2 to 2019.3.
 
+## New Scene
+
+New Scene system in HDRP rely on a prefab in your project. It also depend on default settings set for the Volumes. If you already have configured one with the Wizard, you need to update it regarding the **Default Volume Profile Asset** (in **Edit > Project Settings > HDRP Default Settings**).
+
+If you use default prefab (the one created by the wizard) and rely on default **Default Volume Profile Asset**, then your prefab will not be sync anymore with the default volume profile and you must update it.
+
+The easiest way is to ask the Wizard to recreate a new one:
+
+1. Open the Wizard (**Window > Render Pipeline > HD Render Pipeline Wizard**)
+2. Remove the prefab set in **Default Scene Prefab**.
+3. [*Optional*] Keep a copy of your previous prefab if it have been customized to not lost your version. To do so, just rename the prefab. It will prevent to be overridden.
+4. Look at the **Configuration Checking** below for the line **Default Scene Prefab** and click on the **Fix** button.
+5. [*Optional*] Report your custom change in the new created prefab.
+
+Then repeat this for **Default DXR Scene Prefab** if you were also using DXR.
+
+New Scene system in HDRP rely on a prefab in your project. If you have already configured one with the Wizard, you need to update it.
+
 <a name="ProceduralSky"></a>
 
 ## Procedural Sky
@@ -96,3 +114,8 @@ To do this, Unity opens a prompt when you begin the upgrade, asking if you want 
 For scene with baked probes authored prior to 2019.3, you may ran into a warning concerning a missing script for a GameObject named SceneIDMap when entering play mode.
 To fix it, you can load the scene in the editor and click on "Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes".
 
+## Light Intensity and Sky Exposure versus HDRP Default Settings.
+
+By default, HDRP is configured to use physically correct intensities for lights. Because of that, the exposure of the default HDRI sky present in HDRP is set to 11 to match a directional light intensity of 10000. You can find similar values in the template project for reference.
+When the HDRP wizard has been setup correctly, creating a new scene automatically create objects with the right intensities so that everything is coherent. However, if it's not the case, or if users create directional lights from scratch, their intensity is not physically correct. The consequence is that they don't match the default sky exposure and thus, any object in the scene will look black because of the automatic exposure compensating for the overly bright sky.
+In order to avoid this, make sure that you use coherent values for light intensity compared to the current sky exposure.

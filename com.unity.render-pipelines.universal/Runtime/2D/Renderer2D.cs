@@ -29,8 +29,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
             m_Deferred2DShadingPass = new Deferred2DShadingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
@@ -71,6 +71,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cameraTargetDescriptor.width = ppcOffscreenRTSize.x;
                 cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
             }
+
+            // HACK: force 4K resolution.
+            useOffscreenColorTexture = true;
+            cameraTargetDescriptor.width *= 2;
+            cameraTargetDescriptor.height *= 2;
 
             if (useOffscreenColorTexture)
             {

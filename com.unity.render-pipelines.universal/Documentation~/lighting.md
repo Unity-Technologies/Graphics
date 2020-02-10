@@ -1,3 +1,5 @@
+# Lighting in the Universal Render Pipeline
+
 Using the Universal Render Pipeline (URP), you can achieve realistic lighting that is suitable for a range of art styles.
 
 All of Unity's render pipelines share common lighting functionality, but each render pipeline has some important differences.

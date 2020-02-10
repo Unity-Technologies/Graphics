@@ -114,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int layerToRender = s_SortingLayers[i].id;
 
                     Light2D.LightStats lightStats;
-                    lightStats = Light2D.GetLightStatsByLayer(layerToRender);
+                    lightStats = Light2D.GetLightStatsByLayer(layerToRender, camera);
 
                     // Allocate our blend style textures
                     cmd.Clear();

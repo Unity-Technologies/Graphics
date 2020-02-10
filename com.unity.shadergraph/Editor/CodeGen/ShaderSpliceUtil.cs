@@ -321,7 +321,7 @@ namespace UnityEditor.ShaderGraph
             packer.AddShaderChunk(packedStruct + " " + packerFunction + "(" + unpackedStruct + " input)");
             packer.AddShaderChunk("{");
             packer.Indent();
-            packer.AddShaderChunk(packedStruct + " output;");
+            packer.AddShaderChunk(packedStruct + " output = (" + packedStruct + ")0;");
 
             //   unpackedStruct unpackerFunction(packedStruct input)
             //   {
@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderGraph
             unpacker.AddShaderChunk(unpackedStruct + " " + unpackerFunction + "(" + packedStruct + " input)");
             unpacker.AddShaderChunk("{");
             unpacker.Indent();
-            unpacker.AddShaderChunk(unpackedStruct + " output;");
+            unpacker.AddShaderChunk(unpackedStruct + " output = (" + unpackedStruct + ")0;");
 
             // TODO: this could do a better job packing
             // especially if we allowed breaking up fields across multiple interpolators (to pack them into remaining space...)
