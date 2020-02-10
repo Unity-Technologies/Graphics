@@ -70,6 +70,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
             }
 
+            // HACK: force 4K resolution.
+            useOffscreenColorTexture = true;
+            cameraTargetDescriptor.width *= 2;
+            cameraTargetDescriptor.height *= 2;
+
             if (useOffscreenColorTexture)
             {
                 var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
