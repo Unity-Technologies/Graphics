@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         // Both the DecalProjectorComponent, and the transform will be modified.
                         // The undo system will automatically group all RecordObject() calls here into a single action.
-                        Undo.RecordObject(decalProjector, "Decal Projector Change");
+                        Undo.RecordObject(decalProjector.transform, "Decal Projector Change");
 
                         // Re-center the transform to the center of the decal projector bounds,
                         // while maintaining the world-space coordinates of the decal projector boundings vertices.

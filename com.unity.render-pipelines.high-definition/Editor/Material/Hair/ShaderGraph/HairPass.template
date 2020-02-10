@@ -1,8 +1,8 @@
 Pass
 {
     $splice(PassName)
-    Tags 
-    { 
+    Tags
+    {
         $splice(LightMode)
     }
 
@@ -11,7 +11,7 @@ Pass
 
     // Debug
     $splice(Debug)
-    
+
     // --------------------------------------------------
     // Pass
 
@@ -34,7 +34,7 @@ Pass
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
-    $TransparentWritesMotionVec:        #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
+    $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
@@ -69,10 +69,15 @@ Pass
             #endif
         #endif
     #endif
-    
+
     // We need isFontFace when using double sided
     #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
         #define VARYINGS_NEED_CULLFACE
+    #endif
+
+    //translate transparent motion vector define
+    #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
 
     // Dots Instancing
@@ -104,7 +109,7 @@ Pass
 
     // Graph Vertex
     $splice(GraphVertex)
-    
+
     // Graph Pixel
     $splice(GraphPixel)
 
@@ -164,7 +169,7 @@ Pass
         $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
         $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
         $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
-     
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
@@ -297,9 +302,9 @@ Pass
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
-    
+
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:

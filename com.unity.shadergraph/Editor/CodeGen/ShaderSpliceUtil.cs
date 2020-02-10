@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        appendEndln = false; //if line isn't active, remove whitespace 
+                        appendEndln = false; //if line isn't active, remove whitespace
                     }
 
                     return false;

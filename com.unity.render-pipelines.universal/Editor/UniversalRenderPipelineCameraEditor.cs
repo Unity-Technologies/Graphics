@@ -196,6 +196,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnEnable()
         {
+            base.OnEnable();
             m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
@@ -398,8 +399,9 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
         }
 
-        public void OnDisable()
+        public new void OnDisable()
         {
+            base.OnDisable();
             m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
