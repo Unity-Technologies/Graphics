@@ -401,7 +401,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnDisable()
         {
-            base.OnDisable();
+            //base.OnDisable();
             m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
