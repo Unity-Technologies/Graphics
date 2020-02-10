@@ -281,8 +281,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
-                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                string.Format("   WriteMask {0}", (int)StencilUsage.DistortionVectors),
+                string.Format("   Ref  {0}", (int)StencilUsage.DistortionVectors),
                 "   Comp Always",
                 "   Pass Replace",
                 "}"

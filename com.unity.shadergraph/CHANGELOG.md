@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - Fixed a `ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED` shader error.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
+- Added support for users to drag and drop Blackboard Properties from one graph to another.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -50,8 +51,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where boolean keywords in a Shader Graph caused HDRP Material features to fail. [1204827](https://issuetracker.unity3d.com/issues/hdrp-shadergraph-adding-a-boolean-keyword-to-an-hdrp-lit-shader-makes-material-features-not-work)
 - Fixed a bug where Object space normals scaled with Object Scale. 
 - Documentation links on nodes now point to the correct URLs and package versions.
+- Fixed a number of memory leaks that caused Shader Graph assets to stay in memory after closing the Shader Graph window.
 - You can now smoothly edit controls on the `Dielectric Specular` node.
 - Fixed Blackboard Properties to support scientific notation.
+- Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 
 ## [7.1.1] - 2019-09-05
 ### Added

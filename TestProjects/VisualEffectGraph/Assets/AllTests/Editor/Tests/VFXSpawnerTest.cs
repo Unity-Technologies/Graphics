@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Test
             spawnerInit.LinkFrom(spawnerContext);
             spawnerOutput.LinkFrom(spawnerInit);
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             gameObj = new GameObject("CreateAssetAndComponentSpawner");
             vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -101,6 +101,29 @@ namespace UnityEditor.VFX.Test
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(vfxComponent.transform);
 
+        }
+
+        static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Check_Event_List([ValueSource("k_Create_Asset_And_Check_Event_ListCases")] string playEventName)
+        {
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(123.0f, playEventName, out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var visualEffectAsset = vfxComponent.visualEffectAsset;
+            Assert.IsNotNull(visualEffectAsset);
+
+            var vfxEvents = new List<string>();
+            visualEffectAsset.GetEvents(vfxEvents);
+
+            Assert.IsTrue(vfxEvents.Contains(playEventName));
+            Assert.IsTrue(vfxEvents.Contains("OnStop"));
+            Assert.AreEqual(2, vfxEvents.Count);
+
+            yield return null;
         }
 
         [UnityTest]
@@ -188,6 +211,45 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Spawner_Plugging_OnStop_Into_Start_Input_Flow()
+        {
+            //Cover regression introduced at b76b691db3313ca06f157580e954116eca1473fa
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(457.0f, "OnStop", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            //Plug a Dummy Event on "Stop" entry (otherwise OnStop is implicitly plugged)
+            var eventStop = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStop.eventName = "Dummy";
+            graph.AddChild(eventStop);
+            graph.children.OfType<VFXBasicSpawner>().First().LinkFrom(eventStop, 0, 1);
+            
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null; //wait for exactly one more update if visible
+
+            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            Assert.AreEqual(VFXSpawnerLoopState.Finished, spawnerState.loopState);
+
+            //Now send event Stop, we expect to wake up
+            vfxComponent.Stop();
+            yield return null;
+
+            spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            Assert.AreNotEqual(VFXSpawnerLoopState.Finished, spawnerState.loopState);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+        }
+
+        [UnityTest]
         public IEnumerator CreateEventStartAndStop()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
@@ -219,7 +281,7 @@ namespace UnityEditor.VFX.Test
             spawnerContext.LinkFrom(eventStart, 0, 0);
             spawnerContext.LinkFrom(eventStop, 0, 1);
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateEventStartAndStop");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -336,7 +398,7 @@ namespace UnityEditor.VFX.Test
             var valueTotalTime = 187.0f;
             blockCustomSpawner.GetInputSlot(0).value = valueTotalTime;
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateCustomSpawnerAndComponent");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -522,8 +584,9 @@ namespace UnityEditor.VFX.Test
             spawnerOutput.LinkFrom(spawnerInit);
 
             //Force issue due to uninitialized expression (otherwise, constant folding resolve it)
-            graph.SetCompilationMode(VFXCompilationMode.Edition); 
-            graph.RecompileIfNeeded();
+            graph.SetCompilationMode(VFXCompilationMode.Edition);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateSpawner_Single_Burst_With_Delay");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -675,7 +738,8 @@ namespace UnityEditor.VFX.Test
             spawnerInit.SetSettingValue("capacity", 512u);
 
             graph.SetCompilationMode(VFXCompilationMode.Runtime);
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateSpawner_Chaining");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -864,7 +928,8 @@ namespace UnityEditor.VFX.Test
             spawnerInit.SetSettingValue("capacity", 512u);
 
             graph.SetCompilationMode(VFXCompilationMode.Runtime);
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateSpawner_ChangeLoopMode_" + testCase.ToString());
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -963,7 +1028,8 @@ namespace UnityEditor.VFX.Test
             }
 
             graph.SetCompilationMode(VFXCompilationMode.Runtime);
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateSpawner_All_Zero_Duration");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();

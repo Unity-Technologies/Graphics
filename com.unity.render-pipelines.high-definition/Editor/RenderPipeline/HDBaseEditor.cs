@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     //     }
     // }
     //
-    public class HDBaseEditor<T> : Editor
+    class HDBaseEditor<T> : Editor
         where T : UnityObject
     {
         internal PropertyFetcher<T> properties { get; private set; }

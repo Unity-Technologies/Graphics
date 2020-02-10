@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
-    public class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
+    class FBXMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;

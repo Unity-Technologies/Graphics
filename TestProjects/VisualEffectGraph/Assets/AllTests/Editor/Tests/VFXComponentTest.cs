@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 using System.Linq;
 using System.Collections;
 using UnityEditor.VFX.Block.Test;
+using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
@@ -191,7 +192,7 @@ namespace UnityEditor.VFX.Test
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph)); ;
 
             return graph;
         }
@@ -253,7 +254,7 @@ namespace UnityEditor.VFX.Test
 
             //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
             Debug.unityLogger.logEnabled = false;
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             Debug.unityLogger.logEnabled = true;
             Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
@@ -301,7 +302,7 @@ namespace UnityEditor.VFX.Test
             initializeContext.inputSlots[0][0].value = center;
             initializeContext.inputSlots[0][1].value = size;
             graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             //< Same Behavior as Drag & Drop
             GameObject currentObject = new GameObject("TemporaryGameObject_RenderBounds", /*typeof(Transform),*/ typeof(VisualEffect));
@@ -418,7 +419,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
@@ -468,14 +469,14 @@ namespace UnityEditor.VFX.Test
             parameter_A.SetSettingValue("m_Exposed", true);
             parameter_A.value = new Vector3(0, 0, 0);
             graph_A.AddChild(parameter_A);
-            graph_A.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph_A));
 
             var parameter_B = parametersVector3Desc.CreateInstance();
             parameter_B.SetSettingValue("m_ExposedName", commonExposedName);
             parameter_B.SetSettingValue("m_Exposed", true);
             parameter_B.value = new Vector3(0, 0, 0);
             graph_B.AddChild(parameter_B);
-            graph_B.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph_B));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -530,7 +531,7 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(output);
             output.LinkFrom(contextInitialize);
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -631,7 +632,7 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -668,7 +669,7 @@ namespace UnityEditor.VFX.Test
             parameter_Other.value = new Vector3(6, 6, 6);
             graph.AddChild(parameter_Other);
             parameter.value = new Vector3(5, 5, 5);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             yield return null;
 
@@ -677,6 +678,64 @@ namespace UnityEditor.VFX.Test
             actualOverriden = vfx.GetVector3(exposedName);
 
             Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
+        }
+
+        [UnityTest]
+        public IEnumerator Create_Component_With_All_Basic_Type_Exposed_Check_Exposed_API()
+        {
+            var graph = MakeTemporaryGraph();
+            var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
+                        .Where(e => e != VFXValueType.Spline
+                                && e != VFXValueType.Buffer //TODO : Remove this when Buffer as exposed property is possible
+                                && e != VFXValueType.None).ToArray();
+
+            foreach (var type in types)
+            {
+                var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == type);
+                var newInstance = parameterDesc.CreateInstance();
+
+                newInstance.SetSettingValue("m_ExposedName", "abcd_" + type.ToString());
+                newInstance.SetSettingValue("m_Exposed", true);
+                graph.AddChild(newInstance);
+            }
+
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            var vfxAsset = graph.visualEffectResource.asset;
+
+            var exposedProperties = new List<VFXExposedProperty>();
+            vfxAsset.GetExposedProperties(exposedProperties);
+            foreach (var type in types)
+            {
+                var expectedType = VFXExpression.TypeToType(type);
+                var whereExpectedType = exposedProperties.Where(o => o.type == expectedType);
+                Assert.IsTrue(whereExpectedType.Any());
+                var expectedName = "abcd_" + type.ToString();
+                var whereExpectedName = whereExpectedType.Where(o => o.name == expectedName);
+                Assert.AreEqual(1, whereExpectedName.Count());
+
+                var entry = whereExpectedName.First();
+                if (entry.type == typeof(Texture))
+                {
+                    var dimension = vfxAsset.GetTextureDimension(entry.name);
+                    switch (dimension)
+                    {
+                        case TextureDimension.Tex2D:        Assert.AreEqual(type, VFXValueType.Texture2D);        break;
+                        case TextureDimension.Tex3D:        Assert.AreEqual(type, VFXValueType.Texture3D);        break;
+                        case TextureDimension.Cube:         Assert.AreEqual(type, VFXValueType.TextureCube);      break;
+                        case TextureDimension.Tex2DArray:   Assert.AreEqual(type, VFXValueType.Texture2DArray);   break;
+                        case TextureDimension.CubeArray:    Assert.AreEqual(type, VFXValueType.TextureCubeArray); break;
+                        default: Assert.Fail("Unknown expected type"); break;
+                    }
+                }
+                else
+                {
+                    Assert.IsFalse(VFXExpression.IsTexture(type));
+                }
+            }
+            Assert.AreEqual(types.Length, exposedProperties.Count);
         }
 
         [UnityTest]
@@ -1097,7 +1156,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
             {

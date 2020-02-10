@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: New HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_Version: 11
+  m_Version: 14
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -151,12 +151,14 @@ MonoBehaviour:
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: 3043edc9d9a47704fad99f10fea80a08,
+  m_DefaultVolumeProfile: {fileID: 11400000, guid: 9884200cec831374ab7a4958789a0ecc,
+    type: 2}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: 9884200cec831374ab7a4958789a0ecc,
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 70280697347933
-      data2: 4539628424926265344
+      data2: 4539628425463136256
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -218,14 +220,14 @@ MonoBehaviour:
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
     supportRayTracing: 0
-    supportedRaytracingTier: 2
     lightLoopSettings:
-      cookieSize: 128
-      cookieTexArraySize: 16
+      cookieAtlasSize: 2048
+      cookieFormat: 74
       pointCookieSize: 128
       cubeCookieTexArraySize: 16
-      planarReflectionProbeCacheSize: 2
-      planarReflectionTextureSize: 1024
+      cookieAtlasLastValidMip: 0
+      cookieTexArraySize: 16
+      planarReflectionAtlasSize: 8192
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 0
@@ -240,6 +242,7 @@ MonoBehaviour:
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
+      maxPlanarReflectionOnScreen: 16
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -268,7 +271,8 @@ MonoBehaviour:
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
-      maxScreenSpaceShadows: 2
+      maxScreenSpaceShadowSlots: 4
+      screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
@@ -277,6 +281,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
+      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
@@ -290,6 +295,7 @@ MonoBehaviour:
       checkerboardDepthBuffer: 1
       upsampleType: 1
     xrSettings:
+      singlePass: 1
       occlusionMesh: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
@@ -324,11 +330,19 @@ MonoBehaviour:
       - 1
       m_SchemaId:
         m_Id: With3Levels
+    lightingQualitySettings:
+      AOStepCount: 040000000600000010000000
+      AOFullRes: 000001
+      AOMaximumRadiusPixels: 200000002800000050000000
+      AOBilateralUpsample: 000101
+      AODirectionCount: 010000000200000004000000
+      ContactShadowSampleCount: 060000000a00000010000000
+      SSRMaxRaySteps: 100000002000000040000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
-  materialQualityLevels: -1
-  m_CurrentMaterialQualityLevel: 4
+  availableMaterialQualityLevels: -1
+  m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList: []
   beforeTransparentCustomPostProcesses: []

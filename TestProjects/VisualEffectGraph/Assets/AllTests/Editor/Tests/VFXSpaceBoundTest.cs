@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Test
             basicInitialize.inputSlots[0][0].value = boundPosition;
             basicInitialize.inputSlots[0][1].value = Vector3.one * 5.0f;
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var gameObj = new GameObject("CreateAssetAndComponentToCheckBound");
             gameObj.transform.position = objectPosition;

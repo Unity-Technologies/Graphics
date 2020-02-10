@@ -24,19 +24,17 @@ float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
 
 float3 GetFogColor(float3 V, float fragDist)
 {
-    if (_FogColorMode == FOGCOLORMODE_CONSTANT_COLOR)
-    {
-        return _FogColor.rgb;
-    }
-    else if (_FogColorMode == FOGCOLORMODE_SKY_COLOR)
+    float3 color = _FogColor.rgb;
+
+    if (_FogColorMode == FOGCOLORMODE_SKY_COLOR)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
         float mipLevel = (1.0 - _MipFogMaxMip * saturate((fragDist - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
         // For the atmospheric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
-        return SampleSkyTexture(-V, mipLevel, 0).rgb;
+        color *= SampleSkyTexture(-V, mipLevel, 0).rgb; // '_FogColor' is the tint
     }
-    else // Should not be possible.
-        return float3(0.0, 0.0, 0.0);
+
+    return color;
 }
 
 // All units in meters!

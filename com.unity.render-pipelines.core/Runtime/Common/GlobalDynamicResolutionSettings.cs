@@ -33,8 +33,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Lanczos upscaling filter.
         /// </summary>
-        Lanczos,     
-        // Difference of Gaussians? [aka unsharp]
+        Lanczos,
+        /// <summary>
+        /// Contrast Adaptive Sharpening upscaling filter.
+        /// </summary>
         ContrastAdaptiveSharpen,
     }
 
@@ -42,9 +44,6 @@ namespace UnityEngine.Rendering
     [Serializable]
     public struct GlobalDynamicResolutionSettings
     {
-        /// <summary>Default GlobalDynamicResolutionSettings</summary>
-        [Obsolete("Since 2019.3, use GlobalDynamicResolutionSettings.NewDefault() instead.")]
-        public static readonly GlobalDynamicResolutionSettings @default = default;
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
         /// <returns></returns>
         public static GlobalDynamicResolutionSettings NewDefault() => new GlobalDynamicResolutionSettings()

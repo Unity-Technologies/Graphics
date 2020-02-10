@@ -10,13 +10,12 @@ namespace UnityEditor.VFX
 
     class VFXSubgraphContext : VFXContext
     {
-        public const string triggerEventName = "Trigger";
-
         [VFXSetting,SerializeField]
         protected VisualEffectAsset m_Subgraph;
 
         [NonSerialized]
         VFXModel[] m_SubChildren;
+        VFXGraph m_UsedSubgraph;
 
         public VisualEffectAsset subgraph
         {
@@ -33,7 +32,14 @@ namespace UnityEditor.VFX
 
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
         {
-            
+
+        }
+
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph,null))
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         void GraphParameterChanged(VFXGraph graph)
@@ -47,10 +53,24 @@ namespace UnityEditor.VFX
         protected override int inputFlowCount { get { return m_InputFlowNames.Count > s_MaxInputFlow ? s_MaxInputFlow : m_InputFlowNames.Count; } }
 
         public sealed override string name { get { return m_Subgraph!= null ? m_Subgraph.name : "Subgraph"; } }
-
+        
+        void RefreshSubgraphObject()
+        {
+            if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
+            {
+                string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
+                
+                var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+                if( newSubgraph != null )
+                {
+                    m_Subgraph = newSubgraph;
+                }
+            }
+        }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get {
+                RefreshSubgraphObject();
                 if(m_SubChildren == null && m_Subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                 {
                     foreach (var slot in inputSlots)
@@ -151,10 +171,12 @@ namespace UnityEditor.VFX
         public void RecreateCopy()
         {
             DetachFromOriginal();
+            RefreshSubgraphObject();
 
             if (m_Subgraph == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -162,6 +184,7 @@ namespace UnityEditor.VFX
             if( resource == null)
             {
                 m_SubChildren = null;
+                m_UsedSubgraph = null;
                 return;
             }
 
@@ -171,7 +194,7 @@ namespace UnityEditor.VFX
 
             var duplicated = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_SubChildren = duplicated.OfType<VFXModel>().Where(t => t is VFXContext || t is VFXOperator || t is VFXParameter).ToArray();
-
+            m_UsedSubgraph = graph;
             foreach (var child in duplicated.Zip(dependencies, (a, b) => new { copy = a, original = b }))
             {
                 child.copy.hideFlags = HideFlags.HideAndDontSave;
@@ -358,7 +381,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
+            if( cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
             {
 
                 if (cause == InvalidationCause.kSettingChanged)
@@ -374,7 +397,7 @@ namespace UnityEditor.VFX
                         }
 
                     }
-                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null)) // do not recreate subchildren if the subgraph is not available but is not null
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null) || m_UsedSubgraph == null || m_UsedSubgraph != m_Subgraph.GetResource().GetOrCreateGraph() ) // do not recreate subchildren if the subgraph is not available but is not null
                         RecreateCopy();
                 }
 
@@ -399,11 +422,12 @@ namespace UnityEditor.VFX
 
             if( m_Subgraph != null && m_SubChildren == null)
                 RecreateCopy();
-            if(m_SubChildren != null)
+
+            if (m_SubChildren != null)
             {
                 foreach (var child in m_SubChildren)
                 {
-                    if (!(child is VFXParameter))
+                if( ! (child is VFXParameter) )
                     {
                         objs.Add(child);
 
@@ -413,5 +437,5 @@ namespace UnityEditor.VFX
                 }
             }
         }
-    }
+}
 }
