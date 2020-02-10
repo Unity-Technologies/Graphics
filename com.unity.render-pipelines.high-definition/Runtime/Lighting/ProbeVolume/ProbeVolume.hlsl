@@ -322,7 +322,9 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
                 }
 
                 probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
-                probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
+
+                if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_NORMAL)
+                    probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
 
             }
         }
