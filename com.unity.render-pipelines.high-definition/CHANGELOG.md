@@ -159,6 +159,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard behaviour on domain reload.
 - Fixed a potential source of NaN in planar reflection probe atlas.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
+- Fixed missing initialization of input params in Blit for VR.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
