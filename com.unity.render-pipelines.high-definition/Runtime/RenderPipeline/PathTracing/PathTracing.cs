@@ -7,10 +7,10 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
+    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
