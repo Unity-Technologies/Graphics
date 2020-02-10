@@ -17,7 +17,15 @@ namespace UnityEditor.VFX.UI
             m_ContextController = contextController;
             if (model is VFXSubgraphBlock)
             {
-                (model as VFXSubgraphBlock).RecreateCopy();
+                // Prevent breaking the editor opening.
+                try
+                {
+                    (model as VFXSubgraphBlock).RecreateCopy();
+                }
+                catch(Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
 
