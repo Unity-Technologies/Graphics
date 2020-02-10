@@ -111,8 +111,17 @@ namespace UnityEditor.VFX.UI
 
             if (model is VFXSubgraphContext)
             {
-                SyncFlowAnchors();
-                model.ResyncSlots(true);
+                // Prevent breaking the editor opening.
+                try
+                { 
+                    SyncFlowAnchors();
+                    model.ResyncSlots(true);
+                }
+                    catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+
             }
         }
 
