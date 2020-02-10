@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection ShadowCasterPBR = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.ColorMask("ColorMask 0") },
@@ -150,11 +151,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{ 0 | (int)StencilUsage.TraceReflectionRay}",
-                Ref = "0",
+                Ref = $"{0 | (int)StencilUsage.TraceReflectionRay}",
                 Comp = "Always",
                 Pass = "Replace",
             }) },
@@ -208,13 +210,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection PBRMotionVectors = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.Blend(Blend.One, Blend.Zero) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask 0") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"{0 | (int)StencilUsage.TraceReflectionRay | (int)StencilUsage.ObjectMotionVector}",
-                Ref = $"{(int)StencilUsage.ObjectMotionVector}",
+                Ref = $"{ 0 | (int)StencilUsage.TraceReflectionRay | (int)StencilUsage.ObjectMotionVector}",
                 Comp = "Always",
                 Pass = "Replace",
             }) },
@@ -395,13 +394,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection PBRGBuffer = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
-                new FieldCondition(Fields.SurfaceOpaque, true), 
-                new FieldCondition(Fields.AlphaTest, true) } },
+            { RenderState.ZTest(ZTest.Equal) },
             { RenderState.Stencil(new StencilDescriptor()
             {
-                WriteMask = $"{(int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay | 0}",
-                Ref = $"{(int)StencilUsage.Clear}",
+                WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",
+                Ref = $"{0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.TraceReflectionRay}",
                 Comp = "Always",
                 Pass = "Replace",
             }) },

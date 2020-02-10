@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor PBR = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
-            renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
+            renderTypeOverride = HDRenderTypeTags.HDLitShader.ToString(),
             generatesPreview = true,
             passes = new PassCollection
             {
