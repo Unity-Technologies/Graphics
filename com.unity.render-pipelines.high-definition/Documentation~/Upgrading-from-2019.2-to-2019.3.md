@@ -111,11 +111,15 @@ To do this, Unity opens a prompt when you begin the upgrade, asking if you want 
 
 ## Missing Script for GameObject SceneIDMap
 
-For scene with baked probes authored prior to 2019.3, you may ran into a warning concerning a missing script for a GameObject named SceneIDMap when entering play mode.
-To fix it, you can load the scene in the editor and click on "Edit/Render Pipeline/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes".
+When you enter Play Mode in a Scene with baked Probes authored prior to 2019.3, you may encounter a warning about a missing Script for a GameObject named **SceneIDMap**.
+To fix this, load the Scene in the Unity Editor and select **Edit > Render Pipeline > Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes**.
 
 ## Light Intensity and Sky Exposure versus HDRP Default Settings.
 
-By default, HDRP is configured to use physically correct intensities for lights. Because of that, the exposure of the default HDRI sky present in HDRP is set to 11 to match a directional light intensity of 10000. You can find similar values in the template project for reference.
-When the HDRP wizard has been setup correctly, creating a new scene automatically create objects with the right intensities so that everything is coherent. However, if it's not the case, or if users create directional lights from scratch, their intensity is not physically correct. The consequence is that they don't match the default sky exposure and thus, any object in the scene will look black because of the automatic exposure compensating for the overly bright sky.
-In order to avoid this, make sure that you use coherent values for light intensity compared to the current sky exposure.
+By default, HDRP uses physically correct intensities for Lights. Because of this, the exposure of the default HDRI sky present in HDRP is set to **11** to match a Directional Light intensity of **10000**. For reference, you can find similar values in the template Project.
+When the HDRP Wizard has been set up correctly, if you create a new Scene, Unity automatically creates GameObjects with the correct intensities so that everything is coherent. However, if the HDRP Wizard is not set up correctly, or if you create Directional Lights from scratch, the intensity is not physically correct. The consequence is that the Light does not match the default sky exposure and thus, any GameObject in the Scene looks black because of the automatic exposure compensating for the overly bright sky.
+To avoid this, make sure that you use coherent values for light intensity compared to the current sky exposure.
+
+## Iridescence color space
+
+Previously, HDRP used the wrong color space to calculate iridescence. From 2019.3, HDRP uses the correct color space. This results in a more vibrant / saturated color when you use the iridescence effect.
