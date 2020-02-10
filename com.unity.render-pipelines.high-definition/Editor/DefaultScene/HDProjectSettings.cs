@@ -29,9 +29,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
-        bool m_WizardPopupAtStart = false;
+        bool m_WizardPopupAtStart = true;
+        [SerializeField]
+        bool m_WizardPopupAlreadyShownOnce = false;
         [SerializeField]
         int m_WizardActiveTab = 0;
+        [SerializeField]
+        bool m_WizardNeedRestartAfterChangingToDX12 = false;
+        [SerializeField]
+        bool m_WizardNeedToRunFixAllAgainAfterDomainReload = false;
         [SerializeField]
         int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
@@ -67,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        internal static int wizardActiveTab
+        public static int wizardActiveTab
         {
             get => instance.m_WizardActiveTab;
             set
@@ -83,6 +89,36 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardPopupAtStart = value;
+                Save();
+            }
+        }
+
+        public static bool wizardPopupAlreadyShownOnce
+        {
+            get => instance.m_WizardPopupAlreadyShownOnce;
+            set
+            {
+                instance.m_WizardPopupAlreadyShownOnce = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedToRunFixAllAgainAfterDomainReload
+        {
+            get => instance.m_WizardNeedToRunFixAllAgainAfterDomainReload;
+            set
+            {
+                instance.m_WizardNeedToRunFixAllAgainAfterDomainReload = value;
+                Save();
+            }
+        }
+
+        public static bool wizardNeedRestartAfterChangingToDX12
+        {
+            get => instance.m_WizardNeedRestartAfterChangingToDX12;
+            set
+            {
+                instance.m_WizardNeedRestartAfterChangingToDX12 = value;
                 Save();
             }
         }
