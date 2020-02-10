@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         protected int m_Version = (int)AssetVersion.First;
         public int Version { get => m_Version; }
 
+        public int instanceID;
+
         public SphericalHarmonicsL1[] data = null;
         public float[] dataValidity = null;
         public float[] dataOctahedralDepth = null;

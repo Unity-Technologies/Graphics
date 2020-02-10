@@ -380,12 +380,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (!probeVolumeAsset)
+                if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                 {
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
                     UnityEditor.EditorUtility.SetDirty(this);
                 }
 
+                probeVolumeAsset.instanceID = GetID();
                 probeVolumeAsset.data = data;
                 probeVolumeAsset.dataValidity = dataValidity;
                 probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
