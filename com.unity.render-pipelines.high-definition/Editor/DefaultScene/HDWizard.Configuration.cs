@@ -222,6 +222,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public void Stop() => m_StopRequested = true;
 
+            public int remainingFixes => m_Queue.Count;
+
             void Start()
             {
                 m_Running = true;
@@ -261,6 +263,33 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         QueuedLauncher m_Fixer = new QueuedLauncher();
+
+        void RestartFixAllAfterDomainReload()
+        {
+            if (m_Fixer.remainingFixes > 0)
+                HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
+        }
+
+
+        void CheckPersistentFixAll()
+        {
+            if (HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
+            {
+                switch ((Configuration)HDProjectSettings.wizardActiveTab)
+                {
+                    case Configuration.HDRP:
+                        FixHDRPAll();
+                        break;
+                    case Configuration.HDRP_VR:
+                        FixVRAll();
+                        break;
+                    case Configuration.HDRP_DXR:
+                        FixDXRAll();
+                        break;
+                }
+                m_Fixer.Add(() => HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
+            }
+        }
 
         #endregion
 
@@ -474,7 +503,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return vrXRManagementInstalledCheck;
         }
         void FixVRXRManagementPackageInstalled(bool fromAsync)
-            => m_PackageInstaller.ProcessAsync(k_XRanagementPackageName, null);
+        {
+            if (fromAsync)
+                RestartFixAllAfterDomainReload();
+            m_PackageInstaller.ProcessAsync(k_XRanagementPackageName, null);
+        }
 
         bool vrLegacyHelpersInstalledCheck = false;
         bool IsVRLegacyHelpersCorrect()
@@ -485,7 +518,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return vrLegacyHelpersInstalledCheck;
         }
         void FixVRLegacyHelpers(bool fromAsync)
-            => m_PackageInstaller.ProcessAsync(k_LegacyInputHelpersPackageName, null);
+        {
+            if (fromAsync)
+                RestartFixAllAfterDomainReload();
+            m_PackageInstaller.ProcessAsync(k_LegacyInputHelpersPackageName, null);
+        }
 
         #endregion
 
@@ -501,10 +538,9 @@ namespace UnityEditor.Rendering.HighDefinition
             => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
-
-        static bool reloadNeeded = false;
+        
         bool IsDXRDirect3D12Correct()
-            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !reloadNeeded;
+            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
@@ -528,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                reloadNeeded = true;
+                HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = true;
                 m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
@@ -548,12 +584,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
-                        reloadNeeded = false;
+                        HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
                         RequestCloseAndRelaunchWithCurrentArguments();
                         GUIUtility.ExitGUI();
                     }
                 }
+                else
+                    EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
             }
+        }
+        
+        void CheckPersistantNeedReboot()
+        {
+            if (HDProjectSettings.wizardNeedRestartAfterChangingToDX12)
+                EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
         }
 
         bool IsDXRAssetCorrect()

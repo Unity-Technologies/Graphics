@@ -29,6 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             var values = Enum.GetValues(typeof(FrameSettingsField));
             var singleValues = (values as IEnumerable<int>).Distinct();
 
+#pragma warning disable 0612 // Type or member is obsolete
+            var excluded = new List<FrameSettingsField> { FrameSettingsField.RoughRefraction };
+#pragma warning restore 0612 // Type or member is obsolete
+
             //gathering helpful debug info
             var messageDuplicates = new StringBuilder();
             if (values.Length != singleValues.Count())
@@ -36,9 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 var names = Enum.GetNames(typeof(FrameSettingsField));
                 for (int i = 0; i < values.Length - 1; ++i)
                 {
-                    var a = values.GetValue(i);
-                    var b = values.GetValue(i + 1);
-                    if ((int)values.GetValue(i) == (int)values.GetValue(i + 1))
+                    var a = (int)values.GetValue(i);
+                    var b = (int)values.GetValue(i + 1);
+                    if (a == b && !excluded.Contains((FrameSettingsField)a))
                     {
                         messageDuplicates.AppendFormat("{{ {0}: {1}, {2}", (int)values.GetValue(i), names[i], names[i + 1]);
                         ++i;
@@ -63,8 +67,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     availables.AppendFormat("{0} ", i);
             }
             Debug.Log($"Available bit in FrameSettings: {availables}");
-
-            Assert.AreEqual(values.Length, singleValues.Count(), String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString()));
+            // Weirdly if we pass directly the String.Format statement, the assert.Equal function generates an exception so we create it here.
+            var errorMessage = String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString());
+            Assert.AreEqual(values.Length - excluded.Count, singleValues.Count(), errorMessage);
         }
 
         // deactivate this test for template package making issue
