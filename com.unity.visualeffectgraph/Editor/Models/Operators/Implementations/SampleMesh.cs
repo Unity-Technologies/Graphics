@@ -160,7 +160,6 @@ namespace UnityEditor.VFX.Operator
                     var outputType = GetOutputType(vertexAttribute);
                     yield return new VFXPropertyWithValue(new VFXProperty(outputType, vertexAttribute.ToString()));
                 }
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "count", new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "The number of vertices in this mesh")));
             }
         }
 
@@ -227,8 +226,6 @@ namespace UnityEditor.VFX.Operator
                     sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
                 outputExpressions.Add(sampled);
             }
-
-            outputExpressions.Add(meshVertexCount);
             return outputExpressions.ToArray();
         }
     }
