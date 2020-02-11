@@ -31,7 +31,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public abstract class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -45,9 +46,19 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorAttachments[0];
         }
 
+        public List<RenderTargetHandle> inputAttachments
+        {
+            get => m_InputAttachments;
+        }
+
         public RenderTargetHandle depthAttachment
         {
             get => m_DepthAttachment;
+        }
+
+        internal RenderPassDescriptor renderPassDescriptor
+        {
+            get => m_RenderPassDescriptor;
         }
 
         public ClearFlag clearFlag
@@ -65,21 +76,35 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>();
+        internal bool hasInputAttachment;
+        internal bool useNativeRenderPass;
+
+        List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(8);
+        List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
         RenderTargetHandle m_DepthAttachment = RenderTargetHandle.CameraTarget;
+        RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new List<RenderTargetHandle>{RenderTargetHandle.CameraTarget};
+            m_ColorAttachments = new List<RenderTargetHandle> {RenderTargetHandle.CameraTarget};
             m_DepthAttachment = RenderTargetHandle.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            hasInputAttachment = false;
+            useNativeRenderPass = false;
             eyeIndex = 0;
+        }
+
+        internal struct RenderPassDescriptor
+        {
+            internal int width;
+            internal int height;
+            internal int sampleCount;
         }
 
         /// <summary>
@@ -107,8 +132,10 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
-            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
-                Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers +
+                               " renderTargets, which is more than the maximum supported:" +
+                               SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
@@ -152,6 +179,71 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = clearColor;
         }
 
+        internal void ConfigureColorAttachments(List<RenderTargetHandle> targets, bool loadExistingContents,
+            bool storeResults, bool shouldClear = false)
+        {
+            for (var i = 0; i < targets.Count; i++)
+            {
+                ConfigureColorAttachment(targets[i], loadExistingContents, storeResults, shouldClear, i);
+            }
+        }
+
+        internal void ConfigureColorAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
+            bool shouldClear = false, int idx = 0)
+        {
+            m_ColorAttachments[idx].targetDescriptor
+                .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
+            if (shouldClear)
+                m_ColorAttachments[idx].targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+        }
+
+        internal void ConfigureDepthAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
+            bool shouldClear = false)
+        {
+            m_DepthAttachment.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
+            if (shouldClear)
+                m_DepthAttachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 1);
+        }
+
+        internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)
+        {
+            m_InputAttachments.Insert(idx, input);
+        }
+
+        internal void ConfigureInputAttachments(List<RenderTargetHandle> inputs)
+        {
+            for (int i = 0; i < inputs.Count; i++)
+            {
+                ConfigureInputAttachment(inputs[i], i);
+            }
+        }
+
+        internal void ConfigureResolveTarget(RenderTargetHandle resolveTarget, int idx = 0)
+        {
+            m_ColorAttachments[idx].targetDescriptor.ConfigureResolveTarget(resolveTarget.Identifier());
+        }
+
+        internal void ConfigureColorClear(Color color, float depth, uint stencil, int idx = 0)
+        {
+            m_ColorAttachments[idx].targetDescriptor.ConfigureClear(color, depth, stencil);
+        }
+
+        internal void ConfigureDepthClear(Color color, float depth, uint stencil)
+        {
+            m_DepthAttachment.targetDescriptor.ConfigureClear(color, depth, stencil);
+        }
+
+        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount)
+        {
+            m_RenderPassDescriptor.width = width;
+            m_RenderPassDescriptor.height = height;
+            m_RenderPassDescriptor.sampleCount = sampleCount;
+        }
+
+        internal void UseNativeRenderPass(bool enable)
+        {
+            useNativeRenderPass = enable;
+        }
         /// <summary>
         /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
