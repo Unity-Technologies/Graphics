@@ -272,12 +272,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
+            /* (kchang) This may change again with new RenderPass api.
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
                 EnqueuePass(m_CopyDepthPass);
             }
+            */
 
             // This is useful for refraction effects (particle system).
             if (renderingData.cameraData.requiresOpaqueTexture)
