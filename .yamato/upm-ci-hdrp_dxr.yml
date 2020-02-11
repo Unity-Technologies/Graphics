@@ -10,7 +10,7 @@ platforms:
     flavor: b1.large
 #  - name: Linux
 #    type: Unity::VM::GPU
-#    image: cds-ops/ubuntu-18.04-base:latest
+#    image: cds-ops/ubuntu-18.04-base:stable
 #    flavor: b1.large
 # Not sure if Linux supports DXR
 testplatforms:

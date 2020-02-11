@@ -23,6 +23,12 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            if (UniversalRenderPipeline.asset?.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                EditorGUILayout.HelpBox(UniversalRenderPipelineAssetEditor.Styles.postProcessingGlobalWarning, MessageType.Warning);
+                return;
+            }
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 m_TrackballUIDrawer.OnGUI(m_Lift.value, m_Lift.overrideState, EditorGUIUtility.TrTextContent("Lift"), GetLiftValue);

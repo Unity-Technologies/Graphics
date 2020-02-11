@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)probe.resolution
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)probe.resolution
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
@@ -136,23 +136,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             probe.SetTexture(targetMode, target);
             return target;
-        }
-
-        static bool DoesRealtimeProbeNeedToBeUpdated(HDProbe probe)
-        {
-            // Discard (real time, every frame) probe already rendered this frame
-            // Discard (real time, OnEnable) probe already rendered after on enable
-            if (probe.mode == ProbeSettings.Mode.Realtime)
-            {
-                switch (probe.realtimeMode)
-                {
-                    case ProbeSettings.RealtimeMode.EveryFrame:
-                        return probe.lastRenderedFrame != Time.frameCount;
-                    case ProbeSettings.RealtimeMode.OnEnable:
-                        return !probe.wasRenderedAfterOnEnable;
-                }
-            }
-            return true;
         }
     }
 

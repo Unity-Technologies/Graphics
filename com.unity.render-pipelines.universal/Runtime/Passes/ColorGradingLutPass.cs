@@ -171,9 +171,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        public override void OnFinishCameraStackRendering(CommandBuffer cmd)
+        internal override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
+        }
+
+        /// <inheritdoc/>
+        public override void FrameCleanup(CommandBuffer cmd)
+        {
+
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)

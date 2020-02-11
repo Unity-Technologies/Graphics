@@ -38,11 +38,11 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty proxyCaptureRotationProxySpace;
         internal SerializedProperty proxyMirrorPositionProxySpace;
         internal SerializedProperty proxyMirrorRotationProxySpace;
+        internal SerializedProperty resolution;
         internal SerializedProperty frustumFieldOfViewMode;
         internal SerializedProperty frustumFixedValue;
         internal SerializedProperty frustumViewerScale;
         internal SerializedProperty frustumAutomaticScale;
-
 
         internal SerializedProbeSettings(SerializedProperty root)
         {
@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             proxyCaptureRotationProxySpace = root.FindPropertyRelative("proxySettings.captureRotationProxySpace");
             proxyMirrorPositionProxySpace = root.FindPropertyRelative("proxySettings.mirrorPositionProxySpace");
             proxyMirrorRotationProxySpace = root.FindPropertyRelative("proxySettings.mirrorRotationProxySpace");
+            resolution = root.FindPropertyRelative("resolution");
             frustumFieldOfViewMode = root.FindPropertyRelative("frustum.fieldOfViewMode");
             frustumFixedValue = root.FindPropertyRelative("frustum.fixedValue");
             frustumViewerScale = root.FindPropertyRelative("frustum.viewerScale");

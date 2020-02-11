@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering.ShaderGraph;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
@@ -19,7 +20,8 @@ namespace UnityEditor.ShaderGraph
             name = "Output";
         }
 
-        public override string documentationURL => $"{NodeUtils.docURL}Sub-graph.md";
+        // Link to the Sub Graph overview page instead of the specific Node page, seems more useful
+        public override string documentationURL => Documentation.GetPageLink("Sub-graph");
 
         void ValidateShaderStage()
             {

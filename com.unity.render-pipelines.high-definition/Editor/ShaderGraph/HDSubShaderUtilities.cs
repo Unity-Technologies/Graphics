@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [InterpolatorPack]
         internal struct VaryingsMeshToPS
         {
-            [Semantic("SV_Position")]                                               Vector4 positionCS;
+            [Semantic("SV_POSITION")]                                               Vector4 positionCS;
             [Optional]                                                              Vector3 positionRWS;
             [Optional]                                                              Vector3 normalWS;
             [Optional]                                                              Vector4 tangentWS;      // w contain mirror sign
@@ -522,6 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public List<string> Includes;
         public string TemplateName;
         public string MaterialName;
+        public List<string> ShaderStages;
         public List<string> ExtraInstancingOptions;
         public List<string> ExtraDefines;
         public List<int> VertexShaderSlots;         // These control what slots are used by the pass vertex shader
@@ -812,6 +813,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+            ShaderGenerator shaderStages = new ShaderGenerator();
+            {
+                if (pass.ShaderStages != null)
+                {
+                    foreach (var shaderStage in pass.ShaderStages)
+                        shaderStages.AddShaderChunk(shaderStage);
+                }
+            }
 
             ShaderGenerator defines = new ShaderGenerator();
             {
@@ -919,6 +928,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
             namedFragments.Add("InstancingOptions", instancingOptions.GetShaderString(0, false));
+            namedFragments.Add("ShaderStages", shaderStages.GetShaderString(2, false));
             namedFragments.Add("Defines", defines.GetShaderString(2, false));
             namedFragments.Add("Graph", graph.GetShaderString(2, false));
             namedFragments.Add("LightMode", pass.LightMode);
@@ -1040,6 +1050,17 @@ namespace UnityEditor.Rendering.HighDefinition
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
+        public static List<string> s_ShaderStagesRasterization = new List<string>()
+        {
+            "#pragma vertex Vert",
+            "#pragma fragment Frag",
+        };
+
+        public static List<string> s_ShaderStagesRayTracing = new List<string>()
+        {
+            "#pragma raytracing surface_shader",
+        };
+
         public static void SetStencilStateForDepth(ref Pass pass)
         {
             pass.StencilOverride = new List<string>()
@@ -1077,7 +1098,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                "   WriteMask [_StencilRefDistortionVec]",
+                "   WriteMask [_StencilWriteMaskDistortionVec]",
                 "   Ref [_StencilRefDistortionVec]",
                 "   Comp Always",
                 "   Pass Replace",
@@ -1206,20 +1227,20 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", stencilRef); // StencilLightingUsage.NoLighting
-            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRef", stencilRef); 
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); 
             // Depth prepass
             collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
-            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // DoesntReceiveSSR
+            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // StencilUsage.TraceReflectionRay
             // Motion vector pass
-            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilBitMask.ObjectMotionVectors
-            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
+            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", 64); // StencilBitMask.DistortionVectors
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", 64); // StencilBitMask.DistortionVectors
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); // StencilMask.Lighting
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); // StencilLightingUsage.RegularLighting
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -1240,7 +1261,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_DstBlend", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
-            collector.AddToggleProperty("_ZWrite", zWrite);
+            collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
+            collector.AddToggleProperty(kTransparentZWrite, zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
             collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddToggleProperty(kEnableFogOnTransparent, fogOnTransparent);
@@ -1330,7 +1352,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
-            bool supportsRayTracing = HDRenderPipeline.AggreateRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
+            bool supportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {

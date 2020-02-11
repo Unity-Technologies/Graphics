@@ -12,6 +12,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
 
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+        PostProcessPassCompat m_PostProcessPassCompat;
+#endif
+
         bool m_UseDepthStencilBuffer = true;
         RenderTargetHandle m_ColorTargetHandle;
         RenderTargetHandle m_AfterPostProcessColorHandle;
@@ -21,11 +25,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
+            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, blitMaterial);
+            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, blitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
+
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+            m_PostProcessPassCompat = new PostProcessPassCompat(RenderPassEvent.BeforeRenderingPostProcessing);
+#endif
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -49,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
             bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
+            var postProcessFeatureSet = UniversalRenderPipeline.asset.postProcessingFeatureSet;
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool useOffscreenColorTexture =
                 ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport || !m_UseDepthStencilBuffer;
@@ -77,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalBlitPass = useOffscreenColorTexture;
             var finalBlitSourceHandle = m_ColorTargetHandle;
 
-            if (postProcessEnabled)
+            if (postProcessEnabled && postProcessFeatureSet == PostProcessingFeatureSet.Integrated)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLutHandle);
                 EnqueuePass(m_ColorGradingLutPass);
@@ -134,6 +144,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     requireFinalBlitPass = false;
                 }
             }
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+            else if (postProcessEnabled && postProcessFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
+            {
+                m_PostProcessPassCompat.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
+                EnqueuePass(m_PostProcessPassCompat);
+            }
+#endif
 
             if (requireFinalBlitPass)
             {

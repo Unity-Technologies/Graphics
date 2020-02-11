@@ -17,5 +17,11 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "2.0.0",
+            "define": "POST_PROCESSING_STACK_2_0_0_OR_NEWER"
+        }
+    ]
 }

@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
-    [Title("Master", "HDRP/Unlit")]
+    [Title("Master", "Unlit (HDRP)")]
     class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
@@ -317,10 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return null; }
-        }
+        public override string documentationURL => Documentation.GetPageLink("Master-Node-Unlit");
 
         public bool HasDistortion()
         {

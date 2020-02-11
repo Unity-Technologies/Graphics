@@ -35,6 +35,8 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 
 <img src="Images/Override-HDRISky2.png" style="zoom:150%;" />
 
+Note: for being able to have Ambient Occlusion on the Backplate we have to enable "Direct Lighting Strenght" on the Ambient Occlusion component. As the Backplate didn't have Global Illumination he can only have Ambient Occlusion from direct lighting.
+
 
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |

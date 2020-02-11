@@ -26,6 +26,11 @@ namespace UnityEngine.Rendering.Universal
         public PerObjectData perObjectData;
         [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
         public bool killAlphaInFinalBlit;
+
+        /// <summary>
+        /// True if post-processing effect is enabled while rendering the camera stack.
+        /// </summary>
+        public bool postProcessingEnabled;
         internal bool resolveFinalTarget;
     }
 
@@ -198,8 +203,8 @@ namespace UnityEngine.Rendering.Universal
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-#if ENABLE_VR
-            return IsStereoEnabled(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
+#if ENABLE_VR && ENABLE_VR_MODULE
+            return IsStereoEnabled(camera) && !CanXRSDKUseSinglePass(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
 #else
             return false;
 #endif

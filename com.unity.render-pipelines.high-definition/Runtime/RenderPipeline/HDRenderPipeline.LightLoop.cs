@@ -93,8 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
         class PushGlobalCameraParamPassData
         {
             public HDCamera    hdCamera;
-            public float       time;
-            public float       lastTime;
             public int         frameCount;
 
         }
@@ -104,14 +102,12 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<PushGlobalCameraParamPassData>("Push Global Camera Parameters", out var passData))
             {
                 passData.hdCamera = hdCamera;
-                passData.time = m_Time;
-                passData.lastTime = m_LastTime;
                 passData.frameCount = m_FrameCount;
 
                 builder.SetRenderFunc(
                 (PushGlobalCameraParamPassData data, RenderGraphContext context) =>
                 {
-                    data.hdCamera.SetupGlobalParams(context.cmd, data.time, data.lastTime, data.frameCount);
+                    data.hdCamera.SetupGlobalParams(context.cmd, data.frameCount);
                 });
             }
         }
