@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Fixed
-- Sticky Notes can now be grouped properly.
-- Fixed an issue where nodes couldn't be copied from a group.
 - Fixed an issue where Sub Graphs sometimes had duplicate names when you converted nodes into Sub Graphs. 
 - Fixed an issue where the number of ports on Keyword nodes didn't update when you added or removed Enum Keyword entries, which sometimes crashed the graph.
 - Fixed an issue where colors in graphs didn't update when you changed a Blackboard Property's precision while the Color Mode is set to Precision.
@@ -82,15 +80,6 @@ The version number for this package has increased due to a version update of a r
 - The Main Preview for Sprite Lit and Sprite Unlit master nodes now displays the correct color. [1184656](https://issuetracker.unity3d.com/issues/shadergraph-preview-for-lit-and-unlit-master-node-wrong-color-when-color-is-set-directly-on-master-node)
 - Shader Graph shaders in `Always Include Shaders` no longer crash builds. [1191757](https://issuetracker.unity3d.com/issues/lwrp-build-crashes-when-built-with-shadergraph-file-added-to-always-include-shaders-list)
 - The `Transform` node now correctly transforms Absolute World to Object.
-- Errors no longer occur when you change the precision of Sub Graphs. [1158413](https://issuetracker.unity3d.com/issues/shadergraph-changing-precision-of-sg-with-subgraphs-that-still-use-the-other-precision-breaks-the-generated-shader)
-- Fixed an error where the UV channel drop-down menu on nodes had clipped text. [1188710](https://issuetracker.unity3d.com/issues/shader-graph-all-uv-dropdown-value-is-clipped-under-shader-graph)
-- Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
-- You can now smoothly edit controls on the `Dielectric Specular` node.
-- Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
-- Fixed a bug where the redo functionality in Shader Graph often didn't work.
-- Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
-- Fixed a bug where the Gradient property didn't work with all system locales. [1140924](https://issuetracker.unity3d.com/issues/shader-graph-shader-doesnt-compile-when-using-a-gradient-property-and-a-regional-format-with-comma-decimal-separator-is-used)
-- Fixed a bug where Properties in the Blackboard could have duplicate names.
 
 ## [7.1.1] - 2019-09-05
 ### Added
