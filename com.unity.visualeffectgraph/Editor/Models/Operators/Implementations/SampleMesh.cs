@@ -16,16 +16,6 @@ namespace UnityEditor.VFX.Operator
         {
             [Tooltip("The mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-        }
-
-        public class ConstantInputProperties
-        {
-            [Tooltip("Sets the value used when determining the random number. Using the same seed results in the same random number every time.")]
-            public uint seed = 0u;
-        }
-
-        public class InputPropertiesVertex
-        {
             [Tooltip("The vertex index to read from.")]
             public uint vertex = 0u;
         }
@@ -36,12 +26,6 @@ namespace UnityEditor.VFX.Operator
         //    Edge,
         //    Surface
         //};
-
-        public enum SelectionMode
-        {
-            Random,
-            Custom
-        };
 
         [Flags]
         public enum VertexAttributeFlag
@@ -66,15 +50,6 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies read output during mesh sampling")]
         private VertexAttributeFlag output = VertexAttributeFlag.Position | VertexAttributeFlag.Color | VertexAttributeFlag.TexCoord0;
 
-        [VFXSetting, SerializeField, Tooltip("Specifies the selection mode, embedded random or custom index sampling")]
-        private SelectionMode selection = SelectionMode.Random;
-
-        [VFXSetting, SerializeField, Tooltip("Specifies whether the random number is generated for each particle, each particle strip, or is shared by the whole system.")]
-        private VFXSeedMode seed = VFXSeedMode.PerParticle;
-
-        [VFXSetting, SerializeField, Tooltip("When enabled, the random number will remain constant. Otherwise, it will change every time it is evaluated.")]
-        private bool constant = true;
-
         [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
         private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
@@ -89,22 +64,6 @@ namespace UnityEditor.VFX.Operator
             foreach (var vertexAttribute in vertexAttributes)
                 if (vertexAttribute != VertexAttributeFlag.None && HasOutput(vertexAttribute))
                     yield return vertexAttribute;
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                var properties = PropertiesFromType("InputProperties");
-
-                if (/*Placement == PlacementMode.Vertex && */selection == SelectionMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("InputPropertiesVertex"));
-
-                if (selection == SelectionMode.Random && (constant || seed == VFXSeedMode.PerParticleStrip))
-                    properties = properties.Concat(PropertiesFromType("ConstantInputProperties"));
-
-                return properties;
-            }
         }
 
         private static Type GetOutputType(VertexAttributeFlag attribute)
@@ -163,49 +122,13 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                foreach (var s in base.filteredOutSettings)
-                    yield return s;
-
-                if (seed == VFXSeedMode.PerParticleStrip || selection != SelectionMode.Random)
-                    yield return "constant";
-
-                if (selection != SelectionMode.Random)
-                    yield return "seed";
-
-                if (selection != SelectionMode.Custom)
-                    yield return "adressingMode";
-            }
-        }
-
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var mesh = inputExpression[0];
 
-            VFXExpression meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
-            VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
-
-            VFXExpression vertexIndex;
-            switch (selection)
-            {
-                case SelectionMode.Random:
-                    {
-                        var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression.Length > 1 ? inputExpression[1] : null);
-                        vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
-                        vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
-                    }
-                    break;
-                case SelectionMode.Custom:
-                    {
-                        vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException("Unhandled Selection Mode");
-            }
+            var meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
+            var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
+            var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
 
             var outputExpressions = new List<VFXExpression>();
             foreach (var vertexAttribute in GetOutputVertexAttributes())
