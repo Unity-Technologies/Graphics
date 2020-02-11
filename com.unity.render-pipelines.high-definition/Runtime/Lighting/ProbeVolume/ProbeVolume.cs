@@ -167,16 +167,18 @@ namespace UnityEngine.Rendering.HighDefinition
             data.debugColor.z = this.debugColor.b;
 
             // Clamp to avoid NaNs.
-            Vector3 positiveFade = this.positiveFade;
-            Vector3 negativeFade = this.negativeFade;
+            float invWeight = 1.0f - this.weight;
+            Vector3 weightFade = new Vector3(invWeight, invWeight, invWeight);
+            Vector3 positiveFade = Vector3.Max(this.positiveFade, weightFade);
+            Vector3 negativeFade = Vector3.Max(this.negativeFade, weightFade);
 
-            data.rcpPosFaceFade.x = Mathf.Min(this.weight / positiveFade.x, float.MaxValue);
-            data.rcpPosFaceFade.y = Mathf.Min(this.weight / positiveFade.y, float.MaxValue);
-            data.rcpPosFaceFade.z = Mathf.Min(this.weight / positiveFade.z, float.MaxValue);
+            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
+            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
+            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
 
-            data.rcpNegFaceFade.y = Mathf.Min(this.weight / negativeFade.y, float.MaxValue);
-            data.rcpNegFaceFade.x = Mathf.Min(this.weight / negativeFade.x, float.MaxValue);
-            data.rcpNegFaceFade.z = Mathf.Min(this.weight / negativeFade.z, float.MaxValue);
+            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
+            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
+            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
             data.volumeBlendMode = (int)this.volumeBlendMode;
 
@@ -380,12 +382,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (!probeVolumeAsset)
+                if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                 {
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
                     UnityEditor.EditorUtility.SetDirty(this);
                 }
 
+                probeVolumeAsset.instanceID = GetID();
                 probeVolumeAsset.data = data;
                 probeVolumeAsset.dataValidity = dataValidity;
                 probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;

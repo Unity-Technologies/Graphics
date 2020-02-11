@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         protected int m_Version = (int)AssetVersion.First;
         public int Version { get => m_Version; }
 
+        public int instanceID;
+
         public SphericalHarmonicsL1[] data = null;
         public float[] dataValidity = null;
         public float[] dataOctahedralDepth = null;
@@ -47,7 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
-                assetPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(scenePath), System.IO.Path.GetFileNameWithoutExtension(scenePath));
+                String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
+                String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+                assetPath = System.IO.Path.Combine(sceneDir, sceneName);
+
+                if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+                    UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+
                 assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + id + ".asset");
             }
 
