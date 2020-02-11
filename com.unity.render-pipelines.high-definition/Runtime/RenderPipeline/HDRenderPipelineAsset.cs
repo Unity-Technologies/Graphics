@@ -188,9 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
-        [SerializeField]
-        internal VirtualTexturingSettings virtualTexturingSettings;
-
         void UpdateRenderingLayerNames()
         {
             m_RenderingLayerNames = new string[32];

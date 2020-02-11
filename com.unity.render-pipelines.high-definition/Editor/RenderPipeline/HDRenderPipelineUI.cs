@@ -100,8 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.bloomQualitySettings, Expandable.BloomQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionBloomQualitySettings),
                     CED.FoldoutGroup(Styles.chromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
                     ),
-                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings),
-                CED.FoldoutGroup(EditorGUIUtility.TrTextContent("Virtual Texturing"), Expandable.VirtualTexturing, k_ExpandedState, Drawer_VirtualTexturingSettings)
+                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
             );
 
             // fix init of selection along what is serialized
@@ -897,11 +896,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
             EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
-        }
-
-        static void Drawer_VirtualTexturingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            EditorGUILayout.PropertyField(serialized.virtualTexturingSettings, EditorGUIUtility.TrTextContent("Virtual Texturing Settings"));
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";

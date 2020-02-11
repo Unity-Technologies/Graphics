@@ -41,10 +41,39 @@ MonoBehaviour:
     m_Value: 1
     min: 0
     max: 20
+  cameraMotionBlur:
+    m_OverrideState: 0
+    m_Value: 1
   m_SampleCount:
     m_OverrideState: 0
     m_Value: 8
     min: 2
+--- !u!114 &-2292924983350074914
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06bf2c1824f37b0408dc260f4cdd7d98, type: 3}
+  m_Name: VirtualTexturingSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  cpuCacheSizeInMegaBytes:
+    m_OverrideState: 0
+    m_Value: 256
+    min: 2
+  gpuCacheSizeInMegaBytes:
+    m_OverrideState: 1
+    m_Value: 128
+    min: 2
+  gpuCacheSizeOverridesOverridden: 0
+  gpuCacheSizeOverridesShared: []
+  gpuCacheSizeOverridesStreaming: []
+  gpuCacheSizeOverridesProcedural: []
 --- !u!114 &-1016694868962581565
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -115,6 +144,7 @@ MonoBehaviour:
   - {fileID: 1932259527246508038}
   - {fileID: 448115243408767295}
   - {fileID: -7089757308646879465}
+  - {fileID: -2292924983350074914}
 --- !u!114 &448115243408767295
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -233,6 +263,10 @@ MonoBehaviour:
   quality:
     m_OverrideState: 1
     m_Value: 1
+  threshold:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.2
@@ -256,9 +290,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
     min: 0
-  prefilter:
-    m_OverrideState: 0
-    m_Value: 0
   anamorphic:
     m_OverrideState: 0
     m_Value: 1
