@@ -1,7 +1,5 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -26,7 +24,7 @@ namespace UnityEngine.Rendering
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
-                format = GraphicsFormat.R32G32B32A32_SFloat;
+                format = GraphicsFormat.R16G16B16A16_SFloat;
             else
                 format = sumFormat;
 
@@ -116,7 +114,7 @@ namespace UnityEngine.Rendering
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
-                format = GraphicsFormat.R32G32B32A32_SFloat;
+                format = GraphicsFormat.R16G16B16A16_SFloat;
             else
                 format = sumFormat;
 

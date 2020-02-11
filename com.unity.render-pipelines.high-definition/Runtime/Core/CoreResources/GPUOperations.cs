@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
 
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
-                format = GraphicsFormat.R32G32B32A32_SFloat;
+                format = GraphicsFormat.R16G16_SFloat;
             else
                 format = sumFormat;
 
@@ -130,8 +130,8 @@ namespace UnityEngine.Rendering
                 final = RTHandles.Alloc(width: 1, height: outHeight, colorFormat: format, enableRandomWrite: true);
             }
             string firstAddon = "";
-            if (isPDF)
-                firstAddon += "PDF";
+            //if (isPDF)
+            //    firstAddon += "PDF";
 
             int kernelFirst = opStep.FindKernel("CSMain" + firstAddon + addon + "First" + strDir);
             int kernel      = opStep.FindKernel("CSMain" + addon + strDir);

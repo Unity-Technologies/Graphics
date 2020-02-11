@@ -1707,10 +1707,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 // Generate Marginals texture for importance sampling
                                 //ImportanceSamplers.Update(cmd);
-                                renderContext.ExecuteCommandBuffer(cmd);
 
                                 RTHandleDeleter.Update();
                             }
+                            renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
                         }

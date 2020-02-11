@@ -8,6 +8,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
+  Texture2D<float4> _PDF;
   Texture2D<float4> _Samples;
 RWTexture2D<float4> _Output;
 uint4               _Sizes;
@@ -24,7 +25,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         float2 dp = 1.0f/_IOSize;
 
-        const int r = 0;
+        const int r = 1;
         UNITY_LOOP
         for (int i = -r; i <= r; ++i)
         {

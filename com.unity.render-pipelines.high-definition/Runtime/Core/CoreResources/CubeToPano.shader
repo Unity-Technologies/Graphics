@@ -10,12 +10,14 @@ HLSLINCLUDE
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "UnityCG.cginc"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
 UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
 
-uniform int _cubeMipLvl;
-uniform int _cubeArrayIndex;
+uniform int     _cubeMipLvl;
+uniform int     _cubeArrayIndex;
+uniform bool    _buildPDF;
 
 struct v2f
 {
@@ -55,19 +57,32 @@ half3 SphericalTexCoordinateToDirection(half2 sphTexCoord)
 
 half3 GetDir(float2 texCoord)
 {
-    //return SphericalTexCoordinateToDirection(texCoord.xy);
-    float theta = texCoord.y * UNITY_PI;
-    float phi = (texCoord.x * 2.f * UNITY_PI - UNITY_PI * 0.5f);
+    return SphericalTexCoordinateToDirection(texCoord.xy);
+    //float theta = texCoord.y * UNITY_PI;
+    //float phi = (texCoord.x * 2.f * UNITY_PI - UNITY_PI * 0.5f);
+    //
+    //float cosTheta = cos(theta);
+    //float sinTheta = sqrt(1.0f - min(1.0f, cosTheta * cosTheta));
+    //float cosPhi = cos(phi);
+    //float sinPhi = sin(phi);
+    //
+    //float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
+    //direction.xy *= -1.0;
+    //
+    //return direction;
+}
 
-    float cosTheta = cos(theta);
-    float sinTheta = sqrt(1.0f - min(1.0f, cosTheta * cosTheta));
-    float cosPhi = cos(phi);
-    float sinPhi = sin(phi);
+float SampleToPDFMeasure(float3 value)
+{
+    return (value.r + value.g + value.b)*(1.0f/3.0f);
+    //return max(value.r, max(value.g, value.b));
+    //return Luminance(value);
+    //return AcesLuminance(value);
+}
 
-    float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
-    direction.xy *= -1.0;
-
-    return direction;
+float SampleToPDFMeasure(float4 value)
+{
+    return SampleToPDFMeasure(value.rgb);
 }
 
 half4 frag(v2f i) : SV_Target
@@ -78,7 +93,10 @@ half4 frag(v2f i) : SV_Target
 
     half3 dir = GetDir(i.texcoord.xy);
 
-    return (half4)UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl);
+    if (_buildPDF == 1)
+        return (half4)float4(SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float)_cubeMipLvl).rgb).xxx, 1);
+    else
+        return (half4)UNITY_SAMPLE_TEXCUBE_LOD(_srcCubeTexture, dir, (float) _cubeMipLvl);
 }
 
 half4 fragArray(v2f i) : SV_Target
@@ -89,7 +107,10 @@ half4 fragArray(v2f i) : SV_Target
 
     half3 dir = GetDir(i.texcoord.xy);
 
-    return (half4)UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl);
+    if (_buildPDF == 1)
+        return (half4)float4(SampleToPDFMeasure(UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl).rgb).xxx, 1);
+    else
+        return (half4)UNITY_SAMPLE_TEXCUBEARRAY_LOD(_srcCubeTextureArray, float4(dir, _cubeArrayIndex), (float)_cubeMipLvl);
 }
 
 ENDHLSL

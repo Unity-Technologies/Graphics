@@ -7,20 +7,18 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
-    class ImportanceSampler2D
+    static class ImportanceSampler2D
     {
-        public RTHandle invCDFRows { get; internal set; }
-        public RTHandle invCDFFull { get; internal set; }
 
 #if DUMP_IMAGE
-        static private void Default(AsyncGPUReadbackRequest request, string name)
+        static private void Default(AsyncGPUReadbackRequest request, string name, GraphicsFormat format)
         {
             if (!request.hasError)
             {
                 Unity.Collections.NativeArray<float> result = request.GetData<float>();
                 float[] copy = new float[result.Length];
                 result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, format, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
                 string path = @"C:\UProjects\" + name + ".exr";
                 if (System.IO.File.Exists(path))
                 {
@@ -32,39 +30,36 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        public void Init(Texture density, int elementIndex, int mipIndex, CommandBuffer cmd, bool dumpFile, int idx)
+        public static void GenerateMarginals(
+                                out RTHandle invCDFRows, out RTHandle invCDFFull,
+                                RTHandle density,
+                                int elementIndex, int mipIndex,
+                                CommandBuffer cmd,
+                                bool dumpFile, int idx)
         {
-            int width   = Mathf.RoundToInt((float)density.width /Mathf.Pow(2.0f, (float)mipIndex));
-            int height  = Mathf.RoundToInt((float)density.height/Mathf.Pow(2.0f, (float)mipIndex));
+            int width   = Mathf.RoundToInt((float)density.rt.width /Mathf.Pow(2.0f, (float)mipIndex));
+            int height  = Mathf.RoundToInt((float)density.rt.height/Mathf.Pow(2.0f, (float)mipIndex));
 
-            UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
-                //density.graphicsFormat;
-                //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
-                Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
+            //GraphicsFormat internalFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            //GraphicsFormat internalFormat = GraphicsFormat.R16_SFloat;
+            invCDFRows = null;
+            invCDFFull = null;
 
-            // Rescale pdf between 0 & 1
-            RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(pdfCopy);
-            //RTHandle pdfCopy = RTHandles.Alloc(density);
+            //RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+            //RTHandleDeleter.ScheduleRelease(pdfCopy);
 
-            string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
-
-            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
 #if DUMP_IMAGE
-            if (dumpFile)
-                cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-                {
-                    Default(request, "___PDFCopy" + strName);
-                });
+            string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
 #endif
 
-//            Rescale(pdfCopy, new Vector2(0.0f, hdriIntegral.w), cmd);
-//#if DUMP_IMAGE
-//            cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
-//            {
-//                Default(request, "___PDFCopyRescaled");
-//            });
-//#endif
+            //cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
+#if DUMP_IMAGE
+            //if (dumpFile)
+            //    cmd.RequestAsyncReadback(density, delegate (AsyncGPUReadbackRequest request)
+            //    {
+            //        Default(request, "___PDFCopy" + strName, density.rt.graphicsFormat);
+            //    });
+#endif
 
             ////////////////////////////////////////////////////////////////////////////////
             /// Full
@@ -74,19 +69,19 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRows")))
             {
                 minMaxFull0 = GPUOperation.ComputeOperation(
-                                                pdfCopy,
+                                                density,
                                                 cmd,
                                                 GPUOperation.Operation.MinMax,
                                                 GPUOperation.Direction.Horizontal,
                                                 2, // opPerThread
                                                 true, // isPDF
-                                                internalFormat);
+                                                GraphicsFormat.R32G32_SFloat);
                 RTHandleDeleter.ScheduleRelease(minMaxFull0);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(minMaxFull0, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "00_MinMaxOfRows" + strName);
+                        Default(request, "00_MinMaxOfRows" + strName, minMaxFull0.rt.graphicsFormat);
                     });
 #endif
             }
@@ -102,39 +97,40 @@ namespace UnityEngine.Rendering
                                             GPUOperation.Direction.Vertical,
                                             2, // opPerThread
                                             false, // isPDF
-                                            internalFormat);
+                                            GraphicsFormat.R32G32_SFloat);
                 RTHandleDeleter.ScheduleRelease(minMaxFull1);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(minMaxFull1, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "01_MinMaxOfMinMaxOfRows" + strName);
+                        Default(request, "01_MinMaxOfMinMaxOfRows" + strName, minMaxFull1.rt.graphicsFormat);
                     });
 #endif
-                Rescale(pdfCopy, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
+                Rescale(density, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
 #if DUMP_IMAGE
                 if (dumpFile)
-                    cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
+                    cmd.RequestAsyncReadback(density, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "02_PDFRescaled" + strName);
+                        Default(request, "02_PDFRescaled" + strName, density.rt.graphicsFormat);
                     });
 #endif
             }
+            //*
             RTHandle cdfFull;
             using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFRescaled")))
             {
                 // Compute the CDF of the rows of the rescaled PDF
                 cdfFull = ComputeCDF1D.ComputeCDF(
-                                        pdfCopy,
+                                        density,
                                         cmd,
                                         ComputeCDF1D.SumDirection.Horizontal,
-                                        internalFormat);
+                                        GraphicsFormat.R32_SFloat);
                 RTHandleDeleter.ScheduleRelease(cdfFull);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "03_CDFFull" + strName);
+                        Default(request, "03_CDFFull" + strName, cdfFull.rt.graphicsFormat);
                     });
 #endif
             }
@@ -151,20 +147,20 @@ namespace UnityEngine.Rendering
                                             GPUOperation.Direction.Horizontal,
                                             2,
                                             false,
-                                            internalFormat);
+                                            GraphicsFormat.R32G32_SFloat);
                 RTHandleDeleter.ScheduleRelease(minMaxFull);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(minMaxFull, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "04_MinMaxCDF" + strName);
+                        Default(request, "04_MinMaxCDF" + strName, minMaxFull.rt.graphicsFormat);
                     });
 #endif
 
                 ////////////////////////////////////////////////////////////////////////////////
                 /// Rows
                 // Before Rescaling the CDFFull
-                sumRows = RTHandles.Alloc(1, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+                sumRows = RTHandles.Alloc(1, height, colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(sumRows);
 
                 // Last columns of "CDF of rows" already contains the sum of rows
@@ -173,7 +169,7 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "05_SumRowsFromCopy" + strName);
+                        Default(request, "05_SumRowsFromCopy" + strName, sumRows.rt.graphicsFormat);
                     });
 #endif
             ////////////////////////////////////////////////////////////////////////////////
@@ -183,7 +179,7 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(cdfFull, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "06_CDFRescaled" + strName);
+                        Default(request, "06_CDFRescaled" + strName, cdfFull.rt.graphicsFormat);
                     });
 #endif
             }
@@ -191,7 +187,6 @@ namespace UnityEngine.Rendering
             ////////////////////////////////////////////////////////////////////////////////
             /// Rows
             ////////////////////////////////////////////////////////////////////////////////
-
             RTHandle minMaxRows;
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxColsCDFAndRescale")))
             {
@@ -203,13 +198,13 @@ namespace UnityEngine.Rendering
                                                     GPUOperation.Direction.Vertical,
                                                     2,
                                                     false,
-                                                    internalFormat);
+                                                    GraphicsFormat.R32G32_SFloat);
                 RTHandleDeleter.ScheduleRelease(minMaxRows);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(minMaxRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "07_MinMaxSumOfRows" + strName);
+                        Default(request, "07_MinMaxSumOfRows" + strName, minMaxRows.rt.graphicsFormat);
                     });
 #endif
 
@@ -219,7 +214,7 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(sumRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "08_SumRowsRescaled" + strName);
+                        Default(request, "08_SumRowsRescaled" + strName, sumRows.rt.graphicsFormat);
                     });
 #endif
             }
@@ -231,13 +226,13 @@ namespace UnityEngine.Rendering
                                     sumRows,
                                     cmd,
                                     ComputeCDF1D.SumDirection.Vertical,
-                                    internalFormat);
+                                    GraphicsFormat.R32_SFloat);
                 RTHandleDeleter.ScheduleRelease(cdfRows);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "09_CDFRows" + strName);
+                        Default(request, "09_CDFRows" + strName, cdfRows.rt.graphicsFormat);
                     });
 #endif
             }
@@ -251,13 +246,13 @@ namespace UnityEngine.Rendering
                                                         GPUOperation.Direction.Vertical,
                                                         2,
                                                         false,
-                                                        internalFormat);
+                                                        GraphicsFormat.R32G32_SFloat);
                 RTHandleDeleter.ScheduleRelease(minMaxCDFRows);
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(minMaxCDFRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "10_MinMaxCDFRows" + strName);
+                        Default(request, "10_MinMaxCDFRows" + strName, minMaxCDFRows.rt.graphicsFormat);
                     });
 #endif
                 Rescale(cdfRows, minMaxCDFRows, GPUOperation.Direction.Vertical, cmd, true);
@@ -265,7 +260,7 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(cdfRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "11_MinMaxCDFRowsRescaled" + strName);
+                        Default(request, "11_MinMaxCDFRowsRescaled" + strName, cdfRows.rt.graphicsFormat);
                     });
 #endif
             }
@@ -274,42 +269,47 @@ namespace UnityEngine.Rendering
             {
                 // Compute inverse of CDFs
                 invCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
-                                                            pdfCopy,
+                                                            density,
                                                             Vector4.one,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Horizontal,
-                                                            internalFormat);
+                                                            GraphicsFormat.R32_SFloat);
 #if DUMP_IMAGE
+                var format = invCDFFull.rt.graphicsFormat;
                 if (dumpFile)
                     cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "12_InvCDFFull" + strName);
+                        Default(request, "12_InvCDFFull" + strName, format);
                     });
 #endif
             }
             using (new ProfilingScope(cmd, new ProfilingSampler("InverseCDFRows")))
             {
                 invCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
-                                                            pdfCopy,
+                                                            density,
                                                             Vector4.one,
                                                             //hdriIntegral,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Vertical,
-                                                            internalFormat);
+                                                            GraphicsFormat.R32_SFloat);
 #if DUMP_IMAGE
+                var format = invCDFRows.rt.graphicsFormat;
                 if (dumpFile)
                     cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "13_InvCDFRows" + strName);
+                        Default(request, "13_InvCDFRows" + strName, format);
                     });
 #endif
             }
+            //*/
 
             using (new ProfilingScope(cmd, new ProfilingSampler("DebugInfos")))
             {
                 // Generate sample from invCDFs
-                uint threadsCount        = 64u;
-                uint samplesPerThread    = 8u;
+                //uint threadsCount        = 64u;
+                //uint samplesPerThread    = 8u;
+                uint threadsCount        = 512u;
+                uint samplesPerThread    = 32u;
                 // SamplesCount can only be in the set {32, 64, 512} cf. "ImportanceLatLongIntegration.compute" kernel available 'ThreadsCount'
                 uint samplesCount        = threadsCount*samplesPerThread;
                 RTHandle samples = GenerateSamples(samplesCount, invCDFRows, invCDFFull, GPUOperation.Direction.Horizontal, cmd);
@@ -318,16 +318,26 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(samples, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "Samples" + strName);
+                        Default(request, "Samples" + strName, samples.rt.graphicsFormat);
                     });
 #endif
 
                 int kernel;
 
                 var hdrp = HDRenderPipeline.defaultAsset;
+                //{
+                //    ComputeShader buildProbabilityTablesCS = hdrp.renderPipelineResources.shaders.buildProbabilityTablesCS;
+                //    int kerCond = buildProbabilityTablesCS.FindKernel("ComputeConditionalDensities");
+                //    int kerMarg = buildProbabilityTablesCS.FindKernel("ComputeMarginalRowDensities");
+
+                //    //
+                //}
+
                 /////////////////////////////////////////////////////////
                 /// Integrate Sphere
-                RTHandle sphereIntegralTexture = RTHandles.Alloc(3, 1, colorFormat: internalFormat, enableRandomWrite: true);
+                //RTHandle sphereIntegralTexture = RTHandles.Alloc(3, 1, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+                /*
+                RTHandle sphereIntegralTexture = RTHandles.Alloc(3, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(sphereIntegralTexture);
 
                 ComputeShader importanceLatLongIntegration = hdrp.renderPipelineResources.shaders.importanceLatLongIntegrationCS;
@@ -343,14 +353,19 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeFloatParams (importanceLatLongIntegration,         HDShaderIDs._Params, 1.0f/((float)samplesPerThread), 0.0f, 0.0f, 0.0f);
 
                 cmd.DispatchCompute(importanceLatLongIntegration, kernel, 1, 1, 1);
+                //cmd.RequestAsyncReadback(sphereIntegralTexture, delegate (AsyncGPUReadbackRequest request)
+                //{
+                //    StoreIntegral(request);
+                //});
 #if DUMP_IMAGE
                 if (dumpFile)
                     cmd.RequestAsyncReadback(sphereIntegralTexture, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "Integrations" + strName);
+                        Default(request, "Integrations" + strName, sphereIntegralTexture.rt.graphicsFormat);
                     });
 #endif
-
+                */
+                /*
                 /////////////////////////////////////////////////////////
                 /// Store the Integral
                 {
@@ -376,9 +391,10 @@ namespace UnityEngine.Rendering
 #endif
                 }
                 /////////////////////////////////////////////////////////
-
+                */
                 //
-                RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
+                //RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+                RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(m_OutDebug);
 
                 //var hdrp = HDRenderPipeline.defaultAsset;
@@ -386,7 +402,7 @@ namespace UnityEngine.Rendering
 
                 kernel = outputDebug2D.FindKernel("CSMain");
 
-                cmd.CopyTexture(density, m_OutDebug);
+                ///cmd.CopyTexture(density, m_OutDebug);
 
                 cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,  m_OutDebug);
                 cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples, samples);
@@ -399,13 +415,13 @@ namespace UnityEngine.Rendering
                 if (dumpFile)
                     cmd.RequestAsyncReadback(m_OutDebug, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "Debug" + strName);
+                        Default(request, "Debug" + strName, m_OutDebug.rt.graphicsFormat);
                     });
 #endif
             }
         }
 
-        private void Rescale(RTHandle tex, RTHandle minMax, GPUOperation.Direction direction, CommandBuffer cmd, bool single = false)
+        private static void Rescale(RTHandle tex, RTHandle minMax, GPUOperation.Direction direction, CommandBuffer cmd, bool single = false)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
@@ -439,7 +455,7 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
         }
 
-        private void Rescale(RTHandle tex, Vector2 minMax, CommandBuffer cmd)
+        private static void Rescale(RTHandle tex, Vector2 minMax, CommandBuffer cmd)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
@@ -460,7 +476,7 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
         }
 
-        public RTHandle GenerateSamples(uint samplesCount, RTHandle sliceInvCDF, RTHandle fullInvCDF, GPUOperation.Direction direction, CommandBuffer cmd)
+        public static RTHandle GenerateSamples(uint samplesCount, RTHandle sliceInvCDF, RTHandle fullInvCDF, GPUOperation.Direction direction, CommandBuffer cmd)
         {
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader importanceSample2D = hdrp.renderPipelineResources.shaders.importanceSample2DCS;
@@ -475,7 +491,8 @@ namespace UnityEngine.Rendering
                 addon += "V";
             }
 
-            RTHandle samples = RTHandles.Alloc((int)samplesCount, 1, colorFormat: fullInvCDF.rt.graphicsFormat, enableRandomWrite: true);
+            //RTHandle samples = RTHandles.Alloc((int)samplesCount, 1, colorFormat: GraphicsFormat.R16G16B16A16_SFloat/*fullInvCDF.rt.graphicsFormat*/, enableRandomWrite: true);
+            RTHandle samples = RTHandles.Alloc((int)samplesCount, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
 
             int kernel = importanceSample2D.FindKernel("CSMain" + addon);
 

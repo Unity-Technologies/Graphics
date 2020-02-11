@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="rtHandle">Considered rtHandle.</param>
         /// <param name="lifetime">lifetime remaining of this rtHandle (unit: frame), default: 5 frames.</param>
-        public static void ScheduleRelease(RTHandle rtHandle, int lifetime = 4)
+        public static void ScheduleRelease(RTHandle rtHandle, int lifetime = 2)
         {
             if (rtHandle != null && lifetime > 0)
             {

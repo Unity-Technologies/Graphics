@@ -12,8 +12,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
-  Texture2D<float4> _Input;
-RWTexture2D<float4> _Output;
+  Texture2D<float> _Input;
+RWTexture2D<float> _Output;
 
 uint                _Iteration;
 uint4               _Sizes; // xy: InputSize; zw: OutputSize
@@ -29,7 +29,7 @@ uint4               _Sizes; // xy: InputSize; zw: OutputSize
     #define THREAD_PER_GROUP_Y 8
 #endif
 
-#define OutType float4
+#define OutType float
 
 OutType GetInput(uint2 pos)
 {
@@ -42,7 +42,8 @@ void KerName(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.xy < _OutputSize))
     {
-        _Output[id.xy] = SampleToPDFMeasure(_Input[id.xy].rgb);
+        //_Output[id.xy] = SampleToPDFMeasure(_Input[id.xy].rgb);
+        _Output[id.xy] = _Input[id.xy].xx;
         //_Output[id.xy] = dot(_Input[id.xy].rgb, (1.0f).xxx).xxxx;
     }
 }

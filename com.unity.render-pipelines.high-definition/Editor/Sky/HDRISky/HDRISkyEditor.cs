@@ -110,11 +110,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_hdriSky);
                 base.CommonSkySettingsGUI();
             }
+            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
             bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
             {
-                GetUpperHemisphereLuxValue();
-                updateDefaultShadowTint = true;
+                ImportanceSamplers.ScheduleMarginalGeneration(ImportanceSamplers.GetIdentifier(hdri), hdri);
+                //GetUpperHemisphereLuxValue();
+                //updateDefaultShadowTint = true;
+            }
+            if (ImportanceSamplers.ExistAndReady(ImportanceSamplers.GetIdentifier(hdri)))
+            {
+
             }
 
             if (isInAdvancedMode)

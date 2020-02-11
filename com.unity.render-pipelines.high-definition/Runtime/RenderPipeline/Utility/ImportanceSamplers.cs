@@ -9,9 +9,22 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static ImportanceSamplersSystem s_DefaultInstance = new ImportanceSamplersSystem();
 
+        /// <summary>
+        /// Check if an Importance Sampling exist (generated or schedule for generation).
+        /// </summary>
+        /// <param name="identifier">Unique ID to identify the marginals.</param>
         public static bool Exist(int identifier)
         {
             return s_DefaultInstance.Exist(identifier);
+        }
+
+        /// <summary>
+        /// Check if an Importance Sampling exist & ready (generated or schedule for generation).
+        /// </summary>
+        /// <param name="identifier">Unique ID to identify the marginals.</param>
+        public static bool ExistAndReady(int identifier)
+        {
+            return s_DefaultInstance.ExistAndReady(identifier);
         }
 
         /// <summary>

@@ -111,11 +111,13 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float  samplePDF;
 
 #ifdef ENABLE_HDRISKY_MIS
-    if (sample.z < 0.5)
+    //if (sample.z < 0.5)
+    //if (true)
+    if (false)
 #endif
     {
         float NdotL, NdotH, VdotH;
-        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
         // If this direction is under the surface, let's generate a new one that won't be
         // TODO: use Eric's paper on visible normal distribution sampling
@@ -127,7 +129,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
             sample.x = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 0);
             sample.y = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 1);
-            SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+            SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
         }
 
         // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
@@ -137,7 +139,9 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     else
     {
         float2 latlongUV;
-        samplePDF = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        float2 info = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        //samplePDF = info.x*info.y;
+        samplePDF = info.x;
 
         //sampleDir = float3(0, 0, 1);
 
@@ -206,14 +210,14 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float3 sample;
     sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
     sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
-    sample.z = 0*GetBNDSequenceSample(currentCoord, globalSampleIndex, 2);
+    sample.z = GetBNDSequenceSample(currentCoord, globalSampleIndex, 2);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
     float  samplePDF;
 
 #ifdef ENABLE_HDRISKY_MIS
-    //if (sample.z < 0.5)
+    //if (sample.z > normalData.perceptualRoughness)
     //if (true)
     if (false)
 #endif
@@ -221,7 +225,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
         // If this direction is under the surface, let's generate a new one that won't be
         // TODO: use Eric's paper on visible normal distribution sampling
         float NdotL, NdotH, VdotH;
-        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
         globalSampleIndex += 8;
         for (int i = 1; i < 8; ++i)
@@ -231,7 +235,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
             sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 0);
             sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 1);
-            SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+            SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
         }
 
         // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
@@ -241,13 +245,18 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     else
     {
         float2 latlongUV;
-        samplePDF = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        float2 info = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        //samplePDF = info.x/info.y;
+        //samplePDF = info.x/info.y;
+        samplePDF = max(info.x, 1e-4)/info.y;
+        //samplePDF = 1.0f/(6.283185307179586476925286766559f);
+        //samplePDF = abs(sin(latlongUV.y*PI));
 
         //sampleDir = float3(0, 1, 0);
 
         // Jacobian
         //samplePDF = 1.0f/samplePDF;
-        samplePDF = max(abs(sin(latlongUV.y*PI)), 1e-4);
+        samplePDF /= max(abs(sin(latlongUV.y*PI)), 1e-4);
     }
 #endif
 

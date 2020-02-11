@@ -1,16 +1,16 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma multi_compile _ PDF
+//#pragma multi_compile _ PDF
 
 #pragma kernel CSMainMinMaxFirstH       FIRST MINMAX HORIZONTAL     KerName=CSMainMinMaxFirstH
 #pragma kernel CSMainMinMaxFirstV       FIRST MINMAX VERTICAL       KerName=CSMainMinMaxFirstV
 #pragma kernel CSMainSumFirstH          FIRST SUM HORIZONTAL        KerName=CSMainSumFirstH
 #pragma kernel CSMainSumFirstV          FIRST SUM VERTICAL          KerName=CSMainSumFirstV
 
-#pragma kernel CSMainPDFMinMaxFirstH    PDF FIRST MINMAX HORIZONTAL KerName=CSMainPDFMinMaxFirstH
-#pragma kernel CSMainPDFMinMaxFirstV    PDF FIRST MINMAX VERTICAL   KerName=CSMainPDFMinMaxFirstV
-#pragma kernel CSMainPDFSumFirstH       PDF FIRST SUM HORIZONTAL    KerName=CSMainPDFSumFirstH
-#pragma kernel CSMainPDFSumFirstV       PDF FIRST SUM VERTICAL      KerName=CSMainPDFSumFirstV
+//#pragma kernel CSMainPDFMinMaxFirstH    PDF FIRST MINMAX HORIZONTAL KerName=CSMainPDFMinMaxFirstH
+//#pragma kernel CSMainPDFMinMaxFirstV    PDF FIRST MINMAX VERTICAL   KerName=CSMainPDFMinMaxFirstV
+//#pragma kernel CSMainPDFSumFirstH       PDF FIRST SUM HORIZONTAL    KerName=CSMainPDFSumFirstH
+//#pragma kernel CSMainPDFSumFirstV       PDF FIRST SUM VERTICAL      KerName=CSMainPDFSumFirstV
 
 #pragma kernel CSMainMinMaxH            MINMAX HORIZONTAL           KerName=CSMainMinMaxH
 #pragma kernel CSMainMinMaxV            MINMAX VERTICAL             KerName=CSMainMinMaxV
@@ -23,6 +23,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+#if defined(MINMAX)
+#   define OutType float2
+#else
+#   define OutType float
+#endif
 
   Texture2D<float4> _Input;
 RWTexture2D<float4> _Output;
@@ -41,12 +47,6 @@ uint  _Iteration;
     #define THREAD_PER_GROUP_Y 1
 #endif
 
-#if defined(MINMAX)
-    #define OutType float2
-#else
-    #define OutType float
-#endif
-
 OutType GetInput(uint2 pos)
 {
 #ifdef FIRST
@@ -55,7 +55,8 @@ OutType GetInput(uint2 pos)
 //#else
 //    float dotVal = dot(_Input[pos].rgb, /*(1.0f/3.0f)*/(1.0f).xxx);
 //#endif
-    float dotVal = dot(_Input[pos].rgb, (1.0f/3.0f).xxx);
+    //float dotVal = dot(_Input[pos].rgb, (1.0f/3.0f).xxx);
+    float dotVal = _Input[pos].x;
     #if defined(MINMAX)
         return dotVal.xx;
     #else
@@ -64,8 +65,8 @@ OutType GetInput(uint2 pos)
 #else
     #if defined(MINMAX)
         return _Input[pos].xy;
-    #elif defined(RGB)
-        return _Input[pos].xyz;
+    //#elif defined(RGB)
+    //    return _Input[pos].xyz;
     #else
         return _Input[pos].x;
     #endif
@@ -81,13 +82,17 @@ OutType GetSample(uint2 id, uint i)
 #endif
 }
 
+/*OutType*/
 float4 ToOutput(OutType v)
 {
 #if defined(MINMAX)
     return float4(v.xy, 0, 1);
+    //return v.xy;
 #else
     return float4(v, 0, 0, 1);
+    //return v;
 #endif
+    //return v;
 }
 
 [numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
@@ -114,7 +119,11 @@ void KerName(uint3 id : SV_DispatchThreadID)
 #elif defined(MINMAX)
             float2 smpl = GetSample(id.xy, i);
             opVal.x = min(smpl.x, opVal.x);
+            if (opVal.x != opVal.x)
+                opVal.x = 0.0f;
             opVal.y = max(smpl.y, opVal.y);
+            if (opVal.y != opVal.y)
+                opVal.y = HALF_MAX;
 
             //opVal.x = max(opVal.x, -HALF_MAX);
             //opVal.y = min(opVal.y,  HALF_MAX);

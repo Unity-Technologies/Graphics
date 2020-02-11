@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //public  RTHandle   marginal             { get; internal set; }
         //public  RTHandle   conditionalMarginal  { get; internal set; }
 
-        //internal Texture    m_CurrentCubemap = null;
+        internal Texture    m_CurrentCubemap = null;
 
         public HDRISkyRenderer()
         {
@@ -117,39 +117,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
 
                 {
-                    //int width   = 4 * hdriSky.hdriSky.value.width;
-                    //int height  = 2 * hdriSky.hdriSky.value.height;
-                    int width  = 256;
-                    int height = 128;
-                    RTHandle latLongMap = RTHandles.Alloc(width, height,
-                                                            colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
-                                                            //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
-                                                            enableRandomWrite: true);
-                    RTHandleDeleter.ScheduleRelease(latLongMap, 4);
-
-                    var hdrp = HDRenderPipeline.defaultAsset;
-                    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-                    //materialBlock.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
-                    //materialBlock.SetInt("_cubeMipLvl", 0);
-                    //materialBlock.SetInt("_cubeArrayIndex", 0);
-                    cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
-                    cubeToLatLong.SetInt("_cubeMipLvl", 0);
-                    cubeToLatLong.SetInt("_cubeArrayIndex", 0);
-                    builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong, 0);
-                    //Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong, 0);
-
-                    ///Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
-                    //builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
-                    //HDUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToLatLong, latLongMap, materialBlock, 0);
-                    //builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
-                    //builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-                    //{
-                    //    Default(request, "___CurrentLatLongTested");
-                    //});
-                    //notDone = false;
-                    ImportanceSampler2D generator = new ImportanceSampler2D();
-                    generator.Init(latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
+                    ////int width   = 4 * hdriSky.hdriSky.value.width;
+                    ////int height  = 2 * hdriSky.hdriSky.value.height;
+                    //int width  = 256;
+                    //int height = 128;
+                    //RTHandle latLongMap = RTHandles.Alloc(width, height,
+                    //                                        colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                    //                                        //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                    //                                        enableRandomWrite: true);
+                    //RTHandleDeleter.ScheduleRelease(latLongMap, 4);
+                    //
+                    //var hdrp = HDRenderPipeline.defaultAsset;
+                    //Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                    //MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    ////materialBlock.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    ////materialBlock.SetInt("_cubeMipLvl", 0);
+                    ////materialBlock.SetInt("_cubeArrayIndex", 0);
+                    //cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
+                    //cubeToLatLong.SetInt("_cubeMipLvl", 0);
+                    //cubeToLatLong.SetInt("_cubeArrayIndex", 0);
+                    //builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong, 0);
+                    ////Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong, 0);
+                    //
+                    /////Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
+                    ////builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+                    ////HDUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToLatLong, latLongMap, materialBlock, 0);
+                    ////builtinParams.commandBuffer.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
+                    ////builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                    ////{
+                    ////    Default(request, "___CurrentLatLongTested");
+                    ////});
+                    ////notDone = false;
+                    //ImportanceSampler2D generator = new ImportanceSampler2D();
+                    //generator.Init(latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
                 }
             }
         }
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Unity.Collections.NativeArray<float> result = request.GetData<float>();
                 float[] copy = new float[result.Length];
                 result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
                 string path = @"C:\UProjects\" + name + ".exr";
                 if (System.IO.File.Exists(path))
                 {
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
-            //m_CurrentCubemap = hdriSky.hdriSky.value;
+            m_CurrentCubemap = hdriSky.hdriSky.value;
 
             //if (ImportanceSamplers.Exist(m_CurrentCubemap.GetInstanceID()) == false)
             //{
@@ -238,13 +238,14 @@ namespace UnityEngine.Rendering.HighDefinition
             //}
             //if (notDone)
             /*
-                //if (hdriSky.hdriSky.value != null && notDone)
+                if (hdriSky.hdriSky.value != null)// && notDone)
                 {
                     //int width   = 4 * hdriSky.hdriSky.value.width;
                     //int height  = 2 * hdriSky.hdriSky.value.height;
-                    int width   = 128;
-                    int height  =  64;
-                    RTHandle latLongMap = RTHandles.Alloc(width, height,
+                    int width   = 1024;
+                    int height  =  512;
+
+                    RTHandle latLongMap = RTHandles.Alloc(  width, height,
                                                             colorFormat: Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
                                                             //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
                                                             enableRandomWrite: true);
@@ -271,8 +272,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    Default(request, "___CurrentLatLongTested");
                 //});
                 //notDone = false;
-                    ImportanceSampler2D generator = new ImportanceSampler2D();
-                    generator.Init(latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
+                    RTHandle marg;
+                    RTHandle condMarg;
+                    ImportanceSampler2D.GenerateMarginals(out marg, out condMarg, latLongMap, 0, 0, builtinParams.commandBuffer, false, 0);
+                    //notDone = false;
                 }
             */
 
@@ -294,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
 
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_CurrentCubemap);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
@@ -312,31 +315,101 @@ namespace UnityEngine.Rendering.HighDefinition
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
+
+            if (hdriSky.hdriSky.value != null && notDone)
+            {
+                /*
+                int width   = 1024;
+                int height  =  512;
+
+                RTHandle latLongMap = RTHandles.Alloc(  width, height,
+                                                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                                                        enableRandomWrite: true);
+                RTHandleDeleter.ScheduleRelease(latLongMap);
+
+                var hdrp = HDRenderPipeline.defaultAsset;
+                Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                //MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
+                cubeToLatLong.SetInt("_cubeMipLvl", 0);
+                cubeToLatLong.SetInt("_cubeArrayIndex", 0);
+                cubeToLatLong.SetInt("_buildPDF", 1);
+                builtinParams.commandBuffer.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
+
+                //void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat format)
+                //{
+                //    if (!request.hasError)
+                //    {
+                //        Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                //        float[] copy = new float[result.Length];
+                //        result.CopyTo(copy);
+                //        byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
+                //                                            copy,
+                //                                            format,
+                //                                            (uint)request.width, (uint)request.height, 0,
+                //                                            Texture2D.EXRFlags.CompressZIP);
+                //        string path = @"C:\UProjects\" + name + ".exr";
+                //        if (System.IO.File.Exists(path))
+                //        {
+                //            System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                //            System.IO.File.Delete(path);
+                //        }
+                //        System.IO.File.WriteAllBytes(path, bytes0);
+                //    }
+                //}
+
+                //builtinParams.commandBuffer.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+                //{
+                //    DefaultDumper(request, "___LatLongPDF", latLongMap.rt.graphicsFormat);
+                //});
+
+                RTHandle marg       = null;
+                RTHandle condMarg   = null;
+                ImportanceSampler2D.GenerateMarginals(out marg, out condMarg, latLongMap, 0, 0, builtinParams.commandBuffer, true, 0);
+                if ( marg != null && condMarg != null )
+                {
+                    RTHandleDeleter.ScheduleRelease(marg);
+                    RTHandleDeleter.ScheduleRelease(condMarg);
+                }
+                */
+                //RTHandle marg       = null;
+                //RTHandle condMarg   = null;
+                //GenerateMarginalTexture(out marg, out condMarg, builtinParams.commandBuffer);
+                //if (marg != null && condMarg != null)
+                //{
+                //    RTHandleDeleter.ScheduleRelease(marg);
+                //    RTHandleDeleter.ScheduleRelease(condMarg);
+                //}
+                //notDone = false;
+            }
         }
 
-        //public override void GenerateMarginalTexture(out RTHandle marginal, out RTHandle conditionalMarginal, CommandBuffer cmd)
-        //{
-        //    UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat = Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
-        //    int size = 1024;
-        //    RTHandle latLongMap = RTHandles.Alloc(  size, size/2,
-        //                                            colorFormat: internalFormat,
-        //                                            enableRandomWrite: true);
+        public void GenerateMarginalTexture(out RTHandle marginal, out RTHandle conditionalMarginal, CommandBuffer cmd)
+        {
+            marginal = null;
+            conditionalMarginal = null;
 
-        //    var hdrp = HDRenderPipeline.defaultAsset;
-        //    Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-        //    cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
+            return;
 
-        //    cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 0);
+            int width   = 4*m_CurrentCubemap.width;
+            int height  = 2*m_CurrentCubemap.width;
 
-        //    ImportanceSampler2D importanceSampler = new ImportanceSampler2D();
+            RTHandle latLongMap = RTHandles.Alloc(  width, height,
+                                                    colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                                                    enableRandomWrite: true);
+            RTHandleDeleter.ScheduleRelease(latLongMap);
 
-        //    Vector4 skyIntensity = new Vector4(1, 1, 1, 1);
-        //    importanceSampler.Init(latLongMap, skyIntensity, cmd);
+            var hdrp = HDRenderPipeline.defaultAsset;
+            Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+            cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
+            cubeToLatLong.SetInt    ("_cubeMipLvl",     0);
+            cubeToLatLong.SetInt    ("_cubeArrayIndex", 0);
+            cubeToLatLong.SetInt    ("_buildPDF",       1);
+            cmd.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
 
-        //    marginal            = importanceSampler.invCDFRows;
-        //    conditionalMarginal = importanceSampler.invCDFFull;
-
-        //    RTHandleDeleter.ScheduleRelease(latLongMap);
-        //}
+            marginal            = null;
+            conditionalMarginal = null;
+            ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap, 0, 0, cmd, true, 0);
+        }
     }
 }

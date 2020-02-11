@@ -42,17 +42,18 @@ void KerName(uint3 id : SV_DispatchThreadID)
         uint   idx      = id.x*_SamplesPerThread + i;
 
         float2 uv       = _Samples[uint2(idx, 0)].xy;
-        float3 L        = LatlongToDirectionCoordinate(uv);
+        float3 L        = normalize(LatlongToDirectionCoordinate(uv));
         float3 Lwi      = SAMPLE_TEXTURE2D_LOD(_Input, sampler_LinearClamp, uv, 0).xyz;
         float  LwiMax   = max(Lwi.r, max(Lwi.g, Lwi.b));
         float  sin0i    = sin(uv.y*PI);
-        float  jac      = 1.0f/max(abs(sin0i), 1e-4);
+        float  jac      = 1.0f/max(abs(sin0i), 1e-4f);
 
         float4 measure  = float4(Lwi, LwiMax);
 
         float NdoL = max(L.z, 0);
 
-        sphereSum   += measure*jac;
+        //sphereSum   += measure*jac;
+        sphereSum   += measure*sin0i;
         hemiCosSum  += measure*NdoL*sin0i;
         hemiSum     += measure*sin0i;
         weight      += NdoL > 0.0f ? 1.0f : 0.0f;

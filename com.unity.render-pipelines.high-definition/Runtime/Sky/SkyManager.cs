@@ -784,7 +784,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static bool notDone = true;
+        //static bool notDone = true;
         public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
             m_CurrentFrameIndex = frameIndex;
@@ -830,9 +830,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                //ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
-                //cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              Texture2D.whiteTexture);
-                //cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   Texture2D.whiteTexture);
+                ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              TextureXR.GetWhiteTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   TextureXR.GetWhiteTexture());
             }
             //if (notDone)
             {

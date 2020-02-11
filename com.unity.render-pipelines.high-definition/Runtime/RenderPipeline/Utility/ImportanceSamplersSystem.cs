@@ -57,6 +57,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Check if an Importance Sampling exist & ready (generated or schedule for generation).
+        /// </summary>
+        /// <param name="identifier">Unique ID to identify the marginals.</param>
+        public bool ExistAndReady(int identifier)
+        {
+            return Exist(identifier) && m_InternalData[identifier].isReady;
+        }
+
+        /// <summary>
         /// Getter for marginal textures.
         /// </summary>
         /// <param name="identifier">Unique ID to identify the marginals.</param>
@@ -173,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static private void DefaultDumper(AsyncGPUReadbackRequest request, string name)
+        static private void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat gfxFormat)
         {
             if (!request.hasError)
             {
@@ -182,7 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.CopyTo(copy);
                 byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
                                                     copy,
-                                                    Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
+                                                    //Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                                                    format: gfxFormat,
                                                     (uint)request.width, (uint)request.height, 0,
                                                     Texture2D.EXRFlags.CompressZIP);
                 string path = @"C:\UProjects\" + name + ".exr";
@@ -206,8 +216,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool hasMip = value.input.mipmapCount > 1;
             UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
                 //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
-                Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
-                //value.input.graphicsFormat;
+                //Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
+                Experimental.Rendering.GraphicsFormat.R16_SFloat;
+            //value.input.graphicsFormat;
 
             int width       = -1;
             int height      = -1;
@@ -236,8 +247,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Latlong/equirectangular
                 // TODO: Octahedral (Compute: Jacobian), Octahedral_ConstArea vs Octahedral_Isotropic
-                width   = value.input.width*4;
-                height  = value.input.width*2;
+                width   = 4*value.input.width;
+                height  = 2*value.input.width;
 
                 if (value.input.dimension == TextureDimension.CubeArray)
                 {
@@ -250,7 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("ImportanceSamplerSystem: Marginal texture generator only avaiable for Texture2D{Array?} or Cubemap{Array?}.");
             }
 
-            ImportanceSampler2D generator = new ImportanceSampler2D();
+            RTHandle invCDFRows = null;
+            RTHandle invCDFFull = null;
 
             using (new ProfilingScope(cmd, new ProfilingSampler("BuildMarginalsInternal")))
             {
@@ -273,7 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (value.input.dimension == TextureDimension.Tex2D ||
                     value.input.dimension == TextureDimension.Tex2DArray)
                 {
-                    generator.Init(value.input, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
+                    RTHandle rtInput = RTHandles.Alloc(value.input);
+                    ImportanceSampler2D.GenerateMarginals(out invCDFRows, out invCDFFull, rtInput, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
+                    RTHandleDeleter.ScheduleRelease(rtInput);
                 }
                 else if (value.input.dimension == TextureDimension.Cube ||
                          value.input.dimension == TextureDimension.CubeArray)
@@ -285,17 +299,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                                             colorFormat: internalFormat,
                                                             enableRandomWrite: true);
                     RTHandleDeleter.ScheduleRelease(latLongMap);
-                    //RTHandle cubemap = RTHandles.Alloc(current.Value.input.width, current.Value.input.height,
-                    //                                    useMipMap: true,
-                    //                                    autoGenerateMips: false,
-                    //                                    dimension: TextureDimension.Cube,
-                    //                                    colorFormat: value.input.graphicsFormat,
-                    //                                    enableRandomWrite: true);
-                    //RTHandleDeleter.ScheduleRelease(cubemap);
-                    //for (int i = 0; i < 6; ++i)
-                    //{
-                    //    cmd.CopyTexture(value.input, 6*current.Value.currentSlice + i, cubemap, i);
-                    //}
 
                     var hdrp = HDRenderPipeline.defaultAsset;
                     Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
@@ -307,26 +310,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cubeToLatLong.SetTexture("_srcCubeTextureArray", value.input);
                     }
-                    cubeToLatLong.SetInt("_cubeMipLvl", current.Value.currentMip);
+                    cubeToLatLong.SetInt("_cubeMipLvl",     current.Value.currentMip);
                     cubeToLatLong.SetInt("_cubeArrayIndex", current.Value.currentSlice);
+                    cubeToLatLong.SetInt("_buildPDF",       1);
                     cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, value.input.dimension == TextureDimension.Cube ? 0 : 1);
                     if (dumpFile)
                     {
                         cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
                         {
-                            //DefaultDumper(request, String.Format("___FirstInput_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                            DefaultDumper(request, "___FirstInput_" + current.Key.ToString() +
-                                    "_" + _Idx +
-                                    "_" + current.Value.currentSlice +
-                                    "_" + current.Value.currentMip);
+                            DefaultDumper(
+                                    request, "___FirstInput_" + current.Key.ToString() +
+                                    "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
+                                    internalFormat);
                         });
                     }
 
-                    generator.Init(latLongMap, 0, 0, cmd, dumpFile, _Idx);
+                    ImportanceSampler2D.GenerateMarginals(out invCDFRows, out invCDFFull, latLongMap, 0, 0, cmd, dumpFile, _Idx);
+                }
+                else
+                {
+                    Debug.LogError("ImportanceSamplersSystem.GenerateMarginals, try to generate marginal texture for a non valid dimension (supported Tex2D, Tex2DArray, Cubemap, CubemapArray).");
                 }
 
-                cmd.CopyTexture(generator.invCDFRows, 0, 0, value.marginals.marginal,            current.Value.currentSlice, current.Value.currentMip);
-                cmd.CopyTexture(generator.invCDFFull, 0, 0, value.marginals.conditionalMarginal, current.Value.currentSlice, current.Value.currentMip);
+                cmd.CopyTexture(invCDFRows, 0, 0, value.marginals.marginal,            current.Value.currentSlice, current.Value.currentMip);
+                cmd.CopyTexture(invCDFFull, 0, 0, value.marginals.conditionalMarginal, current.Value.currentSlice, current.Value.currentMip);
             }
 
             if (current.Value.currentMip + 1 == value.input.mipmapCount)
@@ -340,15 +347,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Log(String.Format("SKCode - Ready: {0}", current.Key));
                     if (dumpFile)
                     {
-                        cmd.RequestAsyncReadback(generator.invCDFRows, delegate (AsyncGPUReadbackRequest request)
+                        cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
                         {
                             //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                            DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                            DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, Experimental.Rendering.GraphicsFormat.R16_SFloat);
                         });
-                        cmd.RequestAsyncReadback(generator.invCDFFull, delegate (AsyncGPUReadbackRequest request)
+                        cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
                         {
                             //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                            DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip);
+                            DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
                         });
                     }
                 }
@@ -367,7 +374,6 @@ namespace UnityEngine.Rendering.HighDefinition
             current.Value.currentMip++;
             if (current.Value.currentMip == value.input.mipmapCount)
             {
-                // SKCode
                 current.Value.currentSlice++;
                 current.Value.currentMip = 0;
             }
