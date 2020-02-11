@@ -1,3 +1,4 @@
+using UnityEditor.Build;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -7,13 +8,17 @@ namespace UnityEngine.Rendering.Universal
     {
         public int id { set; get; }
 
-        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1};
+        public AttachmentDescriptor targetDescriptor;
+
+        public RenderTargetIdentifier identifier { set; get; }
+        public static readonly RenderTargetHandle CameraTarget = new RenderTargetHandle {id = -1, identifier = BuiltinRenderTextureType.CameraTarget};
 
         public void Init(string shaderProperty)
         {
             // Shader.PropertyToID returns what is internally referred to as a "ShaderLab::FastPropertyName".
             // It is a value coming from an internal global std::map<char*,int> that converts shader property strings into unique integer handles (that are faster to work with).
             id = Shader.PropertyToID(shaderProperty);
+            identifier = new RenderTargetIdentifier(id);
         }
 
         public RenderTargetIdentifier Identifier()
@@ -22,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 return BuiltinRenderTextureType.CameraTarget;
             }
-            return new RenderTargetIdentifier(id);
+            return identifier;
         }
 
         public bool Equals(RenderTargetHandle other)

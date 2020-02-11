@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_SamplingMaterial;
         Downsampling m_DownsamplingMethod;
 
-        private RenderTargetIdentifier source { get; set; }
+        private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         const string m_ProfilerTag = "Copy Color";
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
+        public void Setup(RenderTargetHandle source, RenderTargetHandle destination, Downsampling downsampling)
         {
             this.source = source;
             this.destination = destination;
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier opaqueColorRT = destination.Identifier();
+            RenderTargetHandle opaqueColorRT = destination;
 
             switch (m_DownsamplingMethod)
             {

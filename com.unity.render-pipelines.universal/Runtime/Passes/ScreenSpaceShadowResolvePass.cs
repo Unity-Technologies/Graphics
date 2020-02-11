@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+            RenderTargetHandle screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap;
             ConfigureTarget(screenSpaceOcclusionTexture);
             ConfigureClear(ClearFlag.All, Color.white);
         }
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Avoid setting and restoring camera view and projection matrices when in stereo.
                 RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-                Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+                Blit(cmd, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowsMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);

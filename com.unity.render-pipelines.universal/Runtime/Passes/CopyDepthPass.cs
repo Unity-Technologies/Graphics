@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(destination.Identifier());
+            ConfigureTarget(destination);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -58,8 +58,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier depthSurface = source.Identifier();
-            RenderTargetIdentifier copyDepthSurface = destination.Identifier();
+            RenderTargetHandle depthSurface = source;
+            RenderTargetHandle copyDepthSurface = destination;
 
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        void CopyTexture(CommandBuffer cmd, RenderTargetHandle source, RenderTargetHandle dest, Material material)
         {
             // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)

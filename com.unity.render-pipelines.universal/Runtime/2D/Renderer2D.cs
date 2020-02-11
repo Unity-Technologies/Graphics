@@ -78,9 +78,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
                 m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
 
-            ConfigureCameraTarget(m_ColorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
+            ConfigureCameraTarget(m_ColorTargetHandle, RenderTargetHandle.CameraTarget);
 
-            m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
+            m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle);
             EnqueuePass(m_Render2DLightingPass);
 
             bool requireFinalBlitPass = useOffscreenColorTexture;

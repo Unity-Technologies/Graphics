@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RendererLighting.ClearDirtyLighting(cmd);
                     }
 
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
                     context.ExecuteCommandBuffer(cmd);
 
                     Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
 
                         cmd.Clear();
-                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment, lightStats.blendStylesUsed);
+                        RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment.Identifier(), lightStats.blendStylesUsed);
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
                     }
@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get("Render Unlit");
                 DrawingSettings unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
 
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
                 cmd.SetGlobalTexture("_ShapeLightTexture0", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture1", Texture2D.blackTexture);
                 cmd.SetGlobalTexture("_ShapeLightTexture2", Texture2D.blackTexture);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -76,11 +77,11 @@ namespace UnityEngine.Rendering.Universal
             for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
                 cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
 
-            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_ColorAttachments.Length];
+            List<RenderTargetHandle> colorAttachmentHandles = new List<RenderTargetHandle>();
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
-                colorAttachmentIdentifiers[gbufferIndex] = m_ColorAttachments[gbufferIndex].Identifier();
+                colorAttachmentHandles.Insert(gbufferIndex, m_ColorAttachments[gbufferIndex]);
 
-            ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
+            ConfigureTarget(colorAttachmentHandles, m_DepthBufferAttachment);
 
             // If depth-prepass exists, do not clear depth here or we will lose it.
             // Lighting buffer is cleared independently regardless of what we ask for here.

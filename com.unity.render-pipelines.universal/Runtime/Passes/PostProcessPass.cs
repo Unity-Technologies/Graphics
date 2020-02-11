@@ -349,12 +349,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
                 cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                if (m_IsStereo)
-                {
-                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
-                }
-                else
+//
+//                if (m_IsStereo)
+//                {
+//                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
+//                }
+//                else
                 {
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
@@ -1036,7 +1036,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.isStereoEnabled)
             {
-                Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
+                Blit(cmd, m_Source, RenderTargetHandle.CameraTarget, material);
             }
             else
             {
