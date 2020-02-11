@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int instanceID;
 
-        public SphericalHarmonicsL1[] data = null;
+        public SphericalHarmonicsL1[] dataSH = null;
         public float[] dataValidity = null;
         public float[] dataOctahedralDepth = null;
 
@@ -122,14 +122,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return pos.x + pos.y * resolutionX + pos.z * resolutionX * resolutionY;
         }
 
-        (SphericalHarmonicsL1, float) Sample(SphericalHarmonicsL1[] data, float[] dataValidity, Vector3Int pos)
+        (SphericalHarmonicsL1, float) Sample(SphericalHarmonicsL1[] dataSH, float[] dataValidity, Vector3Int pos)
         {
             if (pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= resolutionX || pos.y >= resolutionY || pos.z >= resolutionZ)
                 return (new SphericalHarmonicsL1(), 1);
 
             int index = IndexAt(pos);
 
-            SphericalHarmonicsL1 sh = data[index];
+            SphericalHarmonicsL1 sh = dataSH[index];
             float v = dataValidity[index];
 
             return (sh, v);
@@ -192,8 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (dilateIterations == 0)
                 return;
 
-            SphericalHarmonicsL1[] dataBis = new SphericalHarmonicsL1[data.Length];
-            float[] dataValidityBis = new float[data.Length];
+            SphericalHarmonicsL1[] dataBis = new SphericalHarmonicsL1[dataSH.Length];
+            float[] dataValidityBis = new float[dataSH.Length];
 
             int i = 0;
             for (; i < dilateIterations; ++i)
@@ -203,10 +203,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int z = 0; z < resolutionZ; ++z)
                     for (int y = 0; y < resolutionY; ++y)
                         for (int x = 0; x < resolutionX; ++x)
-                            invalidProbesRemaining |= !OverwriteInvalidProbe(data, dataBis, dataValidity, dataValidityBis, new Vector3Int(x, y, z), backfaceTolerance);
+                            invalidProbesRemaining |= !OverwriteInvalidProbe(dataSH, dataBis, dataValidity, dataValidityBis, new Vector3Int(x, y, z), backfaceTolerance);
 
                 // Swap buffers
-                (data, dataBis) = (dataBis, data);
+                (dataSH, dataBis) = (dataBis, dataSH);
                 (dataValidity, dataValidityBis) = (dataValidityBis, dataValidity);
 
                 if (!invalidProbesRemaining)

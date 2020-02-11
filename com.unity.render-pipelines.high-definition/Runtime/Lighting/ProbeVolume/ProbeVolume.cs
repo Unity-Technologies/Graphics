@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!probeVolumeAsset)
                 return (null, null, null);
 
-            return (probeVolumeAsset.data, probeVolumeAsset.dataValidity, probeVolumeAsset.dataOctahedralDepth);
+            return (probeVolumeAsset.dataSH, probeVolumeAsset.dataValidity, probeVolumeAsset.dataOctahedralDepth);
         }
 
         protected void Awake()
@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 probeVolumeAsset.instanceID = GetID();
-                probeVolumeAsset.data = data;
+                probeVolumeAsset.dataSH = data;
                 probeVolumeAsset.dataValidity = dataValidity;
                 probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
