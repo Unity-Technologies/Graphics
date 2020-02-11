@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [7.2.0] - 2020-03-02
+## [7.2.0] - 2020-02-10
 
 ### Added
 - Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
@@ -154,6 +154,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed minor issues with cubemap preview in the inspector.
 - Fixed wrong build error message when building for android on mac.
 - Fixed an issue related to denoising ray trace area shadows.
+- Fixed wrong build error message when building for android on mac.
+- Fixed Wizard persistency of Direct3D12 change on domain reload.
+- Fixed Wizard persistency of FixAll on domain reload.
+- Fixed Wizard behaviour on domain reload.
+- Fixed a potential source of NaN in planar reflection probe atlas.
+- Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
+- Fixed missing initialization of input params in Blit for VR.
+- Fix Inf source in LTC for area lights.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.

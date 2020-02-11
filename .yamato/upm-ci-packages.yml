@@ -103,8 +103,10 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     - unity-downloader-cli -u {{ editor.version }} -c editor --wait
     - {{ platform.copycmd }}
     - upm-ci package test -u {{ platform.editorpath }} --package-path {{ package.packagename }}
+    - upm-ci package test -u {{ platform.editorpath }} --type updated-dependencies-tests --package-path {{ package.packagename }}
     {% else %}
     - upm-ci package test -u {{ editor.version }} --package-path {{ package.packagename }}
+    - upm-ci package test -u {{ editor.version }} --type updated-dependencies-tests --package-path {{ package.packagename }}
     {% endif %}
   artifacts:
     logs:
@@ -120,6 +122,14 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
 
 all_package_ci:
   name: Pack and test all packages
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci package izon -t
+    - upm-ci package izon -d
   dependencies:
 {% for editor in editors %}
 {% for platform in platforms %}

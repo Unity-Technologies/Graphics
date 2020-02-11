@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [7.2.0] - 2020-03-02
+## [7.2.0] - 2020-02-10
 
 ### Fixed
 - Fix `WaveIsFirstLane()` to ignore helper lanes in fragment shaders on PS4.
