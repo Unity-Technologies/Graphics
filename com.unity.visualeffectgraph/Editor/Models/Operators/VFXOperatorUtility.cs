@@ -560,7 +560,7 @@ namespace UnityEditor.VFX
             Mirror
         };
 
-        static private VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
+        static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
             if (mode == SequentialAddressingMode.Wrap)

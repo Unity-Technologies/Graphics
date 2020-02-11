@@ -52,8 +52,12 @@ namespace UnityEditor.VFX.Operator
 
         [VFXSetting, SerializeField, Tooltip("Specifies whether the random number is generated for each particle, each particle strip, or is shared by the whole system.")]
         private VFXSeedMode seed = VFXSeedMode.PerParticle;
+
         [VFXSetting, SerializeField, Tooltip("When enabled, the random number will remain constant. Otherwise, it will change every time it is evaluated.")]
         private bool constant = true;
+
+        [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
+        private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -115,6 +119,9 @@ namespace UnityEditor.VFX.Operator
 
                 if (selection != SelectionMode.Random)
                     yield return "seed";
+
+                if (selection != SelectionMode.Custom)
+                    yield return "adressingMode";
             }
         }
 
@@ -138,7 +145,7 @@ namespace UnityEditor.VFX.Operator
                     break;
                 case SelectionMode.Custom:
                     {
-                        vertexIndex = VFXOperatorUtility.Modulo(inputExpression[1], meshVertexCount);
+                        vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
                     }
                     break;
                 default:
