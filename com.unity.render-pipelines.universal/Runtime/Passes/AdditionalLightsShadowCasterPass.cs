@@ -60,6 +60,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
+            m_AdditionalLightsShadowmap.InitDescriptor(RenderTextureFormat.Shadowmap);
 
             m_AdditionalShadowsBufferId = Shader.PropertyToID("_AdditionalShadowsBuffer");
             m_AdditionalShadowsIndicesId = Shader.PropertyToID("_AdditionalShadowsIndices");
@@ -227,14 +228,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_AdditionalLightsWorldToShadow[i] = sliceTransform * m_AdditionalLightsWorldToShadow[i];
                 sliceIndex++;
             }
+            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
+            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
 
             return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
             m_AdditionalLightsShadowmap.identifier = new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture);
+            ConfigureDepthAttachment(m_AdditionalLightsShadowmap, false, true, true);
             ConfigureTarget(m_AdditionalLightsShadowmap);
             ConfigureClear(ClearFlag.All, Color.black);
         }

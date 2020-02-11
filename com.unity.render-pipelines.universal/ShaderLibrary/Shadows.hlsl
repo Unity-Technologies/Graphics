@@ -31,9 +31,11 @@ SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
 TEXTURE2D_SHADOW(_MainLightShadowmapTexture);
 SAMPLER_CMP(sampler_MainLightShadowmapTexture);
+float4 _MainLightShadowmapTexture_TexelSize;
 
 TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_AdditionalLightsShadowmapTexture);
+float4 _AdditionalLightsShadowmapTexture_TexelSize;
 
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half3(0, 0, NEAR_PLANE). We use this trick to avoid
@@ -173,6 +175,11 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     if (isPerspectiveProjection)
         shadowCoord.xyz /= shadowCoord.w;
 
+#if UNITY_UV_STARTS_AT_TOP
+    shadowCoord.y = 1 - shadowCoord.y;
+    shadowCoord.w = 1 - shadowCoord.w;
+#endif
+
     real attenuation;
     real shadowStrength = shadowParams.x;
 
@@ -221,7 +228,9 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
 #endif
-
+#if UNITY_UV_STARTS_AT_TOP
+    //shadowCoord.y = 1 - shadowCoord.y;
+#endif
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
@@ -248,7 +257,6 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #else
     float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[lightIndex], float4(positionWS, 1.0));
 #endif
-
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }

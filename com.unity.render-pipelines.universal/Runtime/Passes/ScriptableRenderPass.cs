@@ -79,8 +79,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool hasInputAttachment;
         internal bool useNativeRenderPass;
 
-        List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(8);
-        List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
+        internal List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(8);
+        internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
         RenderTargetHandle m_DepthAttachment = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new List<RenderTargetHandle> {RenderTargetHandle.CameraTarget};
+            m_ColorAttachments = new List<RenderTargetHandle> { RenderTargetHandle.CameraTarget };
             m_DepthAttachment = RenderTargetHandle.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            m_ColorAttachments[0] = colorAttachment;
+            m_ColorAttachments.Insert(0, colorAttachment);
             for (int i = 1; i < m_ColorAttachments.Count; ++i)
                 m_ColorAttachments.RemoveAt(i);
         }
@@ -184,22 +184,29 @@ namespace UnityEngine.Rendering.Universal
         {
             for (var i = 0; i < targets.Count; i++)
             {
-                ConfigureColorAttachment(targets[i], loadExistingContents, storeResults, shouldClear, i);
+                if (!m_ColorAttachments.Contains(targets[i]))
+                    ConfigureColorAttachment(targets[i], loadExistingContents, storeResults, shouldClear, i);
             }
         }
 
         internal void ConfigureColorAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false, int idx = 0)
         {
-            m_ColorAttachments[idx].targetDescriptor
+            var attachment = new RenderTargetHandle();
+            attachment.identifier = m_ColorAttachments[idx].identifier;
+            attachment.targetDescriptor = target.targetDescriptor;
+            attachment.targetDescriptor
                 .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
             if (shouldClear)
-                m_ColorAttachments[idx].targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+                attachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
+            m_ColorAttachments.Insert(idx, attachment);
+
         }
 
         internal void ConfigureDepthAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false)
         {
+            m_DepthAttachment.targetDescriptor = target.targetDescriptor;
             m_DepthAttachment.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
             if (shouldClear)
                 m_DepthAttachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 1);
@@ -238,6 +245,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderPassDescriptor.width = width;
             m_RenderPassDescriptor.height = height;
             m_RenderPassDescriptor.sampleCount = sampleCount;
+            UseNativeRenderPass(true);
         }
 
         internal void UseNativeRenderPass(bool enable)
@@ -265,7 +273,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
-        {}
+        {
+        }
 
         /// <summary>
         /// Called upon finish rendering a camera stack. You can use this callback to release any resources created

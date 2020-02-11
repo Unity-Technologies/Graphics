@@ -1,4 +1,5 @@
 using UnityEditor.Build;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -19,6 +20,16 @@ namespace UnityEngine.Rendering.Universal
             // It is a value coming from an internal global std::map<char*,int> that converts shader property strings into unique integer handles (that are faster to work with).
             id = Shader.PropertyToID(shaderProperty);
             identifier = new RenderTargetIdentifier(id);
+        }
+
+        public void InitDescriptor(RenderTextureFormat format)
+        {
+            targetDescriptor = new AttachmentDescriptor(format);
+        }
+
+        public void InitDescriptor(GraphicsFormat format)
+        {
+            targetDescriptor = new AttachmentDescriptor(format);
         }
 
         public RenderTargetIdentifier Identifier()

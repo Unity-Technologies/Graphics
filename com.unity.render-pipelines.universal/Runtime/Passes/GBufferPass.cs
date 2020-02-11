@@ -121,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(m_ColorAttachments[gbufferIndex].id);
 
             cmd.ReleaseTemporaryRT(m_DepthBufferAttachment.id);
+            base.m_ColorAttachments = new List<RenderTargetHandle> {RenderTargetHandle.CameraTarget};
             // Note: a special case might be required if(m_CameraDepthTexture==RenderTargetHandle.CameraTarget) - see reference in DepthOnlyPass.Execute
         }
     }

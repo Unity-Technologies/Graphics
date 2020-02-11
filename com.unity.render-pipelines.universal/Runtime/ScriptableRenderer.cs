@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -448,7 +449,66 @@ namespace UnityEngine.Rendering.Universal
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
+                if (!renderPass.useNativeRenderPass)
+                    ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
+                else
+                {
+                    List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
+                    int depthAttachmentIdx = -1;
+                    var desc = renderPass.renderPassDescriptor;
+                    NativeArray<int> indices =
+                        new NativeArray<int>(renderPass.colorAttachments.Count, Allocator.Temp);
+                    CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+                    //renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+//                    c
+// cmd.Clear();
+                    bool depthAsColor = false;
+                        if (desc.height == 0 &&
+                            desc.width == 0)
+                            return;
+                        if (renderPass.colorAttachment.targetDescriptor.format == RenderTextureFormat.Depth ||
+                            renderPass.colorAttachment.targetDescriptor.format == RenderTextureFormat.Shadowmap)
+                            depthAsColor = true;
+                        for (int i = 0; i < renderPass.colorAttachments.Count; i++)
+                        {
+                            if (!attachmentList.Contains(renderPass.colorAttachments[i].targetDescriptor))
+                            {
+                                attachmentList.Add(renderPass.colorAttachments[i].targetDescriptor);
+                                indices[i] = i;
+                                //maybe map attachment descriptor with index right here?
+                            }
+                        }
+
+                        if (renderPass.depthAttachment.targetDescriptor.graphicsFormat != GraphicsFormat.None && !attachmentList.Contains(renderPass.depthAttachment.targetDescriptor)) //only the z-buffer should be bound as depthAttachmentDescriptor, though depth attachments can also be used as color attachments
+                        {
+                            attachmentList.Add(renderPass.depthAttachment.targetDescriptor);
+                            depthAttachmentIdx = attachmentList.IndexOf(renderPass.depthAttachment.targetDescriptor);
+                        }
+
+                        NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
+
+                        if (endIndex == 0 || blockRanges[blockIndex] == endIndex)
+                            return;
+                        context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
+                        var colors = depthAsColor
+                                ? new NativeArray<int>(0, Allocator.Temp)
+                                : indices;
+
+//                        if (renderPass.hasInputAttachment)
+//                        {
+//                            var inputs = new NativeArray<int>(new int[] { attachmentList.IndexOf(renderPass.inputAttachment.targetDescriptor) }, Allocator.Temp);
+//                            context.BeginSubPass(colors, inputs);
+//                            inputs.Dispose();
+//                        }
+//                        else
+                            context.BeginSubPass(colors);
+
+                        colors.Dispose();
+                        ExecuteNativeRenderPass(context, renderPass, ref renderingData);
+                        context.EndSubPass();
+                        context.EndRenderPass();
+                        descriptors.Dispose();
+                }
             }
 
             if (submit)
@@ -652,6 +712,27 @@ namespace UnityEngine.Rendering.Universal
             renderPass.Execute(context, ref renderingData);
         }
 
+        void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
+            ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
+
+            if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear) ))
+            {
+                //Leaving this like that atm, cause i guess we could just clear with load action on first render pass
+                //And also we need to say the renderer not to clear if first non-native render pass is executed later
+                m_FirstTimeCameraColorTargetIsBound = false;
+                m_XRRenderTargetNeedsClear = false;
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+            renderPass.Execute(context, ref renderingData);
+
+        }
         void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
         {
             context.StartMultiEye(camera, eyeIndex);

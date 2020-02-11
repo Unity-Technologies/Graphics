@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
 
             m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
+            m_MainLightShadowmap.InitDescriptor(RenderTextureFormat.Shadowmap);
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
         }
 
@@ -108,14 +109,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
+            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+                m_ShadowmapHeight, k_ShadowmapBufferBits);
             return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                    m_ShadowmapHeight, k_ShadowmapBufferBits);
+
             m_MainLightShadowmap.identifier = new RenderTargetIdentifier(m_MainLightShadowmapTexture);
+            ConfigureDepthAttachment(m_MainLightShadowmap, false, true, true);
             ConfigureTarget(m_MainLightShadowmap);
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -123,7 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData, ref renderingData.cameraData);
         }
 
         /// <inheritdoc/>
@@ -153,7 +157,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CascadeSlices[i].Clear();
         }
 
-        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
         {
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
@@ -184,7 +188,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 SetupMainLightShadowReceiverConstants(cmd, shadowLight, softShadows);
             }
-
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
