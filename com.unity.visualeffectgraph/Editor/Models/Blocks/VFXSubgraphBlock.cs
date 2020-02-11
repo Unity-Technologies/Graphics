@@ -13,8 +13,11 @@ namespace UnityEditor.VFX
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphBlock m_Subgraph;
-        
+
+        [NonSerialized]
         VFXModel[] m_SubChildren;
+
+        [NonSerialized]
         VFXBlock[] m_SubBlocks;
         VFXGraph m_UsedSubgraph;
 
@@ -27,6 +30,13 @@ namespace UnityEditor.VFX
 
                 return m_Subgraph;
             }
+        }
+
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph,null))
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }
@@ -45,6 +55,8 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    if( m_Subgraph == null && ! object.ReferenceEquals(m_Subgraph,null))
+                        m_Subgraph = EditorUtility.InstanceIDToObject(m_Subgraph.GetInstanceID()) as VisualEffectSubgraphBlock;
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 

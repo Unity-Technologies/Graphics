@@ -7,9 +7,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    class VFXTexture2DValue : VFXValue<Texture>
+    class VFXTexture2DValue : VFXObjectValue
     {
-        public VFXTexture2DValue(Texture content = null, Mode mode = Mode.FoldableVariable) : base(content, mode)
+        public VFXTexture2DValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 
@@ -28,9 +28,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXTexture3DValue : VFXValue<Texture>
+    class VFXTexture3DValue : VFXObjectValue
     {
-        public VFXTexture3DValue(Texture content = null, Mode mode = Mode.FoldableVariable) : base(content, mode)
+        public VFXTexture3DValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 
@@ -49,9 +49,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXTextureCubeValue : VFXValue<Texture>
+    class VFXTextureCubeValue : VFXObjectValue
     {
-        public VFXTextureCubeValue(Texture content = null, Mode mode = Mode.FoldableVariable) : base(content, mode)
+        public VFXTextureCubeValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 
@@ -70,9 +70,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXTexture2DArrayValue : VFXValue<Texture>
+    class VFXTexture2DArrayValue : VFXObjectValue
     {
-        public VFXTexture2DArrayValue(Texture content = null, Mode mode = Mode.FoldableVariable) : base(content, mode)
+        public VFXTexture2DArrayValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 
@@ -91,9 +91,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXTextureCubeArrayValue : VFXValue<Texture>
+    class VFXTextureCubeArrayValue : VFXObjectValue
     {
-        public VFXTextureCubeArrayValue(Texture content = null, Mode mode = Mode.FoldableVariable) : base(content, mode)
+        public VFXTextureCubeArrayValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
         }
 
@@ -110,5 +110,27 @@ namespace UnityEditor.VFX
             var copy = new VFXTextureCubeArrayValue(Get(), mode);
             return copy;
         }
+    }
+
+    class VFXMeshValue : VFXObjectValue
+    {
+        public VFXMeshValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
+        {
+        }
+
+        sealed protected override int[] additionnalOperands
+        {
+            get
+            {
+                return new int[] { (int)VFXValueType.Mesh };
+            }
+        }
+
+        sealed public override VFXValue CopyExpression(Mode mode)
+        {
+            var copy = new VFXMeshValue(Get(), mode);
+            return copy;
+        }
+
     }
 }

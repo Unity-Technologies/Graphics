@@ -1103,7 +1103,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                "   WriteMask [_StencilRefDistortionVec]",
+                "   WriteMask [_StencilWriteMaskDistortionVec]",
                 "   Ref [_StencilRefDistortionVec]",
                 "   Comp Always",
                 "   Pass Replace",
@@ -1224,7 +1224,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
+        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR, bool recieveSSRTransparent = false)
         {
             BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
@@ -1241,8 +1241,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilUsage.ObjectMotionVector
             collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilUsage.ObjectMotionVector
             // Distortion vector pass
-            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors); 
-            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors); 
+            collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
+            collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
             collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); 
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); 
@@ -1250,6 +1250,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSR);
+            collector.AddToggleProperty(kReceivesSSRTransparent, recieveSSRTransparent);
 
         }
 

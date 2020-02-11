@@ -172,6 +172,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: name
             );
 
+            // We clear on create to avoid garbage data to be present in the atlas
+            int mipCount = useMipMap ? GetTextureMipmapCount(m_Width, m_Height) : 1;
+            for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+            {
+                Graphics.SetRenderTarget(m_AtlasTexture, mipIdx);
+                GL.Clear(false, true, Color.clear);
+            }
+
             m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);
         }
 

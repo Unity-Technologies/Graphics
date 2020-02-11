@@ -144,20 +144,20 @@ bool SampleLights(LightList lightList,
         // Pick a local light from the list
         LightData lightData = GetLocalLightData(lightList, inputSample.z);
 
-        // Generate a point on the surface of the light
-        float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
-        float3 samplePos = lightCenter + (inputSample.x - 0.5) * lightData.size.x * lightData.right + (inputSample.y - 0.5) * lightData.size.y * lightData.up;
-
-        // And the corresponding direction
-        outgoingDir = samplePos - position;
-        dist = length(outgoingDir);
-        outgoingDir /= dist;
-
-        if (dot(normal, outgoingDir) < 0.001)
-            return false;
-
         if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
         {
+            // Generate a point on the surface of the light
+            float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
+            float3 samplePos = lightCenter + (inputSample.x - 0.5) * lightData.size.x * lightData.right + (inputSample.y - 0.5) * lightData.size.y * lightData.up;
+
+            // And the corresponding direction
+            outgoingDir = samplePos - position;
+            dist = length(outgoingDir);
+            outgoingDir /= dist;
+
+            if (dot(normal, outgoingDir) < 0.001)
+                return false;
+
             float cosTheta = -dot(outgoingDir, lightData.forward);
             if (cosTheta < 0.001)
                 return false;
@@ -168,9 +168,36 @@ bool SampleLights(LightList lightList,
         }
         else // Punctual light
         {
-            // DELTA_PDF represents 1 / area, where the area is infinitesimal
-            value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
-            pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+            // Direction from shading point to light position
+            outgoingDir = GetAbsolutePositionWS(lightData.positionRWS) - position;
+            float sqDist = Length2(outgoingDir);
+
+            if (lightData.size.x > 0.0) // Stores the square radius
+            {
+                float3x3 localFrame = GetLocalFrame(normalize(outgoingDir));
+                SampleCone(inputSample, sqrt(saturate(1.0 - lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
+
+                outgoingDir = normalize(outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2]);
+
+                if (dot(normal, outgoingDir) < 0.001)
+                    return false;
+
+                dist = max(sqrt((sqDist - lightData.size.x)), 0.001);
+                value = GetPunctualEmission(lightData, outgoingDir, dist) / pdf;
+                pdf = GetLocalLightWeight(lightList) / pdf;
+            }
+            else
+            {
+                dist = sqrt(sqDist);
+                outgoingDir /= dist;
+
+                if (dot(normal, outgoingDir) < 0.001)
+                    return false;
+
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal
+                value = GetPunctualEmission(lightData, outgoingDir, dist) * DELTA_PDF;
+                pdf = GetLocalLightWeight(lightList) * DELTA_PDF;
+            }
         }
     }
     else // Distant lights
@@ -214,7 +241,7 @@ void EvaluateLights(LightList lightList,
     {
         LightData lightData = GetLocalLightData(lightList, i);
 
-        // Punctual/directional lights have a quasi-null probability of being hit here
+        // Punctual lights have a quasi-null probability of being hit here
         if (lightData.lightType != GPULIGHTTYPE_RECTANGLE)
             continue;
 
@@ -223,21 +250,24 @@ void EvaluateLights(LightList lightList,
         float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
-        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t) && t < rayDescriptor.TMax)
+        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))
         {
-            float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
-
-            // Then check if we are within the rectangle bounds
-            if (2.0 * abs(dot(hitVec, lightData.right) / Length2(lightData.right)) < lightData.size.x &&
-                2.0 * abs(dot(hitVec, lightData.up) / Length2(lightData.up)) < lightData.size.y)
+            if (t < rayDescriptor.TMax)
             {
-                value += lightData.color;
+                float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
 
-                float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-                pdf += GetLocalLightWeight(lightList) * Sq(t) / (lightArea * cosTheta);
+                // Then check if we are within the rectangle bounds
+                if (2.0 * abs(dot(hitVec, lightData.right) / Length2(lightData.right)) < lightData.size.x &&
+                    2.0 * abs(dot(hitVec, lightData.up) / Length2(lightData.up)) < lightData.size.y)
+                {
+                    value += lightData.color;
 
-                // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
-                break;
+                    float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+                    pdf += GetLocalLightWeight(lightList) * Sq(t) / (lightArea * cosTheta);
+
+                    // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
+                    break;
+                }
             }
         }
     }

@@ -51,17 +51,33 @@ namespace UnityEngine.Rendering.HighDefinition
         Multiplier,
     }
 
+
+    /// <summary>
+    /// Backplate Type for HDRISKy.
+    /// </summary>
     public enum BackplateType
     {
+        /// <summary>Shape of backplate is a Disc.</summary>
         Disc,
+        /// <summary>Shape of backplate is a Rectangle.</summary>
         Rectangle,
+        /// <summary>Shape of backplate is a Ellispe.</summary>
         Ellipse,
+        /// <summary>Shape of backplate is a Infinite Plane.</summary>
         Infinite
     }
 
+    /// <summary>
+    /// Backplate Type volume parameter.
+    /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class BackplateTypeParameter : VolumeParameter<BackplateType>
     {
+        /// <summary>
+        /// Backplate Type volume parameter constructor.
+        /// </summary>
+        /// <param name="value">Backplate Type parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
         public BackplateTypeParameter(BackplateType value, bool overrideState = false)
             : base(value, overrideState) { }
     }
