@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
             [Semantic("TEXCOORD3")][Optional]       Vector4 uv3;
             [Semantic("TEXCOORD4")][Optional]       Vector4 uv4;
             [Semantic("TEXCOORD5")][Optional]       Vector4 uv5;
-            [Semantic("TEXCOORD6")][Optional]       Vector4 uv6;
-            [Semantic("TEXCOORD7")][Optional]       Vector4 uv7;
             [Semantic("BLENDWEIGHTS")][Optional]    Vector4 weights;
             [Semantic("BLENDINDICES")][Optional]    UInt32_4 indices;
             [Semantic("COLOR")][Optional]           Vector4 color;
@@ -247,8 +245,6 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional] Vector4 uv3;
             [Optional] Vector4 uv4;
             [Optional] Vector4 uv5;
-            [Optional] Vector4 uv6;
-            [Optional] Vector4 uv7;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
             [Optional] Vector4 BoneWeights;

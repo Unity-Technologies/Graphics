@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Drawing;
+using Unity.Collections;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -67,6 +68,70 @@ namespace UnityEditor.ShaderGraph
                     window.ReloadSubGraphsOnNextUpdate(changedFiles);
                 }
             }
+        }
+
+        void PostProcessSkinnedMeshes(GameObject g)
+        {
+            // Only operate on FBX files
+            if (assetPath.IndexOf(".fbx") == -1) {
+                return;
+            }
+
+            ModelImporter importer = (ModelImporter)assetImporter;
+            // only post process models with greater than 4 bones
+            if((importer.maxBonesPerVertex > 4) && (importer.maxBonesPerVertex < 9))
+            {            
+                SkinnedMeshRenderer[] skinnedMeshRenderers = g.GetComponentsInChildren<SkinnedMeshRenderer>();
+                if(skinnedMeshRenderers != null)
+                {
+                    // add extra bone indices/weights to uv channels 4 and 5, to be used with linear blend skinning shader graph node
+                    for(int skinnedMeshRendererIndex = 0; skinnedMeshRendererIndex < skinnedMeshRenderers.Length; skinnedMeshRendererIndex++)
+                    {               
+                        Mesh mesh = skinnedMeshRenderers[skinnedMeshRendererIndex].sharedMesh;
+                        NativeArray<BoneWeight1> boneWeights = mesh.GetAllBoneWeights();
+                        NativeArray<byte> bonesPerVertex = mesh.GetBonesPerVertex();                   
+                        Vector4[] newUV4 = new Vector4[mesh.vertexCount];
+                        Vector4[] newUV5 = new Vector4[mesh.vertexCount];
+                        int boneWeightsOffest = 0;
+                        for(int vertexIndex = 0; vertexIndex < mesh.vertexCount; vertexIndex++)
+                        {               
+                            newUV4[vertexIndex] = Vector4.zero;
+                            newUV5[vertexIndex] = Vector4.zero;
+                            for(int boneIndex = 4; boneIndex < bonesPerVertex[vertexIndex]; boneIndex++)
+                            {
+                                switch(boneIndex)
+                                {
+                                    case 4:
+                                        newUV4[vertexIndex].x = boneWeights[boneWeightsOffest + boneIndex].boneIndex;  
+                                        newUV5[vertexIndex].x = boneWeights[boneWeightsOffest + boneIndex].weight;  
+                                        break;
+                                    case 5:
+                                        newUV4[vertexIndex].y = boneWeights[boneWeightsOffest + boneIndex].boneIndex;  
+                                        newUV5[vertexIndex].y = boneWeights[boneWeightsOffest + boneIndex].weight;  
+                                        break;
+                                    case 6:
+                                        newUV4[vertexIndex].z = boneWeights[boneWeightsOffest + boneIndex].boneIndex;  
+                                        newUV5[vertexIndex].z = boneWeights[boneWeightsOffest + boneIndex].weight;  
+                                        break;
+                                    case 7:
+                                        newUV4[vertexIndex].w = boneWeights[boneWeightsOffest + boneIndex].boneIndex;  
+                                        newUV5[vertexIndex].w = boneWeights[boneWeightsOffest + boneIndex].weight;  
+                                        break;
+                                }
+                            }
+                            boneWeightsOffest += bonesPerVertex[vertexIndex];
+                        }                  
+                        mesh.SetUVs(4, newUV4);
+                        mesh.SetUVs(5, newUV5);
+                        mesh.UploadMeshData(false);
+                    }
+                }
+            }
+        }
+
+        void OnPostprocessModel(GameObject g)
+        {
+            PostProcessSkinnedMeshes(g);            
         }
     }
 }
