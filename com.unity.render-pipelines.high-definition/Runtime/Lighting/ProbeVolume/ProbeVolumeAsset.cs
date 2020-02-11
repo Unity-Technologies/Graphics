@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionY;
         public int resolutionZ;
 
+        public float backfaceTolerance;
+        public int dilationIterations;
+
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Assets/Create/ProbeVolume", false, 204)]
         protected static void CreateAssetFromMenu()
@@ -211,9 +214,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Dilate()
+        public void Dilate(float backfaceTolerance, int dilationIterations)
         {
-            DilateIntoInvalidProbes(0.25f, 2);
+            if (backfaceTolerance == this.backfaceTolerance && dilationIterations == this.dilationIterations)
+                return;
+
+            float[] validityBackup = new float[dataValidity.Length];
+            Array.Copy(dataValidity, validityBackup, dataValidity.Length);
+
+            DilateIntoInvalidProbes(backfaceTolerance, dilationIterations);
+
+            Array.Copy(validityBackup, dataValidity, validityBackup.Length);
+
+            this.backfaceTolerance = backfaceTolerance;
+            this.dilationIterations = dilationIterations;
         }
 #endif
     }

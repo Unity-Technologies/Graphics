@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string k_VolumeHeader = "Volume";
             public const string k_ProbesHeader = "Probes";
+            public const string k_BakingHeader = "Baking";
 
             public static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -35,6 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent s_VolumeBlendModeLabel = new GUIContent("Volume Blend Mode", "A blending mode for the entire volume when overlapping others.");
             public static readonly GUIContent s_WeightLabel = new GUIContent("Weight", "Weigh the probe contribution for the entire volume.");
+
+            public static readonly GUIContent s_BackfaceToleranceLabel = new GUIContent("Backface Tolerance", "The percentage of backfaces sampled per probe is acceptable before probe will receive dilated data.");
+            public static readonly GUIContent s_DilationIterationLabel = new GUIContent("Dilation Iterations", "The number of iterations Dilation copies over data from each probe to its neighbors.");
 
             public static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
 

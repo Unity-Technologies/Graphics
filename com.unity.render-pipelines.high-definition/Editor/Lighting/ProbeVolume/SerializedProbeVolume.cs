@@ -30,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty distanceFadeStart;
         public SerializedProperty distanceFadeEnd;
 
+        public SerializedProperty backfaceTolerance;
+        public SerializedProperty dilationIterations;
+
         SerializedObject m_SerializedObject;
 
         public SerializedProbeVolume(SerializedObject serializedObject)
@@ -65,6 +68,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             distanceFadeStart = probeVolumeParams.FindPropertyRelative("distanceFadeStart");
             distanceFadeEnd   = probeVolumeParams.FindPropertyRelative("distanceFadeEnd");
+
+            backfaceTolerance = probeVolumeParams.FindPropertyRelative("backfaceTolerance");
+            dilationIterations = probeVolumeParams.FindPropertyRelative("dilationIterations");
         }
 
         public void Apply()

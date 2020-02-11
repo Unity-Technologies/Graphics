@@ -14,11 +14,13 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Expandable
         {
             Volume = 1 << 0,
-            Probes = 1 << 1
+            Probes = 1 << 1,
+            Baking = 1 << 2
         }
 
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateVolume = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
+        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.FoldoutGroup(
@@ -37,7 +39,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_PrimarySettings
                 ),
             CED.space,
-            CED.Group(
+            CED.FoldoutGroup(
+                Styles.k_BakingHeader,
+                Expandable.Baking,
+                k_ExpandedStateBaking,
                 Drawer_BakeToolBar
                 )
             );
@@ -45,7 +50,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
-            GUILayout.FlexibleSpace();
+
+            EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
+            EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
+
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Bake"))
             {

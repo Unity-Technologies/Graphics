@@ -54,6 +54,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeBlendMode volumeBlendMode;
         public float weight;
 
+        public float backfaceTolerance;
+        public int dilationIterations;
+
         public Vector3 positiveFade
         {
             get
@@ -115,6 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
             this.densityZ = (float)this.resolutionZ / this.size.z;
             this.volumeBlendMode = VolumeBlendMode.Normal;
             this.weight = 1;
+            this.dilationIterations = 2;
+            this.backfaceTolerance = 0.25f;
         }
 
         public void Constrain()
@@ -351,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.AssetDatabase.Refresh();
         }
 
-        protected void OnBakeCompleted()
+        protected void OnProbesBakeCompleted()
         {
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
                 return;
@@ -396,8 +401,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
 
-                probeVolumeAsset.Dilate();
-
                 UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
                 UnityEditor.AssetDatabase.Refresh();
 
@@ -409,9 +412,19 @@ namespace UnityEngine.Rendering.HighDefinition
             octahedralDepth.Dispose();
         }
 
+        public void OnBakeCompleted()
+        {
+            if (!probeVolumeAsset)
+                return;
+
+            probeVolumeAsset.Dilate(parameters.backfaceTolerance, parameters.dilationIterations);
+            dataUpdated = true;
+        }
+
         public void DisableBaking()
         {
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared -= OnLightingDataAssetCleared;
@@ -422,7 +435,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EnableBaking()
         {
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnProbesBakeCompleted;
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
 
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
