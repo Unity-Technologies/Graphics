@@ -176,6 +176,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.sssDiffuseLightingBuffer = builder.WriteTexture(lightingBuffers.diffuseLightingBuffer);
                 }
+                else
+                {
+                    // TODO RENDERGRAPH: Check how to avoid this kind of pattern.
+                    // Unfortunately, the low level needs this texture to always be bound with UAV enabled, so in order to avoid effectively creating the full resolution texture here,
+                    // we need to create a small dummy texture.
+                    passData.sssDiffuseLightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(1, 1, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true } ));
+                }
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
 
@@ -196,8 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     data.resources.colorBuffers = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
                     data.resources.colorBuffers[0] = context.resources.GetTexture(data.colorBuffer);
-                    if (data.parameters.outputSplitLighting)
-                        data.resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
+                    data.resources.colorBuffers[1] = context.resources.GetTexture(data.sssDiffuseLightingBuffer);
                     data.resources.depthStencilBuffer = context.resources.GetTexture(data.depthBuffer);
                     data.resources.depthTexture = context.resources.GetTexture(data.depthTexture);
 
