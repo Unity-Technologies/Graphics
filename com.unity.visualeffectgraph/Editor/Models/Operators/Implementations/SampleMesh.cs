@@ -43,9 +43,28 @@ namespace UnityEditor.VFX.Operator
             Custom
         };
 
-        // TODO: support flags/mask UI, for outputting multiple attributes from one operator
-        [VFXSetting, SerializeField, Tooltip("Specifies read output during mesh sampling")]
-        private VertexAttribute output = VertexAttribute.Position;
+        [Flags]
+        public enum VertexAttributeFlag
+        {
+            None = 0,
+            Position = 1 << 0,
+            Normal = 1 << 2,
+            Tangent = 1 << 3,
+            Color = 1 << 4,
+            TexCoord0 = 1 << 5,
+            TexCoord1 = 1 << 6,
+            TexCoord2 = 1 << 7,
+            TexCoord3 = 1 << 8,
+            TexCoord4 = 1 << 9,
+            TexCoord5 = 1 << 10,
+            TexCoord6 = 1 << 11,
+            TexCoord7 = 1 << 12,
+            BlendWeight = 1 << 13,
+            BlendIndices = 1 << 14
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies read output during mesh sampling")]
+        private VertexAttributeFlag output = VertexAttributeFlag.Position | VertexAttributeFlag.Color | VertexAttributeFlag.TexCoord0;
 
         [VFXSetting, SerializeField, Tooltip("Specifies the selection mode, embedded random or custom index sampling")]
         private SelectionMode selection = SelectionMode.Random;
@@ -58,6 +77,19 @@ namespace UnityEditor.VFX.Operator
 
         [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
         private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+
+        private bool HasOutput(VertexAttributeFlag flag)
+        {
+            return (output & flag) == flag;
+        }
+
+        private IEnumerable<VertexAttributeFlag> GetOutputVertexAttributes()
+        {
+            var vertexAttributes = Enum.GetValues(typeof(VertexAttributeFlag)).Cast<VertexAttributeFlag>();
+            foreach (var vertexAttribute in vertexAttributes)
+                if (vertexAttribute != VertexAttributeFlag.None && HasOutput(vertexAttribute))
+                    yield return vertexAttribute;
+        }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -75,26 +107,47 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        private Type GetOutputType()
+        private static Type GetOutputType(VertexAttributeFlag attribute)
         {
-            switch (output)
+            switch (attribute)
             {
-                case VertexAttribute.Position: return typeof(Vector3);
-                case VertexAttribute.Normal: return typeof(Vector3);
-                case VertexAttribute.Tangent: return typeof(Vector4);
-                case VertexAttribute.Color: return typeof(Vector4);
-                case VertexAttribute.TexCoord0:
-                case VertexAttribute.TexCoord1:
-                case VertexAttribute.TexCoord2:
-                case VertexAttribute.TexCoord3:
-                case VertexAttribute.TexCoord4:
-                case VertexAttribute.TexCoord5:
-                case VertexAttribute.TexCoord6:
-                case VertexAttribute.TexCoord7: return typeof(Vector2);
-                case VertexAttribute.BlendWeight: return typeof(Vector4);
-                case VertexAttribute.BlendIndices: return typeof(Vector4);
-                default:
-                    throw new NotImplementedException("Unhandled VertexAttribute");
+                case VertexAttributeFlag.Position: return typeof(Vector3);
+                case VertexAttributeFlag.Normal: return typeof(Vector3);
+                case VertexAttributeFlag.Tangent: return typeof(Vector4);
+                case VertexAttributeFlag.Color: return typeof(Vector4);
+                case VertexAttributeFlag.TexCoord0:
+                case VertexAttributeFlag.TexCoord1:
+                case VertexAttributeFlag.TexCoord2:
+                case VertexAttributeFlag.TexCoord3:
+                case VertexAttributeFlag.TexCoord4:
+                case VertexAttributeFlag.TexCoord5:
+                case VertexAttributeFlag.TexCoord6:
+                case VertexAttributeFlag.TexCoord7: return typeof(Vector2);
+                case VertexAttributeFlag.BlendWeight: return typeof(Vector4);
+                case VertexAttributeFlag.BlendIndices: return typeof(Vector4);
+                default: throw new InvalidOperationException("Unexpected attribute : " + attribute);
+            }
+        }
+
+        private static VertexAttribute GetActualVertexAttribute(VertexAttributeFlag attribute)
+        {
+            switch (attribute)
+            {
+                case VertexAttributeFlag.Position: return VertexAttribute.Position;
+                case VertexAttributeFlag.Normal: return VertexAttribute.Normal;
+                case VertexAttributeFlag.Tangent: return VertexAttribute.Tangent;
+                case VertexAttributeFlag.Color: return VertexAttribute.Color;
+                case VertexAttributeFlag.TexCoord0: return VertexAttribute.TexCoord0;
+                case VertexAttributeFlag.TexCoord1: return VertexAttribute.TexCoord1;
+                case VertexAttributeFlag.TexCoord2: return VertexAttribute.TexCoord2;
+                case VertexAttributeFlag.TexCoord3: return VertexAttribute.TexCoord3;
+                case VertexAttributeFlag.TexCoord4: return VertexAttribute.TexCoord4;
+                case VertexAttributeFlag.TexCoord5: return VertexAttribute.TexCoord5;
+                case VertexAttributeFlag.TexCoord6: return VertexAttribute.TexCoord6;
+                case VertexAttributeFlag.TexCoord7: return VertexAttribute.TexCoord7;
+                case VertexAttributeFlag.BlendWeight: return VertexAttribute.BlendWeight;
+                case VertexAttributeFlag.BlendIndices: return VertexAttribute.BlendIndices;
+                default: throw new InvalidOperationException("Unexpected attribute : " + attribute);
             }
         }
 
@@ -102,7 +155,11 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetOutputType(), ""));
+                foreach (var vertexAttribute in GetOutputVertexAttributes())
+                {
+                    var outputType = GetOutputType(vertexAttribute);
+                    yield return new VFXPropertyWithValue(new VFXProperty(outputType, vertexAttribute.ToString()));
+                }
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "count", new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "The number of vertices in this mesh")));
             }
         }
@@ -130,7 +187,6 @@ namespace UnityEditor.VFX.Operator
             var mesh = inputExpression[0];
 
             VFXExpression meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
-            VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)output));
             VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
 
             VFXExpression vertexIndex;
@@ -138,7 +194,7 @@ namespace UnityEditor.VFX.Operator
             {
                 case SelectionMode.Random:
                     {
-                        var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression[1]);
+                        var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression.Length > 1 ? inputExpression[1] : null);
                         vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
                         vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
                     }
@@ -152,19 +208,28 @@ namespace UnityEditor.VFX.Operator
                     throw new NotImplementedException("Unhandled Selection Mode");
             }
 
-            var outputType = GetOutputType();
-            VFXExpression sampled = null;
-            if (output == VertexAttribute.Color)
-                sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-            else if (outputType == typeof(float))
-                sampled = new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-            else if (outputType == typeof(Vector2))
-                sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-            else if (outputType == typeof(Vector3))
-                sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-            else
-                sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-            return new[] { sampled, meshVertexCount };
+            var outputExpressions = new List<VFXExpression>();
+            foreach (var vertexAttribute in GetOutputVertexAttributes())
+            {
+                var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute)));
+
+                var outputType = GetOutputType(vertexAttribute);
+                VFXExpression sampled = null;
+                if (vertexAttribute == VertexAttributeFlag.Color)
+                    sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+                else if (outputType == typeof(float))
+                    sampled = new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+                else if (outputType == typeof(Vector2))
+                    sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+                else if (outputType == typeof(Vector3))
+                    sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+                else
+                    sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
+                outputExpressions.Add(sampled);
+            }
+
+            outputExpressions.Add(meshVertexCount);
+            return outputExpressions.ToArray();
         }
     }
 }
