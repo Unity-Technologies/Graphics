@@ -1,6 +1,8 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
 // Note: All NDF and diffuse term have a version with and without divide by PI.
 // Version with divide by PI are use for direct lighting.
 // Version without divide by PI are use for image based lighting where often the PI cancel during importance sampling
@@ -443,7 +445,12 @@ real3 EvalSensitivity(real opd, real shift)
     real3 var = real3(4.3278e+09, 9.3046e+09, 6.6121e+09);
     real3 xyz = val * sqrt(2.0 * PI * var) * cos(pos * phase + shift) * exp(-var * phase * phase);
     xyz.x += 9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
-    return xyz / 1.0685e-7;
+    xyz /= 1.0685e-7;
+
+    // Convert to linear sRGb color space here.
+    // EvalIridescence works in linear sRGB color space and does not switch...
+    real3 srgb = mul(XYZ_2_REC709_MAT, xyz);
+    return srgb;
 }
 
 // Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
@@ -529,9 +536,8 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
             I += Cm * Sm;
         }
 
-        // Convert back to RGB reflectance
-        //I = clamp(mul(I, XYZ_TO_RGB), real3(0.0, 0.0, 0.0), real3(1.0, 1.0, 1.0));
-        //I = mul(XYZ_TO_RGB, I);
+        // Since out of gamut colors might be produced, negative color values are clamped to 0.
+        I = max(I, float3(0.0, 0.0, 0.0));
     }
 
     return I;

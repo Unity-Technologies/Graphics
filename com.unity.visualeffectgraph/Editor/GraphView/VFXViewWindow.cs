@@ -231,8 +231,6 @@ namespace  UnityEditor.VFX.UI
 
         public bool autoCompile {get; set; }
 
-        public bool autoCompileDependent { get; set; }
-
         void Update()
         {
             if (graphView == null)
@@ -259,9 +257,13 @@ namespace  UnityEditor.VFX.UI
                         {
                             filename += "*";
                         }
+                        if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
+                        {
+                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                        }
+                        else
+                            graph.RecompileIfNeeded(true, true);
 
-
-                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }

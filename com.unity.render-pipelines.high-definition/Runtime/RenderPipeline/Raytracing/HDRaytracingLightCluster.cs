@@ -690,6 +690,10 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int lightIdx = 0; lightIdx < lights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
+
+                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+                if (!probeData.HasValidRenderedData()) continue;
+
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();

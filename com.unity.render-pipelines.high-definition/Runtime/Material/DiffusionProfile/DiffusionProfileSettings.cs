@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    public sealed class DiffusionProfile : IEquatable<DiffusionProfile>
+    class DiffusionProfile : IEquatable<DiffusionProfile>
     {
         public enum TexturingMode : uint
         {
@@ -199,17 +199,18 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
-    public sealed partial class DiffusionProfileSettings : ScriptableObject
+    internal partial class DiffusionProfileSettings : ScriptableObject
     {
-        public DiffusionProfile profile;
+        [SerializeField]
+        internal DiffusionProfile profile;
 
-        [NonSerialized] public Vector4 thicknessRemaps;           // Remap: 0 = start, 1 = end - start
-        [NonSerialized] public Vector4 worldScales;               // X = meters per world unit; Y = world units per meter
-        [NonSerialized] public Vector4 shapeParams;               // RGB = S = 1 / D, A = filter radius
-        [NonSerialized] public Vector4 transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
-        [NonSerialized] public Vector4 disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
-        [NonSerialized] public Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
-        [NonSerialized] public int updateCount;
+        [NonSerialized] internal Vector4 thicknessRemaps;           // Remap: 0 = start, 1 = end - start
+        [NonSerialized] internal Vector4 worldScales;               // X = meters per world unit; Y = world units per meter
+        [NonSerialized] internal Vector4 shapeParams;               // RGB = S = 1 / D, A = filter radius
+        [NonSerialized] internal Vector4 transmissionTintsAndFresnel0; // RGB = color, A = fresnel0
+        [NonSerialized] internal Vector4 disabledTransmissionTintsAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
+        [NonSerialized] internal Vector4[] filterKernels;             // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+        [NonSerialized] internal int updateCount;
 
         void OnEnable()
         {
@@ -267,12 +268,14 @@ namespace UnityEngine.Rendering.HighDefinition
             updateCount++;
         }
 
-        public bool HasChanged(int update)
+        internal bool HasChanged(int update)
         {
             return update == updateCount;
         }
 
-        // Initialize the settings for the default diffusion  profile
+        /// <summary>
+        /// Initialize the settings for the default diffusion profile.
+        /// </summary>
         public void SetDefaultParams()
         {
             worldScales = Vector4.one;
