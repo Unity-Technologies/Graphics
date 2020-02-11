@@ -154,6 +154,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         color.xyz = sum / filterSum;
 #ifdef ENABLE_ALPHA
         inputColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0);
+        color.w = inputColor.w;
 #endif
     }
     else

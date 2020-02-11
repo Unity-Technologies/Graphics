@@ -64,6 +64,7 @@ To customize a Block, you can:
 
 
 * Adjust the settings of a property. Settings are editable values without ports that you cannot connect to other Nodes.
+
 ### Operators
 [Operators](Operators.md) are Nodes that compose the low-level operations of the **property workflow**. You can connect Nodes together to generate custom behaviors. Node networks connect to Ports that belong to Blocks or Contexts.
 

@@ -690,14 +690,6 @@ namespace UnityEditor.VFX.UI
                     {
                         Debug.LogWarning("More than one spawner is linked to the content if the new subgraph, some links we not be kept");
                     }
-
-                    if (outputSpawners.Count > 0)
-                    {
-                        var kvContext = outputSpawners.First();
-
-                        (m_SourceNodeController as VFXContextController).model.LinkFrom(kvContext.Key.model, 0, 2); // linking to trigger
-                        CreateAndLinkEvent(m_SourceControllers, m_TargetController, m_TargetControllers, kvContext.Value, VFXSubgraphContext.triggerEventName);
-                    }
                 }
                 { //link named events as if
                     foreach (var kv in outputEvents)

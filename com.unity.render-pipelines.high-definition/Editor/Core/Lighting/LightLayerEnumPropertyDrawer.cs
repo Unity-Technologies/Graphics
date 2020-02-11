@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomPropertyDrawer(typeof(LightLayerEnum))]
-    public class LightLayerEnumPropertyDrawer : PropertyDrawer
+    class LightLayerEnumPropertyDrawer : PropertyDrawer
     {
         /// <summary>
         /// Draws a light layer enum.

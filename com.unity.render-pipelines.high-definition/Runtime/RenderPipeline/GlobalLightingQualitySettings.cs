@@ -2,12 +2,15 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Global lighting quality settings.
+    /// </summary>
     [Serializable]
     public sealed class GlobalLightingQualitySettings
     {
         static int s_QualitySettingCount = Enum.GetNames(typeof(ScalableSettingLevelParameter.Level)).Length;
 
-        public GlobalLightingQualitySettings()
+        internal GlobalLightingQualitySettings()
         {
             /* Ambient Occlusion */
             AOStepCount[(int)ScalableSettingLevelParameter.Level.Low] = 4;
@@ -41,20 +44,26 @@ namespace UnityEngine.Rendering.HighDefinition
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
         }
 
-        /// <summary>Default GlobalLightingQualitySettings</summary>
-        public static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
+        internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
 
         // SSAO
+        /// <summary>Ambient Occlusion step count for each quality level.</summary>
         public int[] AOStepCount = new int[s_QualitySettingCount];
+        /// <summary>Ambient Occlusion uses full resolution buffer for each quality level.</summary>
         public bool[] AOFullRes = new bool[s_QualitySettingCount];
+        /// <summary>Ambient Occlusion maximum radius for each quality level.</summary>
         public int[] AOMaximumRadiusPixels = new int[s_QualitySettingCount];
+        /// <summary>Ambient Occlusion uses bilateral upsample for each quality level.</summary>
         public bool[] AOBilateralUpsample = new bool[s_QualitySettingCount];
+        /// <summary>Ambient Occlusion direction count for each quality level.</summary>
         public int[] AODirectionCount = new int[s_QualitySettingCount];
 
         // Contact Shadows
+        /// <summary>Contact shadow sample count for each quality level.</summary>
         public int[] ContactShadowSampleCount = new int[s_QualitySettingCount];
 
         // Screen Space Reflections
+        /// <summary>Maximum number of rays for Screen Space Reflection for each quality level.</summary>
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
