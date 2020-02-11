@@ -88,8 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("VaryingsMeshToPS.texCoord3",        "AttributesMesh.uv3"),
                 new Dependency("VaryingsMeshToPS.texCoord4",        "AttributesMesh.uv4"),
                 new Dependency("VaryingsMeshToPS.texCoord5",        "AttributesMesh.uv5"),
-                new Dependency("VaryingsMeshToPS.texCoord6",        "AttributesMesh.uv6"),
-                new Dependency("VaryingsMeshToPS.texCoord7",        "AttributesMesh.uv7"),
                 new Dependency("VaryingsMeshToPS.color",            "AttributesMesh.color"),
                 new Dependency("VaryingsMeshToPS.instanceID",       "AttributesMesh.instanceID"),
             };
@@ -291,8 +289,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("VertexDescriptionInputs.uv3",                       "AttributesMesh.uv3"),
                 new Dependency("VertexDescriptionInputs.uv4",                       "AttributesMesh.uv4"),
                 new Dependency("VertexDescriptionInputs.uv5",                       "AttributesMesh.uv5"),
-                new Dependency("VertexDescriptionInputs.uv6",                       "AttributesMesh.uv6"),
-                new Dependency("VertexDescriptionInputs.uv7",                       "AttributesMesh.uv7"),
                 new Dependency("VertexDescriptionInputs.VertexColor",               "AttributesMesh.color"),
 
                 new Dependency("VertexDescriptionInputs.BoneWeights",               "AttributesMesh.weights"),
@@ -397,8 +393,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 activeFields.AddAll("VertexDescriptionInputs.BoneIndices");
                 activeFields.AddAll("VertexDescriptionInputs.uv4");
                 activeFields.AddAll("VertexDescriptionInputs.uv5");
-                activeFields.AddAll("VertexDescriptionInputs.uv6");
-                activeFields.AddAll("VertexDescriptionInputs.uv7");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())

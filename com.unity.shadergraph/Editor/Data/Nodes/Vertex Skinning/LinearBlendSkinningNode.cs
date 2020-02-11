@@ -106,10 +106,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if(m_BoneCountType == BoneCountType.PerVerteBoneCount8)
                 {
-                    sb.AppendLine("$precision4 BoneIndices4_8 = $precision4(IN.uv4.x, IN.uv5.x, IN.uv6.x, IN.uv7.x);");
-                    sb.AppendLine("$precision4 BoneWeights4_8 = $precision4(IN.uv4.y, IN.uv5.y, IN.uv6.y, IN.uv7.y);");
-                    sb.AppendLine("$precision1 denormalizeScale = 1.0f - (BoneWeights4_8.x + BoneWeights4_8.y + BoneWeights4_8.z + BoneWeights4_8.w);");                
-                    sb.AppendLine("{0}(IN.BoneIndices, BoneIndices4_8, (int)(({1})), IN.BoneWeights * denormalizeScale, BoneWeights4_8, {2}, {3}, {4}, {5}, {6}, {7});",
+                    sb.AppendLine("$precision1 denormalizeScale = 1.0f - (IN.uv5.x + IN.uv5.y + IN.uv5.z + IN.uv5.w);");                
+                    sb.AppendLine("{0}(IN.BoneIndices, IN.uv4, (int)(({1})), IN.BoneWeights * denormalizeScale, IN.uv5, {2}, {3}, {4}, {5}, {6}, {7});",
                         GetFunctionName(),
                         GetSlotValue(kSkinMatricesOffsetSlotId, generationMode),
                         GetSlotValue(kPositionSlotId, generationMode),
