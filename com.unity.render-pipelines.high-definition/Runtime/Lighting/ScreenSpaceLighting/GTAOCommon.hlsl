@@ -10,6 +10,7 @@ float4 _AOParams1;
 float4 _AOParams2;
 float4 _AOParams3;
 float4 _AOParams4;
+float4 _FirstTwoDepthMipOffsets;
 float4 _AODepthToViewParams;
 CBUFFER_END
 
@@ -23,8 +24,10 @@ CBUFFER_END
 #define _AOTemporalRotationIdx _AOParams1.w
 #define _AOInvStepCountPlusOne _AOParams2.z
 #define _AOMaxRadiusInPixels (int)_AOParams2.w
-#define _AORTHandleSize _AOParams2.xy
+#define _AOHistorySize _AOParams2.xy
 #define _AODirectionCount _AOParams4.x
+#define _FirstDepthMipOffset _FirstTwoDepthMipOffsets.xy
+#define _SecondDepthMipOffset _FirstTwoDepthMipOffsets.zw
 
 // For denoising, whether temporal or not
 #define _BlurTolerance _AOParams3.x
@@ -85,7 +88,7 @@ float GetDepthForCentral(float2 positionSS)
     return GetMinDepth(localUVs);
 #else
 
-    return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + (uint2)positionSS.xy).r;
 #endif
 
 #endif
@@ -101,7 +104,7 @@ float GetDepthSample(float2 positionSS, bool lowerRes)
 #ifdef FULL_RES
 
 #if HALF_RES_DEPTH_WHEN_FULL_RES
-    return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + positionSS / 2).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + positionSS / 2).r;
 #endif
 
     return LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
@@ -112,12 +115,12 @@ float GetDepthSample(float2 positionSS, bool lowerRes)
 #if LOWER_RES_SAMPLE
     if (lowerRes)
     {
-        return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(_AORTHandleSize.x * 0.5f, _AORTHandleSize.y) + (uint2)positionSS.xy / 2).r;
+        return LOAD_TEXTURE2D_X(_CameraDepthTexture, _SecondDepthMipOffset + (uint2)positionSS.xy / 2).r;
     }
     else
 #endif
     {
-        return LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(0.0f, _AORTHandleSize.y) + (uint2)positionSS.xy).r;
+        return LOAD_TEXTURE2D_X(_CameraDepthTexture, _FirstDepthMipOffset + (uint2)positionSS.xy).r;
     }
 #endif
 }
@@ -134,8 +137,8 @@ float GTAOFastAcos(float x)
 // --------------------------------------------
 float PackAOOutput(float AO, float depth)
 {
-    uint packedDepth = f32tof16(depth) << 16;
-    uint packedAO = f32tof16(AO);
+    uint packedDepth = PackFloatToUInt(depth, 0, 23);
+    uint packedAO = PackFloatToUInt(AO, 24, 8);
     uint packedVal = packedAO | packedDepth;
     // If it is a NaN we have no guarantee the sampler will keep the bit pattern, hence we invalidate the depth, meaning that the various bilateral passes will skip the sample.
     if ((packedVal & 0x7FFFFFFF) > 0x7F800000)
@@ -149,8 +152,8 @@ float PackAOOutput(float AO, float depth)
 
 void UnpackData(float data, out float AO, out float depth)
 {
-    depth = f16tof32(asuint(data) >> 16);
-    AO = f16tof32(asuint(data));
+    depth = UnpackUIntToFloat(asuint(data), 0, 23);
+    AO = UnpackUIntToFloat(asuint(data), 24, 8);
 }
 
 void UnpackGatheredData(float4 data, out float4 AOs, out float4 depths)

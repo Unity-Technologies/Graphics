@@ -7,6 +7,10 @@
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
+#if !defined(CTYPE)
+    #define CTYPE float3
+#endif
+
 #if UNITY_REVERSED_Z
     #define COMPARE_DEPTH(a, b) step(b, a)
 #else
@@ -111,16 +115,16 @@ float2 GetClosestFragment(float2 positionSS)
     return positionSS + closest.xy;
 }
 
-float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)
+CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
 {
     // note: only clips towards aabb center (but fast!)
-    float3 center  = 0.5 * (maximum + minimum);
-    float3 extents = 0.5 * (maximum - minimum);
+    CTYPE center  = 0.5 * (maximum + minimum);
+    CTYPE extents = 0.5 * (maximum - minimum);
 
     // This is actually `distance`, however the keyword is reserved
-    float3 offset = color - center;
+    CTYPE offset = color - center;
     
-    float3 ts = abs(extents) / max(abs(offset), 1e-4);
+    CTYPE ts = abs(extents) / max(abs(offset), 1e-4);
     float t = saturate(Min3(ts.x, ts.y,  ts.z));
     return center + offset * t;
 }

@@ -112,6 +112,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     output.mipFogNear.Override(input.mipFogNear.value);
                 if (input.mipFogFar.overrideState)
                     output.mipFogFar.Override(input.mipFogFar.value);
+                if (input.tint.overrideState)
+                    output.tint.Override(input.tint.value);
             }
 
             Fog CreateFogComponentIfNeeded(VolumeProfile profile)

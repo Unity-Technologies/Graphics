@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-    const SceneViewEditMode k_EditShapeWithoutPreservingUV = (SceneViewEditMode)90;
+        const SceneViewEditMode k_EditShapeWithoutPreservingUV = (SceneViewEditMode)90;
         const SceneViewEditMode k_EditShapePreservingUV = (SceneViewEditMode)91;
         const SceneViewEditMode k_EditUV = (SceneViewEditMode)92;
         static readonly SceneViewEditMode[] k_EditVolumeModes = new SceneViewEditMode[]
@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         // Both the DecalProjectorComponent, and the transform will be modified.
                         // The undo system will automatically group all RecordObject() calls here into a single action.
-                        Undo.RecordObject(decalProjector, "Decal Projector Change");
+                        Undo.RecordObject(decalProjector.transform, "Decal Projector Change");
 
                         // Re-center the transform to the center of the decal projector bounds,
                         // while maintaining the world-space coordinates of the decal projector boundings vertices.
@@ -264,12 +264,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 handle.size = decalProjector.size;
                 handle.DrawHull(editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV);
 
-                int controlID = GUIUtility.GetControlID(handle.GetHashCode(), FocusType.Passive);
                 Quaternion arrowRotation = Quaternion.LookRotation(Vector3.down, Vector3.right);
                 float arrowSize = decalProjector.size.z * 0.25f;
                 Vector3 pivot = decalProjector.offset;
                 Vector3 projectedPivot = pivot + decalProjector.size.z * 0.5f * Vector3.back;
-                Handles.ArrowHandleCap(controlID, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
+                Handles.ArrowHandleCap(0, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
 
                 //[TODO: add editable pivot. Uncomment this when ready]
                 //draw pivot

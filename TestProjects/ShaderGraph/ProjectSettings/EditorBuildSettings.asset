@@ -33,6 +33,9 @@ EditorBuildSettings:
     path: Assets/Scenes/TransformNode.unity
     guid: 1dc3dc627ca4fff4ba184eb8f939406b
   - enabled: 1
+    path: Assets/Scenes/NormalMapStressTests.unity
+    guid: 8d4f811a4f241464fb438ad434fbaba4
+  - enabled: 1
     path: Assets/Scenes/InstancedRendering.unity
     guid: e2be1657f285b724c8e4fc40a9ab77fd
   m_configObjects: {}
