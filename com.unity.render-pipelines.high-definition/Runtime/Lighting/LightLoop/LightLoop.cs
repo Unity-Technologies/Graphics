@@ -46,8 +46,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Punctual,
         Area,
         Env,
+        ProbeVolume,
         Decal,
-        DensityVolume,
+        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
     }
 
@@ -61,7 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Env         = 1 << 15,
         Sky         = 1 << 16,
         SSRefraction = 1 << 17,
-        SSReflection = 1 << 18
+        SSReflection = 1 << 18,
+        ProbeVolume = 1 << 19
             // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
     }
 
@@ -149,6 +151,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorAndEdge
     };
 
+        // Warning: These must stay in sync with LightCategory.
+        // Specifically, TileClusterCategoryDebug is used as a bitmask in the debug shader applied as:
+        // (1 << lightCatagory) & tileClusterCategoryDebug
     public enum TileClusterCategoryDebug : int
     {
         Punctual = 1,
@@ -158,8 +163,9 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndPunctual = 5,
         EnvironmentAndArea = 6,
         EnvironmentAndAreaAndPunctual = 7,
-        Decal = 8,
-        DensityVolumes = 16
+            ProbeVolumes = 8,
+            Decal = 16,
+            DensityVolumes = 32
     };
 
     internal struct ProcessedLightData
@@ -517,6 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightList m_lightList;
         int m_TotalLightCount = 0;
         int m_densityVolumeCount = 0;
+        int m_probeVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -617,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
+        Material m_DebugDisplayProbeVolumeMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
@@ -737,6 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
+            m_DebugDisplayProbeVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayProbeVolumePS);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
@@ -885,6 +894,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
+            CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
         }
 
         void LightLoopNewRender()
@@ -1857,27 +1867,35 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
+        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex, float normalBiasDilation = 0.0f)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
+
+            // Used in Probe Volumes:
+            // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
+            // Otherwise, surfaces could bias outside of valid data within a tile.
+            var extentConservativeX = obb.extentX + normalBiasDilation;
+            var extentConservativeY = obb.extentY + normalBiasDilation;
+            var extentConservativeZ = obb.extentZ + normalBiasDilation;
+            var extentConservativeMagnitude = Mathf.Sqrt(extentConservativeX * extentConservativeX + extentConservativeY * extentConservativeY + extentConservativeZ * extentConservativeZ);
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
             var positionVS = worldToView.MultiplyPoint(obb.center);
             var rightVS    = worldToView.MultiplyVector(obb.right);
             var upVS       = worldToView.MultiplyVector(obb.up);
             var forwardVS  = Vector3.Cross(upVS, rightVS);
-            var extents    = new Vector3(obb.extentX, obb.extentY, obb.extentZ);
+            var extents    = new Vector3(extentConservativeX, extentConservativeY, extentConservativeZ);
 
             volumeData.lightVolume   = (uint)LightVolumeType.Box;
             volumeData.lightCategory = (uint)category;
             volumeData.featureFlags  = (uint)featureFlags;
 
             bound.center   = positionVS;
-            bound.boxAxisX = obb.extentX * rightVS;
-            bound.boxAxisY = obb.extentY * upVS;
-            bound.boxAxisZ = obb.extentZ * forwardVS;
-            bound.radius   = extents.magnitude;
+            bound.boxAxisX = extentConservativeX * rightVS;
+            bound.boxAxisY = extentConservativeY * upVS;
+            bound.boxAxisZ = extentConservativeZ * forwardVS;
+            bound.radius   = extentConservativeMagnitude;
             bound.scaleXY.Set(1.0f, 1.0f);
 
             // The culling system culls pixels that are further
@@ -2437,7 +2455,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2505,6 +2523,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
+                m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
+
+                var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
+                float probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias))
+                    ? 0.0f
+                    : settings.normalBiasWS.value;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2522,9 +2546,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightFeatureFlags featureFlags = 0;
                         AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
                     }
+
+
+                    for (int i = 0, n = m_probeVolumeCount; i < n; i++)
+                    {
+                        // Probe volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex, probeVolumeNormalBiasWS);
+                    }
                 }
 
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount + m_probeVolumeCount;
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
 
@@ -2543,6 +2575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetGlobalInt(HDShaderIDs._DensityVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+                cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount);
             }
 
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -2607,6 +2640,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool computeMaterialVariants;
             public bool computeLightVariants;
             public bool skyEnabled;
+            public bool probeVolumeEnabled;
             public LightList lightList;
             public Matrix4x4[] lightListProjscrMatrices;
             public Matrix4x4[] lightListInvProjscrMatrices;
@@ -2758,6 +2792,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
+                    if (parameters.probeVolumeEnabled)
+                    {
+                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
+                    }
                     cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, tileAndCluster.tileFeatureFlags);
                     tileFlagsWritten = true;
@@ -2828,6 +2867,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!parameters.computeLightVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
+                    }
+                    if (parameters.probeVolumeEnabled)
+                    {
+                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
                     // If we haven't run the light list building, we are missing some basic lighting flags.
@@ -2961,6 +3005,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.farClipPlane = camera.farClipPlane;
             parameters.lightList = m_lightList;
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
+            parameters.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_probeVolumeCount > 0;
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
@@ -3841,6 +3886,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         default:
                             break;
                     }
+                }
+            }
+        }
+
+        static void RenderProbeVolumeDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize, Material debugDisplayProbeVolumeMaterial)
+        {
+            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
+            if (lightingDebug.probeVolumeDebugMode != ProbeVolumeDebugMode.None)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDebug)))
+                {
+                    if (lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas)
+                    {
+                        HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                        ProbeVolumeSystem pvs = hdrp.m_ProbeVolumeSystem;
+                        HDCamera hdCamera = debugParameters.hdCamera;
+                        pvs.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, (int)lightingDebug.probeVolumeAtlasSliceMode);
+                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    }
+
                 }
             }
         }

@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _AreaLightCount;
         public uint _EnvLightCount;
         public uint _EnvProxyCount;
+        public uint _ProbeVolumeCount;
         public int  _EnvLightSkyEnabled;         // TODO: make it a bool
         public int _DirectionalShadowIndex;
 

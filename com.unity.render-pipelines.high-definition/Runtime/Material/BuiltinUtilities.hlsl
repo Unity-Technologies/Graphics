@@ -54,13 +54,25 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     else
 #endif
 
-    // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
-    // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
-    // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
-    // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
-    // TODO: optimize more this code.
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
+    // Currently using dynamic branching to avoid introducing more shader variants to our already exploding variant list.
+    if (!_EnableProbeVolumes)
+    {
+        // Sample lightmap/lightprobe/volume proxy
+        builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
+        // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
+        // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
+        // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
+        // TODO: optimize more this code.
+        builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
+    }
+    else
+    {
+        // If Probe Volumes are enabled, we drop contributions from lightmap/lightprobe/volume proxy. Probe Volumes are sampled in light loop.
+        // This is necessary, as we need to add emissiveColor to probe volume lighting, but do not want to add lightmap/lightprobe/volume proxy.
+        builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+        builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    }
+
 
 #ifdef SHADOWS_SHADOWMASK
     float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);

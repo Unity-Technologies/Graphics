@@ -102,6 +102,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProxyVolumeComponent m_ProxyVolume;
 #pragma warning restore 649
 
+//custom-begin: Expose ProbeSettings in full
+        public ProbeSettings probeSettings { get => settings; set => m_ProbeSettings = value; }
+//custom-end:
+
         [SerializeField]
         Texture m_BakedTexture;
         [SerializeField]

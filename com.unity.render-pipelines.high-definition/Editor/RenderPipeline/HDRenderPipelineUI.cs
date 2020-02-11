@@ -866,6 +866,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.k_SupportProbeVolumeContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.k_ProbeVolumeAtlasWidth);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.k_ProbeVolumeAtlasHeight);
+                --EditorGUI.indentLevel;
+            }
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 
@@ -960,6 +969,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.k_SupportProbeVolumeContent);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

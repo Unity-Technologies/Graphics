@@ -42,6 +42,7 @@ uint g_isOrthographic;
 int _EnvLightIndexShift;
 int _DecalIndexShift;
 int _DensityVolumeIndexShift;
+int _ProbeVolumeIndexShift;
 
 float g_fClustScale;
 float g_fClustBase;
@@ -237,7 +238,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     }
 
 #if NR_THREADS > PLATFORM_LANE_COUNT
-    GroupMemoryBarrierWithGroupSync(); 
+    GroupMemoryBarrierWithGroupSync();
 #endif
 
     //float linMaDist=g_fFarPlane;
@@ -398,11 +399,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     // to make it work correctly
     int shiftIndex[LIGHTCATEGORY_COUNT];
     ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-    shiftIndex[LIGHTCATEGORY_COUNT - 3] = _EnvLightIndexShift;
-    shiftIndex[LIGHTCATEGORY_COUNT - 2] = _DecalIndexShift;
-    shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DensityVolumeIndexShift;
+    shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
+    shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
+    shiftIndex[LIGHTCATEGORY_DENSITY_VOLUME] = _DensityVolumeIndexShift;
+    shiftIndex[LIGHTCATEGORY_PROBE_VOLUME] = _ProbeVolumeIndexShift;
 
-    int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals and density volumes
+    int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals, density volumes, and probe volumes
     ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
 
     uint offs = start;

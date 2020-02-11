@@ -92,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+			supportProbeVolume = false,
+            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
         };
 
         [Serializable]
@@ -139,9 +141,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
         public bool supportTerrainHole;
+        public bool supportProbeVolume;
         public bool supportRayTracing;
         public RaytracingTier supportedRaytracingTier;
 
+        public GlobalProbeVolumeSettings probeVolumeSettings;
         public GlobalLightLoopSettings lightLoopSettings;
         public HDShadowInitParameters hdShadowInitParams;
         public GlobalDecalSettings decalSettings;

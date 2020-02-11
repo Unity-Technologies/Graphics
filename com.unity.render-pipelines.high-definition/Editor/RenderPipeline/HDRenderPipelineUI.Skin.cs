@@ -109,6 +109,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
             public static readonly GUIContent raytracingTier = EditorGUIUtility.TrTextContent("Raytracing Tier");
+            public static readonly GUIContent k_SupportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume Diffuse Global Illumination", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
+        public static readonly GUIContent k_ProbeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas width", "Width of the atlas containing visible ProbeVolumes.");
+        public static readonly GUIContent k_ProbeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas height", "Height of the atlas containing visible ProbeVolumes.");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
@@ -214,7 +217,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportTransparentBackface         , shaderVariantDrawback },
                 { supportTransparentDepthPrepass     , shaderVariantDrawback },
                 { supportTransparentDepthPostpass    , shaderVariantDrawback },
-                { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) }
+            { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
+            { k_SupportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) },
+            { k_ProbeVolumeAtlasWidth              , memoryDrawback },
+            { k_ProbeVolumeAtlasHeight             , memoryDrawback },
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>
