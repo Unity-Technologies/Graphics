@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
                 else if (VFXExpression.IsTextureOrMesh(exp.valueType))
                 {
                     prefix = VFXExpression.IsMesh(exp.valueType) ? "mesh_" : "texture_";
-                    expressions = m_TextureToName;
+                    expressions = m_BufferToName;
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
         private void Init(VFXExpressionMapper mapper)
         {
             m_UniformToName = new Dictionary<VFXExpression, List<string>>();
-            m_TextureToName = new Dictionary<VFXExpression, List<string>>();
+            m_BufferToName = new Dictionary<VFXExpression, List<string>>();
 
             var processedExp = new HashSet<VFXExpression>();
             foreach (var exp in mapper.expressions)
@@ -86,12 +86,12 @@ namespace UnityEditor.VFX
         }
 
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
-        public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
+        public IEnumerable<VFXExpression> buffers { get { return m_BufferToName.Keys; } }
 
         // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
-        public string GetName(VFXExpression exp)        { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_TextureToName[exp].First() : m_UniformToName[exp].First(); }
+        public string GetName(VFXExpression exp)        { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_BufferToName[exp].First() : m_UniformToName[exp].First(); }
 
-        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTextureOrMesh(exp.valueType) ? m_BufferToName[exp] : m_UniformToName[exp]; }
 
         // This retrieves expression to name with additional type conversion where suitable
         public Dictionary<VFXExpression, string> expressionToCode
@@ -118,12 +118,12 @@ namespace UnityEditor.VFX
                     }
 
                     return new KeyValuePair<VFXExpression, string>(s.Key, code);
-                }).Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
+                }).Union(m_BufferToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
             }
         }
 
         private Dictionary<VFXExpression, List<string>> m_UniformToName;
-        private Dictionary<VFXExpression, List<string>> m_TextureToName;
+        private Dictionary<VFXExpression, List<string>> m_BufferToName;
         private bool m_FilterOutConstants;
     }
 }

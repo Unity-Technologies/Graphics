@@ -215,13 +215,13 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public void WriteTexturesAndMeshes(VFXUniformMapper mapper)
+        public void WriteBuffers(VFXUniformMapper mapper)
         {
-            foreach (var texture in mapper.textures)
+            foreach (var buffer in mapper.buffers)
             {
-                string name = mapper.GetName(texture);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType),name);
-                if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
+                string name = mapper.GetName(buffer);
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType),name);
+                if (VFXExpression.IsTexture(buffer.valueType)) //Mesh doesn't require a sampler or texel helper
                 {
                     WriteLineFormat("SamplerState sampler{0};", name);
                     WriteLineFormat("float4 {0}_TexelSize;", name);

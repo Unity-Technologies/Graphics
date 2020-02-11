@@ -742,7 +742,7 @@ namespace UnityEditor.VFX
                 }
 
                 uniformMappings.Clear();
-                foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
+                foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.buffers))
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
                 // Retrieve all cpu mappings at context level (-1)

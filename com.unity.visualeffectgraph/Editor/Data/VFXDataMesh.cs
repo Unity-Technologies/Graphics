@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
             var contextData = contextToCompiledData[context];
 
             var mappings = new List<VFXMapping>();
-            foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
+            foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.buffers))
             {
                 int exprIndex = expressionGraph.GetFlattenedIndex(uniform);
                 foreach (var name in contextData.uniformMapper.GetNames(uniform))
