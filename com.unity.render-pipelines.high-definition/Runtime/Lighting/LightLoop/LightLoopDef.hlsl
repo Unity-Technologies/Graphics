@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
 // SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
 #if RAYTRACING_ENABLED && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
@@ -18,34 +19,8 @@ struct LightLoopContext
     
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;    // combined fade factor of all contact shadows 
-    real shadowValue;          // Stores the value of the cascade shadow map
+    DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
 };
-
-//-----------------------------------------------------------------------------
-// Cookie sampling functions
-// ----------------------------------------------------------------------------
-
-// Used by directional and spot lights.
-float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index, bool repeat)
-{
-    if (repeat)
-    {
-        // TODO: add MIP maps to combat aliasing?
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_repeat_sampler, coord, index, 0).rgb;
-    }
-    else // clamp
-    {
-        // TODO: add MIP maps to combat aliasing?
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
-    }
-}
-
-// Used by point lights.
-float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
-{
-    // TODO: add MIP maps to combat aliasing?
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
-}
 
 //-----------------------------------------------------------------------------
 // Reflection probe / Sky sampling function
@@ -53,6 +28,9 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
+
+#define PLANAR_ATLAS_SIZE _PlanarAtlasData.x
+#define PLANAR_ATLAS_RCP_MIP_PADDING _PlanarAtlasData.y
 
 // The EnvLightData of the sky light contains a bunch of compile-time constants.
 // This function sets them directly to allow the compiler to propagate them and optimize the code.
@@ -85,6 +63,17 @@ EnvLightData InitSkyEnvLightData(int envIndex)
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
+// Clamp the UVs to avoid edge beelding caused by bilinear filtering on the edge of the atlas.
+float2 RemapUVForPlanarAtlas(float2 coord, float2 size, float lod)
+{
+    float2 scale = rcp(size + PLANAR_ATLAS_RCP_MIP_PADDING) * size;
+    float2 offset = 0.5 * (1.0 - scale);
+
+    // Avoid edge bleeding for texture when sampling with lod by clamping uvs:
+    float2 mipClamp = pow(2, lod) / (size * PLANAR_ATLAS_SIZE * 2);
+    return clamp(coord * scale + offset, mipClamp, 1 - mipClamp);
+}
+
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
@@ -106,7 +95,13 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             //_Env2DCaptureVP is in capture space
             float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
-            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
+            // Apply atlas scale and offset
+            float2 scale = _Env2DAtlasScaleOffset[index].xy;
+            float2 offset = _Env2DAtlasScaleOffset[index].zw;
+            float2 atlasCoords = RemapUVForPlanarAtlas(ndc.xy, scale, lod);
+            atlasCoords = atlasCoords * scale + offset;
+
+            color.rgb = SAMPLE_TEXTURE2D_LOD(_Env2DTextures, s_trilinear_clamp_sampler, atlasCoords, lod).rgb;
 #if UNITY_REVERSED_Z
             // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
             //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
@@ -377,7 +372,15 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask,
     return 1.0 - occluded * lerp(lightLoopContext.contactShadowFade, 1.0, rayTracedShadow) * _ContactShadowOpacity;
 }
 
-float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)
+float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
 {
-    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex)).x;
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
+}
+
+float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
+{
+    float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
+    return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx; 
 }

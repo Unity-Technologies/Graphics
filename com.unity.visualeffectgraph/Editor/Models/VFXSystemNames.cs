@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using UnityEditor;
-using NUnit.Framework;
 using System.Runtime.CompilerServices;
 
 using SysRegex = System.Text.RegularExpressions.Regex;

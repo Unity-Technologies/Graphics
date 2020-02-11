@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected int m_ShadowMaskIndex = -1;
         protected int m_LightLayers = -1;
         protected HDRenderPipelineAsset m_asset;
-        // We need to store current set of RT to bind exactly, as we can have dynamic RT (LightLayers, ShadowMask), we allocated an array for each possible size (to avoid gardbage collect pressure)
+        // We need to store current set of RT to bind exactly, as we can have dynamic RT (LightLayers, ShadowMask), we allocated an array for each possible size (to avoid garbage collect pressure)
         protected RenderTargetIdentifier[][] m_RTIDsArray = new RenderTargetIdentifier[8][];
 
         public GBufferManager(HDRenderPipelineAsset asset, RenderPipelineMaterial deferredMaterial)

@@ -3,11 +3,17 @@ using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
 {
+    /// <summary>
+    /// DebugUIHandler for Bitfield widget. Require the enum to have a None field set to 0 in it's values.
+    /// </summary>
     public class DebugUIHandlerBitField : DebugUIHandlerWidget
     {
+        /// <summary>Name of the widget.</summary>
         public Text nameLabel;
+        /// <summary>Value toggle.</summary>
         public UIFoldout valueToggle;
 
+        /// <summary>Toggles for the bitfield.</summary>
         public List<DebugUIHandlerIndirectToggle> toggles;
 
         DebugUI.BitField m_Field;
@@ -46,20 +52,50 @@ namespace UnityEngine.Rendering.UI
 
         bool GetValue(int index)
         {
-            int intValue = System.Convert.ToInt32(m_Field.GetValue());
-            return (intValue & (1 << index)) != 0;
+            if (index == 0)
+            {
+                // None can't be selected
+                return false;
+            }
+            else
+            {
+                // We need to remove 1 to the index because there is the None element on top of
+                // the enum and it doesn't count in the bit field because it's value is 0
+                index--;
+                int intValue = System.Convert.ToInt32(m_Field.GetValue());
+                return (intValue & (1 << index)) != 0;
+            }
         }
 
         void SetValue(int index, bool value)
         {
-            int intValue = System.Convert.ToInt32(m_Field.GetValue());
-            if (value)
-                intValue |= m_Field.enumValues[index];
+            if (index == 0)
+            {
+                // None was selected so we reset all the bits to false
+                m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, 0));
+                foreach (var toggle in toggles)
+                {
+                    if (toggle.getter != null)
+                        toggle.UpdateValueLabel();
+                }
+            }
             else
-                intValue &= ~m_Field.enumValues[index];
-            m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, intValue));
+            {
+                int intValue = System.Convert.ToInt32(m_Field.GetValue());
+                if (value)
+                    intValue |= m_Field.enumValues[index];
+                else
+                    intValue &= ~m_Field.enumValues[index];
+                m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, intValue));
+            }
         }
 
+        /// <summary>
+        /// OnSelection implementation.
+        /// </summary>
+        /// <param name="fromNext">True if the selection wrapped around.</param>
+        /// <param name="previous">Previous widget.</param>
+        /// <returns>True if the selection is allowed.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             if (fromNext || valueToggle.isOn == false)
@@ -82,26 +118,44 @@ namespace UnityEngine.Rendering.UI
             return true;
         }
 
+        /// <summary>
+        /// OnDeselection implementation.
+        /// </summary>
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
         }
 
+        /// <summary>
+        /// OnIncrement implementation.
+        /// </summary>
+        /// <param name="fast">True if incrementing fast.</param>
         public override void OnIncrement(bool fast)
         {
             valueToggle.isOn = true;
         }
 
+        /// <summary>
+        /// OnDecrement implementation.
+        /// </summary>
+        /// <param name="fast">Trye if decrementing fast.</param>
         public override void OnDecrement(bool fast)
         {
             valueToggle.isOn = false;
         }
 
+        /// <summary>
+        /// OnAction implementation.
+        /// </summary>
         public override void OnAction()
         {
             valueToggle.isOn = !valueToggle.isOn;
         }
 
+        /// <summary>
+        /// Next implementation.
+        /// </summary>
+        /// <returns>Next widget UI handler, parent if there is none.</returns>
         public override DebugUIHandlerWidget Next()
         {
             if (!valueToggle.isOn || m_Container == null)

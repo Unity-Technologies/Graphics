@@ -4,12 +4,30 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Holds the physical settings set on cameras.
+    /// </summary>
     [Serializable]
     public class HDPhysicalCamera
     {
+        /// <summary>
+        /// The minimum allowed aperture.
+        /// </summary>
         public const float kMinAperture = 1f;
+
+        /// <summary>
+        /// The maximum allowed aperture.
+        /// </summary>
         public const float kMaxAperture = 32f;
+
+        /// <summary>
+        /// The minimum blade count for the aperture diaphragm.
+        /// </summary>
         public const int kMinBladeCount = 3;
+
+        /// <summary>
+        /// The maximum blade count for the aperture diaphragm.
+        /// </summary>
         public const int kMaxBladeCount = 11;
 
         // Camera body
@@ -26,31 +44,45 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
         [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
 
-        // Property binding / validation
+        /// <summary>
+        /// The sensor sensitivity (ISO).
+        /// </summary>
         public int iso
         {
             get => m_Iso;
             set => m_Iso = Mathf.Max(value, 1);
         }
 
+        /// <summary>
+        /// The exposure time, in second.
+        /// </summary>
         public float shutterSpeed
         {
             get => m_ShutterSpeed;
             set => m_ShutterSpeed = Mathf.Max(value, 0f);
         }
 
+        /// <summary>
+        /// The aperture number, in f-stop.
+        /// </summary>
         public float aperture
         {
             get => m_Aperture;
             set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
         }
 
+        /// <summary>
+        /// The number of diaphragm blades.
+        /// </summary>
         public int bladeCount
         {
             get => m_BladeCount;
             set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
         }
 
+        /// <summary>
+        /// Maps an aperture range to blade curvature.
+        /// </summary>
         public Vector2 curvature
         {
             get => m_Curvature;
@@ -61,18 +93,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// The strength of the "cat eye" effect on bokeh (optical vignetting).
+        /// </summary>
         public float barrelClipping
         {
             get => m_BarrelClipping;
             set => m_BarrelClipping = Mathf.Clamp01(value);
         }
 
+        /// <summary>
+        /// Stretches the sensor to simulate an anamorphic look. Positive values distort the Camera
+        /// vertically, negative will distort the Camera horizontally.
+        /// </summary>
         public float anamorphism
         {
             get => m_Anamorphism;
             set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
         }
 
+        /// <summary>
+        /// Copies the settings of this instance to another instance.
+        /// </summary>
+        /// <param name="c">The instance to copy the settings to.</param>
         public void CopyTo(HDPhysicalCamera c)
         {
             c.iso = iso;
@@ -85,25 +128,42 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Additional component that holds HDRP specific parameters for Cameras.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
     public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
     {
+        /// <summary>
+        /// How the camera should handle vertically flipping the frame at the end of rendering.
+        /// </summary>
         public enum FlipYMode
         {
+            /// <summary>Handle flip automatically.</summary>
             Automatic,
+            /// <summary>For vertical flip.</summary>
             ForceFlipY
         }
 
+        /// <summary>
+        /// Type of buffers that can be accessed for this camera.
+        /// </summary>
         [Flags]
         public enum BufferAccessType
         {
+            /// <summary>Depth buffer.</summary>
             Depth = 1,
+            /// <summary>Normal buffer.</summary>
             Normal = 1 << 1,
+            /// <summary>Color buffer.</summary>
             Color = 1 << 2
         }
 
+        /// <summary>
+        /// Structure used to access graphics buffers for this camera.
+        /// </summary>
         public struct BufferAccess
         {
             internal BufferAccessType bufferAccess;
@@ -113,6 +173,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bufferAccess = 0;
             }
 
+            /// <summary>
+            /// Request access to a list of buffer in the form of a bitfield.
+            /// </summary>
+            /// <param name="flags">List of buffers that need to be accessed.</param>
             public void RequestAccess(BufferAccessType flags)
             {
                 bufferAccess |= flags;
@@ -122,89 +186,132 @@ namespace UnityEngine.Rendering.HighDefinition
         // The light culling use standard projection matrices (non-oblique)
         // If the user overrides the projection matrix with an oblique one
         // He must also provide a callback to get the equivalent non oblique for the culling
+        /// <summary>
+        /// Returns the non oblique projection matrix for a particular camera.
+        /// </summary>
+        /// <param name="camera">Requested camera.</param>
+        /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
         Camera m_Camera;
 
+        /// <summary>
+        /// Clear mode for the camera background.
+        /// </summary>
         public enum ClearColorMode
         {
+            /// <summary>Clear the background with the sky.</summary>
             Sky,
+            /// <summary>Clear the background with a constant color.</summary>
             Color,
+            /// <summary>Don't clear the background.</summary>
             None
         };
 
+        /// <summary>
+        /// Anti-aliasing mode.
+        /// </summary>
         public enum AntialiasingMode
         {
+            /// <summary>No Anti-aliasing.</summary>
             None,
+            /// <summary>FXAA.</summary>
             FastApproximateAntialiasing,
+            /// <summary>Temporal anti-aliasing.</summary>
             TemporalAntialiasing,
+            /// <summary>SMAA.</summary>
             SubpixelMorphologicalAntiAliasing
         }
 
+        /// <summary>
+        /// SMAA quality level.
+        /// </summary>
         public enum SMAAQualityLevel
         {
+            /// <summary>Low quality.</summary>
             Low,
+            /// <summary>Medium quality.</summary>
             Medium,
+            /// <summary>High quality.</summary>
             High
         }
 
-
+        /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
+        /// <summary>HDR color used for clearing the camera background.</summary>
         [ColorUsage(true, true)]
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
+        /// <summary>Clear depth as well as color.</summary>
         public bool clearDepth = true;
 
-
+        /// <summary>Layer mask used to select which volumes will influence this camera.</summary>
         [Tooltip("LayerMask HDRP uses for Volume interpolation for this Camera.")]
         public LayerMask volumeLayerMask = 1;
 
+        /// <summary>Optional transform override for the position where volumes are interpolated.</summary>
         public Transform volumeAnchorOverride;
 
+        /// <summary>Anti-aliasing mode.</summary>
         public AntialiasingMode antialiasing = AntialiasingMode.None;
+        /// <summary>Quality of the anti-aliasing when using SMAA.</summary>
         public SMAAQualityLevel SMAAQuality = SMAAQualityLevel.High;
+        /// <summary>Use dithering to filter out minor banding.</summary>
         public bool dithering = false;
+        /// <summary>Use a pass to eliminate NaNs contained in the color buffer before post-processing.</summary>
         public bool stopNaNs = false;
 
+        /// <summary>Strength of the sharpening component of temporal anti-aliasing.</summary>
         [Range(0, 2)]
         public float taaSharpenStrength = 0.6f;
 
-        // Physical parameters
+        /// <summary>Physical camera parameters.</summary>
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
+        /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
 
+        /// <summary>Skips rendering settings to directly render in fullscreen (Useful for video).</summary>
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
 
+        /// <summary>Allows dynamic resolution on buffers linked to this camera.</summary>
         [Tooltip("Allows dynamic resolution on buffers linked to this camera.")]
         public bool allowDynamicResolution = false;
 
-        [Tooltip("Allows you to override the default settings for this Renderer.")]
+        /// <summary>Allows you to override the default frame settings for this camera.</summary>
+        [Tooltip("Allows you to override the default settings for this camera.")]
         public bool customRenderingSettings = false;
 
+        /// <summary>Invert face culling.</summary>
         public bool invertFaceCulling = false;
 
+        /// <summary>Probe layer mask.</summary>
         public LayerMask probeLayerMask = ~0;
 
-        /// <summary>
-        /// Enable to retain history buffers even if the camera is disabled.
-        /// </summary>
+        /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
 
-        // Event used to override HDRP rendering for this particular camera.
+        /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
+        /// <summary>True if any Custom Render event is registered for this camera.</summary>
         public bool hasCustomRender { get { return customRender != null; } }
-
+        /// <summary>
+        /// Delegate used to request access to various buffers of this camera.
+        /// </summary>
+        /// <param name="bufferAccess">Ref to a BufferAccess structure on which users should specify which buffer(s) they need.</param>
         public delegate void RequestAccessDelegate(ref BufferAccess bufferAccess);
+        /// <summary>RequestAccessDelegate used to request access to various buffers of this camera.</summary>
         public event RequestAccessDelegate requestGraphicsBuffer;
 
         internal float probeCustomFixedExposure = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
+        /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+        /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
-
+        /// <summary>Custom frame settings.</summary>
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
 
         bool IFrameSettingsHistoryContainer.hasCustomFrameSettings
@@ -230,11 +337,17 @@ namespace UnityEngine.Rendering.HighDefinition
         string IFrameSettingsHistoryContainer.panelName
             => m_CameraRegisterName;
 
+        /// <summary>
+        /// .
+        /// </summary>
+        /// <returns>.</returns>
         Action IDebugData.GetReset()
                 //caution: we actually need to retrieve the right
                 //m_FrameSettingsHistory as it is a struct so no direct
                 // => m_FrameSettingsHistory.TriggerReset
                 => () => m_RenderingPathHistory.TriggerReset();
+
+        internal ProfilingSampler profilingSampler;
 
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
@@ -261,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///     [SerializeField] private MaterialSharedProperty m_MaterialSharedProperty;
         ///     [SerializeField] private LightingProperty m_LightingProperty;
         ///     [SerializeField] private AOVBuffers m_BuffersToCopy;
-        ///     [SerializeField] private List<GameObject> m_IncludedLights;
+        ///     [SerializeField] private List&lt;GameObject&gt; m_IncludedLights;
         ///
         ///
         ///     void OnEnable()
@@ -275,12 +388,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ///         if (m_LightingProperty != LightingProperty.None)
         ///             aovRequest = aovRequest.SetFullscreenOutput(m_LightingProperty);
         ///
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(
         ///             new AOVRequestBuilder()
         ///                 .Add(
         ///                     aovRequest,
-        ///                     bufferId => m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
+        ///                     bufferId =&gt; m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
         ///                     m_IncludedLights.Count > 0 ? m_IncludedLights : null,
         ///                     new []{ m_BuffersToCopy },
         ///                     (cmd, textures, properties) =>
@@ -299,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         ///     void OnDisable()
         ///     {
-        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         var add = GetComponent&lt;HDAdditionalCameraData&gt;();
         ///         add.SetAOVRequests(null);
         ///     }
         ///
@@ -335,17 +448,15 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        public bool isDebugRegistred
-        {
-            get => m_IsDebugRegistered;
-            internal set => m_IsDebugRegistered = value;
-        }
-
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
-        public bool isEditorCameraPreview { get; set; }
+        internal bool isEditorCameraPreview { get; set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
+        /// <summary>
+        /// Copy HDAdditionalCameraData.
+        /// </summary>
+        /// <param name="data">Component to copy to.</param>
         public void CopyTo(HDAdditionalCameraData data)
         {
             data.clearColorMode = clearColorMode;
@@ -372,8 +483,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // For custom projection matrices
         // Set the proper getter
+        /// <summary>
+        /// Specify a custom getter for non oblique projection matrix.
+        /// </summary>
         public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
 
+        /// <summary>
+        /// Returns the non oblique projection matrix for this camera.
+        /// </summary>
+        /// <param name="camera">Requested camera.</param>
+        /// <returns>The non oblique projection matrix for this camera.</returns>
         public Matrix4x4 GetNonObliqueProjection(Camera camera)
         {
             return nonObliqueProjectionGetter(camera);
@@ -426,12 +545,16 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterDebug();
 
 #if UNITY_EDITOR
+            UpdateDebugCameraName();
             UnityEditor.EditorApplication.hierarchyChanged += UpdateDebugCameraName;
 #endif
         }
 
         void UpdateDebugCameraName()
         {
+            // Move the garbage generated by accessing name outside of HDRP
+            profilingSampler = new ProfilingSampler(HDUtils.ComputeCameraName(name));
+
             if (name != m_CameraRegisterName)
             {
                 UnRegisterDebug();
@@ -449,7 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        public static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        internal static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
         {
             var camera = cameraData.gameObject.GetComponent<Camera>();
 
@@ -463,7 +586,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraData.clearColorMode = ClearColorMode.None;
         }
 
-        public void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
+        internal void ExecuteCustomRender(ScriptableRenderContext renderContext, HDCamera hdCamera)
         {
             if (customRender != null)
             {
@@ -478,6 +601,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return result.bufferAccess;
         }
 
+        /// <summary>
+        /// Returns the requested graphics buffer.
+        /// Users should use the requestGraphicsBuffer event to make sure that the required buffers are requested first.
+        /// Note that depending on the current frame settings some buffers may not be available.
+        /// </summary>
+        /// <param name="type">Type of the requested buffer.</param>
+        /// <returns>Requested buffer as a RTHandle. Can be null if the buffer is not available.</returns>
         public RTHandle GetGraphicsBuffer(BufferAccessType type)
         {
             HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);

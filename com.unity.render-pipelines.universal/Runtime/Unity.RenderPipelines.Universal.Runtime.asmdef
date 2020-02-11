@@ -14,11 +14,6 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "com.unity.postprocessing",
-            "expression": "2.0.0",
-            "define": "POST_PROCESSING_STACK_2_0_0_OR_NEWER"
-        },
-        {
             "name": "com.unity.visualeffectgraph",
             "expression": "0.0.1",
             "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"

@@ -26,6 +26,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
     }
 
+
     public void Setup()
     {
         new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup();
@@ -48,7 +49,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             EditorUtility.ClearProgressBar();
         }
 
-        var bundlePath = "VFX_Bundle_Test";
+        var bundlePath = Unity.Testing.VisualEffectGraph.LoadVFXFromAssetBundle.GetAssetBundleBasePath();
         if (!Directory.Exists(bundlePath))
         {
             Directory.CreateDirectory(bundlePath);

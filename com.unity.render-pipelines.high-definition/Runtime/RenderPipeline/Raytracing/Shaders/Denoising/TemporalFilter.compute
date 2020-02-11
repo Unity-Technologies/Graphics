@@ -1,12 +1,14 @@
 #pragma kernel ValidateHistory
 
-#pragma kernel TemporalAccumulationSingle           TEMPORAL_ACCUMULATION=TemporalAccumulationSingle SINGLE_CHANNEL
-#pragma kernel TemporalAccumulationColor            TEMPORAL_ACCUMULATION=TemporalAccumulationColor
-#pragma kernel TemporalAccumulationSingleArray      TEMPORAL_ACCUMULATION=TemporalAccumulationSingleArray SINGLE_CHANNEL HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationSingle                       TEMPORAL_ACCUMULATION=TemporalAccumulationSingle SINGLE_CHANNEL
+#pragma kernel TemporalAccumulationSingleArray                  TEMPORAL_ACCUMULATION=TemporalAccumulationSingleArray SINGLE_CHANNEL HISTORY_IS_ARRAY
+#pragma kernel TemporalAccumulationColor                        TEMPORAL_ACCUMULATION=TemporalAccumulationColor
+#pragma kernel TemporalAccumulationColorArray                   TEMPORAL_ACCUMULATION=TemporalAccumulationColorArray HISTORY_IS_ARRAY
 
-#pragma kernel CopyHistorySingle                    COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
-#pragma kernel CopyHistoryColor                     COPY_HISTORY=CopyHistoryColor 
-#pragma kernel CopyHistorySingleArray               COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
+#pragma kernel CopyHistorySingle                                COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
+#pragma kernel CopyHistorySingleArray                           COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
+#pragma kernel CopyHistoryColor                                 COPY_HISTORY=CopyHistoryColor 
+#pragma kernel CopyHistoryColorArray                            COPY_HISTORY=CopyHistoryColorArray OUTPUT_IS_ARRAY
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -20,7 +22,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11
+// #pragma enable_d3d11_debug_symbols
 
 // Tile size of this compute shaders
 #define TEMPORAL_FILTER_TILE_SIZE 8
@@ -32,13 +35,22 @@ TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
 TEXTURE2D_X(_HistoryNormalBufferTexture);
 // Buffer that stores the result of the validation pass of the history
-RW_TEXTURE2D_X(uint, _ValidationBufferRW);
-
-// The maximal world space distance
-#define MAX_WORLD_SPACE_DISTANCE 0.75
-#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+RW_TEXTURE2D_X(float, _ValidationBufferRW);
+// Velocity buffer for history rejection
+TEXTURE2D_X(_VelocityBuffer);
+// This holds the fov angle of a pixel
 float _PixelSpreadAngleTangent;
+// Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
+
+// The maximal world space distance for temporal reprojection
+#define MAX_WORLD_SPACE_DISTANCE 0.1
+// The maximal pixel reprojection distance
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+// The maximal normal difference threshold
+#define MAX_NORMAL_DIFFERENCE 0.65
+// The minimal motion distance
+#define MINIMAL_MOTION_DISTANCE 0.001 
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -51,15 +63,13 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
-    if ( depth == UNITY_RAW_FAR_CLIP_VALUE)
+
+    // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || _HistoryValidity == 0.0f)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
     }
-
-    // Real the normal data for this pixel
-    NormalData normalData;
-    DecodeFromNormalBuffer(centerCoord, normalData);
 
     // Decode the velocity of the pixel
     float2 velocity = float2(0.0, 0.0);
@@ -68,27 +78,33 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Compute the pixel coordinate for the history tapping
     int2 historyTapCoord = (int2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
 
-    // Was it outside of the frame?
+    // If the pixel was outside of the screen during the previous frame, invalidate the history
     if (historyTapCoord.x > _ScreenSize.x || historyTapCoord.x < 0 || historyTapCoord.y > _ScreenSize.y || historyTapCoord.y < 0)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
     }
 
-    // Fetch the depth of the history pixel, check if valid
+    // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
     float historyDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, historyTapCoord).r;
-    if ( historyDepth == UNITY_RAW_FAR_CLIP_VALUE || _HistoryValidity == 0.0f)
+    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
     }
 
+
+    // Real the normal data for this pixel
+    NormalData normalData;
+    DecodeFromNormalBuffer(centerCoord, normalData);
+
     // Compute the world space position (from previous frame)
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
-    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel.
+    float3 viewWS = normalize(-posInputs.positionWS);
     float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
-    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, -GetViewForwardDir()));
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
     float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Is it too far from the current position?
@@ -103,8 +119,16 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     NormalData historyNormalData;
     DecodeFromNormalBuffer(historyNormal, uint2(0,0), historyNormalData);
     
-    // Is its normal too different from the current normal?
-    if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.65)
+    // If the current normal is too different from the previous one, discard the history.
+    if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)
+    {
+        _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        return;
+    }
+    
+    // We sample the velocity buffer, if not null
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
+    if (sampleVelocity > MINIMAL_MOTION_DISTANCE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -114,32 +138,28 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 1;
 }
 
-// Validation buffer used for temporal accumulation.
-// TODO: This should be changed to a non RW buffer declaration, but currently, we cannot declare a specific type for non RW Texture2D_X
-RW_TEXTURE2D_X(uint, _ValidationBuffer);
-// Buffer that holds the history signal values
-    #ifdef HISTORY_IS_ARRAY
+// Validation buffer that tells us if the history should be ignored for a given pixel.
+TEXTURE2D_X(_ValidationBuffer);
+#ifdef HISTORY_IS_ARRAY
+// This buffer holds the previously accumualted signal
 TEXTURE2D_ARRAY(_HistoryBuffer);
-    #else
-TEXTURE2D_X(_HistoryBuffer);
-    #endif
-// Noisy Input Buffer
-TEXTURE2D_X(_DenoiseInputTexture);
-// Filtered Output buffer (depends on the singel or color variant of the denoiser)
-#if SINGLE_CHANNEL
-    #ifdef OUTPUT_IS_ARRAY
-RW_TEXTURE2D_ARRAY(float2, _DenoiseOutputTextureRW);
-    #else
-RW_TEXTURE2D_X(float2, _DenoiseOutputTextureRW);
-    #endif
+// This buffers holds additional previously accumulated data
+TEXTURE2D_ARRAY(_HistoryValidityBuffer);
 #else
-RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// This buffer holds the previously accumualted signal
+TEXTURE2D_X(_HistoryBuffer);
 #endif
+// Noisy Input Buffer from the current rame
+TEXTURE2D_X(_DenoiseInputTexture);
+#if defined (HISTORY_IS_ARRAY) || defined (OUTPUT_IS_ARRAY)
+    // In the case of an array signal, this tells us which slice of the array we should be fetching
+    int _DenoisingHistorySlice;
+    // This value tells us which channels hold the value
+    float4 _DenoisingHistoryMask;
+#endif
+// Generic output buffer for our kernels
+RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
 
-// Index of the shadow in the arrays
-int _DenoisingHistorySlot;
-
-#ifndef OUTPUT_IS_ARRAY
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -152,11 +172,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        #if SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float2(0.0, 0.0);
-        #else
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0);
-        #endif
         return;
     }
 
@@ -169,46 +185,62 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     uint2 historyTapCoord = (uint2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
 
     // Fetch the current value, history value and current sample count
+#if HISTORY_IS_ARRAY
     #if SINGLE_CHANNEL
-    float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
-    #if HISTORY_IS_ARRAY
-    float2 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot)).xy;
+        float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
+        float history = dot(_DenoisingHistoryMask, LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice)));
+        float sampleCount = dot(_DenoisingHistoryMask, LOAD_TEXTURE2D_ARRAY(_HistoryValidityBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice)));
     #else
-    float2 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord).xy;
+        float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+        // In case we are processing a color texture, it is always stored in the first three channels
+        float3 history = LOAD_TEXTURE2D_ARRAY(_HistoryBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice)).xyz;
+        float sampleCount = LOAD_TEXTURE2D_ARRAY(_HistoryValidityBuffer, historyTapCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice)).x;
     #endif
-    float sampleCount = history.y;
+#else
+    #if SINGLE_CHANNEL
+        float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
+        float2 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord).xy;
+        float sampleCount = history.y;
     #else
-    // Get the current sample to filter
-    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
-    float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
-    float sampleCount = history.w;
+        float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+        float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
+        float sampleCount = history.w;
     #endif
+#endif
+    
+    // Get the velocity of the current sample
+    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
 
-    // Apply the accumulation factor and return the result
+    // Accumulation factor that tells us how much we need to keep the history data
     float accumulationFactor = 0.0;
 
-    // If we found no history pixel
-    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)] != 1)
+    // If the history is invalid or the history was flagged as moving (sampleCount == 0.0)
+    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x < 1.0 || sampleCount == 0.0)
     {
         // We only take the current value
         accumulationFactor = 0.0;
-        // And the sample count of history becomes 1
-        sampleCount = 1.0;
+        // And the sample count of history becomes 1 (or 0 if the previous sample was mooving)
+        sampleCount = sampleVelocity > MINIMAL_MOTION_DISTANCE ? 0.0 : 1.0;
     }
     else
     {
         // Otherwise we compute the accumulation factor
-        accumulationFactor = sampleCount > 8.0 ? 0.97 : (sampleCount / (sampleCount + 1.0));
+        accumulationFactor = sampleCount > 8.0 ? 1.0 : (sampleCount / (sampleCount + 1.0));
         // Update the sample count
         sampleCount = min(sampleCount + 1.0, 8.0);
     }
 
+    // Store our accumulated value
     #if SINGLE_CHANNEL
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float2(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount, 0.0, 1.0);
     #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
     #endif
 }
+
+#ifdef OUTPUT_IS_ARRAY
+    // This is an additional history texture that holds the validity of the currently accumulated signal
+    RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
 #endif
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
@@ -219,11 +251,25 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-#if SINGLE_CHANNEL
-    #if OUTPUT_IS_ARRAY
-    _DenoiseOutputTextureRW[uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlot))] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
+#if OUTPUT_IS_ARRAY
+        // Define which pixel we shall be reading from, writing to.
+        uint3 targetPixel = uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice));
+
+        // In the case the output being an array, we only need to override the channels that we are currently processing
+        float4 previousHistoryValues = _DenoiseOutputTextureRW[targetPixel];
+        float4 previousValidityValues = _ValidityOutputTextureRW[targetPixel];
+
+    #if SINGLE_CHANNEL
+        _DenoiseOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues 
+                                              + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).x;
+        _ValidityOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousValidityValues 
+                                              + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).y;
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xy;
+        // If this is a color data, it means we need to override the first three channels
+        _DenoiseOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xyz
+                                                                                , previousHistoryValues.w);
+        _ValidityOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).www
+                                                                                , previousValidityValues.w);
     #endif
 #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);

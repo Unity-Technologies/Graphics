@@ -47,7 +47,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public float additive;
         }
 
-        public bool enabled;
         public string name;
 
         [SerializeField]

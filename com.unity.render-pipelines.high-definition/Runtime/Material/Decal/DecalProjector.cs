@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Decal Projector component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
@@ -127,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
         /// <summary>
         /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
@@ -228,11 +231,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+            m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            m_OldMaterial = m_Material;
+
 #if UNITY_EDITOR
             m_Layer = gameObject.layer;
+            // Handle scene visibility
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
 #endif
-            m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }
+
+#if UNITY_EDITOR
+        void UpdateDecalVisibility()
+        {
+            // Fade out the decal when it is hidden by the scene visibility
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
+            {
+                DecalSystem.instance.RemoveDecal(m_Handle);
+                m_Handle = null;
+            }
+            else if (m_Handle == null)
+            {
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+                m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            }
+        }
+#endif
 
         void OnDisable()
         {
@@ -241,6 +265,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+#endif
         }
 
         /// <summary>
@@ -252,14 +279,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
+                if (m_Material == null)
+                {
+                    DecalSystem.instance.RemoveDecal(m_Handle);
+                }
+
                 Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
                 // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
                 if (m_OldMaterial != m_Material)
                 {
-                    if (m_OldMaterial != null)
-                    {
-                        DecalSystem.instance.RemoveDecal(m_Handle);
-                    }
+                    DecalSystem.instance.RemoveDecal(m_Handle);
 
                     if (m_Material != null)
                     {
@@ -330,8 +359,4 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
     }
-
-
-    [Obsolete("DecalProjectorComponent have been renamed DecalProjector for API alignment", true)]
-    public sealed class DecalProjectorComponent { }
 }

@@ -17,7 +17,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [Serializable]
-    [Title("Master", "HDRP/Fabric")]
+    [Title("Master", "Fabric (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.FabricMasterNode")]
     class FabricMasterNode : MasterNode<IFabricSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
@@ -229,38 +229,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_AlphaTest == value.isOn)
                     return;
                 m_AlphaTest = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        bool m_AlphaTestDepthPrepass;
-
-        public ToggleData alphaTestDepthPrepass
-        {
-            get { return new ToggleData(m_AlphaTestDepthPrepass); }
-            set
-            {
-                if (m_AlphaTestDepthPrepass == value.isOn)
-                    return;
-                m_AlphaTestDepthPrepass = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
-        bool m_AlphaTestDepthPostpass;
-
-        public ToggleData alphaTestDepthPostpass
-        {
-            get { return new ToggleData(m_AlphaTestDepthPostpass); }
-            set
-            {
-                if (m_AlphaTestDepthPostpass == value.isOn)
-                    return;
-                m_AlphaTestDepthPostpass = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }
@@ -821,7 +789,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
-                false
+                false,
+                transparencyFog.isOn
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);

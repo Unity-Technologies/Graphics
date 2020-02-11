@@ -24,8 +24,12 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
-        [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
-        public bool killAlphaInFinalBlit;
+
+        /// <summary>
+        /// True if post-processing effect is enabled while rendering the camera stack.
+        /// </summary>
+        public bool postProcessingEnabled;
+        internal bool resolveFinalTarget;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
@@ -41,8 +45,19 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
     {
         public Camera camera;
+        public CameraRenderType renderType;
+        public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;
+        // Internal camera data as we are not yet sure how to expose View in stereo context.
+        // We might change this API soon.
+        internal Matrix4x4 viewMatrix;
+        internal Matrix4x4 projectionMatrix;
+        internal Rect pixelRect;
+        internal int pixelWidth;
+        internal int pixelHeight;
+        internal float aspectRatio;
         public float renderScale;
+        public bool clearDepth;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
@@ -58,11 +73,6 @@ namespace UnityEngine.Rendering.Universal
         public float maxShadowDistance;
         public bool postProcessEnabled;
 
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public UnityEngine.Rendering.PostProcessing.PostProcessLayer postProcessLayer;
-#endif
-
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
 
         public LayerMask volumeLayerMask;
@@ -72,6 +82,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
+        internal ScriptableRenderer renderer;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
@@ -96,6 +107,14 @@ namespace UnityEngine.Rendering.Universal
         public int lutSize;
     }
 
+    class CameraDataComparer : IComparer<Camera>
+    {
+        public int Compare(Camera lhs, Camera rhs)
+        {
+            return (int)lhs.depth - (int)rhs.depth;
+        }
+    }
+
     public static class ShaderKeywordStrings
     {
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
@@ -111,8 +130,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
-        [Obsolete("The _KILL_ALPHA shader keyword is deprecated in the Universal Render Pipeline.")]
-        public static readonly string KillAlpha = "_KILL_ALPHA";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -140,18 +157,100 @@ namespace UnityEngine.Rendering.Universal
     {
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
+        /// <summary>
+        /// Checks if a camera is a game camera.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>true if given camera is a game camera, false otherwise.</returns>
+        public static bool IsGameCamera(Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            return camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+        }
+
+        /// <summary>
+        /// Checks if a camera is rendering in stereo mode.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
         public static bool IsStereoEnabled(Camera camera)
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            bool isGameCamera = camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+            bool isGameCamera = IsGameCamera(camera);
             return XRGraphics.enabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+        }
+
+        /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
+        public static UniversalRenderPipelineAsset asset
+        {
+            get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        }
+
+        /// <summary>
+        /// Returns the current render pipeline instance that is being used to render.
+        /// Returns null if no UniversalRenderPipeline asset is being in use.
+        /// </summary>
+        public static UniversalRenderPipeline currentRenderPipeline
+        {
+            get => RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+        }
+
+        /// <summary>
+        /// Returns a renderer from the current render pipeline.
+        /// </summary>
+        /// <param name="index">Index to the renderer list in the pipeline asset.</param>
+        /// <returns>If valid index the given renderer from the pipeline asset, otherwise null.</returns>
+        public ScriptableRenderer GetRenderer(int index)
+        {
+            if (renderers == null)
+            {
+                Debug.LogError("RenderPipeline is corrupted. The list of renderers is not valid.");
+                return null;
+            }
+
+            // -1 means default renderer.
+            // In this case we return the default renderer from the asset.
+            if (index < 0)
+                index = m_DefaultRendererIndex;
+
+            if (index < 0 || index >= renderers.Length)
+            {
+                Debug.LogError("Trying to access an invalid renderer");
+                return null;
+            }
+
+            return renderers[index];
+        }
+
+        /// <summary>
+        /// Checks if a camera is rendering in MultiPass stereo mode.
+        /// </summary>
+        /// <param name="camera">Camera to check state from.</param>
+        /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
+        static bool IsMultiPassStereoEnabled(Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+#if ENABLE_VR && ENABLE_VR_MODULE
+            return IsStereoEnabled(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
+#else
+            return false;
+#endif
         }
 
         void SortCameras(Camera[] cameras)
         {
-            Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
+            if (cameras.Length <= 1)
+                return;
+            Array.Sort(cameras, new CameraDataComparer());
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
@@ -160,20 +259,26 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor desc;
             RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
 
+            // NB: There's a weird case about XR and render texture
+            // In test framework currently we render stereo tests to target texture
+            // The descriptor in that case needs to be initialized from XR eyeTexture not render texture
+            // Otherwise current tests will fail. Check: Do we need to update the test images instead?
             if (isStereoEnabled)
             {
                 desc = XRGraphics.eyeTextureDesc;
                 renderTextureFormatDefault = desc.colorFormat;
             }
-            else
+            else if (camera.targetTexture == null)
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
             }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
+            }
 
-            bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-            RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
             if (camera.targetTexture != null)
             {
                 desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
@@ -183,6 +288,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+                RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            
                 desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
@@ -254,5 +362,17 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
         };
+    }
+
+    internal enum URPProfileId
+    {
+        StopNaNs,
+        SMAA,
+        GaussianDepthOfField,
+        BokehDepthOfField,
+        MotionBlur,
+        PaniniProjection,
+        UberPostProcess,
+        Bloom,
     }
 }

@@ -5,22 +5,47 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Scaled function used to compute the size of a RTHandle for the current frame.
+    /// </summary>
+    /// <param name="size">Reference size of the RTHandle system for the frame.</param>
+    /// <returns>The size of the RTHandled computed from the reference size.</returns>
     public delegate Vector2Int ScaleFunc(Vector2Int size);
 
+    /// <summary>
+    /// List of properties of the RTHandle System for the current frame.
+    /// </summary>
     public struct RTHandleProperties
     {
-        public Vector2Int previousViewportSize;    // Size set as reference at the previous frame
-        public Vector2Int previousRenderTargetSize; // Size of the render targets at the previous frame
-        public Vector2Int currentViewportSize;      // Size set as reference at the current frame
-        public Vector2Int currentRenderTargetSize;  // Size of the render targets at the current frame
-        // Scale factor from RTHandleSystem max size to requested reference size (referenceSize/maxSize)
-        // (x,y) current frame (z,w) last frame (this is only used for buffered RTHandle Systems
+        /// <summary>
+        /// Size set as reference at the previous frame
+        /// </summary>
+        public Vector2Int previousViewportSize;
+        /// <summary>
+        /// Size of the render targets at the previous frame
+        /// </summary>
+        public Vector2Int previousRenderTargetSize;
+        /// <summary>
+        /// Size set as reference at the current frame
+        /// </summary>
+        public Vector2Int currentViewportSize;
+        /// <summary>
+        /// Size of the render targets at the current frame
+        /// </summary>
+        public Vector2Int currentRenderTargetSize;
+        /// <summary>
+        /// Scale factor from RTHandleSystem max size to requested reference size (referenceSize/maxSize)
+        /// (x,y) current frame (z,w) last frame (this is only used for buffered RTHandle Systems)
+        /// </summary>
         public Vector4 rtHandleScale;
     }
 
+    /// <summary>
+    /// System managing a set of RTHandle textures
+    /// </summary>
     public partial class RTHandleSystem : IDisposable
     {
-        public enum ResizeMode
+        internal enum ResizeMode
         {
             Auto,
             OnDemand
@@ -35,11 +60,17 @@ namespace UnityEngine.Rendering
         HashSet<RTHandle>   m_ResizeOnDemandRTs;
         RTHandleProperties  m_RTHandleProperties;
 
+        /// <summary>
+        /// Current properties of the RTHandle System.
+        /// </summary>
         public RTHandleProperties rtHandleProperties { get { return m_RTHandleProperties; } }
 
         int m_MaxWidths = 0;
         int m_MaxHeights = 0;
 
+        /// <summary>
+        /// RTHandleSystem constructor.
+        /// </summary>
         public RTHandleSystem()
         {
             m_AutoSizedRTs = new HashSet<RTHandle>();
@@ -48,15 +79,24 @@ namespace UnityEngine.Rendering
             m_MaxHeights = 1;
         }
 
+        /// <summary>
+        /// Disposable pattern implementation
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
         }
 
-        // Call this once to set the initial size and allow msaa targets or not.
+        /// <summary>
+        /// Initialize the RTHandle system.
+        /// </summary>
+        /// <param name="width">Initial reference rendering width.</param>
+        /// <param name="height">Initial reference rendering height.</param>
+        /// <param name="scaledRTsupportsMSAA">Set to true if automatically scaled RTHandles should support MSAA</param>
+        /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
         public void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
         {
-            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture.");
+            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.");
 
             m_MaxWidths = width;
             m_MaxHeights = height;
@@ -67,6 +107,10 @@ namespace UnityEngine.Rendering
             m_HardwareDynamicResRequested = DynamicResolutionHandler.instance.RequestsHardwareDynamicResolution();
         }
 
+        /// <summary>
+        /// Release memory of a RTHandle from the RTHandle System
+        /// </summary>
+        /// <param name="rth">RTHandle that should be released.</param>
         public void Release(RTHandle rth)
         {
             if (rth != null)
@@ -81,6 +125,12 @@ namespace UnityEngine.Rendering
             m_AutoSizedRTs.Remove(rth);
         }
 
+        /// <summary>
+        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
+        /// </summary>
+        /// <param name="width">Reference rendering width for subsequent rendering.</param>
+        /// <param name="height">Reference rendering height for subsequent rendering.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
         {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
@@ -101,6 +151,16 @@ namespace UnityEngine.Rendering
             m_RTHandleProperties.currentViewportSize = new Vector2Int(width, height);
             m_RTHandleProperties.currentRenderTargetSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
 
+            // If the currentViewportSize is 0, it mean we are the first frame of rendering (can happen when doing domain reload for example or for reflection probe)
+            // in this case the scalePrevious below could be invalided. But some effect rely on having a correct value like TAA with the history buffer for the first frame.
+            // to work around this, when we detect that size is 0, we setup previous size to current size.
+            if (m_RTHandleProperties.previousViewportSize.x == 0)
+            {
+                m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
+                m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
+                lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
+            }
+
             if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
                 m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -114,6 +174,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Enable or disable hardware dynamic resolution for the RTHandle System
+        /// </summary>
+        /// <param name="enableHWDynamicRes">State of hardware dynamic resolution.</param>
         public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
         {
             if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
@@ -141,7 +205,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void SwitchResizeMode(RTHandle rth, ResizeMode mode)
+        internal void SwitchResizeMode(RTHandle rth, ResizeMode mode)
         {
             // Don't do anything is scaling isn't enabled on this RT
             // TODO: useScaling should probably be moved to ResizeMode.Fixed or something
@@ -164,7 +228,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void DemandResize(RTHandle rth)
+        void DemandResize(RTHandle rth)
         {
             Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), "The RTHandle is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.");
 
@@ -209,7 +273,15 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Returns the maximum allocated width of the RTHandle System.
+        /// </summary>
+        /// <returns>Maximum allocated width of the RTHandle System.</returns>
         public int GetMaxWidth() { return m_MaxWidths; }
+        /// <summary>
+        /// Returns the maximum allocated height of the RTHandle System.
+        /// </summary>
+        /// <returns>Maximum allocated height of the RTHandle System.</returns>
         public int GetMaxHeight() { return m_MaxHeights; }
 
         void Dispose(bool disposing)
@@ -288,8 +360,29 @@ namespace UnityEngine.Rendering
             }
         }
 
-        // This method wraps around regular RenderTexture creation.
-        // There is no specific logic applied to RenderTextures created this way.
+        /// <summary>
+        /// Allocate a new fixed sized RTHandle.
+        /// </summary>
+        /// <param name="width">With of the RTHandle.</param>
+        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="slices">Number of slices of the RTHandle.</param>
+        /// <param name="depthBufferBits">Bit depths of a depth buffer.</param>
+        /// <param name="colorFormat">GraphicsFormat of a color buffer.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="dimension">Texture dimension of the RTHandle.</param>
+        /// <param name="enableRandomWrite">Set to true to enable UAV random read writes on the texture.</param>
+        /// <param name="useMipMap">Set to true if the texture should have mipmaps.</param>
+        /// <param name="autoGenerateMips">Set to true to automatically generate mipmaps.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for the RTHandle.</param>
+        /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
+        /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
+        /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns></returns>
         public RTHandle Alloc(
             int width,
             int height,
@@ -386,6 +479,29 @@ namespace UnityEngine.Rendering
         // RenderTextures allocated this way are meant to be defined by a scale of camera resolution (full/half/quarter resolution for example).
         // The idea is that internally the system will scale up the size of all render texture so that it amortizes with time and not reallocate when a smaller size is required (which is what happens with TemporaryRTs).
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle.
+        /// </summary>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="slices">Number of slices of the RTHandle.</param>
+        /// <param name="depthBufferBits">Bit depths of a depth buffer.</param>
+        /// <param name="colorFormat">GraphicsFormat of a color buffer.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="dimension">Texture dimension of the RTHandle.</param>
+        /// <param name="enableRandomWrite">Set to true to enable UAV random read writes on the texture.</param>
+        /// <param name="useMipMap">Set to true if the texture should have mipmaps.</param>
+        /// <param name="autoGenerateMips">Set to true to automatically generate mipmaps.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
+        /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
+        /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns></returns>
         public RTHandle Alloc(
             Vector2 scaleFactor,
             int slices = 1,
@@ -451,6 +567,29 @@ namespace UnityEngine.Rendering
         //     [...]
         // );
         //
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle.
+        /// </summary>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="slices">Number of slices of the RTHandle.</param>
+        /// <param name="depthBufferBits">Bit depths of a depth buffer.</param>
+        /// <param name="colorFormat">GraphicsFormat of a color buffer.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="dimension">Texture dimension of the RTHandle.</param>
+        /// <param name="enableRandomWrite">Set to true to enable UAV random read writes on the texture.</param>
+        /// <param name="useMipMap">Set to true if the texture should have mipmaps.</param>
+        /// <param name="autoGenerateMips">Set to true to automatically generate mipmaps.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
+        /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
+        /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns></returns>
         public RTHandle Alloc(
             ScaleFunc scaleFunc,
             int slices = 1,
@@ -611,6 +750,11 @@ namespace UnityEngine.Rendering
             return rth;
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular Texture.
+        /// </summary>
+        /// <param name="texture">Input texture</param>
+        /// <returns>A new RTHandle referencing the input texture.</returns>
         public RTHandle Alloc(Texture texture)
         {
             var rth = new RTHandle(this);
@@ -623,14 +767,14 @@ namespace UnityEngine.Rendering
             return rth;
         }
 
-        public static RTHandle Alloc(RTHandle tex)
+        private static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");
             return null;
         }
 
 
-        public string DumpRTInfo()
+        internal string DumpRTInfo()
         {
             string result = "";
             Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);

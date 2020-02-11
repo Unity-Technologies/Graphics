@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
+- Added support for a user defined default material to 2DRendererData.
 - Added the option to toggle shadow receiving on transparent objects.
 - Added XR multipass rendering. Multipass rendering is a requirement on many VR platforms and allows graceful fallback when single-pass rendering isn't available.
+- Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
+- Added `[MainTexture]` and `[MainColor]` shader property attributes to URP shader properties. These will link script material.mainTextureOffset and material.color to `_BaseMap` and `_BaseColor` shader properties.
+
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
@@ -19,7 +25,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove final blit pass to force alpha to 1.0 on mobile platforms.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
 - Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
+- Blend Style in the 2DRendererData are now automatically enabled/disabled.
+- When using the 2D Renderer, Sprites will render with a faster rendering path when no lights are present.
 - Particle shaders now receive shadows
+- The Scene view now mirrors the Volume Layer Mask set on the Main Camera.
+- Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipline.
+- Made MaterialDescriptionPreprocessors private.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -51,9 +62,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused only selected object to render in SceneView when Wireframe drawmode was selected.
 - Fixed Renderer Features UI tooltips. [case 1191901](https://issuetracker.unity3d.com/issues/forward-renderers-render-objects-layer-mask-tooltip-is-incorrect-and-contains-a-typo)
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
+- Fixed an issue when using the 2D Renderer where some types of renderers would not be assigned the correct material.
 - Fixed inconsistent lighting between the forward renderer and the deferred renderer, that was caused by a missing normalize operation on vertex normals on some speedtree shader variants.
 - Fixed issue where XR Multiview failed to render when using URP Shader Graph Shaders
 - Fixed lazy initialization with last version of ResourceReloader
+- Fixed broken images in package documentation.
+- Fixed an issue where viewport aspect ratio was wrong when using the Stretch Fill option of the Pixel Perfect Camera. [case 1188695](https://issuetracker.unity3d.com/issues/pixel-perfect-camera-component-does-not-maintain-the-aspect-ratio-when-the-stretch-fill-is-enabled)
 - Fixed an issue where setting a Normal map on a newly created material would not update. [case 1197217](https://issuetracker.unity3d.com/product/unity/issues/guid/1197217/)
 - Fixed an issue where post-processing was not applied for custom renderers set to run on the "After Rendering" event [case 1196219](https://issuetracker.unity3d.com/issues/urp-post-processing-is-not-applied-to-the-scene-when-render-ui-event-is-set-to-after-rendering)
 - Fixed an issue that caused an extra blit when using custom renderers [case 1156741](https://issuetracker.unity3d.com/issues/lwrp-performance-decrease-when-using-a-scriptablerendererfeature)
@@ -66,6 +80,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the 'Depth Texture' drop down was incorrectly disabled in the Camera Inspector. 
 - Fixed an issue that caused errors if you disabled the VR Module when building a project.
 - Fixed an issue where the default TerrainLit Material was outdated, which caused the default Terrain to use per-vertex normals instead of per-pixel normals.
+- Fixed shader errors and warnings in the default Universal RP Terrain Shader. [case 1185948](https://issuetracker.unity3d.com/issues/urp-terrain-slash-lit-base-pass-shader-does-not-compile)
+- Fixed an issue where the URP Material Upgrader tried to upgrade standard Universal Shaders. [case 1144710](https://issuetracker.unity3d.com/issues/upgrading-to-lwrp-materials-is-trying-to-upgrade-lwrp-materials)
+- Fixed an issue where some Materials threw errors when you upgraded them to Universal Shaders. [case 1200938](https://issuetracker.unity3d.com/issues/universal-some-materials-throw-errors-when-updated-to-universal-rp-through-update-materials-to-universal-rp)
+- Fixed issue where normal maps on terrain appeared to have flipped X-components when compared to the same normal map on a mesh. [case 1181518](https://fogbugz.unity3d.com/f/cases/1181518/)
+- Fixed an issue where the editor would sometimes crash when using additional lights [case 1176131](https://issuetracker.unity3d.com/issues/mac-crash-on-processshadowcasternodevisibilityandcullwithoutumbra-when-same-rp-asset-is-set-in-graphics-and-quality-settings)
+- Fixed RemoveComponent on Camera contextual menu to not remove Camera while a component depend on it.
+- Fixed an issue where right eye is not rendered to. [case 1170619](https://issuetracker.unity3d.com/issues/vr-lwrp-terrain-is-not-rendered-in-the-right-eye-of-an-hmd-when-using-single-pass-instanced-stereo-rendering-mode-with-lwrp)
+- Fixed issue where TerrainDetailLit.shader fails to compile when XR is enabled.
+- Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported.
+- Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
+- Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
+- Fixed incorrect light attenuation on Nintendo Switch.
+- Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
+- Fixed an issue where post processing disappeared when using custom renderers and SMAA or no AA
+- Fixed an issue with soft particles having dark blending when intersecting with scene geometry [case 1199812](https://issuetracker.unity3d.com/issues/urp-soft-particles-create-dark-blending-artefacts-when-intersecting-with-scene-geometry)
+- Fixed an issue with additive particles blending incorrectly [case 1215713](https://issuetracker.unity3d.com/issues/universal-render-pipeline-additive-particles-not-using-vertex-alpha)
+- Fixed an issue where camera preview window was missing in scene view. [case 1211971](https://issuetracker.unity3d.com/issues/scene-view-urp-camera-preview-window-is-missing-in-the-scene-view)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
@@ -453,7 +484,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - Fixed multiple C# code analysis rule violations.
 - The fullscreen mesh is no longer recreated upon every call to `ScriptableRenderer.fullscreenMesh`.
 
-## [3.3.0-preview]
+## [3.3.0-preview] - 2018-01-01
 ### Added
 - Added callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
 
@@ -470,7 +501,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Fixed
 - Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
 
-## [3.2.0-preview]
+## [3.2.0-preview] - 2018-01-01
 ### Changed
 - Receive Shadows property is now exposed in the material instead of in the renderer.
 - The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
@@ -482,13 +513,13 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
 - Terrain shader optimizations.
 
-## [3.1.0-preview]
+## [3.1.0-preview] - 2018-01-01
 
 ### Fixed
 - Fixed assert errors caused by multi spot lights
 - Fixed LWRP-DirectionalShadowConstantBuffer params setting
 
-## [3.0.0-preview]
+## [3.0.0-preview] - 2018-01-01
 ### Added
 - Added camera additional data component to control shadows, depth and color texture.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR.
@@ -514,7 +545,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - VR Single Pass Instancing shadows
 - Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 
-## [2.0.0-preview]
+## [2.0.0-preview] - 2018-01-01
 
 ### Added
 - Explicit render target load/store actions were added to improve tile utilization
@@ -546,7 +577,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - UWP build issues
 - Prevent nested camera rendering in the pipeline
 
-## [1.1.4-preview]
+## [1.1.4-preview] - 2018-01-01
 
 ### Added
  - Terrain and grass shaders ported
@@ -566,7 +597,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - GI in Unlit shader
  - Null reference in the Unlit material shader GUI
 
-## [1.1.2-preview]
+## [1.1.2-preview] - 2018-01-01
 
 ### Changed
  - Performance improvements in mobile  
@@ -580,7 +611,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Issue that was causing Camera clear flags was being ignored in mobile
 
 
-## [1.1.1-preview]
+## [1.1.1-preview] - 2018-01-01
 
 ### Added
  - Added Cascade Split selection UI
@@ -595,7 +626,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Shadow Distance does not accept negative values anymore
 
 
-## [0.1.24]
+## [0.1.24] - 2018-01-01
 
 ### Added
  - Added Light abstraction layer on lightweight shader library.
@@ -620,7 +651,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Viewport rendering issues when rendering to with MSAA turned off.
  - Multi-camera rendering.
 
-## [0.1.23]
+## [0.1.23] - 2018-01-01
 
 ### Added
  - UI Improvements (Rendering features not supported by LW are hidden)
@@ -639,7 +670,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Fixed spot light attenuation to match Unity Built-in pipeline.
  - Fixed depth pre-pass clearing issue.
 
-## [0.1.12]
+## [0.1.12] - 2018-01-01
 
 ### Added
  - Standard Unlit shader now has an option to sample GI.
@@ -652,7 +683,3 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Fixed
  - Fixed an issue that was including unreferenced shaders in the build.
  - Fixed a null reference caused by Particle System component lights.
-
-
-## [0.1.11]
- Initial Release.

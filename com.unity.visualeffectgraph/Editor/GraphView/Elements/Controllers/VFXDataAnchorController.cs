@@ -7,6 +7,8 @@ using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Profiling;
 
+using UnityObject = UnityEngine.Object;
+
 namespace UnityEditor.VFX.UI
 {
     interface IVFXAnchorController
@@ -324,6 +326,12 @@ namespace UnityEditor.VFX.UI
                             Profiler.EndSample();
                             if (evaluatedValue != null)
                             {
+                                if( typeof(UnityObject).IsAssignableFrom(storageType))
+                                {
+                                    int instanceID = (int)evaluatedValue;
+                                    return  VFXConverter.ConvertTo(EditorUtility.InstanceIDToObject(instanceID),storageType);
+                                }
+                                else
                                 return VFXConverter.ConvertTo(evaluatedValue, storageType);
                             }
                         }
@@ -756,7 +764,7 @@ namespace UnityEditor.VFX.UI
                 if (subSlot != null)
                 {
                     object result = null ;
-                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
+                    if (subSlot.HasLink(true) && m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

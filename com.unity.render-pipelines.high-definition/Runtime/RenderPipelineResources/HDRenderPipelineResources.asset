@@ -27,6 +27,7 @@ MonoBehaviour:
       type: 3}
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184,
       type: 3}
+    debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
@@ -36,6 +37,7 @@ MonoBehaviour:
     applyDistortionPS: {fileID: 4800000, guid: 02ae56f4306413c4a96dcf005cde1971, type: 3}
     clearDispatchIndirectCS: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
       type: 3}
+    clearLightListsCS: {fileID: 7200000, guid: 743eb3491795b9545955695d591195a1, type: 3}
     buildDispatchIndirectCS: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14,
       type: 3}
     buildScreenAABBCS: {fileID: 7200000, guid: 728dce960f8a9c44bbc3abb3b851d8f6, type: 3}
@@ -60,6 +62,8 @@ MonoBehaviour:
       type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
     cameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9,
+      type: 3}
+    clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040,
       type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec,
       type: 3}
@@ -127,6 +131,7 @@ MonoBehaviour:
     copyAlphaCS: {fileID: 7200000, guid: c2c7eb6611725264187721ef9df0354b, type: 3}
     nanKillerCS: {fileID: 7200000, guid: 83982f199acf927499576a99abc9bea9, type: 3}
     exposureCS: {fileID: 7200000, guid: 976d7bce54fae534fb9ec67e9c18570c, type: 3}
+    applyExposureCS: {fileID: 7200000, guid: 1a6fea1dc099b984d8f2b27d504dc096, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
     lutBuilder3DCS: {fileID: 7200000, guid: 37f2b1b0ecd6f1c439e4c1b4f2fdb524, type: 3}
     depthOfFieldKernelCS: {fileID: 7200000, guid: 7869415cc3e4eaa4d82ac21a752a2780,
@@ -162,6 +167,8 @@ MonoBehaviour:
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
+      type: 3}
+    contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}

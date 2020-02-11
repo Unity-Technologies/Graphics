@@ -458,7 +458,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public const int DefaultLabelWidth = 116;
+        public const int DefaultLabelWidth = 148;
 
         protected void AddSetting(VFXSettingController setting)
         {

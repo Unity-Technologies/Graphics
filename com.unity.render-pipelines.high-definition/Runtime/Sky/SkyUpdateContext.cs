@@ -1,12 +1,15 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyUpdateContext
     {
-        SkySettings     m_SkySettings;
-        public int      cachedSkyRenderingContextId = -1;
+        SkySettings         m_SkySettings;
+        public SkyRenderer  skyRenderer { get; private set; }
+        public int          cachedSkyRenderingContextId = -1;
 
-        public int      skyParametersHash = -1;
-        public float    currentUpdateTime = 0.0f;
+        public int          skyParametersHash = -1;
+        public float        currentUpdateTime = 0.0f;
 
         public SkySettings skySettings
         {
@@ -19,6 +22,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyParametersHash = -1;
                 m_SkySettings = value;
                 currentUpdateTime = 0.0f;
+
+                if (m_SkySettings != null && (skyRenderer == null || m_SkySettings.GetSkyRendererType() != skyRenderer.GetType()))
+                {
+                    if (skyRenderer != null)
+                    {
+                        skyRenderer.Cleanup();
+                    }
+
+                    var rendererType = m_SkySettings.GetSkyRendererType();
+                    skyRenderer = (SkyRenderer)Activator.CreateInstance(rendererType);
+                    skyRenderer.Build();
+                }
+            }
+        }
+
+        public void Cleanup()
+        {
+            if (skyRenderer != null)
+            {
+                skyRenderer.Cleanup();
             }
         }
 

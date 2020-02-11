@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         [SerializeField]
-        Version m_Version;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         // Obsolete fields
@@ -37,7 +37,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 obsoleteOffset { get => m_ObsoleteOffset; set => m_ObsoleteOffset = value; }
 #pragma warning restore 649 //never assigned
 
+        /// <summary>Serialization callback</summary>
         public void OnBeforeSerialize() { }
+        /// <summary>Serialization callback</summary>
         public void OnAfterDeserialize() => k_Migration.Migrate(this);
     }
 }

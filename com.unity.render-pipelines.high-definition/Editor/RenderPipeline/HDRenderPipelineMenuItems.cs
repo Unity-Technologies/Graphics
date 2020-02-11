@@ -112,6 +112,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     output.mipFogNear.Override(input.mipFogNear.value);
                 if (input.mipFogFar.overrideState)
                     output.mipFogFar.Override(input.mipFogFar.value);
+                if (input.tint.overrideState)
+                    output.tint.Override(input.tint.value);
             }
 
             Fog CreateFogComponentIfNeeded(VolumeProfile profile)
@@ -515,6 +517,99 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 k_DefaultLogHandler.LogFormat(LogType.Log, m_Context, "Context: {0} ({1})", m_Context, AssetDatabase.GetAssetPath(m_Context));
                 k_DefaultLogHandler.LogException(exception, context);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/Check Scene Content for Ray Tracing", priority = CoreUtils.editMenuPriority4)]
+        static void CheckSceneContentForRayTracing(MenuCommand menuCommand)
+        {
+            // Flag that holds
+            bool generalErrorFlag = false;
+            var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            List<Material> materialArray = new List<Material>(32);
+            ReflectionProbe reflectionProbe = new ReflectionProbe();
+
+            foreach (Renderer currentRenderer in rendererArray)
+            {
+                // If this is a reflection probe, we can ignore it.
+                if (currentRenderer.gameObject.TryGetComponent<ReflectionProbe>(out reflectionProbe)) continue;
+
+                // Get all the materials of the mesh renderer
+                currentRenderer.GetSharedMaterials(materialArray);
+                if (materialArray == null)
+                {
+                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    generalErrorFlag = true;
+                    continue;
+                }
+
+                // For every sub-mesh/sub-material let's build the right flags
+                int numSubMeshes = 1;
+                if (!(currentRenderer.GetType() == typeof(SkinnedMeshRenderer)))
+                {
+                    currentRenderer.TryGetComponent(out MeshFilter meshFilter);
+                    if (meshFilter == null || meshFilter.sharedMesh == null)
+                    {
+                        Debug.LogWarning("The object " + currentRenderer.name + " has null meshfilter or mesh.");
+                        generalErrorFlag = true;
+                        continue;
+                    }
+                    numSubMeshes = meshFilter.sharedMesh.subMeshCount;
+                }
+                else
+                {
+                    SkinnedMeshRenderer skinnedMesh = (SkinnedMeshRenderer)currentRenderer;
+                    if (skinnedMesh.sharedMesh == null)
+                    {
+                        Debug.LogWarning("The object " + currentRenderer.name + " has null mesh.");
+                        generalErrorFlag = true;
+                        continue;
+                    }
+                    numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
+                }
+
+                bool materialIsOnlyTransparent = true;
+                bool hasTransparentSubMaterial = false;
+
+                for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
+                {
+                    // Initially we consider the potential mesh as invalid
+                    if (materialArray.Count > meshIdx)
+                    {
+                        // Grab the material for the current sub-mesh
+                        Material currentMaterial = materialArray[meshIdx];
+
+                        // The material is transparent if either it has the requested keyword or is in the transparent queue range
+                        if (currentMaterial != null)
+                        {
+                            bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
+                                || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
+                                || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+
+                            // aggregate the transparency info
+                            materialIsOnlyTransparent &= materialIsTransparent;
+                            hasTransparentSubMaterial |= materialIsTransparent;
+                        }
+                        else
+                        {
+                            Debug.LogWarning("The object " + currentRenderer.name + " has null material.");
+                            generalErrorFlag = true;
+                        }
+                    }
+                }
+
+                if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both transparent and opaque sub-meshes. This may cause performance issues");
+                    generalErrorFlag = true;
+                }
+            }
+
+            if (!generalErrorFlag)
+            {
+                Debug.Log("No errors were detected in the process.");
             }
         }
     }

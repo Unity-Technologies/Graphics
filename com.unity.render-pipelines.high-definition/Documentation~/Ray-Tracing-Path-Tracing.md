@@ -14,11 +14,11 @@ Noisy image with **Maximum Samples** set to 1
 
 Clean image with **Maximum Samples** set to 256
 
-The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports diffuse and specular reflections, specular refractions, and area, point, directional and environment lights.
+The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit and Unlit materials, and area, point, directional and environment lights.
 
 ## Set up path tracing
 
-Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). The only difference is that you need to set the [Ray Tracing Tier](Ray-Tracing-Getting-Started.html#TierTable) to 3. You must carry out this setup before you can add path tracing to your Scene.
+Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.html). You must carry out this setup before you can add path tracing to your Scene.
 
 ## Add path tracing to your Scene
 
