@@ -47,7 +47,6 @@ namespace UnityEngine.Rendering.Universal
         public const string k_ShaderTagName = "UniversalPipeline";
 
         const string k_RenderCameraTag = "Render Camera";
-        const string k_SetupCameraShaderConstantsTag = "Setup Per Camera Shader Constants";
         static ProfilingSampler _CameraProfilingSampler = new ProfilingSampler(k_RenderCameraTag);
 
         public static float maxShadowBias
@@ -240,6 +239,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
+
+            SetupPerCameraShaderConstants(cameraData);
 
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name): _CameraProfilingSampler;
             CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
@@ -821,31 +822,30 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-        internal static void SetupPerCameraShaderConstants(ScriptableRenderContext context, CameraData cameraData, bool stereoEnabled, int eyeIndex)
+        static void SetupPerCameraShaderConstants(in CameraData cameraData)
         {
             Camera camera = cameraData.camera;
-
-            // Get a command buffer...
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetupCameraShaderConstantsTag);
 
             Rect pixelRect = cameraData.pixelRect;
             float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
             float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
-            cmd.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            cmd.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
-            cmd.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+        }
+
+        internal static void SetupPerCameraMatrices(CommandBuffer cmd, ScriptableRenderContext context, CameraData cameraData, bool stereoEnabled, int eyeIndex)
+        {
+            // The following camera properties must be set per eye for XR support.
+            Camera camera = cameraData.camera;
 
             Matrix4x4 projMatrix = stereoEnabled ? camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex) : camera.projectionMatrix;
             Matrix4x4 viewMatrix = stereoEnabled ? camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex) : camera.worldToCameraMatrix;
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
             cmd.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
-
-            // Execute and release the command buffer...
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }
