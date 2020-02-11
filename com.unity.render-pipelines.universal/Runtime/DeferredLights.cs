@@ -775,6 +775,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderStencilLights(context, cmd, ref renderingData);
 
+            // We need to fix the fact we polluted the binding for "_CameraDepthTexture" with our own texture copy.
+            // If other passes require "_CameraDepthTexture", make sure they are getting the "correct" one
+            // (ex: Post-processing gaussiaan DoF and Bokeh DoF).
+            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthTexture.Identifier());
+
             // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
             RenderFog(context, cmd, ref renderingData);
 
