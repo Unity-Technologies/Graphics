@@ -106,6 +106,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if(m_BoneCountType == BoneCountType.PerVerteBoneCount8)
                 {
+                    // the first 4 bones were normalized assuming bone count was 4, so we need to denormalize them back to original values
+                    // this should be done in the post processor, but right now there is a bug in mesh API when trying to set bone weights on a mesh imported with custom bone count per vertex setting
                     sb.AppendLine("$precision1 denormalizeScale = 1.0f - (IN.uv5.x + IN.uv5.y + IN.uv5.z + IN.uv5.w);");                
                     sb.AppendLine("{0}(IN.BoneIndices, IN.uv4, (int)(({1})), IN.BoneWeights * denormalizeScale, IN.uv5, {2}, {3}, {4}, {5}, {6}, {7});",
                         GetFunctionName(),
