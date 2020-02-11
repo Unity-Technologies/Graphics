@@ -14,6 +14,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
+    delegate bool GetMasterPreviewStatus();
 
     class PreviewManager : IDisposable
     {
@@ -48,6 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public OnPrimaryMasterChanged onPrimaryMasterChanged;
+        public GetMasterPreviewStatus getMasterPreviewStatus;
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
@@ -63,6 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ResizeMasterPreview(Vector2 newSize)
         {
+            Debug.Log("  ResizeMasterPreview   newSize=" + newSize + "\n\n" + Environment.StackTrace);
             m_NewMasterPreviewSize = newSize;
         }
 
@@ -344,18 +347,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var renderData in m_RenderList3D)
                 RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
-            var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
+            // Debug.Log("Geez oh Weez");
+            var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node); // && getMasterPreviewStatus();// && false;
+            // Debug.Log("Master Render Texture alpha clip " + masterRenderData.renderTexture.descriptor.width + ", " + masterRenderData.renderTexture.descriptor.height);
             if (renderMasterPreview)
             {
                 CollectShaderProperties(masterRenderData.shaderData.node, masterRenderData);
 
                 if (m_NewMasterPreviewSize.HasValue)
                 {
-                    if (masterRenderData.renderTexture != null)
-                        Object.DestroyImmediate(masterRenderData.renderTexture, true);
-                    masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                    masterRenderData.renderTexture.Create();
-                    masterRenderData.texture = masterRenderData.renderTexture;
+                    // Debug.Log("m_NewMasterPreviewSize.HasValue " + m_NewMasterPreviewSize.Value.x + " " + m_NewMasterPreviewSize.Value.y);
+
+                    // Shitty
+                    if (m_NewMasterPreviewSize.Value.x != 0 && m_NewMasterPreviewSize.Value.y != 0)
+                    {
+                        Debug.Log("m_NewMasterPreviewSize " + m_NewMasterPreviewSize.Value);
+
+                        if (masterRenderData.renderTexture != null)
+                            Object.DestroyImmediate(masterRenderData.renderTexture, true);
+                        masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                        masterRenderData.renderTexture.Create();
+                        masterRenderData.texture = masterRenderData.renderTexture;
+                    }
+
                     m_NewMasterPreviewSize = null;
                 }
                 var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
@@ -411,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
                     if (!isCompiled)
-                {
+                    {
                         continue;
                     }
 
@@ -455,7 +469,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
-                
+
                 BeginCompile(renderData, results.shader);
                 //get the preview mode from generated results
                 renderData.previewMode = results.previewMode;
@@ -507,7 +521,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var previousRenderTexture = RenderTexture.active;
 
-            //Temp workaround for alpha previews...
+            // Debug.Log("Master Render Texture alpha clip " + masterRenderData.renderTexture.descriptor.width + ", " + masterRenderData.renderTexture.descriptor.height);
+
+            // Temp workaround for alpha previews...
             var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
             RenderTexture.active = temp;
             Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);

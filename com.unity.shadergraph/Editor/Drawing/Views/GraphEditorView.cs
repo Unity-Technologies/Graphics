@@ -110,6 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
+            previewManager.getMasterPreviewStatus = GetMasterPreviewStatus;
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
@@ -285,15 +286,39 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSubWindowsVisibility()
         {
-            if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
-            else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+            // Old
+//            m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
+//            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
 
-            if (m_UserViewSettings.isPreviewVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+            // Newer
+//            if (m_UserViewSettings.isBlackboardVisible)
+//                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+//            else
+//                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+//            if (m_UserViewSettings.isPreviewVisible)
+//                m_GraphView.Insert(m_GraphView.childCount, m_MasterPreviewView);
+//            else
+//                m_MasterPreviewView.RemoveFromHierarchy();
+
+//            // Newest
+            if (m_UserViewSettings.isBlackboardVisible)
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
             else
-                m_MasterPreviewView.RemoveFromHierarchy();
+                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+            if (m_UserViewSettings.isPreviewVisible)
+                m_MasterPreviewView.style.display = DisplayStyle.Flex;
+            else
+                m_MasterPreviewView.style.display = DisplayStyle.None;
+
+            // New new
+//            if (m_UserViewSettings.isBlackboardVisible)
+//                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
+//            else
+//                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+//            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
+
+            Debug.Log("m_BlackboardProvider.blackboard " + m_BlackboardProvider.blackboard.GetPosition() + "                                    " + m_BlackboardProvider.blackboard.layout);
+            Debug.Log("m_MasterPreviewView " + m_MasterPreviewView.layout);
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -970,6 +995,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
+        }
+
+        bool GetMasterPreviewStatus()
+        {
+            return (m_MasterPreviewView != null) && m_MasterPreviewView.style.display == DisplayStyle.Flex;
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)
