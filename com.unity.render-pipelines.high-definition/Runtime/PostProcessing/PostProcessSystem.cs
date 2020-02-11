@@ -2417,7 +2417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.blueNoise = blueNoise;
             parameters.flipY = flipY;
             parameters.random = m_Random;
-            parameters.enableAlpha = m_KeepAlpha;
+            parameters.enableAlpha = m_EnableAlpha;
 
             var dynResHandler = DynamicResolutionHandler.instance;
             bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
