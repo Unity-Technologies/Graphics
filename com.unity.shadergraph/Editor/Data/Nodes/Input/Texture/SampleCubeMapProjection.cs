@@ -42,9 +42,9 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
             AddSlot(new CubemapInputMaterialSlot(CubemapInputId, kCubemapInputName, kCubemapInputName));
             AddSlot(new PositionMaterialSlot(WorldPosInputId, kWorldPosInputName, kWorldPosInputName, CoordinateSpace.AbsoluteWorld));
-            AddSlot(new Vector3MaterialSlot(OriginOffsetId, kOriginInputName, kOriginInputName, SlotType.Input, Vector3.one));
+            AddSlot(new Vector3MaterialSlot(OriginOffsetId, kOriginInputName, kOriginInputName, SlotType.Input, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OffsetPosInputId, kOffsetPosInputName, kOffsetPosInputName, SlotType.Input, Vector3.zero));
-            AddSlot(new Vector1MaterialSlot(ProjIntensityInputId, kProjIntensityInputName, kProjIntensityInputName, SlotType.Input, 0.0f));
+            AddSlot(new Vector1MaterialSlot(ProjIntensityInputId, kProjIntensityInputName, kProjIntensityInputName, SlotType.Input, 1.0f));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, WorldPosInputId, OriginOffsetId, OffsetPosInputId, ProjIntensityInputId, SamplerInputId, LODInputId });
