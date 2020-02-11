@@ -86,7 +86,8 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
         if (s_probeVolumeIdx >= v_probeVolumeIdx)
         {
             v_probeVolumeListOffset++;
-            if (probeVolumeHierarchyWeight < 1.0 || s_probeVolumeData.volumeBlendMode != VOLUMEBLENDMODE_NORMAL)
+            bool ignoreWeight = s_probeVolumeData.volumeBlendMode != VOLUMEBLENDMODE_NORMAL;
+            if (probeVolumeHierarchyWeight < 1.0 || ignoreWeight)
             {
                 // TODO: Implement light layer support for probe volumes.
                 // if (IsMatchingLightLayer(s_probeVolumeData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(s_probeVolumeData, TYPE, type) }
@@ -128,7 +129,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
                         // Alpha composite: weight = (1.0f - probeVolumeHierarchyWeight) * fadeFactor;
                         weight = probeVolumeHierarchyWeight * -fadeFactor + fadeFactor;
 
-                    if (weight > 0.0 || s_probeVolumeData.volumeBlendMode != VOLUMEBLENDMODE_NORMAL)
+                    if (weight > 0.0 || ignoreWeight)
                     {
                         // TODO: Cleanup / optimize this math.
                         float3 probeVolumeUVW = clamp(samplePositionBNDC.xyz, 0.5 * s_probeVolumeData.resolutionInverse, 1.0 - s_probeVolumeData.resolutionInverse * 0.5);
@@ -323,8 +324,8 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
 
                 probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
 
-                if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_NORMAL)
-                    probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
+                if (!ignoreWeight)
+                    probeVolumeHierarchyWeight += weight;
 
             }
         }

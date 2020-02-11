@@ -536,7 +536,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
-            UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
+            UnityEditor.SceneView sceneView = UnityEditor.SceneView.currentDrawingSceneView;
+
+            if (sceneView == null)
+                sceneView = UnityEditor.SceneView.lastActiveSceneView;
+
             if (sceneView != null && !sceneView.drawGizmos)
                 return false;
 

@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return blendSize;
         }
 
-        [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
+        [DrawGizmo(GizmoType.InSelectionHierarchy)]
         static void DrawGizmosSelected(ProbeVolume probeVolume, GizmoType gizmoType)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, Vector3.one)))
