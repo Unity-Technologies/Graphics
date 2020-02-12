@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("The mesh to sample from.")]
+            [Tooltip("Sets the mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 

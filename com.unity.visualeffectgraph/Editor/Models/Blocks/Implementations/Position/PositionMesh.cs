@@ -9,17 +9,20 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", experimental = true)]
     class PositionMesh : PositionBase
     {
+        [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
+        private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+
         public override string name { get { return "Position (Mesh)"; } }
 
         public class CustomPropertiesMesh
         {
-            [Tooltip("The mesh to sample from.")]
+            [Tooltip("Sets the mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class CustomPropertiesVertex
         {
-            [Tooltip("The vertex index to read from.")]
+            [Tooltip("Sets the vertex index to read from.")]
             public uint vertex = 0;
         }
 
@@ -42,7 +45,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression vertexIndex;
                 if (spawnMode == SpawnMode.Custom)
                 {
-                    vertexIndex = VFXOperatorUtility.Modulo(base.parameters.First(o => o.name == "vertex").exp, meshVertexCount);
+                    vertexIndex = VFXOperatorUtility.ApplyAddressingMode(base.parameters.First(o => o.name == "vertex").exp, meshVertexCount, adressingMode);
                 }
                 else //if(spawnMode == SpawnMode.Random)
                 {
@@ -50,6 +53,18 @@ namespace UnityEditor.VFX.Block
                     vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
                 }
                 yield return new VFXNamedExpression(vertexIndex, "vertexIndex");
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                if (spawnMode != SpawnMode.Custom)
+                    yield return "adressingMode";
             }
         }
 

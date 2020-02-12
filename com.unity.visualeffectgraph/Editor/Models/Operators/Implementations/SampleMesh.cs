@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("The mesh to sample from.")]
+            [Tooltip("Sets the mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
             [Tooltip("The vertex index to read from.")]
             public uint vertex = 0u;
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Operator
             BlendIndices = 1 << 14
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies read output during mesh sampling")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Outputs the result of the specified mesh sampling.")]
         private VertexAttributeFlag output = VertexAttributeFlag.Position | VertexAttributeFlag.Color | VertexAttributeFlag.TexCoord0;
 
         [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
