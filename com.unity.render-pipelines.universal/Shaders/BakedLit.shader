@@ -131,7 +131,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
-                
+
                 return half4(color, alpha);
             }
             ENDHLSL
@@ -148,7 +148,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
+            #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
