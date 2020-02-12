@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/PerformanceTests/Scenes/0000_LitCube.unity
     guid: 7fe3f9e94b4355641ba1534c54d5c356
+  - enabled: 1
+    path: Assets/PerformanceTests/Scenes/0000_LitCube.unity
+    guid: 7fe3f9e94b4355641ba1534c54d5c356
   m_configObjects: {}
