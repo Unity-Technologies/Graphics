@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // An alternative approach might be to lazily remove things from the atlas as space is required via least recently used heuristic.
             HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdrp != null)
-                hdrp.m_ProbeVolumeSystem.ReleaseProbeVolumeFromAtlas(volume);
+                hdrp.ReleaseProbeVolumeFromAtlas(volume);
         }
 #if UNITY_EDITOR
         public void ReactivateProbes()

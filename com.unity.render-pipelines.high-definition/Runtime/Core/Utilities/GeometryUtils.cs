@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // struct Frustum
 
     [GenerateHLSL]
-    public struct OrientedBBox
+    struct OrientedBBox
     {
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.

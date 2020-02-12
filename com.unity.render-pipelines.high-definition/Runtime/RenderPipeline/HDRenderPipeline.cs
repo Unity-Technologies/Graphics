@@ -237,7 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
-        public readonly ProbeVolumeSystem m_ProbeVolumeSystem = new ProbeVolumeSystem();
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -464,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
 
-            m_ProbeVolumeSystem.Build(asset);
+            InitializeProbeVolumes();
         }
 
 #if UNITY_EDITOR
@@ -837,7 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
-            m_ProbeVolumeSystem.Cleanup();
+            CleanupProbeVolumes();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -937,7 +936,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Fog.PushFogShaderParameters(hdCamera, cmd);
 
                 PushVolumetricLightingGlobalParams(hdCamera, cmd, m_FrameCount);
-                m_ProbeVolumeSystem.PushGlobalParams(hdCamera, cmd, m_FrameCount); // TODO(Nicholas): make symmetrical with the other volumes
+                PushProbeVolumesGlobalParams(hdCamera, cmd, m_FrameCount); // TODO(Nicholas): make symmetrical with the other volumes
 
                 SetMicroShadowingSettings(cmd);
 
@@ -1881,7 +1880,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
 
             // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
-            ProbeVolumeList probeVolumes = m_ProbeVolumeSystem.PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
+            ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.

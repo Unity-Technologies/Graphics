@@ -3787,9 +3787,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (lightingDebug.probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas)
                     {
                         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-                        ProbeVolumeSystem pvs = hdrp.m_ProbeVolumeSystem;
                         HDCamera hdCamera = debugParameters.hdCamera;
-                        pvs.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, (int)lightingDebug.probeVolumeAtlasSliceMode);
+                        hdrp.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, (int)lightingDebug.probeVolumeAtlasSliceMode);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                     }
 

@@ -68,13 +68,13 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeValidityFilter
     }
 
-    public struct ProbeVolumeList
+    struct ProbeVolumeList
     {
         public List<OrientedBBox> bounds;
         public List<ProbeVolumeEngineData> data;
     }
 
-    public class ProbeVolumeSystem
+    public partial class HDRenderPipeline
     {
         public enum ProbeVolumeSystemPreset
         {
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_SupportProbeVolume = false;
 
         // Pre-allocate sort keys array to max size to avoid creating allocations / garbage at runtime.
-        uint[] m_SortKeys = new uint[k_MaxVisibleProbeVolumeCount];
+        uint[] m_ProbeVolumeSortKeys = new uint[k_MaxVisibleProbeVolumeCount];
 
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static ComputeShader s_ProbeVolumeAtlasOctahedralDepthBlitCS = null;
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2DAtlasDynamic probeVolumeAtlasOctahedralDepth = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
-        public void Build(HDRenderPipelineAsset asset)
+        public void InitializeProbeVolumes()
         {
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (preset != ProbeVolumeSystemPreset.Off)
             {
-                CreateBuffers();
+                CreateProbeVolumeBuffers();
 
                 s_ProbeVolumeAtlasBlitCS = asset.renderPipelineResources.shaders.probeVolumeAtlasBlitCS;
                 s_ProbeVolumeAtlasBlitKernel = s_ProbeVolumeAtlasBlitCS.FindKernel("ProbeVolumeAtlasBlitKernel");
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                CreateBuffersDefault();
+                CreateProbeVolumeBuffersDefault();
             }
 
         #if UNITY_EDITOR
@@ -162,13 +162,13 @@ namespace UnityEngine.Rendering.HighDefinition
         #endif
         }
 
-        void CreateBuffersDefault()
+        void CreateProbeVolumeBuffersDefault()
         {
             s_VisibleProbeVolumeBoundsBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
         }
 
-        void CreateBuffers()
+        void CreateProbeVolumeBuffers()
         {
             m_VisibleProbeVolumeBounds = new List<OrientedBBox>();
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
-        void DestroyBuffers()
+        void DestroyProbeVolumeBuffers()
         {
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBufferDefault);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBufferDefault);
@@ -237,9 +237,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = null;
         }
 
-        public void Cleanup()
+        public void CleanupProbeVolumes()
         {
-            DestroyBuffers();
+            DestroyProbeVolumeBuffers();
 
         #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
@@ -257,11 +257,11 @@ namespace UnityEngine.Rendering.HighDefinition
             isClearProbeVolumeAtlasRequested = true;
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        public void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!m_SupportProbeVolume)
             {
-                ProbeVolumeSystem.PushGlobalParamsDefault(hdCamera, cmd, frameIndex);
+                PushProbeVolumesGlobalParamsDefault(hdCamera, cmd, frameIndex);
                 return;
             }
 
@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeight", bilateralFilterWeight);
         }
 
-        private static void PushGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        private static void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableProbeVolumes, 0);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.ClearRenderTarget(false, true, Color.black, 0.0f);
         }
 
-        public ProbeVolumeList PrepareVisibleProbeVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
+        ProbeVolumeList PrepareVisibleProbeVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
@@ -538,16 +538,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var logVolume = CalculateProbeVolumeLogVolume(volume.parameters.size);
 
-                        m_SortKeys[sortCount++] = PackProbeVolumeSortKey(logVolume, probeVolumesIndex);
+                        m_ProbeVolumeSortKeys[sortCount++] = PackProbeVolumeSortKey(logVolume, probeVolumesIndex);
                     }
                 }
 
-                CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+                CoreUnsafeUtils.QuickSort(m_ProbeVolumeSortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                 {
                     // In 1. we have already classify and sorted the probe volume, we need to use this sorted order here
-                    uint sortKey = m_SortKeys[sortIndex];
+                    uint sortKey = m_ProbeVolumeSortKeys[sortIndex];
                     int probeVolumesIndex;
                     UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
 
@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                 {
-                    uint sortKey = m_SortKeys[sortIndex];
+                    uint sortKey = m_ProbeVolumeSortKeys[sortIndex];
                     int probeVolumesIndex;
                     UnpackProbeVolumeSortKey(sortKey, out probeVolumesIndex);
 
