@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with additive particles blending incorrectly [case 1215713](https://issuetracker.unity3d.com/issues/universal-render-pipeline-additive-particles-not-using-vertex-alpha)
 - Fixed incorrect light attenuation on Nintendo Switch.
 - Fixed XR SDK single-pass incorrectly switching to multipass issue. Add query for XR SDK single-pass availability using XR SDK renderpass descriptors.
+- Fixed a performance issue in Hololens when using renderer with custom render passes.
 
 ## [7.1.8] - 2020-01-20
 
