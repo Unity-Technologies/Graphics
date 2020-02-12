@@ -38,6 +38,8 @@ namespace UnityEditor.VFX
 
     class VFXGraphCompiledData
     {
+        public const uint compiledVersion = 2;
+
         public VFXGraphCompiledData(VFXGraph graph)
         {
             if (graph == null)
@@ -53,6 +55,13 @@ namespace UnityEditor.VFX
             public VFXCompilationMode compilMode;
         }
 
+        private static VFXExpressionObjectValueContainerDesc<T> CreateObjectValueDesc<T>(VFXExpression exp, int expIndex)
+        {
+            var desc = new VFXExpressionObjectValueContainerDesc<T>();
+            desc.instanceID = exp.Get<int>();
+            return desc;
+        }
+
         private static VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
         {
             var desc = new VFXExpressionValueContainerDesc<T>();
@@ -63,6 +72,11 @@ namespace UnityEditor.VFX
         private void SetValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
         {
             ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
+        }
+
+        private void SetObjectValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
+        {
+            ((VFXExpressionObjectValueContainerDesc<T>)desc).instanceID = exp.Get<int>();
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
@@ -112,12 +126,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray:
-                            value = CreateValueDesc<Texture>(exp, i);
+                            value = CreateObjectValueDesc<Texture>(exp, i);
                             break;
                         case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
-                        case VFXValueType.Mesh: value = CreateValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
@@ -369,13 +383,13 @@ namespace UnityEditor.VFX
                                 {
                                     case VisualEffectAsset.PlayEventName:
                                         if( nextSg != null)
-                                            newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
+                                        newEventPaths.Add(path.Concat(new int[] { 0 }).ToList());
                                         else
                                             result[i].Add(evt);
                                         break;
                                     case VisualEffectAsset.StopEventName:
                                         if(nextSg != null)
-                                            newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
+                                        newEventPaths.Add(path.Concat(new int[] { 1 }).ToList());
                                         else
                                             result[i].Add(evt);
                                         break;
@@ -386,7 +400,7 @@ namespace UnityEditor.VFX
                                                 int eventIndex = nextSg.GetInputFlowIndex(eventName);
                                                 if(eventIndex != -1)
                                                     newEventPaths.Add(path.Concat(new int[] { eventIndex }).ToList());
-                                            }
+                                                }
                                             else
                                             {
                                                 result[i].Add(evt);
@@ -407,7 +421,7 @@ namespace UnityEditor.VFX
                                         newEventPaths.Add(path.Concat(new int[] { fixedSlotIndex }).ToList());
                                 }
                                 else
-                                    newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
+                                newEventPaths.Add(path.Concat(new int[] { currentFlowIndex }).ToList());
                             }
                             else
                             {
@@ -588,11 +602,11 @@ namespace UnityEditor.VFX
 
             var eventDescTemp = new[]
             {
-                new { eventName = "OnPlay", playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
-                new { eventName = "OnStop", playSystems = new List<uint>(), stopSystems = allStopNotLinked },
+                new { eventName = VisualEffectAsset.PlayEventName, playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
+                new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName,VisualEffectAsset.StopEventName});
+            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
 
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
@@ -635,10 +649,11 @@ namespace UnityEditor.VFX
                 }
             }
             outEventDesc.Clear();
-            outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
+            var relevantEvent = eventDescTemp.Where(o => o.playSystems.Any() || o.stopSystems.Any());
+            outEventDesc.AddRange(relevantEvent.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
-        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode)
+        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
@@ -656,7 +671,8 @@ namespace UnityEditor.VFX
 
                     if (context.doesGenerateShader)
                     {
-                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
+                        
+                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData, dependencies);
 
                         if(generatedContent!= null)
                         {
@@ -670,6 +686,9 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                var resource = m_Graph.GetResource();
+
             }
             finally
             {
@@ -677,7 +696,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static VFXShaderSourceDesc[] SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -698,8 +717,6 @@ namespace UnityEditor.VFX
                     descs[i].compute = generated.computeShader;
                 }
 
-                resource.shaderSources = descs;
-
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
@@ -707,6 +724,8 @@ namespace UnityEditor.VFX
                     contextData.indexInShaderSource = i;
                     contextToCompiledData[generated.context] = contextData;
                 }
+
+                return descs;
             }
             finally
             {
@@ -850,6 +869,15 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models,false);
 
+                var resource = m_Graph.GetResource();
+                resource.ClearSourceDependencies();
+
+                HashSet<string> sourceDependencies = new HashSet<string>();
+                foreach(VFXModel model in models.Where(t=> t is IVFXSlotContainer))
+                {
+                    model.GetSourceDependentAssets(sourceDependencies);
+                }
+
                 var contexts = models.OfType<VFXContext>().ToArray();
 
                 foreach (var c in contexts) // Unflag all contexts
@@ -939,10 +967,10 @@ namespace UnityEditor.VFX
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 7 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
-                SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
+                VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var temporaryBufferDescs = new List<VFXTemporaryGPUBufferDesc>();
@@ -984,9 +1012,9 @@ namespace UnityEditor.VFX
 
                 }
 
-                // Update renderer settings
-                VFXRendererSettings rendererSettings = GetRendererSettings(m_Graph.visualEffectResource.rendererSettings, compilableContexts.OfType<IVFXSubRenderer>());
-                m_Graph.visualEffectResource.rendererSettings = rendererSettings;
+                // Update transient renderer settings
+                ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                MotionVectorGenerationMode motionVectorGenerationMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
                 var expressionSheet = new VFXExpressionSheet();
@@ -994,8 +1022,12 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
-                m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
+
+                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode,compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
+
+                foreach (var dep in sourceDependencies)
+                    resource.AddSourceDependency(dep);
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)
                 {
@@ -1020,12 +1052,6 @@ namespace UnityEditor.VFX
             }
             finally
             {
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
-                Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
-                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
-                AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath); // Force the reload to invoke the AwakeFromLoad as Import doesnt do it
-                Profiler.EndSample();
-
                 Profiler.EndSample();
                 EditorUtility.ClearProgressBar();
             }
@@ -1062,12 +1088,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray:
-                            SetValueDesc<Texture>(desc, exp);
+                            SetObjectValueDesc<Texture>(desc, exp);
                             break;
                         case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
-                        case VFXValueType.Mesh: SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
