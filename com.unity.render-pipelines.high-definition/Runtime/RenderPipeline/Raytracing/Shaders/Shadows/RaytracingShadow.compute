@@ -206,7 +206,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
 
         // Combine the light color with the light cookie color (if any)
         float3 lightColor = lightData.color;
-        if (lightData.cookieIndex >= 0)
+        if (lightData.cookieMode != COOKIEMODE_NONE)
         {
             float cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
             float cookieSizePOT = round(LOG2_E * log(cookieWidth));
@@ -395,7 +395,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
 
         // Combine the light color with the light cookie color (if any)
         float3 lightColor = lightData.color;
-        if (lightData.cookieIndex >= 0)
+        if (lightData.cookieMode != COOKIEMODE_NONE)
         {
             float   cookieWidth = lightData.cookieScaleOffset.x * _CookieAtlasSize.x;
             float   cookieSizePOT = round(LOG2_E * log(cookieWidth));
