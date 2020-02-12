@@ -322,6 +322,17 @@ namespace UnityEngine.Rendering.Universal
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
 
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
+            if (isStereoEnabled && requiresDepthTexture)
+                requiresDepthPrepass = true;
+
+            bool isRunningHololens = false;
+#if ENABLE_VR && ENABLE_VR_MODULE
+            isRunningHololens = UniversalRenderPipeline.IsRunningHololens(camera);
+#endif
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) ||
+                (rendererFeatures.Count != 0 && !isRunningHololens);
+
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             // When deferred renderer is enabled, we must always create a depth texture and CANNOT use BuiltinRenderTextureType.CameraTarget. This is to get
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
