@@ -75,7 +75,9 @@ namespace UnityEngine.Rendering.Universal
             // Only declare GBuffer 0, 1 and 2.
             // GBuffer 3 has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
             for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
+            {
                 cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
+            }
 
             List<RenderTargetHandle> colorAttachmentHandles = new List<RenderTargetHandle>();
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)

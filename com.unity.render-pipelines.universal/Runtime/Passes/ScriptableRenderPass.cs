@@ -192,11 +192,13 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureColorAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false, int idx = 0)
         {
+            m_InputAttachments.Clear();
             var attachment = new RenderTargetHandle();
-            attachment.identifier = m_ColorAttachments[idx].identifier;
+            attachment.identifier = target.identifier;
             attachment.targetDescriptor = target.targetDescriptor;
             attachment.targetDescriptor
                 .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
+
             if (shouldClear)
                 attachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
             m_ColorAttachments.Insert(idx, attachment);
@@ -206,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureDepthAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false)
         {
+            m_DepthAttachment.identifier = target.identifier;
             m_DepthAttachment.targetDescriptor = target.targetDescriptor;
             m_DepthAttachment.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
             if (shouldClear)
@@ -214,7 +217,14 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)
         {
-            m_InputAttachments.Insert(idx, input);
+            hasInputAttachment = true;
+//            if (!m_InputAttachments.Contains(input))
+//            {
+//                if (m_InputAttachments.Count < 1)
+                    m_InputAttachments.Add(input);
+//                else
+//                    m_InputAttachments.Insert(idx, input);
+//            }
         }
 
         internal void ConfigureInputAttachments(List<RenderTargetHandle> inputs)
@@ -274,6 +284,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
         {
+            m_ColorAttachments = new List<RenderTargetHandle> { RenderTargetHandle.CameraTarget };
         }
 
         /// <summary>

@@ -88,7 +88,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
+
+               // CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

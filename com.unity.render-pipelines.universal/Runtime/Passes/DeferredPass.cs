@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -27,6 +28,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // TODO: Cannot currently bind depth texture as read-only!
             ConfigureTarget(m_DeferredLights.m_GbufferColorAttachments[3], m_DeferredLights.m_DepthTexture);
+            m_ColorAttachments.Clear();
+//            ConfigureColorAttachment(m_DeferredLights.m_GbufferColorAttachments[3], true, true, false, 0);
+           // ConfigureDepthAttachment(m_DeferredLights.m_DepthTexture, true, true);
+            ConfigureRenderPassDescriptor(cameraTextureDescripor.width, cameraTextureDescripor.height, cameraTextureDescripor.msaaSamples);
         }
 
         // ScriptableRenderPass
