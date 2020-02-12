@@ -64,7 +64,7 @@ Varyings vert(Attributes attributes)
     TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
     //TRANSFER_SHADOWS(o)
 
-    o.gBufferUV = ComputeScreenPos(o.positionCS / o.positionCS.w).xy;
+    o.gBufferUV = ComputeScreenPos(o.positionCS / o.positionCS.w).xy * _GBufferColor_TexelSize.zw;
 
     return o;
 }

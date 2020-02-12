@@ -47,6 +47,7 @@ Shader "Hidden/Light2D-Global"
                 o.positionCS = float4(attributes.positionOS, 1.0f);
                 o.uv = attributes.uv;
                 o.uv.y = 1.0f - o.uv.y;
+                o.uv *= _GBufferColor_TexelSize.zw;
 
                 return o;
             }

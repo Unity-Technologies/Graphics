@@ -18,7 +18,7 @@
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
 
         #define APPLY_NORMALS_LIGHTING_NEW(input, lightColor)\
-            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            half4 normal = LOAD_TEXTURE2D(_NormalMap, input.gBufferUV);\
             normal.rgb *= 1.0f / (normal.a + 0.0000001f);\
             float3 normalUnpacked = normal.rgb * 2.0 - 1.0;\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
@@ -42,7 +42,7 @@
             lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
 
         #define APPLY_NORMALS_LIGHTING_NEW(input, lightColor)\
-            half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
+            half4 normal = LOAD_TEXTURE2D(_NormalMap, input.gBufferUV);\
             normal.rgb *= 1.0f / (normal.a + 0.0000001f);\
             float3 normalUnpacked = normal.rgb * 2.0 - 1.0;\
             float3 dirToLight;\
@@ -98,18 +98,17 @@ float4 _ShapeLightMaskFilter;
 float4 _ShapeLightInvertedFilter;
 float2 _ShapeLightBlendFactors;
 TEXTURE2D(_GBufferColor);
-SAMPLER(sampler_GBufferColor);
+float4 _GBufferColor_TexelSize;
 TEXTURE2D(_GBufferMask);
-SAMPLER(sampler_GBufferMask);
 
 half4 BlendLightingWithBaseColor(half3 lightColor, float2 gBufferUV)
 {
-    half4 baseColor = SAMPLE_TEXTURE2D(_GBufferColor, sampler_GBufferColor, gBufferUV);
+    half4 baseColor = LOAD_TEXTURE2D(_GBufferColor, gBufferUV);
     
     if (any(_ShapeLightMaskFilter))
     {
         half rcpA = 1.0f / (baseColor.a + 0.0000001f);
-        half4 mask = SAMPLE_TEXTURE2D(_GBufferMask, sampler_GBufferMask, gBufferUV) * rcpA;
+        half4 mask = LOAD_TEXTURE2D(_GBufferMask, gBufferUV) * rcpA;
         float4 processedMask = (1 - _ShapeLightInvertedFilter) * mask + _ShapeLightInvertedFilter * (1 - mask);
         lightColor *= dot(processedMask, _ShapeLightMaskFilter);
     }
