@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand.
 //
 
-#ifndef PROBEVOLUMESYSTEM_CS_HLSL
-#define PROBEVOLUMESYSTEM_CS_HLSL
+#ifndef PROBEVOLUMELIGHTING_CS_HLSL
+#define PROBEVOLUMELIGHTING_CS_HLSL
 //
 // UnityEngine.Rendering.HighDefinition.LeakMitigationMode:  static fields
 //

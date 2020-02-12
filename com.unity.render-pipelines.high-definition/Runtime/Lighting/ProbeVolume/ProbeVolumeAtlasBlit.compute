@@ -6,8 +6,7 @@
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-// #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeSystem.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
 StructuredBuffer<SphericalHarmonicsL1> _ProbeVolumeAtlasReadBuffer;
 StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
@@ -45,7 +44,7 @@ uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 r
     return uint2((uint)atlasU, (uint)atlasV);
 }
 
-// Warning this needs to match with kBatchSize in ProbeVolumeSystem.cs
+// Warning this needs to match with kBatchSize in ProbeVolumeLighting.cs
 #define BATCH_SIZE 256
 [numthreads(BATCH_SIZE, 1, 1)]
 void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)

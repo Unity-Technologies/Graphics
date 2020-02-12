@@ -76,14 +76,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        public enum ProbeVolumeSystemPreset
+        public enum ProbeVolumeLightingPreset
         {
             Off,
             On,
             Count
         }
 
-        public ProbeVolumeSystemPreset preset = ProbeVolumeSystemPreset.Off;
+        public ProbeVolumeLightingPreset preset = ProbeVolumeLightingPreset.Off;
 
         List<OrientedBBox> m_VisibleProbeVolumeBounds = null;
         List<ProbeVolumeEngineData> m_VisibleProbeVolumeData = null;
@@ -140,9 +140,9 @@ namespace UnityEngine.Rendering.HighDefinition
             s_ProbeVolumeAtlasOctahedralDepthHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight;
             k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / 8) * (s_ProbeVolumeAtlasOctahedralDepthHeight / 8);
 
-            preset = m_SupportProbeVolume ? ProbeVolumeSystemPreset.On : ProbeVolumeSystemPreset.Off;
+            preset = m_SupportProbeVolume ? ProbeVolumeLightingPreset.On : ProbeVolumeLightingPreset.Off;
 
-            if (preset != ProbeVolumeSystemPreset.Off)
+            if (preset != ProbeVolumeLightingPreset.Off)
             {
                 CreateProbeVolumeBuffers();
 
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width = volume.parameters.resolutionX * volume.parameters.resolutionZ;
             int height = volume.parameters.resolutionY;
             int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ;
-            Debug.Assert(size > 0, "Error: ProbeVolumeSystem: Encountered probe volume with resolution set to zero on all three axes.");
+            Debug.Assert(size > 0, "ProbeVolume: Encountered probe volume with resolution set to zero on all three axes.");
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
             // If resolution has changed since upload, need to free previous allocation from atlas,
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasSHRTHandle.rt.height
                     ));
 
-                    Debug.Assert(data.Length == size, "ProbeVolumeSystem: The probe volume baked data and its resolution are out of sync! Volume data length is " + data.Length + ", but resolution size is " + size + ".");
+                    Debug.Assert(data.Length == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + data.Length + ", but resolution size is " + size + ".");
 
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
                     s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(dataValidity);
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            Debug.Assert(isSlotAllocated, "ProbeVolumeSystem: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
+            Debug.Assert(isSlotAllocated, "ProbeVolume: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
             return false;
         }
 
@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width = volume.parameters.resolutionX * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth;
             int height = volume.parameters.resolutionY * k_ProbeOctahedralDepthHeight;
             int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight;
-            Debug.Assert(size > 0, "Error: ProbeVolumeSystem: Encountered probe volume with resolution set to zero on all three axes.");
+            Debug.Assert(size > 0, "ProbeVolume: Encountered probe volume with resolution set to zero on all three axes.");
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
             // If resolution has changed since upload, need to free previous allocation from atlas,
@@ -449,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
                     ));
 
-                    Debug.Assert(dataOctahedralDepth.Length == size, "ProbeVolumeSystem: The probe volume baked data and its resolution are out of sync! Volume data length is " + dataOctahedralDepth.Length + ", but resolution size is " + size + ".");
+                    Debug.Assert(dataOctahedralDepth.Length == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + dataOctahedralDepth.Length + ", but resolution size is " + size + ".");
 
                     s_ProbeVolumeAtlasOctahedralDepthBuffer.SetData(dataOctahedralDepth);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthReadBufferCount", size);
@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            Debug.Assert(isSlotAllocated, "ProbeVolumeSystem: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
+            Debug.Assert(isSlotAllocated, "ProbeVolume: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
             return false;
         }
 
@@ -681,5 +681,5 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
 
-    } // class ProbeVolumeSystem
+    } // class ProbeVolumeLighting
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline
