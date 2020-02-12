@@ -66,7 +66,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
         cmd.GetTemporaryRT(s_GBufferColorTarget.id, descriptor);
 
-        descriptor.graphicsFormat = GraphicsFormat.R8_UNorm;
+        descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
         descriptor.depthBufferBits = 0;
         cmd.GetTemporaryRT(s_GBufferMaskTarget.id, descriptor);
 
