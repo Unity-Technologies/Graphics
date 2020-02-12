@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed incorrect light attenuation on Nintendo Switch.
+- Fixed a performance issue in Hololens when using renderer with custom render passes.
+
 
 ## [7.2.0] - 2020-02-10
-
 
 ### Added
 ![Camera Stacking in URP](Documentation~/Images/camera-stacking-example.png)
