@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/PostProcessing/Assets/ReferenceImages/Linear/OSXPlayer/Metal.meta
+guid: c5bd81c2355eb5a30aebc07f7e7599fd
+<<<<<<< HEAD
+=======
+guid: b2479365dd75aba48b9dd79291a82c6c
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb:com.unity.render-pipelines.high-definition/Samples~/ParticleSystemShaderSamples/Shaders.meta
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+=======
+folderAsset: yes
+DefaultImporter:
+=======
+guid: 2206cdbbf82e1b245b421a5bb34b82f6
+NativeFormatImporter:
+>>>>>>> 0e604b48b19ab8d54e58036a8850b2bb126642e5:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/2x_Lighting/2403_Area_TexturedRectLights/M_SLSmoothness_0.mat.meta
+  externalObjects: {}
+  mainObjectFileID: 2100000
+>>>>>>> d88f208066b40a1db0f3362707bb2638081a8448
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
