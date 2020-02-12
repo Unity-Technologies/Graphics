@@ -1097,7 +1097,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     return float4(x, y, z, 1.0);
 }
 
-#if !defined(SHADER_API_GLES)
+#if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
