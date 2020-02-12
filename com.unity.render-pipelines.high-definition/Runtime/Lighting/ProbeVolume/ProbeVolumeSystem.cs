@@ -512,7 +512,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Collect all visible finite volume data, and upload it to the GPU.
                 List<ProbeVolume> volumes = ProbeVolumeManager.manager.volumes;
 
-
                 int probeVolumesCount = Math.Min(volumes.Count, k_MaxVisibleProbeVolumeCount);
                 int sortCount = 0;
 
@@ -522,6 +521,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int probeVolumesIndex = 0; (probeVolumesIndex < volumes.Count) && (sortCount < probeVolumesCount); probeVolumesIndex++)
                 {
                     ProbeVolume volume = volumes[probeVolumesIndex];
+
+#if UNITY_EDITOR
+                    if (!volume.IsAssetCompatible())
+                        continue;
+#endif
 
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
