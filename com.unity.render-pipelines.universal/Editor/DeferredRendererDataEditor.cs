@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Deferred Renderer.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
+            public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading", "Allows Tiled Deferred Shading on appropriate lights");
         }
 
@@ -23,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
+        SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_TiledDeferredShading;
 
         private void OnEnable()
@@ -33,8 +35,8 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
+            m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
-
         }
 
         public override void OnInspectorGUI()
@@ -48,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck()) // We copy the opaque mask to the transparent mask, later we might expose both
                 m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
             EditorGUILayout.PropertyField(m_PostProcessData);
+            EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
             EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
             EditorGUILayout.Space();
 

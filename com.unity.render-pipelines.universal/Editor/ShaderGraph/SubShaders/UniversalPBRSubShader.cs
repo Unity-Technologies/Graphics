@@ -281,6 +281,7 @@ namespace UnityEditor.Rendering.Universal
                 s_MainLightShadowsKeyword,
                 s_MainLightShadowsCascadeKeyword,
                 s_ShadowsSoftKeyword,
+                s_GbufferNormalOctKeyword,
             },
         };
 
@@ -456,6 +457,15 @@ namespace UnityEditor.Rendering.Universal
         {
             displayName = "Shadows Soft",
             referenceName = "_SHADOWS_SOFT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        static KeywordDescriptor s_GbufferNormalOctKeyword = new KeywordDescriptor()
+        {
+            displayName = "G-buffer normals octaedron",
+            referenceName = "_GBUFFER_NORMALS_OCT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

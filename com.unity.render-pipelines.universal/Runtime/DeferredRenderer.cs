@@ -9,8 +9,10 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class DeferredRenderer : ScriptableRenderer
     {
-        const int k_DepthStencilBufferBits = 32;
-        const string k_CreateCameraTextures = "Create Camera Texture";
+        public static readonly int k_GBufferSlicesCount = 3;
+        public static readonly int k_DepthStencilBufferBits = 32;
+
+        static readonly string k_CreateCameraTextures = "Create Camera Texture";
 
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
@@ -38,15 +40,13 @@ namespace UnityEngine.Rendering.Universal
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
 
-        public const int GBufferSlicesCount = 3;
-
         // Attachments are like "binding points", internally they identify the texture shader properties declared with the same names
         RenderTargetHandle m_ActiveCameraColorAttachment;
         RenderTargetHandle m_ActiveCameraDepthAttachment;
         RenderTargetHandle m_CameraColorAttachment;
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
-        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[GBufferSlicesCount];
+        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[k_GBufferSlicesCount];
         RenderTargetHandle m_DepthCopyTexture;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
@@ -86,6 +86,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
+            m_DeferredLights.accurateGbufferNormals = data.accurateGbufferNormals;
             m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
 
             // Note: Since all custom render passes inject first and we have stable sort,
@@ -95,7 +96,7 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
-            m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
             m_CopyDepthTempPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, m_CopyDepthMaterial);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
@@ -432,10 +433,10 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 1];
-            for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
+            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
+            for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-            gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            gbufferColorAttachments[k_GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
             m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments, requiresDepthPrepass);
             EnqueuePass(m_GBufferPass);
 

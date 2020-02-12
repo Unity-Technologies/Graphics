@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
-        static class ShaderConstants
+        public static class ShaderConstants
         {
             public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
             public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
             public static readonly string _POINT = "_POINT";
             public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
+            public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
@@ -187,6 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_SetupLightConstants = "Setup Light Constants";
         static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
 
+        public bool accurateGbufferNormals = true;
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         public readonly bool useJobSystem = true;
 
