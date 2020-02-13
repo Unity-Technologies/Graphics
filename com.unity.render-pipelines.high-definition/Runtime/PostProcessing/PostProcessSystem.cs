@@ -1350,8 +1350,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Need to clear dest as we recycle render targets and tiles won't write to
                         // all pixels thus leaving previous-frame info
-                        cmd.SetRenderTarget(pongFarRGB);
-                        cmd.ClearRenderTarget(false, true, Color.clear);
+                        // we clear the UAV in a compute, where we know wich pixel to clear according to the farCoc value.
+                                          
+                        cs = m_Resources.shaders.depthOfFieldGatherCS;
+                        kernel = cs.FindKernel("KMainFarClear");
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, pongFarRGB);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
                     }
 
                     cs = m_Resources.shaders.depthOfFieldGatherCS;
