@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Text;
 using UnityEngine.Assertions;
 
@@ -96,12 +97,10 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 args.Append($" mklink /D \"{links[i]}\" \"{targets[i]}\"");
             }
 
-            args.Append(" & pause");
-
             var p = new ProcessStartInfo("cmd.exe")
             {
                 Arguments = args.ToString(),
-                Verb = "runas"
+                Verb = IsUserAdministrator() ? "runas" : string.Empty,
             };
             var proc = new Process
             {
@@ -110,6 +109,34 @@ namespace UnityEditor.ShaderAnalysis.Internal
             proc.Start();
             proc.WaitForExit();
             return proc.ExitCode == 0;
+        }
+
+        static bool IsUserAdministrator()
+        {
+            //bool value to hold our return value
+            bool isAdmin;
+            WindowsIdentity user = null;
+            try
+            {
+                //get the currently logged in user
+                user = WindowsIdentity.GetCurrent();
+                WindowsPrincipal principal = new WindowsPrincipal(user);
+                isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                isAdmin = false;
+            }
+            catch (Exception ex)
+            {
+                isAdmin = false;
+            }
+            finally
+            {
+                if (user != null)
+                    user.Dispose();
+            }
+            return isAdmin;
         }
     }
 }

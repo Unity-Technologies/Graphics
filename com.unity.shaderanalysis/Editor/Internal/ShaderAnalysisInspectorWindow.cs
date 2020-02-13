@@ -136,26 +136,33 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
 
             m_GUI = NOOPGUI;
+            if (m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
+                OpenAsset(m_SelectedAsset);
+            if (m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex <= m_SupportedPlatforms.Length)
+            {
+                m_CurrentPlatform = m_SupportedPlatforms[m_SelectedPlatformIndex];
+                m_AssetMetadata = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform);
+            }
         }
 
         void OpenAsset(Object asset)
         {
             ResetUI();
-            var shader = Selection.activeObject as Shader;
+            var shader = asset as Shader;
             if (shader != null)
             {
                 OpenAsset(shader);
                 Repaint();
                 return;
             }
-            var compute = Selection.activeObject as ComputeShader;
+            var compute = asset as ComputeShader;
             if (compute != null)
             {
                 OpenAsset(compute);
                 Repaint();
                 return;
             }
-            var material = Selection.activeObject as Material;
+            var material = asset as Material;
             if (material != null)
             {
                 OpenAsset(material);
@@ -267,7 +274,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 var tempReportFile = ShaderAnalysisUtils.GetTemporaryReportFile(asset, m_CurrentPlatform);
                 var tempReportFileName = ExporterUtilities.ChangeExtensionFor(m_ReportExporterIndex, tempReportFile.FullName);
                 ExporterUtilities.Export(m_ReportExporterIndex, report, tempReportFileName);
-                Application.OpenURL(tempReportFile.FullName);
+                Application.OpenURL(tempReportFileName);
             }
 
             GUI.enabled = true;
@@ -282,7 +289,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 var exportFile = ShaderAnalysisUtils.GetTemporaryDiffFile(assetGUID, m_CurrentPlatform);
                 var exportReportFileName = ExporterUtilities.ChangeExtensionFor(m_ReportExporterIndex, exportFile.FullName);
                 ExporterUtilities.ExportDiff(m_ReportDiffExporterIndex, diff, exportReportFileName);
-                Application.OpenURL(exportFile.FullName);
+                Application.OpenURL(exportReportFileName);
             }
             GUI.enabled = true;
             m_ReportDiffExporterIndex =
@@ -516,6 +523,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         void NOOPGUI()
         {
+            EditorGUI.BeginChangeCheck();
             m_SelectedAsset = EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("To Inspect"), m_SelectedAsset,
                 typeof(Object), false);
             if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
