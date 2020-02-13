@@ -311,7 +311,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
   name : {{ project.name }} on Linux_{{ linux_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
-    type: Unity::VM
+    type: Unity::VM::GPU
     {% else %}
     type: {{ platform.type }}
     {% endif %}
