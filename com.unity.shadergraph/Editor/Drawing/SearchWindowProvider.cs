@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     internal struct NodeEntry
     {
         public string[] title;
-        public AbstractMaterialNode node;
+        public object node;
         public int compatibleSlotId;
         public string slotName;
     }
@@ -62,6 +62,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
+
+            // Contexts are statically defined (see ContextData.cs)
+            // Just add them both manually
+            AddContextEntry(ContextData.Vertex, nodeEntries);
+            AddContextEntry(ContextData.Fragment, nodeEntries);
+            
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
@@ -201,7 +207,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             }
         }
+
+        void AddContextEntry(ContextData contextData, List<NodeEntry> addNodeEntries)
+        {
+            // Never allow Contexts in SubGraph
+            if (m_Graph.isSubGraph)
+                return;
+            
+            addNodeEntries.Add(new NodeEntry
+            {
+                node = contextData,
+                title = new string[] {"Contexts", contextData.contextName},
+                compatibleSlotId = -1
+            });
+        }
     }
+
     class SearcherProvider : SearchWindowProvider
     {        
         public Searcher.Searcher LoadSearchWindow()
@@ -249,28 +270,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (parent.Depth == 0 && !root.Contains(parent))
                         root.Add(parent);
                 }
-                
             }
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
             
             return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));             
         }
+
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
                 return false;
-           
-            var nodeEntry = (entry as SearchNodeItem).NodeGUID;
-            var node = nodeEntry.node;
 
-            var drawState = node.drawState;
-
-
+            // Get mouse position in Graph
             var windowRoot = m_EditorWindow.rootVisualElement;
-            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition );//- m_EditorWindow.position.position);
+            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition );
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
-            drawState.position = new Rect(graphMousePosition, Vector2.zero);
+
+            // Select entry based on type
+            var nodeEntry = (entry as SearchNodeItem).NodeGUID;
+            switch(nodeEntry.node)
+            {
+                case AbstractMaterialNode node:
+                    OnSearcherSelectNode(node, graphMousePosition, nodeEntry.compatibleSlotId);
+                    return true;
+                case ContextData context:
+                    OnSearcherSelectContext(context, graphMousePosition);
+                    return true;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown search item type");
+            }
+        }
+
+        void OnSearcherSelectNode(AbstractMaterialNode node, Vector2 position, int compatibleSlotId)
+        {
+            var drawState = node.drawState;
+            drawState.position = new Rect(position, Vector2.zero);
             node.drawState = drawState;
 
             m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
@@ -280,7 +315,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var connectedSlot = connectedPort.slot;
                 var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
-                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+                var compatibleSlotReference = node.GetSlotReference(compatibleSlotId);
 
                 var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
                 var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
@@ -288,11 +323,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 nodeNeedsRepositioning = true;
                 targetSlotReference = compatibleSlotReference;
-                targetPosition = graphMousePosition;
+                targetPosition = position;
             }
+        }
 
-            return true;
+        void OnSearcherSelectContext(ContextData contextData, Vector2 position)
+        {
+            // Create ContextData from Definition
+            contextData.position = position;
+
+            // Add ContextData to GraphData
+            m_Graph.owner.RegisterCompleteObjectUndo("Add Context" + contextData.contextName);
+            m_Graph.AddContext(contextData);
         }
     }
-    
 }

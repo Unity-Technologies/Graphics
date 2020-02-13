@@ -22,6 +22,9 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
 
+        [SerializeField]
+        List<ContextData> m_ContextDatas = new List<ContextData>();
+
         [NonSerialized]
         HashSet<ShaderInput> m_Inputs = new HashSet<ShaderInput>();
 
@@ -56,7 +59,7 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes, IEnumerable<ContextData> contextDatas)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
@@ -92,6 +95,11 @@ namespace UnityEditor.Graphing.Util
 
             foreach (var metaKeyword in metaKeywords)
                 AddMetaKeyword(metaKeyword);
+
+            foreach (var contextData in contextDatas)
+            {
+                m_ContextDatas.Add(contextData);
+            }
         }
 
         public void AddGroup(GroupData group)
@@ -160,6 +168,8 @@ namespace UnityEditor.Graphing.Util
         {
             get { return m_MetaKeywords; }
         }
+
+        public IEnumerable<ContextData> contextDatas => m_ContextDatas;
 
         public string sourceGraphGuid
         {
