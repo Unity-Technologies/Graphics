@@ -15,15 +15,8 @@
 #pragma kernel KMain_Variant5 MAIN=KMain_Variant5 VARIANT=5
 #pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
 #pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
-// Cluster Display variants
-#pragma kernel KMain_Variant8  MAIN=KMain_Variant8  VARIANT=0 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant9  MAIN=KMain_Variant9  VARIANT=1 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant10 MAIN=KMain_Variant10 VARIANT=2 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant11 MAIN=KMain_Variant11 VARIANT=3 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant12 MAIN=KMain_Variant12 VARIANT=4 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant13 MAIN=KMain_Variant13 VARIANT=5 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant14 MAIN=KMain_Variant14 VARIANT=6 USING_CLUSTER_DISPLAY
-#pragma kernel KMain_Variant15 MAIN=KMain_Variant15 VARIANT=7 USING_CLUSTER_DISPLAY
+
+#pragma multi_compile __ USING_CLUSTER_DISPLAY
 
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BloomTexture);

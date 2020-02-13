@@ -95,7 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
-        bool m_ClusterDisplayFS;
 
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
@@ -155,15 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
-            // Cluster Display Variants
-            PushUberFeature(UberPostFeatureFlags.None | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
-            PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.ClusterDisplay);
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -341,7 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
-            m_ClusterDisplayFS      = frameSettings.IsEnabled(FrameSettingsField.ClusterDisplay);
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
@@ -638,9 +627,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
-
-            if (m_ClusterDisplayFS)
-                flags |= UberPostFeatureFlags.ClusterDisplay;
 
             return flags;
         }

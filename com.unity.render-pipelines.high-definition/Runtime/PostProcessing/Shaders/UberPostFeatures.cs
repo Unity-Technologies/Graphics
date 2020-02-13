@@ -10,6 +10,5 @@ namespace UnityEngine.Rendering.HighDefinition
         ChromaticAberration       = 1 << 0,
         Vignette                  = 1 << 1,
         LensDistortion            = 1 << 2,
-        ClusterDisplay            = 1 << 3,
     }
 }
