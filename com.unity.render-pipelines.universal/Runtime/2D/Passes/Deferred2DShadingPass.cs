@@ -10,7 +10,8 @@ public class Deferred2DShadingPass : ScriptableRenderPass
     static RenderTargetHandle s_GBufferColorTarget;
     static RenderTargetHandle s_GBufferMaskTarget;
     static RenderTargetHandle s_GBufferNormalTarget;
-    static RenderTargetIdentifier[] s_GBufferTargets;
+    static RenderTargetIdentifier[] s_GBufferTargets2;
+    static RenderTargetIdentifier[] s_GBufferTargets3;
     static SortingLayer[] s_SortingLayers;
     static readonly ShaderTagId k_GBufferPassName = new ShaderTagId("Universal2DGBuffer");
     static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_GBufferPassName };
@@ -52,8 +53,11 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         if (s_GBufferNormalTarget.id == 0)
             s_GBufferNormalTarget.Init("_NormalMap");
 
-        if (s_GBufferTargets == null)
-            s_GBufferTargets = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier(), s_GBufferNormalTarget.Identifier() };
+        if (s_GBufferTargets2 == null)
+            s_GBufferTargets2 = new RenderTargetIdentifier[2];
+
+        if (s_GBufferTargets3 == null)
+            s_GBufferTargets3 = new RenderTargetIdentifier[] { s_GBufferColorTarget.Identifier(), s_GBufferMaskTarget.Identifier(), s_GBufferNormalTarget.Identifier() };
 
         ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor descriptor = new RenderTextureDescriptor(targetDescriptor.width, targetDescriptor.height);
@@ -103,8 +107,54 @@ public class Deferred2DShadingPass : ScriptableRenderPass
             var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
             filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
+            int layerToRender = s_SortingLayers[i].id;
+            Light2D.LightStats lightStats = Light2D.GetLightStatsByLayer(layerToRender, renderingData.cameraData.camera);
+
+            bool maskUsed = false;
+            var blendStyles = m_RendererData.lightBlendStyles;
+            for (int j = 0; j < blendStyles.Length; ++j)
+            {
+                if ((lightStats.blendStylesUsed & (uint)(1 << j)) == 0)
+                    continue;
+
+                if (blendStyles[j].maskTextureChannel != Light2DBlendStyle.TextureChannel.None)
+                {
+                    maskUsed = true;
+                    break;
+                }
+            }
+
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-            CoreUtils.SetRenderTarget(cmd, s_GBufferTargets, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
+
+            if (lightStats.totalNormalMapUsage == 0 && !maskUsed)
+                CoreUtils.SetRenderTarget(cmd, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
+            else
+            {
+                if (lightStats.totalNormalMapUsage > 0 && maskUsed)
+                    CoreUtils.SetRenderTarget(cmd, s_GBufferTargets3, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
+                else if (lightStats.totalNormalMapUsage == 0 && maskUsed)
+                {
+                    s_GBufferTargets2[0] = s_GBufferColorTarget.Identifier();
+                    s_GBufferTargets2[1] = s_GBufferMaskTarget.Identifier();
+                    CoreUtils.SetRenderTarget(cmd, s_GBufferTargets2, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
+                }
+                else
+                {
+                    s_GBufferTargets2[0] = s_GBufferColorTarget.Identifier();
+                    s_GBufferTargets2[1] = s_GBufferNormalTarget.Identifier();
+                    CoreUtils.SetRenderTarget(cmd, s_GBufferTargets2, s_GBufferColorTarget.Identifier(), ClearFlag.All, clearColor);
+                }
+            }
+
+            if (lightStats.totalNormalMapUsage > 0)
+                cmd.EnableShaderKeyword("USE_NORMAL_MAP");
+            else
+                cmd.DisableShaderKeyword("USE_NORMAL_MAP");
+
+            if (maskUsed)
+                cmd.EnableShaderKeyword("USE_MASK");
+            else
+                cmd.DisableShaderKeyword("USE_MASK");
 
             cmd.EndSample(sortingLayerName);
             context.ExecuteCommandBuffer(cmd);
@@ -134,11 +184,6 @@ public class Deferred2DShadingPass : ScriptableRenderPass
                 RenderBufferStoreAction.Store,
                 ClearFlag.None
             );
-
-            var blendStyles = m_RendererData.lightBlendStyles;
-
-            int layerToRender = s_SortingLayers[i].id;
-            Light2D.LightStats lightStats = Light2D.GetLightStatsByLayer(layerToRender);
 
             // global lights
             bool anyGlobalLightDrawn = false;

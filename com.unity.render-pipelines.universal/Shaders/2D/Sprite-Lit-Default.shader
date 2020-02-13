@@ -216,6 +216,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma prefer_hlslcc gles
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+            #pragma multi_compile USE_NORMAL_MAP __
+            #pragma multi_compile USE_MASK __
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
 
@@ -224,7 +226,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
+#if USE_NORMAL_MAP
                 float4 tangent      : TANGENT;
+#endif
             };
 
             struct Varyings
@@ -232,27 +236,42 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float4  positionCS      : SV_POSITION;
                 float4  color           : COLOR;
                 float2  uv              : TEXCOORD0;
+#if USE_NORMAL_MAP
                 float3  normalWS        : TEXCOORD1;
                 float3  tangentWS       : TEXCOORD2;
                 float3  bitangentWS     : TEXCOORD3;
+#endif
             };
 
             struct Targets
             {
                 float4  color   : SV_Target0;
+#if USE_MASK
                 float4  mask    : SV_Target1;
+#endif
+
+#if USE_NORMAL_MAP
+#if USE_MASK
                 float4  normal  : SV_Target2;
+#else
+                float4  normal  : SV_Target1;
+#endif
+#endif
             };
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
             float4 _MainTex_ST;
 
+#if USE_MASK
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
+#endif
 
+#if USE_NORMAL_MAP
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
+#endif
 
             Varyings UnlitVertex(Attributes attributes)
             {
@@ -261,9 +280,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
                 o.color = attributes.color;
+#if USE_NORMAL_MAP
                 o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
                 o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
+#endif
                 return o;
             }
 
@@ -275,15 +296,19 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 mainTex.rgb *= mainTex.a;
                 o.color = mainTex;
 
+#if USE_MASK
                 half4 maskTex = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
                 maskTex.a = mainTex.a;
                 maskTex.rgb *= maskTex.a;
                 o.mask = maskTex;
+#endif
 
+#if USE_NORMAL_MAP
                 float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
                 float4 normalVS = NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
                 normalVS.rgb *= normalVS.a;
                 o.normal = normalVS;
+#endif
 
                 return o;
             }

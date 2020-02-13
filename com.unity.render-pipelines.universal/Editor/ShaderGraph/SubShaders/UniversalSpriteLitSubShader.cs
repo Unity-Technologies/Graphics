@@ -217,6 +217,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
             },
+            keywords = new KeywordDescriptor[]
+            {
+                s_ETCExternalAlphaKeyword,
+                s_UseNormalMapKeyword,
+                s_UseMaskKeyword
+            },
         };
         #endregion
 
@@ -265,7 +271,25 @@ namespace UnityEditor.Experimental.Rendering.Universal
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-#endregion
+
+        static KeywordDescriptor s_UseNormalMapKeyword = new KeywordDescriptor()
+        {
+            displayName = "Use Normal Map",
+            referenceName = "USE_NORMAL_MAP",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        static KeywordDescriptor s_UseMaskKeyword = new KeywordDescriptor()
+        {
+            displayName = "Use Mask",
+            referenceName = "USE_MASK",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+        #endregion
 
         public int GetPreviewPassIndex() { return 0; }
 
