@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : SRGBToLinear($precision4({1}, {2}, {3}, {4}));"
                 , GetVariableNameForNode()
                 , NodeUtils.FloatToShaderValue(color.color.r)
                 , NodeUtils.FloatToShaderValue(color.color.g)
