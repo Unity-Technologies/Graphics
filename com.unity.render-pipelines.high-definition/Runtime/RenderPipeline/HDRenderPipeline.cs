@@ -346,11 +346,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
-            if (defaultVolumeProfile.Has<VirtualTexturingSettings>())
+            if (GetOrCreateDefaultVolume().profile.Has<VirtualTexturingSettings>())
             {
                 VirtualTexturingSettings settings;
                 defaultVolumeProfile.TryGet(typeof(VirtualTexturingSettings), out settings);
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(settings.Settings);
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(settings.GetSettings(new VirtualTexturing.VirtualTexturingSettings()));
             }
             else
             {

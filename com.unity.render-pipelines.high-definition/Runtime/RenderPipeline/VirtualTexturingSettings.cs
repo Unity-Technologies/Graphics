@@ -6,12 +6,11 @@ using UnityEngine.Rendering.VirtualTexturing;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+#if ENABLE_VIRTUALTEXTURES
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
     [Serializable, VolumeComponentMenu("VirtualTexturing")]
     public sealed class VirtualTexturingSettings : VolumeComponent
     {
-#if ENABLE_VIRTUALTEXTURES
-
         public NoInterpMinIntParameter cpuCacheSizeInMegaBytes = new NoInterpMinIntParameter(256, 2);
         public NoInterpMinIntParameter gpuCacheSizeInMegaBytes = new NoInterpMinIntParameter(64, 2);
 
@@ -22,26 +21,38 @@ namespace UnityEngine.Rendering.HighDefinition
         public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesStreaming = new List<VirtualTexturingGPUCacheSizeOverride>();
         public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesProcedural = new List<VirtualTexturingGPUCacheSizeOverride>(); 
 
-        // Settings as passed to the Virtual Texturing API
-        public VirtualTexturing.VirtualTexturingSettings Settings
+        // Returns ettings as passed to the Virtual Texturing API, pass the result of this function to another call of GetSettings() to collapse multiple overrides together.
+        public VirtualTexturing.VirtualTexturingSettings GetSettings(VirtualTexturing.VirtualTexturingSettings settings)
         {
-            get
+            if (cpuCacheSizeInMegaBytes.overrideState)
             {
-                VirtualTexturing.VirtualTexturingSettings settings = new VirtualTexturing.VirtualTexturingSettings();
+                settings.cpuCache.sizeInMegaBytes = (uint) cpuCacheSizeInMegaBytes.value;
+            }
+            else
+            {
+                settings.cpuCache.sizeInMegaBytes = 256;
+            }
 
-                settings.cpuCache = new VirtualTexturingCPUCacheSettings();
-                settings.cpuCache.sizeInMegaBytes = (uint)cpuCacheSizeInMegaBytes.value;
-
+          
+            if (gpuCacheSizeOverridesOverridden)
+            {
                 List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
                 overrides.AddRange(gpuCacheSizeOverridesShared);
                 overrides.AddRange(gpuCacheSizeOverridesStreaming);
                 overrides.AddRange(gpuCacheSizeOverridesProcedural);
-
                 settings.gpuCache.sizeOverrides = overrides.ToArray();
-                settings.gpuCache.sizeInMegaBytes = (uint)gpuCacheSizeInMegaBytes.value;
-
-                return settings;
             }
+
+            if (gpuCacheSizeInMegaBytes.overrideState)
+            {
+                settings.gpuCache.sizeInMegaBytes = (uint) gpuCacheSizeInMegaBytes.value;
+            }
+            else
+            {
+                settings.gpuCache.sizeInMegaBytes = 64;
+            }
+
+            return settings;
         }
 
         void OnValidate()
@@ -49,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var pipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             if (pipelineAsset != null && pipelineAsset.defaultVolumeProfile == this)
             {
-                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(Settings);
+                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(GetSettings(new VirtualTexturing.VirtualTexturingSettings()));
             }
         }
 
@@ -63,6 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return settings;
             }
         }
-#endif
     }
+#endif
 }
