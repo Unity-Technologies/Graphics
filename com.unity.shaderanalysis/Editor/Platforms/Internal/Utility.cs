@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderAnalysis
@@ -11,7 +12,7 @@ namespace UnityEditor.ShaderAnalysis
         public const string k_DefineCompute = "SHADER_STAGE_COMPUTE=1";
 
 
-        public static ShaderCompilerOptions DefaultHDRPCompileOptions(
+        public static ShaderCompilerOptions DefaultCompileOptions(
             IEnumerable<string> defines, string entry, DirectoryInfo sourceDir, BuildTarget buildTarget, string shaderModel = null
         )
         {
@@ -31,12 +32,15 @@ namespace UnityEditor.ShaderAnalysis
             if (!string.IsNullOrEmpty(shaderModel))
                 compileOptions.defines.Add($"SHADER_TARGET={shaderModel}");
 
+            // Add default unity includes
             var path = Path.Combine(EditorApplication.applicationContentsPath, "CGIncludes");
             if (Directory.Exists(path))
                 compileOptions.includeFolders.Add(path);
 
-            if (Directory.Exists(path))
-                compileOptions.includeFolders.Add(path);
+            // Add package symlinks folder
+            // So shader compiler will find include files with "Package/<package_id>/..."
+            compileOptions.includeFolders.Add(Path.Combine(Application.dataPath,
+                $"../{PackagesUtilities.PackageSymbolicLinkFolder}"));
 
             return compileOptions;
         }

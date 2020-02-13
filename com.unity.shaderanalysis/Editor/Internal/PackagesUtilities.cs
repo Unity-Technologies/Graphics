@@ -10,18 +10,23 @@ namespace UnityEditor.ShaderAnalysis.Internal
 {
     static class PackagesUtilities
     {
+        public const string PackageSymbolicLinkFolder = "Library/ShaderAnalysis/PackageSymlinks";
+
         /// <summary>
         /// Create a symlink to local packages so shader includes will work properly.
         /// </summary>
         internal static void CreateProjectLocalPackagesSymlinks()
         {
             var rootProjectPath = new FileInfo(Application.dataPath).Directory;
-            var packagesPath = new DirectoryInfo(Path.Combine(rootProjectPath.FullName, "Packages"));
+            var symlinkFolder = new DirectoryInfo(Path.Combine(rootProjectPath.FullName, $"{PackageSymbolicLinkFolder}/Packages"));
+            if (!symlinkFolder.Exists)
+                symlinkFolder.Create();
+            var includeFolder = symlinkFolder.Parent;
 
             var packages = AllPackages;
             var localPackagesCount = FilterLocalPackagesInPlace(packages);
             if (localPackagesCount > 0)
-                CreateSymlinksFor(packages, localPackagesCount, rootProjectPath);
+                CreateSymlinksFor(packages, localPackagesCount, includeFolder);
         }
 
         static void CreateSymlinksFor(

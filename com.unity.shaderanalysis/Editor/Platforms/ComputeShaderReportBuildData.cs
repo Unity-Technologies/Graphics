@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderAnalysis
 
                 progress.SetNormalizedProgress(s * i, "Building compile units {0:D3} / {1:D3}", i + 1, c);
 
-                var compileOptions = Utility.DefaultHDRPCompileOptions(kernel.defines, kernel.name, sourceDir, target);
+                var compileOptions = Utility.DefaultCompileOptions(kernel.defines, kernel.name, sourceDir, target);
                 compileOptions.defines.Add(Utility.k_DefineCompute);
 
 
