@@ -84,6 +84,16 @@ public static class CustomBuild
         BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
+    static void BuildStadiaVulkanLinear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.Stadia;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Vulkan };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
     static void BuildWindowsDX11Linear()
     {
         PlayerSettings.colorSpace = ColorSpace.Linear;
