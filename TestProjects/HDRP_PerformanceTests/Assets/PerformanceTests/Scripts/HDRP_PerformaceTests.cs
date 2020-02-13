@@ -25,6 +25,7 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
     public const string testSceneResourcePath = "TestScenes";
 
     static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
+    static HDRenderPipelineAsset defaultHDAsset = Resources.Load<HDRenderPipelineAsset>("defaultHDAsset");
 
     public enum Config
     {
@@ -169,7 +170,8 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
 
     static IEnumerator SetupTest(string sceneName, HDRenderPipelineAsset hdAsset)
     {
-        if (hdAsset != null)
+        hdAsset = hdAsset ?? defaultHDAsset;
+        if (GraphicsSettings.renderPipelineAsset != hdAsset)
             GraphicsSettings.renderPipelineAsset = hdAsset;
 
         SceneManager.LoadScene(sceneName);
