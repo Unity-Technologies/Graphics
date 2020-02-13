@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
         int m_UpdateCallRegistered;
         List<IAsyncJob> m_Jobs = new List<IAsyncJob>();
         Dictionary<BuildTarget, IPlatformJobFactory> m_PlatformJobFactories = new Dictionary<BuildTarget, IPlatformJobFactory>();
+        public IEnumerable<BuildTarget> SupportedBuildTargets => m_PlatformJobFactories.Keys;
 
         public void SetPlatformJobs(BuildTarget targetPlatform, IPlatformJobFactory factory)
         {

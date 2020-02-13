@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         delegate void GUIDrawer();
 
-        GUIDrawer m_GUI = NOOPGUI;
+        GUIDrawer m_GUI = null;
 
         Shader m_Shader;
         ComputeShader m_Compute;
@@ -118,10 +118,10 @@ namespace UnityEditor.ShaderAnalysis.Internal
         ReportExporterIndex m_ReportExporterIndex;
         ReportDiffExporterIndex m_ReportDiffExporterIndex;
 
-        void OnSelectionChange()
-        {
-            OpenAsset(Selection.activeObject);
-        }
+        string[] m_SupportedPlatformNames;
+        BuildTarget[] m_SupportedPlatforms;
+        int m_SelectedPlatformIndex;
+        Object m_SelectedAsset;
 
         void OnEnable()
         {
@@ -129,7 +129,13 @@ namespace UnityEditor.ShaderAnalysis.Internal
             m_AssetMetadata = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform);
             m_AssetMetadataReference = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform, referenceFolder);
 
-            OpenAsset(Selection.activeObject);
+            if (m_SupportedPlatformNames == null)
+            {
+                m_SupportedPlatformNames = EditorShaderTools.SupportedBuildTargets.Select(s => s.ToString()).ToArray();
+                m_SupportedPlatforms = EditorShaderTools.SupportedBuildTargets.ToArray();
+            }
+
+            m_GUI = NOOPGUI;
         }
 
         void OpenAsset(Object asset)
@@ -392,9 +398,16 @@ namespace UnityEditor.ShaderAnalysis.Internal
             var loadAssetMetadataReference = false;
 
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            EditorGUILayout.LabelField(UIUtils.Text(title), EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
-            m_CurrentPlatform = (BuildTarget)EditorGUILayout.EnumPopup(UIUtils.Text("Target Platform"), m_CurrentPlatform, EditorStyles.toolbarDropDown, GUILayout.Width(350));
+            m_SelectedAsset = EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("To Inspect"), m_SelectedAsset,
+                typeof(Object), false);
+            if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
+                OpenAsset(m_SelectedAsset);
+            EditorGUI.BeginChangeCheck();
+
+            m_SelectedPlatformIndex = EditorGUILayout.Popup(EditorGUIUtility.TrTempContent("Target Platform"), m_SelectedPlatformIndex,
+                m_SupportedPlatformNames);
+            m_CurrentPlatform = m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex < m_SupportedPlatforms.Length ? m_SupportedPlatforms[m_SelectedPlatformIndex] : BuildTarget.StandaloneWindows;
             loadAssetMetadata = EditorGUI.EndChangeCheck();
             GUILayout.EndHorizontal();
 
@@ -501,9 +514,12 @@ namespace UnityEditor.ShaderAnalysis.Internal
             return EditorShaderTools.GenerateBuildReportAsync(m_Material, m_CurrentPlatform); ;
         }
 
-        static void NOOPGUI()
+        void NOOPGUI()
         {
-            EditorGUILayout.LabelField("Select an asset.");
+            m_SelectedAsset = EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("To Inspect"), m_SelectedAsset,
+                typeof(Object), false);
+            if (EditorGUI.EndChangeCheck() && m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
+                OpenAsset(m_SelectedAsset);
         }
 
         static void SetAsReference(BuildTarget buildTarget, string assetGUID, ShaderBuildReport report)

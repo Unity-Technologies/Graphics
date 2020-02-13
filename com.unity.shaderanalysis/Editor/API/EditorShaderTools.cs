@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace UnityEditor.ShaderAnalysis
     public static class EditorShaderTools
     {
         static ShaderAnalysisReport s_Instance = new ShaderAnalysisReport();
+
+        public static IEnumerable<BuildTarget> SupportedBuildTargets => s_Instance.SupportedBuildTargets;
 
         /// <summary>
         /// Generate a performance report for <paramref name="shader"/> for the platform <paramref name="targetPlatform"/>.
@@ -69,13 +72,13 @@ namespace UnityEditor.ShaderAnalysis
                 );
 
             return s_Instance.BuildReportAsync(compute, targetPlatform);
-        } 
+        }
 
         /// <summary>Check whether a specific job is supported.</summary>
         /// <param name="targetPlatform">Target platform to check.</param>
         /// <param name="job">The job to check.</param>
         /// <returns>True when the job is supported, false otherwise.</returns>
-        public static bool DoesPlatformSupport(BuildTarget targetPlatform, PlatformJob job) 
+        public static bool DoesPlatformSupport(BuildTarget targetPlatform, PlatformJob job)
             => s_Instance.DoesPlatformSupport(targetPlatform, job);
 
         /// <summary>Set the job factory to use for a specific platform.</summary>
