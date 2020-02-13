@@ -102,7 +102,7 @@ Shader "Universal Render Pipeline/Unlit"
 
                 color = MixFog(color, input.fogCoord);
                 alpha = OutputAlpha(alpha);
-                
+
                 return half4(color, alpha);
             }
             ENDHLSL
@@ -118,7 +118,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
+            #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
