@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderAnalysis
             if (progressArg >= 1 && !m_OnCompleteLaunched)
             {
                 m_OnCompleteLaunched = true;
-                m_OnComplete(this);
+                m_OnComplete?.Invoke(this);
             }
         }
     }

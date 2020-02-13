@@ -52,6 +52,36 @@ namespace UnityEditor.ShaderAnalysis.Internal
         public static string[] ReportExporterNames => s_ReportExporterNames;
         public static string[] ReportDiffExporterNames => s_ReportDiffExporterNames;
 
+        public static bool GetExporterIndex(string exporter, out ReportExporterIndex index)
+        {
+            for (int i = 0; i < s_ReportExporters.Length; i++)
+            {
+                if (s_ReportExporters[i].info.name == exporter)
+                {
+                    index = (ReportExporterIndex)i;
+                    return true;
+                }
+            }
+
+            index = default;
+            return false;
+        }
+
+        public static bool GetDiffExporterIndex(string exporter, out ReportDiffExporterIndex index)
+        {
+            for (int i = 0; i < s_ReportDiffExporters.Length; i++)
+            {
+                if (s_ReportDiffExporters[i].info.name == exporter)
+                {
+                    index = (ReportDiffExporterIndex)i;
+                    return true;
+                }
+            }
+
+            index = default;
+            return false;
+        }
+
         public static string ChangeExtensionFor(ReportExporterIndex index, string file)
         {
             var extension = s_ReportExporters[(int)index].info.extension;

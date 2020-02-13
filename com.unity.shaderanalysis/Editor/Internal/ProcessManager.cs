@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             m_PendingProcesses.Add(impl);
 
             if (m_UpdateRefCount == 0)
-                EditorApplication.update += Update;
+                EditorUpdateManager.ToUpdate += Update;
 
             ++m_UpdateRefCount;
 
@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
                     --m_UpdateRefCount;
                     if (m_UpdateRefCount == 0)
-                        EditorApplication.update -= Update;
+                        EditorUpdateManager.ToUpdate -= Update;
                 }
             }
 
