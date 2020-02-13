@@ -68,23 +68,23 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                 switch (_ProbeVolumeAtlasSliceMode)
                 {
-                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH00:
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCE_SH00:
                     {
 
                         return float4(valueShAr.x, valueShAg.x, valueShAb.x, 1);
                     }
 
-                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH1_1:
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCE_SH1_1:
                     {
                         return float4(valueShAr.y, valueShAg.y, valueShAb.y, 1);
                     }
 
-                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH10:
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCE_SH10:
                     {
                         return float4(valueShAr.z, valueShAg.z, valueShAb.z, 1);
                     }
 
-                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH11:
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCE_SH11:
                     {
                         return float4(valueShAr.w, valueShAg.w, valueShAb.w, 1);
                     }
