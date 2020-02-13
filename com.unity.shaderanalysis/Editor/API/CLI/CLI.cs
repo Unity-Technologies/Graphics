@@ -63,6 +63,10 @@ namespace UnityEditor.ShaderAnalysis
             }
         }
 
+        /// <summary>Build a report by parsing command line arguments.</summary>
+        /// <example>
+        /// "$UNITY_EXE" -projectPath $PROJECT_PATH -batchMode -quit -executeMethod UnityEditor.ShaderAnalysis.CLI.BuildReport -assetPath Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Deferred.shader -exporter CSV -targetPlatform PS4 -outputFile $OUTPUT_FILE
+        /// </example>
         public static void BuildReport()
         {
             var args = Environment.GetCommandLineArgs();
