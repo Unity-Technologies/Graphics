@@ -31,10 +31,6 @@ all_project_ci:
   {% for project in projects %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
   {% endfor %}
-  triggers:
-    recurring:
-      - branch: release/7.1.x
-        frequency: daily
   artifacts:
     logs:
       paths:
