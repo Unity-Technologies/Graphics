@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Custom drawer for the draw renderers pass
     /// </summary>
     [CustomPassDrawerAttribute(typeof(DrawRenderersCustomPass))]
-    public class DrawRenderersCustomPassDrawer : CustomPassDrawer
+    class DrawRenderersCustomPassDrawer : CustomPassDrawer
     {
         private class Styles
         {
@@ -29,12 +29,12 @@ namespace UnityEditor.Rendering.HighDefinition
             //Headers
             public static GUIContent filtersHeader = new GUIContent("Filters", "Filters.");
             public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts fo the rendering that you can choose to override.");
-            
+
             //Filters
             public static GUIContent renderQueueFilter = new GUIContent("Queue", "Filter the render queue range you want to render.");
             public static GUIContent layerMask = new GUIContent("Layer Mask", "Chose the Callback position for this render pass object.");
             public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
-            
+
             //Render Options
             public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Name", "The pass for the override material to use.");
@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_OverrideMaterialPassName;
         SerializedProperty      m_SortingCriteria;
         SerializedProperty      m_ShaderPass;
-        
+
         // Override depth state
         SerializedProperty      m_OverrideDepthState;
         SerializedProperty      m_DepthCompareFunction;

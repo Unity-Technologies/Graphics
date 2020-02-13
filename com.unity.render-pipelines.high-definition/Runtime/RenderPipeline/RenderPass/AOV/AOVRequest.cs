@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Flags]
     public enum LightingProperty
     {
+        /// <summary>No debug output.</summary>
         None = 0,
         /// <summary>Render only diffuse.</summary>
         DiffuseOnly = 1 << 0,
@@ -17,9 +18,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Output a specific debug mode.</summary>
     public enum DebugFullScreen
     {
+        /// <summary>No debug output.</summary>
         None,
+        /// <summary>Depth buffer.</summary>
         Depth,
+        /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
+        /// <summary>Motion vectors buffer.</summary>
         MotionVectors
     }
 

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// FullScreen Custom Pass
     /// </summary>
     [System.Serializable]
-    public class FullScreenCustomPass : CustomPass
+    class FullScreenCustomPass : CustomPass
     {
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (fetchColorBuffer)
                 {
                     ResolveMSAAColorBuffer(cmd, hdCamera);
-                    // reset the render target to the UI 
+                    // reset the render target to the UI
                     SetRenderTargetAuto(cmd);
                 }
 
