@@ -103,7 +103,6 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
 
                     // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
                     float3 samplePositionWS = bsdfData.normalWS * _ProbeVolumeNormalBiasWS + posInput.positionWS;
-                    float3 samplePositionsRWS = GetCameraRelativePositionWS(samplePositionWS);
                     float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                     float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
 
@@ -305,7 +304,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
                     }
                 }
 
-                float3 sampleOutgoingRadiance = SHEvalLinearL0L1(bsdfData.normalWS, sampleShAr, sampleShAg, sampleShAb);
+                float3 sampleOutgoingRadiance = EvaluateBSDF_LightProbeL1(builtinData, bsdfData, sampleShAr, sampleShAg, sampleShAb);
 
 #ifdef DEBUG_DISPLAY
                 if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
@@ -340,9 +339,5 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
         builtinData.bakeDiffuseLighting = 0.0;
         builtinData.backBakeDiffuseLighting = 0.0;
     }
-    else
 #endif
-    {
-        probeVolumeDiffuseLighting *= bsdfData.diffuseColor;
-    }
 }
