@@ -2,7 +2,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
+    partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
     {
         enum Version
         {

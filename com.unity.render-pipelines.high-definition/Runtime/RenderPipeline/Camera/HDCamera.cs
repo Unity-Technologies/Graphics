@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
     // not used during a frame.
+
+    /// <summary>
+    /// HDCamera class.
+    /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
+    /// </summary>
     public class HDCamera
     {
         #region Public API
@@ -86,6 +91,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandleProperties   historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
         /// <summary>Volume stack used for this camera.</summary>
         public VolumeStack          volumeStack { get; private set; }
+        /// <summary>Current time for this camera.</summary>
+        public float                time; // Take the 'animateMaterials' setting into account.
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
@@ -158,6 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public int lightInstanceID;
             public uint frameCount;
+            public GPULightType lightType;
         }
 
         internal Vector4[]              frustumPlaneEquations;
@@ -174,6 +182,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal VBufferParameters[]    vBufferParams; // Double-buffered; needed even if reprojection is off
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
         internal uint                   cameraFrameCount = 0;
+        internal bool                   animateMaterials;
+        internal float                  lastTime;
+        internal Camera                 parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usge
@@ -293,16 +304,18 @@ namespace UnityEngine.Rendering.HighDefinition
             ? m_AdditionalCameraData.probeCustomFixedExposure
             : 1.0f;
 
-        internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        internal bool ValidShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
             return shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID == lightData.GetInstanceID()
-                    && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1));
+                    && (shadowHistoryUsage[screenSpaceShadowIndex].frameCount == (cameraFrameCount - 1))
+                    && (shadowHistoryUsage[screenSpaceShadowIndex].lightType == lightType);
         }
 
-        internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex)
+        internal void PropagateShadowHistory(HDAdditionalLightData lightData, int screenSpaceShadowIndex, GPULightType lightType)
         {
             shadowHistoryUsage[screenSpaceShadowIndex].lightInstanceID = lightData.GetInstanceID();
             shadowHistoryUsage[screenSpaceShadowIndex].frameCount = cameraFrameCount;
+            shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
@@ -343,6 +356,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // Otherwise, previous frame view constants will be wrong.
         internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass)
         {
+            // Inherit animation settings from the parent camera.
+            Camera aniCam = (parentCamera != null) ? parentCamera : camera;
+
+            // Different views/tabs may have different values of the "Animated Materials" setting.
+            animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(aniCam);
+
+            time = animateMaterials ? hdrp.GetTime() : 0;
+            lastTime = animateMaterials ? hdrp.GetLastTime() : 0;
+
             // Make sure that the shadow history identification array is allocated and is at the right size
             if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
             {
@@ -525,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Set up UnityPerView CBuffer.
-        internal void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, int frameCount)
+        internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
@@ -552,18 +574,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._ScreenParams, screenParams);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo, new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0));
             cmd.SetGlobalVector(HDShaderIDs._TaaJitterStrength, taaJitter);
+            cmd.SetGlobalInt(HDShaderIDs._FrameCount, frameCount);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
 
-
-            // Time is also a part of the UnityPerView CBuffer.
-            // Different views can have different values of the "Animated Materials" setting.
-            bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
-
-            // We also enable animated materials in previews so the shader graph main preview works with time parameters.
-            animateMaterials |= camera.cameraType == CameraType.Preview;
-
-            float ct = animateMaterials ? time : 0;
-            float pt = animateMaterials ? lastTime : 0;
+            float ct = time;
+            float pt = lastTime;
             float dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
 
@@ -573,8 +588,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
             cmd.SetGlobalVector(HDShaderIDs._TimeParameters, new Vector4(ct, Mathf.Sin(ct), Mathf.Cos(ct), 0.0f));
             cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters, new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
-
-            cmd.SetGlobalInt(HDShaderIDs._FrameCount, frameCount);
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
@@ -818,7 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
 
-                    if (mode == AntialiasingMode.TemporalAntialiasing && !CoreUtils.AreAnimatedMaterialsEnabled(camera))
+                    if (mode == AntialiasingMode.TemporalAntialiasing && !animateMaterials)
                         antialiasing = AntialiasingMode.None;
                     else
                         antialiasing = mode;
@@ -1022,7 +1035,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 viewDir = -viewConstants.invViewMatrix.GetColumn(2);
             viewDir.Normalize();
-            Frustum.Create(frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
+            Frustum.Create(ref frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)

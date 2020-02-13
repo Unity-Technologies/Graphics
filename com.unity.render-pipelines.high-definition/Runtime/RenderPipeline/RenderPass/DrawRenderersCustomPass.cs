@@ -9,10 +9,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// DrawRenderers Custom Pass
     /// </summary>
     [System.Serializable]
-    public class DrawRenderersCustomPass : CustomPass
+    class DrawRenderersCustomPass : CustomPass
     {
         /// <summary>
-        /// HDRP Shader passes 
+        /// HDRP Shader passes
         /// </summary>
         public enum ShaderPass
         {
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool depthWrite = true;
 
         public ShaderPass shaderPass = ShaderPass.Forward;
-    
+
         int fadeValueId;
 
         static ShaderTagId[] forwardShaderTags;
@@ -110,9 +110,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            var stateBlock = new RenderStateBlock(overrideDepthState ? RenderStateMask.Depth : 0)
+            var mask = overrideDepthState ? RenderStateMask.Depth : 0;
+            mask |= overrideDepthState && !depthWrite ? RenderStateMask.Stencil : 0;
+            var stateBlock = new RenderStateBlock(mask)
             {
                 depthState = new DepthState(depthWrite, depthCompareFunction),
+                // We disable the stencil when the depth is overwritten but we don't write to it, to prevent writing to the stencil.
+                stencilState = new StencilState(false),
             };
 
             PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;

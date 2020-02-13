@@ -13,7 +13,7 @@ public class UniversalProjectEditorTests
     }
 
     [Test]
-    public void GetCurrentRenderer()
+    public void GetDefaultRenderer()
     {
         GetUniversalAsset();
 

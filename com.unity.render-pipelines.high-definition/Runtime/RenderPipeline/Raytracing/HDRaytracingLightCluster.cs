@@ -267,6 +267,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     Light light = currentLight.gameObject.GetComponent<Light>();
                     if (light == null || !light.enabled) continue;
 
+                    // Reserve space in the cookie atlas
+                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
+
                     float lightRange = light.range;
                     m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
                     m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
@@ -593,6 +596,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
+                lightData.cookieMode = CookieMode.None;
                 lightData.contactShadowMask = 0;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
@@ -605,10 +609,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (lightType)
                     {
                         case HDLightType.Spot:
-                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieMode = (additionalLightData.legacyLight.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                            lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, light.cookie);
                             break;
                         case HDLightType.Point:
-                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieMode = CookieMode.Clamp;
+                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, light.cookie);
                             break;
                     }
                 }
@@ -616,11 +622,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+                    lightData.cookieMode = CookieMode.Clamp;
+                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
                 }
                 else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
                 {
-                    lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+                    lightData.cookieMode = CookieMode.Clamp;
+                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
                 }
 
                 {
@@ -682,6 +690,10 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int lightIdx = 0; lightIdx < lights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
+
+                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+                if (!probeData.HasValidRenderedData()) continue;
+
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();

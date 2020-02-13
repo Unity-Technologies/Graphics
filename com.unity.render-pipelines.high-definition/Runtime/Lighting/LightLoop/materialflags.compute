@@ -9,6 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
@@ -62,11 +63,9 @@ void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         int idx = i * NR_THREADS + threadID;
         uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
         
-        // Unlit object, sky/background and forward opaque tag the stencil as NoLighting (which is currently 0),
-        // to know if we require a deferred lighting pass we need to test it
-        // Note that if we change StencilBitMask.LightingMask this must be updated!
+        // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
         uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uCrd));
-        if ((stencilVal & 0x3) > 0) // StencilBitMask.LightingMask is 0x3
+        if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) > 0)
         {
             PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
             materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(posInput.positionSS);

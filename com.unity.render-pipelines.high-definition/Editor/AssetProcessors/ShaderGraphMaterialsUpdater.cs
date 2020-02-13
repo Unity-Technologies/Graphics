@@ -6,11 +6,11 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class HDSaveContext
     {
-        public bool updateMaterials; 
+        public bool updateMaterials;
     }
 
     [InitializeOnLoad]
-    public class ShaderGraphMaterialsUpdater
+    class ShaderGraphMaterialsUpdater
     {
         const string kMaterialFilter = "t:Material";
 

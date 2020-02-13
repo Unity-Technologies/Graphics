@@ -42,5 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 l.intensity *= Mathf.PI;
             }
         }
+
+        [MenuItem("Edit/Render Pipeline/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.editMenuPriority2)]
+        internal static void UpgradeMaterials()
+        {
+            // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
+            MaterialReimporter.ReimportAllMaterials();
+        }
     }
 }

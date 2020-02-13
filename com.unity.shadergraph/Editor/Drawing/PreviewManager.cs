@@ -415,6 +415,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     }
 
+                    // Force the material to re-generate all it's shader properties.
+                    renderData.shaderData.mat.shader = renderData.shaderData.shader;
+
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
@@ -574,9 +577,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyRenderData(PreviewRenderData renderData)
         {
-            if (renderData.shaderData != null
-                && renderData.shaderData.shader != null)
-                Object.DestroyImmediate(renderData.shaderData.shader, true);
+            if (renderData.shaderData != null)
+            {
+                if (renderData.shaderData.mat != null)
+                {
+                    Object.DestroyImmediate(renderData.shaderData.mat, true);
+                }
+                if (renderData.shaderData.shader != null)
+                {
+                    Object.DestroyImmediate(renderData.shaderData.shader, true);
+                }
+            }
+
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
 
