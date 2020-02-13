@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
 {
     class SetAttributeVariantReadWritable : VariantProvider
     {
-        public override sealed IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override sealed IEnumerable<Variant> ComputeVariants()
         {
             var attributes = VFXAttribute.AllIncludingVariadicReadWritable;
             var randoms = new[] { RandomMode.Off, RandomMode.PerComponent };
@@ -38,10 +38,10 @@ namespace UnityEditor.VFX.Block
                             if (currentRandomMode == RandomMode.PerComponent && attributeRefSize == 1)
                                 currentRandomMode = RandomMode.Uniform;
 
-                            yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
+                            yield return new Variant(new[] { new KeyValuePair<string, object>("attribute", attribute),
                                                     new KeyValuePair<string, object>("Random", currentRandomMode),
                                                     new KeyValuePair<string, object>("Source", source),
-                                                    new KeyValuePair<string, object>("Composition", composition) };
+                                                    new KeyValuePair<string, object>("Composition", composition) }, currentRandomMode == RandomMode.Off && source == SetAttribute.ValueSource.Slot && composition == AttributeCompositionMode.Overwrite);
                         }
                     }
                 }

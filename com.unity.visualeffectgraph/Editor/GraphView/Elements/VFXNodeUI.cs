@@ -151,6 +151,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<FocusInEvent>(OnFocusIn);
 
             m_SelectionBorder = this.Query("selection-border");
+            settingsVisibility = VFXSettingAttribute.VisibleFlags.InGraph;
         }
 
         public virtual void OnControllerChanged(ref ControllerChangedEvent e)
@@ -180,6 +181,9 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
+
+        public VFXSettingAttribute.VisibleFlags settingsVisibility { get; set; }
+
         protected virtual void SyncSettings()
         {
             Profiler.BeginSample("VFXNodeUI.SyncSettings");
@@ -198,7 +202,7 @@ namespace UnityEditor.VFX.UI
             }
             if (settingsContainer != null)
             {
-                var activeSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph);
+                var activeSettings = controller.model.GetSettings(false, settingsVisibility);
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
@@ -252,10 +256,14 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXNodeUI.SyncAnchors Delete");
             var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
 
+
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            
             foreach (var deletedController in deletedControllers)
             {
                 //Explicitely remove edges before removing anchor.
-                GetFirstAncestorOfType<VFXView>().RemoveAnchorEdges(existingAnchors[deletedController]);
+                view?.RemoveAnchorEdges(existingAnchors[deletedController]);
                 container.Remove(existingAnchors[deletedController]);
                 existingAnchors.Remove(deletedController);
             }

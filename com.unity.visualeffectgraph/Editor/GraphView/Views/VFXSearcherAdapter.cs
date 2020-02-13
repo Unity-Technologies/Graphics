@@ -21,6 +21,17 @@ namespace UnityEditor.VFX.UI
         protected string m_DragType;
         protected object m_DragObject;
 
+
+        public bool hasModel
+        {
+            get { return m_Controller != null && m_Controller.model != null; }
+        }
+
+        public VFXModel model
+        {
+            get { return m_Controller.model; }
+        }
+
         public VFXSearcherAdapter(string title, VFXView view) : base(title) { m_View = view; }
 
         public override void InitDetailsPanel(VisualElement detailsPanel)

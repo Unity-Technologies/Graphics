@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (!GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ))
+                if (!GetData() || !GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ))
                     yield return "sizeZMode";
             }
         }

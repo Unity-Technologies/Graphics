@@ -18,7 +18,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public struct Variant
+        {
+            public Variant(IEnumerable<KeyValuePair<string,object>> values, bool visibleIfnotSearched = false)
+            {
+                this.values = values;
+                this.visibleIfNotSearched = visibleIfnotSearched;
+
+            }
+            public IEnumerable<KeyValuePair<string, object>> values;
+            public bool visibleIfNotSearched;
+        }
+
+        public virtual IEnumerable<Variant> ComputeVariants()
         {
             //Default behavior : Cartesian product
             IEnumerable<IEnumerable<object>> empty = new[] { Enumerable.Empty<object>() };
@@ -26,8 +38,8 @@ namespace UnityEditor.VFX
             var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
             foreach (var combination in combinations)
             {
-                var variant = combination.Select((o, i) => new KeyValuePair<string, object>(variants.ElementAt(i).Key, o));
-                yield return variant;
+                var variant = combination.Select((o, i) => new KeyValuePair<string,object>(variants.ElementAt(i).Key, o));
+                yield return new Variant(variant);
             }
         }
     };
@@ -111,8 +123,9 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptor<T> : VFXModelDescriptor where T : VFXModel
     {
-        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null) : base(template, variants)
+        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null, bool visibleIfNotSearched = false) : base(template, variants)
         {
+            this.visibleIfNotSearched = visibleIfNotSearched;
         }
 
         virtual public T CreateInstance()
@@ -126,6 +139,9 @@ namespace UnityEditor.VFX
         {
             get { return (T)m_Template; }
         }
+
+
+        public bool visibleIfNotSearched;
     }
 
     class VFXModelDescriptorParameters : VFXModelDescriptor<VFXParameter>
@@ -338,8 +354,8 @@ namespace UnityEditor.VFX
                             var provider = Activator.CreateInstance(modelDesc.info.variantProvider) as VariantProvider;
                             foreach (var variant in provider.ComputeVariants())
                             {
-                                var variantArray = variant.ToArray();
-                                var currentVariant = new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant);
+                                var variantArray = variant.values.ToArray();
+                                var currentVariant = new VFXModelDescriptor<T>((T)ScriptableObject.CreateInstance(modelType), variant.values,variant.visibleIfNotSearched);
                                 if (!nameAlreadyAdded.Contains(currentVariant.name))
                                 {
                                     modelDescs.Add(currentVariant);

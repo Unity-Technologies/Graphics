@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
 {
     class AttributeFromCurveProvider : VariantProvider
     {
-        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override IEnumerable<Variant> ComputeVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite };
             var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
@@ -30,9 +30,9 @@ namespace UnityEditor.VFX.Block
                             continue;
                         }
 
-                        yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
+                        yield return new Variant(new [] {    new KeyValuePair<string, object>("attribute", attribute),
                                                 new KeyValuePair<string, object>("Composition", composition),
-                                                new KeyValuePair<string, object>("SampleMode", sampleMode)};
+                                                new KeyValuePair<string, object>("SampleMode", sampleMode)}, composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife);
                     }
                 }
             }

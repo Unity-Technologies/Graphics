@@ -483,10 +483,16 @@ namespace UnityEditor.VFX.UI
             {
                 DragAndDrop.AcceptDrag();
                 Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
-                int blockIndex = GetDragBlockIndex(mousePosition);
                 VFXBlockProvider.NewBlockDescriptor desc = (VFXBlockProvider.NewBlockDescriptor)DragAndDrop.GetGenericData(nameof(VFXBlockProvider.NewBlockDescriptor));
-                controller.AddBlock(blockIndex, desc.newBlock.CreateInstance());
 
+
+                if (m_SearcherAdapter.hasModel)
+                    AddBlock(mousePosition, (VFXBlock)m_SearcherAdapter.model);
+                else
+                    AddBlock(mousePosition, desc.newBlock);
+
+
+                m_SearcherAdapter = null;
                 evt.StopPropagation();
             }
             else
@@ -511,6 +517,7 @@ namespace UnityEditor.VFX.UI
 
                     evt.StopPropagation();
                 }
+                m_SearcherAdapter = null;
             }
 
             m_DragStarted = false;
@@ -541,6 +548,7 @@ namespace UnityEditor.VFX.UI
             // TODO: Do something when current drag is canceled
             RemoveDragIndicator();
             m_DragStarted = false;
+            m_SearcherAdapter = null;
         }
 
         public void RemoveBlock(VFXBlockUI block)
@@ -666,7 +674,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
+        void AddBlock(Vector2 position, VFXBlock newBlock)
         {
             int blockIndex = -1;
 
@@ -688,15 +696,21 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if(blockIndex == -1 && blocks.Count > 0 && blocks[0].worldBound.y > position.y)
+            if (blockIndex == -1 && blocks.Count > 0 && blocks[0].worldBound.y > position.y)
             {
                 blockIndex = 0;
             }
 
             using (var growContext = new GrowContext(this))
             {
-                controller.AddBlock(blockIndex, descriptor.CreateInstance(), true /* freshly created block, should init space */);
+                controller.AddBlock(blockIndex, newBlock, true /* freshly created block, should init space */);
             }
+        }
+            
+
+        void AddBlock(Vector2 position, VFXModelDescriptor<VFXBlock> descriptor)
+        {
+            AddBlock(position, descriptor.CreateInstance());
         }
 
         public void OnCreateBlock(DropdownMenuAction evt)
@@ -739,9 +753,10 @@ namespace UnityEditor.VFX.UI
                         m_Controller = newBlockController;
                         newBlockController.ForceUpdate();
                         m_Node = new VFXBlockUI();
+                        m_Node.settingsVisibility = VFXSettingAttribute.VisibleFlags.All;
                         m_Node.controller = newBlockController;
                         m_Node.style.position = PositionType.Relative;
-                        m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
+                        m_Node.titleContainer.Insert(m_Node.childCount - 1, m_GlassPane);
                         m_NodeShape.Add(m_Node);
                         m_DragObject = contextDesc;
                         m_DragType = nameof(VFXBlockProvider.NewBlockDescriptor);
@@ -791,6 +806,34 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        VFXContextSearcherAdapter m_SearcherAdapter;
+
+        class VFXContextSearcherDatabase : VFXSearcherDatabase
+        {
+            public VFXContextSearcherDatabase(IReadOnlyCollection<SearcherItem> db)
+               : base(db)
+            {
+                MatchFilter = FilterNotVisible;
+            }
+
+            protected bool FilterNotVisible(string query, SearcherItem item)
+            {
+                if (string.IsNullOrEmpty(query))
+                {
+                    var contextItem = item as VFXContextSearcherItem;
+                    if (contextItem != null && contextItem.descriptor is VFXBlockProvider.NewBlockDescriptor desc)
+                    {
+                        if (!desc.newBlock.visibleIfNotSearched)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
         public void OnCreateBlock(Vector2 referencePosition)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
@@ -801,11 +844,17 @@ namespace UnityEditor.VFX.UI
             {
                 InitilializeNewNodeSearcher();
 
-                var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXContextSearcherAdapter("Create Block", view));
+                m_SearcherAdapter = new VFXContextSearcherAdapter("Create Block", view);
+                var searcher = new UnityEditor.Searcher.Searcher(new VFXContextSearcherDatabase(m_RootSearcherItems), m_SearcherAdapter);
                 SearcherWindow.Show(VFXViewWindow.currentWindow, searcher, item => {
                     if (item is VFXContextSearcherItem vfxItem)
                         if (vfxItem.descriptor is VFXBlockProvider.NewBlockDescriptor newBlockDesc)
-                            AddBlock(referencePosition, newBlockDesc.newBlock);
+                        {
+                            if(m_SearcherAdapter.hasModel)
+                                AddBlock(referencePosition, (VFXBlock)m_SearcherAdapter.model);
+                            else
+                                AddBlock(referencePosition, newBlockDesc.newBlock);
+                        }
                         else
                         {
                             var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>((vfxItem.descriptor as VFXBlockProvider.SubgraphBlockDescriptor).item.path);
