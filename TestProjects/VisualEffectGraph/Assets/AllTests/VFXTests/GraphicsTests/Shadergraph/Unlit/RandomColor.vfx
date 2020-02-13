@@ -180,6 +180,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -2485,7 +2486,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 989a73485b0b3b4499fd66ea6ae7220e,
     type: 3}
-  shadergraphGUID: 989a73485b0b3b4499fd66ea6ae7220e
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614753
@@ -2641,7 +2641,6 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 989a73485b0b3b4499fd66ea6ae7220e,
     type: 3}
-  shadergraphGUID: 989a73485b0b3b4499fd66ea6ae7220e
 --- !u!114 &8926484042661614766
 MonoBehaviour:
   m_ObjectHideFlags: 0

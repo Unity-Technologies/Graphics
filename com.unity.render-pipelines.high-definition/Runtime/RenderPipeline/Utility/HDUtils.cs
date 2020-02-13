@@ -942,7 +942,7 @@ namespace UnityEngine.Rendering.HighDefinition
             graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
-            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
+            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
 

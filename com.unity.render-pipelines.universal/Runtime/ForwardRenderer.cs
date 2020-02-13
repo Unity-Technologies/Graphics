@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
             if (isStereoEnabled && requiresDepthTexture)
                 requiresDepthPrepass = true;
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor);
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
@@ -364,6 +364,8 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
+            // We set the number of maximum visible lights allowed and we add one for the mainlight...
+            cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
 

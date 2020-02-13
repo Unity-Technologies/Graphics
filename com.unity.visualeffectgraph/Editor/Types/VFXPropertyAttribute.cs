@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
         {
-            return attributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+            return attributes.Where(t=> t!= null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
         }
 

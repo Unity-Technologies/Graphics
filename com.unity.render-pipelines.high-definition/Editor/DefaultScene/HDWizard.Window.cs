@@ -131,15 +131,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "XR Legacy Helpers Package",
                 error: "XR Legacy Helpers Package will help you to handle inputs.");
 
-            public static readonly ConfigStyle dxrSupported = new ConfigStyle(
-                label: "Hardware and OS",
-                error: "You hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: "Auto graphics API",
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed!");
+                error: "Direct3D 12 is needed! (Editor restart is required)");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadow",
                 error: "Screen Space Shadow is required!");
@@ -154,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "DXR is not activated!");
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
-                error: "There is an issue with the DXR resources!");
+                error: "There is an issue with the DXR resources! Or your hardware and/or OS cannot be used for DXR! (unfixable in second case)");
             public static readonly ConfigStyle dxrShaderConfig = new ConfigStyle(
                 label: "DXR shader config",
                 error: "There is an issue with the DXR shader config!");
@@ -203,8 +200,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
             window.minSize = new Vector2(420, 450);
+            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }
-
+        
         void OnGUI()
         {
             foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
@@ -225,18 +223,34 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (frameToWait > 0)
                 --frameToWait;
-            else if (HDProjectSettings.wizardIsStartPopup)
+            else
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                //Application.isPlaying cannot be called in constructor. Do it here
-                if (Application.isPlaying)
-                    return;
+                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
+                {
+                    //Application.isPlaying cannot be called in constructor. Do it here
+                    if (Application.isPlaying)
+                        return;
 
-                OpenWindow();
+                    OpenWindow();
+                }
+
+                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
         
+        [Callbacks.DidReloadScripts]
+        static void CheckPersistencyPopupAlreadyOpened()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+            };
+        }
+        
+        [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
             //We need to wait at least one frame or the popup will not show up
@@ -244,14 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update += WizardBehaviourDelayed;
         }
         
-        [Callbacks.DidReloadScripts]
-        static void ResetDelayed()
-        {
-            //remove it from domain reload but keep it in editor opening
-            frameToWait = 0;
-            EditorApplication.update -= WizardBehaviourDelayed;
-        }
-
         #endregion
 
         #region DRAWERS
@@ -342,6 +348,9 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateLargeButton(Style.migrateMaterials, UpgradeStandardShaderMaterials.UpgradeMaterials));
 
             container.Add(CreateWizardBehaviour());
+
+            CheckPersistantNeedReboot();
+            CheckPersistentFixAll(); 
         }
 
         VisualElement CreateFolderData()
