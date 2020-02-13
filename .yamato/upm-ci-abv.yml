@@ -55,7 +55,7 @@ all_project_ci_{{ editor.version }}:
     pull_requests:
       - targets:
           only:
-            - "master"
+            - "8.x.x/release"
   {% endif %}
 {% endfor %}
 
@@ -76,7 +76,7 @@ all_project_ci_nightly:
       rerun: always
   triggers:
     recurring:
-      - branch: master
+      - branch: 8.x.x/release
         frequency: daily     
 
 {% for testplatform in testplatforms %} 
