@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        RenderGraphMutableResource CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -24,16 +24,16 @@ namespace UnityEngine.Rendering.HighDefinition
         class SubsurfaceScaterringPassData
         {
             public SubsurfaceScatteringParameters parameters;
-            public RenderGraphResource colorBuffer;
-            public RenderGraphResource diffuseBuffer;
-            public RenderGraphResource depthStencilBuffer;
-            public RenderGraphResource depthTexture;
-            public RenderGraphMutableResource cameraFilteringBuffer;
-            public RenderGraphResource sssBuffer;
+            public TextureHandle colorBuffer;
+            public TextureHandle diffuseBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle depthTexture;
+            public TextureHandle cameraFilteringBuffer;
+            public TextureHandle sssBuffer;
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer,
-            in LightingBuffers lightingBuffers, RenderGraphResource depthStencilBuffer, RenderGraphResource depthTexture)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
+            in LightingBuffers lightingBuffers, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
