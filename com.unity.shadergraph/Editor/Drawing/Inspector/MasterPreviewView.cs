@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             Vector2 previewSize = m_PreviewTextureView.contentRect.size;
 
-            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
+            m_PreviewScrollPosition -= deltaMouse * 1f / Mathf.Min(previewSize.x, previewSize.y) * 140f;
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;

@@ -53,6 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
+
         UserViewSettings m_UserViewSettings;
 
         public UserViewSettings viewSettings
@@ -206,12 +207,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Color Mode");
                     var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+
                     GUILayout.Space(4);
                     m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
-
                     GUILayout.Space(6);
-
                     m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+
                     if (EditorGUI.EndChangeCheck())
                     {
                         if(newColorIdx != m_ColorManager.activeIndex)
@@ -290,7 +291,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateSubWindowsVisibility()
         {
-            Debug.Log("Goose " + m_UserViewSettings.isBlackboardVisible + " " + m_UserViewSettings.isPreviewVisible);
             if (m_UserViewSettings.isBlackboardVisible)
                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
