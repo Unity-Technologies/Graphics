@@ -415,6 +415,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+#if SHADEROPTIONS_PROBE_VOLUMES
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
         float3 outProbeVolumeDiffuseLighting = 0.0f;
@@ -424,6 +425,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
         builtinData.bakeDiffuseLighting += outProbeVolumeDiffuseLighting;
     }
+#endif
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

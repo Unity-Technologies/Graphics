@@ -242,14 +242,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (probeVolumeAsset && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current)
                 return false;
 
-            // TODO: Implement any migration checks.
-
             return false;
         }
 
         void ApplyMigration()
         {
-            // TODO: Implement any migrations here.
         }
 
         void Migrate()
@@ -423,6 +420,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DisableBaking()
         {
+            if (ShaderConfig.s_ProbeVolumes == 0)
+                return;
+
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnProbesBakeCompleted;
             UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
@@ -435,6 +435,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EnableBaking()
         {
+            if (ShaderConfig.s_ProbeVolumes == 0)
+                return;
+
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnProbesBakeCompleted;
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
 

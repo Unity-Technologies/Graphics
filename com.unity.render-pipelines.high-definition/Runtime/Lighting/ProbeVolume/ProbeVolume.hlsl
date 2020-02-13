@@ -103,6 +103,7 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
 
                     // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
                     float3 samplePositionWS = bsdfData.normalWS * _ProbeVolumeNormalBiasWS + posInput.positionWS;
+                    float3 samplePositionsRWS = GetCameraRelativePositionWS(samplePositionWS);
                     float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                     float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
 
