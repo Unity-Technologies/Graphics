@@ -498,19 +498,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     Light2D light = lights[lightIndex];
 
-                    if (light.IsLitLayer(layer) && (camera != null ? light.IsLightVisible(camera) : true))
+                    if (light.IsLitLayer(layer) && ((camera != null && light.lightType != LightType.Global) ? light.IsLightVisible(camera) : true))
                     {
                         returnStats.totalLights++;
                         if (light.useNormalMap)
                             returnStats.totalNormalMapUsage++;
                         if (light.volumeOpacity > 0)
                             returnStats.totalVolumetricUsage++;
+
+                        uint blendStyleUsed = (uint)(1 << light.blendStyleIndex);
+                        returnStats.blendStylesUsed |= blendStyleUsed;
                     }
-
-                    uint blendStyleUsed = (uint)(1 << light.blendStyleIndex);
-                    returnStats.blendStylesUsed |= blendStyleUsed;
                 }
-
             }
             return returnStats;
         }
