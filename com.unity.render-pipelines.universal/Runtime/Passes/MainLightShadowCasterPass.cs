@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
+            //ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                 m_ShadowmapHeight, k_ShadowmapBufferBits);
             return true;

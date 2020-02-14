@@ -73,7 +73,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return output;
     }
 
-    TEXTURE2D_X(_DepthTex);
+   // TEXTURE2D_X(_DepthTex);
     //TEXTURE2D_X_HALF(_GBuffer0);
     UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
     //TEXTURE2D_X_HALF(_GBuffer1);
@@ -172,7 +172,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     {
        // float d = LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
        //TODO: not working and gives 0
-        float d = 1;//UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;//LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
+        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;//LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
         float z = LinearEyeDepth(d, _ZBufferParams);
         half fogFactor = ComputeFogFactorFromLinearEyeDepth(z);
         half fogIntensity = ComputeFogIntensity(fogFactor);

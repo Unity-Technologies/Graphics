@@ -485,7 +485,6 @@ namespace UnityEngine.Rendering.Universal
                                     && rp.colorAttachments[i].targetDescriptor.graphicsFormat != GraphicsFormat.None
                                     && rp.colorAttachments[i].targetDescriptor.format != RenderTextureFormat.Depth)
                                     attachmentList.Add(rp.colorAttachments[i].targetDescriptor);
-
                             }
 
                             if (rp.hasInputAttachment)
@@ -556,7 +555,7 @@ namespace UnityEngine.Rendering.Universal
 
                         if (renderPass.hasInputAttachment)
                         {
-                            context.BeginSubPass(colors, inputIndices);
+                            context.BeginSubPass(colors, inputIndices, renderPass.renderPassDescriptor.readOnlyDepth);
                             inputIndices.Dispose();
                         }
                         else

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        RenderTargetHandle[] m_ColorAttachments;
+        new RenderTargetHandle[] m_ColorAttachments;
         RenderTargetHandle m_DepthBufferAttachment;
 
         RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[DeferredRenderer.GBufferSlicesCount];

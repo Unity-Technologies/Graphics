@@ -763,7 +763,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // We bind a copy of depth buffer because we cannot make it readonly at the moment.
             // This binding may be used by the deferred shaders and the transparent pass (soft-particles).
-            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
+            //cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
 
             // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
             // Workaround is to bind gbuffer textures explicitely here.
@@ -1070,7 +1070,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
+                //cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
 
                 int tileWidth = m_Tilers[0].GetTilePixelWidth();
                 int tileHeight = m_Tilers[0].GetTilePixelHeight();
@@ -1131,7 +1131,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture a readonly but currently not possible yet
+              //  cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture a readonly but currently not possible yet
 
                 int soffset = 0;
 

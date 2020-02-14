@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthAttachmentHandle)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+            baseDescriptor.colorFormat = RenderTextureFormat.R8;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
 
             // Depth-Only pass don't use MSAA

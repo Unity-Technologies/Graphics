@@ -177,7 +177,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 
 #if UNITY_UV_STARTS_AT_TOP
     shadowCoord.y = 1 - shadowCoord.y;
-    //shadowCoord.w = 1 - shadowCoord.w;
+    shadowCoord.w = 1 - shadowCoord.w;
 #endif
 
     real attenuation;
@@ -229,7 +229,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
     return 1.0h;
 #endif
 #if UNITY_UV_STARTS_AT_TOP
-    //shadowCoord.y = 1 - shadowCoord.y;
+    shadowCoord.y = 1 - shadowCoord.y;
 #endif
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();

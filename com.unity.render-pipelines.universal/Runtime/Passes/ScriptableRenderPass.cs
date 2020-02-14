@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(8);
         internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
-        RenderTargetHandle m_DepthAttachment = RenderTargetHandle.CameraTarget;
+        RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new List<RenderTargetHandle> { RenderTargetHandle.CameraTarget };
-            m_DepthAttachment = RenderTargetHandle.CameraTarget;
+            //m_DepthAttachment = RenderTargetHandle.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -105,6 +105,7 @@ namespace UnityEngine.Rendering.Universal
             internal int width;
             internal int height;
             internal int sampleCount;
+            internal bool readOnlyDepth;
         }
 
         /// <summary>
@@ -250,11 +251,12 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment.targetDescriptor.ConfigureClear(color, depth, stencil);
         }
 
-        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount)
+        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = false)
         {
             m_RenderPassDescriptor.width = width;
             m_RenderPassDescriptor.height = height;
             m_RenderPassDescriptor.sampleCount = sampleCount;
+            m_RenderPassDescriptor.readOnlyDepth = readOnlyDepth;
             UseNativeRenderPass(true);
         }
 
@@ -284,7 +286,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
         {
-            m_ColorAttachments = new List<RenderTargetHandle> { RenderTargetHandle.CameraTarget };
+          //  m_ColorAttachments.Clear();
+            m_InputAttachments.Clear();
         }
 
         /// <summary>

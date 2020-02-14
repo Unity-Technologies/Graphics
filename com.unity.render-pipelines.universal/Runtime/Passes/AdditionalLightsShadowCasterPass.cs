@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_AdditionalLightsWorldToShadow[i] = sliceTransform * m_AdditionalLightsWorldToShadow[i];
                 sliceIndex++;
             }
-            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
+           // ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
             m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
 
             return true;

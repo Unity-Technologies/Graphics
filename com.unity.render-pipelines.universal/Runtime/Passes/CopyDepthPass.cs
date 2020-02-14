@@ -38,14 +38,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var descriptor = cameraTextureDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
+            descriptor.colorFormat = RenderTextureFormat.R8;
+            descriptor.depthBufferBits = 0; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(destination);
-            ConfigureClear(ClearFlag.None, Color.black);
+           // ConfigureTarget(destination);
+           // ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
