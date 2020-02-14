@@ -47,10 +47,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MessageManager ?? (m_MessageManager = new MessageManager()); }
         }
 
-        GraphEditorView graphEditorView
+        internal GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
-            set
+            private set
             {
                 if (m_GraphEditorView != null)
                 {
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        GraphObject graphObject
+        internal GraphObject graphObject
         {
             get { return m_GraphObject; }
             set

@@ -55,6 +55,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
 
+        internal UserViewSettings viewSettings
+        {
+            get { return m_UserViewSettings; }
+        }
+
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
@@ -200,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Color Mode");
-                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                    var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
                     GUILayout.Space(4);
                     m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
 
@@ -209,16 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        if(newColorIdx != m_ColorManager.activeIndex)
-                        {
-                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
-                        }
-
-                        UpdateSubWindowsVisibility();
-
-                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                        UserViewSettingsChangeCheck(newColorIndex);
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -281,6 +277,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        internal void UserViewSettingsChangeCheck(int newColorIndex)
+        {
+            if (newColorIndex != m_ColorManager.activeIndex)
+            {
+                m_ColorManager.SetActiveProvider(newColorIndex, m_GraphView.Query<MaterialNodeView>().ToList());
+                m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+            }
+
+            UpdateSubWindowsVisibility();
+
+            var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+            EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
         }
 
         void UpdateSubWindowsVisibility()
