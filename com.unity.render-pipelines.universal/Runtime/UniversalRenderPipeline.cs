@@ -836,16 +836,17 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
 
-        internal static void SetupPerCameraMatrices(CommandBuffer cmd, ScriptableRenderContext context, CameraData cameraData, bool stereoEnabled, int eyeIndex)
+        internal static void SetupPerCameraMatrices(CommandBuffer cmd, ScriptableRenderContext context, Camera camera, int eyeIndex)
         {
-            // The following camera properties must be set per eye for XR support.
-            Camera camera = cameraData.camera;
-
-            Matrix4x4 projMatrix = stereoEnabled ? camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex) : camera.projectionMatrix;
-            Matrix4x4 viewMatrix = stereoEnabled ? camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex) : camera.worldToCameraMatrix;
-            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-            Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-            cmd.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
+            // The following camera properties are only used in XR multipass mode only.
+            if (IsMultiPassStereoEnabled(camera))
+            {
+                Matrix4x4 projMatrix = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
+                Matrix4x4 viewMatrix = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(PerCameraBuffer.unity_MatrixInvVP, invViewProjMatrix);
+            }
         }
     }
 }
