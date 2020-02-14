@@ -56,15 +56,28 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             while (startIndex < str.Length)
             {
-                var jsonBegin = startIndex;
+                var jsonBegin = str.IndexOf("{", startIndex, StringComparison.Ordinal);
+                if (jsonBegin == -1)
+                {
+                    break;
+                }
+
                 var jsonEnd = str.IndexOf(separatorStr, jsonBegin, StringComparison.Ordinal);
                 if (jsonEnd == -1)
                 {
-                    jsonEnd = str.Length;
+                    jsonEnd = str.LastIndexOf("}", StringComparison.Ordinal) + 1;
                 }
 
                 var json = str.Substring(jsonBegin, jsonEnd - jsonBegin);
                 JsonUtility.FromJsonOverwrite(json, raw);
+                if (string.IsNullOrWhiteSpace(raw.MonoBehaviour.id))
+                {
+                    throw new InvalidOperationException("Id is null or whitespace.");
+                }
+                if (string.IsNullOrWhiteSpace(raw.MonoBehaviour.type))
+                {
+                    throw new InvalidOperationException("Type is null or whitespace.");
+                }
                 result.Add(new MultiJsonEntry(raw.MonoBehaviour.type, raw.MonoBehaviour.id, json));
                 raw.MonoBehaviour.Reset();
 
