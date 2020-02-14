@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2020-02-10
 
-
 ### Added
 ![Camera Stacking in URP](Documentation~/Images/camera-stacking-example.png)
 
