@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int coarseTileOffset = (int)coarseTileHeaders[coarseHeaderOffset + 0];
                 int coarseVisLightCount = (int)coarseTileHeaders[coarseHeaderOffset + 1];
 
-                if (tiler.GetTilerLevel() != 0)
+                if (tiler.TilerLevel != 0)
                 {
                     tiler.CullIntermediateLights(
                         ref prePunctualLights,
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         for (int t = m_Tilers.Length - 1; t > 0; --t)
                         {
                             ref DeferredTiler coarseTiler = ref m_Tilers[t];
-                            totalJobCount += coarseTiler.GetTileXCount() * coarseTiler.GetTileYCount();
+                            totalJobCount += coarseTiler.TileXCount * coarseTiler.TileYCount;
                         }
                         jobHandles = new NativeArray<JobHandle>(totalJobCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                     }
@@ -462,9 +462,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         coarseTileHeaders = defaultHeaders,
                         coarseHeaderOffset = 0,
                         istart = 0,
-                        iend = coarsestTiler.GetTileXCount(),
+                        iend = coarsestTiler.TileXCount,
                         jstart = 0,
-                        jend = coarsestTiler.GetTileYCount(),
+                        jend = coarsestTiler.TileYCount,
                     };
                     if (this.useJobSystem)
                     {
@@ -480,18 +480,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         ref DeferredTiler fineTiler = ref m_Tilers[t - 1];
                         ref DeferredTiler coarseTiler = ref m_Tilers[t];
-                        int fineTileXCount = fineTiler.GetTileXCount();
-                        int fineTileYCount = fineTiler.GetTileYCount();
-                        int coarseTileXCount = coarseTiler.GetTileXCount();
-                        int coarseTileYCount = coarseTiler.GetTileYCount();
+                        int fineTileXCount = fineTiler.TileXCount;
+                        int fineTileYCount = fineTiler.TileYCount;
+                        int coarseTileXCount = coarseTiler.TileXCount;
+                        int coarseTileYCount = coarseTiler.TileYCount;
                         int subdivX = (t == m_Tilers.Length - 1) ? coarseTileXCount : DeferredConfig.kTilerSubdivisions;
                         int subdivY = (t == m_Tilers.Length - 1) ? coarseTileYCount : DeferredConfig.kTilerSubdivisions;
                         int superCoarseTileXCount = (coarseTileXCount + subdivX - 1) / subdivX;
                         int superCoarseTileYCount = (coarseTileYCount + subdivY - 1) / subdivY;
-                        NativeArray<ushort> coarseTiles = coarseTiler.GetTiles();
-                        NativeArray<uint> coarseTileHeaders = coarseTiler.GetTileHeaders();
-                        int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
-                        int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
+                        NativeArray<ushort> coarseTiles = coarseTiler.Tiles;
+                        NativeArray<uint> coarseTileHeaders = coarseTiler.TileHeaders;
+                        int fineStepX = coarseTiler.TilePixelWidth / fineTiler.TilePixelWidth;
+                        int fineStepY = coarseTiler.TilePixelHeight / fineTiler.TilePixelHeight;
 
                         for (int j = 0; j < coarseTileYCount; ++j)
                         for (int i = 0; i < coarseTileXCount; ++i)
@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     coarsestTiler.CullFinalLights(
                         ref prePunctualLights,
                         ref defaultIndices, 0, prePunctualLights.Length,
-                        0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
+                        0, coarsestTiler.TileXCount, 0, coarsestTiler.TileYCount
                     );
                 }
 
@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++ tilerIndex)
             {
-                m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].GetTileDataCapacity());
+                m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].TileDataCapacity);
                 m_Tilers[tilerIndex].FrameCleanup();
             }
 
@@ -587,8 +587,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public bool HasTileDepthRangeExtraPass()
         {
             ref DeferredTiler tiler = ref m_Tilers[0];
-            int tilePixelWidth = tiler.GetTilePixelWidth();
-            int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tilePixelWidth = tiler.TilePixelWidth;
+            int tilePixelHeight = tiler.TilePixelHeight;
             int tileMipLevel = (int)Mathf.Log(Mathf.Min(tilePixelWidth, tilePixelHeight), 2);
             return DeferredConfig.kTileDepthInfoIntermediateLevel >= 0 && DeferredConfig.kTileDepthInfoIntermediateLevel < tileMipLevel;
         }
@@ -602,25 +602,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             Assertions.Assert.IsTrue(
-                m_Tilers[0].GetTilePixelWidth() == m_Tilers[0].GetTilePixelHeight() || DeferredConfig.kTileDepthInfoIntermediateLevel <= 0,
+                m_Tilers[0].TilePixelWidth == m_Tilers[0].TilePixelHeight || DeferredConfig.kTileDepthInfoIntermediateLevel <= 0,
                 "for non square tiles, cannot use intermediate mip level for TileDepthInfo texture generation (todo)"
             );
 
             uint invalidDepthRange = (uint)Mathf.FloatToHalf(-2.0f) | (((uint)Mathf.FloatToHalf(-1.0f)) << 16);
 
             ref DeferredTiler tiler = ref m_Tilers[0];
-            int tileXCount = tiler.GetTileXCount();
-            int tileYCount = tiler.GetTileYCount();
-            int tilePixelWidth = tiler.GetTilePixelWidth();
-            int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tileXCount = tiler.TileXCount;
+            int tileYCount = tiler.TileYCount;
+            int tilePixelWidth = tiler.TilePixelWidth;
+            int tilePixelHeight = tiler.TilePixelHeight;
             int tileMipLevel = (int)Mathf.Log(Mathf.Min(tilePixelWidth, tilePixelHeight), 2);
             int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel >= 0 && DeferredConfig.kTileDepthInfoIntermediateLevel < tileMipLevel ? DeferredConfig.kTileDepthInfoIntermediateLevel : tileMipLevel;
             int tileShiftMipLevel = tileMipLevel - intermediateMipLevel;
             int alignment = 1 << intermediateMipLevel;
             int depthInfoWidth = (m_RenderWidth + alignment - 1) >> intermediateMipLevel;
             int depthInfoHeight = (m_RenderHeight + alignment - 1) >> intermediateMipLevel;
-            NativeArray<ushort> tiles = tiler.GetTiles();
-            NativeArray<uint> tileHeaders = tiler.GetTileHeaders();
+            NativeArray<ushort> tiles = tiler.Tiles;
+            NativeArray<uint> tileHeaders = tiler.TileHeaders;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
             RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
@@ -717,8 +717,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier tileDepthInfoSurface = m_TileDepthInfoTexture.Identifier();
 
             ref DeferredTiler tiler = ref m_Tilers[0];
-            int tilePixelWidth = tiler.GetTilePixelWidth();
-            int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tilePixelWidth = tiler.TilePixelWidth;
+            int tilePixelHeight = tiler.TilePixelHeight;
             int tileWidthLevel = (int)Mathf.Log(tilePixelWidth, 2);
             int tileHeightLevel = (int)Mathf.Log(tilePixelHeight, 2);
             int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel;
@@ -924,11 +924,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int sizeof_PunctualLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
                 int sizeof_vec4_PunctualLightData = sizeof_PunctualLightData >> 4;
 
-                int tileXCount = tiler.GetTileXCount();
-                int tileYCount = tiler.GetTileYCount();
-                int maxLightPerTile = tiler.GetMaxLightPerTile();
-                NativeArray<ushort> tiles = tiler.GetTiles();
-                NativeArray<uint> tileHeaders = tiler.GetTileHeaders();
+                int tileXCount = tiler.TileXCount;
+                int tileYCount = tiler.TileYCount;
+                int maxLightPerTile = tiler.MaxLightPerTile;
+                NativeArray<ushort> tiles = tiler.Tiles;
+                NativeArray<uint> tileHeaders = tiler.TileHeaders;
 
                 int instanceOffset = 0;
                 int tileCount = 0;
@@ -1079,8 +1079,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
 
-                int tileWidth = m_Tilers[0].GetTilePixelWidth();
-                int tileHeight = m_Tilers[0].GetTilePixelHeight();
+                int tileWidth = m_Tilers[0].TilePixelWidth;
+                int tileHeight = m_Tilers[0].TilePixelHeight;
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
                 cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 

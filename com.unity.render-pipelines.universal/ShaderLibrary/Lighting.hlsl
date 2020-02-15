@@ -566,6 +566,16 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS, specularHighlightsOff) * radiance;
 }
 
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+{
+#ifdef _SPECULARHIGHLIGHTS_OFF
+    bool specularHighlightsOff = true;
+#else
+    bool specularHighlightsOff = false;
+#endif
+    return LightingPhysicallyBased(brdfData, lightColor, lightDirectionWS, lightAttenuation, normalWS, viewDirectionWS, specularHighlightsOff);
+}
+
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     return LightingPhysicallyBased(brdfData, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS, specularHighlightsOff);

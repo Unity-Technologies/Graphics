@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
 
             supportedRenderingFeatures = new RenderingFeatures()
             {
-                cameraStacking = true,
+                cameraStacking = false, // TODO debug it
             };
         }
 
@@ -178,6 +178,12 @@ namespace UnityEngine.Rendering.Universal
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                     rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+
+                if (requiresDepthPrepass)
+                {
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                    EnqueuePass(m_DepthPrepass);
+                }
 
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass);
 
@@ -228,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
                 int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
 
                 if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
-                SetupBackbufferFormat(backbufferMsaaSamples, cameraData.isStereoEnabled);
+                    SetupBackbufferFormat(backbufferMsaaSamples, cameraData.isStereoEnabled);
             }
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
@@ -427,12 +433,6 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool requiresDepthPrepass)
         {
-            if (requiresDepthPrepass)
-            {
-                m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_DepthTexture);
-                EnqueuePass(m_DepthPrepass);
-            }
-
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[k_GBufferSlicesCount + 1];
             for (int gbufferIndex = 0; gbufferIndex < k_GBufferSlicesCount; ++gbufferIndex)
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_DeferredPass);
 
-            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+            // Must explicitely set correct depth target to the opaque forward-only pass (it will bind a different depth target otherwise).
             m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
 
@@ -496,30 +496,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupBackbufferFormat(int msaaSamples, bool stereo)
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            bool msaaSampleCountHasChanged = false;
-            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
-            if (currentQualitySettingsSampleCount != msaaSamples &&
-                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
-            {
-                msaaSampleCountHasChanged = true;
-            }
-
-            // There's no exposed API to control how a backbuffer is created with MSAA
-            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-            // We only do this for the main camera and this only takes effect in the beginning of next frame.
-            // This settings should not be changed on a frame basis so that's fine.
-            QualitySettings.antiAliasing = msaaSamples;
-
-            if (stereo && msaaSampleCountHasChanged)
-                XR.XRDevice.UpdateEyeTextureMSAASetting();
-#else
-            QualitySettings.antiAliasing = msaaSamples;
-#endif
-        }
-        
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.

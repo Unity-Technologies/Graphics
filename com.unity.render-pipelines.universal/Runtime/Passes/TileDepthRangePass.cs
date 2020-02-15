@@ -33,8 +33,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).GetTileXCount();
-                int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).GetTileYCount();
+                int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).TileXCount;
+                int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).TileYCount;
 
                 outputTex = m_DeferredLights.m_TileDepthInfoTexture;
                 desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);

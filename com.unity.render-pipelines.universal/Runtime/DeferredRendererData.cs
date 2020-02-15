@@ -8,7 +8,6 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup]
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class DeferredRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
@@ -104,12 +103,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }
