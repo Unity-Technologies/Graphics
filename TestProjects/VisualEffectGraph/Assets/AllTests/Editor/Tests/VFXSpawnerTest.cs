@@ -621,11 +621,12 @@ namespace UnityEditor.VFX.Test
         }
 
         string expectedLogFolder = "Assets/AllTests/Editor/Tests/VFXSpawnerTest_";
-        bool CompareWithExpectedLog(StringBuilder actualContent, string identifier)
+        bool CompareWithExpectedLog(StringBuilder actualContent, string identifier, out string error)
         {
             var pathExpected = expectedLogFolder + identifier + ".expected.txt";
             var pathActual = expectedLogFolder + identifier + ".actual.txt";
             bool success = true;
+            error = string.Empty;
 
             IEnumerable<string> expectedContent = Enumerable.Empty<string>();
             try
@@ -635,7 +636,7 @@ namespace UnityEditor.VFX.Test
             catch(System.Exception)
             {
                 success = false;
-                Debug.LogErrorFormat("Can't locate file : {0}", pathExpected);
+                error += "Can't locate file : " + pathExpected;
             }
 
             //Compare line by line to avoid carriage return differences
@@ -646,8 +647,8 @@ namespace UnityEditor.VFX.Test
                 if (line == null || string.Compare(line, expectedContentLine, StringComparison.InvariantCulture) != 0)
                 {
                     success = false;
-                    Debug.LogError("Expected Line : " + expectedContentLine);
-                    Debug.LogError("Actual Line   : " + line);
+                    error += "Expected Line : " + expectedContentLine;
+                    error += "Actual Line   : " + line;
                     break;
                 }
             }
@@ -778,8 +779,9 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            var compare = CompareWithExpectedLog(log, "Chaining");
-            Assert.IsTrue(compare);
+            string error;
+            var compare = CompareWithExpectedLog(log, "Chaining", out error);
+            Assert.IsTrue(compare, error);
             yield return null;
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
@@ -967,7 +969,8 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            var compare = CompareWithExpectedLog(log, testCase.ToString());
+            string error;
+            var compare = CompareWithExpectedLog(log, testCase.ToString(), out error);
             Assert.IsTrue(compare);
 
             yield return null;
