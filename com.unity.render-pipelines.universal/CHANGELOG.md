@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
 - Added `[MainTexture]` and `[MainColor]` shader property attributes to URP shader properties. These will link script material.mainTextureOffset and material.color to `_BaseMap` and `_BaseColor` shader properties.
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
+- Added the option to turn on/off post processing globally in the universal render pipeline asset
+- Added the option to turn on/off volume updates on each renderer
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
@@ -34,6 +36,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made MaterialDescriptionPreprocessors private.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - The number of maximum visible lights is now determined by whether the platform is mobile or not.
+- Exposed setting the main light rendering mode in the universal render pipeline asset
+- Exposed setting the main light shadow casting in the universal render pipeline asset
+- Exposed setting the main light shadow map resolution in the universal render pipeline asset
+- Exposed setting the additional light rendering mode in the universal render pipeline asset
+- Exposed setting the additional light shadow casting in the universal render pipeline asset
+- Exposed setting the additional light shadow map resolution in the universal render pipeline asset
+- Exposed setting the soft shadows setting in the universal render pipeline asset
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.

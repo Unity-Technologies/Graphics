@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
             set {
                 if (!Enum.IsDefined(typeof(ShadowResolution), value))
                 {
-                    Debug.LogError("The mainLightShadowmapResolution can not be set to \"" + value + "\". Options are 256, 512, 1024, 2048 and 4096");
+                    Debug.LogError("The mainLightShadowmapResolution can not be set to \"" + value + "\". Available options are 256, 512, 1024, 2048 and 4096");
                     return;
                 }
                 m_MainLightShadowmapResolution = (ShadowResolution) value;
@@ -494,7 +494,7 @@ namespace UnityEngine.Rendering.Universal
             set {
                 if (!Enum.IsDefined(typeof(ShadowResolution), value))
                 {
-                    Debug.LogError("The additionalLightsShadowmapResolution can not be set to \"" + value + "\". Options are 256, 512, 1024, 2048 and 4096");
+                    Debug.LogError("The additionalLightsShadowmapResolution can not be set to \"" + value + "\".  Available options are 256, 512, 1024, 2048 and 4096");
                     return;
                 }
                 m_AdditionalLightsShadowmapResolution = (ShadowResolution)value;
