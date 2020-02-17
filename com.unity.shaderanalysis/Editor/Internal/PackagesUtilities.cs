@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 var package = packages[i];
                 Assert.AreEqual(PackageSource.Local, package.source);
 
-                links[i] = new DirectoryInfo(Path.Combine(rootPath.FullName, package.assetPath));
+                links[i] = new DirectoryInfo(Path.GetFullPath(Path.Combine(rootPath.FullName, package.assetPath)));
                 targets[i] = new DirectoryInfo(package.resolvedPath);
             }
 

@@ -173,9 +173,14 @@ namespace UnityEditor.ShaderAnalysis
                     {
                         progress.SetNormalizedProgress(s * (i + s2 * j), "Building compile units pass: {0:D3} / {1:D3}, unit: {2:D3} / {3:D3}", i + 1, c, j + 1, c2);
 
+                        var entryPoint = "Frag";
+                        if (pass.sourceCode.Contains("frag ("))
+                            // Handles shader graphs
+                            entryPoint = "frag";
+
                         var compileOptions = Utility.DefaultCompileOptions(
                             shaderKeywords,
-                            "Frag",
+                            entryPoint,
                             sourceDir,
                             target,
                             pass.shaderModel);

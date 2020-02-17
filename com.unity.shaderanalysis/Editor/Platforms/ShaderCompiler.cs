@@ -108,11 +108,11 @@ namespace UnityEditor.ShaderAnalysis
                 proc.BeginErrorReadLine();
             }
 
-            void ProcessOnErrorDataReceived(object sender, DataReceivedEventArgs dataReceivedEventArgs) 
-                => m_Errors.Append(dataReceivedEventArgs.Data);
+            void ProcessOnErrorDataReceived(object sender, DataReceivedEventArgs dataReceivedEventArgs)
+                => m_Errors.AppendLine(dataReceivedEventArgs.Data);
 
-            void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs dataReceivedEventArgs) 
-                => m_Outputs.Append(dataReceivedEventArgs.Data);
+            void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs dataReceivedEventArgs)
+                => m_Outputs.AppendLine(dataReceivedEventArgs.Data);
 
             void ProcessOnExited(object sender, EventArgs eventArgs)
             {
