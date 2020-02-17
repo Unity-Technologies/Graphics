@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Forward Renderer.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
+            public static readonly GUIContent shouldUpdateVolumesLabel = EditorGUIUtility.TrTextContent("Should Update Volumes", "When disabled, none of the volumes will be updated for this renderer");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -22,6 +23,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
+        SerializedProperty m_ShouldUpdateVolumesProp;
 
         private void OnEnable()
         {
@@ -31,6 +33,7 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
+            m_ShouldUpdateVolumesProp = serializedObject.FindProperty("m_ShouldUpdateVolumes");
         }
 
         public override void OnInspectorGUI()
@@ -48,6 +51,10 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_ShadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Volumes", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_ShouldUpdateVolumesProp, Styles.shouldUpdateVolumesLabel);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);

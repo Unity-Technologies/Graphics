@@ -365,6 +365,17 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
+            // We only disable volume updates if the user has specifically disabled it in the renderer
+            bool shouldUpdateVolumes = camera.cameraType == CameraType.SceneView
+                || additionalCameraData == null
+                || additionalCameraData.scriptableRenderer == null
+                || additionalCameraData.scriptableRenderer.shouldUpdateVolumes;
+
+            if (!shouldUpdateVolumes)
+            {
+                return;
+            }
+
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
             Transform trigger = camera.transform;
@@ -375,6 +386,7 @@ namespace UnityEngine.Rendering.Universal
                 trigger = additionalCameraData.volumeTrigger != null
                     ? additionalCameraData.volumeTrigger
                     : trigger;
+
             }
             else if (camera.cameraType == CameraType.SceneView)
             {
