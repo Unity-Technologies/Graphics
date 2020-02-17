@@ -94,8 +94,9 @@ for t, c, sz in (
 #define UNITY_DOTS_INSTANCING_TYPESPEC_half4x4 H32
 
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
-#define UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(metadata_prefix, typespec, metadata_underscore_var) metadata_prefix ## typespec ## _ ## metadata_underscore_var
-#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) metadata_prefix ## typespec ## _Metadata_ ## name
+#define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
+#define UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(metadata_prefix, typespec, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _, metadata_underscore_var)
+#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata_, name)
 
 // Metadata constants for properties have the following name format:
 // unity_DOTSInstancing_<Type><Size>_Metadata_<Name>
