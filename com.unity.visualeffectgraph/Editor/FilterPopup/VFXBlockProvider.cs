@@ -100,6 +100,7 @@ namespace UnityEditor.VFX.UI
         {
             public abstract string category { get; }
             public abstract string name { get; }
+            public abstract VFXModel model { get; }
         }
 
         public class NewBlockDescriptor : Descriptor
@@ -112,6 +113,7 @@ namespace UnityEditor.VFX.UI
             }
             public override string category { get { return newBlock.info.category; } }
             public override string name { get { return newBlock.name; } }
+            public override VFXModel model { get => newBlock.model; }
         }
 
         public class SubgraphBlockDescriptor : Descriptor
@@ -124,6 +126,7 @@ namespace UnityEditor.VFX.UI
 
             public override string category { get { return "Subgraph Block/"+item.category; } }
             public override string name { get { return item.name; } }
+            public override VFXModel model { get => null; }
         }
         
         public IEnumerable<Descriptor> descriptors { get => GetDescriptors(); }

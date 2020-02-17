@@ -137,10 +137,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        class VFXViewSearcherItem : SearcherItem
+        class VFXViewSearcherItem : VFXSearcherItem
         {
             public VFXViewSearcherItem(VFXNodeProvider.Descriptor descriptor, string name, string help = "", List<SearcherItem> children = null)
-            :base(name,help,children)
+            :base(name,(descriptor.modelDescriptor is VFXModelDescriptor vmd)?vmd.model:null,help, children)
             {
                 m_Descriptor = descriptor;
             }
@@ -1206,11 +1206,22 @@ namespace UnityEditor.VFX.UI
                         InitilializeNewNodeSearcher();
 
                         var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXViewSearcherAdapter("Create Node", this));
+                        
                         SearcherWindow.Show(VFXViewWindow.currentWindow, searcher, item => {
                             if (item is VFXViewSearcherItem vfxItem)
-                                AddNode(vfxItem.descriptor, point);
+                            {
+                                var nodeController = AddNode(vfxItem.descriptor, point);
+                                if( nodeController != null)
+                                {
+                                    SyncNodes();
+                                    var node = rootNodes[nodeController];
+                                    ClearSelection();
+                                    AddToSelection(node);
+                                }
+                            }
                             return true;
                         }, point, null);
+                        
 
 
                         UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());

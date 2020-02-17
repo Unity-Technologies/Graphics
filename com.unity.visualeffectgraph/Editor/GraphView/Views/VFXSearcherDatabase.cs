@@ -1,21 +1,44 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
+using System.Text;
 using UnityEngine;
-using UnityEngine.VFX;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEngine.Profiling;
-using System.Reflection;
-using UnityEditor.VersionControl;
+
 using UnityEditor.Searcher;
 
 using PositionType = UnityEngine.UIElements.Position;
 namespace UnityEditor.VFX.UI
 {
+    class VFXSearcherItem : SearcherItem
+    {
+        VFXModel m_Model;
+        public VFXSearcherItem(string name, VFXModel model, string help = "", List<SearcherItem> children = null) : base(name, help, children)
+        {
+
+            m_Model = model;
+            if (model != null)
+            {
+                StringBuilder sb = new StringBuilder(Name);
+
+                VFXInfoAttribute attribute = model.GetType().GetCustomAttributes(true).OfType<VFXInfoAttribute>().FirstOrDefault();
+                if (attribute != null && attribute.keywords != null && attribute.keywords.Count() > 0)
+                {
+                    sb.Append(' ');
+                    sb.Append(string.Join(" ", attribute.keywords));
+                }
+
+                infos = sb.ToString();
+            }
+            else
+                infos = Name;
+        }
+
+        public string infos
+        {
+            get; private set;
+        }
+    }
+
     class VFXSearcherDatabase : SearcherDatabase
     {
         public VFXSearcherDatabase(IReadOnlyCollection<SearcherItem> db)
@@ -26,7 +49,11 @@ namespace UnityEditor.VFX.UI
         protected override bool Match(string query, SearcherItem item, out float score)
         {
             var filter = MatchFilter?.Invoke(query, item) ?? true;
-            return Match(query, item.Name, out score) && filter;
+
+            if (item is VFXSearcherItem vfxItem)
+                return Match(query, vfxItem.infos, out score) && filter;
+            else
+                return Match(query, item.Name, out score) && filter;
         }
 
         static int NextSeparator(string s, int index)

@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 
         public struct Variant
         {
-            public Variant(IEnumerable<KeyValuePair<string,object>> values, bool visibleIfnotSearched = false)
+            public Variant(IEnumerable<KeyValuePair<string,object>> values, bool visibleIfnotSearched = true)
             {
                 this.values = values;
                 this.visibleIfNotSearched = visibleIfnotSearched;
@@ -61,6 +61,12 @@ namespace UnityEditor.VFX
             set;
         }
         public string category
+        {
+            get;
+            set;
+        }
+
+        public string[] keywords
         {
             get;
             set;
@@ -123,7 +129,7 @@ namespace UnityEditor.VFX
 
     class VFXModelDescriptor<T> : VFXModelDescriptor where T : VFXModel
     {
-        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null, bool visibleIfNotSearched = false) : base(template, variants)
+        public VFXModelDescriptor(T template, IEnumerable<KeyValuePair<string, Object>> variants = null, bool visibleIfNotSearched = true) : base(template, variants)
         {
             this.visibleIfNotSearched = visibleIfNotSearched;
         }
