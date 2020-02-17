@@ -448,21 +448,32 @@ namespace UnityEngine.Rendering.Universal
         public LightRenderingMode mainLightRenderingMode
         {
             get { return m_MainLightRenderingMode; }
+            set { m_MainLightRenderingMode = value; }
         }
 
         public bool supportsMainLightShadows
         {
             get { return m_MainLightShadowsSupported; }
+            set { m_MainLightShadowsSupported = value; }
         }
 
         public int mainLightShadowmapResolution
         {
             get { return (int)m_MainLightShadowmapResolution; }
+            set {
+                if (!Enum.IsDefined(typeof(ShadowResolution), value))
+                {
+                    Debug.LogError("The mainLightShadowmapResolution can not be set to \"" + value + "\". Options are 256, 512, 1024, 2048 and 4096");
+                    return;
+                }
+                m_MainLightShadowmapResolution = (ShadowResolution) value;
+            }
         }
 
         public LightRenderingMode additionalLightsRenderingMode
         {
             get { return m_AdditionalLightsRenderingMode; }
+            set { m_AdditionalLightsRenderingMode = value; }
         }
 
         public int maxAdditionalLightsCount
@@ -474,11 +485,20 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsAdditionalLightShadows
         {
             get { return m_AdditionalLightShadowsSupported; }
+            set { m_AdditionalLightShadowsSupported = value; }
         }
 
         public int additionalLightsShadowmapResolution
         {
             get { return (int)m_AdditionalLightsShadowmapResolution; }
+            set {
+                if (!Enum.IsDefined(typeof(ShadowResolution), value))
+                {
+                    Debug.LogError("The additionalLightsShadowmapResolution can not be set to \"" + value + "\". Options are 256, 512, 1024, 2048 and 4096");
+                    return;
+                }
+                m_AdditionalLightsShadowmapResolution = (ShadowResolution)value;
+            }
         }
 
         public float shadowDistance
@@ -524,6 +544,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
+            set { m_SoftShadowsSupported = value; }
         }
 
         public bool supportsDynamicBatching
