@@ -495,11 +495,17 @@ namespace UnityEngine.Rendering.Universal
         public float cascade2Split
         {
             get { return m_Cascade2Split; }
+            set { m_Cascade2Split = Mathf.Clamp01(value); }
         }
 
         public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
+            set {
+                m_Cascade4Split.x = Mathf.Clamp01(value.x);
+                m_Cascade4Split.y = Mathf.Clamp01(value.y);
+                m_Cascade4Split.z = Mathf.Clamp01(value.z);
+            }
         }
 
         public float shadowDepthBias
@@ -737,7 +743,7 @@ namespace UnityEngine.Rendering.Universal
 
         int ValidatePerObjectLights(int value)
         {
-            return System.Math.Max(0, System.Math.Min(value, UniversalRenderPipeline.maxPerObjectLights));
+            return Math.Max(0, Math.Min(value, UniversalRenderPipeline.maxPerObjectLights));
         }
 
         float ValidateRenderScale(float value)
