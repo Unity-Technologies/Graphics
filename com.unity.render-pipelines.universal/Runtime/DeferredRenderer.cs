@@ -490,10 +490,10 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[1], false, false, true, 1);
             m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[2], false, false, true, 2);
             m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[3], true, true, false, 3);
-            #if UNITY_IOS
+            #if UNITY_IOS && !UNITY_EDITOR
             m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[4], false, false, true, 4);
             #endif
-            //m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[4], false, false, true, 4);
+
             m_GBufferPass.ConfigureDepthAttachment(m_DepthTexture, false, true, true);
             m_GBufferPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
 
@@ -537,11 +537,11 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[0], 0);
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[1], 1);
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[2], 2);
-            #if !UNITY_IOS
-            m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
-            #else
+#if UNITY_IOS && !UNITY_EDITOR
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[4], 3);
-            #endif
+#else
+            m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
+#endif
             //m_DeferredPass.ConfigureDepthAttachment(m_GBufferPass.depthAttachment, true, true, false);
             EnqueuePass(m_DeferredPass);
             //EnqueuePass(m_RenderTransparentForwardPass);
