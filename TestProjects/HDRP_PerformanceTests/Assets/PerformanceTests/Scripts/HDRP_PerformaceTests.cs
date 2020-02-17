@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -177,6 +177,6 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         SceneManager.LoadScene(sceneName);
 
         // Wait one frame for the scene to finish loading:
-        yield return null;
+        yield return new WaitForSeconds(3.0f);
     }
 }
