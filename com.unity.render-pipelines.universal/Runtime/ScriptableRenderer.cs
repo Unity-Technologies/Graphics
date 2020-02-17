@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
-        public bool shouldUpdateVolumes { get; set; }
+        public bool shouldUpdateVolumes { get; set; } = true;
 
         static class RenderPassBlock
         {
