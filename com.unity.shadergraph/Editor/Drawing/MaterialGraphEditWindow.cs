@@ -438,8 +438,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphInputs,
                     metaProperties,
                     metaKeywords,
-                    graphView.selection.OfType<StickyNote>().Select(x => x.userData),
-                    graphView.selection.OfType<ContextView>().Select(x => x.contextData));
+                    graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
@@ -708,8 +707,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                 new IEdge[] {},
                 new GroupData[] {},
-                graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray(),
-                new ContextData[] {});
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             graphObject.graph.ValidateGraph();
         }
 

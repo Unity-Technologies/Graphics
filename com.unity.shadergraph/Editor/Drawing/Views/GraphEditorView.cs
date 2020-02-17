@@ -280,13 +280,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in graph.edges)
                 AddEdge(edge);
 
-            foreach (var context in graph.contexts)
-            {
-                AddContext(context);
-            }
+            AddContexts();
 
             Add(content);
             m_GraphView.UpdateQueries();
+        }
+
+        void AddContexts()
+        {
+            ContextView AddContext(string name, ContextData contextData, Direction portDirection)
+            {
+                var contextView = new ContextView(name, contextData);
+                contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
+                contextView.AddPort(portDirection);
+                m_GraphView.AddElement(contextView);
+                return contextView;
+            }
+
+            // Add Contexts
+            // As Contexts are hardcoded and contain a single port we can just give the direction
+            var vertexContext = AddContext("Vertex", m_Graph.vertexContext, Direction.Output);
+            var fragmentContext = AddContext("Fragment", m_Graph.fragmentContext, Direction.Input);
+
+            // Connect Contexts
+            // Vertical Edges have no representation in Model
+            // Therefore just draw it and dont allow interaction
+            var contextEdge = new Edge()
+            {
+                output = vertexContext.port,
+                input = fragmentContext.port,
+                pickingMode = PickingMode.Ignore,
+            };
+            m_GraphView.AddElement(contextEdge);
         }
 
         void UpdateSubWindowsVisibility()
@@ -434,8 +459,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
                     graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData).ToArray(),
                     graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<ContextView>().Select(x => x.contextData).ToArray());
+                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray());
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -712,27 +736,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     nodesToUpdate.Add((IShaderNodeView)edgeView.input.node);
             }
 
-            foreach (var context in m_Graph.addedContexts)
-            {
-                AddContext(context);
-            }
-
-            foreach (var context in m_Graph.removedContexts)
-            {
-                var contextView = m_GraphView.contexts.ToList().FirstOrDefault(p => p.contextData == context);
-                if (contextView != null)
-                {
-                    m_GraphView.RemoveElement(contextView);
-                }
-            }
-
-            foreach (var context in m_Graph.pastedContexts)
-            {
-                var contextView = m_GraphView.contexts.ToList().FirstOrDefault(p => p.contextData == context);
-                m_GraphView.AddToSelection(contextView);
-                
-            }
-
             foreach (var node in nodesToUpdate)
             {
                 if (node is MaterialNodeView materialNodeView)
@@ -949,13 +952,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return null;
-        }
-
-        void AddContext(ContextData contextData)
-        {
-            var contextView = new ContextView(contextData);
-            contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
-            m_GraphView.AddElement(contextView);
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();

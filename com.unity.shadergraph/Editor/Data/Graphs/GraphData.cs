@@ -236,21 +236,13 @@ namespace UnityEditor.ShaderGraph
         #region Context Data
 
         [SerializeField]
-        List<ContextData> m_Contexts = new List<ContextData>();
+        ContextData m_VertexContext;
 
-        public List<ContextData> contexts => m_Contexts;
+        [SerializeField]
+        ContextData m_FragmentContext;
 
-        List<ContextData> m_AddedContexts = new List<ContextData>();
-
-        public List<ContextData> addedContexts => m_AddedContexts;
-
-        List<ContextData> m_RemovedContexts = new List<ContextData>();
-
-        public List<ContextData> removedContexts => m_RemovedContexts;
-
-        List<ContextData> m_PastedContexts = new List<ContextData>();
-
-        public List<ContextData> pastedContexts => m_PastedContexts;
+        public ContextData vertexContext => m_VertexContext;
+        public ContextData fragmentContext => m_FragmentContext;
 
         #endregion
 
@@ -343,6 +335,13 @@ namespace UnityEditor.ShaderGraph
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
+
+            // TODO: Move
+            // Build Contexts
+            m_VertexContext = new ContextData();
+            m_VertexContext.position = new Vector2(0, 0);
+            m_FragmentContext = new ContextData();
+            m_FragmentContext.position = new Vector2(0, 200);
         }
 
         public void ClearChanges()
@@ -362,9 +361,6 @@ namespace UnityEditor.ShaderGraph
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
-            m_AddedContexts.Clear();
-            m_RemovedContexts.Clear();
-            m_PastedContexts.Clear();
             m_MostRecentlyCreatedGroup = null;
             didActiveOutputNodeChange = false;
         }
@@ -627,7 +623,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes, ContextData[] contexts)
+        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes)
         {
             foreach (var node in nodes)
             {
@@ -657,11 +653,6 @@ namespace UnityEditor.ShaderGraph
                 RemoveGroupNoValidate(groupData);
             }
 
-            foreach (var contextData in contexts)
-            {
-                RemoveContext(contextData, false);
-            }
-
             ValidateGraph();
         }
 
@@ -681,28 +672,6 @@ namespace UnityEditor.ShaderGraph
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
-        }
-
-        public void AddContext(ContextData contextData, bool validate = true)
-        {
-            m_Contexts.Add(contextData);
-            m_AddedContexts.Add(contextData);
-
-            if(validate)
-            {
-                ValidateGraph();
-            }
-        }
-
-        public void RemoveContext(ContextData contextData, bool validate = true)
-        {
-            m_Contexts.Remove(contextData);
-            m_RemovedContexts.Add(contextData);
-
-            if(validate)
-            {
-                ValidateGraph();
-            }
         }
 
         public AbstractMaterialNode GetNodeFromGuid(Guid guid)
@@ -1318,14 +1287,6 @@ namespace UnityEditor.ShaderGraph
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     remappedEdges.Add(Connect(outputSlotRef, inputSlotRef));
                 }
-            }
-
-            foreach (var contextData in graphToPaste.contextDatas)
-            {
-                ContextData pastedContextData = ContextData.Copy(contextData);
-                pastedContextData.position += new Vector2(30, 30);
-                AddContext(pastedContextData);
-                m_PastedContexts.Add(pastedContextData);
             }
 
             ValidateGraph();
