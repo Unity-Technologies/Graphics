@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+            elementsInsertedToStackNode = ElementsInsertedToStackNode;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
         }
@@ -878,6 +879,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         #endregion
+
+        void ElementsInsertedToStackNode(StackNode stackNode, int insertIndex, IEnumerable<GraphElement> elements)
+        {
+            var contextView = stackNode as ContextView;
+            contextView.InsertElements(insertIndex, elements);
+        }
     }
 
     static class GraphViewExtensions

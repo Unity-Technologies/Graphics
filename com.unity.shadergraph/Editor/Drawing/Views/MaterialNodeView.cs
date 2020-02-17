@@ -148,8 +148,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdatePortInputVisibilities();
 
-            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
@@ -158,6 +156,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer.SendToBack();
 
             m_TitleContainer = this.Q("title");
+
+            if(node is BlockNode blockData)
+            {
+                AddToClassList("blockData");
+                m_TitleContainer.RemoveFromHierarchy();
+            }
+            else
+            {
+                SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+            }
 
             var masterNode = node as IMasterNode;
             if (masterNode != null)

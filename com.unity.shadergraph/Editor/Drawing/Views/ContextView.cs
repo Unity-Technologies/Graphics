@@ -1,4 +1,7 @@
-﻿using UnityEngine.UIElements;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 
@@ -22,6 +25,20 @@ namespace UnityEditor.ShaderGraph
             var headerLabel = new Label() { name = "headerLabel" };
             headerLabel.text = name;
             headerContainer.Add(headerLabel);
+
+            // TODO: Add Blocks here...
+        }
+
+        // TODO: This should be part of the constructor
+        // TODO: But we need to add to GraphEditorView before...
+        // TODO: Can we go around MaterialNodeView entirely?
+        public void AddBlocks()
+        {
+            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+            foreach(var blockNode in contextData.blocks)
+            {
+                graphEditorView.AddBlockNode(this, blockNode);
+            }
         }
 
         public ContextData contextData => m_ContextData;
@@ -39,6 +56,38 @@ namespace UnityEditor.ShaderGraph
             m_Port.pickingMode = PickingMode.Ignore;
 
             container.Add(m_Port);
+        }
+
+        public void AddElement(BlockNode blockNode, Vector2 screenMousePosition)
+        {
+            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+            graphEditorView.AddBlockNode(this, blockNode);
+
+            int index = GetInsertionIndex(screenMousePosition);
+            if(index == -1)
+            {
+                contextData.blocks.Add(blockNode);
+            }
+            else
+            {
+                contextData.blocks.Insert(index, blockNode);
+            }
+        }
+
+        public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)
+        {
+            var blockDatas = elements.Select(x => x.userData as BlockNode).ToArray();
+            for(int i = 0; i < blockDatas.Length; i++)
+            {
+                contextData.blocks.Remove(blockDatas[i]);
+            }
+
+            contextData.blocks.InsertRange(insertIndex, blockDatas);
+        }
+
+        protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)
+        {
+            return element.userData is BlockNode;
         }
     }
 }

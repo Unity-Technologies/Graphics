@@ -9,6 +9,14 @@ MaterialNodeView.master {
     min-width: 200px;
 }
 
+MaterialNodeView.blockData {
+    width: 200px;
+}
+
+MaterialNodeView.blockData > #portInputContainer {
+    top: 6px;
+}
+
 MaterialNodeView #collapsible-area {
     width: 0;
     height: 0;
