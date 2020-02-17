@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Creates a new instance of the blue noise texture bank.
         /// </summary>
         /// <param name="resources">A reference to the render pipeline resources asset.</param>
-        public BlueNoise(RenderPipelineResources resources)
+        internal BlueNoise(RenderPipelineResources resources)
         {
             m_RenderPipelineResources = resources;
             InitTextures(16, TextureFormat.Alpha8, resources.textures.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);

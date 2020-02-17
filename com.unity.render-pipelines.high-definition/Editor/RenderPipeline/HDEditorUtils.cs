@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// A collection of utilities used by editor code of the HDRP.
     /// </summary>
-    public class HDEditorUtils
+    class HDEditorUtils
     {
         internal const string FormatingPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
@@ -234,6 +234,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
             int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
+            if (HDRenderPipeline.defaultAsset == null)
+                return lightLayer;
+
             EditorGUI.BeginChangeCheck();
             lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipeline.defaultAsset.lightLayerNames);
             if (EditorGUI.EndChangeCheck())

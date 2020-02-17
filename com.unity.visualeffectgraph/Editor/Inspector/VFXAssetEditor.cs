@@ -24,7 +24,8 @@ class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if (assetPath.EndsWith(VisualEffectResource.Extension))
+        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+        if (isVFX)
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
@@ -81,63 +82,6 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             {
                 resource.shaderSources = descs;
             }
-        }
-    }
-
-    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-    {
-        foreach (var assetPath in deletedAssets)
-        {
-            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
-            {
-                VisualEffectResource.DeleteAtPath(assetPath);
-            }
-        }
-
-        if (!allowExternalization)
-            return;
-        HashSet<string> vfxToRefresh = new HashSet<string>();
-        HashSet<string> vfxToRecompile = new HashSet<string>(); // Recompile vfx if a shader is deleted to replace
-        foreach (string assetPath in importedAssets.Concat(deletedAssets).Concat(movedAssets))
-        {
-            if (assetPath.EndsWith(k_ShaderExt))
-            {
-                string shaderDirectory = Path.GetDirectoryName(assetPath);
-                string vfxName = Path.GetFileName(shaderDirectory);
-                string vfxPath = Path.GetDirectoryName(shaderDirectory);
-
-                if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
-                    continue;
-
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
-
-                if (deletedAssets.Contains(assetPath))
-                    vfxToRecompile.Add(vfxPath);
-                else
-                    vfxToRefresh.Add(vfxPath);
-            }
-        }
-
-        foreach (var assetPath in vfxToRecompile)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                continue;
-
-            // Force Recompilation to restore the previous shaders
-            VisualEffectResource resource = asset.GetResource();
-            if (resource == null)
-                continue;
-            resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
-        }
-
-        foreach (var assetPath in vfxToRefresh)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                return;
-            AssetDatabase.ImportAsset(assetPath);
         }
     }
 }
@@ -210,10 +154,12 @@ class VisualEffectAssetEditor : Editor
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
-        VisualEffectAsset target = this.target as VisualEffectAsset;
 
         m_OutputContexts.Clear();
-        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+        VisualEffectAsset target = this.target as VisualEffectAsset;
+        var resource = target.GetResource();
+        if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
@@ -295,14 +241,17 @@ class VisualEffectAssetEditor : Editor
             }
         }
 
-
-        resourceObject = new SerializedObject(targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray());
+        var targetResources = targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray();
+        if (targetResources.Any())
+        {
+            resourceObject = new SerializedObject(targetResources);
         resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
         cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
         prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
         prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
         initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+    }
     }
 
     PreviewRenderUtility m_PreviewUtility;

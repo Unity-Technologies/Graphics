@@ -574,7 +574,8 @@ namespace UnityEditor.Rendering
         /// <param name="max">Max clamping value along axis</param>
         /// <param name="colors">[Optional] Color marks to use</param>
         /// <param name="multiplicator">[Optional] multiplicator on the datas</param>
-        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[] colors = null, SerializedProperty multiplicator = null)
+        /// <param name="allowIntersection">[Optional] Allow the face positive values to be smaller than negative ones and vice versa</param>
+        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[] colors = null, SerializedProperty multiplicator = null, bool allowIntersection = true)
         {
             if (colors != null && (colors.Length != 6))
                     throw new System.ArgumentException("Colors must be a 6 element array. [+X, +Y, +X, -X, -Y, -Z]");
@@ -601,11 +602,27 @@ namespace UnityEditor.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
+            if (!allowIntersection)
+            {
+                max = negative.vector3Value;
+                max.x = 1 - max.x;
+                max.y = 1 - max.y;
+                max.z = 1 - max.z;
+            }
+
             DrawVector3(firstVectorValueRect, k_DrawVector6_Label[0], positive, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] }, multiplicator);
             
             Rect secondVectorValueRect = secondLineRect;
             secondVectorValueRect.xMin = firstVectorValueRect.xMin;
             secondVectorValueRect.xMax = firstVectorValueRect.xMax;
+
+            if (!allowIntersection)
+            {
+                max = positive.vector3Value;
+                max.x = 1 - max.x;
+                max.y = 1 - max.y;
+                max.z = 1 - max.z;
+            }
 
             DrawVector3(secondVectorValueRect, k_DrawVector6_Label[1], negative, min, max, true, colors == null ? null : new Color[] { colors[3], colors[4], colors[5] }, multiplicator);
 
@@ -679,6 +696,7 @@ namespace UnityEditor.Rendering
                     }
                     EditorGUI.EndProperty();
                 }
+
                 EditorGUI.DrawRect(colorRect, colors[i]);
             }
 

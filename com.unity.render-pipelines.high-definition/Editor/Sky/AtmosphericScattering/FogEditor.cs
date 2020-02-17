@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_MaxFogDistance;
         protected SerializedDataParameter m_ColorMode;
         protected SerializedDataParameter m_Color;
+        protected SerializedDataParameter m_Tint;
         protected SerializedDataParameter m_MipFogNear;
         protected SerializedDataParameter m_MipFogFar;
         protected SerializedDataParameter m_MipFogMaxMip;
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Fog Color
             m_ColorMode = Unpack(o.Find(x => x.colorMode));
             m_Color = Unpack(o.Find(x => x.color));
+            m_Tint = Unpack(o.Find(x => x.tint));
             m_MipFogNear = Unpack(o.Find(x => x.mipFogNear));
             m_MipFogFar = Unpack(o.Find(x => x.mipFogFar));
             m_MipFogMaxMip = Unpack(o.Find(x => x.mipFogMaxMip));
@@ -85,6 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                PropertyField(m_Tint);
+
                 if (isInAdvancedMode)
                 {
                     PropertyField(m_MipFogNear);

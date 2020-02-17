@@ -49,20 +49,31 @@ Ray-traced shadows offer an alternative to the cascade shadow map that Direction
 
 **Ray raced Directional Light shadows (Sun Angle = 0.53, the angle of the Sun as seen from Earth)**
 
+Ray-traced shadows allow for transparent and transmissive GameObjects, lit by Directional Lights, to cast colored shadows.
+
+![](Images/RayTracedShadows9.png)
+
+**Ray-traced Directional Light shadows with colored shadows**
+
+![](Images/RayTracedShadows10.png)
+
+**Ray-traced Directional Light shadows without colored shadows**
+
 ### Properties
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
 | **Sun Angle**         | Sets the size of the Sun in the sky, in degrees. For example, the value for the Sun on Earth is 0.53°. |
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. Higher values produce more accurate shadows. Increasing this value increases execution time linearly. |
+| **Color Shadow**      | Allows transparent and transmissive GameObjects to cast colored shadows. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows; making them smoother. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
 
 <a name="PointLight"></a>
 
-## Point Light
+## Point And Spot Light
 
-Ray-traced shadows offer an alternative to the shadow map that Point Lights use for opaque GameObjects. HDRP still evaluates the lighting of a Point Light as coming from a single point in space (the light is [punctual](Glossary.html#PunctualLights)), but it evaluates the shadowing as if the light was coming from the surface of a sphere.
+Ray-traced shadows offer an alternative to the shadow map that Point and Spot Lights use for opaque GameObjects. HDRP still evaluates the lighting of a Point Light as coming from a single point in space (the light is [punctual](Glossary.html#PunctualLights)), but it evaluates the shadowing as if the light was coming from the surface of a sphere. On the other side, HDRP evaluates the lighting of a Spot Light as coming from a single point in space, but it evaluates the shadowing as if the light was coming from the surface of a cone.
 
 ![](Images/RayTracedShadows4.png)
 
@@ -76,34 +87,22 @@ Ray-traced shadows offer an alternative to the shadow map that Point Lights use 
 
 **Ray-traced Point Light shadows (radius = 0.5m)**
 
-### Properties
+Ray-traced shadows offer the possibility of semi-transparent shadows for Point Lights cast by tranparent and transmissive GameObjects.
 
-| Property              | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. A low number of samples produces a noisier image that requires more denoising. Increasing this value increases execution time linearly. |
-| **Radius**            | Sets the radius of the sphere light that HDRP uses to evaluate the shadows. This increases the size of the surface that emits light. |
-| **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
-| - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
+![](Images/RayTracedShadows11.png)
 
-<a name="SpotLight"></a>
+**Ray-traced Point Light shadows with emi-transparent shadows**
 
-## Spot Light
+![](Images/RayTracedShadows12.png)
 
-Ray-traced shadows offer an alternative to the shadow map that Spot Lights use for opaque GameObjects. HDRP still evaluates the lighting of a Spot Light as coming from a single point in space, but it evaluates the shadowing as if the light was coming from the surface of a cone.
-
-![](Images/RayTracedSpotLight1.png)
-
-**Spot Light shadow map**
-
-![](Images/RayTracedSpotLight2.png)
-
-**Ray-traced Spot Light shadows (Radius = 0.1m)**
+**Ray-traced Point Light shadows without emi-transparent shadows**
 
 ### Properties
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. A low number of samples produces a noisier image that requires more denoising. Increasing this value increases execution time linearly. |
+| **Semi-Transparent Shadow**      | Allows transparent and transmissive GameObjects to cast semi-transparent shadows. |
 | **Radius**            | Sets the radius of the sphere light that HDRP uses to evaluate the shadows. This increases the size of the surface that emits light. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
