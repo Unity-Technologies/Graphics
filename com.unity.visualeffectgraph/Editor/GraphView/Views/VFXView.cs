@@ -194,30 +194,39 @@ namespace UnityEditor.VFX.UI
 
         void InitilializeNewNodeSearcher()
         {
+            InitilializeNewNodeSearcher(null,null);
+        }
+        void InitilializeNewNodeSearcher(Func<VFXNodeProvider.Descriptor,bool> filter,IEnumerable<Type> types)
+        { 
             m_RootSearcherItems = new List<SearcherItem>();
 
+            m_NodeProvider.acceptedTypes = types;
             foreach (var desc in m_NodeProvider.descriptors)
             {
-                string[] categories = desc.category.Split('/');
-                List<SearcherItem> currentList = m_RootSearcherItems;
-                Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
-
-                for (int i = 0; i < categories.Length; ++i)
+                if( filter == null|| filter(desc))
                 {
-                    if (!string.IsNullOrEmpty(categories[i]))
-                    {
-                        SearcherItem item = currentList.Find(t => t.Name == categories[i]);
-                        if (item == null)
-                        {
-                            item = new SearcherItem(categories[i], categories[i]);
-                            addItemAction(item);
-                        }
-                        currentList = item.Children;
-                        addItemAction = t => item.AddChild(t);
-                    }
-                }
+                    string[] categories = desc.category.Split('/');
+                    List<SearcherItem> currentList = m_RootSearcherItems;
+                    Action<SearcherItem> addItemAction = item => m_RootSearcherItems.Add(item);
 
-                addItemAction(new VFXViewSearcherItem(desc, desc.name));
+                    for (int i = 0; i < categories.Length; ++i)
+                    {
+                        if (!string.IsNullOrEmpty(categories[i]))
+                        {
+                            SearcherItem item = currentList.Find(t => t.Name == categories[i]);
+                            if (item == null)
+                            {
+                                item = new SearcherItem(categories[i], categories[i]);
+                                addItemAction(item);
+                            }
+                            currentList = item.Children;
+                            addItemAction = t => item.AddChild(t);
+                        }
+                    }
+
+                    addItemAction(new VFXViewSearcherItem(desc, desc.name));
+
+                }
             }
         }
 
@@ -1201,8 +1210,11 @@ namespace UnityEditor.VFX.UI
             else
             {
                 if (VFXViewPreference.newNodeSearcher)
-                { 
-                    InitilializeNewNodeSearcher();
+                {
+                    if (anchor != null)
+                        InitilializeNewNodeSearcher(anchor.ProviderFilter, anchor.direction == Direction.Input ? new Type[] { typeof(VFXOperator), typeof(VFXParameter) } : new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) });
+                    else
+                        InitilializeNewNodeSearcher();
 
                     var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXViewSearcherAdapter("Create Node", this));
 

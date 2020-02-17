@@ -121,14 +121,15 @@ namespace UnityEditor.VFX.UI
             public string name;
         }
 
+        public IEnumerable<Type> acceptedTypes { get; set; }
+
         Func<Descriptor, bool> m_Filter;
-        IEnumerable<Type> m_AcceptedTypes;
         VFXViewController m_Controller;
 
         public VFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter = null, IEnumerable<Type> acceptedTypes = null) : base(onAddBlock)
         {
             m_Filter = filter;
-            m_AcceptedTypes = acceptedTypes;
+            this.acceptedTypes = acceptedTypes;
             m_Controller = controller;
         }
 
@@ -151,7 +152,7 @@ namespace UnityEditor.VFX.UI
         {
             if (model.info != null && model.info.category != null)
             {
-                if (m_AcceptedTypes != null && m_AcceptedTypes.Count() == 1)
+                if (acceptedTypes != null && acceptedTypes.Count() == 1)
                 {
                     return model.info.category;
                 }
@@ -172,7 +173,7 @@ namespace UnityEditor.VFX.UI
         {
             IEnumerable<Descriptor> descs = Enumerable.Empty<Descriptor>();
 
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
+            if (acceptedTypes == null || acceptedTypes.Contains(typeof(VFXContext)))
             {
                 var descriptorsContext = VFXLibrary.GetContexts().Select(o =>
                 {
@@ -186,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
                 descs = descs.Concat(descriptorsContext);
             }
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
+            if (acceptedTypes == null || acceptedTypes.Contains(typeof(VFXOperator)))
             {
                 var descriptorsOperator = VFXLibrary.GetOperators().Select(o =>
                 {
@@ -209,7 +210,7 @@ namespace UnityEditor.VFX.UI
 
                 descs = descs.Concat(descriptorsOperator.OrderBy(o => o.category + o.name));
             }
-            if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXParameter)))
+            if (acceptedTypes == null || acceptedTypes.Contains(typeof(VFXParameter)))
             {
                 var parameterDescriptors = m_Controller.parameterControllers.Select(t =>
                     new Descriptor
@@ -221,7 +222,7 @@ namespace UnityEditor.VFX.UI
                     ).OrderBy(t => t.category);
                 descs = descs.Concat(parameterDescriptors);
             }
-            if (m_AcceptedTypes == null)
+            if (acceptedTypes == null)
             {
                 var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath).Where(t=> Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 
