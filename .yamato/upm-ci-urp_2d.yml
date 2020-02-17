@@ -40,8 +40,8 @@ mobiles:
     image: mobile/android-execution-r19:stable
     flavor: b1.large
 projects:
-  - name: Universal_Main
-    folder: UniversalGraphicsTest
+  - name: URP_2D
+    folder: UniversalGraphicsTest_2D
 win_apis:
   - name: DX11
     cmd: -force-d3d11
@@ -420,15 +420,6 @@ All_{{ project.name }}_{{ editor.version }}:
 
   {% endfor %}
   {% endfor %}
-  # {% if editor.version == "fast-trunk" %}
-  # triggers:
-    # changes:
-      # only:
-        # - "com.unity.render-pipelines.universal/**/*"
-        # - "TestProjects/Universal*/**/*"
-      # except:
-        # - "**/*.md"
-  # {% endif %}
   
 {% endfor %}
 {% endfor %}

@@ -40,8 +40,8 @@ mobiles:
     image: mobile/android-execution-r19:stable
     flavor: b1.large
 projects:
-  - name: Universal_Main
-    folder: UniversalGraphicsTest
+  - name: URP_PostPro
+    folder: UniversalGraphicsTest_PostPro
 win_apis:
   - name: DX11
     cmd: -force-d3d11
