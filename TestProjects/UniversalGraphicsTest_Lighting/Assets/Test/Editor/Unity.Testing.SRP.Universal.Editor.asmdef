@@ -2,11 +2,11 @@
     "name": "UniversalEditorTests",
     "references": [
         "GUID:e18141520846dcc44b725b2f74e91229",
-        "GUID:05da6ad329454094ab072d955ce39798",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
         "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:c579267770062bf448e75eb160330b7f",
-        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:f6b6f703699e9cf428f2a51150489625"
     ],
     "includePlatforms": [
         "Editor"
