@@ -288,14 +288,11 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                if( direction == Direction.Input)
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter)}));
-                else
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                view.CreateNode(Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), null, null, this);
             }
         }
 
-        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        public bool ProviderFilter(VFXNodeProvider.Descriptor d)
         {
             var mySlot = controller.model;
             var parameterDescriptor = d.modelDescriptor as VFXParameterController;
@@ -355,18 +352,18 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        public VFXNodeController AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             var mySlot = controller.model;
 
             VFXView view = GetFirstAncestorOfType<VFXView>();
             VFXViewController viewController = controller.viewController;
-            if (view == null) return;
+            if (view == null) return null;
 
             var newNodeController = view.AddNode(d, mPos);
 
             if (newNodeController == null)
-                return;
+                return null;
 
             IEnumerable<Type> validTypes = null;
 
@@ -422,6 +419,8 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
+            return newNodeController;
         }
 
         void CopyValueToParameter(VFXParameter parameter)

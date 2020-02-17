@@ -1183,52 +1183,71 @@ namespace UnityEditor.VFX.UI
             GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return;
-            Vector2 point = ScreenToViewPosition(ctx.screenMousePosition);
+            Vector2 mousePosition = ScreenToViewPosition(ctx.screenMousePosition);
 
             List<VisualElement> picked = new List<VisualElement>();
-            panel.PickAll(point, picked);
-
+            panel.PickAll(mousePosition, picked);
             VFXContextUI context = picked.OfType<VFXContextUI>().FirstOrDefault();
 
+            VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
+            CreateNode(mousePosition, ctx.screenMousePosition,context,edge?.controller,null);
+        }
+        public void CreateNode(Vector2 mousePosition,Vector2 screenMousePosition, VFXContextUI context,VFXDataEdgeController edge,VFXDataAnchor anchor)
+        {
             if (context != null)
             {
-                context.OnCreateBlock(point);
+                context.OnCreateBlock(mousePosition);
             }
             else
             {
-                VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
-                if (edge != null)
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
-                else
-                {
-                    if( VFXViewPreference.newNodeSearcher)
-                    {
-                        InitilializeNewNodeSearcher();
+                if (VFXViewPreference.newNodeSearcher)
+                { 
+                    InitilializeNewNodeSearcher();
 
-                        var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXViewSearcherAdapter("Create Node", this));
-                        
-                        SearcherWindow.Show(VFXViewWindow.currentWindow, searcher, item => {
-                            if (item is VFXViewSearcherItem vfxItem)
+                    var searcher = new UnityEditor.Searcher.Searcher(new VFXSearcherDatabase(m_RootSearcherItems), new VFXViewSearcherAdapter("Create Node", this));
+
+                    SearcherWindow.Show(VFXViewWindow.currentWindow, searcher, item =>
+                    {
+                        if (item is VFXViewSearcherItem vfxItem)
+                        {
+                            VFXNodeController nodeController = null;
+                            if (edge != null)
+                                nodeController = AddNodeOnEdge(vfxItem.descriptor, mousePosition, edge);
+                            else if(anchor != null)
                             {
-                                var nodeController = AddNode(vfxItem.descriptor, point);
-                                if( nodeController != null)
+                                nodeController = anchor.AddLinkedNode(vfxItem.descriptor, mousePosition);
+                            }
+                            else
+                                nodeController = AddNode(vfxItem.descriptor, mousePosition);
+                            if (nodeController != null)
+                            {
+                                SyncNodes();
+                                VFXNodeUI node;
+                                if( rootNodes.TryGetValue(nodeController,out node))
                                 {
-                                    SyncNodes();
-                                    var node = rootNodes[nodeController];
                                     ClearSelection();
                                     AddToSelection(node);
                                 }
                             }
-                            return true;
-                        }, point, null);
-                        
+                        }
+                        return true;
+                    }, mousePosition, null);
 
 
-                        UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
-                    }
-                    else
-                        VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+
+                    UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
                 }
+                else if (edge != null)
+                        VFXFilterWindow.Show(VFXViewWindow.currentWindow, mousePosition, screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge), null, new Type[] { typeof(VFXOperator) }));
+                else if( anchor != null)
+                {
+                    if (anchor.direction == Direction.Input)
+                        VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(controller, (d,p)=>anchor.AddLinkedNode(d,p), anchor.ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                    else
+                        VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(controller, (d, p) => anchor.AddLinkedNode(d, p), anchor.ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                }
+                else
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, mousePosition, screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1877,7 +1896,7 @@ namespace UnityEditor.VFX.UI
         void OnCreateNodeInGroupNode(DropdownMenuAction e)
         {
             //The targeted groupnode will be determined by a PickAll later
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
+            CreateNode(e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), null, null,null);
         }
 
         void OnEnterSubgraph(DropdownMenuAction e)
@@ -1899,10 +1918,10 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d,v)=>AddNodeOnEdge(d,v,e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator)}));
+            CreateNode(e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition),null, e.userData as VFXDataEdgeController,null);
         }
 
-        void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position,VFXDataEdgeController edge)
+        VFXNodeController AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position,VFXDataEdgeController edge)
         {
             position = this.ChangeCoordinatesTo(contentViewContainer, position);
 
@@ -1914,7 +1933,7 @@ namespace UnityEditor.VFX.UI
             var newNodeController = AddNode(desc, position);
 
             if (newNodeController == null)
-                return;
+                return null;
 
             foreach (var outputPort in newNodeController.outputPorts)
             {
@@ -1926,6 +1945,8 @@ namespace UnityEditor.VFX.UI
                 if (controller.CreateLink(inputPort,edge.output))
                     break;
             }
+
+            return newNodeController;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
