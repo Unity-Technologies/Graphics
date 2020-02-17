@@ -31,8 +31,16 @@ namespace UnityEditor.VFX.UI
         {
             if( model is VFXSubgraphOperator)
             {
-                model.ResyncSlots(false);
-                model.UpdateOutputExpressions();
+                // Prevent breaking the editor opening.
+                try
+                { 
+                    model.ResyncSlots(false);
+                    model.UpdateOutputExpressions();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
 

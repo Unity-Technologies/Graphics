@@ -17,12 +17,21 @@ namespace UnityEditor.VFX
             public uint Count = 0;
         }
 
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+
+            dependencies.Add(Asset.GetInstanceID());
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                if (Asset != null)
+                if (!object.ReferenceEquals(Asset,null))
                 {
+                    if (Asset == null)
+                        Asset = EditorUtility.InstanceIDToObject(Asset.GetInstanceID()) as PointCacheAsset;
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Point Count"));
                     foreach (var surface in Asset.surfaces)
                         yield return new VFXPropertyWithValue(new VFXProperty(typeof(Texture2D), "AttributeMap : " + surface.name));
