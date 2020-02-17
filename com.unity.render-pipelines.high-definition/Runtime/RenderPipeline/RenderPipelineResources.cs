@@ -148,6 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
+            public Shader customPassUtils;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

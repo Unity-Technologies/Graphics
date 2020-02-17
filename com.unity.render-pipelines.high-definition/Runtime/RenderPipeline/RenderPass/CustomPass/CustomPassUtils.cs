@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,6 +21,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler verticalBlurSampler = new ProfilingSampler("Vertical Blur");
         static ProfilingSampler horizontalBlurSampler = new ProfilingSampler("Horizontal Blur");
         static ProfilingSampler gaussianblurSampler = new ProfilingSampler("Gaussian Blur");
+
+        static MaterialPropertyBlock    blurPropertyBlock = new MaterialPropertyBlock();
+        static Material                 customPassUtilsMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+
+        static Dictionary<int, float[]> gaussianWeightsCache = new Dictionary<int, float[]>();
 
         /// <summary>
         /// Convert the source buffer to an half resolution buffer and output it to the destination buffer.
@@ -73,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static void GaussianBlur(CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, int sampleCount = 8, float radius = 1, int sourceMip = 0, int destMip = 0)
-            => GaussianBlur(ctx, source, destination, tempTarget, sampleCount);
+            => GaussianBlur(ctx, source, destination, tempTarget, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
         public static void GaussianBlur(CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 1, int sourceMip = 0, int destMip = 0)
         {
@@ -103,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
-        public static void DrawShadow(CustomPassContext ctx, RTHandle destination, Camera view, LayerMask layerMask)
+        public static void DrawShadowMap(CustomPassContext ctx, RTHandle destination, Camera view, LayerMask layerMask)
         {
             var result = new RendererListDesc(litForwardTags, ctx.cullingResult, ctx.hdCamera.camera)
             {
@@ -116,10 +122,50 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             var hdrp = HDRenderPipeline.currentPipeline;
-            ctx.hdCamera.SetupGlobalParams(ctx.cmd, hdrp.m_)
+            // ctx.hdCamera.SetupGlobalParams(ctx.cmd, hdrp.m_)
 
             CoreUtils.SetRenderTarget(ctx.cmd, destination, ClearFlag.Depth);
             HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
+
+        // Render objects from the view in parameter
+        public static void RenderFrom(CustomPassContext ctx, RTHandle destination, Camera view, LayerMask layerMask)
+        {
+            
+        }
+
+        /// <summary>
+        /// Generate gaussian weights for a given number of samples
+        /// </summary>
+        /// <param name="weightCount"></param>
+        /// <returns></returns>
+        internal static float[] GetGaussianWeights(int weightCount)
+		{
+            float[] weights;
+
+            if (gaussianWeightsCache.TryGetValue(weightCount, out weights))
+                return weights;
+            
+            weights = new float[weightCount];
+			float p = 0;
+			float integrationBound = 3;
+			for (int i = 0; i < weightCount; i++)
+			{
+				float w = (Gaussian(p) / (float)weightCount) * integrationBound;
+				p += 1.0f / (float)weightCount * integrationBound;
+                weights[i] = w;
+			}
+            gaussianWeightsCache[weightCount] = weights;
+
+			// Gaussian function
+			float Gaussian(float x, float sigma = 1)
+			{
+				float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
+				float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));
+				return a * b;
+			}
+
+            return weights;
+		}
     }
 }
