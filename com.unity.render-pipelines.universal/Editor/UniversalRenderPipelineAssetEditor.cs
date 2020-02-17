@@ -55,6 +55,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
+            public static GUIContent postProcessEnabled = EditorGUIUtility.TrTextContent("Enabled", "Enables or disables postprocessing. This is a global setting which affects every camera and renderer.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
@@ -130,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShaderVariantLogLevel;
 
         LightRenderingMode selectedLightRenderingMode;
+        SerializedProperty m_PostProcessEnabled;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
 
@@ -195,6 +197,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
 
+            m_PostProcessEnabled = serializedObject.FindProperty("m_PostProcessEnabled");
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
@@ -345,6 +348,7 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
+                EditorGUILayout.PropertyField(m_PostProcessEnabled, Styles.postProcessEnabled);
                 EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
                 if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                     EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);

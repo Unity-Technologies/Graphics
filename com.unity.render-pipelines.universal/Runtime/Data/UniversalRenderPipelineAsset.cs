@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
 
         // Post-processing settings
+        [SerializeField] bool m_PostProcessEnabled = true;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
 
@@ -551,6 +552,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        public bool postProcessEnabled
+        {
+            get { return m_PostProcessEnabled; }
+            set { m_PostProcessEnabled = value; }
         }
 
         public ColorGradingMode colorGradingMode
