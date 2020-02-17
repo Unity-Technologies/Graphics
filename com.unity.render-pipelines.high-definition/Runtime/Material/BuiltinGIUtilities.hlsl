@@ -1,6 +1,8 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+const float3 kUninitializedGI = float3((1 << 11) - 1, 0, (1 << 10) - 1);
+
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
 {
@@ -13,8 +15,12 @@ float4x4 GetProbeVolumeWorldToObject()
 float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
     // If there is no lightmap, it assume lightprobe
-#if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON) && !defined(SHADEROPTIONS_PROBE_VOLUMES)
+#if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
+#if defined(SHADEROPTIONS_PROBE_VOLUMES)
+    const float3 uninitializedGI = kUninitializedGI;
+    return uninitializedGI;
+#else
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -40,6 +46,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
             return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
+#endif
 
 #else
 

@@ -418,12 +418,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_PROBE_VOLUMES
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
-        float3 outProbeVolumeDiffuseLighting = 0.0f;
-
-        EvaluateProbeVolumes(posInput, bsdfData, builtinData, outProbeVolumeDiffuseLighting);
-
-        // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
-        builtinData.bakeDiffuseLighting += outProbeVolumeDiffuseLighting;
+        EvaluateProbeVolumes(posInput, bsdfData, builtinData);
     }
 #endif
 

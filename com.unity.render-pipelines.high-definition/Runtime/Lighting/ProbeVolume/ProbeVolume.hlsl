@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
 // Copied from VolumeVoxelization.compute
 float ProbeVolumeComputeFadeFactor(
@@ -17,9 +18,15 @@ float ProbeVolumeComputeFadeFactor(
     return dstF * fade;
 }
 
-void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinData builtinData,
-    out float3 probeVolumeDiffuseLighting)
+void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
 {
+    // Determine if GI (from Lightmaps) is already present. If so, early out.
+    bool uninitialized = all(builtinData.bakeDiffuseLighting >= kUninitializedGI);
+    if (!uninitialized)
+        return;
+
+    float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
     float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
 
     uint probeVolumeStart, probeVolumeCount;
@@ -330,6 +337,9 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, BuiltinDat
             }
         }
     }
+
+    // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
+    builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME
