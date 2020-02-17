@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_DeferredStencilPass = "Deferred Shading (Stencil)";
         static readonly string k_DeferredFogPass = "Deferred Fog";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
-        static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
+        static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes.
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         public readonly bool useJobSystem = true;
@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal ProfilingSampler m_ProfilingSamplerDeferredTiledPass = new ProfilingSampler(k_DeferredTiledPass);
         internal ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         internal ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
-        
+
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (renderingData.cameraData.isXRMultipass)
             {
                 //Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)renderingData.cameraData.camera.stereoActiveEye; // Always left eye
-                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)m_EyeIndex;
+                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye) m_EyeIndex;
                 proj = renderingData.cameraData.camera.GetStereoProjectionMatrix(eyeIndex);
                 view = renderingData.cameraData.camera.GetStereoViewMatrix(eyeIndex);
             }
@@ -334,6 +334,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 view = renderingData.cameraData.camera.worldToCameraMatrix;
             }
 
+            //TODO: investigate more, but probably due to using RenderPass this needs to be here
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                proj.m10 *= -1;
+                proj.m11 *= -1;
+                proj.m12 *= -1;
+                proj.m13 *= -1;
+            }
+
+            //md.SetViewProjectionMatrices(view, proj);
             // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
             // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
             bool isGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
@@ -347,7 +357,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
                 new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
             ) * proj;
-            
+
 
             // xy coordinates in range [-1; 1] go to pixel coordinates.
             Matrix4x4 toScreen = new Matrix4x4(
@@ -512,7 +522,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 jstart = fine_jstart,
                                 jend = fine_jend,
                             };
-                                
+
                             if (this.useJobSystem)
                                 jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
                             else
