@@ -264,6 +264,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
 
+        [SerializeField]
+        internal VirtualTexturingSettings virtualTexturingSettings;
+
 #if UNITY_EDITOR
         /// <summary>HDRP default material.</summary>
         public override Material defaultMaterial
