@@ -385,10 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
-                {
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
-                    UnityEditor.EditorUtility.SetDirty(this);
-                }
 
                 probeVolumeAsset.instanceID = GetID();
                 probeVolumeAsset.dataSH = data;
@@ -398,7 +395,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
 
-                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
+                    UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+
                 UnityEditor.AssetDatabase.Refresh();
 
                 dataUpdated = true;
