@@ -20,7 +20,7 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
     protected static readonly int WarmupCount = 10;
     protected static readonly int MeasurementCount = 100;
     protected const int GlobalTimeout = 120 * 1000;
-    const int minMemoryReportSize = 512; // in bytes
+    const int minMemoryReportSize = 512 * 1024; // in bytes
 
     public const string testSceneResourcePath = "TestScenes";
 
@@ -100,16 +100,13 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
 
         for (int i = 0; i < MeasurementCount; ++i)
         {
-            using (Measure.Scope("GPU Counters"))
-            {
-                Measure.Custom(gBufferGPU, g.gpuElapsedTime);
-                Measure.Custom(cameraGPU, hdCamera.profilingSampler.gpuElapsedTime);
-            }
-            using (Measure.Scope("CPU Counters"))
-            {
-                Measure.Custom(gBufferCPU, g.cpuElapsedTime);
-                Measure.Custom(cameraCPU, hdCamera.profilingSampler.cpuElapsedTime);
-            }
+            // "GPU Counters"
+            Measure.Custom(gBufferGPU, g.gpuElapsedTime);
+            Measure.Custom(cameraGPU, hdCamera.profilingSampler.gpuElapsedTime);
+
+            // "CPU Counters"
+            Measure.Custom(gBufferCPU, g.cpuElapsedTime);
+            Measure.Custom(cameraCPU, hdCamera.profilingSampler.cpuElapsedTime);
             yield return null;
         }
 
@@ -117,28 +114,26 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         g.enableRecording = false;
     }
 
+    static IEnumerable<Type> GetMemoryObjectTypes()
+    {
+        yield return typeof(RenderTexture);
+        yield return typeof(Texture2D);
+        yield return typeof(Texture3D);
+        yield return typeof(CubemapArray);
+        yield return typeof(Material);
+        yield return typeof(Mesh);
+        yield return typeof(Shader);
+        yield return typeof(ComputeShader);
+    }
+
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory(
         [ValueSource("GetScenesForMemory")] string sceneName,
+        [ValueSource("GetMemoryObjectTypes")] Type type,
         [ValueSource("GetHDAssetsForMemory")] HDRenderPipelineAsset hdAsset)
     {
         yield return SetupTest(sceneName, hdAsset);
 
-        using (Measure.Scope("Memory"))
-        {
-            MeasureMemory(typeof(RenderTexture));
-            MeasureMemory(typeof(Texture2D));
-            MeasureMemory(typeof(Texture3D));
-            MeasureMemory(typeof(CubemapArray));
-            MeasureMemory(typeof(Material));
-            MeasureMemory(typeof(Mesh));
-            MeasureMemory(typeof(Shader));
-            MeasureMemory(typeof(ComputeShader));
-        }
-    }
-
-    void MeasureMemory(System.Type type)
-    {
         long totalMemory = 0;
         var data = Resources.FindObjectsOfTypeAll(type);
         var results = new List<(string name, long size)>();
@@ -160,12 +155,36 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         results.Sort((a, b) => b.size.CompareTo(a.size));
 
         // Report data
-        using (Measure.Scope($"Memory - {type}"))
-        {
-            foreach (var result in results)
-                Measure.Custom(new SampleGroup(result.name, SampleUnit.Byte, false), result.size);
-        }
-        Measure.Custom(new SampleGroup("Total Memory - {type}", SampleUnit.Byte, false), totalMemory);
+        foreach (var result in results)
+            Measure.Custom(new SampleGroup(result.name, SampleUnit.Byte, false), result.size);
+        Measure.Custom(new SampleGroup($"Total Memory - {type}", SampleUnit.Byte, false), totalMemory);
+    }
+
+    [Version("1"), UnityTest]
+    public bool _DumpAllSystemInfo()
+    {
+        // Display all stats that will be available in the performance database:
+        Debug.Log($"PlayerSystemInfo.OperatingSystem: {SystemInfo.operatingSystem}");
+        Debug.Log($"PlayerSystemInfo.DeviceModel: {SystemInfo.deviceModel}");
+        Debug.Log($"PlayerSystemInfo.DeviceName: {SystemInfo.deviceName}");
+        Debug.Log($"PlayerSystemInfo.ProcessorType: {SystemInfo.processorType}");
+        Debug.Log($"PlayerSystemInfo.ProcessorCount: {SystemInfo.processorCount}");
+        Debug.Log($"PlayerSystemInfo.GraphicsDeviceName: {SystemInfo.graphicsDeviceName}");
+        Debug.Log($"PlayerSystemInfo.SystemMemorySize: {SystemInfo.systemMemorySize}");
+
+        Debug.Log($"QualitySettings.Vsync: {QualitySettings.vSyncCount}");
+        Debug.Log($"QualitySettings.AntiAliasing: {QualitySettings.antiAliasing}");
+        // Debug.Log($"QualitySettings.ColorSpace: {QualitySettings.activeColorSpace.ToString()}");
+        Debug.Log($"QualitySettings.AnisotropicFiltering: {QualitySettings.anisotropicFiltering.ToString()}");
+        Debug.Log($"QualitySettings.BlendWeights: {QualitySettings.skinWeights.ToString()}");
+        Debug.Log($"ScreenSettings.ScreenRefreshRate: {Screen.currentResolution.refreshRate}");
+        Debug.Log($"ScreenSettings.ScreenWidth: {Screen.currentResolution.width}");
+        Debug.Log($"ScreenSettings.ScreenHeight: {Screen.currentResolution.height}");
+        Debug.Log($"ScreenSettings.Fullscreen: {Screen.fullScreen}");
+        // Debug.Log($"{(Application.isEditor ? true : Debug.isDebugBuild)}");
+        Debug.Log($"BuildSettings. Platform: {Application.platform.ToString()}");
+
+        return true;
     }
 
     static IEnumerator SetupTest(string sceneName, HDRenderPipelineAsset hdAsset)
