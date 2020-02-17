@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Assets/Scenes/105_ReflectionsDenoised.unity
     guid: fb7e79d215d0e4f43984e9b4606ca31c
   - enabled: 1
+    path: Assets/Scenes/105_ReflectionsDenoised2.unity
+    guid: a2f4b7b418d52794aa591bc7a751de61
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
@@ -74,6 +77,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/704_SpotShadow.unity
     guid: 5a4c020917912884cae832c1a77f6703
+  - enabled: 1
+    path: Assets/Scenes/705_DirectionalContactShadow.unity
+    guid: 056fae72b9380694d9ee03de58c68539
+  - enabled: 1
+    path: Assets/Scenes/706_PointContactShadow.unity
+    guid: f2b255b7e7d315244b6f446c3cc3bb5b
+  - enabled: 1
+    path: Assets/Scenes/707_SpotContactShadow.unity
+    guid: 8c2434edc9ef0ff468dcb254cf0a17ba
   - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScattering.unity
     guid: c939ce56b901d264baab16d584624b30

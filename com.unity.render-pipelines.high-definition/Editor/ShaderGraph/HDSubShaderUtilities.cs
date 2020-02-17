@@ -1111,7 +1111,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "// Stencil setup",
                 "Stencil",
                 "{",
-                "   WriteMask [_StencilRefDistortionVec]",
+                "   WriteMask [_StencilWriteMaskDistortionVec]",
                 "   Ref [_StencilRefDistortionVec]",
                 "   Comp Always",
                 "   Pass Replace",

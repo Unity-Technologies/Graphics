@@ -10,6 +10,9 @@ using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// High Definition Render Pipeline class.
+    /// </summary>
     public partial class HDRenderPipeline : RenderPipeline
     {
         #region Default Settings
@@ -69,6 +72,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         #endregion
 
+        /// <summary>
+        /// Shader Tag for the High Definition Render Pipeline.
+        /// </summary>
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
@@ -205,9 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_FrameCount;
         float m_LastTime, m_Time; // Do NOT take the 'animateMaterials' setting into account.
 
-        public int   GetFrameCount() { return m_FrameCount; }
-        public float GetLastTime()   { return m_LastTime;   }
-        public float GetTime()       { return m_Time;       }
+        internal int   GetFrameCount() { return m_FrameCount; }
+        internal float GetLastTime()   { return m_LastTime;   }
+        internal float GetTime()       { return m_Time;       }
 
         GraphicsFormat GetColorBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
@@ -241,6 +247,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
+        /// <summary>
+        /// Debug display settings.
+        /// </summary>
         public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
@@ -299,6 +308,11 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ResourcesInitialized = false;
 #endif
 
+        /// <summary>
+        /// HDRenderPipeline constructor.
+        /// </summary>
+        /// <param name="asset">Source HDRenderPipelineAsset.</param>
+        /// <param name="defaultAsset">Defauklt HDRenderPipelineAsset.</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
             m_Asset = asset;
@@ -656,6 +670,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 , enlighten = false
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
+#if UNITY_2020_1_OR_NEWER
+                , terrainDetailUnsupported = true
+                , rendererProbes = false
+#endif
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -780,6 +798,10 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// </summary>
+        /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
             DisposeProbeCameraPool();
@@ -1038,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
-                  
+
                 ComputeShader cs = defaultResources.shaders.resolveStencilCS;
                 int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
                 kernel = resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
@@ -1130,6 +1152,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// RenderPipeline Render implementation.
+        /// </summary>
+        /// <param name="renderContext">Current ScriptableRenderContext.</param>
+        /// <param name="cameras">List of cameras to render.</param>
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
 #if UNITY_EDITOR
@@ -1233,7 +1260,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        if (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
+                        // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
+                        bool isMetal = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
+                        if (isMetal || (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution))
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }
@@ -1294,7 +1323,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (skipRequest)
                     {
                         // Submit render context and free pooled resources for this request
-                        UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
                         renderContext.Submit();
                         UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
                         UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
@@ -1713,7 +1741,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                                UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
                                 ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
                                 UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
@@ -2620,6 +2647,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
                 QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
 
+                // This needs to be called before culling, otherwise in the case where users generate intermediate renderers, it can provoke crashes.
+                BeginCameraRendering(renderContext, camera);
+
                 DecalSystem.CullRequest decalCullRequest = null;
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
@@ -3339,11 +3369,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Export the provided camera's sky to a flattened cubemap.
+        /// </summary>
+        /// <param name="camera">Requested camera.</param>
+        /// <returns>Result texture.</returns>
         public Texture2D ExportSkyToTexture(Camera camera)
         {
             return m_SkyManager.ExportSkyToTexture(camera);
         }
-
 
         RendererListDesc PrepareForwardOpaqueRendererList(CullingResults cullResults, HDCamera hdCamera)
         {
@@ -3352,7 +3386,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 : m_ForwardOnlyPassNames;
             return  CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting);
         }
-
 
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
         // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
@@ -3923,6 +3956,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multi-compile
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
+            // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
+            // As a workaround we bind it regardless of debug display. Eventually with 
+            cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
+
             if (debugDisplayEnabledOrSceneLightingDisabled ||
                 m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
@@ -3973,7 +4010,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                 cmd.SetGlobalVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);
-                cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);

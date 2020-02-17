@@ -137,8 +137,8 @@ float GTAOFastAcos(float x)
 // --------------------------------------------
 float PackAOOutput(float AO, float depth)
 {
-    uint packedDepth = f32tof16(depth) << 16;
-    uint packedAO = f32tof16(AO);
+    uint packedDepth = PackFloatToUInt(depth, 0, 23);
+    uint packedAO = PackFloatToUInt(AO, 24, 8);
     uint packedVal = packedAO | packedDepth;
     // If it is a NaN we have no guarantee the sampler will keep the bit pattern, hence we invalidate the depth, meaning that the various bilateral passes will skip the sample.
     if ((packedVal & 0x7FFFFFFF) > 0x7F800000)
@@ -152,8 +152,8 @@ float PackAOOutput(float AO, float depth)
 
 void UnpackData(float data, out float AO, out float depth)
 {
-    depth = f16tof32(asuint(data) >> 16);
-    AO = f16tof32(asuint(data));
+    depth = UnpackUIntToFloat(asuint(data), 0, 23);
+    AO = UnpackUIntToFloat(asuint(data), 24, 8);
 }
 
 void UnpackGatheredData(float4 data, out float4 AOs, out float4 depths)

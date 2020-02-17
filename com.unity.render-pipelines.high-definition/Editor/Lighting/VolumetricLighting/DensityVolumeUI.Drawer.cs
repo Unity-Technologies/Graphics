@@ -126,30 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (serialized.editorAdvancedFade.boolValue)
             {
-                EditorGUI.BeginChangeCheck();
-                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.editorPositiveFade, serialized.editorNegativeFade, Vector3.zero, serializedSize, InfluenceVolumeUI.k_HandlesColor, serialized.size);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //forbid positive/negative box that doesn't intersect in inspector too
-                    Vector3 positive = serialized.editorPositiveFade.vector3Value;
-                    Vector3 negative = serialized.editorNegativeFade.vector3Value;
-                    for (int axis = 0; axis < 3; ++axis)
-                    {
-                        if (positive[axis] > 1f - negative[axis])
-                        {
-                            if (positive == serialized.editorPositiveFade.vector3Value)
-                            {
-                                negative[axis] = 1f - positive[axis];
-                            }
-                            else
-                            {
-                                positive[axis] = 1f - negative[axis];
-                            }
-                        }
-                    }
-                    serialized.editorPositiveFade.vector3Value = positive;
-                    serialized.editorNegativeFade.vector3Value = negative;
-                }
+                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.editorPositiveFade, serialized.editorNegativeFade, Vector3.zero, serializedSize, InfluenceVolumeUI.k_HandlesColor, serialized.size, false);
             }
             else
             {

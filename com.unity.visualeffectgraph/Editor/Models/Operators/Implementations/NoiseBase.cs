@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Operator
         {
             [Tooltip("Sets the period in which the noise is sampled. Higher frequencies result in more frequent noise change.")]
             public float frequency = 1.0f;
-            [/*Range(1, 8),*/ Tooltip("Sets the number of layers of noise. More octaves create a more varied look, but are also more expensive to calculate.")]
+            [Range(1, 8), Tooltip("Sets the number of layers of noise. More octaves create a more varied look, but are also more expensive to calculate.")]
             public int octaves = 1;
             [Range(0, 1), Tooltip("Sets the scaling factor applied to each octave (also known as persistence.) ")]
             public float roughness = 0.5f;

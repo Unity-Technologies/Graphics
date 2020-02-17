@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Utility class for shaders.
+    /// </summary>
     public class HDShaderUtils
     {
         //enum representing all shader and shadergraph that we expose to user

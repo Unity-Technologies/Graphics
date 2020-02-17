@@ -23,6 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Fog color.</summary>
         [Tooltip("Specifies the constant color of the fog.")]
         public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        /// <summary>Specifies the tint of the fog when using Sky Color.</summary>
+        [Tooltip("Specifies the tint of the fog.")]
+        public ColorParameter        tint = new ColorParameter(Color.white, hdr: true, showAlpha: false, showEyeDropper: true);
         /// <summary>Maximum fog distance.</summary>
         [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
         public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
@@ -132,8 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
 
             // Fog Color
+            Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorParam, new Color(color.value.r, color.value.g, color.value.b, 0.0f));
+            cmd.SetGlobalColor(m_FogColorParam, new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f));
             cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
 
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);

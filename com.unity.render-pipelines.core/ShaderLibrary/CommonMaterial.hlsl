@@ -44,6 +44,49 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+// Beckmann to GGX roughness "conversions":
+//
+// As also noted for NormalVariance in this file, Beckmann microfacet models use a Gaussian distribution of slopes
+// and the roughness parameter absorbs constants in the canonical Gaussian formula and is thus not exactly the variance.
+// The relationship is:
+//
+// roughnessBeckmann^2 = 2 variance (where variance is usually denoted sigma^2 but some comp gfx papers use sigma for
+// variance or even sigma for roughness itself.)
+//
+// Microfacet BRDF models with a GGX NDF implies a Cauchy distribution of slopes (also corresponds to the distribution
+// of slopes on an ellipsoid). Cauchy distributions don't have second moments, which precludes having a variance,
+// but chopping the far tails of GGX and keeping 94% of the mass yields a distribution with a defined variance where
+// we can then relate the roughness of GGX to a variance (see Ray Tracing Gems p153 - the reference is wrong though,
+// the Conty paper doesn't mention this at all, but it can be found in stats using quantiles):
+// 
+// roughnessGGX^2 = variance / 2
+// 
+// From the two previous, if we want roughly comparable variances of slopes between a Beckmann and a GGX NDF, we can
+// equate the variances and get a conversion of their roughnesses:
+//
+// 2 * roughnessGGX^2 = roughnessBeckmann^2 / 2      <==>
+// 4 * roughnessGGX^2 = roughnessBeckmann^2          <==>
+// 2 * roughnessGGX = roughnessBeckmann
+//
+// (Note that the Ray Tracing Gems paper makes an error on p154 writing sqrt(2) * roughnessGGX = roughnessBeckmann;
+// Their validation study using ray tracing and LEADR - which looks good - is for the *variance to GGX* roughness mapping,
+// not the Beckmann to GGX roughness "conversion")
+real BeckmannRoughnessToGGXRoughness(real roughnessBeckmann)
+{
+    return 0.5 * roughnessBeckmann;
+}
+
+real PerceptualRoughnessBeckmannToGGX(real perceptualRoughnessBeckmann)
+{
+    //sqrt(a_ggx) = sqrt(0.5) sqrt(a_beckmann)
+    return sqrt(0.5) * perceptualRoughnessBeckmann;
+}
+
+real GGXRoughnessToBeckmannRoughness(real roughnessGGX)
+{
+    return 2.0 * roughnessGGX;
+}
+
 real PerceptualRoughnessToPerceptualSmoothness(real perceptualRoughness)
 {
     return (1.0 - perceptualRoughness);
