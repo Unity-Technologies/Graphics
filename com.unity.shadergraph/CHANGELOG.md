@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Blackboard Properties to support scientific notation.
 - Fixed a bug where the error `Output value 'vert' is not initialized` displayed on all PBR graphs in Universal. [1210710](https://issuetracker.unity3d.com/issues/output-value-vert-is-not-completely-initialized-error-is-thrown-when-pbr-graph-is-created-using-urp)
 - Fixed a bug where PBR and Unlit master nodes in Universal had Alpha Clipping enabled by default.
+- Fixed an issue in where analytics wasn't always working.
 
 ## [7.1.1] - 2019-09-05
 ### Added
