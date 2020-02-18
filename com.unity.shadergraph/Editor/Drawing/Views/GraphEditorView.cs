@@ -765,6 +765,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.UpdateQueries();
             UpdateBadges();
 
+            foreach(var context in m_GraphView.contexts.ToList())
+            {
+                context.HandleChanges();
+            }
+
             RegisterGraphViewCallbacks();
         }
 

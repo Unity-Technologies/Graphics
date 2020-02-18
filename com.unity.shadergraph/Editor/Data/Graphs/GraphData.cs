@@ -640,6 +640,12 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
+                if(serializableNode is BlockNode blockNode)
+                {
+                    blockNode.contextData.RemoveBlock(blockNode);
+                    continue;
+                }
+
                 RemoveNodeNoValidate(serializableNode);
             }
 
@@ -1345,11 +1351,13 @@ namespace UnityEditor.ShaderGraph
             foreach(var vertexBlock in m_VertexContext.blocks)
             {
                 vertexBlock.owner = this;
+                vertexBlock.contextData = m_VertexContext;
                 m_NodeDictionary.Add(vertexBlock.guid, vertexBlock);
             }
             foreach(var fragmentBlock in m_FragmentContext.blocks)
             {
                 fragmentBlock.owner = this;
+                fragmentBlock.contextData = m_FragmentContext;
                 m_NodeDictionary.Add(fragmentBlock.guid, fragmentBlock);
             }
 

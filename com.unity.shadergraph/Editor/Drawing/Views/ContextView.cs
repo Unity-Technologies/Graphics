@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph
     {
         ContextData m_ContextData;
 
+        List<MaterialNodeView> m_Blocks;
+
         // Currently we only need one Port per context
         // As the Contexts are hardcoded we know their directions
         Port m_Port;
@@ -32,6 +34,7 @@ namespace UnityEditor.ShaderGraph
             m_GraphView = graphView;
             m_Listener = listener;
             m_PreviewManager = previewManager;
+            m_Blocks = new List<MaterialNodeView>();
 
             // Header
             var headerLabel = new Label() { name = "headerLabel" };
@@ -54,6 +57,7 @@ namespace UnityEditor.ShaderGraph
             var nodeView = new MaterialNodeView { userData = blockData };
             nodeView.Initialize(blockData, m_PreviewManager, m_Listener, m_GraphView);
             nodeView.MarkDirtyRepaint();
+            m_Blocks.Add(nodeView);
 
             if(index == -1)
             {
@@ -77,6 +81,20 @@ namespace UnityEditor.ShaderGraph
             m_Port.pickingMode = PickingMode.Ignore;
 
             container.Add(m_Port);
+        }
+
+        public void HandleChanges()
+        {
+            if(contextData == null)
+                return;
+
+            foreach(var removedBlock in contextData.removedBlocks)
+            {
+                var blockNode = m_Blocks.First(s => s.userData == removedBlock);
+                RemoveElement(blockNode);
+            }
+
+            contextData.removedBlocks.Clear();
         }
 
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)

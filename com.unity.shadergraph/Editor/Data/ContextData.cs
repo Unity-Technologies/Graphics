@@ -14,14 +14,20 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Vector2 m_Position;
 
+        [NonSerialized]
         List<BlockNode> m_Blocks;
+        
+        [NonSerialized]
+        List<BlockNode> m_RemovedBlocks;
 
         public ContextData()
         {
             m_Blocks = new List<BlockNode>();
+            m_RemovedBlocks = new List<BlockNode>();
         }
 
         public List<BlockNode> blocks => m_Blocks;
+        public List<BlockNode> removedBlocks => m_RemovedBlocks;
 
         public Vector2 position
         {
@@ -31,6 +37,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddBlock(BlockNode blockNode, int index)
         {
+            blockNode.contextData = this;
             if(index == -1)
             {
                 blocks.Add(blockNode);
@@ -39,6 +46,12 @@ namespace UnityEditor.ShaderGraph
             {
                 blocks.Insert(index, blockNode);
             }
+        }
+
+        public void RemoveBlock(BlockNode blockNode)
+        {
+            blocks.Remove(blockNode);
+            removedBlocks.Add(blockNode);
         }
 
         public void OnBeforeSerialize()
