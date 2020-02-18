@@ -187,7 +187,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
-            //Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode 
+            //Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
             int maxFrame = 512;
             while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f && maxFrame-->0)
                 yield return null;
