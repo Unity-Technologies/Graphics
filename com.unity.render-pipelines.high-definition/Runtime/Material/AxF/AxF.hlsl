@@ -404,7 +404,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
         for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
         {
             float coeff = _CarPaint2_CTCoeffs[lobeIndex];
-            float spread = _CarPaint2_CTSpreads[lobeIndex];
+            float spread = surfaceData.specularLobe[lobeIndex]; //_CarPaint2_CTSpreads[lobeIndex];
 
             sumCoeff += coeff;
             sumCoeffXRoughness += spread * coeff;
@@ -543,7 +543,7 @@ float CT_F(float H_V, float F0)
     return F0 + (1.0 - F0) * f_1_sub_cos_fifth;
 }
 
-float  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH)
+float  MultiLobesCookTorrance(BSDFData bsdfData, float NdotL, float NdotV, float NdotH, float VdotH)
 {
     // Ensure numerical stability
     if (NdotV < 0.00174532836589830883577820272085 || NdotL < 0.00174532836589830883577820272085) //sin(0.1 deg )
@@ -554,7 +554,7 @@ float  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH
     {
         float   F0 = _CarPaint2_CTF0s[lobeIndex];
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
-        float   spread = _CarPaint2_CTSpreads[lobeIndex];
+        float   spread = bsdfData.roughness[lobeIndex]; // _CarPaint2_CTSpreads[lobeIndex];
 
         specularIntensity += coeff * CT_D(NdotH, spread) * CT_F(VdotH, F0);
     }
@@ -688,6 +688,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.tangentWS = surfaceData.tangentWS;
     bsdfData.biTangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
 
+    bsdfData.roughness = 0;
     //-----------------------------------------------------------------------------
 #ifdef _AXF_BRDF_TYPE_SVBRDF
     bsdfData.diffuseColor = surfaceData.diffuseColor;
@@ -696,7 +697,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.fresnelF0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
     bsdfData.height_mm = surfaceData.height_mm;
 
-    bsdfData.roughness = HasAnisotropy() ? surfaceData.specularLobe : surfaceData.specularLobe.xx;
+    bsdfData.roughness.xy = HasAnisotropy() ? surfaceData.specularLobe.xy : surfaceData.specularLobe.xx;
 
     bsdfData.clearcoatColor = surfaceData.clearcoatColor;
     bsdfData.clearcoatNormalWS = HasClearcoat() ? surfaceData.clearcoatNormalWS : surfaceData.normalWS;
@@ -717,7 +718,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.specularColor = GetCarPaintSpecularColor();
     bsdfData.fresnelF0 = GetCarPaintFresnelF0();
-    bsdfData.roughness = 0;
+    bsdfData.roughness.xyz = surfaceData.specularLobe.xyz; // the later stores per lobe possibly modified (for geometric specular AA) _CarPaint2_CTSpreads
     bsdfData.height_mm = 0;
 #endif
 
@@ -1116,7 +1117,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     {
         float   F0 = _CarPaint2_CTF0s[lobeIndex];
         float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
-        float   spread = _CarPaint2_CTSpreads[lobeIndex];
+        float   spread = bsdfData.roughness[lobeIndex]; // _CarPaint2_CTSpreads[lobeIndex];
 #if !USE_COOK_TORRANCE_MULTI_LOBES
         // Computes weighted average of roughness values
         sumCoeff += coeff;
@@ -1427,8 +1428,8 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
     //float2  rotH = tsH.xy / tsH.z;
     float2  rotH = tsH.xy / max(0.00001, tsH.z);
-    //float2  roughness = bsdfData.roughness;
-    float2  roughness = max(0.0001, bsdfData.roughness);
+    //float2  roughness = bsdfData.roughness.xy;
+    float2  roughness = max(0.0001, bsdfData.roughness.xy);
     //if (bsdfData.roughness.y == 0.0) bsdfData.specularColor = float3(1,0,0);
 
     if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0) 
@@ -1452,7 +1453,7 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
 
 float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
-    float2  exponents = exp2(bsdfData.roughness);
+    float2  exponents = exp2(bsdfData.roughness.xy);
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
@@ -1689,7 +1690,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
     float3  diffuseTerm = Lambert();
 
     // Apply multi-lobes Cook-Torrance
-    float3  specularTerm = MultiLobesCookTorrance(NdotL, NdotV, NdotH, VdotH);
+    float3  specularTerm = MultiLobesCookTorrance(bsdfData, NdotL, NdotV, NdotH, VdotH);
 
     // Apply BRDF color
     float3  BRDFColor = GetBRDFColor(thetaH, thetaD);

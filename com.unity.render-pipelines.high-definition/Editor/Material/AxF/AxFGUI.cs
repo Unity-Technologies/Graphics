@@ -46,7 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // AxF material keywords
-        static string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
+        const string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
+        const string               kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
@@ -65,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) > 0.0f);
 
             BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);
 
