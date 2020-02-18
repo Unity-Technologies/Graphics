@@ -319,7 +319,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            anyPostProcessingEnabled &= asset.postProcessEnabled;
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             BeginCameraRendering(context, baseCamera);
@@ -603,7 +602,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            cameraData.postProcessEnabled &= settings.postProcessEnabled;
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || CheckPostProcessForDepth(cameraData);
         }

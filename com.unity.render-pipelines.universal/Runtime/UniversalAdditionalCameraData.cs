@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
 
-        [SerializeField] bool m_RenderPostProcessing = false;
+        [SerializeField] CameraOverrideOption m_RenderPostProcessing = CameraOverrideOption.UsePipelineSettings;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
         [SerializeField] AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
         [SerializeField] bool m_StopNaN = false;
@@ -311,8 +311,19 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool renderPostProcessing
         {
-            get => m_RenderPostProcessing;
-            set => m_RenderPostProcessing = value;
+            get {
+                if (m_RenderPostProcessing == CameraOverrideOption.UsePipelineSettings)
+                {
+                    return UniversalRenderPipeline.asset.postProcessEnabled;
+                }
+                else
+                {
+                    return m_RenderPostProcessing == CameraOverrideOption.On;
+                }
+            }
+            set {
+                m_RenderPostProcessing = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+            }
         }
 
         /// <summary>

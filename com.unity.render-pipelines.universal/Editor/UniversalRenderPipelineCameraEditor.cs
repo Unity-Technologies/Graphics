@@ -52,8 +52,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
-            public static readonly GUIContent cameraStackNotSupportedMessage = EditorGUIUtility.TrTextContent("Camera Stacking not supported.", "The renderer used by this camera doesn't support camera stacking.");
-
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
@@ -805,7 +803,7 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessing()
         {
             bool hasChanged = false;
-            bool selectedRenderPostProcessing;
+            CameraOverrideOption selectedRenderPostProcessing;
             AntialiasingMode selectedAntialiasing;
             AntialiasingQuality selectedAntialiasingQuality;
             bool selectedStopNaN;
@@ -813,7 +811,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_AdditionalCameraDataSO == null)
             {
-                selectedRenderPostProcessing = false;
+                selectedRenderPostProcessing = CameraOverrideOption.UsePipelineSettings;
                 selectedAntialiasing = AntialiasingMode.None;
                 selectedAntialiasingQuality = AntialiasingQuality.High;
                 selectedStopNaN = false;
@@ -822,14 +820,20 @@ namespace UnityEditor.Rendering.Universal
             else
             {
                 m_AdditionalCameraDataSO.Update();
-                selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
+                selectedRenderPostProcessing = (CameraOverrideOption)m_AdditionalCameraDataRenderPostProcessing.intValue;
                 selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
                 selectedAntialiasingQuality = (AntialiasingQuality)m_AdditionalCameraDataAntialiasingQuality.intValue;
                 selectedStopNaN = m_AdditionalCameraDataStopNaN.boolValue;
                 selectedDithering = m_AdditionalCameraDataDithering.boolValue;
             }
 
-            hasChanged |= DrawToggle(m_AdditionalCameraDataRenderPostProcessing, ref selectedRenderPostProcessing, Styles.renderPostProcessing);
+            // Post Processing dropdown
+            Rect controlRectColor = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRectColor, Styles.renderPostProcessing, m_AdditionalCameraDataRenderPostProcessing);
+            EditorGUI.BeginChangeCheck();
+            selectedRenderPostProcessing = (CameraOverrideOption)EditorGUI.IntPopup(controlRectColor, Styles.renderPostProcessing, (int)selectedRenderPostProcessing, Styles.displayedAdditionalDataOptions, Styles.additionalDataOptions);
+            hasChanged |= EditorGUI.EndChangeCheck();
+            EditorGUI.EndProperty();
 
             // Draw Final Post-processing
             {
@@ -856,7 +860,7 @@ namespace UnityEditor.Rendering.Universal
                     init(m_AdditionalCameraData);
                 }
 
-                m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
+                m_AdditionalCameraDataRenderPostProcessing.intValue = (int)selectedRenderPostProcessing;
                 m_AdditionalCameraDataAntialiasing.intValue = (int)selectedAntialiasing;
                 m_AdditionalCameraDataAntialiasingQuality.intValue = (int)selectedAntialiasingQuality;
                 m_AdditionalCameraDataStopNaN.boolValue = selectedStopNaN;

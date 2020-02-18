@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
-            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing");
+            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post Processing");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
