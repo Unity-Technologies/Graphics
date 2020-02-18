@@ -77,8 +77,16 @@ namespace UnityEngine.VFX.Test
             float frequency = 1.0f / captureFrameRate;
 
             Time.captureFramerate = captureFrameRate;
+
+            int maxFrame = 64;
+            while (Time.deltaTime != frequency && maxFrame-->0)
+            {
+                Debug.Log("Wait for one frame before start !");
+                yield return null; //<= This fix total time position
+            }
             UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
             UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
+            Debug.LogFormat("VFXManager setup");
 
             int captureSizeWidth = 512;
             int captureSizeHeight = 512;
@@ -115,7 +123,13 @@ namespace UnityEngine.VFX.Test
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;
 
-                foreach (var component in vfxComponents)
+                maxFrame = 4;
+                while (maxFrame-->0 && vfxComponents.Any(o => o.culled)) //fix second delta Time! (todo comment)
+                {
+                    yield return null;
+                }
+
+                foreach (var component in vfxComponents) 
                 {
                     component.Reinit();
                 }
@@ -132,7 +146,7 @@ namespace UnityEngine.VFX.Test
                 var paramBinders = Resources.FindObjectsOfTypeAll<VFXPropertyBinder>();
                 foreach (var paramBinder in paramBinders)
                 {
-                    var binders = paramBinder.GetParameterBinders<VFXBinderBase>();
+                    var binders = paramBinder.GetPropertyBinders<VFXBinderBase>();
                     foreach (var binder in binders)
                     {
                         binder.Reset();
@@ -142,6 +156,13 @@ namespace UnityEngine.VFX.Test
                 int waitFrameCount = (int)(simulateTime / frequency);
                 int startFrameIndex = Time.frameCount;
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;
+                
+                int a = 0; //
+                var firstComponent = vfxComponents.First(o => o.isActiveAndEnabled); //
+                var spawner = new List<string>(); //
+                firstComponent.GetSpawnSystemNames(spawner); //
+                var id = Shader.PropertyToID(spawner[0]); //
+
                 while (Time.frameCount != expectedFrameIndex)
                 {
                     yield return null;
@@ -150,6 +171,8 @@ namespace UnityEngine.VFX.Test
                         if (audioSource.clip != null && audioSource.playOnAwake)
                             audioSource.PlayDelayed(Mathf.Repeat(simulateTime, audioSource.clip.length));
 #endif
+                    var spawnState = firstComponent.GetSpawnSystemInfo(id); //
+                    Debug.LogFormat("Test : {0} - {1} - {2} ({3} - {4}), culled state : {5}", a++, firstComponent.total_time_ne_pas_commit, spawnState.totalTime, spawnState.deltaTime, spawnState.loopState.ToString(), firstComponent.culled.ToString()); //
                 }
 
                 Texture2D actual = null;
