@@ -4,9 +4,13 @@ The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wiz
 
 To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
 
+![](Images/RenderPipelineWizard1.png)
+
+## Packages
+
 At the top of the window, there is an information box that shows you the currently installed version of HDRP, as well as the latest version of HDRP that is compatible with your current Unity version.
 
-![](Images/RenderPipelineWizard1.png)
+You also have a button allow you to creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.html) in the **LocalPackage** folder of your HDRP Project. If already installed, some information about its location are displayed below.
 
 ## Default Path Settings
 
@@ -38,6 +42,7 @@ There are three tabs that you can use to set up your HDRP Project for different 
 * [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing. 
 
 <a name="HDRPTab"></a>
+
 ### HDRP
 
 This tab provides you with configuration options to help you make your Unity Project use HDRP.
@@ -64,9 +69,14 @@ This tab provides all of the configuration options from the [HDRP tab](#HDRPTab)
 
 | **Configuration Option**     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **VR Activated**                 | Checks to make sure **Virtual Reality Supported** is enabled. To use VR in Unity, you must enable this feature. <br />Press the **Fix** button to enable **Virtual Reality Supported** and make Unity support VR. |
+| **Legacy VR System**    | Checks to make sure **Virtual Reality Supported** is disabled. This was the legacy system that is being deprecated. <br />Press the **Fix** button to disable **Virtual Reality Supported**. |
+| **XR Management Package** | Check to make sure the **XR Management Package** is installed.<br />Press the **Fix** button to install it. |
+| **- Oculus Plugin** | This cannot be checked directly by the wizard. So it is basically info on procedure to check it.<br />You should install the plugin manually in **Edit** > **Project Settings** > **XR Plugin Manager** |
+| **- Single-Pass Instancing** | This cannot be checked directly by the wizard. So it is basically info on procedure to check it.<br />You should check in **Edit** > **Project Settings** > **XR Plugin Manager** > **Oculus** that **Stereo Rendering Mode** use **Single-Pass Instancing** |
+| **XR Legacy Helpers Package** | Check to make sure the **XR Legacy Helpers Package** is installed. It is require to handle inputs with the **TrackedPoseDriver** component.<br />Press the **Fix** button to install it. |
 
 <a name="DXRTab"></a>
+
 ### HDRP + DXR
 
 This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support ray tracing. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS.

@@ -4,9 +4,13 @@ Ray-Traced Contact Shadows is a ray tracing feature in the High Definition Rende
 
 ![](Images/RayTracedContactShadow1.png)
 
-**Contact shadows**
+**Without Contact shadows**
 
 ![](Images/RayTracedContactShadow2.png)
+
+**Contact shadows**
+
+![](Images/RayTracedContactShadow3.png)
 
 **Ray-traced contact shadows**
 

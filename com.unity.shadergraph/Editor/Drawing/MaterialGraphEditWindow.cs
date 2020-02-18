@@ -341,6 +341,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
 
+                var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                if (oldShader != null)
+                    ShaderUtil.ClearShaderMessages(oldShader);
+
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
@@ -349,7 +353,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader, (graphObject.graph.outputNode as MasterNode).saveContext);
-                    }                    
+                    }
                 }
             }
 

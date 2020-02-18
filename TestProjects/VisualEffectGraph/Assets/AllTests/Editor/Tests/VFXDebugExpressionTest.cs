@@ -16,28 +16,6 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXDebugExpressionTest
     {
-        static readonly string tempDirectory = "Assets/TmpTests";
-        static readonly string tempFilePath = tempDirectory + "/vfxTest_time.vfx";
-
-        VFXGraph MakeTemporaryGraph()
-        {
-            if (System.IO.File.Exists(tempFilePath))
-            {
-                AssetDatabase.DeleteAsset(tempFilePath);
-            }
-
-            if (!Directory.Exists(tempDirectory))
-            {
-                Directory.CreateDirectory(tempDirectory);
-            }
-
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-            graph.visualEffectResource = resource;
-            return graph;
-        }
-
         private float m_previousFixedTimeStep;
         private float m_previousMaxDeltaTime;
         private GameObject m_gameObject;
@@ -62,7 +40,7 @@ namespace UnityEditor.VFX.Test
         {
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
-            AssetDatabase.DeleteAsset(tempFilePath);
+            VFXTestCommon.DeleteAllTemporaryGraph();
 
             UnityEngine.Object.DestroyImmediate(m_gameObject);
             UnityEngine.Object.DestroyImmediate(m_camera);
@@ -72,7 +50,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_Asset_And_Component_Check_Expected_TotalTime()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -94,7 +72,7 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
 
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
             while (m_gameObject.GetComponent<VisualEffect>() != null) UnityEngine.Object.DestroyImmediate(m_gameObject.GetComponent<VisualEffect>());
@@ -124,7 +102,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Check_Overflow_MaxDeltaTime([ValueSource("updateModes")] object updateMode)
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             graph.visualEffectResource.updateMode = (VFXUpdateMode)updateMode;
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -139,7 +117,7 @@ namespace UnityEditor.VFX.Test
 
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
