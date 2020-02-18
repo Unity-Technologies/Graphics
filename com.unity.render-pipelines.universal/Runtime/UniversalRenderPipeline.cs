@@ -73,28 +73,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // These limits have to match same limits in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsSSBO  = 256;
-        const int k_MaxVisibleAdditionalLightsUBO   = 32;
+        const int k_MaxVisibleAdditionalLightsMobile    = 32;
+        const int k_MaxVisibleAdditionalLightsNonMobile = 256;
         public static int maxVisibleAdditionalLights
         {
             get
             {
-                // There are some performance issues by using SSBO in mobile.
-                // Also some GPUs don't supports SSBO in vertex shader.
-                if (RenderingUtils.useStructuredBuffer)
-                    return k_MaxVisibleAdditionalLightsSSBO;
-
-                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
-                // We don't use SSBO on Nintendo Switch as UBO path is faster.
-                // However here we use same limits as SSBO path.
-                var deviceType = SystemInfo.graphicsDeviceType;
-                if (deviceType == GraphicsDeviceType.Direct3D11 || deviceType == GraphicsDeviceType.Direct3D12 ||
-                    deviceType == GraphicsDeviceType.Switch)
-                    return k_MaxVisibleAdditionalLightsSSBO;
-
-                // We use less limits for mobile as some mobile GPUs have small SP cache for constants
-                // Using more than 32 might cause spilling to main memory.
-                return k_MaxVisibleAdditionalLightsUBO;
+                return (Application.isMobilePlatform) ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
 

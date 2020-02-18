@@ -381,8 +381,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Toggle Expansion");
             foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
             {
-                if(selectedNode.CanToggleExpanded())
+                if (selectedNode.CanToggleExpanded())
+                {
                     selectedNode.expanded = state;
+                    selectedNode.node.Dirty(ModificationScope.Topological);
+                }
             }
         }
 
