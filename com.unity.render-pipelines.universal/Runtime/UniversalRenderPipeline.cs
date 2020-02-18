@@ -366,9 +366,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // We only disable volume updates if the user has specifically disabled it in the renderer
             bool shouldUpdateVolumes = camera.cameraType == CameraType.SceneView
-                || additionalCameraData == null
-                || additionalCameraData.scriptableRenderer == null
-                || additionalCameraData.scriptableRenderer.shouldUpdateVolumes;
+                                    || additionalCameraData == null
+                                    || additionalCameraData.scriptableRenderer == null
+                                    || additionalCameraData.scriptableRenderer.shouldUpdateVolumes;
 
             if (!shouldUpdateVolumes)
             {

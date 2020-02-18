@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
-            public static GUIContent postProcessEnabled = EditorGUIUtility.TrTextContent("Enabled", "Enables or disables postprocessing. This is a global setting which affects all cameras and renderers.");
+            public static GUIContent postProcessEnabled = EditorGUIUtility.TrTextContent("Enabled", "Enables or disables postprocessing on all cameras that have post processing setting set to \"Use Pipeline Settings\".");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
