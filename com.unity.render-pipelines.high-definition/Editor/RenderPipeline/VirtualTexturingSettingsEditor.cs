@@ -4,6 +4,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using VirtualTexturingSettings = UnityEngine.Rendering.HighDefinition.VirtualTexturingSettings;
 
+#if ENABLE_VIRTUALTEXTURES
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(VirtualTexturingSettings))]
@@ -120,3 +121,4 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
+#endif
