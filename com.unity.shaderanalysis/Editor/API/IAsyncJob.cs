@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderAnalysis
         float progress { get; }
         /// <summary>A descriptive message for the current step of the job.</summary>
         string message { get; }
+        string name { get; }
 
         /// <summary>Process an increment of the job.</summary>
         /// <returns><c>true</c> when the job has finished ticking, <c>false</c> when there is still some work to process.</returns>

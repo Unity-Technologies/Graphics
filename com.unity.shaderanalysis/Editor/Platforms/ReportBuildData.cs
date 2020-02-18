@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderAnalysis
 
         protected Dictionary<ShaderCompiler.IShaderPerformanceAnalysis, int> m_PerfJobMap;
         protected ShaderBuildReport m_Report = null;
-        
+
         /// <summary>Number of compile units.</summary>
         protected int compileUnitCount => compileUnits.Count;
         /// <summary>Number of performance reports.</summary>
@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderAnalysis
         protected IEnumerator CompileCompileUnits_Internal(ShaderCompiler compiler)
         {
             const int k_MaxParallelCompilation = 8;
-            
+
             compiler.Initialize();
 
             m_CompileJobMap = new Dictionary<ShaderCompiler.CompileOperation, int>();
@@ -158,8 +158,9 @@ namespace UnityEditor.ShaderAnalysis
             compileUnitToProcess.AddRange(compileUnits.Select((v, i) => (v, i)));
 
             var jobMapBuffer = new List<KeyValuePair<ShaderCompiler.CompileOperation, int>>();
-            var c = compileUnits.Count;
-            var s = 1f / Mathf.Max(1, c - 1);
+            var totalCompileUnit = compileUnitToProcess.Count;
+            var totalCompileUnitInverse = 1f / Mathf.Max(1, totalCompileUnit - 1);
+            var compiledUnitCount = 0;
             while (m_CompileJobMap.Count > 0 || compileUnitToProcess.Count > 0)
             {
                 // Try to enqueue jobs
@@ -170,11 +171,10 @@ namespace UnityEditor.ShaderAnalysis
                     var job = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                     m_CompileJobMap[job] = unitIndex;
                 }
-                
+
                 // Wait for job completions
                 {
-                    var compiledUnits = c - m_CompileJobMap.Count;
-                    progress.SetNormalizedProgress(s * compiledUnits, "Compiling units {0:D3} / {1:D3}", compiledUnits, c);
+                    progress.SetNormalizedProgress(totalCompileUnitInverse * compiledUnitCount, "Compiling units {0:D3} / {1:D3}", compiledUnitCount, totalCompileUnit);
 
                     jobMapBuffer.Clear();
                     jobMapBuffer.AddRange(m_CompileJobMap);
@@ -185,14 +185,20 @@ namespace UnityEditor.ShaderAnalysis
                             m_CompileJobMap.Remove(job.Key);
                             var unit = compileUnits[job.Value];
 
+                            var compiled = true;
+
                             if (!unit.compiledFile.Exists)
                             {
                                 Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
                                 var retryJob = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                                 m_CompileJobMap[retryJob] = job.Value;
+                                compiled = false;
                             }
                             else if (!string.IsNullOrEmpty(job.Key.errors))
                                 ParseShaderCompileErrors(job.Key.errors, unit.warnings, unit.errors);
+
+                            if (compiled)
+                                ++compiledUnitCount;
                         }
                     }
                     yield return null;

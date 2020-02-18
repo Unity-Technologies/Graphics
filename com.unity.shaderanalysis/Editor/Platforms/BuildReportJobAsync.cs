@@ -13,7 +13,9 @@ namespace UnityEditor.ShaderAnalysis
         bool m_HasReport;
         IEnumerator m_Enumerator;
         ShaderBuildReport m_BuildReport;
+        string m_Name = "Build shader report";
 
+        public override string name => m_Name;
         /// <summary>Whether the job was cancelled.</summary>
         protected bool isCancelled { get; private set; }
         /// <summary>The shader to process.</summary>
@@ -46,6 +48,7 @@ namespace UnityEditor.ShaderAnalysis
             if (shader != null && shader.Equals(null))
                 throw new ArgumentNullException(nameof(shader));
             this.shader = shader;
+            m_Name = $"Build Shader Report ({shader})";
         }
 
         /// <summary>Create an instance to process the <paramref name="compute"/>.</summary>
@@ -58,6 +61,7 @@ namespace UnityEditor.ShaderAnalysis
             if (compute != null && compute.Equals(null))
                 throw new ArgumentNullException(nameof(compute));
             this.compute = compute;
+            m_Name = $"Build Compute Shader Report ({shader})";
         }
 
         /// <summary>Create an instance to process the <paramref name="material"/>.</summary>
@@ -70,10 +74,11 @@ namespace UnityEditor.ShaderAnalysis
             if (material != null && material.Equals(null))
                 throw new ArgumentNullException(nameof(material));
             this.material = material;
-        } 
+            m_Name = $"Build Material Report ({shader})";
+        }
 
         /// <inheritdoc cref="AsyncBuildReportJob"/>
-        public override bool Tick()
+        protected override bool Internal_Tick()
         {
             if (isCancelled)
                 return true;
@@ -100,7 +105,7 @@ namespace UnityEditor.ShaderAnalysis
         }
 
         /// <inheritdoc cref="AsyncBuildReportJob"/>
-        public override void Cancel()
+        protected override void Internal_Cancel()
         {
             isCancelled = true;
             SetProgress(1, "Cancelled");
