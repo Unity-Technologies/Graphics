@@ -69,8 +69,8 @@ real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNorma
 // Converts tangent space normal to slopes (height map gradient).
 real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 {
-    real3 vT   = packedNormal.rgb * 2.0 - 1.0; // Unsigned to signed
-    real  rcpZ = rcp(max(vT.z, REAL_EPS));      // Clamp to avoid INF
+    real3 vT   = packedNormal.rgb * 2.0 - 1.0;   // Unsigned to signed
+    real  rcpZ = rcp(max(vT.z, sqrt(REAL_EPS))); // Clamp to avoid INF
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
@@ -78,8 +78,11 @@ real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 // Converts tangent space normal to slopes (height map gradient).
 real2 UnpackDerivativeNormalAG(real4 packedNormal, real scale = 1.0)
 {
-    real2 vT   = packedNormal.ag * 2.0 - 1.0;                      // Unsigned to signed
-    real  rcpZ = rsqrt(max(1 - Sq(vT.x) - Sq(vT.y), Sq(REAL_EPS))); // Clamp to avoid INF
+    real2 vT = packedNormal.ag * 2.0 - 1.0; // Unsigned to signed
+    // Make sure (length(input) < 1), which could happen due to compression.
+    // Code below guarantees that (z >= sqrt(REAL_EPS)).
+    vT *= rsqrt(max(dot(vT, vT) + (2.0 * REAL_EPS), 1.0));
+    real rcpZ = rsqrt(1.0 - dot(vT, vT));
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
