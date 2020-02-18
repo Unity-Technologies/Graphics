@@ -6,7 +6,6 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.TestTools.Graphics;
 using UnityEngine.UIElements;
 
 /* Changes:
@@ -27,7 +26,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         public void OpenGraphWindow()
         {
-            // TODO: Make this it's own test
+            // TODO: Make this its own test
 //            if (ShaderGraphImporterEditor.ShowGraphEditWindow("HelloWorld"))
 //            {
 //                Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow return true on a Shader Graph that does not exists");
@@ -64,16 +63,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [TearDown]
         public void CloseWindow()
         {
+            m_Window.graphObject = null; // Don't spawn ask-to-save dialog
             m_Window.Close();
-        }
-
-        private void UpdateWindow()
-        {
-            MethodInfo methodInfo = typeof(MaterialGraphEditWindow).GetMethod("Update",
-                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            methodInfo.Invoke(m_Window, null);
-
-            m_Window.Repaint();
         }
 
         private void ToggleSubWindows(bool showBlackboard, bool showPreview)
@@ -81,18 +72,22 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_GraphEditorView.viewSettings.isBlackboardVisible = showBlackboard;
             m_GraphEditorView.viewSettings.isPreviewVisible = showPreview;
 
-            MethodInfo methodInfo = typeof(GraphEditorView).GetMethod("UpdateSubWindowsVisibility",
+            m_GraphEditorView.UserViewSettingsChangeCheck(0);
+
+            // TODO: As a team decide if we are going to make functions internal or use reflection inside of tests.
+            // m_GraphEditorView.UpdateSubWindowsVisibility(); // Needs to be non-private
+            MethodInfo updateVisibility = typeof(GraphEditorView).GetMethod("UpdateSubWindowsVisibility",
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            methodInfo.Invoke(m_GraphEditorView, null);
+            updateVisibility.Invoke(m_GraphEditorView, null);
         }
 
         [UnityTest]
-        public IEnumerator ToggleSubWindowsCombinations()
+        public IEnumerator ToggleSubWindows()
         {
             Blackboard blackboard;
             MasterPreviewView masterPreviewView;
 
-            // TRUE - TRUE
+            // Both
             ToggleSubWindows(true, true);
 
             blackboard = m_GraphEditorView.Q<Blackboard>();
@@ -103,7 +98,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(blackboard, Is.Not.Null, "Blackboard is not visible when it should be.");
             Assert.That(masterPreviewView, Is.Not.Null, "MasterPreviewView is not visible when it should be.");
 
-            // FALSE - FALSE
+            // Neither
             ToggleSubWindows(false, false);
 
             blackboard = m_GraphEditorView.Q<Blackboard>();
@@ -114,7 +109,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(blackboard, Is.Null, "Blackboard remained visible when it should not be.");
             Assert.That(masterPreviewView, Is.Null, "MasterPreviewView remained visible when it should not be.");
 
-            // TRUE - FALSE
+            // Blackboard Only
             ToggleSubWindows(true, false);
 
             blackboard = m_GraphEditorView.Q<Blackboard>();
@@ -125,7 +120,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(blackboard, Is.Not.Null, "Blackboard is not visible when it should be.");
             Assert.That(masterPreviewView, Is.Null, "MasterPreviewView remained visible when it should not be.");
 
-            // FALSE - TRUE
+            // Preview Only
             ToggleSubWindows(false, true);
 
             blackboard = m_GraphEditorView.Q<Blackboard>();
@@ -137,73 +132,117 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(blackboard, Is.Null, "Blackboard remained visible when it should not be.");
         }
 
-        // TODO: For some reason, this doesn't work programmatically. Investigate.
-        [UnityTest]
-        public IEnumerator ToggleSubWindowsRememberedAfterClosingAndReopeningAGraph()
+        private IEnumerator ToggleSubWindowsThenCloseThenReopen(bool showBlackboard, bool showPreview)
         {
-            // OpenGraphWindow();
-
-            ToggleSubWindows(true, true);
+            ToggleSubWindows(showBlackboard, showPreview);
             yield return null;
 
-            m_Window.Close();
-            yield return null;
-
-            OpenGraphWindow();
-            yield return null;
-
-//            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "0: Blackboard is not visible when it should be.");
-//            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "0: MasterPreviewView is not visible when it should be.");
-
-            ToggleSubWindows(true, true);
-            yield return null;
-
-            m_Window.Close();
+            CloseWindow();
             yield return null;
 
             OpenGraphWindow();
             yield return null;
-
-//            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "1: Blackboard is not visible when it should be.");
-//            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "1: MasterPreviewView is not visible when it should be.");
-
-            ToggleSubWindows(true, false);
-            yield return null;
-
-            m_Window.Close();
-            yield return null;
-
-            OpenGraphWindow();
-            yield return null;
-
-//            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "2: Blackboard is not visible when it should be.");
-//            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "2: MasterPreviewView is visible when it should not be.");
-
-            ToggleSubWindows(true, false);
-            yield return null;
-
-            m_Window.Close();
-            yield return null;
-
-            OpenGraphWindow();
-            yield return null;
-
-//            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "3: Blackboard is not visible when it should be.");
-//            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "3: MasterPreviewView is visible when it should not be.");
-
-            ToggleSubWindows(false, false);
-            yield return null;
-
-            m_Window.Close();
-            yield return null;
-
-            OpenGraphWindow();
-            yield return null;
-
-//            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "4: Blackboard is visible when it should not be.");
-//            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "4: MasterPreviewView is visible when it should not be.");
         }
 
+        [UnityTest]
+        public IEnumerator ToggleSubWindowsRememberedAfterAfterCloseAndReopen()
+        {
+            yield return ToggleSubWindowsThenCloseThenReopen(true, true);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "0: Blackboard is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "0: MasterPreviewView is not visible when it should be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(true, true);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "1: Blackboard is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "1: MasterPreviewView is not visible when it should be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(true, false);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "2: Blackboard is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "2: MasterPreviewView is visible when it should not be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(true, false);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Not.Null, "3: Blackboard is not visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "3: MasterPreviewView is visible when it should not be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(false, true);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "4: Blackboard is visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "4: MasterPreviewView is not visible when it should not be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(false, true);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "5: Blackboard is visible when it should be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Not.Null, "5: MasterPreviewView is not visible when it should not be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(false, false);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "6: Blackboard is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "6: MasterPreviewView is visible when it should not be.");
+
+            yield return ToggleSubWindowsThenCloseThenReopen(false, false);
+
+            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "7: Blackboard is visible when it should not be.");
+            Assert.That(m_GraphEditorView.Q<MasterPreviewView>(), Is.Null, "7: MasterPreviewView is visible when it should not be.");
+        }
+
+        [UnityTest]
+        public IEnumerator SubWindowLocationRememberedAfterCloseAndReopen()
+        {
+            yield return TestBlackboardLocation(new Rect(50.0f, 50.0f, 160.0f, 160.0f));
+            yield return TestBlackboardLocation(new Rect(80050.0f, 50.0f, 220.0f, 240.0f));
+            yield return TestBlackboardLocation(new Rect(50.0f, 90050.0f, 220.0f, 240.0f));
+            yield return TestBlackboardLocation(new Rect(80050.0f, 90050.0f, 220.0f, 240.0f));
+            yield return TestBlackboardLocation(new Rect(50.0f, -50.0f, 230.0f, 230.0f));
+        }
+
+        // Only works for Blackboard... for now. (Plan is to make Internal Inspector, Blackboard 2.0, and MasterPreview use the same SubWindow class someday)
+        private IEnumerator TestBlackboardLocation(Rect blackboardRect)
+        {
+            ToggleSubWindows(true, true);
+
+            Blackboard blackboard = m_GraphEditorView.blackboardProvider.blackboard;
+            MasterPreviewView masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
+
+            blackboard.SetPosition(blackboardRect);
+            yield return null;
+
+            CloseWindow();
+            yield return null;
+            OpenGraphWindow();
+            yield return null;
+
+            blackboard = m_GraphEditorView.blackboardProvider.blackboard;
+
+            // Keep inside the GraphEditor in the same way as expected
+            Rect editorViewContainer = m_GraphEditorView.graphView.contentContainer.layout;
+            if (blackboardRect.x + blackboardRect.width > editorViewContainer.width)
+                blackboardRect.x = editorViewContainer.width - blackboardRect.width;
+            if (blackboardRect.y + blackboardRect.height > editorViewContainer.height)
+                blackboardRect.y = editorViewContainer.height - blackboardRect.height;
+            if (blackboardRect.x < 0)
+                blackboardRect.x = 0;
+            if (blackboardRect.y < 0)
+                blackboardRect.y = 0;
+
+            // Using approximately instead of exact comparisons, which is why we don't use (blackboard.layout == blackboardRect)
+            Assert.That(Mathf.Approximately(blackboard.layout.x, blackboardRect.x), "Blackboard did not remember location, x differs: "
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+            Assert.That(Mathf.Approximately(blackboard.layout.y, blackboardRect.y), "Blackboard did not remember location, y differs: "
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+            Assert.That(Mathf.Approximately(blackboard.layout.width, blackboardRect.width), "Blackboard did not remember width: "
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+            Assert.That(Mathf.Approximately(blackboard.layout.height, blackboardRect.height), "Blackboard did not remember height: "
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+        }
+
+
+
+
+
+        /*
         private Texture2D ConvertTextureFromRenderTo2D(RenderTexture renderTexture)
         {
             // texRef is your Texture2D
@@ -242,13 +281,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [UnityTest]
         public IEnumerator MasterPreviewImageComparison_Default()
         {
-            return MasterPreviewImageComparison();
+            return MasterPreviewImageComparison("Sphere");
         }
 
         [UnityTest]
-        public IEnumerator MasterPreviewImageComparison_Cube()
+        public IEnumerator MasterPreviewImageComparison_Cube_Rotated()
         {
-            return MasterPreviewImageComparison("Cube", new Vector2(15.0f, 15.0f));
+            return MasterPreviewImageComparison("Cube", new Vector2(45.0f, 35.0f));
         }
 
         private IEnumerator MasterPreviewImageComparison(string mesh = null, Vector2? mouseDrag = null)
@@ -313,18 +352,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string finalPath = Application.dataPath + "/ActualImages/" + fileName;
                 System.IO.File.WriteAllBytes(finalPath, bytes);
 
-                Assert.Pass("ReferenceImage ReferenceImages/" + fileName + " not found, creating one at " + finalPath);
+                yield return null;
+                yield return null;
+
+                Assert.Fail("ReferenceImage ReferenceImages/" + fileName + " not found, creating one at " + finalPath);
             }
 
             // Compare
             ImageAssert.AreEqual(texture2D, referenceImage);
-
-            // TODO: This should be in TearDown (after moving to another class)
-            // This is a (hacky or acceptable?) means to stop the "Do-You-Want-To-Save" Dialog from coming up.
-            if (nonDefaultPreview)
-            {
-                m_Window.graphObject = null;
-            }
         }
 
         // TODO: Can [UnityTest] not have TestCase(s)? Would be preferable.
@@ -372,6 +407,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // This is a (hacky or acceptable?) means to stop the "Do-You-Want-To-Save" Dialog from coming up.
             m_Window.graphObject = null;
         }
+        */
 
     }
 }
