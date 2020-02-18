@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderAnalysis
             var s = 1f / Mathf.Max(1, c - 1);
             for (var i = 0; i < c; i++)
             {
-                progress.SetNormalizedProgress(s * i, "Parsing multi compiles {0:D3} / {1:D3}", i + 1, c);
+                progress.SetNormalizedProgress(s * i, "Parsing shader model {0:D3} / {1:D3}", i + 1, c);
 
                 var pass = passes[i];
                 ShaderAnalysisUtils.ParseShaderModel(pass.sourceCode, ref pass.shaderModel);
