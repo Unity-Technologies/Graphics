@@ -18,16 +18,9 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpawnerTest
     {
-        int m_previousCaptureFrameRate;
-        float m_previousFixedTimeStep;
-        float m_previousMaxDeltaTime;
-
         [OneTimeSetUp]
         public void Init()
         {
-            m_previousCaptureFrameRate = Time.captureFramerate;
-            m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
-            m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
@@ -36,9 +29,9 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
-            Time.captureFramerate = m_previousCaptureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+            Time.captureFramerate = 0;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f / 60.0f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
