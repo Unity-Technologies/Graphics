@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  fresnelF0;
 
             [SurfaceDataAttributes("Specular Lobe")]
-            public Vector2  specularLobe;
+            public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
 
             [SurfaceDataAttributes("Height")]
             public float    height_mm;
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  diffuseColor;
             public Vector3  specularColor;
             public Vector3  fresnelF0;
-            public Vector2  roughness;
+            public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
 
             // Car Paint Variables

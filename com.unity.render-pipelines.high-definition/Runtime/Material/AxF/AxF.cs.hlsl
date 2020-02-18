@@ -64,7 +64,7 @@ struct SurfaceData
     float3 diffuseColor;
     float3 specularColor;
     float3 fresnelF0;
-    float2 specularLobe;
+    float3 specularLobe;
     float height_mm;
     float anisotropyAngle;
     float2 flakesUV;
@@ -85,7 +85,7 @@ struct BSDFData
     float3 diffuseColor;
     float3 specularColor;
     float3 fresnelF0;
-    float2 roughness;
+    float3 roughness;
     float height_mm;
     float2 flakesUV;
     float flakesMipLevel;
@@ -123,7 +123,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.fresnelF0;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE:
-            result = float3(surfacedata.specularLobe, 0.0);
+            result = surfacedata.specularLobe;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_HEIGHT:
             result = surfacedata.height_mm.xxx;
@@ -184,7 +184,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.fresnelF0;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS:
-            result = float3(bsdfdata.roughness, 0.0);
+            result = bsdfdata.roughness;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM:
             result = bsdfdata.height_mm.xxx;

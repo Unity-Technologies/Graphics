@@ -38,6 +38,9 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 
         surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
         surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
+#ifdef _AXF_BRDF_TYPE_CAR_PAINT
+        surfaceData.specularLobe.z = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.z) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
+#endif
     }
 #endif
 }
@@ -60,11 +63,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float alpha = 1.0;
 
+    surfaceData.specularLobe = 0;
+
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
     surfaceData.diffuseColor = SAMPLE_TEXTURE2D(_SVBRDF_DiffuseColorMap, sampler_SVBRDF_DiffuseColorMap, UV0).xyz;
     surfaceData.specularColor = SAMPLE_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, UV0).xyz;
-    surfaceData.specularLobe = _SVBRDF_SpecularLobeMapScale * SAMPLE_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, UV0).xy;
+    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * SAMPLE_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, UV0).xy;
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
@@ -98,6 +103,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.diffuseColor = _CarPaint2_CTDiffuse;
     surfaceData.clearcoatIOR = max(1.001, _CarPaint2_ClearcoatIOR); // Can't be exactly 1 otherwise the precise fresnel divides by 0!
 
+    surfaceData.specularLobe = _CarPaint2_CTSpreads.xyz; // We may want to modify these (eg for Specular AA)
+
     surfaceData.normalWS = input.tangentToWorld[2].xyz;
     GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
@@ -116,7 +123,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Useless for car paint BSDF
     surfaceData.specularColor = 0;
-    surfaceData.specularLobe = 0;
     surfaceData.fresnelF0 = 0;
     surfaceData.height_mm = 0;
     surfaceData.anisotropyAngle = 0;
@@ -166,6 +172,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #endif
 #endif
 
+#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
+    // Specular AA for geometric curvature
+
+    surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
+    surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
+#if defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    surfaceData.specularLobe.z = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.z), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
+#endif
+#endif
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
