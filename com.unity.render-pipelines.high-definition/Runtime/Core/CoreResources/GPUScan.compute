@@ -1,0 +1,88 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+// Only cummulative Add
+#pragma kernel CSMainFloat1AddH         FLOAT1 ADD    HORIZONTAL VType=float1 KerName=CSMainFloat1AddH
+#pragma kernel CSMainFloat1AddV         FLOAT1 ADD    VERTICAL   VType=float1 KerName=CSMainFloat1AddV
+#pragma kernel CSMainFloat4AddH         FLOAT4 ADD    HORIZONTAL VType=float4 KerName=CSMainFloat4AddH
+#pragma kernel CSMainFloat4AddV         FLOAT4 ADD    VERTICAL   VType=float4 KerName=CSMainFloat4AddV
+
+#pragma kernel CSMainFloat2MinMaxFirstH FLOAT2 MINMAX HORIZONTAL VType=float2 KerName=CSMainFloat2MinMaxFirstH FIRST
+#pragma kernel CSMainFloat2MinMaxFirstV FLOAT2 MINMAX VERTICAL   VType=float2 KerName=CSMainFloat2MinMaxFirstV FIRST
+#pragma kernel CSMainFloat2MinMaxH      FLOAT2 MINMAX HORIZONTAL VType=float2 KerName=CSMainFloat2MinMaxH
+#pragma kernel CSMainFloat2MinMaxV      FLOAT2 MINMAX VERTICAL   VType=float2 KerName=CSMainFloat2MinMaxV
+// Note0: Can be extented for any cummulative operation: {Min, Max, MinMax, Mult, ...}
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+  Texture2D<VType>  _Input;
+RWTexture2D<VType>  _Output;
+
+uint4               _Sizes; // xy: InputSize; zw: OutputSize
+uint                _Iteration;
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+#ifdef VERTICAL
+    #define THREAD_PER_GROUP_X 1
+    #define THREAD_PER_GROUP_Y 64
+#else // if HORIZONTAL
+    #define THREAD_PER_GROUP_X 64
+    #define THREAD_PER_GROUP_Y 1
+#endif
+
+VType GetSample(uint2 id)
+{
+#ifdef VERTICAL
+    return _Input[uint2(id.x             , id.y - _Iteration)];
+#else
+    return _Input[uint2(id.x - _Iteration, id.y             )];
+#endif
+}
+
+VType Operation(VType a, VType b)
+{
+#ifdef ADD
+    return a + b;
+#elif defined(MINMAX)
+    return float2(min(a.x, b.x), max(a.y, b.y));
+#else
+    #error GPUScan: Operation not defined
+#endif
+}
+
+// :Inclusive Scan
+// Ref: Hillis & Steele Parallel Scan Algorithm
+[numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < _OutputSize))
+    {
+        uint i;
+#ifdef HORIZONTAL
+        uint k = id.x;
+#else
+        uint k = id.y;
+#endif
+        const uint off = uint(_Iteration);
+#ifdef FIRST
+        float inVal = _Input[id.xy].x;
+        _Output[id.xy] = Operation(inVal.xx, GetSample(id.xy).xx);
+#else
+        VType inVal = _Input[id.xy];
+        if (k >= off)
+        {
+            _Output[id.xy] = Operation(inVal, GetSample(id.xy));
+        }
+        else
+        {
+            _Output[id.xy] = inVal;
+        }
+#endif
+    }
+}

@@ -26,6 +26,7 @@ float TransformPDF(float4 pdf)
         //max(pdf.x, max(pdf.y, pdf.z));
 }
 
+/*
 float CosineInterpolate(
     float y1, float y2,
     float mu)
@@ -33,6 +34,7 @@ float CosineInterpolate(
     float mu2 = (1.0f - cos(mu*PI))*0.5f;
     return y1*(1.0f - mu2) + y2*mu2;
 }
+*/
 
 [numthreads(8, 8, 1)]
 #ifdef HORIZONTAL

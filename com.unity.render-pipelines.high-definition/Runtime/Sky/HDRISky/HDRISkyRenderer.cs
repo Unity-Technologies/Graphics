@@ -318,23 +318,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdriSky.hdriSky.value != null && notDone)
             {
-                /*
-                int width   = 1024;
-                int height  =  512;
+                //int width   = 1024;
+                //int height  =  512;
+                //
+                //RTHandle latLongMap = RTHandles.Alloc(  width, height,
+                //                                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                //                                        enableRandomWrite: true);
+                //RTHandleDeleter.ScheduleRelease(latLongMap);
+                //
+                //var hdrp = HDRenderPipeline.defaultAsset;
+                //Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
+                ////MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                //cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
+                //cubeToLatLong.SetInt("_cubeMipLvl", 0);
+                //cubeToLatLong.SetInt("_cubeArrayIndex", 0);
+                //cubeToLatLong.SetInt("_buildPDF", 1);
+                //builtinParams.commandBuffer.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
 
-                RTHandle latLongMap = RTHandles.Alloc(  width, height,
-                                                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
-                                                        enableRandomWrite: true);
-                RTHandleDeleter.ScheduleRelease(latLongMap);
-
-                var hdrp = HDRenderPipeline.defaultAsset;
-                Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                //MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-                cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
-                cubeToLatLong.SetInt("_cubeMipLvl", 0);
-                cubeToLatLong.SetInt("_cubeArrayIndex", 0);
-                cubeToLatLong.SetInt("_buildPDF", 1);
-                builtinParams.commandBuffer.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
+                //int margID = ImportanceSamplers.GetIdentifier(m_CurrentCubemap);
+                //if (!ImportanceSamplers.Exist(margID))
+                //{
+                //    ImportanceSamplers.ScheduleMarginalGeneration(margID, m_CurrentCubemap);
+                //}
+                //
+                //notDone = false;
 
                 //void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat format)
                 //{
@@ -363,33 +370,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    DefaultDumper(request, "___LatLongPDF", latLongMap.rt.graphicsFormat);
                 //});
 
-                RTHandle marg       = null;
-                RTHandle condMarg   = null;
-                ImportanceSampler2D.GenerateMarginals(out marg, out condMarg, latLongMap, 0, 0, builtinParams.commandBuffer, true, 0);
-                if ( marg != null && condMarg != null )
-                {
-                    RTHandleDeleter.ScheduleRelease(marg);
-                    RTHandleDeleter.ScheduleRelease(condMarg);
-                }
-                */
                 //RTHandle marg       = null;
                 //RTHandle condMarg   = null;
-                //GenerateMarginalTexture(out marg, out condMarg, builtinParams.commandBuffer);
-                //if (marg != null && condMarg != null)
+                //ImportanceSampler2D.GenerateMarginals(out marg, out condMarg, latLongMap, 0, 0, builtinParams.commandBuffer, true, 0);
+                //if ( marg != null && condMarg != null )
                 //{
                 //    RTHandleDeleter.ScheduleRelease(marg);
                 //    RTHandleDeleter.ScheduleRelease(condMarg);
                 //}
-                //notDone = false;
+
+                RTHandle marg;
+                RTHandle condMarg;
+                GenerateMarginalTexture(out marg, out condMarg, builtinParams.commandBuffer);
+                if (marg != null && condMarg != null)
+                {
+                    RTHandleDeleter.ScheduleRelease(marg);
+                    RTHandleDeleter.ScheduleRelease(condMarg);
+                }
+                notDone = false;
             }
         }
 
         public void GenerateMarginalTexture(out RTHandle marginal, out RTHandle conditionalMarginal, CommandBuffer cmd)
         {
-            marginal = null;
-            conditionalMarginal = null;
-
-            return;
+            //marginal = null;
+            //conditionalMarginal = null;
+            //
+            //return;
 
             int width   = 4*m_CurrentCubemap.width;
             int height  = 2*m_CurrentCubemap.width;
@@ -402,14 +409,41 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.defaultAsset;
             Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
             cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
-            cubeToLatLong.SetInt    ("_cubeMipLvl",     0);
-            cubeToLatLong.SetInt    ("_cubeArrayIndex", 0);
-            cubeToLatLong.SetInt    ("_buildPDF",       1);
+            cubeToLatLong.SetInt    ("_cubeMipLvl",             0);
+            cubeToLatLong.SetInt    ("_cubeArrayIndex",         0);
+            cubeToLatLong.SetInt    ("_buildPDF",               1);
+            cubeToLatLong.SetInt    ("_preMultiplyByJacobian",  1);
             cmd.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
 
-            marginal            = null;
-            conditionalMarginal = null;
+            void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat format)
+            {
+                if (!request.hasError)
+                {
+                    Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                    float[] copy = new float[result.Length];
+                    result.CopyTo(copy);
+                    byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
+                                                        copy,
+                                                        format,
+                                                        (uint)request.width, (uint)request.height, 0,
+                                                        Texture2D.EXRFlags.CompressZIP);
+                    string path = @"C:\UProjects\" + name + ".exr";
+                    if (System.IO.File.Exists(path))
+                    {
+                        System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                        System.IO.File.Delete(path);
+                    }
+                    System.IO.File.WriteAllBytes(path, bytes0);
+                }
+            }
+
+            cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
+            {
+                DefaultDumper(request, "___LatLongPDFJacobian", latLongMap.rt.graphicsFormat);
+            });
+
             ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap, 0, 0, cmd, true, 0);
         }
     }
 }
+

@@ -139,7 +139,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     else
     {
         float2 latlongUV;
-        float2 info = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        float2 info = ImportanceSamplingLatLongArray(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
         //samplePDF = info.x*info.y;
         samplePDF = info.x;
 
@@ -245,7 +245,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     else
     {
         float2 latlongUV;
-        float2 info = ImportanceSamplingLatLong(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
+        float2 info = ImportanceSamplingLatLongArray(latlongUV, sampleDir, sample.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
         //samplePDF = info.x/info.y;
         //samplePDF = info.x/info.y;
         samplePDF = max(info.x, 1e-4)/info.y;

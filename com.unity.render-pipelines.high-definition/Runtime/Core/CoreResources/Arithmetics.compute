@@ -1,0 +1,53 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainAdd        Add                 KerName=CSMainAdd
+#pragma kernel CSMainSub        Sub                 KerName=CSMainSub
+#pragma kernel CSMainMult       Mult                KerName=CSMainMult
+#pragma kernel CSMainDiv        Div                 KerName=CSMainDiv
+#pragma kernel CSMainMAD        MAD                 KerName=CSMainMAD
+#pragma kernel CSMainMAD        MAD_RG              KerName=CSMainMAD_RG
+#pragma kernel CSMainSelfAdd    READ_WRITE  Add     KerName=CSMainSelfAdd
+#pragma kernel CSMainSelfSub    READ_WRITE  Sub     KerName=CSMainSelfSub
+#pragma kernel CSMainSelfMult   READ_WRITE  Mult    KerName=CSMainSelfMult
+#pragma kernel CSMainSelfDiv    READ_WRITE  Div     KerName=CSMainSelfDiv
+#pragma kernel CSMainSelfMAD    READ_WRITE  MAD     KerName=CSMainSelfMAD
+#pragma kernel CSMainSelfMAD_RG READ_WRITE  MAD_RG  KerName=CSMainSelfMAD_RG
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+  Texture2D<float4> _InputVal;
+
+#ifdef READ_WRITE
+RWTexture2D<float4> _Output;
+#define _Input      _Output
+#else
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+#endif
+
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+[numthreads(8, 8, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < _Sizes.xy))
+    {
+        float4 v = _Input[id.xy];
+
+#ifdef Add
+        _Output[id.xy] = v + _InputVal[uint(0, 0)];
+#elif defined(Sub)
+        _Output[id.xy] = v - _InputVal[uint(0, 0)];
+#elif defined(Mult)
+        _Output[id.xy] = v*_InputVal[uint(0, 0)];
+#elif defined(Div)
+        float4 a = _InputVal[uint(0, 0)];
+        _Output[id.xy] = sign(a)*v/max(abs(a), 1e-4f);
+#elif defined(MAD)
+        _Output[id.xy] = v*_InputVal[uint(0, 0)] + _InputVal[uint(1, 0)];
+#endif
+    }
+}

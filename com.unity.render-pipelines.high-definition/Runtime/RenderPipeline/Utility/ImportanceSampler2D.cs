@@ -30,6 +30,32 @@ namespace UnityEngine.Rendering
         }
 #endif
 
+        internal static GraphicsFormat GetFormat(uint channelCount, bool isFullPrecision = false)
+        {
+            if (isFullPrecision)
+            {
+                if (channelCount == 1)
+                    return GraphicsFormat.R32_SFloat;
+                else if (channelCount == 2)
+                    return GraphicsFormat.R32G32_SFloat;
+                else if (channelCount == 4)
+                    return GraphicsFormat.R32G32B32A32_SFloat;
+                else
+                    return GraphicsFormat.None;
+            }
+            else
+            {
+                if (channelCount == 1)
+                    return GraphicsFormat.R16_SFloat;
+                else if (channelCount == 2)
+                    return GraphicsFormat.R16G16_SFloat;
+                else if (channelCount == 4)
+                    return GraphicsFormat.R16G16B16A16_SFloat;
+                else
+                    return GraphicsFormat.None;
+            }
+        }
+
         public static void GenerateMarginals(
                                 out RTHandle invCDFRows, out RTHandle invCDFFull,
                                 RTHandle density,
@@ -40,13 +66,12 @@ namespace UnityEngine.Rendering
             int width   = Mathf.RoundToInt((float)density.rt.width /Mathf.Pow(2.0f, (float)mipIndex));
             int height  = Mathf.RoundToInt((float)density.rt.height/Mathf.Pow(2.0f, (float)mipIndex));
 
-            //GraphicsFormat internalFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            //GraphicsFormat internalFormat = GraphicsFormat.R16_SFloat;
             invCDFRows = null;
             invCDFFull = null;
 
-            //RTHandle pdfCopy = RTHandles.Alloc(width, height, colorFormat: density.graphicsFormat, enableRandomWrite: true);
-            //RTHandleDeleter.ScheduleRelease(pdfCopy);
+            GraphicsFormat format1 = GetFormat(1, true);
+            GraphicsFormat format2 = GetFormat(2, true);
+            GraphicsFormat format4 = GetFormat(4, true);
 
 #if DUMP_IMAGE
             string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
@@ -65,17 +90,18 @@ namespace UnityEngine.Rendering
             /// Full
             ////////////////////////////////////////////////////////////////////////////////
             // MinMax of rows
-            RTHandle minMaxFull0;
+            RTHandle minMaxFull0 = RTHandles.Alloc(1, density.rt.height, colorFormat: format2, enableRandomWrite: true);
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRows")))
             {
-                minMaxFull0 = GPUOperation.ComputeOperation(
-                                                density,
-                                                cmd,
-                                                GPUOperation.Operation.MinMax,
-                                                GPUOperation.Direction.Horizontal,
-                                                2, // opPerThread
-                                                true, // isPDF
-                                                GraphicsFormat.R32G32_SFloat);
+                //minMaxFull0 = GPUOperation.ComputeOperation(
+                //                                density,
+                //                                cmd,
+                //                                GPUOperation.Operation.MinMax,
+                //                                GPUOperation.Direction.Horizontal,
+                //                                2, // opPerThread
+                //                                true, // isPDF
+                //                                format2);
+                minMaxFull0 = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Horizontal, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxFull0);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -90,14 +116,15 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRowsAndRescale")))
             {
                 // MinMax of the MinMax of rows => Single Pixel
-                minMaxFull1 = GPUOperation.ComputeOperation(
-                                            minMaxFull0,
-                                            cmd,
-                                            GPUOperation.Operation.MinMax,
-                                            GPUOperation.Direction.Vertical,
-                                            2, // opPerThread
-                                            false, // isPDF
-                                            GraphicsFormat.R32G32_SFloat);
+                //minMaxFull1 = GPUOperation.ComputeOperation(
+                //                            minMaxFull0,
+                //                            cmd,
+                //                            GPUOperation.Operation.MinMax,
+                //                            GPUOperation.Direction.Vertical,
+                //                            2, // opPerThread
+                //                            false, // isPDF
+                //                            format2);
+                minMaxFull1 = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxFull1);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -120,11 +147,7 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFRescaled")))
             {
                 // Compute the CDF of the rows of the rescaled PDF
-                cdfFull = ComputeCDF1D.ComputeCDF(
-                                        density,
-                                        cmd,
-                                        ComputeCDF1D.SumDirection.Horizontal,
-                                        GraphicsFormat.R32_SFloat);
+                cdfFull = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, format1);
                 RTHandleDeleter.ScheduleRelease(cdfFull);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -140,14 +163,7 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxRowsCDFAndRescale")))
             {
                 // Rescale between 0 & 1 the rows_cdf: to be inverted in UV
-                minMaxFull = GPUOperation.ComputeOperation(
-                                            cdfFull,
-                                            cmd,
-                                            GPUOperation.Operation.MinMax,
-                                            GPUOperation.Direction.Horizontal,
-                                            2,
-                                            false,
-                                            GraphicsFormat.R32G32_SFloat);
+                minMaxFull = GPUScan.ComputeOperation(cdfFull, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Horizontal, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxFull);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -191,14 +207,7 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxColsCDFAndRescale")))
             {
                 // Minmax of rows
-                minMaxRows = GPUOperation.ComputeOperation(
-                                                    sumRows,
-                                                    cmd,
-                                                    GPUOperation.Operation.MinMax,
-                                                    GPUOperation.Direction.Vertical,
-                                                    2,
-                                                    false,
-                                                    GraphicsFormat.R32G32_SFloat);
+                minMaxRows = GPUScan.ComputeOperation(sumRows, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxRows);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -222,11 +231,7 @@ namespace UnityEngine.Rendering
             RTHandle cdfRows;
             using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFCols")))
             {
-                cdfRows = ComputeCDF1D.ComputeCDF(
-                                    sumRows,
-                                    cmd,
-                                    ComputeCDF1D.SumDirection.Vertical,
-                                    GraphicsFormat.R32_SFloat);
+                cdfRows = GPUScan.ComputeOperation(sumRows, cmd, GPUScan.Operation.Add, GPUScan.Direction.Vertical, format1);
                 RTHandleDeleter.ScheduleRelease(cdfRows);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -240,13 +245,7 @@ namespace UnityEngine.Rendering
             RTHandle minMaxCDFRows;
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxCDFAndRescale_")))
             {
-                minMaxCDFRows = GPUOperation.ComputeOperation(cdfRows,
-                                                        cmd,
-                                                        GPUOperation.Operation.MinMax,
-                                                        GPUOperation.Direction.Vertical,
-                                                        2,
-                                                        false,
-                                                        GraphicsFormat.R32G32_SFloat);
+                minMaxCDFRows = GPUScan.ComputeOperation(cdfRows, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxCDFRows);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -273,7 +272,7 @@ namespace UnityEngine.Rendering
                                                             Vector4.one,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Horizontal,
-                                                            GraphicsFormat.R32_SFloat);
+                                                            format4);
 #if DUMP_IMAGE
                 var format = invCDFFull.rt.graphicsFormat;
                 if (dumpFile)
@@ -291,7 +290,7 @@ namespace UnityEngine.Rendering
                                                             //hdriIntegral,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Vertical,
-                                                            GraphicsFormat.R32_SFloat);
+                                                            format1);
 #if DUMP_IMAGE
                 var format = invCDFRows.rt.graphicsFormat;
                 if (dumpFile)
@@ -394,7 +393,7 @@ namespace UnityEngine.Rendering
                 */
                 //
                 //RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
-                RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true);
+                RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: format4, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(m_OutDebug);
 
                 //var hdrp = HDRenderPipeline.defaultAsset;

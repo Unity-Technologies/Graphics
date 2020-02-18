@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
             RTHandleDeleter.ScheduleRelease(temp1);
 
             uint iteration;
-            string addon = "";
+            string addon;
             if (direction == SumDirection.Vertical)
             {
                 addon = "V";

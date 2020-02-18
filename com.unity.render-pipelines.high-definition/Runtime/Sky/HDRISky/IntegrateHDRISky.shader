@@ -47,7 +47,6 @@ Shader "Hidden/HDRP/IntegrateHDRI"
 
                 return output;
             }
-            
 
             // With HDRI that have a large range (including the sun) it can be challenging to
             // compute the lux value without multiple importance sampling.
@@ -55,18 +54,26 @@ Shader "Hidden/HDRP/IntegrateHDRI"
             // with a large number of sample. This is fine as this happen in the editor.
             real3 GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N)
             {
-                float3 sum = 0.0;
-                const float dphi    = 0.005;
-                const float dtheta  = 0.005;
+                float3 sum = 0.0f;
+                //const float dphi    = 0.0025f;
+                //const float dtheta  = 0.0025f;
+                const float dphi    = 2.0f*PI/512.0f;
+                const float dtheta  = 0.5f*PI/256.0f;
                 const float coef    = dphi*dtheta;
-                for (float phi = 0; phi < 2.0 * PI; phi += dphi)
+                for (float phi = 0.0f; phi < 2.0f*PI; phi += dphi)
                 {
-                    for (float theta = 0; theta < PI / 2.0; theta += dtheta)
+                    for (float theta = 0.0f; theta < 0.5f*PI; theta += dtheta)
                     {
                         // SphericalToCartesian function is for Z up, lets move to Y up with TransformGLtoDX
                         float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos(theta)));
                         real3 val = SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb;
+                        //real3 val;
+                        //if (dot(float2(theta, phi), float2(1, 1)) < 0.1)
+                        //    val = float3(1, 1, 1);
+                        //else
+                        //    val = 0;
                         sum += (cos(theta)*sin(theta)*coef)*val;
+                        //sum += (cos(theta)*sin(theta)*coef)*float3(1, 1, 1);
                     }
                 }
 
@@ -78,9 +85,11 @@ Shader "Hidden/HDRP/IntegrateHDRI"
                 // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
-                float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
+                //float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
+                float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_point_clamp_sampler), N);
 
-                return float4(intensity.rgb, Luminance(intensity));
+                //return float4(intensity.rgb, Luminance(intensity));
+                return float4(intensity.rgb, max(intensity.r, max(intensity.g, intensity.b)));
             }
 
             ENDHLSL

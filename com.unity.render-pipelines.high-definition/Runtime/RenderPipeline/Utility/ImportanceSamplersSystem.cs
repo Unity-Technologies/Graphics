@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEngine.Experimental.Rendering.GraphicsFormat internalFormat =
                 //Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat;
                 //Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
-                Experimental.Rendering.GraphicsFormat.R16_SFloat;
+                Experimental.Rendering.GraphicsFormat.R32_SFloat;
             //value.input.graphicsFormat;
 
             int width       = -1;
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool dumpFile =
                 false;
-            //true;
+                //true;
             //value.currentMip == 0 && value.currentSlice == 0;
             bool buildMarginalArray = false;
 
@@ -261,6 +261,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("ImportanceSamplerSystem: Marginal texture generator only avaiable for Texture2D{Array?} or Cubemap{Array?}.");
             }
 
+            RTHandle rtInput = RTHandles.Alloc(value.input);
+            //if (dumpFile)
+            //{
+            //    cmd.RequestAsyncReadback(rtInput, delegate (AsyncGPUReadbackRequest request)
+            //    {
+            //            //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
+            //            DefaultDumper(request, "___InputsMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, rtInput.rt.graphicsFormat);
+            //    });
+            //}
+
             RTHandle invCDFRows = null;
             RTHandle invCDFFull = null;
 
@@ -272,20 +282,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     value.marginals.marginal =
                         RTHandles.Alloc(1, height, slices: slicesCount,
                         dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
-                        colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
+                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
                 }
                 if (value.marginals.conditionalMarginal == null)
                 {
                     value.marginals.conditionalMarginal =
                         RTHandles.Alloc(width, height, slices: slicesCount,
                         dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
-                        colorFormat: internalFormat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
+                        colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
                 }
 
                 if (value.input.dimension == TextureDimension.Tex2D ||
                     value.input.dimension == TextureDimension.Tex2DArray)
                 {
-                    RTHandle rtInput = RTHandles.Alloc(value.input);
                     ImportanceSampler2D.GenerateMarginals(out invCDFRows, out invCDFFull, rtInput, current.Value.currentSlice, current.Value.currentMip, cmd, dumpFile, _Idx);
                     RTHandleDeleter.ScheduleRelease(rtInput);
                 }
@@ -310,9 +319,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cubeToLatLong.SetTexture("_srcCubeTextureArray", value.input);
                     }
-                    cubeToLatLong.SetInt("_cubeMipLvl",     current.Value.currentMip);
-                    cubeToLatLong.SetInt("_cubeArrayIndex", current.Value.currentSlice);
-                    cubeToLatLong.SetInt("_buildPDF",       1);
+                    cubeToLatLong.SetInt("_cubeMipLvl",             current.Value.currentMip);
+                    cubeToLatLong.SetInt("_cubeArrayIndex",         current.Value.currentSlice);
+                    cubeToLatLong.SetInt("_buildPDF",               1);
+                    cubeToLatLong.SetInt("_preMultiplyByJacobian",  1);
                     cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, value.input.dimension == TextureDimension.Cube ? 0 : 1);
                     if (dumpFile)
                     {
@@ -321,9 +331,29 @@ namespace UnityEngine.Rendering.HighDefinition
                             DefaultDumper(
                                     request, "___FirstInput_" + current.Key.ToString() +
                                     "_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip,
-                                    internalFormat);
+                                    latLongMap.rt.graphicsFormat);
                         });
                     }
+
+                    // Begin: Integrate Equirectangular Map
+                    RTHandle cdf = GPUScan.ComputeOperation(latLongMap,
+                                                            cmd,
+                                                            GPUScan.Operation.Add,
+                                                            GPUScan.Direction.Horizontal,
+                                                            Experimental.Rendering.GraphicsFormat.R16_SFloat);
+                    RTHandleDeleter.ScheduleRelease(cdf);
+                    RTHandle lastCol = RTHandles.Alloc(1, cdf.rt.height, enableRandomWrite: true, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat);
+                    RTHandleDeleter.ScheduleRelease(lastCol);
+                    cmd.CopyTexture(cdf, 0, 0, width - 1, 0, 1, height, lastCol, 0, 0, 0, 0);
+                    RTHandle integral = GPUScan.ComputeOperation(latLongMap,
+                                                                 cmd,
+                                                                 GPUScan.Operation.Add,
+                                                                 GPUScan.Direction.Vertical,
+                                                                 Experimental.Rendering.GraphicsFormat.R16_SFloat);
+                    RTHandleDeleter.ScheduleRelease(integral);
+                    // Normalize the LatLong to have integral over sphere to be == 1
+                    GPUArithmetic.ComputeOperation(latLongMap, latLongMap, integral, cmd, GPUArithmetic.Operation.Div);
+                    // End: Integrate Equirectangular Map
 
                     ImportanceSampler2D.GenerateMarginals(out invCDFRows, out invCDFFull, latLongMap, 0, 0, cmd, dumpFile, _Idx);
                 }
@@ -350,12 +380,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.RequestAsyncReadback(invCDFRows, delegate (AsyncGPUReadbackRequest request)
                         {
                             //DefaultDumper(request, String.Format("___Marginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                            DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, Experimental.Rendering.GraphicsFormat.R16_SFloat);
+                            DefaultDumper(request, "___Marginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, invCDFRows.rt.graphicsFormat);
                         });
                         cmd.RequestAsyncReadback(invCDFFull, delegate (AsyncGPUReadbackRequest request)
                         {
                             //DefaultDumper(request, String.Format("___ConditionalMarginal_{0}_{1}_{2}", _Idx, current.Value.currentSlice, current.Value.currentMip));
-                            DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+                            DefaultDumper(request, "___ConditionalMarginal_" + _Idx + "_" + current.Value.currentSlice + "_" + current.Value.currentMip, invCDFFull.rt.graphicsFormat);
                         });
                     }
                 }
