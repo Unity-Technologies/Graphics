@@ -206,7 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Color Mode");
-                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                    int newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
 
                     GUILayout.Space(4);
                     m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
@@ -215,16 +215,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (EditorGUI.EndChangeCheck())
                     {
-                        if(newColorIdx != m_ColorManager.activeIndex)
-                        {
-                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
-                        }
-
-                        UpdateSubWindowsVisibility();
-
-                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                        UserViewSettingsChangeCheck(newColorIndex);
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -289,7 +280,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
-        public void UpdateSubWindowsVisibility()
+        public void UserViewSettingsChangeCheck(int newColorIndex)
+        {
+            if (newColorIndex != m_ColorManager.activeIndex)
+            {
+                m_ColorManager.SetActiveProvider(newColorIndex, m_GraphView.Query<MaterialNodeView>().ToList());
+                m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+            }
+
+            UpdateSubWindowsVisibility();
+
+            var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+            EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+        }
+
+        internal void UpdateSubWindowsVisibility()
         {
             if (m_UserViewSettings.isBlackboardVisible)
                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
@@ -1002,8 +1007,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
             // Make sure that the positionining is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
+            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
+            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
 
             // Set the processed blackboard layout.
             m_BlackboardProvider.blackboard.SetPosition(blackboardRect);

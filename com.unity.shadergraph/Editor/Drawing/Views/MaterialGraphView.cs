@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.graph = graph;
         }
 
-        public GraphData graph { get; private set; }
+        public GraphData graph { get; set; }
         public Action onConvertToSubgraphClick { get; set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
