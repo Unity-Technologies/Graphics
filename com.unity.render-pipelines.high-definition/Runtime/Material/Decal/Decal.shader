@@ -60,6 +60,7 @@ Shader "HDRP/Decal"
 	#pragma shader_feature_local _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
+    #pragma multi_compile _ DOTS_INSTANCING_ON
 
     //-------------------------------------------------------------------------------------
     // Include

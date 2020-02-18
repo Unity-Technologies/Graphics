@@ -244,6 +244,7 @@ namespace UnityEditor.ShaderGraph
             using (var instancingOptions = new ShaderStringBuilder())
             {
                 instancingOptions.AppendLine("#pragma multi_compile_instancing");
+                instancingOptions.AppendLine("#pragma multi_compile _ DOTS_INSTANCING_ON");
 
                 if (instanceCount> 0)
                 {

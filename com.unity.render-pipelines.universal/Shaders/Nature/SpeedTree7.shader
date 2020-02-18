@@ -44,6 +44,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
@@ -72,6 +73,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma fragment SpeedTree7FragDepth
 
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
@@ -98,6 +100,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
@@ -126,6 +129,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH

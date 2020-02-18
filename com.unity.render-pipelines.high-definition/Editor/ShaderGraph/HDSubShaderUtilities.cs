@@ -783,6 +783,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
+                instancingOptions.AddShaderChunk("#pragma multi_compile _ DOTS_INSTANCING_ON", true);
 
                 if ( instanceCount> 0)
                 {

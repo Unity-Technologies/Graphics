@@ -25,6 +25,7 @@ Pass
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma multi_compile _ DOTS_INSTANCING_ON
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
