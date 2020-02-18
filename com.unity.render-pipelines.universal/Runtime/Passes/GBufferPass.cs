@@ -71,8 +71,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Create and declare the render targets used in the pass
 
-            cmd.GetTemporaryRT(m_DepthBufferAttachment.id, m_DepthBufferDescriptor, FilterMode.Point);
-
             // Only declare GBuffer 0, 1 and 2.
             // GBuffer 3 has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
             for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.k_GBufferSlicesCount; ++gbufferIndex)
