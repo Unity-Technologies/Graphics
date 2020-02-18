@@ -52,8 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 p.m_ProbeSettings.cameraSettings.bufferClearing.clearDepth = p.m_ObsoleteCaptureSettings.clearDepth;
                 p.m_ProbeSettings.cameraSettings.culling.cullingMask = p.m_ObsoleteCaptureSettings.cullingMask;
                 p.m_ProbeSettings.cameraSettings.culling.useOcclusionCulling = p.m_ObsoleteCaptureSettings.useOcclusionCulling;
-                p.m_ProbeSettings.cameraSettings.frustum.nearClipPlane = p.m_ObsoleteCaptureSettings.nearClipPlane;
-                p.m_ProbeSettings.cameraSettings.frustum.farClipPlane = p.m_ObsoleteCaptureSettings.farClipPlane;
+                p.m_ProbeSettings.cameraSettings.frustum.nearClipPlaneRaw = p.m_ObsoleteCaptureSettings.nearClipPlane;
+                p.m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw = p.m_ObsoleteCaptureSettings.farClipPlane;
                 p.m_ProbeSettings.cameraSettings.volumes.layerMask = p.m_ObsoleteCaptureSettings.volumeLayerMask;
                 p.m_ProbeSettings.cameraSettings.volumes.anchorOverride = p.m_ObsoleteCaptureSettings.volumeAnchorOverride;
                 p.m_ProbeSettings.cameraSettings.frustum.fieldOfView = p.m_ObsoleteCaptureSettings.fieldOfView;
@@ -123,6 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Obsolete field</summary>
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]
-        protected ObsoleteCaptureSettings m_ObsoleteCaptureSettings;
+        internal ObsoleteCaptureSettings m_ObsoleteCaptureSettings;
     }
 }

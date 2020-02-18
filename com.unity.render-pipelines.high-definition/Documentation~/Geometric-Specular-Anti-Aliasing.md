@@ -1,6 +1,6 @@
 # Geometric Specular Anti-aliasing
 
-The **Geometric Specular AA** property allows you to perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry in order to remove specular artifacts. HDRP reduces the smoothness value by an offset depending on the intensity of the geometry curve. This is especially effective for high-density Meshes with a high smoothness.. Enabling **Geometric Specular AA** exposes extra properties in your Shader to help you customize the effect.
+The **Geometric Specular AA** property allows you to perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry in order to remove specular artifacts. HDRP reduces the smoothness value by an offset depending on the intensity of the geometry curve. This is especially effective for high-density Meshes with a high smoothness. Enabling **Geometric Specular AA** exposes extra properties in your Shader to help you customize the effect.
 
 ## Properties
 

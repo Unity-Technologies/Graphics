@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             base.UpdateEnabled();
-            m_VectorField.SetEnabled(propertyEnabled);
+            m_VectorField.control.SetEnabled(propertyEnabled);
         }
 
         protected override void UpdateIndeterminate()

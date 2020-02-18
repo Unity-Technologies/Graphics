@@ -104,6 +104,8 @@ namespace UnityEngine.VFX.Test
                     var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
                     fnGetResource = fnGetResource.MakeGenericMethod(new Type[]{ typeof(VisualEffectAsset)});
                     var resource = fnGetResource.Invoke(null, new object[] { vfx });
+                    if (resource == null)	
+                        continue; //could occurs if VisualEffectAsset is in AssetBundle
                     var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
                     var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
                     graph.RecompileIfNeeded();

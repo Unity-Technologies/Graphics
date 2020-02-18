@@ -166,10 +166,24 @@ namespace UnityEngine.Rendering.Universal
         {}
 
         /// <summary>
-        /// Cleanup any allocated data that was created during the execution of the pass.
+        /// Called upon finish rendering a camera. You can use this callback to release any resources created
+        /// by this render
+        /// pass that need to be cleanup once camera has finished rendering.
+        /// This method be called for all cameras in a camera stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
+        {}
+
+        /// <summary>
+        /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
+        /// by this render pass that need to be cleanup once all cameras in the stack have finished rendering.
+        /// This method will be called once after rendering the last camera in the camera stack.
+        /// Cameras that don't have an explicit camera stack are also considered stacked rendering.
+        /// In that case the Base camera is the first and last camera in the stack.
+        /// </summary>
+        /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
+        public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
         {}
 
         /// <summary>
@@ -194,23 +208,6 @@ namespace UnityEngine.Rendering.Universal
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
         }
-
-        /// <summary>
-        /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
-        /// </summary>
-        /// <param name="cmd">Command buffer to record command for execution.</param>
-        /// <param name="cameraData">Camera rendering data.</param>
-        /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
-        /// <param name="source">Source texture or render target identifier.</param>
-        /// <param name="destination">Destination texture or render target identifier.</param>
-        /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
-        /// <param name="flip">If true, flips image vertically.</param>
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
-        {
-        }
-#endif
 
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.

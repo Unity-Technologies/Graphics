@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool ValidIndirectDiffuseState(HDCamera hdCamera)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
+            var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             return !(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !settings.rayTracing.value);
         }
 
@@ -54,19 +54,20 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!ValidIndirectDiffuseState(hdCamera))
                 return;
 
-            RenderPipelineSettings.RaytracingTier currentTier = m_Asset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-            switch (currentTier)
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+
+            switch (giSettings.mode.value)
             {
-                case RenderPipelineSettings.RaytracingTier.Tier1:
-                    {
-                        RenderIndirectDiffuseT1(hdCamera, cmd, renderContext, frameCount);
-                    }
-                    break;
-                case RenderPipelineSettings.RaytracingTier.Tier2:
-                    {
-                        RenderIndirectDiffuseT2(hdCamera, cmd, renderContext, frameCount);
-                    }
-                    break;
+                case RayTracingMode.Performance:
+                {
+                    RenderIndirectDiffusePerformance(hdCamera, cmd, renderContext, frameCount);
+                }
+                break;
+                case RayTracingMode.Quality:
+                {
+                    RenderIndirectDiffuseQuality(hdCamera, cmd, renderContext, frameCount);
+                }
+                break;
             }
 
             // Bind the indirect diffuse texture (for forward materials)
@@ -86,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the output texture
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                cmd.SetComputeVectorParam(indirectDiffuseCS, HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
+                cmd.SetComputeVectorParam(indirectDiffuseCS, HDShaderIDs._IndirectLightingMultiplier, new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
 
                 // Evaluate the dispatch parameters
                 int areaTileSize = 8;
@@ -105,14 +106,14 @@ namespace UnityEngine.Rendering.HighDefinition
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
             // Fetch the GI volume component
-            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            RayTracingSettings rTSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            RayTracingSettings rTSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Make sure the binning buffer has the right size
             CheckBinningBuffersSize(hdCamera);
 
             // Generic attributes
-            deferredParameters.rayBinning = settings.rayBinning.value;
+            deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.GlobalIllumination;
             deferredParameters.rayBias = rTSettings.rayBias.value;
             deferredParameters.maxRayLength = settings.rayLength.value;
@@ -152,15 +153,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        void RenderIndirectDiffuseT1(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
+        void RenderIndirectDiffusePerformance(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // Fetch the required resources
-            var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
+            var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
             BlueNoise blueNoise = GetBlueNoiseManager();
 
             // Fetch all the settings
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rtSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             ComputeShader indirectDiffuseCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
 
@@ -170,62 +171,44 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIntegrateIndirectDiffuse)))
             {
-                if (settings.deferredMode.value)
-                {
-                    // Fetch the new sample kernel
-                    int currentKernel = indirectDiffuseCS.FindKernel(settings.fullResolution.value ? "RaytracingIndirectDiffuseFullRes" : "RaytracingIndirectDiffuseHalfRes");
+                // Fetch the new sample kernel
+                int currentKernel = indirectDiffuseCS.FindKernel(settings.fullResolution.value ? "RaytracingIndirectDiffuseFullRes" : "RaytracingIndirectDiffuseHalfRes");
 
-                    // Inject the ray-tracing sampling data
-                    blueNoise.BindDitheredRNGData8SPP(cmd);
+                // Inject the ray-tracing sampling data
+                blueNoise.BindDitheredRNGData8SPP(cmd);
 
-                    // Bind all the required textures
-                    cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                    cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                // Bind all the required textures
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
 
-                    // Bind all the required scalars
-                    cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
+                // Bind all the required scalars
+                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
 
-                    // Bind the sampling data
-                    int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
-                    cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
+                // Bind the sampling data
+                int frameIndex = RayTracingFrameIndex(hdCamera);
+                cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
-                    // Bind the output buffers
-                    cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, directionBuffer);
+                // Bind the output buffers
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, directionBuffer);
 
-                    // Texture dimensions
-                    int texWidth = hdCamera.actualWidth;
-                    int texHeight = hdCamera.actualHeight;
+                // Texture dimensions
+                int texWidth = hdCamera.actualWidth;
+                int texHeight = hdCamera.actualHeight;
 
-                    // Evaluate the dispatch parameters
-                    int areaTileSize = 8;
-                    int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                    int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
+                // Evaluate the dispatch parameters
+                int areaTileSize = 8;
+                int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
-                    // Compute the directions
-                    cmd.DispatchCompute(indirectDiffuseCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+                // Compute the directions
+                cmd.DispatchCompute(indirectDiffuseCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
-                    // Prepare the components for the deferred lighting
-                    DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
-                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, directionBuffer, m_IndirectDiffuseBuffer);
+                // Prepare the components for the deferred lighting
+                DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
+                DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, directionBuffer, m_IndirectDiffuseBuffer);
 
-                    // Evaluate the deferred lighting
-                    RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
-                }
-                else
-                {
-                    RayTracingShader indirectDiffuseRT = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
-
-                    BindRayTracedIndirectDiffuseData(cmd, hdCamera, indirectDiffuseRT, settings, lightClusterSettings, rtSettings, m_IndirectDiffuseBuffer, intermediateBuffer1);
-
-                    // Run the computation
-                    CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
-                    CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
-
-                    // Run the computation
-                    cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
-
-                    CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
-                }
+                // Evaluate the deferred lighting
+                RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse)))
@@ -289,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
             cmd.SetRayTracingIntParams(indirectDiffuseShader, HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-            int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            int frameIndex = RayTracingFrameIndex(hdCamera);
             cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
             // Set the data for the ray generation
@@ -319,12 +302,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
         }
 
-        void RenderIndirectDiffuseT2(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
+        void RenderIndirectDiffuseQuality(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            GlobalIllumination giSettings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rtSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+            GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             // Shaders that are used
             RayTracingShader indirectDiffuseRT = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
@@ -368,9 +351,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // Request the intermediate texture we will be using
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
+            float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                historyValidity = 0.0f;
+            else
+#endif
+                // We need to check if something invalidated the history buffers
+                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
-            temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryHF, intermediateBuffer1, singleChannel: false);
+            temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryHF, intermediateBuffer1, singleChannel: false, historyValidity: historyValidity);
 
             // Apply the first pass of our denoiser
             HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
@@ -383,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle indirectDiffuseHistoryLF = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
 
-                temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryLF, intermediateBuffer1, singleChannel: false);
+                temporalFilter.DenoiseBuffer(cmd, hdCamera, m_IndirectDiffuseBuffer, indirectDiffuseHistoryLF, intermediateBuffer1, singleChannel: false, historyValidity: historyValidity);
                 diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, intermediateBuffer1, m_IndirectDiffuseBuffer, settings.secondDenoiserRadius.value, singleChannel: false, halfResolutionFilter: settings.halfResolutionDenoiser.value);
             }
         }

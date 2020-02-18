@@ -4,11 +4,13 @@ using UnityEngine.VFX;
 using UnityEditorInternal;
 using System.Collections.Generic;
 
-namespace UnityEditor.Experimental.VFX.Utility
+namespace UnityEditor.VFX
 {
     static class VFXEventTesterWindow
     {
-        public static bool Visible;
+        public static bool visible { get { return s_Visible; } set { SetVisibility(value); } }
+
+        static bool s_Visible;
 
         [SerializeField]
         static string m_CustomEvent = "CustomEvent";
@@ -23,7 +25,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         {
             m_Attributes = new List<EventAttribute>();
 
-            Visible = EditorPrefs.GetBool(PreferenceName, false);
+            s_Visible = EditorPrefs.GetBool(PreferenceName, false);
 
             list = new ReorderableList(m_Attributes, typeof(EventAttribute), true, true, true, true);
             list.drawHeaderCallback = drawHeader;
@@ -31,33 +33,24 @@ namespace UnityEditor.Experimental.VFX.Utility
             list.onAddDropdownCallback = drawAddDropDown;
         }
 
-        [MenuItem("Edit/Visual Effects/Show Event Tester", validate = false, priority = 320)]
-        static void ToggleVisibility()
+        static void SetVisibility(bool visible)
         {
-            Visible = !Visible;
-            EditorPrefs.SetBool(PreferenceName, Visible);
+            if(visible != s_Visible)
+            {
+                s_Visible = visible;
+                EditorPrefs.SetBool(PreferenceName, visible);
 
-            UpdateVisibility();
+                UpdateVisibility();
+            }
         }
-
-        [MenuItem("Edit/Visual Effects/Show Event Tester", validate = true, priority = 320)]
-        static bool CheckToggleVisibility()
-        {
-            Visible = EditorPrefs.GetBool(PreferenceName, Visible);
-            Menu.SetChecked("Edit/Visual Effects/Show Event Tester", Visible);
-            return true;
-        }
-
 
         [InitializeOnLoadMethod]
         static void UpdateVisibility()
         {
-            if (Visible)
+            if (s_Visible)
                 SceneView.duringSceneGui += DrawWindow;
             else
                 SceneView.duringSceneGui -= DrawWindow;
-
-
         }
 
         private static void drawAddDropDown(Rect buttonRect, ReorderableList list)
@@ -123,16 +116,13 @@ namespace UnityEditor.Experimental.VFX.Utility
         }
 
 
-
         static void DrawWindow(SceneView sceneView)
         {
             if (Selection.activeGameObject != null)
             {
-                var component = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if (component != null)
+                if (Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
                 {
-                    m_Effect = component;
-                    SceneViewOverlay.Window(Contents.title, WindowFunction, 601, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+                    SceneViewOverlay.Window(Contents.title, WindowFunction, 599, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
                 }
                 else
                 {
@@ -254,7 +244,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             EditorGUILayout.Space();
             list.DoLayoutList();
             EditorGUILayout.Space();
-            using (new GUILayout.HorizontalScope(GUILayout.Width(360)))
+            using (new GUILayout.HorizontalScope(GUILayout.Width(358)))
             {
                 if (GUILayout.Button("Play", Styles.leftButton, GUILayout.Height(24)))
                 {

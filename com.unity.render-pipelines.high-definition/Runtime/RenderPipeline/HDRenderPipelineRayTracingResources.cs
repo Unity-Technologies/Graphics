@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipelineRayTracingResources : ScriptableObject
+    partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Shadows
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.raytrace")]
         public RayTracingShader shadowRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingContactShadow.raytrace")]
+        public RayTracingShader contactShadowRayTracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadow.compute")]
         public ComputeShader shadowRaytracingCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
@@ -34,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Shader lightClusterDebugS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
         public ComputeShader lightClusterDebugCS;
-        
+
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
         public RayTracingShader indirectDiffuseRaytracingRT;
@@ -44,6 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ambient Occlusion
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
         public RayTracingShader aoRaytracing;
+
+        // Sub-Surface Scattering
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
+        public RayTracingShader subSurfaceRayTracing;
 
         // Denoising
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
@@ -89,8 +95,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                     && GUILayout.Button("Reload All"))
                 {
-                    var resources = target as HDRenderPipelineRayTracingResources;
-                    resources = null;
+                    foreach (var field in typeof(HDRenderPipelineRayTracingResources).GetFields())
+                        field.SetValue(target, null);
+
                     ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
                 }
             }

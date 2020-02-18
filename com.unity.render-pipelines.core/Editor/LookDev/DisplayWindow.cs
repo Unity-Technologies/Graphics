@@ -301,7 +301,7 @@ namespace UnityEditor.Rendering.LookDev
                 => sidePanel = (SidePanel)evt.newValue);
 
             // Aggregate parts
-            var toolbar = new Toolbar() { name = Style.k_ToolbarName };
+            var toolbar = new UIElements.Toolbar() { name = Style.k_ToolbarName };
             toolbar.Add(layoutRadio);
             toolbar.Add(new ToolbarSpacer());
             toolbar.Add(cameraMenu);
@@ -348,7 +348,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(index);
                     var environment = LookDev.currentContext.GetViewContent(index).environment;
-                    if (sidePanel == SidePanel.Environment && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var secondManipulator = new CameraController(
@@ -358,7 +358,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(ViewIndex.Second);
                     var environment = LookDev.currentContext.GetViewContent(ViewIndex.Second).environment;
-                    if (sidePanel == SidePanel.Environment && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);

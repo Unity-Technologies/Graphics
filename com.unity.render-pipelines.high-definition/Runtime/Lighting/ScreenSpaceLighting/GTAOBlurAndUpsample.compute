@@ -12,8 +12,6 @@
 // Author:  James Stanard 
 //
 
-#define NEED_TEX_SPACE_GATHER defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE)
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 
 #pragma kernel BlurUpsample  BLUR_AND_UPSAMPLE
@@ -23,9 +21,9 @@
 #pragma kernel Blur          BLUR_KERNEL_NAME=Blur BLUR 
 #pragma kernel Blur_FullRes  BLUR_KERNEL_NAME=Blur_FullRes BLUR   FULL_RES
 
-TEXTURE2D_X_UINT(_AOPackedData);
+TEXTURE2D_X(_AOPackedData);
 RW_TEXTURE2D_X(float, _OcclusionTexture);
-RW_TEXTURE2D_X(uint, _AOPackedBlurred);
+RW_TEXTURE2D_X(float, _AOPackedBlurred);
 
 
 groupshared float DepthCache[256];
@@ -50,13 +48,8 @@ bool CompareDeltas(float d1, float d2, float l1, float l2)
 
 void PrefetchData(uint index, float2 uv)
 {
-#if NEED_TEX_SPACE_GATHER
-    uv *= _AOBufferSize.xy;
-#endif
-
-    uint4 data = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, uv);
     float4 UnpackedAOs, UnpackedDepths;
-    UnpackGatheredData(data, UnpackedAOs, UnpackedDepths);
+    GatherAOData(_AOPackedData, uv, UnpackedAOs, UnpackedDepths);
 
     AOCache1[index] = UnpackedAOs.w;
     AOCache1[index + 1] = UnpackedAOs.z;
@@ -191,11 +184,8 @@ void BlurUpsample(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : 
 
     float2 UV0 = ClampAndScaleUVForBilinear(DTid.xy * _AOBufferSize.zw, _AOBufferSize.zw);
     float2 UV1 = ClampAndScaleUVForPoint(DTid.xy * 2 * _ScreenSize.zw);
-#if NEED_TEX_SPACE_GATHER
-    UV1 = DTid.xy * 2;
-#else
     UV1.y *= 2.0f / 3.0f;
-#endif
+
     float4 highDepth = GATHER_TEXTURE2D_X(_CameraDepthTexture, s_point_clamp_sampler, UV1);
     float4 LowDepth = rcp(float4(DepthCache[Idx0 + 16], DepthCache[Idx0 + 17], DepthCache[Idx0 + 1], DepthCache[Idx0]));
 
@@ -215,16 +205,10 @@ void UPSAMPLE_KERNEL(uint3 DTid : SV_DispatchThreadID)
 
     float2 UV0 = ClampAndScaleUVForBilinear(DTid.xy * _AOBufferSize.zw, _AOBufferSize.zw);
     float2 UV1 = ClampAndScaleUVForPoint(DTid.xy * 2 * _ScreenSize.zw);
-#if NEED_TEX_SPACE_GATHER
-    UV1 = DTid.xy * 2;
-    UV0 = DTid.xy;
-#else
     UV1.y *= 2.0f / 3.0f;
-#endif
 
-    uint4 data = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV0);
     float4 UnpackedAOs, UnpackedDepths;
-    UnpackGatheredData(data, UnpackedAOs, UnpackedDepths);
+    GatherAOData(_AOPackedData, UV0, UnpackedAOs, UnpackedDepths);
 
     int2 OutST = DTid.xy << 1;
 

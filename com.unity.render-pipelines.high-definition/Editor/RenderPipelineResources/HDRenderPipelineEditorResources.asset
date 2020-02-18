@@ -13,21 +13,20 @@ MonoBehaviour:
   m_Name: HDRenderPipelineEditorResources
   m_EditorClassIdentifier: 
   m_Version: 0
-  defaultScene: {fileID: 4893056312182120781, guid: bc694eebc7afe0b42b02d231420b217a,
+  defaultScene: {fileID: 5823510469358171751, guid: 405b6ef943b2f784aab57cea789e7697,
     type: 3}
-  defaultDXRScene: {fileID: 4893056312182120781, guid: a1dfdae16e0448542a6124642d4c13e9,
+  defaultDXRScene: {fileID: 4798200196228829883, guid: f93c9eb7b4c6c75499f2d7f958dbe8b4,
     type: 3}
-  defaultSkyAndFogProfile: {fileID: 11400000, guid: a817123acc6c86946bd0d80b00908e31,
+  defaultSkyAndFogProfile: {fileID: 11400000, guid: 64d0a8af6f49caf40ba9a93ecc9f9714,
     type: 2}
-  defaultDXRSkyAndFogProfile: {fileID: 11400000, guid: 42034e2547ecb3e45a60335e0f2c71d5,
+  defaultDXRSkyAndFogProfile: {fileID: 11400000, guid: 73b73e19336abb64aacdd1917a7ae32a,
     type: 2}
-  defaultPostProcessingProfile: {fileID: 11400000, guid: afc2e9b608c304f468d0c1818eba58d5,
-    type: 2}
-  defaultDXRPostProcessingProfile: {fileID: 11400000, guid: 62ad55275245cad4290c3d0f370a6be8,
-    type: 2}
+  defaultDXRSettings: {fileID: 11400000, guid: 806376545fc9e0e46983958f4deb8d44, type: 2}
   defaultDiffusionProfileSettingsList:
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
   - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+  defaultSettingsVolumeProfile: {fileID: 11400000, guid: f940a8037e6cda542891dc1aac1fa4e8,
+    type: 2}
   shaders:
     terrainDetailLitShader: {fileID: 0}
     terrainDetailGrassShader: {fileID: 0}
@@ -36,6 +35,8 @@ MonoBehaviour:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
     defaultDecalMat: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
+    defaultParticleMat: {fileID: 2100000, guid: b739a3f02ff77bf48b7636e64c3e3b4c,
+      type: 2}
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
     GUITextureBlit2SRGB: {fileID: 2100000, guid: 6e95c04e4e686554e8bed96ee69f690c,
       type: 2}

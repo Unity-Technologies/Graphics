@@ -340,14 +340,4 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
 
     // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
     builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME
-        || _DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS
-        || _DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
-    {
-        builtinData.bakeDiffuseLighting = 0.0;
-        builtinData.backBakeDiffuseLighting = 0.0;
-    }
-#endif
 }

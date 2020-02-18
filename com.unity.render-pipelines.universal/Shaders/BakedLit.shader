@@ -2,8 +2,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 {
     Properties
     {
-        _BaseMap("Texture", 2D) = "white" {}
-        _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainTexture] _BaseMap("Texture", 2D) = "white" {}
+        [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
         _BumpMap("Normal Map", 2D) = "bump" {}
 
@@ -130,7 +130,8 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 color = MixFog(color, input.uv0AndFogCoord.z);
-
+                alpha = OutputAlpha(alpha);
+                
                 return half4(color, alpha);
             }
             ENDHLSL

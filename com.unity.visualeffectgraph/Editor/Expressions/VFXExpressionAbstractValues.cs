@@ -3,7 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.VFX;
-using Object = UnityEngine.Object;
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -19,29 +19,29 @@ namespace UnityEditor.VFX
 
         // Syntactic sugar method to create a constant value
 
-        static public VFXValue<Texture> Constant(Texture2D value)
+        static public VFXValue<int> Constant(Texture2D value)
         {
-            return new VFXTexture2DValue(value, Mode.Constant);
+            return new VFXTexture2DValue(value.GetInstanceID(), Mode.Constant);
         }
 
-        static public VFXValue<Texture> Constant(Texture3D value)
+        static public VFXValue<int> Constant(Texture3D value)
         {
-            return new VFXTexture3DValue(value, Mode.Constant);
+            return new VFXTexture3DValue(value.GetInstanceID(), Mode.Constant);
         }
 
-        static public VFXValue<Texture> Constant(Cubemap value)
+        static public VFXValue<int> Constant(Cubemap value)
         {
-            return new VFXTextureCubeValue(value, Mode.Constant);
+            return new VFXTextureCubeValue(value.GetInstanceID(), Mode.Constant);
         }
 
-        static public VFXValue<Texture> Constant(Texture2DArray value)
+        static public VFXValue<int> Constant(Texture2DArray value)
         {
-            return new VFXTexture2DArrayValue(value, Mode.Constant);
+            return new VFXTexture2DArrayValue(value.GetInstanceID(), Mode.Constant);
         }
 
-        static public VFXValue<Texture> Constant(CubemapArray value)
+        static public VFXValue<int> Constant(CubemapArray value)
         {
-            return new VFXTextureCubeArrayValue(value, Mode.Constant);
+            return new VFXTextureCubeArrayValue(value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<T> Constant<T>(T value = default(T))
@@ -137,6 +137,7 @@ namespace UnityEditor.VFX
         public abstract void SetContent(object value);
 
         private Mode m_Mode;
+        protected object m_Content;
     }
 
     class VFXValue<T> : VFXValue
@@ -149,14 +150,14 @@ namespace UnityEditor.VFX
             return flags;
         }
 
-        public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
+        public VFXValue(T content, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXValue<T>(m_Content, mode);
+            var copy = new VFXValue<T>(Get(), mode);
             return copy;
         }
 
@@ -165,7 +166,7 @@ namespace UnityEditor.VFX
 
         public T Get()
         {
-            return m_Content;
+            return (T)m_Content;
         }
 
         public override object GetContent()
@@ -175,20 +176,20 @@ namespace UnityEditor.VFX
 
         public override void SetContent(object value)
         {
-            if (ValueMode == Mode.Constant)
-                throw new InvalidOperationException("Cannot set content of an immutable value");
-
             m_Content = default(T);
-
-            if (value == null || (value is Object && !(value as Object))) //if object is a deleted asset, value == null will be false, but cast to Object will return null
+            if (value == null )
             {
                 return;
             }
 
             var fromType = value.GetType();
             var toType = typeof(T);
-
+            
             if (typeof(Texture).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
+            {
+                m_Content = (T)value;
+            }
+            else if (typeof(Mesh).IsAssignableFrom(toType) && toType.IsAssignableFrom(fromType))
             {
                 m_Content = (T)value;
             }
@@ -211,7 +212,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private T m_Content;
 
         private static VFXValueType ToValueType()
         {
@@ -233,6 +233,50 @@ namespace UnityEditor.VFX
             {
                 return new int[] { (int)s_ValueType };
             }
+        }
+    }
+
+
+
+    class VFXObjectValue : VFXValue<int>
+    {
+        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID,mode)
+        {
+        }
+
+        public override VFXValue CopyExpression(Mode mode)
+        {
+            var copy = new VFXObjectValue((int)m_Content, mode);
+            return copy;
+        }
+
+        public override T Get<T>()
+        {
+            if (typeof(T) == typeof(int))
+                return (T)(object)base.Get();
+
+            return (T)(object)EditorUtility.InstanceIDToObject(base.Get());
+        }
+
+        public override object GetContent()
+        {
+            return Get();
+        }
+
+        public override void SetContent(object value)
+        {
+            if (value == null)
+            {
+                value = (int)0;
+                return;
+            }
+            if (value is UnityObject obj)
+            {
+                m_Content = obj.GetInstanceID();
+                return;
+            }
+
+            m_Content = (int)value;
         }
     }
 

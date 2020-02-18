@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static readonly GUIContent k_InfluenceVolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
         internal static readonly GUIContent k_CaptureSettingsHeader = EditorGUIUtility.TrTextContent("Capture Settings");
         internal static readonly GUIContent k_CustomSettingsHeader = EditorGUIUtility.TrTextContent("Render Settings");
-        
+
         internal static readonly GUIContent k_BakeTypeContent = EditorGUIUtility.TrTextContent("Type",
             "'Baked' uses the 'Auto Baking' mode from the Lighting window. \n" +
             "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
@@ -31,7 +31,15 @@ namespace UnityEditor.Rendering.HighDefinition
             { ToolBar.CapturePosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the capture position.") },
             { ToolBar.MirrorPosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the mirror position.") },
             { ToolBar.MirrorRotation,  EditorGUIUtility.TrIconContent("RotateTool", "Change the mirror rotation.") },
-            { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent("ReflectionProbe Gizmo", "Display the chrome gizmo.") },
+            { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent(IconReflectionProbeGizmoId, "Display the chrome gizmo.") },
         };
+
+        const string IconReflectionProbeGizmoId =
+#if UNITY_2019_3_OR_NEWER
+            "PreMatSphere"
+#else
+            "ReflectionProbe Gizmo"
+#endif
+            ;
     }
 }

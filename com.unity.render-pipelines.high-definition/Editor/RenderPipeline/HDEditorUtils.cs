@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// A collection of utilities used by editor code of the HDRP.
     /// </summary>
-    public class HDEditorUtils
+    class HDEditorUtils
     {
         internal const string FormatingPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
@@ -234,6 +234,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
             int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
+            if (HDRenderPipeline.defaultAsset == null)
+                return lightLayer;
+
             EditorGUI.BeginChangeCheck();
             lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipeline.defaultAsset.lightLayerNames);
             if (EditorGUI.EndChangeCheck())
@@ -254,10 +257,36 @@ namespace UnityEditor.Rendering.HighDefinition
                 property.stringValue = lightLayerName0;
             EditorGUI.EndProperty();
         }
+
+        /// <summary>
+        /// Similar to <see cref="EditorGUI.HandlePrefixLabel(Rect, Rect, GUIContent)"/> but indent the label
+        /// with <see cref="EditorGUI.indentLevel"/> value.
+        ///
+        /// Use this method to draw a label that will be highlighted during field search.
+        /// </summary>
+        /// <param name="totalPosition"></param>
+        /// <param name="labelPosition"></param>
+        /// <param name="label"></param>
+        internal static void HandlePrefixLabelWithIndent(Rect totalPosition, Rect labelPosition, GUIContent label)
+        {
+            // HandlePrefixLabel does not indent with EditorGUI.indentLevel.
+            // It seems that it is 15 pixels per indent space.
+            // You can check by adding 'EditorGUI.LabelField(labelRect, field.label);' before and check that the
+            // is properly overdrawn
+            //
+            labelPosition.x += EditorGUI.indentLevel * 15;
+            EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
+        }
     }
 
-    internal static partial class SerializedPropertyExtention
+    internal static partial class SerializedPropertyExtension
     {
+        public static IEnumerable<string> EnumerateDisplayName(this SerializedProperty property)
+        {
+            while (property.NextVisible(true))
+                yield return property.displayName;
+        }
+
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
         /// This handle case where index do not correspond to enum value.

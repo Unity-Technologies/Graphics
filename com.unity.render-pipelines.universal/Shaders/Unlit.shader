@@ -2,8 +2,8 @@ Shader "Universal Render Pipeline/Unlit"
 {
     Properties
     {
-        _BaseMap("Texture", 2D) = "white" {}
-        _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainTexture] _BaseMap("Texture", 2D) = "white" {}
+        [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
         // BlendMode
@@ -101,7 +101,8 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-
+                alpha = OutputAlpha(alpha);
+                
                 return half4(color, alpha);
             }
             ENDHLSL

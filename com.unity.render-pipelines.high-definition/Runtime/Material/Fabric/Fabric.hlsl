@@ -555,9 +555,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     InversePreExposeSsrLighting(ssrLighting);
 
-    // Note: RGB is already premultiplied by A.
+    // Apply the weight on the ssr contribution (if required)
+    ApplyScreenSpaceReflectionWeight(ssrLighting);
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;
