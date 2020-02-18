@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.VirtualTexturing;
+
+#if ENABLE_VIRTUALTEXTURES
 using VirtualTexturingSettings = UnityEngine.Rendering.HighDefinition.VirtualTexturingSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -322,3 +324,4 @@ namespace UnityEditor.Rendering.HighDefinition
             }
     }
 }
+#endif
