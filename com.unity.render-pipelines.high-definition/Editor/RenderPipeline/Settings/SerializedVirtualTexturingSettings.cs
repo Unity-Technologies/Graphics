@@ -3,6 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+#if ENABLE_VIRTUALTEXTURES
     public sealed class SerializedVirtualTexturingSettings
     {
         public SerializedProperty root;
@@ -24,4 +25,5 @@ namespace UnityEditor.Rendering.HighDefinition
             gpuCacheSizeOverridesProcedural = root.Find((VirtualTexturingSettings s) => s.gpuCacheSizeOverridesProcedural);
         }
     }
+#endif
 }

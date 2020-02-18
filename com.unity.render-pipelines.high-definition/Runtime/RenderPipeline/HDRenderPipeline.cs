@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                VirtualTexturing.System.ApplyVirtualTexturingSettings(new VirtualTexturing.VirtualTexturingSettings());
+                VirtualTexturing.System.ApplyVirtualTexturingSettings(VirtualTexturingSettings.Default);
             }
 #endif
 

@@ -37,15 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return settings;
         }
 
-        void OnValidate()
-        {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-            if (pipelineAsset != null && pipelineAsset.virtualTexturingSettings == this)
-            {
-                UnityEngine.Rendering.VirtualTexturing.System.ApplyVirtualTexturingSettings(GetSettings());
-            }
-        }
-
         public static UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings Default
         {
             get
