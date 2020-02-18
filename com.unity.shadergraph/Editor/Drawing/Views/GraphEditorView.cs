@@ -278,14 +278,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                 AddNode(node);
 
+            AddContexts();
+
             foreach (var edge in graph.edges)
                 AddEdge(edge);
 
             Add(content);
-
-            // TODO: Contexts must be added after content is added to GraphEditorView
-            // TODO: This is because adding each BlockNode requires GraphEditorView...
-            AddContexts();
             m_GraphView.UpdateQueries();
         }
 
@@ -293,14 +291,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ContextView AddContext(string name, ContextData contextData, Direction portDirection)
             {
-                var contextView = new ContextView(name, contextData);
+                var contextView = new ContextView(name, contextData,
+                    m_GraphView, m_EdgeConnectorListener, m_PreviewManager);
                 contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
                 contextView.AddPort(portDirection);
                 m_GraphView.AddElement(contextView);
-
-                // TODO: This should be part of the constructor
-                // TODO: But it requires to be added to GraphEditorView first...
-                contextView.AddBlocks();
                 return contextView;
             }
 
@@ -319,22 +314,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 pickingMode = PickingMode.Ignore,
             };
             m_GraphView.AddElement(contextEdge);
-        }
-
-        public MaterialNodeView AddBlockNode(ContextView contextView, BlockNode blockData)
-        {
-            var materialNodeView = new MaterialNodeView { userData = blockData };
-            contextView.AddElement(materialNodeView);
-            blockData.RegisterCallback(OnNodeChanged);
-            // blockData.RegisterCallback(previewManager.OnNodeModified);
-
-            // TODO: We should not need to add Nodes (Blocks or otherwise) via GraphEditorView
-            // TODO: Rewrite so we can hook up Preview and Color Managers without this roundtrip
-            materialNodeView.Initialize(blockData, m_PreviewManager, m_EdgeConnectorListener, m_GraphView);
-            m_ColorManager.UpdateNodeView(materialNodeView);
-            
-            materialNodeView.MarkDirtyRepaint();
-            return materialNodeView;
         }
 
         void UpdateSubWindowsVisibility()

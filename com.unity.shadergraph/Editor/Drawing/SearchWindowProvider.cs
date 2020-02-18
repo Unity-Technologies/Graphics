@@ -288,7 +288,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(!(target is ContextView contextView))
                     return false;
 
-                contextView.AddElement(blockNode, graphMousePosition);
+                int index = contextView.GetInsertionIndex(screenMousePosition);
+                contextView.AddBlock(blockNode, index);
+                contextView.contextData.AddBlock(blockNode, index);
                 return true;
             }
             

@@ -29,6 +29,18 @@ namespace UnityEditor.ShaderGraph
             set => m_Position = value;
         }
 
+        public void AddBlock(BlockNode blockNode, int index)
+        {
+            if(index == -1)
+            {
+                blocks.Add(blockNode);
+            }
+            else
+            {
+                blocks.Insert(index, blockNode);
+            }
+        }
+
         public void OnBeforeSerialize()
         {
             m_SerializableBlocks = SerializationHelper.Serialize<BlockNode>(m_Blocks);

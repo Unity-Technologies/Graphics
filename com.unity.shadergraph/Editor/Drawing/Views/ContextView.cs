@@ -15,34 +15,55 @@ namespace UnityEditor.ShaderGraph
         // As the Contexts are hardcoded we know their directions
         Port m_Port;
 
+        // These are required by MaterialNodeView.Init
+        // To avoid having to go through GraphEditorView to create Nodes
+        // We pass these into the constructor instead
+        GraphView m_GraphView;
+        EdgeConnectorListener m_Listener;
+        PreviewManager m_PreviewManager;
+
         // When dealing with more Contexts, `name` should be serialized in the ContextData
         // Right now we dont do this so we dont overcommit to serializing unknowns
-        public ContextView(string name, ContextData contextData)
+        public ContextView(string name, ContextData contextData, 
+            GraphView graphView, EdgeConnectorListener listener, PreviewManager previewManager)
         {
+            // Set data
             m_ContextData = contextData;
+            m_GraphView = graphView;
+            m_Listener = listener;
+            m_PreviewManager = previewManager;
 
             // Header
             var headerLabel = new Label() { name = "headerLabel" };
             headerLabel.text = name;
             headerContainer.Add(headerLabel);
 
-            // TODO: Add Blocks here...
-        }
-
-        // TODO: This should be part of the constructor
-        // TODO: But we need to add to GraphEditorView before...
-        // TODO: Can we go around MaterialNodeView entirely?
-        public void AddBlocks()
-        {
-            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
-            foreach(var blockNode in contextData.blocks)
+            // Add Blocks
+            for(int i = 0; i < contextData.blocks.Count; i++)
             {
-                graphEditorView.AddBlockNode(this, blockNode);
+                var block = contextData.blocks[i];
+                AddBlock(block, i);
             }
         }
 
         public ContextData contextData => m_ContextData;
         public Port port => m_Port;
+
+        public void AddBlock(BlockNode blockData, int index)
+        {
+            var nodeView = new MaterialNodeView { userData = blockData };
+            nodeView.Initialize(blockData, m_PreviewManager, m_Listener, m_GraphView);
+            nodeView.MarkDirtyRepaint();
+
+            if(index == -1)
+            {
+                AddElement(nodeView);
+            }
+            else 
+            {
+                InsertElement(index, nodeView);
+            }
+        }
 
         public void AddPort(Direction direction)
         {
@@ -56,22 +77,6 @@ namespace UnityEditor.ShaderGraph
             m_Port.pickingMode = PickingMode.Ignore;
 
             container.Add(m_Port);
-        }
-
-        public void AddElement(BlockNode blockNode, Vector2 screenMousePosition)
-        {
-            var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
-            graphEditorView.AddBlockNode(this, blockNode);
-
-            int index = GetInsertionIndex(screenMousePosition);
-            if(index == -1)
-            {
-                contextData.blocks.Add(blockNode);
-            }
-            else
-            {
-                contextData.blocks.Insert(index, blockNode);
-            }
         }
 
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)

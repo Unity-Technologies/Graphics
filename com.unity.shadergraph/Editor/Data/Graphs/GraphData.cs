@@ -1342,6 +1342,17 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
+            foreach(var vertexBlock in m_VertexContext.blocks)
+            {
+                vertexBlock.owner = this;
+                m_NodeDictionary.Add(vertexBlock.guid, vertexBlock);
+            }
+            foreach(var fragmentBlock in m_FragmentContext.blocks)
+            {
+                fragmentBlock.owner = this;
+                m_NodeDictionary.Add(fragmentBlock.guid, fragmentBlock);
+            }
+
             m_OutputNode = null;
 
             if (!isSubGraph)
