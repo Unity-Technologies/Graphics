@@ -101,6 +101,10 @@ Shader "HDRP/AxF"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
+        [ToggleUI] _EnableGeometricSpecularAA("EnableGeometricSpecularAA", Float) = 0.0
+        _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
+        _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -134,6 +138,7 @@ Shader "HDRP/AxF"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
