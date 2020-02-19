@@ -316,6 +316,5 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             return true;
         }
-    }
-    
+    }    
 }

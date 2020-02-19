@@ -111,6 +111,7 @@ namespace UnityEditor.ShaderGraph
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
+            graph.AddContexts();
             graph.AddNode(node);
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);

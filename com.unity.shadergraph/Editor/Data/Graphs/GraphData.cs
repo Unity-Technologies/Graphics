@@ -335,13 +335,6 @@ namespace UnityEditor.ShaderGraph
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
-
-            // TODO: Move
-            // Build Contexts
-            m_VertexContext = new ContextData();
-            m_VertexContext.position = new Vector2(0, 0);
-            m_FragmentContext = new ContextData();
-            m_FragmentContext.position = new Vector2(0, 200);
         }
 
         public void ClearChanges()
@@ -496,36 +489,32 @@ namespace UnityEditor.ShaderGraph
             m_ParentGroupChanges.Add(groupChange);
         }
 
-        public void AddBlock(BlockNode blockData, ContextData contextData, int index, bool validate = true)
+        public void AddContexts()
         {
-            blockData.index = index;
-            blockData.contextData = contextData;
-            AddNodeNoValidate(blockData);
-            var blockGuid = blockData.guid;
+            m_VertexContext = new ContextData();
+            m_VertexContext.position = new Vector2(0, 0);
+            m_FragmentContext = new ContextData();
+            m_FragmentContext.position = new Vector2(0, 200);
+        }
+
+        public void AddBlock(BlockNode blockNode, ContextData contextData, int index)
+        {
+            // Regular AddNode path
+            AddNodeNoValidate(blockNode);
+            ValidateGraph();
+
+            // Set BlockNode properties
+            blockNode.index = index;
+            blockNode.contextData = contextData;
+            
+            // Add to ContextData
             if(index == -1)
             {
-                contextData.blockGuids.Add(blockGuid);
+                contextData.blockGuids.Add(blockNode.guid);
             }
             else
             {
-                contextData.blockGuids.Insert(index, blockGuid);
-            }
-
-            if(validate)
-            {
-                ValidateGraph();
-            }
-        }
-
-        public void RemoveBlock(BlockNode blockData, bool validate = true)
-        {
-            RemoveNodeNoValidate(blockData);
-            var blockGuid = blockData.guid;
-            blockData.contextData.blockGuids.Remove(blockGuid);
-
-            if(validate)
-            {
-                ValidateGraph();
+                contextData.blockGuids.Insert(index, blockNode.guid);
             }
         }
 
@@ -580,6 +569,12 @@ namespace UnityEditor.ShaderGraph
             if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
             {
                 groupItems.Remove(node);
+            }
+
+            if(node is BlockNode blockNode)
+            {
+                // Remove from ContextData
+                blockNode.contextData.blockGuids.Remove(blockNode.guid);
             }
         }
 
@@ -673,12 +668,6 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
-                if(serializableNode is BlockNode blockNode)
-                {
-                    RemoveBlock(blockNode, false);
-                    continue;
-                }
-
                 RemoveNodeNoValidate(serializableNode);
             }
 
