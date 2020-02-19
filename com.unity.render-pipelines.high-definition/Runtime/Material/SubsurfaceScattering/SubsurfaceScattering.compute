@@ -31,6 +31,7 @@
 #define TEXTURE_CACHE_BORDER  2
 #define TEXTURE_CACHE_SIZE_1D (GROUP_SIZE_1D + 2 * TEXTURE_CACHE_BORDER)
 #define TEXTURE_CACHE_SIZE_2D (TEXTURE_CACHE_SIZE_1D * TEXTURE_CACHE_SIZE_1D)
+#define ADAPTIVE_SAMPLING     1
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
@@ -50,7 +51,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
-
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -165,7 +165,21 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
     // The relative sample position is known at the compile time.
+#if ADAPTIVE_SAMPLING
+    // Undo premultiplication...
+    const float log2e = 1.44269504088896340736f;
+    const float k     = (-1.0f / 3.0f) * log2e;
+    float3 S = shapeParam / k;
+    // ShapeParam = 1 / ScatteringDistance.
+    // We importance sample the color channel with the widest scattering distance.
+    float rcpPar = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
+    float scale  = rcp(n);
+    float offset = 0.5 * rcp(n);
+    // Precompute all of the above...
+    float r   = SampleBurleyDiffusionProfile(i * scale + offset, rcpPar);
+#else
     float r   = _FilterKernels[profileID][i][iR];
+#endif
     float phi = SampleDiskFibonacci(i, n).y;
 
     // The angle 'psi' is loop-invariant.
@@ -443,7 +457,23 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
     uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
 
+
+#if ADAPTIVE_SAMPLING
+    // Undo premultiplication...
+    const float log2e = 1.44269504088896340736f;
+    const float k     = (-1.0f / 3.0f) * log2e;
+    float3 S = shapeParam / k;
+    // ShapeParam = 1 / ScatteringDistance.
+    // We importance sample the color channel with the widest scattering distance.
+    float rcpPar = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
+    float scale  = rcp(n);
+    float offset = 0.5 * rcp(n);
+    // Precompute all of the above...
+    float centerRadius  = SampleBurleyDiffusionProfile(0 * scale + offset, rcpPar);
+#else
     float  centerRadius = _FilterKernels[profileID][0][iR];
+#endif
+
     float  centerRcpPdf = _FilterKernels[profileID][0][iP];
     float3 centerWeight = DisneyProfilePolar(centerRadius, shapeParam) * centerRcpPdf;
 

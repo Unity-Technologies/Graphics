@@ -290,4 +290,18 @@ void SampleCone(real2 u, real cosHalfAngle,
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
 
+// https://zero-radiance.github.io/post/sampling-diffusion/
+real SampleBurleyDiffusionProfile(real u, real rcpShapeParam)
+{
+    u = 1 - u; // Convert cCDF to CDF s.t. (x(0) = 0) and (x(1) = Inf)
+
+    real g = 1 + (4 * u) * (2 * u + sqrt(1 + (4 * u) * u));
+    real n = pow(g, -1.0/3.0); // g^(-1/3)
+    real p = g * (n * n);      // g^(+1/3) = g^1 * (g^(-1/3) * g^(-1/3))
+    real x = 3 * log(0.25 * (1 + p + n) * rcp(u)); // (u != 0)
+    real r = x * rcpShapeParam;
+
+    return r;
+}
+
 #endif // UNITY_SAMPLING_INCLUDED
