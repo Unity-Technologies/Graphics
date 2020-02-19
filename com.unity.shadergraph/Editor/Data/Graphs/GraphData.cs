@@ -496,6 +496,39 @@ namespace UnityEditor.ShaderGraph
             m_ParentGroupChanges.Add(groupChange);
         }
 
+        public void AddBlock(BlockNode blockData, ContextData contextData, int index, bool validate = true)
+        {
+            blockData.index = index;
+            blockData.contextData = contextData;
+            AddNodeNoValidate(blockData);
+            var blockGuid = blockData.guid;
+            if(index == -1)
+            {
+                contextData.blockGuids.Add(blockGuid);
+            }
+            else
+            {
+                contextData.blockGuids.Insert(index, blockGuid);
+            }
+
+            if(validate)
+            {
+                ValidateGraph();
+            }
+        }
+
+        public void RemoveBlock(BlockNode blockData, bool validate = true)
+        {
+            RemoveNodeNoValidate(blockData);
+            var blockGuid = blockData.guid;
+            blockData.contextData.blockGuids.Remove(blockGuid);
+
+            if(validate)
+            {
+                ValidateGraph();
+            }
+        }
+
         void AddNodeNoValidate(AbstractMaterialNode node)
         {
             if (node.groupGuid != Guid.Empty && !m_GroupItems.ContainsKey(node.groupGuid))
@@ -642,7 +675,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(serializableNode is BlockNode blockNode)
                 {
-                    blockNode.contextData.RemoveBlock(blockNode);
+                    RemoveBlock(blockNode, false);
                     continue;
                 }
 
@@ -1348,17 +1381,20 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
 
-            foreach(var vertexBlock in m_VertexContext.blocks)
+            // Process Blocks
+            var vertexBlockCount = m_VertexContext.blockGuids.Count;
+            for(int i = 0; i < vertexBlockCount; i++)
             {
-                vertexBlock.owner = this;
+                var vertexBlock = GetNodeFromGuid<BlockNode>(m_VertexContext.blockGuids[i]);
                 vertexBlock.contextData = m_VertexContext;
-                m_NodeDictionary.Add(vertexBlock.guid, vertexBlock);
+                vertexBlock.index = i;
             }
-            foreach(var fragmentBlock in m_FragmentContext.blocks)
+            var fragmentBlockCount = m_FragmentContext.blockGuids.Count;
+            for(int i = 0; i < fragmentBlockCount; i++)
             {
-                fragmentBlock.owner = this;
+                var fragmentBlock = GetNodeFromGuid<BlockNode>(m_FragmentContext.blockGuids[i]);
                 fragmentBlock.contextData = m_FragmentContext;
-                m_NodeDictionary.Add(fragmentBlock.guid, fragmentBlock);
+                fragmentBlock.index = i;
             }
 
             m_OutputNode = null;

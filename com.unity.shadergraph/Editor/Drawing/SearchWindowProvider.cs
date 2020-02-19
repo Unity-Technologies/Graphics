@@ -290,8 +290,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 blockNode.owner = m_Graph;
                 int index = contextView.GetInsertionIndex(screenMousePosition);
-                contextView.AddBlock(blockNode, index);
-                contextView.contextData.AddBlock(blockNode, index);
+                m_Graph.AddBlock(blockNode, contextView.contextData, index);
                 return true;
             }
             

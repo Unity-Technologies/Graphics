@@ -11,63 +11,25 @@ namespace UnityEditor.ShaderGraph
     {
         ContextData m_ContextData;
 
-        List<MaterialNodeView> m_Blocks;
-
         // Currently we only need one Port per context
         // As the Contexts are hardcoded we know their directions
         Port m_Port;
 
-        // These are required by MaterialNodeView.Init
-        // To avoid having to go through GraphEditorView to create Nodes
-        // We pass these into the constructor instead
-        GraphView m_GraphView;
-        EdgeConnectorListener m_Listener;
-        PreviewManager m_PreviewManager;
-
         // When dealing with more Contexts, `name` should be serialized in the ContextData
         // Right now we dont do this so we dont overcommit to serializing unknowns
-        public ContextView(string name, ContextData contextData, 
-            GraphView graphView, EdgeConnectorListener listener, PreviewManager previewManager)
+        public ContextView(string name, ContextData contextData)
         {
             // Set data
             m_ContextData = contextData;
-            m_GraphView = graphView;
-            m_Listener = listener;
-            m_PreviewManager = previewManager;
-            m_Blocks = new List<MaterialNodeView>();
 
             // Header
             var headerLabel = new Label() { name = "headerLabel" };
             headerLabel.text = name;
             headerContainer.Add(headerLabel);
-
-            // Add Blocks
-            for(int i = 0; i < contextData.blocks.Count; i++)
-            {
-                var block = contextData.blocks[i];
-                AddBlock(block, i);
-            }
         }
 
         public ContextData contextData => m_ContextData;
         public Port port => m_Port;
-
-        public void AddBlock(BlockNode blockData, int index)
-        {
-            var nodeView = new MaterialNodeView { userData = blockData };
-            nodeView.Initialize(blockData, m_PreviewManager, m_Listener, m_GraphView);
-            nodeView.MarkDirtyRepaint();
-            m_Blocks.Add(nodeView);
-
-            if(index == -1)
-            {
-                AddElement(nodeView);
-            }
-            else 
-            {
-                InsertElement(index, nodeView);
-            }
-        }
 
         public void AddPort(Direction direction)
         {
@@ -83,29 +45,15 @@ namespace UnityEditor.ShaderGraph
             container.Add(m_Port);
         }
 
-        public void HandleChanges()
-        {
-            if(contextData == null)
-                return;
-
-            foreach(var removedBlock in contextData.removedBlocks)
-            {
-                var blockNode = m_Blocks.First(s => s.userData == removedBlock);
-                RemoveElement(blockNode);
-            }
-
-            contextData.removedBlocks.Clear();
-        }
-
         public void InsertElements(int insertIndex, IEnumerable<GraphElement> elements)
         {
             var blockDatas = elements.Select(x => x.userData as BlockNode).ToArray();
             for(int i = 0; i < blockDatas.Length; i++)
             {
-                contextData.blocks.Remove(blockDatas[i]);
+                contextData.blockGuids.Remove(blockDatas[i].guid);
             }
 
-            contextData.blocks.InsertRange(insertIndex, blockDatas);
+            contextData.blockGuids.InsertRange(insertIndex, blockDatas.Select(x => x.guid));
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)

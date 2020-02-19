@@ -265,6 +265,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
+            AddContexts();
+            m_GraphView.UpdateQueries();
+
             foreach (var graphGroup in graph.groups)
             {
                 AddGroup(graphGroup);
@@ -278,21 +281,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                 AddNode(node);
 
-            AddContexts();
-
             foreach (var edge in graph.edges)
                 AddEdge(edge);
 
             Add(content);
-            m_GraphView.UpdateQueries();
         }
 
         void AddContexts()
         {
             ContextView AddContext(string name, ContextData contextData, Direction portDirection)
             {
-                var contextView = new ContextView(name, contextData,
-                    m_GraphView, m_EdgeConnectorListener, m_PreviewManager);
+                var contextView = new ContextView(name, contextData);
                 contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
                 contextView.AddPort(portDirection);
                 m_GraphView.AddElement(contextView);
@@ -609,10 +608,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
                     .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
-                    m_GraphView.RemoveElement((Node)nodeView);
+
+                    if(node is BlockNode blockNode)
+                    {
+                        var contexts = m_GraphView.contexts.ToList();
+                        foreach(var context in contexts)
+                        {
+                            if(context.contentContainer.Contains(nodeView as Node))
+                            {
+                                context.RemoveElement(nodeView as Node);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        m_GraphView.RemoveElement((Node)nodeView);
+                    }
 
                     if (node.groupGuid != Guid.Empty)
                     {
@@ -765,11 +781,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.UpdateQueries();
             UpdateBadges();
 
-            foreach(var context in m_GraphView.contexts.ToList())
-            {
-                context.HandleChanges();
-            }
-
             RegisterGraphViewCallbacks();
         }
 
@@ -810,6 +821,59 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var tokenNode = new PropertyNodeView(propertyNode, m_EdgeConnectorListener);
                 m_GraphView.AddElement(tokenNode);
                 nodeView = tokenNode;
+            }
+            else if(node is BlockNode blockNode)
+            {
+                var blockNodeView = new MaterialNodeView { userData = blockNode };
+                blockNodeView.Initialize(blockNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
+                blockNodeView.MarkDirtyRepaint();
+                nodeView = blockNodeView;
+
+                var contexts = m_GraphView.contexts.ToList();
+                foreach(var context in contexts)
+                {
+                    if(!context.contextData.Equals(blockNode.contextData))
+                        continue;
+
+                    // If index is -1 the node is being added to the end of the Stack
+                    // This never happens when deserializing
+                    if(blockNode.index == -1)
+                    {
+                        context.AddElement(blockNodeView);
+                        break;
+                    }
+
+                    // We cant guarantee the order nodes are deserialized in
+                    // Because of this we need to calculate the insertion index
+                    // Based on the index of currently present views in the stack
+                    var currentIndex = 0;
+                    var currentIndicies = new List<int>();
+                    var childNodes = context.contentContainer.Children().ToList();
+
+                    // Get a list of all current Node view indicies in the stack
+                    for(int i = 0; i < context.contentContainer.childCount; i++)
+                    {
+                        var childNode = childNodes[i] as MaterialNodeView;
+                        currentIndicies.Add((childNode.userData as BlockNode).index);
+                    }
+                    currentIndicies.OrderBy(x => x);
+
+                    // Get the insertion index based on current stack state
+                    for(int i = 0; i < currentIndicies.Count; i++)
+                    {
+                        if(blockNode.index > currentIndicies[i])
+                            currentIndex++;
+                    }
+                    
+                    if(currentIndex >= context.contentContainer.childCount)
+                    {
+                        context.AddElement(blockNodeView);
+                    }
+                    else 
+                    {
+                        context.InsertElement(currentIndex, blockNodeView);
+                    }
+                }
             }
             else
             {

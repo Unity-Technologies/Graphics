@@ -7,7 +7,11 @@ namespace UnityEditor.ShaderGraph
 {
     class BlockNode : AbstractMaterialNode
     {
-        ContextData m_ContextData;
+        [NonSerialized]
+        ContextData m_Context;
+
+        [NonSerialized]
+        int m_Index;
 
         // TODO: This whole class is temporary
         // TODO: Generate BlockNode from FieldDescriptors
@@ -20,8 +24,14 @@ namespace UnityEditor.ShaderGraph
 
         public ContextData contextData
         {
-            get => m_ContextData;
-            set => m_ContextData = value;
+            get => m_Context;
+            set => m_Context = value;
+        }
+
+        public int index
+        {
+            get => m_Index;
+            set => m_Index = value;
         }
     }
 }
