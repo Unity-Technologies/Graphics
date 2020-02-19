@@ -370,7 +370,7 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 // Sample the SSAO map
 half SampleAO(half3 positionCS)
 {
-    half2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS);
+    //half2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS);
     return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (_ScreenParams.zw - 1)).x;
 }
 
