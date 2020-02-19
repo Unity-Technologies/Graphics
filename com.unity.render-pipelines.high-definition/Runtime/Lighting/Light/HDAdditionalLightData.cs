@@ -1798,7 +1798,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     switch (lightType)
                     {
                         case HDLightType.Point:
-                            HDShadowUtils.ExtractPointLightData(
+                            HDShadowUtils.ExtractPointLightData(Quaternion.Euler(shadowRotationAngle),
                                 visibleLight, viewportSize, shadowNearPlane,
                                 normalBias, (uint)index, out shadowRequest.view,
                                 out invViewProjection, out shadowRequest.deviceProjectionYFlip,

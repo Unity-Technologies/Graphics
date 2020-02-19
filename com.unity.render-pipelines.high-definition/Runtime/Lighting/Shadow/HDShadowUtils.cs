@@ -38,6 +38,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(), normalBiasMax, 79.0f);
             ExtractPointLightMatrix(visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
         }
+        public static void ExtractPointLightData(Quaternion qRot, VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        {
+            Vector4 lightDir;
+
+            float guardAngle = CalcGuardAnglePerspective(90.0f, viewportSize.x, GetPunctualFilterWidthInTexels(), normalBiasMax, 79.0f);
+            ExtractPointLightMatrix(qRot, visibleLight, faceIndex, nearPlane, guardAngle, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+        }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
         public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
@@ -244,7 +251,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return deviceProj * view;
         }
 
-        static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)
+        public static Quaternion QuaternionFromMatrix(Matrix4x4 m)
+        {
+            // Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+            Quaternion q = new Quaternion();
+            q.w = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] + m[1, 1] + m[2, 2])) / 2;
+            q.x = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] - m[1, 1] - m[2, 2])) / 2;
+            q.y = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] + m[1, 1] - m[2, 2])) / 2;
+            q.z = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] - m[1, 1] + m[2, 2])) / 2;
+            q.x *= Mathf.Sign(q.x * (m[2, 1] - m[1, 2]));
+            q.y *= Mathf.Sign(q.y * (m[0, 2] - m[2, 0]));
+            q.z *= Mathf.Sign(q.z * (m[1, 0] - m[0, 1]));
+            return q;
+        }
+
+        static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl,
+                                                 uint faceIdx,
+                                                 float nearPlane,
+                                                 float guardAngle,
+                                                 out Matrix4x4 view,
+                                                 out Matrix4x4 proj,
+                                                 out Matrix4x4 deviceProj,
+                                                 out Matrix4x4 vpinverse,
+                                                 out Vector4 lightDir,
+                                                 out ShadowSplitData splitData)
         {
             if (faceIdx > (uint)CubemapFace.NegativeZ)
                 Debug.LogError("Tried to extract cubemap face " + faceIdx + ".");
@@ -257,7 +287,57 @@ namespace UnityEngine.Rendering.HighDefinition
             // calculate the view matrices
             Vector3 lpos = vl.light.transform.position;
             view = kCubemapFaces[faceIdx];
+
             Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
+
+            view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
+
+            float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
+            proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
+            // and the compound (deviceProj will potentially inverse-Z)
+            deviceProj = GL.GetGPUProjectionMatrix(proj, false);
+            proj = GL.GetGPUProjectionMatrix(proj, true);
+
+            InvertPerspective(ref deviceProj, ref view, out vpinverse);
+
+            GeometryUtility.CalculateFrustumPlanes(proj * view, s_CachedPlanes);
+            splitData.cullingPlaneCount = 6;
+            for (int i = 0; i < 6; i++)
+                splitData.SetCullingPlane(i, s_CachedPlanes[i]);
+
+            return deviceProj * view;
+        }
+
+        static Matrix4x4 ExtractPointLightMatrix(Quaternion qRot,
+                                                 VisibleLight vl,
+                                                 uint faceIdx,
+                                                 float nearPlane,
+                                                 float guardAngle,
+                                                 out Matrix4x4 view,
+                                                 out Matrix4x4 proj,
+                                                 out Matrix4x4 deviceProj,
+                                                 out Matrix4x4 vpinverse,
+                                                 out Vector4 lightDir,
+                                                 out ShadowSplitData splitData)
+        {
+            if (faceIdx > (uint)CubemapFace.NegativeZ)
+                Debug.LogError("Tried to extract cubemap face " + faceIdx + ".");
+
+            splitData = new ShadowSplitData();
+            splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
+
+            Matrix4x4 parentMatrix = Matrix4x4.TRS(vl.light.transform.position,
+                                                   qRot,
+                                                   vl.light.transform.lossyScale);
+            
+            Vector3 offsetJitter = new Vector3(0.0005f, 0f, 0f);
+            Vector3 lpos = parentMatrix.MultiplyPoint3x4(offsetJitter);
+
+            lightDir = vl.light.transform.forward;
+            view = kCubemapFaces[faceIdx];
+
+            Vector3 inverted_viewpos = kCubemapFaces[faceIdx].MultiplyPoint(-lpos);
+
             view.SetColumn(3, new Vector4(inverted_viewpos.x, inverted_viewpos.y, inverted_viewpos.z, 1.0f));
 
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
@@ -274,7 +354,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return deviceProj * view;
         }
-
         static float CalcGuardAnglePerspective(float angleInDeg, float resolution, float filterWidth, float normalBiasMax, float guardAngleMaxInDeg)
         {
             float angleInRad  = angleInDeg * 0.5f * Mathf.Deg2Rad;
