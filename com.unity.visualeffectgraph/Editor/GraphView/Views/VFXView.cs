@@ -169,7 +169,7 @@ namespace UnityEditor.VFX.UI
                         m_Node = new VFXContextUI();
                         m_Node.controller = newContextController;
                         m_Node.style.position = PositionType.Relative;
-                        m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
+                        m_Node.titleContainer.Add(m_GlassPane);
                         m_NodeShape.Add(m_Node);
                         m_DragObject = searcherItem.descriptor.modelDescriptor;
                         m_DragType = contextDragData;
@@ -183,13 +183,15 @@ namespace UnityEditor.VFX.UI
                         m_Node = new VFXOperatorUI();
                         m_Node.controller = newOperatorController;
                         m_Node.style.position = PositionType.Relative;
-                        m_Node.Insert(m_Node.childCount - 1, m_GlassPane);
+                        m_Node.titleContainer.Add(m_GlassPane);
                         m_NodeShape.Add(m_Node);
                         m_DragObject = searcherItem.descriptor.modelDescriptor;
                         m_DragType = operatorDragData;
                     }
                 }
             }
+
+            public override float InitialSplitterDetailRatio => 1.5f;
         }
 
         void InitilializeNewNodeSearcher()
@@ -1225,7 +1227,7 @@ namespace UnityEditor.VFX.UI
                             VFXNodeController nodeController = null;
                             if (edge != null)
                                 nodeController = AddNodeOnEdge(vfxItem.descriptor, mousePosition, edge);
-                            else if(anchor != null)
+                            else if (anchor != null)
                             {
                                 nodeController = anchor.AddLinkedNode(vfxItem.descriptor, mousePosition);
                             }
@@ -1235,7 +1237,7 @@ namespace UnityEditor.VFX.UI
                             {
                                 SyncNodes();
                                 VFXNodeUI node;
-                                if( rootNodes.TryGetValue(nodeController,out node))
+                                if (rootNodes.TryGetValue(nodeController, out node))
                                 {
                                     ClearSelection();
                                     AddToSelection(node);
@@ -1243,9 +1245,7 @@ namespace UnityEditor.VFX.UI
                             }
                         }
                         return true;
-                    }, mousePosition, null);
-
-
+                    }, null,new Rect(ViewToScreenPosition(mousePosition),new Vector2(720,400)));
 
                     UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
                 }

@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
 
             public VFXContextSearcherAdapter(string title, VFXView view) : base(title, view) { }
 
-
+            public override float InitialSplitterDetailRatio => 1.5f;
 
             public override void OnSelectionChanged(IEnumerable<SearcherItem> items)
             {

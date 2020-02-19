@@ -752,7 +752,7 @@ namespace UnityEditor.VFX.UI
                             newModel.SetSettingValue("m_Subgraph", subgraphBlock);
                         }
                     return true;
-                }, referencePosition,null);
+                }, null,new Rect(screenPosition,new Vector2(648,400)));
 
                 UIElementsEditorUtility.ForceDarkStyleSheet(EditorWindow.GetWindow<SearcherWindow>().GetRootVisualElement());
             }

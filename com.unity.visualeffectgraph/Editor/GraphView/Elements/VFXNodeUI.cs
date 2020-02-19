@@ -357,7 +357,6 @@ namespace UnityEditor.VFX.UI
 
             if (HasPosition())
             {
-                style.position = PositionType.Absolute;
                 style.left = controller.position.x;
                 style.top = controller.position.y;
             }
