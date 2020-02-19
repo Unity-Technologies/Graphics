@@ -8,7 +8,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.5",
-    "com.unity.test-framework.performance": "2.0.6-preview",
+    "com.unity.test-framework.performance": "2.0.7-preview",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.xr.legacyinputhelpers": "1.3.7",

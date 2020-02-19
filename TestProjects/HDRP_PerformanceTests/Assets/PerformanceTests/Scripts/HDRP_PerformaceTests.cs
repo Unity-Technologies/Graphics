@@ -75,6 +75,23 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
     public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForMemory() => testScenesAsset.memoryTestHDAssets;
     public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForBuild() => testScenesAsset.buildHDAssets;
 
+    HDProfileId[] profiledMarkers = new HDProfileId[] {
+        HDProfileId.VolumeUpdate,
+        HDProfileId.ClearBuffers,
+        HDProfileId.RenderShadowMaps,
+        HDProfileId.GBuffer,
+        HDProfileId.PrepareLightsForGPU,
+        HDProfileId.VolumeVoxelization,
+        HDProfileId.VolumetricLighting,
+        HDProfileId.RenderDeferredLightingCompute,
+        HDProfileId.ForwardOpaque,
+        HDProfileId.ForwardTransparent,
+        HDProfileId.ForwardPreRefraction,
+        HDProfileId.ColorPyramid,
+        HDProfileId.DepthPyramid,
+        HDProfileId.PostProcessing,
+    };
+
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Counters(
         [ValueSource("GetScenesForCounters")] string sceneName,
@@ -85,33 +102,32 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         var camera = GameObject.FindObjectOfType<Camera>();
         var hdCamera = HDCamera.GetOrCreate(camera, 0); // We don't support XR for now
 
-        SampleGroup cameraGPU = new SampleGroup("GPU Camera", SampleUnit.Millisecond, false);
-        SampleGroup cameraCPU = new SampleGroup("CPU Camera", SampleUnit.Millisecond, false);
-        SampleGroup gBufferGPU = new SampleGroup("GPU GBuffer", SampleUnit.Millisecond, false);
-        SampleGroup gBufferCPU = new SampleGroup("CPU GBuffer", SampleUnit.Millisecond, false);
-        SampleGroup sampleCount = new SampleGroup("sampleCount", SampleUnit.Second, false);
-        var g =  ProfilingSampler.Get(HDProfileId.GBuffer);
-
+        // Enable all the markers
         hdCamera.profilingSampler.enableRecording = true;
-        g.enableRecording = true;
+        foreach (var marker in profiledMarkers)
+            ProfilingSampler.Get(marker).enableRecording = true;
 
-        for (int i = 0; i < 100; i++)
+        // Wait for the markers to be initialized
+        for (int i = 0; i < 20; i++)
             yield return null;
 
-        for (int i = 0; i < MeasurementCount; ++i)
-        {
-            // "GPU Counters"
-            Measure.Custom(gBufferGPU, g.gpuElapsedTime);
-            Measure.Custom(cameraGPU, hdCamera.profilingSampler.gpuElapsedTime);
+        MeasureTime(hdCamera.profilingSampler);
+        foreach (var marker in profiledMarkers)
+            MeasureTime(ProfilingSampler.Get(marker));
 
-            // "CPU Counters"
-            Measure.Custom(gBufferCPU, g.cpuElapsedTime);
-            Measure.Custom(cameraCPU, hdCamera.profilingSampler.cpuElapsedTime);
-            yield return null;
-        }
-
+        // disable all the markers
         hdCamera.profilingSampler.enableRecording = false;
-        g.enableRecording = false;
+        foreach (var marker in profiledMarkers)
+            ProfilingSampler.Get(marker).enableRecording = false;
+        
+        void MeasureTime(ProfilingSampler sampler)
+        {
+            SampleGroup cpuSample = new SampleGroup($"CPU {sampler.name}", SampleUnit.Millisecond, false);
+            SampleGroup gpuSample = new SampleGroup($"GPU {sampler.name}", SampleUnit.Millisecond, false);
+
+            Measure.Custom(cpuSample, sampler.cpuElapsedTime);
+            Measure.Custom(gpuSample, sampler.gpuElapsedTime);
+        }
     }
 
     static IEnumerable<Type> GetMemoryObjectTypes()
