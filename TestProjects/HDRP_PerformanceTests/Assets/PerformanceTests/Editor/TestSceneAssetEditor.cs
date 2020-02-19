@@ -3,6 +3,8 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine.SceneManagement;
 using UnityEditor.Compilation;
+using System;
+using System.Linq;
 
 [CustomEditor(typeof(TestSceneAsset))]
 class TestSceneAssetEditor : Editor
@@ -40,13 +42,16 @@ class TestSceneAssetEditor : Editor
             EditorGUI.BeginChangeCheck();
             var elem = list.serializedProperty.GetArrayElementAtIndex(index);
             var sceneName = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scene));
+            var scenePath = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scenePath));
             var enabled = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.enabled));
             rect.height = EditorGUIUtility.singleLineHeight;
 
             // Scene field
-            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(SceneManager.GetSceneByName(sceneName.stringValue).path);
+            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets"}).FirstOrDefault();
+            var sceneAsset = String.IsNullOrEmpty(sceneGUID) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(AssetDatabase.GUIDToAssetPath(sceneGUID));
             sceneAsset = EditorGUI.ObjectField(rect, "Test Scene", sceneAsset, typeof(SceneAsset), false) as SceneAsset;
             sceneName.stringValue = sceneAsset?.name;
+            scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
 
             // Enabled field
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -99,8 +104,8 @@ class TestSceneAssetEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (Resources.Load(HDRP_PerformaceTests.testSceneResourcePath) == null)
-            EditorGUILayout.HelpBox($"Test Scene Asset have been moved from it's expected location, please move it back to Resources/{HDRP_PerformaceTests.testSceneResourcePath}", MessageType.Error);
+        if (Resources.Load(PerformanceTestUtils.testSceneResourcePath) == null)
+            EditorGUILayout.HelpBox($"Test Scene Asset have been moved from it's expected location, please move it back to Resources/{PerformanceTestUtils.testSceneResourcePath}", MessageType.Error);
 
         EditorGUIUtility.labelWidth = 100;
 

@@ -11,6 +11,7 @@ public class TestSceneAsset : ScriptableObject
     public class SceneData
     {
         public string                   scene;
+        public string                   scenePath;
         public bool                     enabled;
     }
 

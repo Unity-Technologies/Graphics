@@ -10,34 +10,19 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using UnityEngine.Profiling;
+using static PerformanceTestUtils;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
+public class PerformanceTests : IPrebuildSetup
 {
     protected static readonly int WarmupCount = 10;
     protected static readonly int MeasurementCount = 100;
-    protected const int GlobalTimeout = 120 * 1000;
+    protected const int GlobalTimeout = 120 * 1000; // 2 min
+    protected const int BuildTimeout = 10 * 60 * 1000; // 10 min for each build test
     const int minMemoryReportSize = 512 * 1024; // in bytes
-
-    public const string testSceneResourcePath = "TestScenes";
-
-    static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
-    static HDRenderPipelineAsset defaultHDAsset = Resources.Load<HDRenderPipelineAsset>("defaultHDAsset");
-
-    public enum Config
-    {
-        Forward,
-        Deferred,
-    }
-
-    public static readonly Config[] configs =
-    {
-        Config.Forward,
-        Config.Deferred,
-    };
 
     public void Setup()
     {
@@ -51,29 +36,14 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
             return new EditorBuildSettingsScene("Assets/PerformanceTests/Scenes/0000_LitCube.unity", true);
         });
 
-        Debug.Log(testScenes.Count());
-
         EditorBuildSettings.scenes = testScenes.ToArray();
 #endif
     }
 
-    public void Cleanup()
-    {
-    }
-
-    static IEnumerable<string> EnumerateTestScenes(IEnumerable<TestSceneAsset.SceneData> sceneDatas)
-    {
-        foreach (var sceneData in sceneDatas)
-            if (sceneData.enabled)
-                yield return sceneData.scene;
-    }
-
     public static IEnumerable<string> GetScenesForCounters() => EnumerateTestScenes(testScenesAsset.performanceCounterScenes);
     public static IEnumerable<string> GetScenesForMemory() => EnumerateTestScenes(testScenesAsset.memoryTestScenes);
-    public static IEnumerable<string> GetScenesForBuild() => EnumerateTestScenes(testScenesAsset.buildTestScenes);
     public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForCounters() => testScenesAsset.performanceCounterHDAssets;
     public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForMemory() => testScenesAsset.memoryTestHDAssets;
-    public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForBuild() => testScenesAsset.buildHDAssets;
 
     HDProfileId[] profiledMarkers = new HDProfileId[] {
         HDProfileId.VolumeUpdate,
@@ -94,8 +64,8 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
 
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Counters(
-        [ValueSource("GetScenesForCounters")] string sceneName,
-        [ValueSource("GetHDAssetsForCounters")] HDRenderPipelineAsset hdAsset)
+        [ValueSource(nameof(GetScenesForCounters))] string sceneName,
+        [ValueSource(nameof(GetHDAssetsForCounters))] HDRenderPipelineAsset hdAsset)
     {
         yield return SetupTest(sceneName, hdAsset);
 
@@ -111,9 +81,12 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         for (int i = 0; i < 20; i++)
             yield return null;
 
-        MeasureTime(hdCamera.profilingSampler);
-        foreach (var marker in profiledMarkers)
-            MeasureTime(ProfilingSampler.Get(marker));
+        for (int i = 0; i < MeasurementCount; i++)
+        {
+            MeasureTime(hdCamera.profilingSampler);
+            foreach (var marker in profiledMarkers)
+                MeasureTime(ProfilingSampler.Get(marker));
+        }
 
         // disable all the markers
         hdCamera.profilingSampler.enableRecording = false;
@@ -142,11 +115,11 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         yield return typeof(ComputeShader);
     }
 
-    [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
+    [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory(
-        [ValueSource("GetScenesForMemory")] string sceneName,
-        [ValueSource("GetMemoryObjectTypes")] Type type,
-        [ValueSource("GetHDAssetsForMemory")] HDRenderPipelineAsset hdAsset)
+        [ValueSource(nameof(GetScenesForMemory))] string sceneName,
+        [ValueSource(nameof(GetMemoryObjectTypes))] Type type,
+        [ValueSource(nameof(GetHDAssetsForMemory))] HDRenderPipelineAsset hdAsset)
     {
         yield return SetupTest(sceneName, hdAsset);
 
@@ -201,17 +174,5 @@ public class HDRP_PerformaceTests : IPrebuildSetup, IPostBuildCleanup
         Debug.Log($"BuildSettings. Platform: {Application.platform.ToString()}");
 
         return true;
-    }
-
-    static IEnumerator SetupTest(string sceneName, HDRenderPipelineAsset hdAsset)
-    {
-        hdAsset = hdAsset ?? defaultHDAsset;
-        if (GraphicsSettings.renderPipelineAsset != hdAsset)
-            GraphicsSettings.renderPipelineAsset = hdAsset;
-
-        SceneManager.LoadScene(sceneName);
-
-        // Wait one frame for the scene to finish loading:
-        yield return null;
     }
 }

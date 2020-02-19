@@ -133,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> shaderProcessorsList;
 
+        internal static event System.Action<Shader, ShaderSnippetData, uint> reportShaderStrippingData;
 
         uint m_TotalVariantsInputCount;
         uint m_TotalVariantsOutputCount;
@@ -153,6 +154,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
                 float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
+
+                reportShaderStrippingData?.Invoke(shader, snippetData, currVariantsCount);
 
                 string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
                         " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",

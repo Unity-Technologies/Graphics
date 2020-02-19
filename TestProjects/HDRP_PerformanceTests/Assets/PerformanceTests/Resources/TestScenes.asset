@@ -16,11 +16,13 @@ MonoBehaviour:
   - scene: 0000_LitCube
     enabled: 1
   memoryTestScenes:
-  - scene: 0000_LitCube
+  - scene: 0001_LitCube2
     enabled: 1
   buildTestScenes:
   - scene: 0000_LitCube
-    enabled: 0
+    enabled: 1
+  - scene: 0001_LitCube2
+    enabled: 1
   performanceCounterHDAssets:
   - {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
   - {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
@@ -28,3 +30,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
   buildHDAssets:
   - {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
+  - {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
