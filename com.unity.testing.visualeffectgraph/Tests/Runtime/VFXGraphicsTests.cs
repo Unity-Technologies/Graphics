@@ -120,11 +120,9 @@ namespace UnityEngine.VFX.Test
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;
 
-                maxFrame = 4;
-                while (maxFrame-->0 && vfxComponents.Any(o => o.culled))
-                {
+                maxFrame = 64;
+                while (maxFrame-->0 && vfxComponents.All(o => o.culled))
                     yield return null;
-                }
 
                 foreach (var component in vfxComponents) 
                     component.Reinit();
