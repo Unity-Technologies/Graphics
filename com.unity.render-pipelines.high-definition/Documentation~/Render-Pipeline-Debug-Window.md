@@ -130,6 +130,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Light Volume Debug Type**        | Use the drop-down to select the method HDRP uses to display the light volumes.**Gradient**: Select this option to display the light volumes as a gradient.**ColorAndEdge**: Select this option to display the light volumes as a plain color (a different color for each Light Type) with a red border for readability.This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **- Max Debug Light Count**          | Use the slider to rescale the gradient. Lower this value to make the screen turn red faster. Use this property to change the maximum acceptable number of lights for your application and still see areas in red. This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **Debug Exposure**                   | Set the exposure that HDRP applies when you select a **Lighting Debug Mode**. This is useful because HDRP does not apply normal Scene exposure when it is in debug mode. |
+| **Debug Overlay Screen Ratio**       | Set the size of the debug overlay textures with a ratio of the screen size. The default value is 0.33 which is 33% of the screen size. |
 
 <a name="RenderingPanel"></a>
 

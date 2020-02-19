@@ -10,7 +10,7 @@ You can choose from several different light types with the **Light 2D** componen
 - [Point](LightTypes.html#point)
 - [Global](LightTypes.html#global)
 
-![](images/image_1.png)
+![](Images/2D/image_1.png)
 
 The package includes the __2D Renderer Data__ Asset which contains the __Blend Styles__ parameters, and allows you to create up to four custom Light Operations for your Project.  
 

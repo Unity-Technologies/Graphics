@@ -236,6 +236,7 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.pos = shadowContext.shadowDatas[index].pos;
     sd.worldTexelSize = shadowContext.shadowDatas[index].worldTexelSize;
     sd.atlasOffset = shadowContext.shadowDatas[index].atlasOffset;
+    sd.shadowFilterParams0.x = shadowContext.shadowDatas[index].shadowFilterParams0.x;
 }
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)

@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource depthStencilBuffer, RenderGraphResource stencilBufferCopy, GBufferOutput gBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData))
+            using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGraphResource result;
 
             // TODO RENDERGRAPH
-            //var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+            //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
             //{
             //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);

@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         int numSlots;
         int[] liveIds;
+        bool isProcedural;
 
         public override bool hasPreview { get { return false; } }
 
@@ -56,8 +57,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SampleTextureStackNodeBase(int numSlots)
+        public SampleTextureStackNodeBase(int numSlots, bool procedural = false)
         {
+            isProcedural = procedural;
+
             if (numSlots > 4)
             {
                 throw new System.Exception("Maximum 4 slots supported");
@@ -80,7 +83,8 @@ namespace UnityEditor.ShaderGraph
                 TextureInputIds[i] = UVInputId + 1 + numSlots + i;
 
                 usedSlots.Add(OutputSlotIds[i]);
-                usedSlots.Add(TextureInputIds[i]);
+                if (!isProcedural)
+                    usedSlots.Add(TextureInputIds[i]);
             }
 
             FeedbackSlotId = UVInputId + 1 + numSlots * 2;
@@ -96,9 +100,12 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new Vector4MaterialSlot(OutputSlotIds[i], OutputSlotNames[i], OutputSlotNames[i], SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             }
 
-            for (int i = 0; i < numSlots; i++)
+            if (!isProcedural)
             {
-                AddSlot(new Texture2DInputMaterialSlot(TextureInputIds[i], TextureInputNames[i], TextureInputNames[i]));
+                for (int i = 0; i < numSlots; i++)
+                {
+                    AddSlot(new Texture2DInputMaterialSlot(TextureInputIds[i], TextureInputNames[i], TextureInputNames[i]));
+                }
             }
 
             var slot = new Vector4MaterialSlot(FeedbackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
@@ -121,31 +128,61 @@ namespace UnityEditor.ShaderGraph
             {
                 for (int i = 0; i < node.numSlots; i++)
                 {
-                    string value = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
-                    string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
+                    if (!node.isProcedural)
+                    {
+                        string value = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
+                        string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
 
-                    // Check if there is already a slot with the same value
-                    int found = slotNames.FindIndex(elem => elem.Key == value);
-                    if (found >= 0)
-                    {
-                        // Add a validation error, values need to be unique
-                        node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{value}' shares it's input with another stack input '{slotNames[found].Value}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                        // Check if there is already a slot with the same value
+                        int found = slotNames.FindIndex(elem => elem.Key == value);
+                        if (found >= 0)
+                        {
+                            // Add a validation error, values need to be unique
+                            node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{value}' shares it's input with another stack input '{slotNames[found].Value}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                        }
+                        else
+                        {
+                            // Save it for checking against other slots
+                            slotNames.Add(new KeyValuePair<string, string>(value, name));
+                        }
                     }
-                    else
+
+#if PROCEDURAL_VT_IN_GRAPH
+                    // Check if there is already a node with the same sampleid
+                    SampleTextureStackProcedural ssp = node as SampleTextureStackProcedural;
+                    if ( ssp != null )
                     {
-                        // Save it for checking against other slots
-                        slotNames.Add(new KeyValuePair<string, string>(value, name));
+                        string value = ssp.GetStackName();
+                        string name = ssp.GetStackName();
+                        // Check if there is already a slot with the same value
+                        int found = slotNames.FindIndex(elem => elem.Key == value);
+                        if (found >= 0)
+                        {
+                            // Add a validation error, values need to be unique
+                            node.owner.AddValidationError(node.tempId, $"This node has the same procedural ID as another node. Nodes need to have different procedural IDs.", ShaderCompilerMessageSeverity.Error);
+                        }
+                        else
+                        {
+                            // Save it for checking against other slots
+                            slotNames.Add(new KeyValuePair<string, string>(value, name));
+                        }
                     }
+#endif
                 }
             }
         }
 
         public override void ValidateNode()
         {
+            if (isProcedural) return;
+
             for (int i = 0; i < numSlots; i++)
             {
                 var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputIds[i]);
-                textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+                if (textureSlot != null)
+                {
+                    textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
+                }
             }
             base.ValidateNode();
         }
@@ -155,12 +192,45 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview3D; }
         }
 
+
+        protected virtual string GetStackName()
+        {
+            return GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+        }
+
+        private string GetTextureName(int layerIndex, GenerationMode generationMode)
+        {
+            if (isProcedural)
+            {
+                return GetStackName() + "_stacks_are_not_supported_with_vt_off_" + layerIndex;
+            }
+            else
+            {
+                return GetSlotValue(TextureInputIds[layerIndex], generationMode);
+            }
+        }
+
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
+            // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
+            // as vt headers get included even if there are no vt nodes yet.
+            sb.AppendLine("#if defined(_SURFACE_TYPE_TRANSPARENT)");
+            sb.AppendLine("#error VT cannot be used on transparent surfaces.");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)"); //SHADERPASS is not defined for preview materials so check this first.
+            sb.AppendLine("#error VT cannot be used on decals. (DBuffer)");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_MESH)");
+            sb.AppendLine("#error VT cannot be used on decals. (Mesh)");
+            sb.AppendLine("#endif");
+            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)");
+            sb.AppendLine("#error VT cannot be used on decals. (Projector)");
+            sb.AppendLine("#endif");
+
+            // Not all outputs may be connected (well one is or we wouldn't get called) so we are careful to
             // only generate code for connected outputs
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = GetStackName();
 
             bool anyConnected = false;
             for (int i = 0; i < numSlots; i++)
@@ -186,7 +256,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (IsSlotConnected(OutputSlotIds[i]))
                 {
-                    var id = GetSlotValue(TextureInputIds[i], generationMode);
+                    var id = GetTextureName(i, generationMode);
                     string resultLayer = string.Format("$precision4 {1} = SampleStack({0}_info, {2});"
                             , stackName
                             , GetVariableNameForSlot(OutputSlotIds[i])
@@ -232,31 +302,34 @@ namespace UnityEditor.ShaderGraph
             List<string> slotNames = new List<string>();
             for (int i = 0; i < numSlots; i++)
             {
-                var id = GetSlotValue(TextureInputIds[i], generationMode);
+                var id = GetTextureName(i, generationMode);
                 slotNames.Add(id);
             }
 
-            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+            string stackName = GetStackName();
 
             // Add texture stack attributes to any connected textures
-            int found = 0;
-            foreach (var prop in properties.properties.OfType<Texture2DShaderProperty>())
+            if (!isProcedural)
             {
-                int layerIdx = 0;
-                foreach (var inputTex in slotNames)
+                int found = 0;
+                foreach (var prop in properties.properties.OfType<Texture2DShaderProperty>())
                 {
-                    if (string.Compare(inputTex, prop.referenceName) == 0)
+                    int layerIdx = 0;
+                    foreach (var inputTex in slotNames)
                     {
-                        prop.textureStack = stackName + "(" + layerIdx + ")" ;
-                        found++;
+                        if (string.Compare(inputTex, prop.referenceName) == 0)
+                        {
+                            prop.textureStack = stackName + "(" + layerIdx + ")";
+                            found++;
+                        }
+                        layerIdx++;
                     }
-                    layerIdx++;
                 }
-            }
 
-            if (found != slotNames.Count)
-            {
-                Debug.LogWarning("Could not find some texture properties for stack " + stackName);
+                if (found != slotNames.Count)
+                {
+                    Debug.LogWarning("Could not find some texture properties for stack " + stackName);
+                }
             }
 
             properties.AddShaderProperty(new StackShaderProperty()
@@ -599,4 +672,98 @@ namespace UnityEditor.ShaderGraph
             return workingMasterNode as IMasterNode;
         }
     }
+
+#if PROCEDURAL_VT_IN_GRAPH
+    class SampleTextureStackProceduralBase : SampleTextureStackNodeBase
+    {
+        public SampleTextureStackProceduralBase(int numLayers) : base(numLayers, true)
+        { }
+
+        [IntegerControl("Sample ID")]
+        public int sampleID
+        {
+            get { return m_sampleId; }
+            set
+            {
+                if (m_sampleId == value)
+                    return;
+
+                m_sampleId = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [SerializeField]
+        int m_sampleId = 0;
+
+        protected override string GetStackName()
+        {
+            return "Procedural" + m_sampleId;
+        }
+    }
+
+    [Title("Input", "Texture", "Sample Texture Stack Procedural 1")]
+    class SampleTextureStackProcedural : SampleTextureStackProceduralBase
+    {
+        public SampleTextureStackProcedural() : base(1)
+        { }
+
+        [EnumControl("Type 1")]
+        public TextureType textureType
+        {
+            get { return m_TextureTypes[0]; }
+            set
+            {
+                if (m_TextureTypes[0] == value)
+                    return;
+
+                m_TextureTypes[0] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+    }
+
+    [Title("Input", "Texture", "Sample Texture Stack Procedural 2")]
+    class SampleTextureStackProcedural2 : SampleTextureStackProceduralBase
+    {
+        public SampleTextureStackProcedural2() : base(2)
+        { }
+
+        [EnumControl("Type 1")]
+        public TextureType textureType
+        {
+            get { return m_TextureTypes[0]; }
+            set
+            {
+                if (m_TextureTypes[0] == value)
+                    return;
+
+                m_TextureTypes[0] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
+        [EnumControl("Type 2")]
+        public TextureType textureType2
+        {
+            get { return m_TextureTypes[1]; }
+            set
+            {
+                if (m_TextureTypes[1] == value)
+                    return;
+
+                m_TextureTypes[1] = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+    }
+#endif
 }

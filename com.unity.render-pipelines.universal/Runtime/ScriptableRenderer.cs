@@ -21,6 +21,21 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderer
     {
+        /// <summary>
+        /// Configures the supported features for this renderer. When creating custom renderers
+        /// for Universal Render Pipeline you can choose to opt-in or out for specific features.
+        /// </summary>
+        public class RenderingFeatures
+        {
+            /// <summary>
+            /// This setting controls if the camera editor should display the camera stack category.
+            /// Renderers that don't support camera stacking will only render camera of type CameraRenderType.Base
+            /// <see cref="CameraRenderType"/>
+            /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
+            /// </summary>
+            public bool cameraStacking { get; set; } = false;
+        }
+
         void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)
         {
             // We make these parameters to mirror those described in `https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
@@ -72,6 +87,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ActiveRenderPassQueue;
         }
+
+        /// <summary>
+        /// Supported rendering features by this renderer.
+        /// <see cref="SupportedRenderingFeatures"/>
+        /// </summary>
+        public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
         static class RenderPassBlock
         {
@@ -189,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Called upon finishing camera rendering. You can release any resources created on setup here.
+        /// Called upon finishing rendering the camera stack. You can release any resources created by the renderer here.
         /// </summary>
         /// <param name="cmd"></param>
         public virtual void FinishRendering(CommandBuffer cmd)
@@ -210,11 +231,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
 
             // Initialize Camera Render State
-            SetCameraRenderState(cmd, ref renderingData.cameraData);
+            SetCameraRenderState(cmd, ref cameraData);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             
@@ -268,10 +290,22 @@ namespace UnityEngine.Rendering.Universal
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled, eyeIndex);
 
+            // If overlay camera, we have to reset projection related matrices due to inheriting viewport from base
+            // camera. This changes the aspect ratio, which requires to recompute projection.
+            // TODO: We need to expose all work done in SetupCameraProperties above to c# land. This not only
+            // avoids resetting values but also guarantee values are correct for all systems.
+            // Known Issue: billboard will not work with camera stacking when using viewport with aspect ratio different from default aspect.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+            {
+                cmd.SetViewProjectionMatrices(cameraData.viewMatrix, cameraData.projectionMatrix);
+            }
+
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
-            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+            SetShaderTimeValues(time, deltaTime, smoothDeltaTime, cmd);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera, eyeIndex);
@@ -299,12 +333,12 @@ namespace UnityEngine.Rendering.Universal
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData, eyeIndex);
 
             if (stereoEnabled)
-                EndXRRendering(context, camera, renderingData, eyeIndex);
+                EndXRRendering(context, renderingData, eyeIndex);
+            }
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-           }
-            //if (renderingData.resolveFinalTarget)
-                InternalFinishRendering(context);
+
+            InternalFinishRendering(context, renderingData.resolveFinalTarget);
             blockRanges.Dispose();
             CommandBufferPool.Release(cmd);
         }
@@ -323,8 +357,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraClearFlags">Camera clear flags.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
-        protected static ClearFlag GetCameraClearFlag(CameraClearFlags cameraClearFlags)
+        protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
+            var cameraClearFlags = cameraData.camera.clearFlags;
+
 #if UNITY_EDITOR
             // We need public API to tell if FrameDebugger is active and enabled. In that case
             // we want to force a clear to see properly the drawcall stepping.
@@ -350,6 +386,11 @@ namespace UnityEngine.Rendering.Universal
             // RenderBufferLoadAction.DontCare in PC/Desktop behaves as not clearing screen
             // RenderBufferLoadAction.DontCare in Vulkan/Metal behaves as DontCare load action
             // RenderBufferLoadAction.DontCare in GLES behaves as glInvalidateBuffer
+
+            // Overlay cameras composite on top of previous ones. They don't clear color.
+            // For overlay cameras we check if depth should be cleared on not.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+                return (cameraData.clearDepth) ? ClearFlag.Depth : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform)
@@ -381,9 +422,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Clear()
         {
-            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
-            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
-
             m_ActiveColorAttachments[0] = BuiltinRenderTextureType.CameraTarget;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
@@ -395,6 +433,9 @@ namespace UnityEngine.Rendering.Universal
             m_FirstTimeCameraDepthTargetIsBound = true;
             
             m_ActiveRenderPassQueue.Clear();
+
+            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
+            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
@@ -421,7 +462,7 @@ namespace UnityEngine.Rendering.Universal
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
 
-            ClearFlag cameraClearFlag = GetCameraClearFlag(camera.clearFlags);
+            ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (RenderingUtils.IsMRT(renderPass.colorAttachments))
@@ -547,10 +588,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
-                    // Overlay cameras composite on top of previous ones. They don't clear.
-                    // MTT: Commented due to not implemented yet
-                    //                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
-                    //                    clearFlag = ClearFlag.None;
+
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
@@ -618,10 +656,11 @@ namespace UnityEngine.Rendering.Universal
             m_XRRenderTargetNeedsClear = true;
         }
 
-        void EndXRRendering(ScriptableRenderContext context, Camera camera, RenderingData renderingData, int eyeIndex)
+        void EndXRRendering(ScriptableRenderContext context, in RenderingData renderingData, int eyeIndex)
         {
+            Camera camera = renderingData.cameraData.camera;
             context.StopMultiEye(camera);
-            bool isLastPass = eyeIndex == renderingData.cameraData.numberOfXRPasses - 1;
+            bool isLastPass = renderingData.resolveFinalTarget && (eyeIndex == renderingData.cameraData.numberOfXRPasses - 1);
             context.StereoEndRender(camera, eyeIndex, isLastPass);
             m_InsideStereoRenderBlock = false;
         }
@@ -634,7 +673,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
@@ -726,15 +765,21 @@ namespace UnityEngine.Rendering.Universal
             blockRanges[currRangeIndex] = m_ActiveRenderPassQueue.Count;
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
-            FinishRendering(cmd);
-            Clear();
+            // Happens when rendering the last camera in the camera stack.
+            if (resolveFinalTarget)
+            {
+                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                    m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+
+                FinishRendering(cmd);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

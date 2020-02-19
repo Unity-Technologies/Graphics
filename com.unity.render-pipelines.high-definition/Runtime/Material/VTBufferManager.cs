@@ -1,9 +1,9 @@
+#if ENABLE_VIRTUALTEXTURES
+using VirtualTexturing = UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Experimental.Rendering;
-
 
 namespace  UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_VIRTUALTEXTURES
     public class VTBufferManager
     {
         public static GraphicsFormat GetFeedbackBufferFormat()
@@ -12,9 +12,10 @@ namespace  UnityEngine.Rendering.HighDefinition
         }
 
         RTHandle m_VTFeedbackBuffer;
-        VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
+        VirtualTexturing.Resolver m_Resolver = new VirtualTexturing.Resolver();
         public static int AdditionalForwardRT = 1;
-        int resolveScale = 16;
+        const int resolveScaleFactor = 16;
+        Vector2 resolverScale = new Vector2(1.0f / (float)resolveScaleFactor, 1.0f / (float)resolveScaleFactor);
         RTHandle lowresResolver;
         ComputeShader downSampleCS;
 
@@ -31,22 +32,14 @@ namespace  UnityEngine.Rendering.HighDefinition
                 m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
                     enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
             }
+
+            lowresResolver = RTHandles.Alloc(resolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
         }
 
         public void BeginRender(int width, int height)
         {
             GetResolveDimensions(ref width, ref height);
-
-            if (lowresResolver != null && (width != lowresResolver.referenceSize.x || height != lowresResolver.referenceSize.y))
-            {
-                RTHandles.Release(lowresResolver);
-                lowresResolver = null;
-            }
-
-            if (lowresResolver == null)
-                lowresResolver = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
-
-            m_Resolver.Init((uint)width, (uint)height);
+            m_Resolver.UpdateSize(width, height);
         }
 
         public void Resolve(CommandBuffer cmd, RTHandle rt, int width, int height)
@@ -64,6 +57,15 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, int width, int height)
         {
+            // We allow only resolving a sub-rectangle of a larger allocated buffer but not the other way around.
+            Debug.Assert(width <= buffer.referenceSize.x && height <= buffer.referenceSize.y);
+
+            int lowResWidth = width;
+            int lowResHeight = height;
+            GetResolveDimensions(ref lowResWidth, ref lowResHeight);
+            Debug.Assert(lowResWidth <= m_Resolver.CurrentWidth && lowResHeight <= m_Resolver.CurrentHeight);
+            Debug.Assert(lowResWidth <= lowresResolver.referenceSize.x && lowResHeight <= lowresResolver.referenceSize.y);
+
             string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
             int inputID = (buffer.enableMSAA) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
 
@@ -71,26 +73,28 @@ namespace  UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(downSampleCS, kernel, inputID, buffer.nameID);
             cmd.SetComputeTextureParam(downSampleCS, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
             var resolveCounter = 0;
-            var startOffsetX = (resolveCounter % resolveScale);
-            var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
-            cmd.SetComputeVectorParam(downSampleCS, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
-            var TGSize = 8;
-            cmd.DispatchCompute(downSampleCS, kernel, ((int)width + (TGSize - 1)) / TGSize, ((int)height + (TGSize - 1)) / TGSize, 1);
+            var startOffsetX = (resolveCounter % resolveScaleFactor);
+            var startOffsetY = (resolveCounter / resolveScaleFactor) % resolveScaleFactor;
+            cmd.SetComputeVectorParam(downSampleCS, HDShaderIDs._Params, new Vector4(resolveScaleFactor, startOffsetX, startOffsetY, /*unused*/-1));
+            cmd.SetComputeVectorParam(downSampleCS, HDShaderIDs._Params1, new Vector4(width, height, lowResWidth, lowResHeight));
+            var TGSize = 8; //Match shader
+            cmd.DispatchCompute(downSampleCS, kernel, ((int)lowResWidth + (TGSize - 1)) / TGSize, ((int)lowResHeight + (TGSize - 1)) / TGSize, 1);
 
-            GetResolveDimensions(ref width, ref height);
-            m_Resolver.Process(cmd, lowresResolver.nameID, 0, (uint)width, 0, (uint)height, 0, 0);
+            m_Resolver.Process(cmd, lowresResolver.nameID, 0, lowResWidth, 0, lowResHeight, 0, 0);
         }
 
         void GetResolveDimensions(ref int w, ref int h)
         {
-            w = (w + (resolveScale - 1)) / resolveScale;
-            h = (h + (resolveScale - 1)) / resolveScale;
+            w = Mathf.Max(Mathf.RoundToInt(resolverScale.x * w), 1);
+            h = Mathf.Max(Mathf.RoundToInt(resolverScale.y * h), 1);
         }
 
         public void DestroyBuffers()
         {
             RTHandles.Release(m_VTFeedbackBuffer);
+            RTHandles.Release(lowresResolver);
             m_VTFeedbackBuffer = null;
+            lowresResolver = null;
             m_Resolver.Dispose();
         }
 
@@ -102,5 +106,5 @@ namespace  UnityEngine.Rendering.HighDefinition
 
 
     }
-#endif
 }
+#endif

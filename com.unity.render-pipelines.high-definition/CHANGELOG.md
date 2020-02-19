@@ -41,6 +41,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Reflections to the DXR Wizard
 - Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
 - Added a check in the custom post process template to throw an error if the default shader is not found.
+- Exposed the debug overlay ratio in the debug menu.
+- Added a separate frame settings for tonemapping alongside color grading.
+- Added the receive fog option in the material UI for ShaderGraphs.
+- Added a public virtual bool in the custom post processes API to specify if a post processes should be executed in the scene view.
+- Added a menu option that checks scene issues with ray tracing. Also removed the previously existing warning at runtime.
+- Added Contrast Adaptive Sharpen (CAS) Upscaling effect.
+- Added APIs to update probe settings at runtime.
+- Added documentation for the rayTracingSupported method in HDRP
+- Added user-selectable format for the post processing passes. 
+- Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -264,6 +274,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed several issues with decal duplicating when editing them.
 - Fixed initialization of volumetric buffer params (1204159)
 - Fixed an issue where frame count was incorrectly reset for the game view, causing temporal processes to fail.
+- Fixed Culling group was not disposed error.
+- Fixed issues on some GPU that do not support gathers on integer textures.
+- Fixed an issue with ambient probe not being initialized for the first frame after a domain reload for volumetric fog.
+- Fixed the scene visibility of decal projectors and density volumes
+- Fixed a leak in sky manager.
+- Fixed an issue where entering playmode while the light editor is opened would produce null reference exceptions.
+- Fixed the debug overlay overlapping the debug menu at runtime.
+- Fixed an issue with the framecount when changing scene.
+- Fixed errors that occurred when using invalid near and far clip plane values for planar reflections.
+- Fixed issue with motion blur sample weighting function.
+- Fixed motion vectors in MSAA.
+- Fixed sun flare blending (case 1205862).
+- Fixed a lot of issues related to ray traced screen space shadows.
+- Fixed memory leak caused by apply distortion material not being disposed.
+- Fixed Reflection probe incorrectly culled when moving its parent (case 1207660)
+- Fixed a nullref when upgrading the Fog volume components while the volume is opened in the inspector.
+- Fix issues where decals on PS4 would not correctly write out the tile mask causing bits of the decal to go missing.
+- Use appropriate label width and text content so the label is completely visible
+- Fixed an issue where final post process pass would not output the default alpha value of 1.0 when using 11_11_10 color buffer format.
+- Fixed SSR issue after the MSAA Motion Vector fix.
+- Fixed an issue with PCSS on directional light if punctual shadow atlas was not allocated.
+- Fixed an issue where shadow resolution would be wrong on the first face of a baked reflection probe.
+- Fixed issue with PCSS softness being incorrect for cascades different than the first one.
+- Fixed custom post process not rendering when using multiple HDRP asset in quality settings
+- Fixed probe gizmo missing id (case 1208975)
+- Fixed a warning in raytracingshadowfilter.compute
+- Fixed issue with AO breaking with small near plane values.
+- Fixed custom post process Cleanup function not called in some cases.
+- Fixed shader warning in AO code.
+- Fixed a warning in simpledenoiser.compute
+- Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
+- Fixed caused by using gather on a UINT texture in motion blur. 
+- Fix issue with ambient occlusion breaking when dynamic resolution is active.
+- Fixed some possible NaN causes in Depth of Field.
+- Fixed Custom Pass nullref due to the new Profiling Sample API changes
+- Fixed the black/grey screen issue on after post process Custom Passes in non dev builds.
+- Fixed particle lights.
+- Improved behavior of lights and probe going over the HDRP asset limits.
+- Fixed issue triggered when last punctual light is disabled and more than one camera is used.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -308,6 +357,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed shadow near plane from the Directional Light Shadow UI.
 - Improved the performances of custom pass culling.
 - The scene view camera now replicates the physical parameters from the camera tagged as "MainCamera".
+- Reduced the number of GC.Alloc calls, one simple scene without plarnar / probes, it should be 0B.
+- Renamed ProfilingSample to ProfilingScope and unified API. Added GPU Timings.
+- Updated macros to be compatible with the new shader preprocessor.
+- Ray tracing reflection temporal filtering is now done in pre-exposed space
+- Search field selects the appropriate fields in both project settings panels 'HDRP Default Settings' and 'Quality/HDRP'
+- Disabled the refraction and transmission map keywords if the material is opaque.
+- Keep celestial bodies outside the atmosphere.
+- Updated the MSAA documentation to specify what features HDRP supports MSAA for and what features it does not.
+- Shader use for Runtime Debug Display are now correctly stripper when doing a release build
+- Now each camera has its own Volume Stack. This allows Volume Parameters to be updated as early as possible and be ready for the whole frame without conflicts between cameras.
+- Disable Async for SSR, SSAO and Contact shadow when aggregated ray tracing frame setting is on.
+- Improved performance when entering play mode without domain reload by a factor of ~25
+- Renamened the camera profiling sample to include the camera name
 
 ## [7.1.1] - 2019-09-05
 

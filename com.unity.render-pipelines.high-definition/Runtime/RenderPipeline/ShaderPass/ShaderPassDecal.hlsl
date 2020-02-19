@@ -39,16 +39,16 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     DecalSurfaceData surfaceData;
 #if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-    uint tileCoord1d = -1; 
+    uint tileCoord1d = -1;
     bool clipped = false;
 #endif
-      
+
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
-    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);    
+    positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
     if (!(all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
 #if defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
@@ -67,7 +67,7 @@ void Frag(  PackedVaryingsToPS packedInput,
         float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
         GetSurfaceData(input, V, posInput, surfaceData);
-#endif        
+#endif
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     }
@@ -84,22 +84,23 @@ void Frag(  PackedVaryingsToPS packedInput,
 // Perform HTile optimization only on platform that support it
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
     uint2 htileCoord = input.positionSS.xy / 8;
-    int stride = (_ScreenSize.x + 7) / 8;      
+    int stride = (_ScreenSize.x + 7) / 8;
     uint mask = surfaceData.HTileMask;
     tileCoord1d = htileCoord.y * stride + htileCoord.x;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // This is an optimization to reduce the number of atomatic operation executed.
     // smallest tile index in the wave
-    uint minTileCoord1d = WaveActiveMin(tileCoord1d);   
-    while (minTileCoord1d != -1) 
+    uint minTileCoord1d = WaveActiveMin(tileCoord1d);
+    while (minTileCoord1d != -1)
     {
         if ((minTileCoord1d == tileCoord1d) && (!clipped))// if this is the current tile and not a helper lane
-        {               
+        {
+            // calculate the mask across the current tile
+            mask = WaveActiveBitOr(surfaceData.HTileMask);
+
             // Is it the first active lane?
             if(WaveIsFirstLane())
             {
-                // calculate the mask across the current tile once
-                mask = WaveActiveBitOr(surfaceData.HTileMask);
                 // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
                 if (tileCoord1d != -1)
                 {
@@ -116,8 +117,8 @@ void Frag(  PackedVaryingsToPS packedInput,
             tileCoord1d = htileCoord.y * stride + htileCoord.x;
         }
         // get the next tile with smallest index
-        minTileCoord1d = WaveActiveMin(tileCoord1d);  
-    }      
+        minTileCoord1d = WaveActiveMin(tileCoord1d);
+    }
 #else // PLATFORM_SUPPORTS_WAVE_INTRINSICS
     InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
