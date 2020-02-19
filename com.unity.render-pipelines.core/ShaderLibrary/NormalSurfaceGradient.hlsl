@@ -70,7 +70,7 @@ real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNorma
 real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 {
     real3 vT   = packedNormal.rgb * 2.0 - 1.0;   // Unsigned to signed
-    real  rcpZ = rcp(max(vT.z, sqrt(REAL_EPS))); // Clamp to avoid INF
+    real  rcpZ = rcp(max(vT.z, sqrt(REAL_EPS))); // Clamp to avoid Inf
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
@@ -79,10 +79,14 @@ real2 UnpackDerivativeNormalRGB(real4 packedNormal, real scale = 1.0)
 real2 UnpackDerivativeNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real2 vT = packedNormal.ag * 2.0 - 1.0; // Unsigned to signed
-    // Make sure (length(input) < 1), which could happen due to compression.
-    // Code below guarantees that (z >= sqrt(REAL_EPS)).
-    vT *= rsqrt(max(dot(vT, vT) + (2.0 * REAL_EPS), 1.0));
-    real rcpZ = rsqrt(1.0 - dot(vT, vT));
+
+    // Due to compression, there is a possibility that (length(vT) > 1).
+    // Instead of keeping the normal horizontal (which produces undesirable visuals),
+    // we make the excessive magnitude contribute towards the Z component of the normal.
+    // Effectively, if the normal is too long, the extra length makes it more upright.
+    float sqZ = max(abs(1 - dot(vT, vT)), REAL_EPS); // Clamp to avoid 0
+    vT *= rsqrt(sqZ + dot(vT, vT));                  // Normalize, if necessary
+    real rcpZ = rsqrt(sqZ);                          // Can not be Inf
 
     return ConvertTangentSpaceNormalToHeightMapGradient(vT.xy, rcpZ, scale);
 }
