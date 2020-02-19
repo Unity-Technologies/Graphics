@@ -45,7 +45,18 @@ namespace UnityEditor.VFX
             {
                 direction.direction = Vector3.up;
             }
+
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
+
+            Ray ray = HandleUtility.GUIPointToWorldRay(Vector2.one * 200);
+            var position = ray.origin + ray.direction * 2;
+
+            var mat = Handles.matrix;
+
+            mat.SetColumn(3,new Vector4(position.x,position.y,position.z,1));
+
+            Handles.matrix = mat;
+
             Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
 
             if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
@@ -66,7 +77,7 @@ namespace UnityEditor.VFX
 
         public override Bounds OnGetSpacedGizmoBounds(DirectionType value)
         {
-            return new Bounds(Vector3.zero, Vector3.one);
+            return new Bounds(Vector3.zero, Vector3.zero);
         }
     }
     [VFXGizmo(typeof(Vector))]

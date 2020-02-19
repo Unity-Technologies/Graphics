@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    [ExcludeFromPreset]
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;

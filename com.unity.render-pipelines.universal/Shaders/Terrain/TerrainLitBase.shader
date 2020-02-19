@@ -2,7 +2,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 {
     Properties
     {
-        _BaseColor("Color", Color) = (1,1,1,1)
+        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         _MainTex("Albedo(RGB), Smoothness(A)", 2D) = "white" {}
         _MetallicTex ("Metallic (R)", 2D) = "black" {}
 		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}

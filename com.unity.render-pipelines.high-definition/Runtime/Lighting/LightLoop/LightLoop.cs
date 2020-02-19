@@ -135,30 +135,54 @@ namespace UnityEngine.Rendering.HighDefinition
         public float unused2;
     };
 
+    /// <summary>
+    /// Tile and Cluster Debug Mode.
+    /// </summary>
     public enum TileClusterDebug : int
     {
+        /// <summary>No Tile and Cluster debug.</summary>
         None,
+        /// <summary>Display lighting tiles debug.</summary>
         Tile,
+        /// <summary>Display lighting clusters debug.</summary>
         Cluster,
+        /// <summary>Display material feautre variants.</summary>
         MaterialFeatureVariants
     };
 
+    /// <summary>
+    /// Light Volume Debug Mode.
+    /// </summary>
     public enum LightVolumeDebug : int
     {
+        /// <summary>Display light volumes as a gradient.</summary>
         Gradient,
+        /// <summary>Display light volumes as shapes will color and edges depending on the light type.</summary>
         ColorAndEdge
     };
 
+    /// <summary>
+    /// Tile and Cluster Debug Categories.
+    /// </summary>
     public enum TileClusterCategoryDebug : int
     {
+        /// <summary>Punctual lights.</summary>
         Punctual = 1,
+        /// <summary>Area lights.</summary>
         Area = 2,
+        /// <summary>Area and punctual lights.</summary>
         AreaAndPunctual = 3,
+        /// <summary>Environment lights.</summary>
         Environment = 4,
+        /// <summary>Environment and punctual lights.</summary>
         EnvironmentAndPunctual = 5,
+        /// <summary>Environment and area lights.</summary>
         EnvironmentAndArea = 6,
+        /// <summary>All lights.</summary>
         EnvironmentAndAreaAndPunctual = 7,
+        /// <summary>Decals.</summary>
         Decal = 8,
+        /// <summary>Density Volumes.</summary>
         DensityVolumes = 16
     };
 
@@ -214,6 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxDecalsOnScreen;
         int m_MaxLightsOnScreen;
         int m_MaxEnvLightsOnScreen;
+        int m_MaxPlanarReflectionOnScreen;
 
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
@@ -221,14 +246,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
-            public TextureCache2D               cookieTexArray { get; private set; }
-            public LTCAreaLightCookieManager    areaLightCookieManager { get; private set; }
-            // Structure for cookies used by point lights
-            public TextureCacheCubemap          cubeCookieTexArray { get; private set; }
+            public LightCookieManager           lightCookieManager { get; private set; }
             public ReflectionProbeCache         reflectionProbeCache { get; private set; }
             public PlanarReflectionProbeCache   reflectionPlanarProbeCache { get; private set; }
             public List<Matrix4x4>              env2DCaptureVP { get; private set; }
             public List<float>                  env2DCaptureForward { get; private set; }
+            public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
             Material m_CubeToPanoMaterial;
 
@@ -238,30 +261,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
-                areaLightCookieManager = new LTCAreaLightCookieManager(hdrpAsset, defaultResources, k_MaxCacheSize);
+                lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
 
                 env2DCaptureVP = new List<Matrix4x4>();
                 env2DCaptureForward = new List<float>();
-                for (int i = 0, c = Mathf.Max(1, lightLoopSettings.planarReflectionProbeCacheSize); i < c; ++i)
+                for (int i = 0, c = Mathf.Max(1, lightLoopSettings.maxPlanarReflectionOnScreen); i < c; ++i)
                 {
                     env2DCaptureVP.Add(Matrix4x4.identity);
                     env2DCaptureForward.Add(0);
                     env2DCaptureForward.Add(0);
                     env2DCaptureForward.Add(0);
+                    env2DAtlasScaleOffset.Add(Vector4.zero);
                 }
-
-                cookieTexArray = new TextureCache2D("Cookie");
-                int coockieSize = lightLoopSettings.cookieTexArraySize;
-                int coockieResolution = (int)lightLoopSettings.cookieSize;
-                if (TextureCache2D.GetApproxCacheSizeInByte(coockieSize, coockieResolution, 1) > k_MaxCacheSize)
-                    coockieSize = TextureCache2D.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieResolution, 1);
-                cookieTexArray.AllocTextureArray(coockieSize, coockieResolution, coockieResolution, GraphicsFormat.R8G8B8A8_SRGB, true);
-                cubeCookieTexArray = new TextureCacheCubemap("Cookie");
-                int coockieCubeSize = lightLoopSettings.cubeCookieTexArraySize;
-                int coockieCubeResolution = (int)lightLoopSettings.pointCookieSize;
-                if (TextureCacheCubemap.GetApproxCacheSizeInByte(coockieCubeSize, coockieCubeResolution, 1) > k_MaxCacheSize)
-                    coockieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieCubeResolution, 1);
-                cubeCookieTexArray.AllocTextureArray(coockieCubeSize, coockieCubeResolution, GraphicsFormat.R8G8B8A8_SRGB, true, m_CubeToPanoMaterial);
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
                 GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
@@ -273,29 +284,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
                 GraphicsFormat planarProbeCacheFormat = lightLoopSettings.planarReflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
-                int reflectionPlanarSize = lightLoopSettings.planarReflectionProbeCacheSize;
-                int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionTextureSize;
-                if (ReflectionProbeCache.GetApproxCacheSizeInByte(reflectionPlanarSize, reflectionPlanarResolution, 1) > k_MaxCacheSize)
-                    reflectionPlanarSize = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, reflectionPlanarResolution, 1);
-                reflectionPlanarProbeCache = new PlanarReflectionProbeCache(defaultResources, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarSize, reflectionPlanarResolution, planarProbeCacheFormat, true);
+                int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionAtlasSize;
+                reflectionPlanarProbeCache = new PlanarReflectionProbeCache(defaultResources, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarResolution, planarProbeCacheFormat, true);
             }
 
             public void Cleanup()
             {
                 reflectionProbeCache.Release();
                 reflectionPlanarProbeCache.Release();
-                cookieTexArray.Release();
-                cubeCookieTexArray.Release();
-                areaLightCookieManager.ReleaseResources();
+                lightCookieManager.Release();
 
                 CoreUtils.Destroy(m_CubeToPanoMaterial);
             }
 
             public void NewFrame()
             {
-                areaLightCookieManager.NewFrame();
-                cookieTexArray.NewFrame();
-                cubeCookieTexArray.NewFrame();
+                lightCookieManager.NewFrame();
                 reflectionProbeCache.NewFrame();
                 reflectionPlanarProbeCache.NewFrame();
             }
@@ -451,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
-        public Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
+        Matrix4x4 GetWorldToViewMatrix(HDCamera hdCamera, int viewIndex)
         {
             var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(viewIndex) : hdCamera.camera.worldToCameraMatrix);
 
@@ -617,6 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
+        Material m_DebugBlitMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
@@ -628,7 +633,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
-        public struct ScreenSpaceShadowData
+        struct ScreenSpaceShadowData
         {
             public HDAdditionalLightData additionalLightData;
             public int lightDataIndex;
@@ -638,7 +643,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ScreenSpaceShadowIndex = 0;
         int m_ScreenSpaceShadowChannelSlot = 0;
         ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
-        public ScreenSpaceShadowData GetScreenSpaceShadowData(int screenSpaceShadowIndex) { return m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex]; }
 
         // Contact shadow index reseted at the beginning of each frame, used to generate the contact shadow mask
         int m_ContactShadowIndex;
@@ -650,6 +654,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
+
+        static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
 
         bool HasLightToCull()
         {
@@ -737,6 +743,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
+            m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
@@ -744,6 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxDecalsOnScreen = lightLoopSettings.maxDecalsOnScreen;
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
+            m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
             s_GenAABBKernel_Oblique = buildScreenAABBShader.FindKernel("ScreenBoundsAABB_Oblique");
@@ -786,6 +794,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[8];
+            int stencilMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
 
             for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
             {
@@ -801,8 +810,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
                         CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
 
-                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
+                        int stencilRef = (int)StencilUsage.RequiresDeferredLighting;
+
+                        if (outputSplitLighting == 1)
+                        {
+                            stencilRef |= (int)StencilUsage.SubsurfaceScattering;
+                        }
+
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, stencilMask);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, stencilRef);
                         m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                     }
                 }
@@ -810,17 +826,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Stencil set to only touch "regular lighting" pixels.
             s_DeferredTileRegularLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
             s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
 
             // Stencil set to only touch "split-lighting" pixels.
             s_DeferredTileSplitLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
             s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
 
             // Stencil set to touch all pixels excepted background/sky.
             s_DeferredTileMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
             s_DeferredTileMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
 
             for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
@@ -885,6 +904,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
+            CoreUtils.Destroy(m_DebugBlitMaterial);
         }
 
         void LightLoopNewRender()
@@ -1126,23 +1146,27 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.specularDimmer        = additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0;
             lightData.volumetricLightDimmer = additionalLightData.volumetricDimmer;
 
-            lightData.shadowIndex = lightData.cookieIndex = -1;
+            lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
-                lightData.tileCookie = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
-                lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
+                lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
+                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
+            }
+            else
+            {
+                lightData.cookieMode = CookieMode.None;
             }
 
             if (additionalLightData.surfaceTexture == null)
             {
-                lightData.surfaceTextureIndex = -1;
+                lightData.surfaceTextureScaleOffset = Vector4.zero;
             }
             else
             {
-                lightData.surfaceTextureIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, additionalLightData.surfaceTexture);
+                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
             }
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
@@ -1393,6 +1417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.specularDimmer        = processedData.lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
             lightData.volumetricLightDimmer = processedData.lightDistanceFade * (additionalLightData.volumetricDimmer);
 
+            lightData.cookieMode = CookieMode.None;
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
@@ -1400,14 +1425,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
-                // TODO: add texture atlas support for cookie textures.
                 switch (lightType)
                 {
                     case HDLightType.Spot:
-                        lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
+                        lightData.cookieMode = (lightComponent.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
                         break;
                     case HDLightType.Point:
-                        lightData.cookieIndex = m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
+                        lightData.cookieMode = CookieMode.Clamp;
+                        lightData.cookieIndex = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
                         break;
                 }
             }
@@ -1415,11 +1441,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+                lightData.cookieMode = CookieMode.Clamp;
+                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
             }
             else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
             {
-                lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+                lightData.cookieMode = CookieMode.Clamp;
+                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
             }
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
@@ -1454,10 +1482,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the next available slot to the light
                 lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
 
-                // Keep track of the slot and screen space shadow index that was assignel to this light
-                additionalLightData.screenSpaceShadowSlot = lightData.screenSpaceShadowIndex;
-                additionalLightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
-
                 // Keep track of the screen space shadow data
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
@@ -1472,12 +1496,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     screenSpaceChannelSlot += 2;
                 else
                     screenSpaceChannelSlot++;
-            }
-            else
-            {
-                // Invalidate the references in the additional light data
-                additionalLightData.screenSpaceShadowSlot = -1;
-                additionalLightData.screenSpaceShadowIndex = -1;
             }
 
             lightData.shadowIndex = shadowIndex;
@@ -1689,8 +1707,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
 
+            // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+            if (!probe.HasValidRenderedData()) return false;
+
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
+            Vector4 atlasScaleOffset = Vector4.zero;
 
             // 31 bits index, 1 bit cache type
             var envIndex = int.MinValue;
@@ -1702,9 +1724,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                             break;
 
-                        var fetchIndex = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, out int fetchIndex);
                         // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = fetchIndex == -1 ? int.MinValue : -(fetchIndex + 1);
+                        envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
+
+                        // If the max number of planar on screen is reached
+                        if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
+                        {
+                            Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
+                            break;
+                        }
+
+                        atlasScaleOffset = scaleOffset;
 
                         var renderData = planarProbe.renderData;
                         var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
@@ -1718,6 +1749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
                         var gpuView = worldToCameraRHSMatrix;
                         var vp = gpuProj * gpuView;
+                        m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
                         m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
 
                         var capturedForwardWS = renderData.captureRotation * Vector3.forward;
@@ -2111,6 +2143,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect);
                 }
 
+                // Reserve the cookie resolution in the 2D atlas
+                ReserveCookieAtlasTexture(additionalData, light.light);
+
                 if (hasDebugLightFilter
                     && !debugLightFilter.IsEnabledFor(processedData.gpuLightType, additionalData.spotLightShape))
                     continue;
@@ -2134,6 +2169,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Now that all the lights have requested a shadow resolution, we can layout them in the atlas
             // And if needed rescale the whole atlas
             m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
+
+            // Using the same pattern than shadowmaps, light have requested space in the atlas for their
+            // cookies and now we can layout the atlas (re-insert all entries by order of size) if needed
+            m_TextureCaches.lightCookieManager.LayoutIfNeeded();
 
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             Debug.Assert(visualEnvironment != null);
@@ -2463,6 +2502,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
 
+                // Because we don't support baking planar reflection probe, we can clear the atlas.
+                // Every visible probe will be blitted again.
+                m_TextureCaches.reflectionPlanarProbeCache.ClearAtlasAllocator();
+
                 m_ScreenSpaceShadowIndex = 0;
                 m_ScreenSpaceShadowChannelSlot = 0;
                 // Set all the light data to invalid
@@ -2558,6 +2601,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return m_enableBakeShadowMask;
+        }
+
+        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light)
+        {
+            // Note: light component can be null if a Light is used for shuriken particle lighting.
+            switch (hdLightData.ComputeLightType(light))
+            {
+                case HDLightType.Directional:
+                    m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
+                    m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
+                    break;
+                case HDLightType.Spot:
+                    // Projectors lights must always have a cookie texture.
+                    m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie ?? Texture2D.whiteTexture);
+                    break;
+                case HDLightType.Area:
+                    // Only rectnagles can have cookies
+                    if (hdLightData.areaLightShape == AreaLightShape.Rectangle)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
+                    break;
+            }
         }
 
         internal void UpdateEnvLighCameraRelativetData(ref EnvLightData envLightData, Vector3 camPosWS)
@@ -3029,7 +3093,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
 
             int groupSize = 64;
-            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1); 
+            cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
         }
 
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
@@ -3172,17 +3236,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
-                cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, param.textureCaches.cookieTexArray.GetTexCache());
-                cmd.SetGlobalTexture(HDShaderIDs._AreaCookieTextures, param.textureCaches.areaLightCookieManager.GetTexCache());
-                cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, param.textureCaches.cubeCookieTexArray.GetTexCache());
+                cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, param.textureCaches.lightCookieManager.atlasTexture);
+                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, param.textureCaches.lightCookieManager.GetCookieAtlasSize());
+                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasData, param.textureCaches.lightCookieManager.GetCookieAtlasDatas());
+                cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, param.textureCaches.lightCookieManager.cubeCache);
+
+                cmd.SetGlobalVector(HDShaderIDs._PlanarAtlasData, param.textureCaches.reflectionPlanarProbeCache.GetAtlasDatas());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, param.textureCaches.reflectionProbeCache.GetTexCache());
                 cmd.SetGlobalInt(HDShaderIDs._EnvSliceSize, param.textureCaches.reflectionProbeCache.GetEnvSliceSize());
-                // Compute the power of 2 size of the texture
-                int pot = Mathf.RoundToInt( 1.4426950408889634073599246810019f * Mathf.Log(param.textureCaches.cookieTexArray.GetTexCache().width ) );
-                cmd.SetGlobalInt(HDShaderIDs._CookieSizePOT, pot);
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, param.textureCaches.reflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, param.textureCaches.env2DCaptureVP);
                 cmd.SetGlobalFloatArray(HDShaderIDs._Env2DCaptureForward, param.textureCaches.env2DCaptureForward);
+                cmd.SetGlobalVectorArray(HDShaderIDs._Env2DAtlasScaleOffset, param.textureCaches.env2DAtlasScaleOffset);
 
                 // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
                 // cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
@@ -3333,7 +3398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 RayTracingSettings raySettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
-                parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.shadowRaytracingRT;
+                parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;
                 parameters.rayTracingBias = raySettings.rayBias.value;
                 parameters.accelerationStructure = RequestAccelerationStructure();
 
@@ -3391,7 +3456,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
-                cmd.SetRayTracingIntParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalContactShadowSampleCount, parameters.sampleCount);
                 cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
 
                 // Send light list to the compute
@@ -3556,6 +3620,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, resources.colorBuffers[0]);
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, resources.colorBuffers[1]);
 
+                    cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, resources.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
+
                     // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
                     if (parameters.enableFeatureVariants)
                     {
@@ -3653,55 +3719,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This is for debug purpose, so fine to use immediate material mode here to modify render state
                 if (!parameters.outputSplitLighting)
                 {
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
                 }
                 else
                 {
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                 }
 
                 CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, resources.colorBuffers[0], resources.depthStencilBuffer);
             }
-        }
-
-        static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandle depthStencilBuffer, RTHandle stencilCopyBuffer, Material copyStencilMaterial)
-        {
-#if (UNITY_SWITCH || UNITY_IPHONE || UNITY_STANDALONE_OSX)
-            // Faster on Switch.
-            CoreUtils.SetRenderTarget(cmd, stencilCopyBuffer, depthStencilBuffer, ClearFlag.Color, Color.clear);
-
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-
-            // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
-            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 1);
-#else
-            CoreUtils.SetRenderTarget(cmd, stencilCopyBuffer, ClearFlag.Color, Color.clear);
-            CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
-            cmd.SetRandomWriteTarget(1, stencilCopyBuffer);
-
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-
-            // Use ShaderPassID 3 => "Pass 3 - Initialize Stencil UAV copy with 1 if value different from stencilRef to output"
-            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 3);
-            cmd.ClearRandomWriteTargets();
-#endif
-        }
-
-        static void UpdateStencilBufferForSSRExclusion(CommandBuffer cmd, RTHandle depthStencilBuffer, RTHandle stencilCopyBuffer, Material copyStencilMaterial)
-        {
-            CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
-            cmd.SetRandomWriteTarget(1, stencilCopyBuffer);
-
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR);
-            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR);
-
-            // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
-            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 4);
-            cmd.ClearRandomWriteTargets();
         }
 
         struct LightLoopDebugOverlayParameters
@@ -3712,6 +3742,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                      debugSelectedLightShadowIndex;
             public int                      debugSelectedLightShadowCount;
             public Material                 debugShadowMapMaterial;
+            public Material                 debugBlitMaterial;
+            public LightCookieManager       cookieManager;
+            public PlanarReflectionProbeCache planarProbeCache;
         }
 
         LightLoopDebugOverlayParameters PrepareLightLoopDebugOverlayParameters()
@@ -3724,19 +3757,22 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
             parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
             parameters.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
+            parameters.debugBlitMaterial = m_DebugBlitMaterial;
+            parameters.cookieManager = m_TextureCaches.lightCookieManager;
+            parameters.planarProbeCache = m_TextureCaches.reflectionPlanarProbeCache;
 
             return parameters;
         }
 
         static void RenderLightLoopDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize, RTHandle depthTexture)
         {
+            var hdCamera = debugParameters.hdCamera;
+            var parameters = debugParameters.lightingOverlayParameters;
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.tileClusterDebug != TileClusterDebug.None)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
                 {
-                    var hdCamera = debugParameters.hdCamera;
-                    var parameters = debugParameters.lightingOverlayParameters;
 
                     int w = hdCamera.actualWidth;
                     int h = hdCamera.actualHeight;
@@ -3784,9 +3820,62 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
-                    }
                 }
             }
+
+            if (lightingDebug.clearCookieAtlas)
+            {
+                parameters.cookieManager.ResetAllocator();
+                parameters.cookieManager.ClearAtlasTexture(cmd);
+                lightingDebug.clearCookieAtlas = false;
+            }
+
+            if (lightingDebug.displayCookieAtlas)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayCookieAtlas)))
+                {
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.cookieAtlasMipLevel);
+                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.cookieManager.atlasTexture);
+                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                }
+            }
+
+            if (lightingDebug.displayCookieCubeArray)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPointLightCookieArray)))
+                {
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputCubemap, parameters.cookieManager.cubeCache);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, 0);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
+                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                }
+            }
+
+            if (lightingDebug.clearPlanarReflectionProbeAtlas)
+            {
+                parameters.planarProbeCache.Clear(cmd);
+                lightingDebug.clearPlanarReflectionProbeAtlas = false;
+            }
+
+            if (lightingDebug.displayPlanarReflectionProbeAtlas)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPlanarReflectionProbeAtlas)))
+                {
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.planarReflectionProbeMipLevel);
+                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.planarProbeCache.GetTexCache());
+                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                }
+            }
+        }
 
         static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, ref float x, ref float y, float overlaySize, MaterialPropertyBlock mpb)
         {

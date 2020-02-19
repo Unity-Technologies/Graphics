@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // On mobile and Nintendo Switch: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
                 // On other devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
             }
 

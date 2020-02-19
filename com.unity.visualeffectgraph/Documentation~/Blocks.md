@@ -31,7 +31,7 @@ Blocks are essentially Nodes that have a different workflow logic. Blocks are al
           * **Cut**: Ctrl+X.
           * **Paste**: Ctrl+V.
           * **Duplicate**: Ctrl+D.
-      * On OSX
+	    * On OSX
           * **Copy**: Cmd+C.
           * **Cut**: Cmd+X.
           * **Paste**: Cmd+V.
