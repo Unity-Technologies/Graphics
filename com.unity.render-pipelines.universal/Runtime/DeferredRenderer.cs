@@ -104,10 +104,10 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights);
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
-            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingOpaques + 6);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
-            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingOpaques + 7, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
@@ -219,8 +219,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
-                m_ActiveCameraColorAttachment.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
-                m_ActiveCameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
+
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
@@ -236,7 +235,9 @@ namespace UnityEngine.Rendering.Universal
             }
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
             m_CameraColorAttachment.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
+
             m_ActiveCameraColorAttachment.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
+            m_ActiveCameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
@@ -283,13 +284,12 @@ namespace UnityEngine.Rendering.Universal
 			bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
-                // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
-                //m_DrawSkyboxPass.ConfigureTarget(m_ActiveCameraColorAttachment, m_DepthTexture);
-//                m_DrawSkyboxPass.colorAttachments.Clear();
-//                m_DrawSkyboxPass.ConfigureColorAttachment(m_CameraColorAttachment, true, false);
-//                m_DrawSkyboxPass.ConfigureDepthAttachment(m_DepthTexture, true, false);
-//                m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
-//                EnqueuePass(m_DrawSkyboxPass);
+
+                m_DrawSkyboxPass.colorAttachments.Clear();
+                m_DrawSkyboxPass.ConfigureColorAttachment(ref m_ActiveCameraColorAttachment, false, true, true);
+                m_DrawSkyboxPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
+
+                EnqueuePass(m_DrawSkyboxPass);
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -315,11 +315,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-            //m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorAttachment, m_DepthTexture);
             m_RenderTransparentForwardPass.colorAttachments.Clear();
-            m_RenderTransparentForwardPass.ConfigureColorAttachment(m_CameraColorAttachment, true, true);
-            m_RenderTransparentForwardPass.ConfigureDepthAttachment(m_DepthTexture, true, false);
-//            // m_DrawSkyboxPass.ConfigureDepthAttachment(m_CameraDepthAttachment, true, true);
+            m_RenderTransparentForwardPass.ConfigureColorAttachment(ref m_ActiveCameraColorAttachment, false, true, true);
             m_RenderTransparentForwardPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
             EnqueuePass(m_RenderTransparentForwardPass);
             EnqueuePass(m_OnRenderObjectCallbackPass);
@@ -363,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
                         m_FinalBlitPass.colorAttachments.Clear();
 
                         m_FinalBlitPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
-                        m_FinalBlitPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment, true, false);
+                        m_FinalBlitPass.ConfigureColorAttachment(ref m_ActiveCameraColorAttachment, true, false);
                         EnqueuePass(m_FinalBlitPass);
                     }
                 }
@@ -389,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     m_FinalBlitPass.colorAttachments.Clear();
-                    m_FinalBlitPass.ConfigureColorAttachment(m_ActiveCameraColorAttachment, true, false);
+                    m_FinalBlitPass.ConfigureColorAttachment(ref m_ActiveCameraColorAttachment, true, false);
                     m_FinalBlitPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
                     EnqueuePass(m_FinalBlitPass);
                 }
@@ -464,7 +461,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 2];
+            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount +
+#if UNITY_IOS && !UNITY_EDITOR
+                                                                                  2];
+#else
+                                                                                  1];
+            #endif
 
 
             for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
@@ -478,40 +480,30 @@ namespace UnityEngine.Rendering.Universal
             gbufferColorAttachments[1].InitDescriptor(Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
             gbufferColorAttachments[2].InitDescriptor(Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm);
             gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-//            gbufferColorAttachments[GBufferSlicesCount + 1] = new RenderTargetHandle(); // the last slice is the lighting buffer created in DeferredRenderer.cs
+
+#if UNITY_IOS && !UNITY_EDITOR
             gbufferColorAttachments[GBufferSlicesCount + 1].InitDescriptor(GraphicsFormat.R32_SFloat); // the last slice is the lighting buffer created in DeferredRenderer.cs
-            //gbufferColorAttachments[GBufferSlicesCount].InitDescriptor(renderingData.cameraData.cameraTargetDescriptor.colorFormat);
+#endif
+
             m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments, requiresDepthPrepass);
             m_GBufferPass.Configure(cmd, desc);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             m_GBufferPass.m_ColorAttachments.Clear();
-            m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[0], false, false, true, 0);
-            m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[1], false, false, true, 1);
-            m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[2], false, false, true, 2);
-            m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[3], true, true, false, 3);
+            m_GBufferPass.ConfigureColorAttachment(ref gbufferColorAttachments[0], false, false, true, 0);
+            m_GBufferPass.ConfigureColorAttachment(ref gbufferColorAttachments[1], false, false, true, 1);
+            m_GBufferPass.ConfigureColorAttachment(ref gbufferColorAttachments[2], false, false, true, 2);
+            m_GBufferPass.ConfigureColorAttachment(ref gbufferColorAttachments[3], false, true, true, 3);
             #if UNITY_IOS && !UNITY_EDITOR
-            m_GBufferPass.ConfigureColorAttachment(gbufferColorAttachments[4], false, false, true, 4);
+            m_GBufferPass.ConfigureColorAttachment(ref gbufferColorAttachments[4], false, false, true, 4);
             #endif
 
-            m_GBufferPass.ConfigureDepthAttachment(m_DepthTexture, false, true, true);
+            m_GBufferPass.ConfigureDepthAttachment(ref m_DepthTexture, false, false, true);
             m_GBufferPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
 
             EnqueuePass(m_GBufferPass);
 
-//            gbufferColorAttachments[0] = m_GBufferPass.colorAttachments[0];
-//            gbufferColorAttachments[1] = m_GBufferPass.colorAttachments[1];
-//            gbufferColorAttachments[2] = m_GBufferPass.colorAttachments[2];
-//            gbufferColorAttachments[3] = m_GBufferPass.colorAttachments[3];
-//            m_CopyDepthTempPass.m_ColorAttachments.Clear();
-//            m_CopyDepthTempPass.Setup(m_DepthTexture, m_DepthCopyTexture);
-//            m_CopyDepthTempPass.Configure(cmd, desc);
-//            context.ExecuteCommandBuffer(cmd);
-//            cmd.Clear();
-           // m_CopyDepthTempPass.ConfigureInputAttachment(m_DepthTexture, 0);
-            //m_CopyDepthTempPass.ConfigureColorAttachment(m_DepthCopyTexture, false, true, true);
-            //m_CopyDepthTempPass.ConfigureRenderPassDescriptor(desc.width, desc.height, desc.msaaSamples);
-            //EnqueuePass(m_CopyDepthTempPass);
+
 
             m_DeferredLights.Setup(ref renderingData, m_AdditionalLightsShadowCasterPass, m_DepthCopyTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DepthTexture, gbufferColorAttachments);
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
@@ -532,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
             m_DeferredPass.Configure(cmd, desc);
-            m_DeferredPass.ConfigureColorAttachment(m_DeferredLights.m_GbufferColorAttachments[3], true, true, false, 0);
+            m_DeferredPass.ConfigureColorAttachment(ref gbufferColorAttachments[3], false, true, true, 0);
 
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[0], 0);
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.colorAttachments[1], 1);
@@ -542,9 +534,8 @@ namespace UnityEngine.Rendering.Universal
 #else
             m_DeferredPass.ConfigureInputAttachment(m_GBufferPass.depthAttachment, 3);
 #endif
-            //m_DeferredPass.ConfigureDepthAttachment(m_GBufferPass.depthAttachment, true, true, false);
+
             EnqueuePass(m_DeferredPass);
-            //EnqueuePass(m_RenderTransparentForwardPass);
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
             //m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_CameraColorAttachment, m_DepthTexture);
@@ -561,11 +552,12 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
             var descriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = descriptor.msaaSamples;
+
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                 var colorDescriptor = descriptor; // Camera decides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
-                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                colorDescriptor.depthBufferBits = 0;//(useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
 

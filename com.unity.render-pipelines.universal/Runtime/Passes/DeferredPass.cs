@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_DeferredLights.ExecuteDeferredPass(context, ref renderingData);
-            context.DrawSkybox(renderingData.cameraData.camera);
         }
 
         // ScriptableRenderPass

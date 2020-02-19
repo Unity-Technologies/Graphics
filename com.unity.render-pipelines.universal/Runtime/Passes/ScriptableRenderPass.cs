@@ -180,40 +180,45 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = clearColor;
         }
 
-        internal void ConfigureColorAttachments(List<RenderTargetHandle> targets, bool loadExistingContents,
+        internal void ConfigureColorAttachments(ref List<RenderTargetHandle> targets, bool loadExistingContents,
             bool storeResults, bool shouldClear = false)
         {
             for (var i = 0; i < targets.Count; i++)
             {
-                if (!m_ColorAttachments.Contains(targets[i]))
-                    ConfigureColorAttachment(targets[i], loadExistingContents, storeResults, shouldClear, i);
+                var target = targets[i];
+                if (!m_ColorAttachments.Contains(target))
+                    ConfigureColorAttachment(ref target, loadExistingContents, storeResults, shouldClear, i);
             }
         }
 
-        internal void ConfigureColorAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
+        internal void ConfigureColorAttachment(ref RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false, int idx = 0)
         {
             m_InputAttachments.Clear();
-            var attachment = new RenderTargetHandle();
-            attachment.identifier = target.identifier;
-            attachment.targetDescriptor = target.targetDescriptor;
-            attachment.targetDescriptor
+            target.targetDescriptor
                 .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
-
+            if (loadExistingContents) //TODO: cannot change it to load from clear atm
+                target.targetDescriptor.loadAction = RenderBufferLoadAction.Load;
+            if (!storeResults) //TODO: cannot change from Store to DontCare
+                target.targetDescriptor.storeAction = RenderBufferStoreAction.DontCare;
             if (shouldClear)
-                attachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 0);
-            m_ColorAttachments.Insert(idx, attachment);
+                target.targetDescriptor.ConfigureClear(m_ClearColor, 0.0f, 0);
+
+            m_ColorAttachments.Insert(idx, target);
 
         }
 
-        internal void ConfigureDepthAttachment(RenderTargetHandle target, bool loadExistingContents, bool storeResults,
+        internal void ConfigureDepthAttachment(ref RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false)
         {
-            m_DepthAttachment.identifier = target.identifier;
-            m_DepthAttachment.targetDescriptor = target.targetDescriptor;
-            m_DepthAttachment.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
+            target.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
+            if (loadExistingContents) //TODO: cannot change it to load from clear atm
+                target.targetDescriptor.loadAction = RenderBufferLoadAction.Load;
+            if (!storeResults)
+                target.targetDescriptor.storeAction = RenderBufferStoreAction.DontCare;
             if (shouldClear)
-                m_DepthAttachment.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 1);
+                target.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 1);
+            m_DepthAttachment = target;
         }
 
         internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)

@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            //ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
+//            ConfigureRenderPassDescriptor(m_ShadowmapWidth, m_ShadowmapHeight, 1);
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                 m_ShadowmapHeight, k_ShadowmapBufferBits);
             return true;
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
 
             m_MainLightShadowmap.identifier = new RenderTargetIdentifier(m_MainLightShadowmapTexture);
-            ConfigureDepthAttachment(m_MainLightShadowmap, false, true, true);
+            ConfigureDepthAttachment(ref m_MainLightShadowmap, false, true, true);
             ConfigureTarget(m_MainLightShadowmap);
             ConfigureClear(ClearFlag.All, Color.black);
         }
