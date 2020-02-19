@@ -190,13 +190,27 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Configures the render passes that will execute for this renderer.
-        /// This method is called per-camera every frame.
+        /// This method is called per-camera.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+            
+            // Remove null render passes from the list
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+        }
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
