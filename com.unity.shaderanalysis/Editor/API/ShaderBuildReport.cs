@@ -250,12 +250,14 @@ namespace UnityEditor.ShaderAnalysis
 
             public void OnBeforeSerialize()
             {
-                m_RawReportB64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(m_RawReport));
+                if (!string.IsNullOrEmpty(m_RawReport))
+                    m_RawReportB64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(m_RawReport));
             }
 
             public void OnAfterDeserialize()
             {
-                m_RawReport = Encoding.UTF8.GetString(Convert.FromBase64String(m_RawReportB64));
+                if (!string.IsNullOrEmpty(m_RawReportB64))
+                    m_RawReport = Encoding.UTF8.GetString(Convert.FromBase64String(m_RawReportB64));
             }
         }
 

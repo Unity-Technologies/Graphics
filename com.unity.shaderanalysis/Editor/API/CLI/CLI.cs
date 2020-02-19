@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderAnalysis
             public BuildTarget targetPlatform;
             public string outputFile;
             public float timeout;
+            public string variantFilter;
+            public string shaderPassFilter;
 
             public static BuildReportArg Parse(string[] args)
             {
@@ -43,6 +45,16 @@ namespace UnityEditor.ShaderAnalysis
                             if (i >= args.Length) throw new ArgumentException($"Missing value for '{nameof(outputFile)}");
                             result.outputFile = args[i];
                             break;
+                        case "-variantFilter":
+                            ++i;
+                            if (i >= args.Length) throw new ArgumentException($"Missing value for '{nameof(variantFilter)}");
+                            result.variantFilter = args[i];
+                            break;
+                        case "-shaderPassFilter":
+                            ++i;
+                            if (i >= args.Length) throw new ArgumentException($"Missing value for '{nameof(shaderPassFilter)}");
+                            result.shaderPassFilter = args[i];
+                            break;
                         case "-timeout":
                             ++i;
                             if (i >= args.Length) throw new ArgumentException($"Missing value for '{nameof(timeout)}");
@@ -65,16 +77,16 @@ namespace UnityEditor.ShaderAnalysis
 
         /// <summary>Build a report by parsing command line arguments.</summary>
         /// <example>
-        /// "$UNITY_EXE" -projectPath $PROJECT_PATH -batchMode -quit -executeMethod UnityEditor.ShaderAnalysis.CLI.BuildReport -assetPath Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Deferred.shader -exporter CSV -targetPlatform PS4 -outputFile $OUTPUT_FILE
+        /// "$UNITY_EXE" -projectPath $PROJECT_PATH -batchMode -quit -executeMethod UnityEditor.ShaderAnalysis.CLI.BuildReport -assetPath Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Deferred.shader -exporter CSV -targetPlatform PS4 -outputFile $OUTPUT_FILE -shaderPassFilter $PASS_FILTER -variantFilter $VARIANT_FILTER
         /// </example>
         public static void BuildReport()
         {
             var args = Environment.GetCommandLineArgs();
             var buildReportArgs = BuildReportArg.Parse(args);
-            InternalBuildReport(buildReportArgs.assetPath, buildReportArgs.exporter, buildReportArgs.targetPlatform, buildReportArgs.outputFile, buildReportArgs.timeout);
+            InternalBuildReport(buildReportArgs.assetPath, buildReportArgs.exporter, buildReportArgs.targetPlatform, buildReportArgs.outputFile, buildReportArgs.timeout, buildReportArgs.shaderPassFilter, buildReportArgs.variantFilter);
         }
 
-        static void InternalBuildReport(string assetPath, string exporter, BuildTarget targetPlatform, string outputFile, float timeout)
+        static void InternalBuildReport(string assetPath, string exporter, BuildTarget targetPlatform, string outputFile, float timeout, string shaderPassFilter, string variantFilter)
         {
             if (!ExporterUtilities.GetExporterIndex(exporter, out var index))
                 throw new ArgumentException($"Unknown exporter {exporter}");
@@ -83,22 +95,23 @@ namespace UnityEditor.ShaderAnalysis
             if (string.IsNullOrEmpty(guid))
                 throw new ArgumentException($"{assetPath} is not a valid asset path.");
 
+            var filter = ShaderProgramFilter.Parse(shaderPassFilter, variantFilter);
             var assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
             AsyncBuildReportJob buildReportJob = null;
             if (assetType == typeof(ComputeShader))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<ComputeShader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
             }
             else if (assetType == typeof(Shader))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
             }
             else if (assetType == typeof(Material))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
             }
             else
                 throw new ArgumentException($"Unsupported asset type: {assetType}");

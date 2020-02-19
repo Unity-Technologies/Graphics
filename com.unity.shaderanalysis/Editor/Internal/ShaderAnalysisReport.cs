@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             return m_PlatformJobFactories.ContainsKey(targetPlatform) && m_PlatformJobFactories[targetPlatform].HasCapability(job);
         }
 
-        public IAsyncJob BuildReportAsync(Object asset, BuildTarget targetPlatform, ShaderProgramFilter filter)
+        public IAsyncJob BuildReportAsync(Object asset, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
         {
             if (!DoesPlatformSupport(targetPlatform, PlatformJob.BuildComputeShaderPerfReport))
             {
@@ -45,11 +45,11 @@ namespace UnityEditor.ShaderAnalysis.Internal
             var compute = asset as ComputeShader;
             var material = asset as Material;
             if (shader != null)
-                job = factory.CreateBuildReportJob(shader, filter);
+                job = factory.CreateBuildReportJob(shader, filter, features);
             else if (compute != null)
-                job = factory.CreateBuildReportJob(compute, filter);
+                job = factory.CreateBuildReportJob(compute, filter, features);
             else if (material != null)
-                job = factory.CreateBuildReportJob(material, filter);
+                job = factory.CreateBuildReportJob(material, filter, features);
             else
                 throw new ArgumentException("Invalid asset");
             m_Jobs.Add(job);

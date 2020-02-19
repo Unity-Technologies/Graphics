@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderAnalysis
     {
         HashSet<string> m_Values;
 
-        public int Count => m_Values.Count;
+        public int Count => m_Values?.Count ?? 0;
 
         public KeywordSet(IEnumerable<string> values)
         {
@@ -16,19 +16,18 @@ namespace UnityEditor.ShaderAnalysis
             foreach (var value in values)
                 m_Values.Add(value);
         }
-        public bool Contains(string value) => m_Values.Contains(value);
-        public void Add(string value) => m_Values.Add(value);
+        public bool Contains(string value) => m_Values?.Contains(value) ?? false;
+        public void Add(string value) => m_Values?.Add(value);
+        public bool IsSubsetOf(HashSet<string> entry) => m_Values?.IsSubsetOf(entry) ?? true;
 
         public static explicit operator HashSet<string>(in KeywordSet v) => v.m_Values;
-
-        public bool IsSubsetOf(HashSet<string> entry) => entry.IsSupersetOf(m_Values);
     }
 
     public struct PassNameSet
     {
         HashSet<string> m_Values;
 
-        public int Count => m_Values.Count;
+        public int Count => m_Values?.Count ?? 0;
 
         public PassNameSet(IEnumerable<string> values)
         {
@@ -37,8 +36,8 @@ namespace UnityEditor.ShaderAnalysis
                 m_Values.Add(value);
         }
 
-        public bool Contains(string value) => m_Values.Contains(value);
-        public void Add(string value) => m_Values.Add(value);
+        public bool Contains(string value) => m_Values?.Contains(value) ?? false;
+        public void Add(string value) => m_Values?.Add(value);
 
         public static explicit operator HashSet<string>(in PassNameSet v) => v.m_Values;
     }

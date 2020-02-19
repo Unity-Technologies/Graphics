@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="shader">Shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="shader"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Shader shader, ShaderProgramFilter filter)
-            : base(target, filter)
+        protected BuildReportJobAsync(BuildTarget target, Shader shader, ShaderProgramFilter filter, BuildReportFeature features)
+            : base(target, filter, features)
         {
             if (shader != null && shader.Equals(null))
                 throw new ArgumentNullException(nameof(shader));
@@ -55,8 +55,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="compute">Compute shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="compute"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, ComputeShader compute, ShaderProgramFilter filter)
-            : base(target, filter)
+        protected BuildReportJobAsync(BuildTarget target, ComputeShader compute, ShaderProgramFilter filter, BuildReportFeature features)
+            : base(target, filter, features)
         {
             if (compute != null && compute.Equals(null))
                 throw new ArgumentNullException(nameof(compute));
@@ -68,8 +68,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="material">Material to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="material"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Material material, ShaderProgramFilter filter)
-            : base(target, filter)
+        protected BuildReportJobAsync(BuildTarget target, Material material, ShaderProgramFilter filter, BuildReportFeature features)
+            : base(target, filter, features)
         {
             if (material != null && material.Equals(null))
                 throw new ArgumentNullException(nameof(material));

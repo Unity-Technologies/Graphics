@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.Build.Reporting;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -16,11 +17,13 @@ namespace UnityEditor.ShaderAnalysis
         public abstract bool hasReport { get; }
 
         public ShaderProgramFilter filter { get; }
+        protected BuildReportFeature features { get; }
 
-        protected AsyncBuildReportJob(BuildTarget target, ShaderProgramFilter filter)
+        protected AsyncBuildReportJob(BuildTarget target, ShaderProgramFilter filter, BuildReportFeature features)
         {
             this.target = target;
             this.filter = filter ?? new ShaderProgramFilter();
+            this.features = features;
         }
     }
 }
