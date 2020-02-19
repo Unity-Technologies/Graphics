@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
                 EditorGUI.LabelField(displayRect, "Entry Name");
                 var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(referenceRect, "Reference", m_Keyword.isEditable ? greyLabel : EditorStyles.label);
+                EditorGUI.LabelField(referenceRect, "Reference Suffix", m_Keyword.isEditable ? greyLabel : EditorStyles.label);
             };
 
             // Draw Element
