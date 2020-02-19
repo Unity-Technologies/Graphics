@@ -10,9 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty cpuCacheSizeInMegaBytes;
         public SerializedProperty gpuCacheSizeInMegaBytes;
-        public SerializedProperty gpuCacheSizeOverridesShared;
         public SerializedProperty gpuCacheSizeOverridesStreaming;
-        public SerializedProperty gpuCacheSizeOverridesProcedural;
 
         public SerializedVirtualTexturingSettings(SerializedProperty root)
         {
@@ -20,9 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             cpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettings s) => s.cpuCacheSizeInMegaBytes);
             gpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettings s) => s.gpuCacheSizeInMegaBytes);
-            gpuCacheSizeOverridesShared = root.Find((VirtualTexturingSettings s) => s.gpuCacheSizeOverridesShared);
             gpuCacheSizeOverridesStreaming = root.Find((VirtualTexturingSettings s) => s.gpuCacheSizeOverridesStreaming);
-            gpuCacheSizeOverridesProcedural = root.Find((VirtualTexturingSettings s) => s.gpuCacheSizeOverridesProcedural);
         }
     }
 #endif

@@ -14,10 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int cpuCacheSizeInMegaBytes = 256;
         public int gpuCacheSizeInMegaBytes = 64;
 
-        // On the UI side we split the GPU cache size overrides into different lists based on the usage value.
-        public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesShared = new List<VirtualTexturingGPUCacheSizeOverride>();
+        // On the UI side we only expose the overrides used for streaming.
         public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesStreaming = new List<VirtualTexturingGPUCacheSizeOverride>();
-        public List<VirtualTexturingGPUCacheSizeOverride> gpuCacheSizeOverridesProcedural = new List<VirtualTexturingGPUCacheSizeOverride>();
 
         // Returns settings as passed to the Virtual Texturing API.
         public VirtualTexturing.VirtualTexturingSettings GetSettings()
@@ -27,9 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             settings.cpuCache.sizeInMegaBytes = (uint) cpuCacheSizeInMegaBytes;
 
             List<VirtualTexturingGPUCacheSizeOverride> overrides = new List<VirtualTexturingGPUCacheSizeOverride>();
-            overrides.AddRange(gpuCacheSizeOverridesShared);
             overrides.AddRange(gpuCacheSizeOverridesStreaming);
-            overrides.AddRange(gpuCacheSizeOverridesProcedural);
             settings.gpuCache.sizeOverrides = overrides.ToArray();
 
             settings.gpuCache.sizeInMegaBytes = (uint) gpuCacheSizeInMegaBytes;
