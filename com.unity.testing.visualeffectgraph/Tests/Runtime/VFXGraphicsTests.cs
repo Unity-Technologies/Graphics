@@ -32,19 +32,6 @@ namespace UnityEngine.VFX.Test
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
         }
 
-        static readonly string[] ExcludedTestsButKeepLoadScene =
-        {
-            "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
-            "ConformAndSDF", // Turbulence is not deterministic
-            "13_Decals", //doesn't render TODO investigate why <= this one is in world space
-            "05_MotionVectors", //possible GPU Hang on this, skip it temporally
-        };
-
-        static readonly string[] UnstableMetalTests =
-        {
-            // Currently known unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
-        };
-
         [UnityTest, Category("VisualEffect")]
         [PrebuildSetup("SetupGraphicsTestCases")]
         [UseGraphicsTestCases]
@@ -176,15 +163,8 @@ namespace UnityEngine.VFX.Test
                         imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
                     }
 
-                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
-                        !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
-                    {
-                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
-                    }
-                    else
-                    {
-                        Debug.LogFormat("GraphicTest '{0}' result has been ignored", testCase.ReferenceImage);
-                    }
+                    ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
+
                 }
                 finally
                 {
