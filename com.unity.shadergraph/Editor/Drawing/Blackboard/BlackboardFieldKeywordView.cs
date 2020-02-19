@@ -21,10 +21,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         private IMGUIContainer m_Container;
         private int m_SelectedIndex;
         private ShaderKeyword m_Keyword;
+        private static GUIStyle greyLabel;
 
         public BlackboardFieldKeywordView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
         {
+            greyLabel = new GUIStyle(EditorStyles.label);
+            greyLabel.normal = new GUIStyleState
+            {
+                textColor = Color.grey
+            };
         }
 
         public override void BuildCustomFields(ShaderInput input)
@@ -32,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Keyword = input as ShaderKeyword;
             if(m_Keyword == null)
                 return;
-            
+
             // KeywordDefinition
             var keywordDefinitionField = new EnumField((Enum)m_Keyword.keywordDefinition);
             keywordDefinitionField.RegisterValueChangedCallback(evt =>
@@ -118,59 +124,59 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         internal void RecreateList()
-        {           
+        {
             // Create reorderable list from entries
             m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
-        private void AddCallbacks() 
+        private void AddCallbacks()
         {
-            // Draw Header      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
+            // Draw Header
+            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(displayRect, "Display Name");
+                EditorGUI.LabelField(displayRect, "Entry Name");
                 var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(referenceRect, "Reference Suffix");
+                EditorGUI.LabelField(referenceRect, "Reference", greyLabel);
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
-                
+
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
-                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
+                var referenceName = EditorGUI.TextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, greyLabel);
 
                 displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
-                
+                referenceName = GetDuplicateSafeReferenceName(entry.id, displayName.ToUpper());
+
                 if(EditorGUI.EndChangeCheck())
                 {
                     m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
-                    
+
                     DirtyNodes();
                     Rebuild();
-                }   
+                }
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+            m_ReorderableList.elementHeightCallback = (int indexer) =>
             {
                 return m_ReorderableList.elementHeight;
             };
 
             // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
-            {  
+            m_ReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
                 return list.count < 8;
             };
 
             // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
-            {  
+            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
                 return list.count > 2;
             };
 
@@ -228,6 +234,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_\s])", "_");
             var entryList = m_ReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
         }
