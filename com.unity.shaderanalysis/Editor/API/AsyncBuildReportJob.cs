@@ -15,6 +15,12 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary>Wether the <see cref="builtReport"/> is available.</summary>
         public abstract bool hasReport { get; }
 
-        protected AsyncBuildReportJob(BuildTarget target) => this.target = target;
+        public ShaderProgramFilter filter { get; }
+
+        protected AsyncBuildReportJob(BuildTarget target, ShaderProgramFilter filter)
+        {
+            this.target = target;
+            this.filter = filter ?? new ShaderProgramFilter();
+        }
     }
 }

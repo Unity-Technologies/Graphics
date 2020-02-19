@@ -16,15 +16,15 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary>Build a new job for <see cref="PlatformJob.BuildShaderPerfReport"/>.</summary>
         /// <param name="shader">the shader to analyze.</param>
         /// <returns>An async job performing the report.</returns>
-        IAsyncJob CreateBuildReportJob(Shader shader);
+        IAsyncJob CreateBuildReportJob(Shader shader, ShaderProgramFilter filter);
         /// <summary>Build a new job for <see cref="PlatformJob.BuildComputeShaderPerfReport"/>.</summary>
         /// <param name="compute">the compute shader to analyze.</param>
         /// <returns>An async job performing the report.</returns>
-        IAsyncJob CreateBuildReportJob(ComputeShader compute);
+        IAsyncJob CreateBuildReportJob(ComputeShader compute, ShaderProgramFilter filter);
         /// <summary>Build a new job for <see cref="PlatformJob.BuildMaterialPerfReport"/>.</summary>
         /// <param name="material">the material to analyze.</param>
         /// <returns>An async job performing the report.</returns>
-        IAsyncJob CreateBuildReportJob(Material material);
+        IAsyncJob CreateBuildReportJob(Material material, ShaderProgramFilter filter);
     }
 
     public static class PlatformJobFactoryExtensions

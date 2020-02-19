@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="shader">Shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="shader"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Shader shader)
-            : base(target)
+        protected BuildReportJobAsync(BuildTarget target, Shader shader, ShaderProgramFilter filter)
+            : base(target, filter)
         {
             if (shader != null && shader.Equals(null))
                 throw new ArgumentNullException(nameof(shader));
@@ -55,8 +55,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="compute">Compute shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="compute"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, ComputeShader compute)
-            : base(target)
+        protected BuildReportJobAsync(BuildTarget target, ComputeShader compute, ShaderProgramFilter filter)
+            : base(target, filter)
         {
             if (compute != null && compute.Equals(null))
                 throw new ArgumentNullException(nameof(compute));
@@ -68,8 +68,8 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="material">Material to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="material"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Material material)
-            : base(target)
+        protected BuildReportJobAsync(BuildTarget target, Material material, ShaderProgramFilter filter)
+            : base(target, filter)
         {
             if (material != null && material.Equals(null))
                 throw new ArgumentNullException(nameof(material));
@@ -137,24 +137,24 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary>Implements this to process the <see cref="compute"/> property.</summary>
         protected abstract IEnumerator DoTick_ComputeShader();
 
-        protected abstract IEnumerator DoTick_Shader_Internal(string[] shaderKeywords, DirectoryInfo temporaryDirectory, HashSet<int> skippedVariantIndices);
+        protected abstract IEnumerator DoTick_Shader_Internal(string[] shaderKeywords, DirectoryInfo temporaryDirectory);
 
         protected IEnumerator DoTick_Material_Internal(BuildTarget buildTarget)
         {
             shader = material.shader;
 
-            var skippedVariantIndices = new HashSet<int>();
             for (int i = 0, c = material.passCount; i < c; ++i)
             {
+                // Exclude passes disabled by the material
                 var passName = material.GetPassName(i);
                 var isEnabled = material.GetShaderPassEnabled(passName);
                 if (!isEnabled)
-                    skippedVariantIndices.Add(i);
+                    filter.excludedPassNames.Add(passName);
             }
 
             var temporaryDirectory = ShaderAnalysisUtils.GetTemporaryDirectory(material, buildTarget);
 
-            var e = DoTick_Shader_Internal(material.shaderKeywords, temporaryDirectory, skippedVariantIndices);
+            var e = DoTick_Shader_Internal(material.shaderKeywords, temporaryDirectory);
 
             while (e.MoveNext()) yield return null;
             if (isCancelled) yield break;

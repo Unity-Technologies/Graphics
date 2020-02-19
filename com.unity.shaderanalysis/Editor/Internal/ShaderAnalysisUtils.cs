@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
         }
 
-        public static IEnumerator BuildDefinesFromMultiCompiles(List<HashSet<string>> multicompiles, List<HashSet<string>> defines)
+        public static IEnumerator BuildDefinesFromMultiCompiles(List<HashSet<string>> multicompiles, List<HashSet<string>> defines, ShaderProgramFilter filter)
         {
             if (multicompiles.Count == 0)
             {
@@ -151,7 +151,6 @@ namespace UnityEditor.ShaderAnalysis.Internal
             {
                 // Add an entry with current indices
                 var entry = new HashSet<string>();
-                defines.Add(entry);
 
                 for (var i = 0; i < indices.Length; i++)
                 {
@@ -161,7 +160,26 @@ namespace UnityEditor.ShaderAnalysis.Internal
                     entry.Add(token);
                 }
 
-                yield return defines.Count;
+                var success = false;
+                if (filter != null && filter.includedKeywords.Count != 0)
+                {
+                    foreach (var keywordSet in filter.includedKeywords)
+                    {
+                        if (keywordSet.IsSubsetOf(entry))
+                        {
+                            success = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                    success = true;
+
+                if (success)
+                {
+                    defines.Add(entry);
+                    yield return defines.Count;
+                }
 
                 var incrementIndex = indices.Length - 1;
                 while (true)

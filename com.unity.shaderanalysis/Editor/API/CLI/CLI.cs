@@ -88,17 +88,17 @@ namespace UnityEditor.ShaderAnalysis
             if (assetType == typeof(ComputeShader))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<ComputeShader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
             }
             else if (assetType == typeof(Shader))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
             }
             else if (assetType == typeof(Material))
             {
                 var castedAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform);
+                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, null);
             }
             else
                 throw new ArgumentException($"Unsupported asset type: {assetType}");

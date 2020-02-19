@@ -34,7 +34,8 @@ namespace UnityEditor.ShaderAnalysis
         protected ComputeShaderReportBuildData(
             ComputeShader compute,
             DirectoryInfo temporaryDirectory,
-            ProgressWrapper progress) : base(temporaryDirectory, progress)
+            ShaderProgramFilter filter,
+            ProgressWrapper progress) : base(temporaryDirectory, progress, filter)
         {
             this.compute = compute;
 

@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderAnalysis
         /// <returns>An async job that builds the report.</returns>
         /// <exception cref="ArgumentNullException">for <paramref name="shader"/></exception>
         /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(Shader shader, BuildTarget targetPlatform)
+        public static IAsyncJob GenerateBuildReportAsync(Shader shader, BuildTarget targetPlatform, ShaderProgramFilter filter)
         {
             if (shader == null || shader.Equals(null))
                 throw new ArgumentNullException(nameof(shader));
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderAnalysis
                     $"Job {PlatformJob.BuildShaderPerfReport} is not supported for {targetPlatform}."
                 );
 
-            return s_Instance.BuildReportAsync(shader, targetPlatform);
+            return s_Instance.BuildReportAsync(shader, targetPlatform, filter);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderAnalysis
         /// <returns>An async job that builds the report.</returns>
         /// <exception cref="ArgumentNullException">for <paramref name="material"/></exception>
         /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildMaterialPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(Material material, BuildTarget targetPlatform)
+        public static IAsyncJob GenerateBuildReportAsync(Material material, BuildTarget targetPlatform, ShaderProgramFilter filter)
         {
             if (material == null || material.Equals(null))
                 throw new ArgumentNullException(nameof(material));
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderAnalysis
                     $"Job {PlatformJob.BuildMaterialPerfReport} is not supported for {targetPlatform}."
                 );
 
-            return s_Instance.BuildReportAsync(material, targetPlatform);
+            return s_Instance.BuildReportAsync(material, targetPlatform, filter);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderAnalysis
         /// <returns>An async job that builds the report.</returns>
         /// <exception cref="ArgumentNullException">for <paramref name="compute"/></exception>
         /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildComputeShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(ComputeShader compute, BuildTarget targetPlatform)
+        public static IAsyncJob GenerateBuildReportAsync(ComputeShader compute, BuildTarget targetPlatform, ShaderProgramFilter filter)
         {
             if (compute == null || compute.Equals(null))
                 throw new ArgumentNullException(nameof(compute));
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderAnalysis
                     $"Job {PlatformJob.BuildComputeShaderPerfReport} is not supported for {targetPlatform}."
                 );
 
-            return s_Instance.BuildReportAsync(compute, targetPlatform);
+            return s_Instance.BuildReportAsync(compute, targetPlatform, filter);
         }
 
         /// <summary>Check whether a specific job is supported.</summary>

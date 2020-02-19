@@ -68,12 +68,16 @@ namespace UnityEditor.ShaderAnalysis
 
         public ShaderBuildReport report => m_Report;
 
+        public ShaderProgramFilter filter { get; }
+
         protected ReportBuildData(
             DirectoryInfo temporaryDirectory,
-            ProgressWrapper progress)
+            ProgressWrapper progress,
+            ShaderProgramFilter filter)
         {
             this.temporaryDirectory = temporaryDirectory;
             this.progress = progress;
+            this.filter = filter;
         }
 
         /// <summary>Implement this to export the performance report.</summary>

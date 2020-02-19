@@ -35,9 +35,9 @@ namespace UnityEditor.ShaderAnalysis
         static readonly Regex k_FragmentDeclaration = new Regex(@"#pragma\s+fragment\s([^\s]+)");
 
         // Inputs
-        internal readonly Shader shader;
-        internal readonly HashSet<int> skippedPasses;
-        internal readonly HashSet<string> shaderKeywords;
+        readonly Shader m_Shader;
+        readonly HashSet<int> m_SkippedPassesFromFilter = new HashSet<int>();
+        readonly HashSet<string> m_ShaderKeywords;
 
         // Outputs
 #if UNITY_2018_1_OR_NEWER
@@ -51,13 +51,12 @@ namespace UnityEditor.ShaderAnalysis
         protected ShaderBuildData(
             Shader shader,
             DirectoryInfo temporaryDirectory,
-            IEnumerable<int> skippedPasses,
             IEnumerable<string> shaderKeywords,
-            ProgressWrapper progress) : base(temporaryDirectory, progress)
+            ShaderProgramFilter filter,
+            ProgressWrapper progress) : base(temporaryDirectory, progress, filter)
         {
-            this.shader = shader;
-            this.skippedPasses = skippedPasses != null ? new HashSet<int>(skippedPasses) : new HashSet<int>();
-            this.shaderKeywords = shaderKeywords != null ? new HashSet<string>(shaderKeywords) : new HashSet<string>();
+            this.m_Shader = shader;
+            this.m_ShaderKeywords = shaderKeywords != null ? new HashSet<string>(shaderKeywords) : new HashSet<string>();
 
             passes = new List<Pass>();
         }
@@ -65,7 +64,7 @@ namespace UnityEditor.ShaderAnalysis
         public void FetchShaderData()
         {
 #if UNITY_2018_1_OR_NEWER
-            shaderData = ShaderUtil.GetShaderData(shader);
+            shaderData = ShaderUtil.GetShaderData(m_Shader);
 #else
             throw new Exception("Missing Unity ShaderData feature, It requires Unity 2018.1 or newer.");
 #endif
@@ -83,10 +82,14 @@ namespace UnityEditor.ShaderAnalysis
 
             for (int i = 0, c = activeSubshader.PassCount; i < c; ++i)
             {
-                if (skippedPasses.Contains(i))
-                    continue;
-
                 var passData = activeSubshader.GetPass(i);
+                if (filter != null && (filter.includedPassNames.Count > 0 && !filter.includedPassNames.Contains(passData.Name)
+                    || filter.excludedPassNames.Contains(passData.Name)))
+                {
+                    m_SkippedPassesFromFilter.Add(i);
+                    continue;
+                }
+
                 var pass = new Pass(string.IsNullOrEmpty(passData.Name) ? i.ToString("D3") : passData.Name, i)
                 {
                     sourceCode = passData.SourceCode,
@@ -148,7 +151,7 @@ namespace UnityEditor.ShaderAnalysis
                 progress.SetNormalizedProgress(s * i, "Building multi compile tuples {0:D3} / {1:D3}", i + 1, c);
 
                 var pass = passes[i];
-                var enumerator = ShaderAnalysisUtils.BuildDefinesFromMultiCompiles(pass.multicompiles, pass.combinedMulticompiles);
+                var enumerator = ShaderAnalysisUtils.BuildDefinesFromMultiCompiles(pass.multicompiles, pass.combinedMulticompiles, filter);
                 while (enumerator.MoveNext())
                     yield return null;
             }
@@ -169,45 +172,37 @@ namespace UnityEditor.ShaderAnalysis
 
                 m_CompileUnitPerPass[i] = new List<int>();
 
-                string requestedPass = ShaderAnalysisInspectorWindow.shaderPassToAnalyse;
-                if (requestedPass.Contains(pass.name) || requestedPass == "" || requestedPass == "All")
+                for (var j = 0; j < pass.combinedMulticompiles.Count; j++)
                 {
-                    for (var j = 0; j < pass.combinedMulticompiles.Count; j++)
+                    progress.SetNormalizedProgress(s * (i + s2 * j), "Building compile units pass: {0:D3} / {1:D3}, unit: {2:D3} / {3:D3}", i + 1, c, j + 1, c2);
+
+                    var match = k_FragmentDeclaration.Match(pass.sourceCode);
+                    Assert.IsTrue(match.Success);
+
+                    var entryPoint = match.Groups[1].Value;
+
+                    var compileOptions = Utility.DefaultCompileOptions(
+                        m_ShaderKeywords,
+                        entryPoint,
+                        sourceDir,
+                        target,
+                        pass.shaderModel);
+                    compileOptions.defines.UnionWith(pass.combinedMulticompiles[j]);
+                    compileOptions.defines.Add(Utility.k_DefineFragment);
+
+                    var unit = new CompileUnit
                     {
-                        progress.SetNormalizedProgress(s * (i + s2 * j), "Building compile units pass: {0:D3} / {1:D3}, unit: {2:D3} / {3:D3}", i + 1, c, j + 1, c2);
+                        sourceCodeFile = pass.sourceCodeFile,
+                        compileOptions = compileOptions,
+                        compileProfile = ShaderProfile.PixelProgram,
+                        compileTarget = ShaderTarget.PS_5,
+                        compiledFile = ShaderAnalysisUtils.GetTemporaryProgramCompiledFile(pass.sourceCodeFile, temporaryDirectory, j.ToString("D3"))
+                    };
 
-                        var match = k_FragmentDeclaration.Match(pass.sourceCode);
-                        Assert.IsTrue(match.Success);
+                    m_CompileUnitPerPass[i].Add(compileUnitCount);
+                    AddCompileUnit(unit);
 
-                        var entryPoint = match.Groups[1].Value;
-
-                        var compileOptions = Utility.DefaultCompileOptions(
-                            shaderKeywords,
-                            entryPoint,
-                            sourceDir,
-                            target,
-                            pass.shaderModel);
-                        compileOptions.defines.UnionWith(pass.combinedMulticompiles[j]);
-                        compileOptions.defines.Add(Utility.k_DefineFragment);
-
-                        var unit = new CompileUnit
-                        {
-                            sourceCodeFile = pass.sourceCodeFile,
-                            compileOptions = compileOptions,
-                            compileProfile = ShaderProfile.PixelProgram,
-                            compileTarget = ShaderTarget.PS_5,
-                            compiledFile = ShaderAnalysisUtils.GetTemporaryProgramCompiledFile(pass.sourceCodeFile, temporaryDirectory, j.ToString("D3"))
-                        };
-
-                        m_CompileUnitPerPass[i].Add(compileUnitCount);
-                        AddCompileUnit(unit);
-
-                        yield return null;
-                    }
-                }
-                else
-                {
-                    skippedPasses.Add(i);
+                    yield return null;
                 }
             }
         }
@@ -221,7 +216,7 @@ namespace UnityEditor.ShaderAnalysis
             m_Report = new ShaderBuildReport();
 
 #if UNITY_2018_1_OR_NEWER
-            foreach (var skippedPassIndex in skippedPasses)
+            foreach (var skippedPassIndex in m_SkippedPassesFromFilter)
             {
                 var pass = shaderData.ActiveSubshader.GetPass(skippedPassIndex);
                 m_Report.AddSkippedPass(skippedPassIndex, pass.Name);
@@ -235,7 +230,7 @@ namespace UnityEditor.ShaderAnalysis
                 var program = m_Report.AddGPUProgram(
                     pass.name,
                     pass.sourceCode,
-                    shaderKeywords.ToArray(),
+                    m_ShaderKeywords.ToArray(),
                     DefineSetFromHashSets(pass.multicompiles),
                     DefineSetFromHashSets(pass.combinedMulticompiles));
 
