@@ -1,8 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System;
+using System.Linq;
 
 [CreateAssetMenu]
 public class TestSceneAsset : ScriptableObject
@@ -33,4 +33,6 @@ public class TestSceneAsset : ScriptableObject
         foreach (var scene in buildTestScenes)
             yield return scene;
     }
+
+    public string GetScenePath(string sceneName) => GetAllScenes().FirstOrDefault(s => s.scene == sceneName)?.scenePath;
 }

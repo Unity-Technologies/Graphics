@@ -33,7 +33,7 @@ public class PerformanceTests : IPrebuildSetup
             var scene = SceneManager.GetSceneByName(sceneName);
             var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName}").FirstOrDefault();
             var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
-            return new EditorBuildSettingsScene("Assets/PerformanceTests/Scenes/0000_LitCube.unity", true);
+            return new EditorBuildSettingsScene(scenePath, true);
         });
 
         EditorBuildSettings.scenes = testScenes.ToArray();
