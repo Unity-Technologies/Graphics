@@ -54,12 +54,16 @@ all_project_ci_{{ editor.version }}:
   {% endfor %}
     - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
   {% if editor.version == "fast-trunk" %}
   triggers:
-    pull_requests:
-      - targets:
-          only:
-            - "master"
+    branches:
+      only:
+        - trying
+        - staging
   {% endif %}
 {% endfor %}
 
