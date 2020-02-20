@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
-            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect lineRect = EditorGUILayout.GetControlRect();
             HDLightType updatedLightType;
 
             //Partial support for prefab. There is no way to fully support it at the moment.
@@ -353,7 +353,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 case HDLightType.Area:
                     EditorGUI.BeginChangeCheck();
-                    Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+                    Rect lineRect = EditorGUILayout.GetControlRect();
                     AreaLightShape updatedAreaLightShape;
 
                     //Partial support for prefab. There is no way to fully support it at the moment.
@@ -600,7 +600,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             float indent = k_IndentPerLevel * EditorGUI.indentLevel;
 
-            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect lineRect = EditorGUILayout.GetControlRect();
             Rect valueRect = lineRect;
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
@@ -823,7 +823,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static bool DrawEnableShadowMap(SerializedHDLight serialized, Editor owne)
         {
-            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect lineRect = EditorGUILayout.GetControlRect();
             bool newShadowsEnabled;
 
             EditorGUI.BeginProperty(lineRect, s_Styles.enableShadowMap, serialized.settings.shadowsType);
@@ -880,7 +880,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (new EditorGUI.DisabledScope(!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportShadowMask))
                     {
-                        Rect nonLightmappedOnlyRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+                        Rect nonLightmappedOnlyRect = EditorGUILayout.GetControlRect();
                         EditorGUI.BeginProperty(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, serialized.nonLightmappedOnly);
                         {
                             EditorGUI.BeginChangeCheck();
