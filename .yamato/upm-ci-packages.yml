@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 2020.1
 packages:
   - name: Core
     id: core
