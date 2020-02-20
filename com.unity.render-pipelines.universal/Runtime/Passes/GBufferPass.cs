@@ -3,7 +3,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
@@ -11,9 +11,10 @@ namespace UnityEngine.Rendering.Universal
         new RenderTargetHandle[] m_ColorAttachments;
         RenderTargetHandle m_DepthBufferAttachment;
 
-        RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[DeferredRenderer.GBufferSlicesCount];
+        RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[DeferredRenderer.k_GBufferSlicesCount];
         RenderTextureDescriptor m_DepthBufferDescriptor;
 
+        DeferredLights m_DeferredLights;
         bool m_HasDepthPrepass;
 
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
@@ -22,9 +23,10 @@ namespace UnityEngine.Rendering.Universal
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
 
-        public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
             base.renderPassEvent = evt;
+            m_DeferredLights = deferredLights;
 
             const int initialWidth = 1920;
             const int initialHeight = 1080;
@@ -70,14 +72,11 @@ namespace UnityEngine.Rendering.Universal
         {
             // Create and declare the render targets used in the pass
 
-            cmd.GetTemporaryRT(m_DepthBufferAttachment.id, m_DepthBufferDescriptor, FilterMode.Point);
-
             // Only declare GBuffer 0, 1 and 2.
             // GBuffer 3 has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
-            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
-            {
+
+            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.k_GBufferSlicesCount; ++gbufferIndex)
                 cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
-            }
 
             List<RenderTargetHandle> colorAttachmentHandles = new List<RenderTargetHandle>();
             for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
@@ -95,6 +94,11 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
+                if (m_DeferredLights.accurateGbufferNormals)
+                    gbufferCommands.EnableShaderKeyword(DeferredLights.ShaderConstants._GBUFFER_NORMALS_OCT);
+                else
+                    gbufferCommands.DisableShaderKeyword(DeferredLights.ShaderConstants._GBUFFER_NORMALS_OCT);
+
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
 
@@ -119,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
         public override void FrameCleanup(CommandBuffer cmd)
         {
             // Release the render targets created during Configure()
-            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
+            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.k_GBufferSlicesCount; ++gbufferIndex)
                 cmd.ReleaseTemporaryRT(m_ColorAttachments[gbufferIndex].id);
 
             cmd.ReleaseTemporaryRT(m_DepthBufferAttachment.id);

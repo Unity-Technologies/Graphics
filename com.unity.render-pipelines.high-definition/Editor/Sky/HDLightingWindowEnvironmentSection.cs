@@ -12,7 +12,7 @@ using System.Linq;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
-    public class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
+    class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
     {
         class Styles
         {
@@ -21,11 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 headerStyle = new GUIStyle(EditorStyles.foldoutHeader);
                 headerStyle.fontStyle = FontStyle.Bold;
-                headerStyle.fontSize = 11;
-                headerStyle.clipping = TextClipping.Clip;
-                headerStyle.padding = new RectOffset(18 + 14 + 3, 1, 2, 0);
-                headerStyle.border = new RectOffset(15, 0, 17, 0);
-                headerStyle.contentOffset = new Vector2(0, -1);
+                headerStyle.fontSize = 12;
+                headerStyle.margin = new RectOffset(17, 0, 0, 0);
+                headerStyle.padding = new RectOffset(16, 1, 0, 0);
                 headerStyle.fixedHeight = 21;
             }
         }
@@ -136,11 +134,35 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawGUI()
         {
-            Rect line = GUILayoutUtility.GetRect(1f, 21);
+            Rect mainSeparator = EditorGUILayout.GetControlRect(GUILayout.Height(1));
+            mainSeparator.xMin -= 3;
+            mainSeparator.xMax += 4;
+            EditorGUI.DrawRect(mainSeparator, EditorGUIUtility.isProSkin
+                ? new Color32(26, 26, 26, 255)
+                : new Color32(127, 127, 127, 255));
+
+            Rect line = EditorGUILayout.GetControlRect();
             line.xMin -= 3;
+            line.xMax += 4;
+            line.y -= 2;
+            line.yMax += 4;
+
             toggleValue = EditorGUI.Foldout(line, toggleValue, EditorGUIUtility.TrTextContent("Environment (HDRP)", "Sky lighting environment for active Scene"), Styles.headerStyle);
+            
+            EditorGUI.DrawRect(line, EditorGUIUtility.isProSkin
+                ? new Color(1f, 1f, 1f, 0.03f)
+                : new Color(1f, 1f, 1f, 0.2f));
+
             if (m_ToggleValue)
             {
+                Rect separator = EditorGUILayout.GetControlRect(GUILayout.Height(1));
+                separator.xMin -= 3;
+                separator.xMax += 4;
+                separator.y -= 1;
+                EditorGUI.DrawRect(separator, EditorGUIUtility.isProSkin
+                    ? new Color32(48, 48, 48, 255)
+                    : new Color32(186, 186, 186, 255));
+
                 ++EditorGUI.indentLevel;
 
                 //cannot use SerializeProperty due to logic in the property

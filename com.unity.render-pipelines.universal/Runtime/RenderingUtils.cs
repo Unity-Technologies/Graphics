@@ -58,11 +58,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-        [Obsolete("The use of the Post-processing Stack V2 is deprecated in the Universal Render Pipeline. Use the builtin post-processing effects instead.")]
-        public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
-#endif
-
         internal static bool useStructuredBuffer
         {
             // There are some performance issues with StructuredBuffers in some platforms.

@@ -48,6 +48,8 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
+    - path: .yamato/upm-ci-packages.yml#all_package_ci
+      rerun: always
   {% if editor.version == "fast-trunk" %}
   triggers:
     pull_requests:

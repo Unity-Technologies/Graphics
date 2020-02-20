@@ -94,64 +94,54 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PreTiles = new NativeArray<PreTile>();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTilerLevel()
+        public int TilerLevel
         {
-            return m_TilerLevel;
+            get { return m_TilerLevel; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTileXCount()
+        public int TileXCount
         {
-            return m_TileXCount;
+            get { return m_TileXCount; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTileYCount()
+        public int TileYCount
         {
-            return m_TileYCount;
+            get { return m_TileYCount; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTilePixelWidth()
+        public int TilePixelWidth
         {
-            return m_TilePixelWidth;
+            get { return m_TilePixelWidth; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTilePixelHeight()
+        public int TilePixelHeight
         {
-            return m_TilePixelHeight;
+            get { return m_TilePixelHeight; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTileHeaderSize()
+        public int TileHeaderSize
         {
-            return m_TileHeaderSize;
+            get { return m_TileHeaderSize; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetMaxLightPerTile()
+        public int MaxLightPerTile
         {
-            return m_Counters.IsCreated ? m_Counters[0] : 0;
+            get { return m_Counters.IsCreated ? m_Counters[0] : 0; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTileDataCapacity()
+        public int TileDataCapacity
         {
-            return m_Counters.IsCreated ? m_Counters[2] : 0;
+            get { return m_Counters.IsCreated ? m_Counters[2] : 0; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray<ushort> GetTiles()
+        public NativeArray<ushort> Tiles
         {
-            return m_TileData;
+            get { return m_TileData; }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray<uint> GetTileHeaders()
+        public NativeArray<uint> TileHeaders
         {
-            return m_TileHeaders;
+            get { return m_TileHeaders; }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

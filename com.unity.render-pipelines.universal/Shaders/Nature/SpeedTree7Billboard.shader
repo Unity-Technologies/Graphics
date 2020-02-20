@@ -103,6 +103,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION

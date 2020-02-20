@@ -4,8 +4,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
 {
     Properties
     {
-        _BaseMap("Base Map", 2D) = "white" {}
-        _BaseColor("Base Color", Color) = (1,1,1,1)
+        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
+        [MainColor]   _BaseColor("Base Color", Color) = (1,1,1,1)
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -175,6 +175,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma vertex ParticlesGBufferVertex
             #pragma fragment ParticlesGBufferFragment

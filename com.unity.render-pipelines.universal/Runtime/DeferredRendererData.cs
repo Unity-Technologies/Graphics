@@ -8,7 +8,6 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup]
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class DeferredRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
@@ -65,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] bool m_AccurateGbufferNormals = true;
         [SerializeField] bool m_TiledDeferredShading = false;
 
         protected override ScriptableRenderer Create()
@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.Universal
 
         public bool shadowTransparentReceive => m_ShadowTransparentReceive;
 
+        public bool accurateGbufferNormals => m_AccurateGbufferNormals;
+
         public bool tiledDeferredShading => m_TiledDeferredShading;
 
         protected override void OnEnable()
@@ -101,12 +103,8 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            try
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-            catch {}
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }
     }

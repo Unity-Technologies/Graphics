@@ -33,6 +33,7 @@ Pass
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ALPHATEST_ON
 
     //-------------------------------------------------------------------------------------
     // Graph Defines
@@ -54,8 +55,8 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
-    $AddPrecomputedVelocity:          #define _ADD_PRECOMPUTED_VELOCITY
-    $TransparentWritesMotionVec:        #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
+    $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
+    $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
@@ -100,6 +101,10 @@ Pass
 // We need isFontFace when using double sided
 #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
     #define VARYINGS_NEED_CULLFACE
+#endif
+
+#if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+    #define _WRITE_TRANSPARENT_MOTION_VECTOR
 #endif
 
     //-------------------------------------------------------------------------------------
@@ -326,10 +331,12 @@ $include("SharedCode.template.hlsl")
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+#ifdef _ALPHATEST_ON
         $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
         $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+#endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 

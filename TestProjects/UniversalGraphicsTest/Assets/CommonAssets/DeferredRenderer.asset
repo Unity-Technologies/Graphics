@@ -37,4 +37,5 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+  m_AccurateGbufferNormals: 1
   m_TiledDeferredShading: 0

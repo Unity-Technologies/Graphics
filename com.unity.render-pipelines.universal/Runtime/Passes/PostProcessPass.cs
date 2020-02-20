@@ -69,11 +69,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         // We need to do the conversion manually on those
         bool m_EnableSRGBConversionIfNeeded;
 
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data)
+        Material m_BlitMaterial;
+
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
         {
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
+            m_BlitMaterial = blitMaterial;
 
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -349,12 +352,24 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
                 cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-//
-//                if (m_IsStereo)
-//                {
-//                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
-//                }
-//                else
+                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
+                bool finishPostProcessOnScreen = renderingData.resolveFinalTarget || (m_Destination == RenderTargetHandle.CameraTarget || m_HasFinalPass == true);
+
+                if (m_IsStereo)
+                {
+                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
+
+                    // TODO: We need a proper camera texture swap chain in URP.
+                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen)
+                    {
+                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        Blit(cmd, BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
+                    }
+                }
+                else
                 {
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
@@ -362,6 +377,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+
+                    // TODO: We need a proper camera texture swap chain in URP.
+                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                    // in the pipeline to avoid this extra blit.
+                    if (!finishPostProcessOnScreen)
+                    {
+                        cmd.SetGlobalTexture("_BlitTex", cameraTarget);
+                        cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    }
+
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 

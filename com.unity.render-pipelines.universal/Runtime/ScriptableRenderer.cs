@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
                 feature.Create();
                 m_RendererFeatures.Add(feature);
             }
-            Clear();
+            Clear(CameraRenderType.Base);
         }
 
         public void Dispose()
@@ -192,13 +192,27 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Configures the render passes that will execute for this renderer.
-        /// This method is called per-camera every frame.
+        /// This method is called per-camera.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+            }
+            
+            // Remove null render passes from the list
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+        }
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
@@ -420,22 +434,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
-
-            // Required by VolumeSystem / PostProcessing.
-            VolumeManager.instance.Update(cameraData.volumeTrigger, cameraData.volumeLayerMask);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
         }
 
-        internal void Clear()
+        internal void Clear(CameraRenderType cameraType)
         {
             m_ActiveColorAttachments.Clear();
             m_ActiveColorAttachments.Add(RenderTargetHandle.CameraTarget);
 
             m_ActiveDepthAttachment = RenderTargetHandle.CameraTarget;
 
-            m_InsideStereoRenderBlock = false;      
-            m_FirstTimeCameraColorTargetIsBound = true;
+            m_InsideStereoRenderBlock = false;
+
+            m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-            
+
             m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = RenderTargetHandle.CameraTarget;
@@ -723,8 +736,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
-
-
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
                     firstTimeStereo = true;
@@ -954,6 +965,30 @@ namespace UnityEngine.Rendering.Universal
 
                 list[j + 1] = curr;
             }
+        }
+
+        internal void SetupBackbufferFormat(int msaaSamples, bool stereo)
+        {
+#if ENABLE_VR && ENABLE_VR_MODULE
+            bool msaaSampleCountHasChanged = false;
+            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
+            if (currentQualitySettingsSampleCount != msaaSamples &&
+                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
+            {
+                msaaSampleCountHasChanged = true;
+            }
+
+            // There's no exposed API to control how a backbuffer is created with MSAA
+            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
+            // We only do this for the main camera and this only takes effect in the beginning of next frame.
+            // This settings should not be changed on a frame basis so that's fine.
+            QualitySettings.antiAliasing = msaaSamples;
+
+            if (stereo && msaaSampleCountHasChanged)
+                XR.XRDevice.UpdateEyeTextureMSAASetting();
+#else
+            QualitySettings.antiAliasing = msaaSamples;
+#endif
         }
     }
 }
