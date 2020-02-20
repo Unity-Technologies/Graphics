@@ -1,9 +1,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-#pragma kernel MotionBlurCS
+#pragma kernel MotionBlurCS         MAIN=MotionBlurCS
+#pragma kernel MotionBlurCSAlpha    MAIN=MotionBlurCSAlpha      ENABLE_ALPHA
 //#pragma enable_d3d11_debug_symbols
 
-RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_TileMaxNeighbourhood);
 
@@ -127,19 +129,19 @@ void MirrorWeights(float depth1, float depth2, float motionVec1, float motionVec
 // Sample processing 
 // ---------------------------------------------
 
-float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal, float dirSign)
+CTYPE ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal, float dirSign)
 {
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
-    float3 sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    CTYPE sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).CTYPE_SWIZZLE;
 
     return sampleColor;
 }
 
-float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float centralDepth, float centralMotionVecLen, float pixelToSampleScale, float randomVal, float dirSign, out float outDepth, out float outMotionVecLength)
+float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float centralDepth, float centralMotionVecLen, float pixelToSampleScale, float randomVal, float dirSign, out float outDepth, out float outMotionVecLength, out float sampleAlpha)
 {
     float2 currDir = dirSign * dir;
 
@@ -147,7 +149,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
     float3 sampleMotionVecDepth = SAMPLE_TEXTURE2D_X_LOD(_MotionVecAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
-    float3 sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    CTYPE sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).CTYPE_SWIZZLE;
 
     outMotionVecLength = MotionVecLengthInPixelsFromEncoded(sampleMotionVecDepth.xy);
     outDepth = sampleMotionVecDepth.z;
@@ -159,7 +161,12 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 #endif
     float  sampleWeight = SampleWeight(centralDepth, outDepth, offsetLength, centralMotionVecLen, outMotionVecLength, pixelToSampleScale, _DepthScale, motionVecDiffWeight);
 
-    return float4(sampleColor, sampleWeight);
+#if ENABLE_ALPHA
+    sampleAlpha = sampleColor.w;
+#else
+    sampleAlpha = 1.0;
+#endif
+    return float4(sampleColor.xyz, sampleWeight);
 }
 
 
@@ -168,14 +175,14 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 // ---------------------------------------------
 
 [numthreads(16, 16, 1)]
-void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float3 debugColor = 1.0f;
+    CTYPE debugColor = 1.0f;
 
     // Get central sample early.
-    float3 centralColor = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].xyz;
+    CTYPE centralColor = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].CTYPE_SWIZZLE;
 
     float2 randomVals = float2(RandomValue(dispatchThreadId.xy, 0), RandomValue(dispatchThreadId.xy, 1));
 
@@ -206,18 +213,18 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #if DEBUG_VIEW == TILE_VIS
     if (earlyOut)
     {
-        debugColor = float3(0.0, 1.0, 0.0);
+        debugColor.xz = 0.0;
     }
     else if (fastPath)
     {
-        debugColor = float3(1.0, 1.0, 0.0);
+        debugColor.z = 0.0;
     }
     else
     {
-        debugColor = float3(1.0, 0.0, 0.0);
+        debugColor.yz = 0.0;
     }
 
-    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 0.25 * centralColor + 0.75 * debugColor.xyz;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 0.25 * centralColor + 0.75 * debugColor;
 
 #else
 
@@ -240,7 +247,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         float randomVal = randomVals.x;
         float2 dir = 0.5 * maxMotionVec;
 
-        float3 colorAccumulation = 0.0;
+        CTYPE colorAccumulation = 0.0;
 
         if (fastPath)
         {
@@ -271,6 +278,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
             float  centralDepth = motionVecAndDepth.z;
 
             float4 accumulation = 0.0;
+            float alphaAccumulation = 0.0;
             for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
@@ -278,18 +286,25 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
                 float fw_Depth, bw_Depth;
                 float fw_MotionVecLen, bw_MotionVecLen;
-                float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralMotionVecLen, pixelToSampleScale, randomVal, -1, fw_Depth, fw_MotionVecLen);
-                float4 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralMotionVecLen, pixelToSampleScale, randomVal, 1, bw_Depth, bw_MotionVecLen);
+                float fw_Alpha, bw_Alpha;
+                float4 fw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralMotionVecLen, pixelToSampleScale, randomVal, -1, fw_Depth, fw_MotionVecLen, fw_Alpha);
+                float4 bw_Sample = ProcessSample(i, dir, invSampleCount, centerSampleUV, centralDepth, centralMotionVecLen, pixelToSampleScale, randomVal, 1, bw_Depth, bw_MotionVecLen, bw_Alpha);
 
                 // Mirror weights
 #if MIRROR_WEIGHTS
                 MirrorWeights(fw_Depth, bw_Depth, fw_MotionVecLen, bw_MotionVecLen, fw_Sample.w, bw_Sample.w);
 #endif
                 accumulation += float4(fw_Sample.w * fw_Sample.rgb, fw_Sample.w) + float4(bw_Sample.w * bw_Sample.rgb, bw_Sample.w);
+#if ENABLE_ALPHA
+                alphaAccumulation += fw_Sample.w * fw_Alpha + bw_Sample.w * bw_Alpha;
+#endif
             }
             accumulation *= invSampleCount;
 
-            colorAccumulation = accumulation.rgb + (1.0 - accumulation.w) * centralColor;
+            colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
+#if ENABLE_ALPHA
+            colorAccumulation.w = accumulation.w + (1.0 - accumulation.w) * centralColor.w;
+#endif
 
 #if DEBUG_VIEW == WEIGHT_VIS
             colorAccumulation = accumulation.w;
@@ -304,7 +319,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 #if DEBUG_VIEW == DEBUG_SAMPLE_COUNT
-        colorAccumulation = colorAccumulation * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), float(actualSampleCount) / _SampleCount);
+        colorAccumulation.xyz = colorAccumulation.xyz * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), float(actualSampleCount) / _SampleCount);
 #endif
 
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = colorAccumulation;

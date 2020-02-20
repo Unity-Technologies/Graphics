@@ -1838,7 +1838,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
                 cs = m_Resources.shaders.motionBlurCS;
-                kernel = cs.FindKernel("MotionBlurCS");
+                kernel = cs.FindKernel(m_EnableAlpha ? "MotionBlurCSAlpha" : "MotionBlurCS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
