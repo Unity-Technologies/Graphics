@@ -19,10 +19,10 @@ using UnityEditor;
 public class PerformanceTests : IPrebuildSetup
 {
     protected static readonly int WarmupCount = 10;
-    protected static readonly int MeasurementCount = 100;
-    protected const int GlobalTimeout = 120 * 1000; // 2 min
-    protected const int BuildTimeout = 10 * 60 * 1000; // 10 min for each build test
-    const int minMemoryReportSize = 512 * 1024; // in bytes
+    protected static readonly int MeasurementCount = 30;  // Number of frames to measure
+    protected const int GlobalTimeout = 120 * 1000;       // 2 min
+    protected const int BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
+    protected const int minMemoryReportSize = 512 * 1024; // in bytes
 
     public void Setup()
     {

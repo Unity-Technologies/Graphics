@@ -11,8 +11,11 @@ using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering;
 using UnityEditor.Build.Reporting;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using static PerformanceTestUtils;
+
+using Object = UnityEngine.Object;
 
 public class EditorPerformaceTests
 {
@@ -34,6 +37,7 @@ public class EditorPerformaceTests
     public static IEnumerable<string> GetScenesForBuild() => EnumerateTestScenes(testScenesAsset.buildTestScenes);
     public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForBuild() => testScenesAsset.buildHDAssets;
 
+
     [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Build(
         [ValueSource(nameof(GetScenesForBuild))] string sceneName,
@@ -42,18 +46,29 @@ public class EditorPerformaceTests
         SetupTest(sceneName, hdAsset);
 
         HDRPreprocessShaders.reportShaderStrippingData += ReportShaderStrippingData;
-        Application.logMessageReceived += ReportBuildSize;
 
-        Debug.Log("Scenepath: " + testScenesAsset.GetScenePath(sceneName));
-        BuildPlayer(testScenesAsset.GetScenePath(sceneName));
+        var match = new Regex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$").Match("Compiled shader 'HDRP/Lit' in 103.43s");
+
+        using (new EditorLogWatcher(OnEditorLogWritten))
+        {
+            yield return BuildPlayer(testScenesAsset.GetScenePath(sceneName));
+        }
 
         HDRPreprocessShaders.reportShaderStrippingData -= ReportShaderStrippingData;
-        Application.logMessageReceived -= ReportBuildSize;
 
         yield return null;
     }
 
-    void BuildPlayer(string scenePath)
+    // The list of shaders we want to keep track of
+    IEnumerable<Object> EnumerateWatchedShaders()
+    {
+        var sr = HDRenderPipeline.currentPipeline.defaultResources.shaders;
+
+        yield return sr.defaultPS;
+        yield return sr.deferredCS;
+    }
+
+    IEnumerator BuildPlayer(string scenePath)
     {
         BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
         buildPlayerOptions.scenes = new[] { scenePath };
@@ -73,8 +88,18 @@ public class EditorPerformaceTests
         Measure.Custom("Build Warnings", summary.totalWarnings);
         Measure.Custom("Build Success", summary.result == BuildResult.Succeeded ? 1 : 0);
 
+        // Shader report:
+        foreach (var s in EnumerateWatchedShaders())
+        {
+            var fileName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(s));
+            MeasureShaderSize(report, fileName);
+        }
+
         // Remove build:
-        Directory.Delete(buildLocation, true);
+        // Directory.Delete(Path.GetFullPath(buildLocation), true);
+
+        // Wait for the Editor.log file to be updated so we can gather infos from it.
+        yield return null;
     }
 
     ulong GetAssetSizeInBuild(BuildReport report, Type assetType)
@@ -110,35 +135,35 @@ public class EditorPerformaceTests
 
     void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount)
     {
-        // filter out some shaders to avoid having too much data
-        if (shader.name.Contains("Hidden"))
+        // filter out shaders that we don't care about
+        if (!EnumerateWatchedShaders().Contains(shader))
             return;
-        
+
         SampleGroup shaderSampleGroup = new SampleGroup($"Shader Stripping {shader.name} - {data.passName}", SampleUnit.Undefined, false);
         Measure.Custom(shaderSampleGroup, currentVariantCount);
     }
 
-    void ReportBuildSize(string logString, string stackTrace, LogType type)
+    void OnEditorLogWritten(string line)
     {
-        // TODO: match this: 
-        //     Compiled shader 'HDRP/Lit' in 69.48s
-        // d3d11 (total internal programs: 204, unique: 192)
-        // vulkan (total internal programs: 107, unique: 97)
-        
-        // switch (logString)
-        // {
-        //     case var s when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", logString, out var match):
-        //         foreach (var group in match.Groups)
-        //             group.
-        //         break;
-        // }
-        // var regex = new Regex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$");
-        // // We match the total shader compilation time from a shader
+        switch (line)
+        {
+            // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
+            case var _ when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", line, out var match):
+                SampleGroup shaderCompilationTime = new SampleGroup($"Build Shader Compilation Time {match.Groups[1].Value}", SampleUnit.Second);
+                Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value));
+                break;
 
-        // bool MatchRegex(string regex, string input, out Match match)
-        // {
-        //     match = new Regex(regex).Match(input);
-        //     return match.Success;
-        // }
+            // Match this line in the editor log: d3d11 (total internal programs: 204, unique: 192)
+            case var _ when MatchRegex(@"^(\w{1,}) \(total internal programs: (\d{1,}), unique: (\d{1,})\)$", line, out var match):
+                // Note that we only take the unique internal programs count.
+                Measure.Custom($"Build Shader Compilation Programs {match.Groups[1].Value}", double.Parse(match.Groups[3].Value));
+                break;
+        }
+
+        bool MatchRegex(string regex, string input, out Match match)
+        {
+            match = new Regex(regex).Match(input);
+            return match.Success;
+        }
     }
 }
