@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 2020.1
 platforms:
   - name: Win
     type: Unity::VM::GPU
