@@ -132,13 +132,14 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     // Note: based on the artist's input, dependence on the NdotL has been disabled.
     float distFrontFaceToLight   = distances.x;
     float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-    float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfileIndex].x;
+    float metersPerUnit          = _WorldScalesAndFilterRadii[bsdfData.diffusionProfileIndex].x;
+    float thicknessInMeters      = thicknessInUnits * metersPerUnit;
     float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
     // We need to make sure it's not less than the baked thickness to minimize light leaking.
     float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
-    float3 S = _ShapeParams[bsdfData.diffusionProfileIndex].rgb;
+    float3 S = _ShapeParamsAndMaxScatterDists[bsdfData.diffusionProfileIndex].rgb;
 
 #if 0
     float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);

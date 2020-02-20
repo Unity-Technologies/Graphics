@@ -22,7 +22,6 @@
 #define SSS_CLAMP_ARTIFACT        0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD             0
 #define SSS_DEBUG_NORMAL_VS       0
-#define SSS_ELIMINATE_CONSTANTS   1 // Help the compiler remove redundant operations
 #define SSS_SSS_ADAPTIVE_SAMPLING 1
 
 // Do not modify these.
@@ -162,26 +161,20 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
-                    float3 shapeParam, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
+void EvaluateSample(uint i, uint n, uint profileIndex, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
+                    float3 S, float d, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
                     float startAngle, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
+    const float scale  = rcp(n);
+    const float offset = 0.5 * rcp(n);
+
     float r, rcpPdf;
 #if SSS_SSS_ADAPTIVE_SAMPLING
-    // Undo premultiplication...
-    float  k = (-1.0f / 3.0f) * LOG2_E;
-    float3 S = shapeParam / k;
-    // ShapeParam = 1 / ScatteringDistance.
-    // We importance sample the color channel with the widest scattering distance.
-    float rcpS   = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
-    float scale  = rcp(n);
-    float offset = 0.5 * rcp(n);
-    // Precompute all of the above...
-    SampleBurleyDiffusionProfile(i * scale + offset, rcpS, r, rcpPdf);
+    SampleBurleyDiffusionProfile(i * scale + offset, d, r, rcpPdf);
 #else
-    r      = _FilterKernels[profileID][i][iR];
-    rcpPdf = _FilterKernels[profileID][i][iP];
+    r      = _FilterKernels[profileIndex][i][iR];
+    rcpPdf = _FilterKernels[profileIndex][i][iP];
 #endif
     float phi = SampleDiskFibonacci(i, n).y;
 
@@ -368,10 +361,12 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     SSSData sssData;
     DECODE_FROM_SSSBUFFER(posInput.positionSS, sssData);
 
-    int    profileID   = sssData.diffusionProfileIndex;
-    float  distScale   = sssData.subsurfaceMask;
-    float3 shapeParam  = _ShapeParams[profileID].rgb;
-    float  maxDistance = _ShapeParams[profileID].a;
+    int    profileIndex  = sssData.diffusionProfileIndex;
+    float  distScale     = sssData.subsurfaceMask;
+    float3 S             = _ShapeParamsAndMaxScatterDists[profileIndex].rgb;
+    float  d             = _ShapeParamsAndMaxScatterDists[profileIndex].a;
+    float  metersPerUnit = _WorldScalesAndFilterRadii[profileIndex].x;
+    float  filterRadius  = _WorldScalesAndFilterRadii[profileIndex].y; // In millimeters
 
     // Reconstruct the view-space position corresponding to the central sample.
     float2 centerPosNDC = posInput.positionNDC;
@@ -380,7 +375,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float3 cornerPosVS  = ComputeViewSpacePosition(cornerPosNDC, centerDepth, UNITY_MATRIX_I_P);
 
     // Rescaling the filter is equivalent to inversely scaling the world.
-    float mmPerUnit  = MILLIMETERS_PER_METER * (_WorldScales[profileID].x / distScale);
+    float mmPerUnit  = MILLIMETERS_PER_METER * (metersPerUnit * rcp(distScale));
     float unitsPerMm = rcp(mmPerUnit);
 
     // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
@@ -394,9 +389,9 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // whether we integrate over the tangent plane or not, since we
     // don't want the orientation of the tangent plane to create
     // divergence of execution across the warp.
-    float maxDistInPixels = maxDistance * max(pixelsPerMm.x, pixelsPerMm.y);
+    float maxDistInPixels = filterRadius * max(pixelsPerMm.x, pixelsPerMm.y);
 
-    uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileID);
+    uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileIndex);
     float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
     UNITY_BRANCH if (distScale == 0 || maxDistInPixels < 1)
@@ -457,13 +452,18 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // Compute the indices used to access the individual components of the float4 of the kernel.
     uint iR = useNearFieldKernel ? 0 : 2; // radius
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
-    // uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
-    uint n  = 144;
+    uint n  = SSS_N_SAMPLES_NEAR_FIELD;
+
+    const float scale  = rcp(n);
+    const float offset = 0.5 * rcp(n);
+
+    float r, rcpPdf;
+    SampleBurleyDiffusionProfile(0 * scale + offset, d, r, rcpPdf);
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
-    float3 centerWeight    = 1; // (value / pdf) = albedo
-    float3 totalIrradiance = centerIrradiance;
-    float3 totalWeight     = 1;
+    float3 centerWeight    = EvalBurleyDiffusionProfile(r, S) * rcpPdf; // Defer (* albedo)
+    float3 totalIrradiance = centerWeight * centerIrradiance;
+    float3 totalWeight     = centerWeight;
 
     uint i; // Declare once to avoid the warning from the Unity shader compiler.
 
@@ -471,27 +471,11 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     for (i = 1; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
-                       shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
+        EvaluateSample(i, n, profileIndex, iR, iP, pixelCoord + 0.5, cacheOffset,
+                       S, d, centerPosVS, mmPerUnit, pixelsPerMm,
                        startAngle, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
     }
-
-    // UNITY_BRANCH if (!useNearFieldKernel)
-    // {
-    //      StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
-    //      return;
-    // }
-
-    // UNITY_UNROLL
-    // for (i = SSS_N_SAMPLES_FAR_FIELD; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
-    // {
-    //     // Integrate over the image or tangent plane in the view space.
-    //     EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
-    //                    shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
-    //                    startAngle, tangentX, tangentY, projMatrix,
-    //                    totalIrradiance, totalWeight);
-    // }
 
     StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
 }

@@ -211,7 +211,7 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfileIndex].rgb,
+    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParamsAndMaxScatterDists[diffusionProfileIndex].rgb,
                                                         _TransmissionTintsAndFresnel0[diffusionProfileIndex].rgb,
                                                         bsdfData.thickness);
 }
@@ -224,10 +224,10 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)
         return 0;
-    
+
     uint diffusionProfileIndex = 0;
     uint i = 0;
-    
+
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {

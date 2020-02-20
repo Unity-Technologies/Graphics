@@ -12,16 +12,10 @@ float3 ComputeTransmittanceDisney(float3 S, float3 volumeAlbedo, float thickness
     // In theory, we should modify the thickness by the inverse of the mask scale of the profile.
     // thickness /= subsurfaceMask;
 
-#if 0
-    float3 exp_13 = exp(((-1.0 / 3.0) * thickness) * S);
-#else
-    // Help the compiler. S is premultiplied by ((-1.0 / 3.0) * LOG2_E) on the CPU.
-    float3 p = thickness * S;
-    float3 exp_13 = exp2(p);
-#endif
+    float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * thickness) * S); // Exp[-S * t / 3]
 
-    // Premultiply & optimize: T = (1/4 * A) * (e^(-t * S) + 3 * e^(-1/3 * t * S))
-    return volumeAlbedo * (exp_13 * (3 + exp_13 * exp_13));
+    // Premultiply & optimize: T = (1/4 * A) * (e^(-S * t) + 3 * e^(-S * t / 3))
+    return volumeAlbedo * (exp_13 * (exp_13 * exp_13 + 3));
 }
 
 // Performs sampling of the Normalized Burley diffusion profile in polar coordinates.
@@ -31,13 +25,10 @@ float3 EvalBurleyDiffusionProfile(float r, float3 S)
     float3 exp_13 = exp2(((LOG2_E * (-1.0/3.0)) * r) * S); // Exp[-S * r / 3]
     float3 expSum = exp_13 * (1 + exp_13 + exp_13);        // Exp[-S * r / 3] + Exp[-S * r]
 
-#if SSS_ELIMINATE_CONSTANTS
-    return expSum;
-#else
     return (S * rcp(8 * PI)) * expSum; // S / (8 * Pi) * (Exp[-S * r / 3] + Exp[-S * r])
-#endif
 }
 
+// https://zero-radiance.github.io/post/sampling-diffusion/
 // Performs sampling of a Normalized Burley diffusion profile in polar coordinates.
 // 'u' is the random number: [0, 1).
 // rcp(s) = 1 / ShapeParam = ScatteringDistance.
@@ -63,9 +54,5 @@ void SampleBurleyDiffusionProfile(float u, float rcpS, out float r, out float rc
     float rcpExp = ((c * c) * c) * rcp((4 * u) * ((c * c) + (4 * u) * (4 * u)));
 
     r      = x * rcpS;
-#if SSS_ELIMINATE_CONSTANTS
-    rcpPdf = rcpExp;
-#else
     rcpPdf = (8 * PI * rcpS) * rcpExp; // (8 * Pi) / s / (Exp[-s * r / 3] + Exp[-s * r])
-#endif
 }

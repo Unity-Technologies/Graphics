@@ -24,11 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // List of every diffusion profile data we need
         Vector4[]                   m_SSSThicknessRemaps;
-        Vector4[]                   m_SSSShapeParams;
+        Vector4[]                   m_SSSShapeParamsAndMaxScatterDists;
         Vector4[]                   m_SSSTransmissionTintsAndFresnel0;
         Vector4[]                   m_SSSDisabledTransmissionTintsAndFresnel0;
-        Vector4[]                   m_SSSWorldScales;
-        Vector4[]                   m_SSSFilterKernels;
+        Vector4[]                   m_SSSWorldScalesAndFilterRadii;
         float[]                     m_SSSDiffusionProfileHashes;
         int[]                       m_SSSDiffusionProfileUpdate;
         DiffusionProfileSettings[]  m_SSSSetDiffusionProfiles;
@@ -74,11 +73,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // fill the list with the max number of diffusion profile so we dont have
             // the error: exceeds previous array size (5 vs 3). Cap to previous size.
             m_SSSThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSShapeParams = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSShapeParamsAndMaxScatterDists = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSWorldScales = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSFilterKernels = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
+            m_SSSWorldScalesAndFilterRadii = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileHashes = new float[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
@@ -159,26 +157,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // if the settings have not yet been initialized
-            if (settings.profile.filterKernelNearField == null)
+            if (settings.profile.hash == 0)
                 return;
 
-            m_SSSThicknessRemaps[index] = settings.thicknessRemaps;
-            m_SSSShapeParams[index] = settings.shapeParams;
-            m_SSSTransmissionTintsAndFresnel0[index] = settings.transmissionTintsAndFresnel0;
-            m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintsAndFresnel0;
-            m_SSSWorldScales[index] = settings.worldScales;
-            for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
-            {
-                m_SSSFilterKernels[n * index + j].x = settings.profile.filterKernelNearField[j].x;
-                m_SSSFilterKernels[n * index + j].y = settings.profile.filterKernelNearField[j].y;
-
-                if (j < DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD)
-                {
-                    m_SSSFilterKernels[n * index + j].z = settings.profile.filterKernelFarField[j].x;
-                    m_SSSFilterKernels[n * index + j].w = settings.profile.filterKernelFarField[j].y;
-                }
-            }
-            m_SSSDiffusionProfileHashes[index] = HDShadowUtils.Asfloat(settings.profile.hash);
+            m_SSSThicknessRemaps[index]                      = settings.thicknessRemap;
+            m_SSSShapeParamsAndMaxScatterDists[index]        = settings.shapeParamAndMaxScatterDist;
+            m_SSSTransmissionTintsAndFresnel0[index]         = settings.transmissionTintAndFresnel0;
+            m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintAndFresnel0;
+            m_SSSWorldScalesAndFilterRadii[index]            = settings.worldScalesAndFilterRadii;
+            m_SSSDiffusionProfileHashes[index]               = HDShadowUtils.Asfloat(settings.profile.hash); // HDShadowUtils ?..
 
             // Erase previous value (This need to be done here individually as in the SSS editor we edit individual component)
             uint mask = 1u << index;
@@ -213,10 +200,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._TransmissionFlags, *(float*)&transmissionFlags);
             }
             cmd.SetGlobalVectorArray(HDShaderIDs._ThicknessRemaps, m_SSSThicknessRemaps);
-            cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, m_SSSShapeParams);
+            cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParamsAndMaxScatterDists, m_SSSShapeParamsAndMaxScatterDists);
             // To disable transmission, we simply nullify the transmissionTint
             cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0 : m_SSSDisabledTransmissionTintsAndFresnel0);
-            cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, m_SSSWorldScales);
+            cmd.SetGlobalVectorArray(HDShaderIDs._WorldScalesAndFilterRadii, m_SSSWorldScalesAndFilterRadii);
             cmd.SetGlobalFloatArray(HDShaderIDs._DiffusionProfileHashTable, m_SSSDiffusionProfileHashes);
         }
 
@@ -243,7 +230,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              numTilesY;
             public int              numTilesZ;
             public Vector4[]        worldScales;
-            public Vector4[]        filterKernels;
             public Vector4[]        shapeParams;
             public float[]          diffusionProfileHashes;
 
@@ -275,9 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
             parameters.numTilesZ = hdCamera.viewCount;
 
-            parameters.worldScales = m_SSSWorldScales;
-            parameters.filterKernels = m_SSSFilterKernels;
-            parameters.shapeParams = m_SSSShapeParams;
+            parameters.worldScales = m_SSSWorldScalesAndFilterRadii;
+            parameters.shapeParams = m_SSSShapeParamsAndMaxScatterDists;
             parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
 
             return parameters;
@@ -442,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-            
+
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA
@@ -457,9 +442,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeFloatParam(parameters.subsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&textureingModeFlags);
             }
 
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScales, parameters.worldScales);
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._FilterKernels, parameters.filterKernels);
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParams, parameters.shapeParams);
+            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScalesAndFilterRadii, parameters.worldScales);
+            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParamsAndMaxScatterDists, parameters.shapeParams);
             cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
 
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
