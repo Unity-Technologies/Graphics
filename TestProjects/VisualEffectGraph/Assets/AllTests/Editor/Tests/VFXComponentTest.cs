@@ -15,17 +15,13 @@ namespace UnityEditor.VFX.Test
 {
     public class VisualEffectTest : ScriptableObject
     {
-        [SerializeField] string m_cubeEmptyName;
-        [SerializeField] string m_sphereEmptyName;
-        [SerializeField] string m_mainObjectName;
-        [SerializeField] string m_mainCameraName;
-
-        GameObject cubeEmpty => GameObject.Find(m_cubeEmptyName);
-        GameObject sphereEmpty => GameObject.Find(m_sphereEmptyName);
-        GameObject mainObject => GameObject.Find(m_mainObjectName);
-        GameObject mainCamera => GameObject.Find(m_mainCameraName);
-
         [SerializeField] bool m_Init = false;
+
+        [SerializeField] GameObject m_cubeEmpty;
+        [SerializeField] GameObject m_sphereEmpty;
+        [SerializeField] GameObject m_mainObject;
+        [SerializeField] GameObject m_mainCamera;
+
         [SerializeField] string m_pathTexture2D_A;
         [SerializeField] string m_pathTexture2D_B;
         [SerializeField] Texture2D m_texture2D_A;
@@ -55,13 +51,13 @@ namespace UnityEditor.VFX.Test
             m_Init = true;
 
             System.IO.Directory.CreateDirectory("Assets/Temp");
-            m_cubeEmptyName = "VFX_Test_Cube_Empty_Name";
-            m_sphereEmptyName = "VFX_Test_Sphere_Empty_Name";
+            var cubeEmptyName = "VFX_Test_Cube_Empty_Name";
+            var sphereEmptyName = "VFX_Test_Sphere_Empty_Name";
 
-            var cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cubeEmpty.name = m_cubeEmptyName;
-            var sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            sphereEmpty.name = m_sphereEmptyName;
+            m_cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            m_cubeEmpty.name = cubeEmptyName;
+            m_sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            m_sphereEmpty.name = sphereEmptyName;
 
             m_pathTexture2D_A = "Assets/texture2D_A.asset";
             m_pathTexture2D_B = "Assets/texture2D_B.asset";
@@ -108,14 +104,14 @@ namespace UnityEditor.VFX.Test
             m_textureCubeArray_A = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_A);
             m_textureCubeArray_B = AssetDatabase.LoadAssetAtPath<CubemapArray>(m_pathTextureCubeArray_B);
 
-            m_mainObjectName = "VFX_Test_Main_Object";
-            var mainObject = new GameObject(m_mainObjectName);
+            var mainObjectName = "VFX_Test_Main_Object";
+            m_mainObject = new GameObject(mainObjectName);
 
-            m_mainCameraName = "VFX_Test_Main_Camera";
-            var mainCamera = new GameObject(m_mainCameraName);
-            var camera = this.mainCamera.AddComponent<Camera>();
+            var mainCameraName = "VFX_Test_Main_Camera";
+            m_mainCamera = new GameObject(mainCameraName);
+            var camera = this.m_mainCamera.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(this.mainCamera.transform);
+            camera.transform.LookAt(this.m_mainCamera.transform);
 
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
@@ -131,10 +127,10 @@ namespace UnityEditor.VFX.Test
             UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f / 60.0f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
 
-            UnityEngine.Object.DestroyImmediate(mainObject);
-            UnityEngine.Object.DestroyImmediate(cubeEmpty);
-            UnityEngine.Object.DestroyImmediate(sphereEmpty);
-            UnityEngine.Object.DestroyImmediate(mainCamera);
+            UnityEngine.Object.DestroyImmediate(m_mainObject);
+            UnityEngine.Object.DestroyImmediate(m_cubeEmpty);
+            UnityEngine.Object.DestroyImmediate(m_sphereEmpty);
+            UnityEngine.Object.DestroyImmediate(m_mainCamera);
             AssetDatabase.DeleteAsset(m_pathTexture2D_A);
             AssetDatabase.DeleteAsset(m_pathTexture2D_B);
             AssetDatabase.DeleteAsset(m_pathTexture2DArray_A);
@@ -182,9 +178,9 @@ namespace UnityEditor.VFX.Test
 
             var graph = CreateGraph_And_System();
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
-            var vfxComponent = mainObject.AddComponent<VisualEffect>();
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             //Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
@@ -213,9 +209,9 @@ namespace UnityEditor.VFX.Test
             var graph = CreateGraph_And_System();
             yield return null;
         
-            while (mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
-            var vfxComponent = mainObject.AddComponent<VisualEffect>();
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
             yield return null;
@@ -395,11 +391,11 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = mainObject.AddComponent<VisualEffect>();
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             yield return null;
@@ -454,9 +450,9 @@ namespace UnityEditor.VFX.Test
             graph_B.AddChild(parameter_B);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph_B));
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
-            var vfx = mainObject.AddComponent<VisualEffect>();
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
             vfx.visualEffectAsset = graph_A.visualEffectResource.asset;
             Assert.IsTrue(vfx.HasVector3(commonExposedName));
             var expectedOverriden = new Vector3(1, 2, 3);
@@ -512,9 +508,9 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
-            var vfx = mainObject.AddComponent<VisualEffect>();
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
             vfx.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.IsTrue(vfx.HasVector2(exposedName));
             if (modifyValue)
@@ -615,9 +611,9 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(parameter);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
-            var vfx = mainObject.AddComponent<VisualEffect>();
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
             vfx.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.IsTrue(vfx.HasVector3(exposedName));
             var expectedOverriden = new Vector3(1, 2, 3);
@@ -744,7 +740,7 @@ namespace UnityEditor.VFX.Test
             else if (typeof(Gradient) == type)
                 return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
             else if (typeof(Mesh) == type)
-                return cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
+                return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
             else if (typeof(Texture2D) == type)
                 return m_texture2D_A;
             else if (typeof(Texture2DArray) == type)
@@ -781,7 +777,7 @@ namespace UnityEditor.VFX.Test
             else if (typeof(Gradient) == type)
                 return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
             else if (typeof(Mesh) == type)
-                return sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
+                return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
             else if (typeof(Texture2D) == type)
                 return m_texture2D_B;
             else if (typeof(Texture2DArray) == type)
@@ -1132,11 +1128,11 @@ namespace UnityEditor.VFX.Test
 
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            while (mainObject.GetComponent<VisualEffect>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(mainObject.GetComponent<VisualEffect>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = mainObject.AddComponent<VisualEffect>();
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             yield return null;
