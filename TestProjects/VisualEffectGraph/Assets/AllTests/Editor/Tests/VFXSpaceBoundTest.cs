@@ -33,8 +33,7 @@ namespace UnityEditor.VFX.Test
             var objectPosition = new Vector3(0.123f, 0.0f, 0.0f);
             var boundPosition = new Vector3(0.0f, 0.0987f, 0.0f);
 
-            EditorApplication.ExecuteMenuItem("Window/General/Game");
-
+            yield return new EnterPlayMode();
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -121,9 +120,7 @@ namespace UnityEditor.VFX.Test
                 //Unknown case, should not happen
                 Assert.IsFalse(true);
             }
-
-            UnityEngine.Object.DestroyImmediate(vfxComponent);
-            UnityEngine.Object.DestroyImmediate(cameraObj);
+            yield return new ExitPlayMode();
         }
     }
 }
