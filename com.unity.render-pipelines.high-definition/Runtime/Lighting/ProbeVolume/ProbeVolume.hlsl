@@ -20,14 +20,19 @@ float ProbeVolumeComputeFadeFactor(
 
 void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
 {
-    // Determine if GI (from Lightmaps) is already present. If so, early out.
-    bool uninitialized = all(builtinData.bakeDiffuseLighting >= kUninitializedGI);
-    if (!uninitialized)
-        return;
+    const float3 noLight = float3(0.0, 0.0, 0.0);
 
-    float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
-
+    float3 probeVolumeDiffuseLighting = noLight;
     float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
+
+    // Determine if GI (from Lightmaps) is already present.
+    // If so only process non-normal layer volumes.
+    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
+    if (!uninitialized)
+    {
+        probeVolumeDiffuseLighting = builtinData.bakeDiffuseLighting;
+        probeVolumeHierarchyWeight = 1.0;
+    }
 
     uint probeVolumeStart, probeVolumeCount;
 
@@ -338,6 +343,6 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
         }
     }
 
-    // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
     builtinData.bakeDiffuseLighting = probeVolumeDiffuseLighting;
+    builtinData.backBakeDiffuseLighting = noLight;
 }

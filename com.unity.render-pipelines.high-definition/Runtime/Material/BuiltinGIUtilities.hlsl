@@ -1,7 +1,13 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
-const float3 kUninitializedGI = float3((1 << 11) - 1, 0, (1 << 10) - 1);
+#define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
+
+bool IsUninitializedGI(float3 bakedGI)
+{
+    const float3 unitializedGI = UNINITIALIZED_GI;
+    return all(bakedGI == unitializedGI);
+}
 
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
@@ -18,9 +24,11 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
 #if defined(SHADEROPTIONS_PROBE_VOLUMES)
-    const float3 uninitializedGI = kUninitializedGI;
-    return uninitializedGI;
-#else
+    // ProbeVolumes are incompatible with legacy Light robes
+    if (_EnableProbeVolumes)
+        return UNINITIALIZED_GI;
+#endif
+
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -46,7 +54,6 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
             return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
-#endif
 
 #else
 
