@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_ContextTitle = new Label(" ") { name = "titleLabel" };
                 var titleLabel = new Label(kTitle) { name = "titleValue" };
-                
+
                 titleContainer.Add(m_ContextTitle);
                 titleContainer.Add(titleLabel);
             }
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Layout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
             else
                 m_Layout = m_DefaultLayout;
-            
+
             m_Layout.ApplyPosition(this);
             m_Layout.ApplySize(this);
         }
@@ -138,6 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateSelection(List<ISelectable> selection)
         {
+            // Remove current properties
             var propertyItemCount = m_PropertyContainer.childCount;
             for(int i = 0; i < propertyItemCount; i++)
                 m_PropertyContainer.RemoveAt(0);
@@ -156,7 +157,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PropertyContainer.Add(sheet);
                 return;
             }
-            
+
             if(selection.FirstOrDefault() is IInspectable inspectable)
             {
                 m_ContextTitle.text = inspectable.displayName;
@@ -182,9 +183,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
                 return;
-            
+
             m_ContextTitle.text = $"{graphEditorView.assetName} (Graph)";
 
+            // #TODO - Refactor
             var precisionField = new EnumField((Enum)m_GraphData.concretePrecision);
             precisionField.RegisterValueChangedCallback(evt =>
             {
@@ -195,6 +197,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphData.concretePrecision = (ConcretePrecision)evt.newValue;
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                 graphEditorView.colorManager.SetNodesDirty(nodeList);
+
                 m_GraphData.ValidateGraph();
                 graphEditorView.colorManager.UpdateNodeViews(nodeList);
                 foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
@@ -206,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var sheet = new PropertySheet();
             sheet.Add(new PropertyRow(new Label("Precision")), (row) =>
             {
-                row.Add(precisionField); 
+                row.Add(precisionField);
             });
             m_PropertyContainer.Add(sheet);
         }
@@ -271,12 +274,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
             {
-                evt.menu.AppendAction(primitiveTypeName, e => 
+                evt.menu.AppendAction(primitiveTypeName, e =>
                 {
                     Mesh mesh = Resources.GetBuiltinResource(typeof(Mesh), string.Format("{0}.fbx", primitiveTypeName)) as Mesh;
                     ChangePreviewMesh(mesh);
                 }, DropdownMenuAction.AlwaysEnabled);
             }
+
+            // #TODO - COMMENTS PLEASE FOR THE LOVE OF GOD
+            // #TODO - Doesn't return an actual value, returns null
+            // #TODO - Uses reflection to access methods/properties of an internal class
+            MethodInfo test = s_ObjectSelector.GetMethod("Show",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder,
+                new[] {typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>)},
+                new ParameterModifier[7]);
+
+            test.Invoke(GetMeshSelectionWindow(), new object[] { null, typeof(Mesh), null, false, null, (Action<UnityEngine.Object>)OnPreviewMeshChanged, (Action<UnityEngine.Object>)OnPreviewMeshChanged });
 
             evt.menu.AppendAction("Custom Mesh", e =>
             {
