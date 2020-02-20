@@ -304,11 +304,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -336,10 +331,6 @@ Shader "Universal Render Pipeline/Lit"
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
 
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             #pragma vertex ShadowPassVertex

@@ -9,11 +9,11 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
     }
 
 	HLSLINCLUDE
-	
+
 	#pragma multi_compile __ _ALPHATEST_ON
-	
+
 	ENDHLSL
-	
+
     SubShader
     {
         Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
@@ -55,7 +55,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma vertex SplatmapVert
@@ -85,7 +84,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma target 2.0
 
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma vertex ShadowPassVertex
@@ -114,7 +112,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma fragment DepthOnlyFragment
 
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
