@@ -379,8 +379,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Toggle Expansion");
             foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
             {
-                if(selectedNode.CanToggleExpanded())
+                if (selectedNode.CanToggleExpanded())
+                {
                     selectedNode.expanded = state;
+                    selectedNode.node.Dirty(ModificationScope.Topological);
+                }
             }
         }
 
@@ -845,7 +848,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ShaderKeyword keyword:
                     {
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.properties.FirstOrDefault(k => k.guid == keyword.guid) == null)
+                        if (graph.keywords.FirstOrDefault(k => k.guid == keyword.guid) == null)
                         {
                             var copy = (ShaderKeyword)keyword.Copy();
                             graph.SanitizeGraphInputName(copy);
