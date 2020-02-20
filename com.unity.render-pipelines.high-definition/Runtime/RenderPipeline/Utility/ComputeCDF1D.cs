@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering
             return cdf;
         }
 
-        static public RTHandle ComputeInverseCDF(RTHandle cdf, RTHandle fullPDF, Vector4 integral, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
+        static public RTHandle ComputeInverseCDF(RTHandle cdf, RTHandle fullPDF, CommandBuffer cmd, SumDirection direction, GraphicsFormat sumFormat = GraphicsFormat.None)
         {
             if (cdf == null)
             {
@@ -135,11 +135,9 @@ namespace UnityEngine.Rendering
 
             // RGB to Greyscale
             int kernel = invCDFCS.FindKernel("CSMain" + addon);
-            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Input,    cdf);
+            cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._CDF,      cdf);
             cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Output,   invCDF);
             cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._PDF,      fullPDF);
-            cmd.SetComputeVectorParam (invCDFCS,         HDShaderIDs._Integral,
-                                        new Vector4(integral.x, integral.y, integral.z, 1.0f/Mathf.Max(integral.x, integral.y, integral.z)));
             cmd.SetComputeIntParams   (invCDFCS,         HDShaderIDs._Sizes,
                                         cdf.rt.width, cdf.rt.height, invCDF.rt.width, invCDF.rt.height);
             int numTilesX = (invCDF.rt.width  + (8 - 1))/8;

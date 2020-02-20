@@ -101,7 +101,7 @@ float4 frag(v2f i) : SV_Target
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = RescaleNormalized(i.texcoord.y, 0.0f, pi*0.5f);
+    float angle = i.texcoord.y*pi*0.5f;
 
     if (_preMultiplyByJacobian == 1)
     {
@@ -133,7 +133,7 @@ float4 fragArray(v2f i) : SV_Target
 
     float scale = 1.0f;
     float pi = 3.1415926535897932384626433832795f;
-    float angle = RescaleNormalized(i.texcoord.y, 0.0f, pi*0.5f);
+    float angle = i.texcoord.y*pi*0.5f;
 
     if (_preMultiplyByJacobian == 1)
     {

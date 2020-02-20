@@ -41,9 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
         /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
-        public static bool ScheduleMarginalGeneration(int identifier, Texture pdfTexture)
+        /// <param name="buildHemisphere">if the pdfTexture is a Cubemap or a CubemapArray, buildHemisphere allow to enforce to build the marginals only for the Upper Hemisphere.</param>
+        public static bool ScheduleMarginalGeneration(int identifier, Texture pdfTexture, bool buildHemisphere = false)
         {
-            return s_DefaultInstance.ScheduleMarginalGeneration(identifier, pdfTexture);
+            return s_DefaultInstance.ScheduleMarginalGeneration(identifier, pdfTexture, buildHemisphere);
         }
 
         /// <summary>
@@ -51,9 +52,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="identifier">Unique ID to identify this scheduling.</param>
         /// <param name="pdfTexture">Texture2D or CubeMap which used for the the generation of the important sampling.</param>
-        public static bool ScheduleMarginalGenerationForce(int identifier, Texture pdfTexture)
+        /// <param name="buildHemisphere">if the pdfTexture is a Cubemap or a CubemapArray, buildHemisphere allow to enforce to build the marginals only for the Upper Hemisphere.</param>
+        public static bool ScheduleMarginalGenerationForce(int identifier, Texture pdfTexture, bool buildHemisphere = false)
         {
-            return s_DefaultInstance.ScheduleMarginalGenerationForce(identifier, pdfTexture);
+            return s_DefaultInstance.ScheduleMarginalGenerationForce(identifier, pdfTexture, buildHemisphere);
         }
 
         /// <summary>
@@ -74,6 +76,10 @@ namespace UnityEngine.Rendering.HighDefinition
             s_DefaultInstance.Update(cmd);
         }
 
+        /// <summary>
+        /// Get convenient ID to identify a texture in the Importance Sampling
+        /// </summary>
+        /// <param name="texture">Texture which we want to have an ID from.</param>
         public static int GetIdentifier(Texture texture)
         {
             return 23*texture.GetHashCode() + texture.updateCount.GetHashCode();

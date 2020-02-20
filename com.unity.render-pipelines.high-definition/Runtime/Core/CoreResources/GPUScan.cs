@@ -3,6 +3,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering
 {
+    // For Add (CommulativeAdd)
+    // Texture2D NxM -> Texture2D NxM
+    // For Total or MinMax
     // Texture1D 1xN -> Texture2D 1x1
     // Texture1D Nx1 -> Texture2D 1x1
     // Texture2D NxM -> Texture2D 1xM
@@ -212,6 +215,7 @@ namespace UnityEngine.Rendering
                 if (opDirection == Direction.Horizontal)
                 {
                     output = RTHandles.Alloc(1, height, colorFormat: format, enableRandomWrite: true);
+                    RTHandleDeleter.ScheduleRelease(cdf);
                     if (cmd != null)
                     {
                         cmd.CopyTexture(cdf, 0, 0, width - 1, 0, 1, height, output, 0, 0, 0, 0);
@@ -224,6 +228,7 @@ namespace UnityEngine.Rendering
                 else
                 {
                     output = RTHandles.Alloc(width, 1, colorFormat: format, enableRandomWrite: true);
+                    RTHandleDeleter.ScheduleRelease(cdf);
                     if (cmd != null)
                     {
                         cmd.CopyTexture(cdf, 0, 0, 0, height - 1, width, 1, output, 0, 0, 0, 0);

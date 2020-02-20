@@ -745,6 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SliceInvCDF                    = Shader.PropertyToID("_SliceInvCDF");
         public static readonly int _InvCDF                         = Shader.PropertyToID("_InvCDF");
         public static readonly int _PDF                            = Shader.PropertyToID("_PDF");
+        public static readonly int _CDF                            = Shader.PropertyToID("_CDF");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

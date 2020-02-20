@@ -150,10 +150,7 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
 
 float SampleToPDFMeasure(float3 value)
 {
-    return value.r + value.g + value.b;
-    //return max(value.r, max(value.g, value.b));
-    //return Luminance(value);
-    //return AcesLuminance(value);
+    return (value.r + value.g + value.b)*(1.0f/3.0f);
 }
 
 float SampleToPDFMeasure(float4 value)

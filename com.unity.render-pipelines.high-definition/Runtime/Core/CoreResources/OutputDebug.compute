@@ -34,7 +34,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             {
                 float2 uv = _Samples[uint2(id.x, 0)].xy + float2(i, j)*dp;
                 uint2 posOut = uint2(round(uv*_IOSize));
-                _Output[posOut] = float4(FLT_MAX, 0, 0, 1);
+                float4 cur = _Output[posOut];
+                _Output[posOut] = float4(cur.r, FLT_MAX.xxx);
             }
         }
     }

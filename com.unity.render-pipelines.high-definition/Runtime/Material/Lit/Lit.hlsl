@@ -12,7 +12,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 // For Multiple Importance Sampling with the HDRI Sky
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ImportanceSampling2D.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ImportanceSampling2D.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
@@ -1714,7 +1714,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     // Apply the weight on the ssr contribution (if required)
     ApplyScreenSpaceReflectionWeight(ssrLighting);
-    
+
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
     lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
     reflectionHierarchyWeight  = ssrLighting.a;

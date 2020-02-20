@@ -1,11 +1,5 @@
 Shader "Hidden/HDRP/IntegrateHDRISkyMIS"
 {
-    //Properties
-    //{
-    //    [HideInInspector]
-    //    _Cubemap ("", CUBE) = "white" {}
-    //}
-
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
@@ -42,6 +36,7 @@ Shader "Hidden/HDRP/IntegrateHDRISkyMIS"
             Texture2D<float4>   _Marginal;
             Texture2D<float4>   _ConditionalMarginal;
             uint                _SamplesCount;
+            float4              _Sizes;
 
             Varyings Vert(Attributes input)
             {
@@ -57,53 +52,43 @@ Shader "Hidden/HDRP/IntegrateHDRISkyMIS"
             // compute the lux value without multiple importance sampling.
             // We instead use a brute force Uniforme Spherical integration of the upper hemisphere
             // with a large number of sample. This is fine as this happen in the editor.
-            real3 GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N)
+            real3 GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N, int i)
             {
                 //const float coef    = FOUR_PI/float(_SamplesCount);
                 //const float coef    = TWO_PI/float(_SamplesCount);
-                float usedSamples = 0.0f;
-                float3 sum = 0.0;
-                for (uint i = 0; i < _SamplesCount; ++i)
+                //float  usedSamples  = 0.0f;
+                float3 sum          = 0.0;
+                //float  coef         = 4.0f*PI/(float(_SamplesCount));
+                //float  coef = 0.5f*PI*PI*_Sizes.z*_Sizes.w;
+                //for (uint i = 0; i < _SamplesCount; ++i)
                 {
-                    float2 xi;// = Hammersley2d(i, _SamplesCount);
-                    //xi.y = xi.y*0.5f + 0.5f;
-                    //xi.y *= 0.5f;
+                    float2 xi = Hammersley2d(i, _SamplesCount);
                     float2 latLongUV;
                     float3 sampleDir;
-                    ImportanceSamplingLatLong(latLongUV, sampleDir, xi, _Marginal, s_linear_clamp_sampler, _ConditionalMarginal, s_linear_clamp_sampler);
+                    float2 info = ImportanceSamplingHemiLatLong(latLongUV, sampleDir, xi, _Sizes.xyz, _Marginal, s_linear_clamp_sampler, _ConditionalMarginal, s_linear_clamp_sampler);
 
-                    //xi.y = (xi.y - 0.5f)*0.5f + 0.25f + 0.5f;
-
-                    //sampleDir = normalize(LatlongToDirectionCoordinate(saturate(xi)));
                     sampleDir = normalize(LatlongToDirectionCoordinate(saturate(latLongUV)));
 
-                    //float3 L = TransformGLtoDX(sampleDir);
+                    float angle = (1.0f - latLongUV.y)*PI;
+                    ////float cos0 = cos((latLongUV.y - 0.5)*PI);
+                    float cos0 = cos(angle);
+                    //float sin0 = sqrt(saturate(1.0f - cos0*cos0));
+                    float sin0 = sin(angle);
 
-                    float cos0 = saturate( sampleDir.y );
-                    float sin0 = sqrt( saturate( 1.0f - cos0*cos0 ) );
-
-                    //if (cos0 > 0.0f)
-                    //    usedSamples += 1.0f;
-
-                    //float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos0));
-                    //float3 L = TransformGLtoDX(sampleDir);
-                    //float3 L = sampleDir;
                     real3 val = SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, sampleDir, 0).rgb;
-                    //real3 val = real3(1, 1, 1);
-                    //sum += (cos0*sin0*coef)*val;
-                    //sum += (cos0*sin0)*val;
-                    //sum += val;
-                    sum += cos0*sin0*val/max(val.r, max(val.g, val.b));
+
+                    float pdf = info.x;
+
+                    //if (pdf > 1e-10f)
+                    //{
+                    //    //sum += saturate(cos0)*val*coef/(2.0f*PI);// *(coef * abs(sin0));//pdf);
+                    //}
+                    if (pdf > 1e-6f)
+                        sum = saturate(cos0)*abs(sin0)*val;//pdf;// *(coef * abs(sin0));//pdf);
                 }
 
-                //return sum*TWO_PI/usedSamples;
-                return sum*(TWO_PI/float(_SamplesCount));
-                //return sum/usedSamples;
-                //return TWO_PI*sum/float(_SamplesCount);
-                //return TWO_PI*sum/float(_SamplesCount);
-                //return sum*TWO_PI/usedSamples;
-                //return sum/usedSamples;
-                //return sum/float(_SamplesCount);
+                return sum/float(_SamplesCount);
+                    //;//accumWeight;
             }
 
             float4 Frag(Varyings input) : SV_Target
@@ -111,8 +96,10 @@ Shader "Hidden/HDRP/IntegrateHDRISkyMIS"
                 // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
+                int i = floor(input.texCoord.x*_SamplesCount);
+
                 //float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
-                float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_point_clamp_sampler), N);
+                float3 intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_point_clamp_sampler), N, i);
 
                 //return float4(intensity.rgb, Luminance(intensity));
                 return float4(intensity.rgb, max(intensity.r, max(intensity.g, intensity.b)));

@@ -1,60 +1,88 @@
 #ifndef UNITY_IMPORTANCE_SAMPLING_2D
 #define UNITY_IMPORTANCE_SAMPLING_2D
 
-float2 ImportanceSamplingLatLong(out float2 uv, out float3 w, float2 xi, TEXTURE2D_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_PARAM(conditionalMarginal, used_samplerCondMarg))
+#ifdef HORIZONTAL
+void GetImportanceSampledUV(out float2 uv, float2 xi, float3 pixHeightsInfos, TEXTURE2D_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_PARAM(conditionalMarginal, used_samplerCondMarg))
 {
-    // textureName, samplerName, coord2, index, lod
     uv.y = saturate(SAMPLE_TEXTURE2D_LOD(marginalRow,           used_samplerMarg,     float2(0.0f, xi.x), 0).x);
+    // pixInfos: x: Heights, y: 1.0f/Heights, z: 0.5f/Heights
+    uv.y = floor(uv.y*pixHeightsInfos.x)*pixHeightsInfos.y + pixHeightsInfos.z;
     uv.x = saturate(SAMPLE_TEXTURE2D_LOD(conditionalMarginal,   used_samplerCondMarg, float2(xi.y, uv.y), 0).x);
+}
 
-    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
+void GetImportanceSampledUVArray(out float2 uv, float2 xi, float3 pixHeightsInfos, TEXTURE2D_ARRAY_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_ARRAY_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    uv.y = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(marginalRow,           used_samplerMarg,     float2(0.0f, xi.x), 0, 0).x);
+    // pixInfos: x: Heights, y: 1.0f/Heights, z: 0.5f/Heights
+    uv.y = floor(uv.y*pixHeightsInfos.x)*pixHeightsInfos.y + pixHeightsInfos.z;
+    uv.x = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal,   used_samplerCondMarg, float2(xi.y, uv.y), 0, 0).x);
+}
+#elif defined(VERTICAL)
+void GetImportanceSampledUV(out float2 uv, float2 xi, float3 pixHeightsInfos, TEXTURE2D_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    uv.x = saturate(SAMPLE_TEXTURE2D_LOD(marginalRow,           used_samplerMarg,     float2(xi.x, 0.0f), 0).x);
+    // pixInfos: x: Width, y: 1.0f/Width, z: 0.5f/Width
+    uv.x = floor(uv.x*pixHeightsInfos.x)*pixHeightsInfos.y + pixHeightsInfos.z;
+    uv.y = saturate(SAMPLE_TEXTURE2D_LOD(conditionalMarginal,   used_samplerCondMarg, float2(uv.x, xi.y), 0).x);
+}
 
+void GetImportanceSampledUVArray(out float2 uv, float2 xi, float3 pixHeightsInfos, TEXTURE2D_ARRAY_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_ARRAY_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    uv.x = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(marginalRow,           used_samplerMarg,     float2(xi.x, 0.0f), 0, 0).x);
+    // pixInfos: x: Width, y: 1.0f/Width, z: 0.5f/Width
+    uv.x = floor(uv.x*pixHeightsInfos.x)*pixHeightsInfos.y + pixHeightsInfos.z;
+    uv.y = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal,   used_samplerCondMarg, float2(uv.x, xi.y), 0, 0).x);
+}
+#else
+#error ImportanceSampling2D.hlsl must define if HORIZONTAL or VERTICAL
+#endif
+
+float2 ImportanceSamplingHemiLatLong(out float2 uv, out float3 w, float2 xi, float3 pixHeightsInfos, TEXTURE2D_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    GetImportanceSampledUV(uv, xi, pixHeightsInfos, marginalRow, used_samplerMarg, conditionalMarginal, used_samplerCondMarg);
     // The pdf (without jacobian) stored on the y channel
     float2 info = SAMPLE_TEXTURE2D_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0).yz;
+
+    uv.y *= 0.5f;
+
+    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
 
     return info;
 }
 
-//void ImportanceSamplingLatLong(out float2 uv, out float3 w, float2 xi, TEXTURE2D_PARAM(marginalRow, s_linear_clamp_sampler), TEXTURE2D_PARAM(conditionalMarginal, s_linear_clamp_sampler))
-float2 ImportanceSamplingLatLongArray(out float2 uv, out float3 w, float2 xi, TEXTURE2D_ARRAY_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_ARRAY_PARAM(conditionalMarginal, used_samplerCondMarg))
+float2 ImportanceSamplingHemiLatLongArray(out float2 uv, out float3 w, float2 xi, float3 pixHeightsInfos, TEXTURE2D_ARRAY_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_ARRAY_PARAM(conditionalMarginal, used_samplerCondMarg))
 {
-    /*
-    float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(0, u.x), 0).x;
-    float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(u.y, sliceInvCDFValue), 0).x;
-
-    float2 smpl = float2(saturate(invCDFValue), saturate(sliceInvCDFValue));
-
-    _Output[id.xy] = float4(smpl.xy, 0, 1);
-    */
-
-    // textureName, samplerName, coord2, index, lod
-    uv.y = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(marginalRow,           used_samplerMarg,     float2(0.0f, xi.x), 0, 0).x);
-
-    //uv.y *= 1024.f;
-    //uv.y = round(uv.y);
-    //uv.y /= 1024.0f;
-
-    uv.x = saturate(SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal,   used_samplerCondMarg, float2(xi.y, uv.y), 0, 0).x);
-
-    //w = LatlongToDirectionCoordinate(saturate(uv));
-    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
-
+    GetImportanceSampledUVArray(uv, xi, pixHeightsInfos, marginalRow, used_samplerMarg, conditionalMarginal, used_samplerCondMarg);
     // The pdf (without jacobian) stored on the y channel
-    //return SAMPLE_TEXTURE2D_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0).y;
     float2 info = SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).yz;
 
-    //return info.x/max(info.y, 1e-4);
-    //if (info.y > 0.0f)
-    //    return info.x/max(info.y, 1e-4);
-    //else
-        return info;
+    uv.y *= 0.5f;
 
-    //float2 info =
-    //            SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).y
-    //    / //  -------------------------------------------------------------------------------------
-    //            max(SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).z, 1e-4);
+    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
 
-    //return SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).y;
+    return info;
+}
+
+float2 ImportanceSamplingLatLong(out float2 uv, out float3 w, float2 xi, float3 pixHeightsInfos, TEXTURE2D_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    GetImportanceSampledUV(uv, xi, pixHeightsInfos, marginalRow, used_samplerMarg, conditionalMarginal, used_samplerCondMarg);
+    // The pdf (without jacobian) stored on the y channel
+    float2 info = SAMPLE_TEXTURE2D_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0).yz;
+
+    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
+
+    return info;
+}
+
+float2 ImportanceSamplingLatLongArray(out float2 uv, out float3 w, float2 xi, float3 pixHeightsInfos, TEXTURE2D_ARRAY_PARAM(marginalRow, used_samplerMarg), TEXTURE2D_ARRAY_PARAM(conditionalMarginal, used_samplerCondMarg))
+{
+    GetImportanceSampledUVArray(uv, xi, pixHeightsInfos, marginalRow, used_samplerMarg, conditionalMarginal, used_samplerCondMarg);
+    // The pdf (without jacobian) stored on the y channel
+    float2 info = SAMPLE_TEXTURE2D_ARRAY_LOD(conditionalMarginal, used_samplerCondMarg, uv, 0, 0).yz;
+
+    w = normalize(LatlongToDirectionCoordinate(saturate(uv)));
+
+    return info;
 }
 
 #endif // UNITY_IMPORTANCE_SAMPLING_2D

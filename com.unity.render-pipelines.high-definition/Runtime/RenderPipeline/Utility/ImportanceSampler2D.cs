@@ -69,21 +69,24 @@ namespace UnityEngine.Rendering
             invCDFRows = null;
             invCDFFull = null;
 
-            GraphicsFormat format1 = GetFormat(1, true);
-            GraphicsFormat format2 = GetFormat(2, true);
-            GraphicsFormat format4 = GetFormat(4, true);
+            bool isFullPrecision = HDUtils.GetFormatMaxPrecisionBits(density.rt.graphicsFormat) == 32;
+
+            GraphicsFormat format1 = GetFormat(1, isFullPrecision);
+            GraphicsFormat format2 = GetFormat(2, isFullPrecision);
+            GraphicsFormat format4 = GetFormat(4, isFullPrecision);
 
 #if DUMP_IMAGE
             string strName = string.Format("{0}S{1}M{1}", idx, elementIndex, mipIndex);
 #endif
 
-            //cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
+            RTHandle pdfCopy = RTHandles.Alloc(density.rt.width, density.rt.height, colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
+            cmd.CopyTexture(density, elementIndex, mipIndex, pdfCopy, 0, 0);
 #if DUMP_IMAGE
-            //if (dumpFile)
-            //    cmd.RequestAsyncReadback(density, delegate (AsyncGPUReadbackRequest request)
-            //    {
-            //        Default(request, "___PDFCopy" + strName, density.rt.graphicsFormat);
-            //    });
+            if (dumpFile)
+                cmd.RequestAsyncReadback(density, delegate (AsyncGPUReadbackRequest request)
+                {
+                    Default(request, "___PDFCopy" + strName, density.rt.graphicsFormat);
+                });
 #endif
 
             ////////////////////////////////////////////////////////////////////////////////
@@ -93,14 +96,6 @@ namespace UnityEngine.Rendering
             RTHandle minMaxFull0 = RTHandles.Alloc(1, density.rt.height, colorFormat: format2, enableRandomWrite: true);
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRows")))
             {
-                //minMaxFull0 = GPUOperation.ComputeOperation(
-                //                                density,
-                //                                cmd,
-                //                                GPUOperation.Operation.MinMax,
-                //                                GPUOperation.Direction.Horizontal,
-                //                                2, // opPerThread
-                //                                true, // isPDF
-                //                                format2);
                 minMaxFull0 = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Horizontal, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxFull0);
 #if DUMP_IMAGE
@@ -116,14 +111,6 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("MinMaxOfRowsAndRescale")))
             {
                 // MinMax of the MinMax of rows => Single Pixel
-                //minMaxFull1 = GPUOperation.ComputeOperation(
-                //                            minMaxFull0,
-                //                            cmd,
-                //                            GPUOperation.Operation.MinMax,
-                //                            GPUOperation.Direction.Vertical,
-                //                            2, // opPerThread
-                //                            false, // isPDF
-                //                            format2);
                 minMaxFull1 = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.MinMax, GPUScan.Direction.Vertical, format2);
                 RTHandleDeleter.ScheduleRelease(minMaxFull1);
 #if DUMP_IMAGE
@@ -133,12 +120,12 @@ namespace UnityEngine.Rendering
                         Default(request, "01_MinMaxOfMinMaxOfRows" + strName, minMaxFull1.rt.graphicsFormat);
                     });
 #endif
-                Rescale(density, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
+                Rescale(pdfCopy, minMaxFull1, GPUOperation.Direction.Horizontal, cmd, true);
 #if DUMP_IMAGE
                 if (dumpFile)
-                    cmd.RequestAsyncReadback(density, delegate (AsyncGPUReadbackRequest request)
+                    cmd.RequestAsyncReadback(pdfCopy, delegate (AsyncGPUReadbackRequest request)
                     {
-                        Default(request, "02_PDFRescaled" + strName, density.rt.graphicsFormat);
+                        Default(request, "02_PDFRescaled" + strName, pdfCopy.rt.graphicsFormat);
                     });
 #endif
             }
@@ -147,7 +134,7 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("ComputeCDFRescaled")))
             {
                 // Compute the CDF of the rows of the rescaled PDF
-                cdfFull = GPUScan.ComputeOperation(density, cmd, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, format1);
+                cdfFull = GPUScan.ComputeOperation(pdfCopy, cmd, GPUScan.Operation.Add, GPUScan.Direction.Horizontal, format1);
                 RTHandleDeleter.ScheduleRelease(cdfFull);
 #if DUMP_IMAGE
                 if (dumpFile)
@@ -176,7 +163,7 @@ namespace UnityEngine.Rendering
                 ////////////////////////////////////////////////////////////////////////////////
                 /// Rows
                 // Before Rescaling the CDFFull
-                sumRows = RTHandles.Alloc(1, height, colorFormat: density.rt.graphicsFormat, enableRandomWrite: true);
+                sumRows = RTHandles.Alloc(1, height, colorFormat: format1, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(sumRows);
 
                 // Last columns of "CDF of rows" already contains the sum of rows
@@ -268,8 +255,7 @@ namespace UnityEngine.Rendering
             {
                 // Compute inverse of CDFs
                 invCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
-                                                            density,
-                                                            Vector4.one,
+                                                            pdfCopy,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Horizontal,
                                                             format4);
@@ -285,9 +271,7 @@ namespace UnityEngine.Rendering
             using (new ProfilingScope(cmd, new ProfilingSampler("InverseCDFRows")))
             {
                 invCDFRows = ComputeCDF1D.ComputeInverseCDF(cdfRows,
-                                                            density,
-                                                            Vector4.one,
-                                                            //hdriIntegral,
+                                                            pdfCopy,
                                                             cmd,
                                                             ComputeCDF1D.SumDirection.Vertical,
                                                             format1);
@@ -307,7 +291,7 @@ namespace UnityEngine.Rendering
                 // Generate sample from invCDFs
                 //uint threadsCount        = 64u;
                 //uint samplesPerThread    = 8u;
-                uint threadsCount        = 512u;
+                uint threadsCount        = 256u;
                 uint samplesPerThread    = 32u;
                 // SamplesCount can only be in the set {32, 64, 512} cf. "ImportanceLatLongIntegration.compute" kernel available 'ThreadsCount'
                 uint samplesCount        = threadsCount*samplesPerThread;
@@ -396,12 +380,14 @@ namespace UnityEngine.Rendering
                 RTHandle m_OutDebug = RTHandles.Alloc(width, height, colorFormat: format4, enableRandomWrite: true);
                 RTHandleDeleter.ScheduleRelease(m_OutDebug);
 
+                RTHandle black = RTHandles.Alloc(Texture2D.blackTexture);
+                GPUArithmetic.ComputeOperation(m_OutDebug, density, black, cmd, GPUArithmetic.Operation.Add);
+                RTHandleDeleter.ScheduleRelease(black);
+
                 //var hdrp = HDRenderPipeline.defaultAsset;
                 ComputeShader outputDebug2D = hdrp.renderPipelineResources.shaders.OutputDebugCS;
 
                 kernel = outputDebug2D.FindKernel("CSMain");
-
-                ///cmd.CopyTexture(density, m_OutDebug);
 
                 cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Output,  m_OutDebug);
                 cmd.SetComputeTextureParam(outputDebug2D, kernel, HDShaderIDs._Samples, samples);
@@ -495,15 +481,25 @@ namespace UnityEngine.Rendering
 
             int kernel = importanceSample2D.FindKernel("CSMain" + addon);
 
-            cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._SliceInvCDF, sliceInvCDF);
-            cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._InvCDF,      fullInvCDF);
-            cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._Output,      samples);
-            cmd.SetComputeIntParams   (importanceSample2D,         HDShaderIDs._Sizes,
-                                       fullInvCDF.rt.width, fullInvCDF.rt.height, (int)samplesCount, 1);
-
             int numTilesX = (samples.rt.width + (8 - 1))/8;
-
-            cmd.DispatchCompute(importanceSample2D, kernel, numTilesX, 1, 1);
+            if (cmd != null)
+            {
+                cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._SliceInvCDF, sliceInvCDF);
+                cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._InvCDF,      fullInvCDF);
+                cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._Output,      samples);
+                cmd.SetComputeIntParams   (importanceSample2D,         HDShaderIDs._Sizes,
+                                           fullInvCDF.rt.width, fullInvCDF.rt.height, (int)samplesCount, 1);
+                cmd.DispatchCompute(importanceSample2D, kernel, numTilesX, 1, 1);
+            }
+            else
+            {
+                importanceSample2D.SetTexture(kernel, HDShaderIDs._SliceInvCDF, sliceInvCDF);
+                importanceSample2D.SetTexture(kernel, HDShaderIDs._InvCDF,      fullInvCDF);
+                importanceSample2D.SetTexture(kernel, HDShaderIDs._Output,      samples);
+                importanceSample2D.SetInts   (        HDShaderIDs._Sizes,
+                                                      fullInvCDF.rt.width, fullInvCDF.rt.height, (int)samplesCount, 1);
+                importanceSample2D.Dispatch(kernel, numTilesX, 1, 1);
+            }
 
             return samples;
         }

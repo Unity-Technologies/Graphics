@@ -18,6 +18,7 @@ UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
 uniform int     _cubeMipLvl;
 uniform int     _cubeArrayIndex;
 uniform bool    _buildPDF;
+uniform int     _preMultiplyByCosTheta;
 uniform int     _preMultiplyBySolidAngle;
 uniform int     _preMultiplyByJacobian; // Premultiply by the Det of Jacobian, to be "Integration Ready"
 float4          _Sizes; // float4( outSize.xy, 1/outSize.xy )
@@ -87,15 +88,19 @@ float4 frag(v2f i) : SV_Target
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = (i.texcoord.y - 0.5f)*pi;
+    float angle = (1.0f - i.texcoord.y)*pi;
 
     if (_preMultiplyByJacobian == 1)
     {
         scale *= abs(sin(angle));
     }
+    if (_preMultiplyByCosTheta == 1)
+    {
+        scale *= max(cos(angle), 0.0f);
+    }
     if (_preMultiplyBySolidAngle == 1)
     {
-        scale *= pi*pi*_Sizes.z*_Sizes.w/2.0f;
+        scale *= 0.5f*pi*pi*_Sizes.z*_Sizes.w;
     }
 
     output *= scale;
@@ -117,15 +122,19 @@ float4 fragArray(v2f i) : SV_Target
 
     float scale = 1.0f;
     float pi    = 3.1415926535897932384626433832795f;
-    float angle = (i.texcoord.y - 0.5f)*pi;
+    float angle = (1.0f - i.texcoord.y)*pi;
 
     if (_preMultiplyByJacobian == 1)
     {
-        scale /= max(abs(sin(angle)), 1e-4f);
+        scale *= abs(sin(angle));
+    }
+    if (_preMultiplyByCosTheta == 1)
+    {
+        scale *= saturate(cos(angle));
     }
     if (_preMultiplyBySolidAngle == 1)
     {
-        scale *= pi*pi*_Sizes.z*_Sizes.w/4.0f;
+        scale *= 0.5f*pi*pi*_Sizes.z*_Sizes.w;
     }
 
     output *= scale;

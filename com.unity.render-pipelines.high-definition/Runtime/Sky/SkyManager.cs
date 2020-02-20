@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //if (skyReflection != m_BlackCubemapArray)
                 {
                     //ImportanceSamplers.ScheduleMarginalGenerationForce((int)((uint)renderingContext.skyboxBSDFCubemapArray.GetInstanceID() + renderingContext.skyboxBSDFCubemapArray.updateCount), renderingContext.skyboxBSDFCubemapArray);
-                    ImportanceSamplers.ScheduleMarginalGenerationForce(renderingContext.skyboxBSDFCubemapArray.GetInstanceID(), renderingContext.skyboxBSDFCubemapArray);
+                    ///ImportanceSamplers.ScheduleMarginalGenerationForce(renderingContext.skyboxBSDFCubemapArray.GetInstanceID(), renderingContext.skyboxBSDFCubemapArray);
                 }
             }
         }
@@ -589,8 +589,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
 
-                    int marginalID = ImportanceSamplers.GetIdentifier(cachedContext.renderingContext.skyboxBSDFCubemapArray);
-                    ImportanceSamplers.ScheduleRelease(marginalID);
+                    ///int marginalID = ImportanceSamplers.GetIdentifier(cachedContext.renderingContext.skyboxBSDFCubemapArray);
+                    ///ImportanceSamplers.ScheduleRelease(marginalID);
                     ////Texture skyReflection = GetReflectionTexture(updateContext);
                     ////if (skyReflection != m_BlackCubemapArray)
                     ////{
@@ -819,18 +819,18 @@ namespace UnityEngine.Rendering.HighDefinition
             //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
 
             //var marginals = ImportanceSamplers.GetMarginals((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount));
-            int marginalID = ImportanceSamplers.GetIdentifier(reflectionTexture);
-            var marginals = ImportanceSamplers.GetMarginals(marginalID);
-            if (marginals != null)
+            //int marginalID = ImportanceSamplers.GetIdentifier(reflectionTexture);
+            //var marginals = ImportanceSamplers.GetMarginals(marginalID);
+            ///if (marginals != null)
             {
-                var skyMarginal             = marginals.marginal;
-                var skyConditionalMarginal  = marginals.conditionalMarginal;
-                cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              skyMarginal);
-                cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   skyConditionalMarginal);
+                ///var skyMarginal             = marginals.marginal;
+                ///var skyConditionalMarginal  = marginals.conditionalMarginal;
+                ///cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              skyMarginal);
+                ///cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   skyConditionalMarginal);
             }
-            else
+            ///else
             {
-                ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
+                ///ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              TextureXR.GetWhiteTexture());
                 cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   TextureXR.GetWhiteTexture());
             }

@@ -10,8 +10,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
-            float   _Integral; // .xyz:{r, g, b}, z:1.0/max(r, g, b)
-  Texture2D<float>  _Input;
+  Texture2D<float>  _CDF;
   Texture2D<float>  _PDF;
 RWTexture2D<float4> _Output;
 
@@ -20,21 +19,17 @@ uint4               _Sizes; // xy: InputSize; zw: OutputSize
 #define _InputSize  _Sizes.xy
 #define _OutputSize _Sizes.zw
 
-float TransformPDF(float4 pdf)
+float Rescale01(float x, float min, float max)
 {
-    return SampleToPDFMeasure(pdf);
-        //max(pdf.x, max(pdf.y, pdf.z));
+    return      x - min
+         / // -----------
+               max - min;
 }
 
-/*
-float CosineInterpolate(
-    float y1, float y2,
-    float mu)
+float Rescale(float x, float min, float max, float newMin, float newMax)
 {
-    float mu2 = (1.0f - cos(mu*PI))*0.5f;
-    return y1*(1.0f - mu2) + y2*mu2;
+    return Rescale01(x, min, max)*(newMax - newMin) + newMin;
 }
-*/
 
 [numthreads(8, 8, 1)]
 #ifdef HORIZONTAL
@@ -43,12 +38,48 @@ void CSMainH(uint3 id : SV_DispatchThreadID)
 void CSMainV(uint3 id : SV_DispatchThreadID)
 #endif
 {
-    if (all(id.xy < _OutputSize))
+    #ifdef HORIZONTAL
+    if (id.x == 0)
     {
-        const float integral = 1.0f/_Integral;
-
-        float inVal = _Input[id.xy];
-        float u1    = saturate(_Input[id.xy].x);
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(0.0f,
+                                _PDF[id.xy].x,
+                                //_PDF[uint2(0, id.y)],
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    else if (id.x == _OutputSize.x - 1)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(1.0f,
+                                _PDF[id.xy].x,
+                                //_PDF[uint2(_InputSize.x - 1, id.y)],
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    #else
+    if (id.y == 0)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(0.0f,
+                                _PDF[id.xy].x,
+                                //_PDF[uint2(id.x, 0)],
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    else if (id.y == _OutputSize.y - 1)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[uint2(id.x, _OutputSize.x - 1)] = float4(   1.0f,
+                                                            _PDF[id.xy].x,
+                                                            //_PDF[uint2(id.x, _InputSize.y - 1)],
+                                                            _CDF[id.xy].x,
+                                                            1.0f);
+    }
+    #endif
+    else if (all(id.xy < _OutputSize))
+    {
+        float u1 = saturate(_CDF[id.xy].x);
 
         int i;
 
@@ -56,49 +87,20 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         float2 bias  = 0.5f/_OutputSize.xy;
 
     #ifdef HORIZONTAL
-        float u0 = saturate(_Input[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
+        float u0 = saturate(_CDF[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
         float dp = 1.0f/_OutputSize.x;
-        float d  = (u1 - u0); // *_OutputSize.y;
+        float d  = (u1 - u0);
         if (d <= dp)
         {
-            _Output[uint2(u1*_InputSize.x, id.y)] = //float4(1, 0, 0, 0);
-                float4(saturate(float(id.x)*dp), TransformPDF(_PDF[uint2(u1*_InputSize.x, id.y)])*integral, 0.0f, 1.0f);
+            _Output[uint2(u1*_InputSize.x, id.y)] = float4(
+                                                        saturate(float(id.x)*dp),
+                                                        _PDF[uint2(u1*_InputSize.x, id.y)].x,
+                                                        //_PDF[uint2(u1*_InputSize.x, id.y)],
+                                                        _CDF[uint2(u1*_InputSize.x, id.y)].x,
+                                                        1.0f);
         }
-        //float  u0    = saturate(_Input[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
-        ////float  d     = (u1 - u0)*_InputSize.x;
-        //    //(u1 - u0 - dp)*_OutputSize.x;
-        ////if (d > 1.0f)
         else
         {
-            //const int maxIter = (d - 1)*_InputSize.x;
-            //const int maxIter = (d - 1)*_InputSize.x;
-
-            //const float y0 = float(id.x - 1)*dp;
-            //const float y1 = float(id.x    )*dp;
-            //const float x0 = float((u0 + 0*dp)*_InputSize.x);
-            //const float x1 = float((u1 - 0*dp)*_InputSize.x);
-
-            //const float a  =    (y0 - y1)
-            //               / // ---------
-            //                    (x0 - x1);
-
-            //const float b  = (x0*y1 - x1*y0)
-            //            / // ---------------
-            //                    (x0 - x1);
-
-            //for (i = 0; i <= maxIter; ++i)
-            //{
-            //    uint xi = uint(u0*_InputSize.x + i);
-            //    //float4 cur = _Output[uint2(xi, id.y)];
-            //    //cur.z = 1.0f;
-            //    //_Output[uint2(xi, id.y)] = cur;
-            //    //uint xi = uint(u0*_InputSize.x + i);
-            //    _Output[uint2(xi, id.y)] = float4(
-            //        saturate(a*float(xi) + b),
-            //        //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-            //        TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 0.0f);
-            //}
-
             const int maxIter = ceil(d*_InputSize.x);
 
             const float y0 = float(id.x - 1)*dp;
@@ -117,49 +119,28 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
             for (i = 1; i <= maxIter; ++i)
             {
                 uint xi = uint(u0*_InputSize.x + i);
-                _Output[uint2(xi, id.y)] = //1.0f;
-                    float4(
-                    saturate(a*float(xi) + b),
-                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(xi, id.y)])*integral, 0.0f, 1.0f);
+                _Output[uint2(xi, id.y)] = float4(
+                                                saturate(a*float(xi) + b),
+                                                _PDF[uint2(xi, id.y)].x,
+                                                //_PDF[uint2(xi, id.y)],
+                                                //saturate(_CDF[uint2(/*xi*/uint(u0*_InputSize.x + Rescale(i, 1, maxIter, maxIter, 1)), id.y)].x),
+                                                _CDF[uint2(xi, id.y)].x,
+                                                1.0f);
             }
         }
     #else
-        float u0 = saturate(_Input[uint2(id.x, id.y == 0 ? id.y : id.y - 1)].x);
+        float u0 = saturate(_CDF[uint2(id.x, id.y == 0 ? id.y : id.y - 1)].x);
         float dp = 1.0f/_OutputSize.y;
-        float d  = (u1 - u0); // *_OutputSize.y;
+        float d  = (u1 - u0);
         if (d <= dp)
         {
-            _Output[uint2(id.x, u1*_InputSize.y)] = float4(saturate(float(id.y)*dp), TransformPDF(_PDF[uint2(id.x, u1*_InputSize.y)])*integral, 0.0f, 1.0f);
+            _Output[uint2(id.x, u1*_InputSize.y)] = float4(
+                                                        saturate(float(id.y)*dp),
+                                                        _PDF[uint2(id.x, u1*_InputSize.y)].x,
+                                                        //_PDF[uint2(id.x, u1*_InputSize.y)],
+                                                        _CDF[uint2(id.x, u1*_InputSize.y)].x,
+                                                        1.0f);
         }
-        //if (d > 1.0f)
-        //{
-        //    const int maxIter = (d - 1)*_InputSize.y;
-        //
-        //    const float y0 = float(id.y - 1)*dp;
-        //    const float y1 = float(id.y    )*dp;
-        //    const float x0 = float((u0 + dp)*_InputSize.y);
-        //    const float x1 = float((u1 - dp)*_InputSize.y);
-        //
-        //    const float a  =    (y0 - y1)
-        //                   / // ----------
-        //                        (x0 - x1);
-        //
-        //    const float b  = (x0*y1 - x1*y0)
-        //                / // ---------------
-        //                        (x0 - x1);
-        //
-        //    for (i = 1; i <= maxIter; ++i)
-        //    {
-        //        //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
-        //        //uint xi = uint(u0*_InputSize.y + i + 1);
-        //        uint xi = uint(u0*_InputSize.y + i);
-        //        _Output[uint2(id.x, xi)] = float4(
-        //            saturate(a*float(xi) + b),
-        //            //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-        //            TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 0.0f);;
-        //    }
-        //}
         else
         {
             const int maxIter = ceil(d*_InputSize.y);
@@ -179,13 +160,14 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
 
             for (i = 1; i <= maxIter; ++i)
             {
-                //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
                 uint xi = uint(u0*_InputSize.y + i);
-                _Output[uint2(id.x, xi)] = //1.0f;
-                    float4(
-                    saturate(a*float(xi) + b),
-                    //CosineInterpolate(y0, y1, float(xi)/float(x0 - x1)),
-                    TransformPDF(_PDF[uint2(id.x, xi)])*integral, 0.0f, 1.0f);
+                _Output[uint2(id.x, xi)] = float4(
+                                                saturate(a*float(xi) + b),
+                                                _PDF[uint2(id.x, xi)].x,
+                                                //_PDF[uint2(id.x, xi)],
+                                                //saturate(_CDF[uint2(/*xi*/uint(u0*_InputSize.y + Rescale(i, 1, maxIter, maxIter, 1)), id.y)].x),
+                                                _CDF[uint2(xi, id.y)].x,
+                                                1.0f);
             }
         }
     #endif
