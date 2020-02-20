@@ -67,7 +67,7 @@ namespace UnityEngine.VFX.Test
             UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
             UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
 
-            //Be sure the capture frame rate is effective
+            //Waiting for the capture frame rate to be effective
             int maxFrame = 64;
             while (Time.deltaTime != frequency && maxFrame-->0)
                 yield return null;
@@ -88,6 +88,7 @@ namespace UnityEngine.VFX.Test
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;
 
+                //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
                 maxFrame = 64;
                 while (maxFrame-->0 && vfxComponents.All(o => o.culled))
                     yield return null;
