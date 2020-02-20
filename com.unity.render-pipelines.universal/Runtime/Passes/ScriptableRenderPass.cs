@@ -235,6 +235,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ConfigureInputAttachments(List<RenderTargetHandle> inputs)
         {
+            m_InputAttachments.Clear();
             for (int i = 0; i < inputs.Count; i++)
             {
                 ConfigureInputAttachment(inputs[i], i);

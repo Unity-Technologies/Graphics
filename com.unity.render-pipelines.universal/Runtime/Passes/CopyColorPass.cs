@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
+        Material m_BlitMaterial;
         Downsampling m_DownsamplingMethod;
 
         private RenderTargetHandle source { get; set; }
@@ -22,12 +23,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
-        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial)
+        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material blitMaterial = null)
         {
             m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
+            m_BlitMaterial = blitMaterial;
         }
 
         /// <summary>
@@ -72,11 +74,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetHandle opaqueColorRT = destination;
-
+            var cameraData = renderingData.cameraData;
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    Blit(cmd, source, opaqueColorRT);
+//                    Blit(cmd, source, opaqueColorRT);
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.SetViewport(cameraData.pixelRect);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                     break;
                 case Downsampling._2xBilinear:
                     Blit(cmd, source, opaqueColorRT);

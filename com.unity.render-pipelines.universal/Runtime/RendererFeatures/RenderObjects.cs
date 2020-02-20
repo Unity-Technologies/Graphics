@@ -81,7 +81,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+            renderObjectsPass.ConfigureRenderPassDescriptor(desc.width, desc.height,desc.msaaSamples);
             renderer.EnqueuePass(renderObjectsPass);
+        }
+
+        public override void SetFeatureColorTarget(RenderTargetHandle color)
+        {
+            renderObjectsPass.colorAttachments.Clear();
+            renderObjectsPass.ConfigureColorAttachment(ref color, false, true, true);
+        }
+
+        public override void SetFeatureDepthTarget(RenderTargetHandle depth)
+        {
+            renderObjectsPass.ConfigureDepthAttachment(ref depth, false, false, true);
         }
     }
 }
