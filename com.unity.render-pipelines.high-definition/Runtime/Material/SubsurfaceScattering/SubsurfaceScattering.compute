@@ -135,6 +135,8 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
     z = 0;
 #endif
 
+    // Note: we perform all computation in millimeters.
+    // So we must convert from world units (using 'mmPerUnit') to millimeters.
 #if SSS_USE_TANGENT_PLANE
     // Both 'xy2' and 'z' require conversion to millimeters.
     float r = sqrt(xy2 + z * z) * mmPerUnit;
@@ -445,7 +447,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
 #endif
 
     // Use more samples for SS regions larger than 5x5 pixels (rotated by 45 degrees).
-    bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_LOD_THRESHOLD;
+    bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_PIXELS_PER_SAMPLE;
 
 #if SSS_DEBUG_LOD
     StoreResult(pixelCoord, useNearFieldKernel ? float3(1, 0, 0) : float3(0.5, 0.5, 0));
@@ -455,7 +457,8 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // Compute the indices used to access the individual components of the float4 of the kernel.
     uint iR = useNearFieldKernel ? 0 : 2; // radius
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
-    uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
+    // uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
+    uint n  = 144;
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
     float3 centerWeight    = 1; // (value / pdf) = albedo
@@ -465,7 +468,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint i; // Declare once to avoid the warning from the Unity shader compiler.
 
     UNITY_UNROLL
-    for (i = 1; i < SSS_N_SAMPLES_FAR_FIELD; i++)
+    for (i = 1; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
@@ -474,21 +477,21 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
                        totalIrradiance, totalWeight);
     }
 
-    UNITY_BRANCH if (!useNearFieldKernel)
-    {
-         StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
-         return;
-    }
+    // UNITY_BRANCH if (!useNearFieldKernel)
+    // {
+    //      StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
+    //      return;
+    // }
 
-    UNITY_UNROLL
-    for (i = SSS_N_SAMPLES_FAR_FIELD; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
-    {
-        // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
-                       shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
-                       startAngle, tangentX, tangentY, projMatrix,
-                       totalIrradiance, totalWeight);
-    }
+    // UNITY_UNROLL
+    // for (i = SSS_N_SAMPLES_FAR_FIELD; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
+    // {
+    //     // Integrate over the image or tangent plane in the view space.
+    //     EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
+    //                    shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
+    //                    startAngle, tangentX, tangentY, projMatrix,
+    //                    totalIrradiance, totalWeight);
+    // }
 
     StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
 }

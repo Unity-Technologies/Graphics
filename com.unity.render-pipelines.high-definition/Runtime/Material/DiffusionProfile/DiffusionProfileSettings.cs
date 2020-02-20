@@ -177,6 +177,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return r;
         }
 
+        // https://zero-radiance.github.io/post/sampling-diffusion/
+        // Performs sampling of a Normalized Burley diffusion profile in polar coordinates.
+        // 'u' is the random number: [0, 1).
+        // rcp(s) = 1 / ShapeParam = ScatteringDistance.
+        // Returns the sampled radial distance, s.t. (u = 0 -> r = 0) and (u = 1 -> r = Inf).
+        static float SampleBurleyDiffusionProfile(float u, float rcpS)
+        {
+            u = 1 - u; // Convert CDF to CCDF
+
+            float g = 1 + (4 * u) * (2 * u + Mathf.Sqrt(1 + (4 * u) * u));
+            float n = Mathf.Pow(g, -1.0f/3.0f);                      // g^(-1/3)
+            float p = (g * n) * n;                                   // g^(+1/3)
+            float c = 1 + p + n;                                     // 1 + g^(+1/3) + g^(-1/3)
+            float x = 3 * Mathf.Log(c / (4 * u));
+
+            return x * rcpS;
+        }
+
         public bool Equals(DiffusionProfile other)
         {
             if (other == null)
