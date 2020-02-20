@@ -41,9 +41,18 @@ namespace UnityEditor
             }
         }
 
-        static VisualEffectAssetEditorUtility()
+        static void CheckVFXManagerOnce()
         {
             VFXManagerEditor.CheckVFXManager();
+            EditorApplication.update-= CheckVFXManagerOnce;
+        }
+
+        static VisualEffectAssetEditorUtility()
+        {
+            EditorApplication.update += CheckVFXManagerOnce;
+
+
+
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
 
