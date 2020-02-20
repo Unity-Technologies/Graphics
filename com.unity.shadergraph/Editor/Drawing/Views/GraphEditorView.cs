@@ -436,6 +436,31 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var drawState = node.drawState;
                         drawState.position = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
                         node.drawState = drawState;
+
+                        // BlockNode moved outside a Context
+                        // This isnt allowed but there is no way to disallow it on the GraphView
+                        if(node is BlockNode blockNode &&
+                            element.GetFirstAncestorOfType<ContextView>() == null)
+                        {
+                            foreach(var context in m_GraphView.contexts.ToList())
+                            {
+                                // isDragging ensures we arent calling this when moving
+                                // the BlockNode into the GraphView during dragging (placeholder)
+                                if(context.isDragging || context.contextData != blockNode.contextData)
+                                    continue;
+                                
+                                // Remove from GraphView and add back to Context
+                                m_GraphView.RemoveElement(element);
+                                if(blockNode.index >= context.contentContainer.childCount)
+                                {
+                                    context.AddElement(element);
+                                }
+                                else 
+                                {
+                                    context.InsertElement(blockNode.index, element);
+                                }
+                            }
+                        }
                     }
 
                     if (element is StickyNote stickyNote)

@@ -31,6 +31,11 @@ namespace UnityEditor.ShaderGraph
         public ContextData contextData => m_ContextData;
         public Port port => m_Port;
 
+        // We need to use graphViewChange.movedElements to check whether a BlockNode has moved onto the GraphView
+        // but Nodes return in movedElements when they are mid-drag because they are removed from the stack (placeholder)
+        // StackNode has `dragEntered` but its protected so we need `isDragging`
+        public bool isDragging => dragEntered;
+
         public void AddPort(Direction direction)
         {
             var capacity = direction == Direction.Input ? Port.Capacity.Single : Port.Capacity.Multi;
