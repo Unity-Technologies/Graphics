@@ -218,6 +218,8 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Spawner_Check_Time_Mode_Update_Count([ValueSource("s_CheckTimeMode")] VFXTimeModeTest timeMode)
         {
+            yield return new EnterPlayMode();
+
             var spawnCountValue = 651.0f;
             VisualEffect vfxComponent;
             GameObject cameraObj, gameObj;
@@ -230,7 +232,7 @@ namespace UnityEditor.VFX.Test
             basicSpawner.AddChild(blockCustomSpawner);
 
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
@@ -266,6 +268,8 @@ namespace UnityEditor.VFX.Test
             Time.captureFramerate = previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
+
+            yield return new ExitPlayMode();
         }
 
         [Retry(3)]
