@@ -84,25 +84,6 @@ namespace UnityEngine.VFX.Test
             if (camera)
             {
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
-#if UNITY_EDITOR
-                var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
-                foreach (var vfx in vfxAssets)
-                {
-                    //Use Reflection as workaround of the access issue in .net 4 (TODO : Clean this as soon as possible)
-                    //var graph = vfx.GetResource().GetOrCreateGraph(); is possible with .net 3.5 but compilation fail with 4.0
-                    var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
-                                                                                        .Where(o => o != null)
-                                                                                        .FirstOrDefault();
-                    var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
-                    fnGetResource = fnGetResource.MakeGenericMethod(new Type[]{ typeof(VisualEffectAsset)});
-                    var resource = fnGetResource.Invoke(null, new object[] { vfx });
-                    if (resource == null)	
-                        continue; //could occurs if VisualEffectAsset is in AssetBundle
-                    var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
-                    var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
-                    graph.RecompileIfNeeded();
-                }
-#endif
 
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;

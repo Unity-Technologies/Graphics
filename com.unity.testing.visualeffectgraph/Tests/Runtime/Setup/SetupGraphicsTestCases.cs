@@ -12,18 +12,6 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 {
     public static void RebuildVisualEffectAsset(VisualEffectAsset vfx)
     {
-        //We are in Assembly-CSharp-Editor, we don't want to be friend of this namespace
-        var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
-                                                                            .Where(o => o != null)
-                                                                            .FirstOrDefault();
-        var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
-        fnGetResource = fnGetResource.MakeGenericMethod(new Type[] { typeof(VisualEffectAsset) });
-        var resource = fnGetResource.Invoke(null, new object[] { vfx });
-        var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
-        var graph = fnGetOrCreate.Invoke(null, new object[] { resource });
-
-        var fnRecompileIfNeeded = graph.GetType().GetMethod("RecompileIfNeeded");
-        fnRecompileIfNeeded.Invoke(graph, new object[] { false, false });
     }
 
 

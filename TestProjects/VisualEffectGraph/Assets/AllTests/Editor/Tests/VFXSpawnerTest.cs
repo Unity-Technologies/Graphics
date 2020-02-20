@@ -18,26 +18,6 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpawnerTest
     {
-        string tempFilePath = "Assets/Temp_vfxTest.vfx";
-
-        VFXGraph MakeTemporaryGraph()
-        {
-            if (System.IO.File.Exists(tempFilePath))
-            {
-                AssetDatabase.DeleteAsset(tempFilePath);
-            }
-
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-
-            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
-            graph.visualEffectResource = resource;
-
-            return graph;
-        }
-
         int m_previousCaptureFrameRate;
         float m_previousFixedTimeStep;
         float m_previousMaxDeltaTime;
@@ -59,14 +39,14 @@ namespace UnityEditor.VFX.Test
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
-            AssetDatabase.DeleteAsset(tempFilePath);
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         private void CreateAssetAndComponent(float spawnCountValue, string playEventName, out VFXGraph graph, out VisualEffect vfxComponent, out GameObject gameObj, out GameObject cameraObj)
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
 
-            graph = MakeTemporaryGraph();
+            graph = VFXTestCommon.MakeTemporaryGraph();
 
             var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
             eventStart.eventName = playEventName;
@@ -240,10 +220,16 @@ namespace UnityEditor.VFX.Test
 
             //Now send event Stop, we expect to wake up
             vfxComponent.Stop();
-            yield return null;
-
-            spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+            maxFrame = 512;
+            while (--maxFrame > 0)
+            {
+                yield return null;
+                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                if (spawnerState.loopState != VFXSpawnerLoopState.Finished)
+                    break;
+            }
             Assert.AreNotEqual(VFXSpawnerLoopState.Finished, spawnerState.loopState);
+            Assert.IsTrue(maxFrame > 0);
 
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
@@ -253,7 +239,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateEventStartAndStop()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
             eventStart.eventName = "Custom_Start";
@@ -369,7 +355,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_CustomSpawner_And_Component()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
@@ -478,7 +464,7 @@ namespace UnityEditor.VFX.Test
             //This test cover an issue : 1205329
             EditorApplication.ExecuteMenuItem("Window/General/Game");
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockSpawnerBurst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
@@ -560,7 +546,7 @@ namespace UnityEditor.VFX.Test
             //This test cover a regression : 1154292
             EditorApplication.ExecuteMenuItem("Window/General/Game");
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockSpawnerBurst = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
@@ -705,7 +691,7 @@ namespace UnityEditor.VFX.Test
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             Assert.AreEqual(UnityEngine.VFX.VFXManager.fixedTimeStep, 0.1f);
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext_A = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockSpawnerConstant = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -856,7 +842,7 @@ namespace UnityEditor.VFX.Test
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             Assert.AreEqual(UnityEngine.VFX.VFXManager.fixedTimeStep, 0.1f);
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockSpawnerConstant = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -996,7 +982,7 @@ namespace UnityEditor.VFX.Test
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             Assert.AreEqual(UnityEngine.VFX.VFXManager.fixedTimeStep, 0.1f);
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
 

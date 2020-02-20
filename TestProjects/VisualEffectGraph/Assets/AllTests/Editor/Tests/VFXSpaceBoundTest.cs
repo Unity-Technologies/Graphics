@@ -16,30 +16,11 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpaceBoundTest
     {
-        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
 
-        VFXGraph MakeTemporaryGraph()
-        {
-            if (System.IO.File.Exists(tempFilePath))
-            {
-                AssetDatabase.DeleteAsset(tempFilePath);
-            }
-
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-
-            VisualEffectResource resource = asset.GetResource(); // force resource creation
-
-            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
-            graph.visualEffectResource = resource;
-
-            return graph;
-        }
-
-        [TearDown]
+        [OneTimeTearDown]
         public void CleanUp()
         {
-            AssetDatabase.DeleteAsset(tempFilePath);
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
 #pragma warning disable 0414
@@ -54,7 +35,7 @@ namespace UnityEditor.VFX.Test
 
             EditorApplication.ExecuteMenuItem("Window/General/Game");
 
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
