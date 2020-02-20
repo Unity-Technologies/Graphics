@@ -48,6 +48,9 @@ namespace UnityEditor.VFX
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
         {
+            if (attributes.Any(a => !(a is Attribute)))
+                throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
+
             return attributes.Where(t=> t!= null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
         }
