@@ -1,10 +1,10 @@
-﻿using System.IO;
+using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class SketchupMaterialDescriptionPreprocessor : AssetPostprocessor
+    class SketchupMaterialDescriptionPreprocessor : AssetPostprocessor
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 2;
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetShaderPassEnabled("TransparentDepthPostpass", false);
             material.SetShaderPassEnabled("TransparentBackface", false);
             material.SetShaderPassEnabled("MOTIONVECTORS", false);
-			
+
 			if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
             {
                 SetMaterialTextureProperty("_BaseColorMap", material, textureProperty);

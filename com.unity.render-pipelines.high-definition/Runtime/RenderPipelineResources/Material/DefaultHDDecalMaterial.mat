@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: DefaultHDDecalMaterial
   m_Shader: {fileID: 4800000, guid: 1d64af84bdc970c4fae0c1e06dd95b73, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _ALBEDOCONTRIBUTION
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -22,6 +22,13 @@ Material:
   - TransparentBackface
   - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
+  - DBufferMesh_M
+  - DBufferMesh_AO
+  - DBufferMesh_MAO
+  - Mesh_Emissive
+  - DBufferMesh_MS
+  - DBufferMesh_AOS
+  - DBufferMesh_MAOS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -161,9 +168,10 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DecalBlend: 0.5
+    - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
-    - _DecalStencilRef: 8
-    - _DecalStencilWriteMask: 8
+    - _DecalStencilRef: 16
+    - _DecalStencilWriteMask: 16
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalMapScale: 1
@@ -195,7 +203,11 @@ Material:
     - _DrawOrder: 0
     - _DstBlend: 0
     - _EditorExpendedAreas: 0
+    - _Emissive: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
@@ -230,6 +242,7 @@ Material:
     - _MaskmapSmoothness: 1
     - _MaterialID: 1
     - _Metallic: 0
+    - _MetallicScale: 1
     - _Mode: 0
     - _NormalBlendSrc: 0
     - _NormalMapSpace: 0
@@ -271,6 +284,7 @@ Material:
     - _UVDetail: 0
     - _UVEmissive: 0
     - _UVSec: 0
+    - _UseEmissiveIntensity: 0
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
@@ -279,6 +293,8 @@ Material:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorHDR: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
@@ -286,6 +302,7 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!114 &4081300086777453200
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -298,4 +315,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 0
+  version: 2

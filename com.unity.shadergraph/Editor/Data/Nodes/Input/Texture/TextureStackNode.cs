@@ -7,33 +7,106 @@ using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    //[Title("Input", "Texture", "Sample Stack")]
-    class SampleTextureStackNodeBase : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    [Title("Input", "Texture", "Sample VT Stack")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNodeBase")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode2")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode3")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackNode4")]
+    class SampleTextureStackNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IHasSettings
     {
         public const int UVInputId = 0;
-
         [NonSerialized]
-        public int[] OutputSlotIds = new int[4];
-
+        public readonly int[] OutputSlotIds = new int[] { 1, 2, 3, 4 };
         [NonSerialized]
-        public int[] TextureInputIds = new int[4];
-
-        [NonSerialized]
-        public int FeedbackSlotId;
+        public readonly int [] TextureInputIds = new int[] { 5, 6, 7, 8 };
+        public const int FeedbackSlotId = 9;
+        public const int LODInputId = 10;
 
         static string[] OutputSlotNames = { "Out", "Out2", "Out3", "Out4" };
         static string[] TextureInputNames = { "Texture", "Texture2", "Texture3", "Texture4" };
         const string UVInputNAme = "UV";
         const string FeedbackSlotName = "Feedback";
-
-        int numSlots;
-        int[] liveIds;
-        bool isProcedural;
+        const string LODSlotName = "Lod";
 
         public override bool hasPreview { get { return false; } }
+        bool isProcedural;// set internally only
+
+        public enum LodCalculation
+        {
+            Automatic,
+            Explicit,
+            //Biased, //TODO: Add support to TextureStack.hlsl first
+        }
+
+        [SerializeField]
+        LodCalculation m_LodCalculation = LodCalculation.Automatic;
+        public LodCalculation lodCalculation
+        {
+            get
+            {
+                return m_LodCalculation;
+            }
+            set
+            {
+                if (m_LodCalculation == value)
+                    return;
+
+                m_LodCalculation = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        int m_NumSlots = 1;
+
+        public int numSlots
+        {
+            get
+            {
+                return m_NumSlots;
+            }
+            set
+            {
+                int cappedSlots = value;
+                if (cappedSlots > 4) cappedSlots = 4;
+
+                if (m_NumSlots == cappedSlots)
+                    return;
+
+                m_NumSlots = cappedSlots;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        bool m_NoFeedback;
+
+        public bool noFeedback
+        {
+            get
+            {
+                return m_NoFeedback;
+            }
+            set
+            {
+                if (m_NoFeedback == value)
+                    return;
+
+                // No resolve affects the availability in the vertex shader of the node so we need to trigger a full
+                // topo change.
+                m_NoFeedback = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
 
         [SerializeField]
         protected TextureType[] m_TextureTypes = { TextureType.Default, TextureType.Default, TextureType.Default, TextureType.Default };
@@ -43,7 +116,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private NormalMapSpace m_NormalMapSpace = NormalMapSpace.Tangent;
 
-        [EnumControl("Space")]
         public NormalMapSpace normalMapSpace
         {
             get { return m_NormalMapSpace; }
@@ -57,7 +129,121 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SampleTextureStackNodeBase(int numSlots, bool procedural = false)
+        class TextureStackNodeSettingsView : VisualElement
+        {
+            SampleTextureStackNode m_Node;
+            public TextureStackNodeSettingsView(SampleTextureStackNode node)
+            {
+                m_Node = node;
+
+                PropertySheet ps = new PropertySheet();
+
+                ps.Add(new PropertyRow(new Label("Lod Mode")), (row) =>
+                {
+                    row.Add(new UIElements.EnumField(m_Node.lodCalculation), (field) =>
+                    {
+                        field.value = m_Node.lodCalculation;
+                        field.RegisterValueChangedCallback(ChangeLod);
+                    });
+                });
+
+                ps.Add(new PropertyRow(new Label("Num Slots")), (row) =>
+                {
+                    row.Add(new UIElements.IntegerField(), (field) =>
+                    {
+                        field.value = m_Node.numSlots;
+                        field.RegisterValueChangedCallback(ChangeNumSlots);
+                    });
+                });
+
+                ps.Add(new PropertyRow(new Label("No Resolve")), (row) =>
+                {
+                    row.Add(new UnityEngine.UIElements.Toggle(), (field) =>
+                    {
+                        field.value = m_Node.noFeedback;
+                        field.RegisterValueChangedCallback(ChangeFeedback);
+                    });
+                });
+
+                for (int i=0; i<node.numSlots; i++)
+                {
+                    int currentIndex = i; //to make lambda by-ref capturing happy
+                    ps.Add(new PropertyRow(new Label("Type " + i)), (row) =>
+                    {
+                        row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
+                        {
+                            field.value = m_Node.m_TextureTypes[i];
+                            field.RegisterValueChangedCallback(evt => { ChangeTextureType(evt, currentIndex); } );
+                        });
+                    });
+                }
+
+                ps.Add(new PropertyRow(new Label("Space")), (row) =>
+                {
+                    row.Add(new UIElements.EnumField(m_Node.normalMapSpace), (field) =>
+                    {
+                        field.value = m_Node.normalMapSpace;
+                        field.RegisterValueChangedCallback(ChangeNormalMapSpace);
+                    });
+                });
+
+                Add(ps);
+            }
+
+            void ChangeNumSlots(ChangeEvent<int> evt)
+            {
+                if (Equals(m_Node.numSlots, evt.newValue))
+                    return;
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("NumSlots Flow Change");
+                m_Node.numSlots = evt.newValue;
+            }
+
+            void ChangeLod(ChangeEvent<Enum> evt)
+            {
+                if (m_Node.lodCalculation == (LodCalculation)evt.newValue)
+                    return;
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Lod Mode Change");
+                m_Node.lodCalculation = (LodCalculation)evt.newValue;
+            }
+
+            void ChangeTextureType(ChangeEvent<Enum> evt, int index)
+            {
+                if (m_Node.m_TextureTypes[index] == (TextureType)evt.newValue)
+                    return;
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
+                m_Node.m_TextureTypes[index] = (TextureType)evt.newValue;
+            }
+
+            void ChangeFeedback(ChangeEvent<bool> evt)
+            {
+                if (m_Node.noFeedback == evt.newValue)
+                    return;
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
+                m_Node.noFeedback = evt.newValue;
+            }
+
+            void ChangeNormalMapSpace(ChangeEvent<Enum> evt)
+            {
+                if (m_Node.normalMapSpace == (NormalMapSpace)evt.newValue)
+                    return;
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Map space Change");
+                m_Node.normalMapSpace = (NormalMapSpace)evt.newValue;
+            }
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new TextureStackNodeSettingsView(this);
+        }
+
+        public SampleTextureStackNode() : this(1) {}
+
+        public SampleTextureStackNode(int numSlots, bool procedural = false, bool isLod = false, bool noResolve = false)
         {
             isProcedural = procedural;
 
@@ -66,38 +252,40 @@ namespace UnityEditor.ShaderGraph
                 throw new System.Exception("Maximum 4 slots supported");
             }
             this.numSlots = numSlots;
-            name = "Sample Texture Stack " + numSlots;
+            name = "Sample Texture Stack";
 
             UpdateNodeAfterDeserialization();
         }
 
         public override void UpdateNodeAfterDeserialization()
         {
-            // Allocate IDs
             List<int> usedSlots = new List<int>();
             usedSlots.Add(UVInputId);
 
             for (int i = 0; i < numSlots; i++)
             {
-                OutputSlotIds[i] = UVInputId + 1 + i;
-                TextureInputIds[i] = UVInputId + 1 + numSlots + i;
-
                 usedSlots.Add(OutputSlotIds[i]);
                 if (!isProcedural)
                     usedSlots.Add(TextureInputIds[i]);
             }
 
-            FeedbackSlotId = UVInputId + 1 + numSlots * 2;
-            usedSlots.Add(FeedbackSlotId);
+            if (!noFeedback)
+            {
+                usedSlots.Add(FeedbackSlotId);
+            }
+            if (m_LodCalculation != LodCalculation.Automatic)
+            {
+                usedSlots.Add(LODInputId);
+            }
 
-            liveIds = usedSlots.ToArray();
+            usedSlots.ToArray();
 
             // Create slots
             AddSlot(new UVMaterialSlot(UVInputId, UVInputNAme, UVInputNAme, UVChannel.UV0));
 
             for (int i = 0; i < numSlots; i++)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotIds[i], OutputSlotNames[i], OutputSlotNames[i], SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
+                AddSlot(new Vector4MaterialSlot(OutputSlotIds[i], OutputSlotNames[i], OutputSlotNames[i], SlotType.Output, Vector4.zero, (noFeedback && m_LodCalculation == LodCalculation.Explicit) ? ShaderStageCapability.All : ShaderStageCapability.Fragment));
             }
 
             if (!isProcedural)
@@ -108,23 +296,32 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var slot = new Vector4MaterialSlot(FeedbackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
-            slot.hidden = true;
-            AddSlot(slot);
+            if (m_LodCalculation != LodCalculation.Automatic)
+            {
+                var slot = new Vector1MaterialSlot(LODInputId, LODSlotName, LODSlotName, SlotType.Input, 0.0f, ShaderStageCapability.All, LODSlotName);
+                AddSlot(slot);
+            }
 
-            RemoveSlotsNameNotMatching(liveIds);
+            if (!noFeedback)
+            {
+                var slot = new Vector4MaterialSlot(FeedbackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment);
+                slot.hidden = true;
+                AddSlot(slot);
+            }
+
+            RemoveSlotsNameNotMatching(usedSlots, true);
         }
 
         public static void ValidatNodes(GraphData d)
         {
-            ValidatNodes(d.GetNodes<SampleTextureStackNodeBase>());       
+            ValidatNodes(d.GetNodes<SampleTextureStackNode>());
         }
 
-        public static void ValidatNodes(IEnumerable<SampleTextureStackNodeBase> nodes)
+        public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes)
         {
             List<KeyValuePair<string, string>> slotNames = new List<KeyValuePair<string, string>>();
 
-            foreach (SampleTextureStackNodeBase node in nodes)
+            foreach (SampleTextureStackNode node in nodes)
             {
                 for (int i = 0; i < node.numSlots; i++)
                 {
@@ -149,8 +346,8 @@ namespace UnityEditor.ShaderGraph
 
 #if PROCEDURAL_VT_IN_GRAPH
                     // Check if there is already a node with the same sampleid
-                    SampleTextureStackProcedural ssp = node as SampleTextureStackProcedural;
-                    if ( ssp != null )
+                    SampleTextureStackProceduralNode ssp = node as SampleTextureStackProceduralNode;
+                    if (ssp != null)
                     {
                         string value = ssp.GetStackName();
                         string name = ssp.GetStackName();
@@ -210,6 +407,18 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private string GetSampleFunction()
+        {
+            if (m_LodCalculation != LodCalculation.Automatic)
+            {
+                return "SampleStackLod";
+            }
+            else
+            {
+                return "SampleStack";
+            }
+        }
+
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
@@ -246,10 +455,21 @@ namespace UnityEditor.ShaderGraph
 
             if (anyConnected)
             {
-                string result = string.Format("StackInfo {0}_info = PrepareStack({1}, {0});"
+                if (m_LodCalculation == LodCalculation.Automatic)
+                {
+                    string result = string.Format("StackInfo {0}_info = PrepareStack({1}, {0});"
                         , stackName
                         , GetSlotValue(UVInputId, generationMode));
-                sb.AppendLine(result);
+                    sb.AppendLine(result);
+                }
+                else
+                {
+                    string result = string.Format("StackInfo {0}_info = PrepareStackLod({1}, {0}, {2});"
+                        , stackName
+                        , GetSlotValue(UVInputId, generationMode)
+                        , GetSlotValue(LODInputId, generationMode));
+                    sb.AppendLine(result);
+                }
             }
 
             for (int i = 0; i < numSlots; i++)
@@ -257,10 +477,11 @@ namespace UnityEditor.ShaderGraph
                 if (IsSlotConnected(OutputSlotIds[i]))
                 {
                     var id = GetTextureName(i, generationMode);
-                    string resultLayer = string.Format("$precision4 {1} = SampleStack({0}_info, {2});"
+                    string resultLayer = string.Format("$precision4 {1} = {3}({0}_info, {2});"
                             , stackName
                             , GetVariableNameForSlot(OutputSlotIds[i])
-                            , id);
+                            , id
+                            , GetSampleFunction());
                     sb.AppendLine(resultLayer);
                 }
             }
@@ -284,7 +505,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if (feedbackConnected)
+            if (!noFeedback && feedbackConnected)
             {
                 //TODO: Investigate if the feedback pass can use halfs
                 string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
@@ -348,185 +569,15 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(Internal.UVChannel channel, ShaderStageCapability stageCapability)
         {
-            s_TempSlots.Clear();
-            GetInputSlots(s_TempSlots);
-            foreach (var slot in s_TempSlots)
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                if (slot.RequiresMeshUV(channel))
-                    return true;
-            }
-            return false;
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack")]
-    class SampleTextureStackNode : SampleTextureStackNodeBase
-    {
-        public SampleTextureStackNode() : base(1)
-        { }
-
-        [EnumControl("Type")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack 2")]
-    class SampleTextureStackNode2 : SampleTextureStackNodeBase
-    {
-        public SampleTextureStackNode2() : base(2)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 2")]
-        public TextureType textureType2
-        {
-            get { return m_TextureTypes[1]; }
-            set
-            {
-                if (m_TextureTypes[1] == value)
-                    return;
-
-                m_TextureTypes[1] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack 3")]
-    class SampleTextureStackNode3 : SampleTextureStackNodeBase
-    {
-        public SampleTextureStackNode3() : base(3)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 2")]
-        public TextureType textureType2
-        {
-            get { return m_TextureTypes[1]; }
-            set
-            {
-                if (m_TextureTypes[1] == value)
-                    return;
-
-                m_TextureTypes[1] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 3")]
-        public TextureType textureType3
-        {
-            get { return m_TextureTypes[2]; }
-            set
-            {
-                if (m_TextureTypes[2] == value)
-                    return;
-
-                m_TextureTypes[2] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack 4")]
-    class SampleTextureStackNode4 : SampleTextureStackNodeBase
-    {
-        public SampleTextureStackNode4() : base(4)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 2")]
-        public TextureType textureType2
-        {
-            get { return m_TextureTypes[1]; }
-            set
-            {
-                if (m_TextureTypes[1] == value)
-                    return;
-
-                m_TextureTypes[1] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 3")]
-        public TextureType textureType3
-        {
-            get { return m_TextureTypes[2]; }
-            set
-            {
-                if (m_TextureTypes[2] == value)
-                    return;
-
-                m_TextureTypes[2] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresMeshUV(channel))
+                        return true;
+                }
+                return false;
             }
         }
     }
@@ -609,10 +660,23 @@ namespace UnityEditor.ShaderGraph
         public static IMasterNode AutoInject(IMasterNode iMasterNode)
         {
             var masterNode = iMasterNode as AbstractMaterialNode;
-            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNodeBase>(masterNode);
+            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNode>(masterNode);
 
             // Early out if there are no VT nodes in the graph
-            if ( stackNodes.Count <= 0 )
+            if (stackNodes.Count <= 0)
+            {
+                return iMasterNode;
+            }
+
+            bool hasFeedback = false;
+            foreach (var node in stackNodes)
+            {
+                if ( !node.noFeedback )
+                {
+                    hasFeedback = true;
+                }
+            }
+            if (!hasFeedback)
             {
                 return iMasterNode;
             }
@@ -634,11 +698,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var node in stackNodes)
             {
                 // Find feedback output slot on the vt node
-                var stackFeedbackOutputSlot = (node.FindOutputSlot<ISlot>(node.FeedbackSlotId)) as Vector4MaterialSlot;
+                var stackFeedbackOutputSlot = (node.FindOutputSlot<ISlot>(SampleTextureStackNode.FeedbackSlotId)) as Vector4MaterialSlot;
                 if (stackFeedbackOutputSlot == null)
                 {
-                    Debug.LogWarning("Could not find the VT feedback output slot on the stack node.");
-                    return iMasterNode;
+                    // Nodes which are noResolve don't have a resolve slot so just skip them 
+                    continue;
                 }
 
                 // Create a new slot on the aggregate that is similar to the uv input slot
@@ -653,14 +717,14 @@ namespace UnityEditor.ShaderGraph
 
             // Add input to master node
             var feedbackInputSlot = workingMasterNode.FindInputSlot<ISlot>(OutputSlotID);
-            if ( feedbackInputSlot == null )
+            if (feedbackInputSlot == null)
             {
                 Debug.LogWarning("Could not find the VT feedback input slot on the master node.");
                 return iMasterNode;
             }
 
             var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(TextureStackAggregateFeedbackNode.AggregateOutputId);
-            if ( feedbackOutputSlot == null )
+            if (feedbackOutputSlot == null)
             {
                 Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");
                 return iMasterNode;
@@ -674,9 +738,12 @@ namespace UnityEditor.ShaderGraph
     }
 
 #if PROCEDURAL_VT_IN_GRAPH
-    class SampleTextureStackProceduralBase : SampleTextureStackNodeBase
+    [Title("Input", "Texture", "Sample Procedural VT Texture Stack")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackProcedural")]
+    [FormerName("UnityEditor.ShaderGraph.SampleTextureStackProcedural2")]
+    class SampleTextureStackProceduralNode : SampleTextureStackNode
     {
-        public SampleTextureStackProceduralBase(int numLayers) : base(numLayers, true)
+        public SampleTextureStackProceduralNode() : base(1, true)
         { }
 
         [IntegerControl("Sample ID")]
@@ -701,68 +768,6 @@ namespace UnityEditor.ShaderGraph
         protected override string GetStackName()
         {
             return "Procedural" + m_sampleId;
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack Procedural 1")]
-    class SampleTextureStackProcedural : SampleTextureStackProceduralBase
-    {
-        public SampleTextureStackProcedural() : base(1)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-    }
-
-    [Title("Input", "Texture", "Sample Texture Stack Procedural 2")]
-    class SampleTextureStackProcedural2 : SampleTextureStackProceduralBase
-    {
-        public SampleTextureStackProcedural2() : base(2)
-        { }
-
-        [EnumControl("Type 1")]
-        public TextureType textureType
-        {
-            get { return m_TextureTypes[0]; }
-            set
-            {
-                if (m_TextureTypes[0] == value)
-                    return;
-
-                m_TextureTypes[0] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
-        }
-
-        [EnumControl("Type 2")]
-        public TextureType textureType2
-        {
-            get { return m_TextureTypes[1]; }
-            set
-            {
-                if (m_TextureTypes[1] == value)
-                    return;
-
-                m_TextureTypes[1] = value;
-                Dirty(ModificationScope.Graph);
-
-                ValidateNode();
-            }
         }
     }
 #endif

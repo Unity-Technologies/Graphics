@@ -101,6 +101,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void CreateDefaultSceneFromPackageAnsAssignIt(bool forDXR)
         {
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
             string subPath = forDXR ? "/DXR/" : "/";
 
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
@@ -118,20 +122,27 @@ namespace UnityEditor.Rendering.HighDefinition
             string defaultSkyAndFogProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultSkyAndFogProfileAsset.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultSkyAndFogProfileAsset), defaultSkyAndFogProfilePath);
 
-            VolumeProfile originalDefaultPostProcessingProfileAsset = forDXR ? hdrpAssetEditorResources.defaultDXRPostProcessingProfile : hdrpAssetEditorResources.defaultPostProcessingProfile;
-            string defaultPostProcessingProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDefaultPostProcessingProfileAsset.name + ".asset";
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDefaultPostProcessingProfileAsset), defaultPostProcessingProfilePath);
+            VolumeProfile originalDXRSettingsProfileAsset = null;
+            string defaultDXRSettingsProfilePath = null;
+            if (forDXR)
+            {
+                originalDXRSettingsProfileAsset = hdrpAssetEditorResources.defaultDXRSettings;
+                defaultDXRSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + subPath + originalDXRSettingsProfileAsset.name + ".asset";
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalDXRSettingsProfileAsset), defaultDXRSettingsProfilePath);
+            }
 
             GameObject defaultScene = AssetDatabase.LoadAssetAtPath<GameObject>(defaultScenePath);
             VolumeProfile defaultSkyAndFogProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSkyAndFogProfilePath);
-            VolumeProfile defaultPostProcessingProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultPostProcessingProfilePath);
+            VolumeProfile defaultDXRSettingsProfile = null;
+            if (forDXR)
+                defaultDXRSettingsProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultDXRSettingsProfilePath);
 
             foreach (var volume in defaultScene.GetComponentsInChildren<Volume>())
             {
                 if (volume.sharedProfile.name.StartsWith(originalDefaultSkyAndFogProfileAsset.name))
                     volume.sharedProfile = defaultSkyAndFogProfile;
-                else if (volume.sharedProfile.name.StartsWith(originalDefaultPostProcessingProfileAsset.name))
-                    volume.sharedProfile = defaultPostProcessingProfile;
+                else if (forDXR && volume.sharedProfile.name.StartsWith(originalDXRSettingsProfileAsset.name))
+                    volume.sharedProfile = defaultDXRSettingsProfile;
             }
 
             if (forDXR)
@@ -343,29 +354,33 @@ namespace UnityEditor.Rendering.HighDefinition
         abstract class VisualElementUpdatable : VisualElement
         {
             protected Func<bool> m_Tester;
+            bool m_HaveFixer;
             public bool currentStatus { get; private set; }
 
-            protected VisualElementUpdatable(Func<bool> tester)
-                => m_Tester = tester;
+            protected VisualElementUpdatable(Func<bool> tester, bool haveFixer)
+            {
+                m_Tester = tester;
+                m_HaveFixer = haveFixer;
+            }
 
             public virtual void CheckUpdate()
             {
                 bool wellConfigured = m_Tester();
                 if (wellConfigured ^ currentStatus)
                 {
-                    UpdateDisplay(wellConfigured);
+                    UpdateDisplay(wellConfigured, m_HaveFixer);
                     currentStatus = wellConfigured;
                 }
             }
 
-            protected void Init() => UpdateDisplay(currentStatus);
+            protected void Init() => UpdateDisplay(currentStatus, m_HaveFixer);
 
-            protected abstract void UpdateDisplay(bool statusOK);
+            protected abstract void UpdateDisplay(bool statusOK, bool haveFixer);
         }
 
         class HiddableUpdatableContainer : VisualElementUpdatable
         {
-            public HiddableUpdatableContainer(Func<bool> tester) : base(tester) { }
+            public HiddableUpdatableContainer(Func<bool> tester, bool haveFixer = false) : base(tester, haveFixer) { }
 
             public override void CheckUpdate()
             {
@@ -379,7 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             new public void Init() => base.Init();
 
-            protected override void UpdateDisplay(bool visible)
+            protected override void UpdateDisplay(bool visible, bool haveFixer)
                 => style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
@@ -395,7 +410,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             public ConfigInfoLine(string label, string error, string resolverButtonLabel, Func<bool> tester, Action resolver, int indent = 0)
-                : base(tester)
+                : base(tester, resolver != null)
             {
                 var testLabel = new Label(label)
                 {
@@ -430,7 +445,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Init();
             }
 
-            protected override void UpdateDisplay(bool statusOK)
+            protected override void UpdateDisplay(bool statusOK, bool haveFixer)
             {
                 if (!((hierarchy.parent as HiddableUpdatableContainer)?.currentStatus ?? true))
                 {
@@ -443,7 +458,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     this.Q(name: "StatusOK").style.display = statusOK ? DisplayStyle.Flex : DisplayStyle.None;
                     this.Q(name: "StatusError").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
-                    this.Q(name: "Resolver").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
+                    this.Q(name: "Resolver").style.display = statusOK || !haveFixer ? DisplayStyle.None : DisplayStyle.Flex;
                     this.Q(name: "HelpBox").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
                 }
             }
@@ -517,7 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
         class FixAllButton : VisualElementUpdatable
         {
             public FixAllButton(string label, Func<bool> tester, Action resolver)
-                : base(tester)
+                : base(tester, resolver != null)
             {
                 Add(new Button(resolver)
                 {
@@ -528,7 +543,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Init();
             }
 
-            protected override void UpdateDisplay(bool statusOK)
+            protected override void UpdateDisplay(bool statusOK, bool haveFixer)
                 => this.Q(name: "FixAll").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
         }
 

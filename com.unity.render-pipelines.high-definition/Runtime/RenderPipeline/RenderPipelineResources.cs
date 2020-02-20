@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class RenderPipelineResources : ScriptableObject
+    partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
             public ComputeShader debugLightVolumeCS;
+            [Reload("Runtime/Debug/DebugBlitQuad.Shader")]
+            public Shader debugBlitQuad;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -82,6 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
             public Shader cameraMotionVectorsPS;
+            [Reload("Runtime/ShaderLibrary/ClearStencilBuffer.shader")]
+            public Shader clearStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyStencilBuffer.shader")]
             public Shader copyStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyDepthBuffer.shader")]
@@ -192,6 +196,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
+            public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
             public ComputeShader uberPostCS;
             [Reload("Runtime/PostProcessing/Shaders/LutBuilder3D.compute")]

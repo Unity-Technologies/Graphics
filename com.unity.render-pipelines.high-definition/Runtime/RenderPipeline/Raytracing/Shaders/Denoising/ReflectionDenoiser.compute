@@ -23,6 +23,8 @@
 TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_HistoryBuffer);
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+// Value that tells us if the current history should be discarded based on scene-level data
+float _HistoryValidity;
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
 void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -31,6 +33,13 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+
+    // If the history is flagged as invalid, write the current value and leave right away
+    if (_HistoryValidity == 0.0)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord);
+        return;
+    }
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());

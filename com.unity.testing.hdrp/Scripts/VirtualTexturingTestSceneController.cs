@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Experimental = UnityEngine.Experimental.Rendering;
 
 public class VirtualTexturingTestSceneController : MonoBehaviour
 {
@@ -62,7 +61,7 @@ public class VirtualTexturingTestSceneController : MonoBehaviour
         }
         if (Input.GetKeyDown("t"))
         {
-            Experimental.VirtualTexturing.debugTilesEnabled = !Experimental.VirtualTexturing.debugTilesEnabled;
+            UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled = !UnityEngine.Rendering.VirtualTexturing.Debugging.debugTilesEnabled;
         }
 
         if (dirLight != null && rotateLight)

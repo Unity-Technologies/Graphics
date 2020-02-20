@@ -146,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         new Entry(InclusiveScope.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
                         new Entry(InclusiveScope.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
+                        new Entry(InclusiveScope.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                         new Entry(InclusiveScope.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
                         new Entry(InclusiveScope.HDRP, Style.hdrpAsset, IsHdrpAssetCorrect, FixHdrpAsset),
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetAssigned, IsHdrpAssetUsedCorrect, FixHdrpAssetUsed),
@@ -158,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         new Entry(InclusiveScope.VR, Style.vrActivated, IsVRSupportedForCurrentBuildTargetGroupCorrect, FixVRSupportedForCurrentBuildTargetGroup),
 
+                        new Entry(InclusiveScope.DXR, Style.dxrSupported, IsDXRSupported, null),
                         new Entry(InclusiveScope.DXR, Style.dxrAutoGraphicsAPI, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI),
                         new Entry(InclusiveScope.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
                         new Entry(InclusiveScope.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
@@ -196,11 +198,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             foreach ((Entry.Checker check, Entry.Fixer fix) in pairs)
-                m_Fixer.Add(() =>
-                {
-                    if (!check())
-                        fix(fromAsync: true);
-                });
+                if (fix != null)
+                    m_Fixer.Add(() =>
+                    {
+                        if (!check())
+                            fix(fromAsync: true);
+                    });
         }
 
         #endregion 
@@ -289,6 +292,19 @@ namespace UnityEditor.Rendering.HighDefinition
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQualityCopy.High);
+        }
+
+        bool IsShadowCorrect()
+            => QualitySettings.shadows == ShadowQuality.All;
+        void FixShadow(bool fromAsyncUnised)
+        {
+            int currentQuality = QualitySettings.GetQualityLevel();
+            for (int i = 0; i < QualitySettings.names.Length; ++i)
+            {
+                QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
+                QualitySettings.shadows = ShadowQuality.All;
+            }
+            QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
         }
 
         bool IsShadowmaskCorrect()
@@ -449,16 +465,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void FixDXRAll()
             => FixAllEntryInScope(InclusiveScope.DXR);
+        
+        bool IsDXRSupported()
+            => HDRenderPipeline.rayTracingSupportedBySystem;
 
         bool IsDXRAutoGraphicsAPICorrect()
             => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
-            => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
-
-        bool IsDXRDirect3D12Correct()
-            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12;
-        void FixDXRDirect3D12(bool fromAsync)
         {
+            if (!IsDXRSupported())
+                return;
+
+            PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
+        }
+
+        static bool reloadNeeded = false;
+        bool IsDXRDirect3D12Correct()
+            => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !reloadNeeded;
+        void FixDXRDirect3D12(bool fromAsyncUnused)
+        {
+            if (!IsDXRSupported())
+                return;
+
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
             {
                 var buidTarget = CalculateSelectedBuildTarget();
@@ -480,9 +508,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                if (fromAsync)
-                    m_Fixer.Stop();
-                ChangedFirstGraphicAPI(buidTarget);
+                reloadNeeded = true;
+                m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
 
@@ -501,6 +528,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     {
+                        reloadNeeded = false;
                         RequestCloseAndRelaunchWithCurrentArguments();
                         GUIUtility.ExitGUI();
                     }
@@ -513,6 +541,9 @@ namespace UnityEditor.Rendering.HighDefinition
             && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null;
         void FixDXRAsset(bool fromAsyncUnused)
         {
+            if (!IsDXRSupported())
+                return;
+
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
@@ -535,6 +566,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         void FixDXRShaderConfig(bool fromAsyncUnused)
         {
+            if (!IsDXRSupported())
+                return;
+
             Debug.Log("Fixing DXRShaderConfig");
             if (!lastPackageConfigInstalledCheck)
             {
@@ -561,6 +595,9 @@ namespace UnityEditor.Rendering.HighDefinition
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
         void FixDXRScreenSpaceShadow(bool fromAsyncUnused)
         {
+            if (!IsDXRSupported())
+                return;
+
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
@@ -575,6 +612,9 @@ namespace UnityEditor.Rendering.HighDefinition
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSR;
         void FixDXRReflections(bool fromAsyncUnused)
         {
+            if (!IsDXRSupported())
+                return;
+
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
@@ -587,13 +627,21 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());
         void FixDXRStaticBatching(bool fromAsyncUnused)
-            => SetStaticBatching(CalculateSelectedBuildTarget(), false);
+        {
+            if (!IsDXRSupported())
+                return;
+
+            SetStaticBatching(CalculateSelectedBuildTarget(), false);
+        }
 
         bool IsDXRActivationCorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
         void FixDXRActivation(bool fromAsyncUnused)
         {
+            if (!IsDXRSupported())
+                return;
+
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
@@ -607,6 +655,9 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDProjectSettings.defaultDXRScenePrefab != null;
         void FixDXRDefaultScene(bool fromAsync)
         {
+            if (!IsDXRSupported())
+                return;
+
             if (ObjectSelector.opened)
                 return;
             CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultDXRScenePrefab = scene, forDXR: true);

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using System.Text.RegularExpressions;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
@@ -10,15 +12,15 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class HDUtils
     {
-        public const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
-        public const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
+        internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
+        internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>Default HDAdditionalReflectionData</summary>
-        static public HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
+        static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         /// <summary>Default HDAdditionalLightData</summary>
-        static public HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
+        static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
-        static public HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
+        static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
@@ -99,28 +101,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return types;
         }
 
-        public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
-        {
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-            // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, false);
-            var gpuVP = gpuProj * worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
-
-            return gpuVP;
-        }
-
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
+        internal static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
 
-        public static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
+        internal static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
         {
             // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
             float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
             return Mathf.Min(hdCamera.actualWidth, width);
         }
 
-        public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
+        internal static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
             x += overlayWidth;
             s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
@@ -139,10 +131,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Get the aspect ratio of a projection matrix.</summary>
         /// <param name="matrix"></param>
         /// <returns></returns>
-        public static float ProjectionMatrixAspect(in Matrix4x4 matrix)
+        internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => -matrix.m11 / matrix.m00;
 
-        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
             aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
 
@@ -183,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
-        public static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
+        internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
             return tanHalfVertFoV * (2.0f / resolutionY) * planeDepth;
@@ -196,6 +188,20 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        public static void BlitQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
@@ -290,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseCoordinates(HDCamera camera)
+        internal static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             // We request the mouse post based on the type of the camera
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y, camera.camera.cameraType == CameraType.SceneView);
@@ -298,14 +304,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
-        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        internal static Vector4 GetMouseClickCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, RTHandles.rtHandleProperties.rtHandleScale.x * mousePixelCoord.x / camera.screenSize.x, RTHandles.rtHandleProperties.rtHandleScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
-        public static bool IsRegularPreviewCamera(Camera camera)
+        internal static bool IsRegularPreviewCamera(Camera camera)
         {
             if (camera.cameraType == CameraType.Preview)
             {
@@ -317,13 +323,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // We need these at runtime for RenderPipelineResources upgrade
-        public static string GetHDRenderPipelinePath()
+        internal static string GetHDRenderPipelinePath()
             => "Packages/com.unity.render-pipelines.high-definition/";
 
-        public static string GetCorePath()
+        internal static string GetCorePath()
             => "Packages/com.unity.render-pipelines.core/";
 
-        public struct PackedMipChainInfo
+        internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
             public int mipLevelCount;
@@ -401,13 +407,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+        internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
-        public static bool IsQuaternionValid(Quaternion q)
+        internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
 
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
-        public static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
+        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                     graphicDevice == GraphicsDeviceType.Direct3D12 ||
@@ -420,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
-        public static void CheckRTCreated(RenderTexture rt)
+        internal static void CheckRTCreated(RenderTexture rt)
         {
             // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
             // When used as render target, the C++ code will re-create the resource automatically. Since here it's used directly as an UAV, we need to check manually
@@ -428,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Create();
         }
 
-        public static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
+        internal static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
         {
             Vector2 rcpBufferSize = new Vector2(1.0f / bufferSize.x, 1.0f / bufferSize.y);
 
@@ -445,7 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
-        public static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
+        internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
@@ -459,7 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
 
-        public static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
         {
             unsupportedGraphicDevice = GraphicsDeviceType.Null;
 
@@ -474,7 +480,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        public static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
+        internal static OperatingSystemFamily BuildTargetToOperatingSystemFamily(UnityEditor.BuildTarget target)
         {
             switch (target)
             {
@@ -493,7 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public static bool IsOperatingSystemSupported(string os)
+        internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
@@ -529,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="fadeDistance">Distance at which object should be totally fade</param>
         /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
         /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
-        public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
+        internal static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = 0.9f * fadeDistance;
@@ -543,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="distanceToCamera">Distance from the object to fade from the camera</param>
         /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
         /// <returns>Computed fade factor</returns>
-        public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
+        internal static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
         {
             float scale;
             float bias;
@@ -560,14 +566,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="weight">Weight multiplior</param>
         /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
         /// <returns>Computed fade factor</returns>
-        public static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
+        internal static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
         {
             float distanceToCamera = Vector3.Magnitude(position1 - position2);
             float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
             return distanceFade * weight;
         }
 
-        public static bool PostProcessIsFinalPass()
+        internal static bool PostProcessIsFinalPass()
         {
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
@@ -579,7 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // a unity asset GUID is exactly 16 bytes long which is also a Vector4 so by adding a
         // Vector4 field inside the shader we can store references of an asset inside the material
         // which is actually used to store the reference of the diffusion profile asset
-        public static Vector4 ConvertGUIDToVector4(string guid)
+        internal static Vector4 ConvertGUIDToVector4(string guid)
         {
             Vector4 vector;
             byte[]  bytes = new byte[16];
@@ -596,7 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return vector;
         }
 
-        public static string ConvertVector4ToGUID(Vector4 vector)
+        internal static string ConvertVector4ToGUID(Vector4 vector)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             unsafe
@@ -750,6 +756,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return s_DefaultHDAdditionalCameraData;
         }
 
+        static Dictionary<GraphicsFormat, int> graphicsFormatSizeCache = new Dictionary<GraphicsFormat, int>
+        {
+            // Init some default format so we don't allocate more memory on the first frame.
+            {GraphicsFormat.R8G8B8A8_UNorm, 4},
+            {GraphicsFormat.R16G16B16A16_SFloat, 8},
+            {GraphicsFormat.RGB_BC6H_SFloat, 1}, // BC6H uses 128 bits for each 4x4 tile which is 8 bits per pixel
+        };
+
+        /// <summary>
+        /// Compute the size in bytes of a GraphicsFormat. Does not works with compressed formats.
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns>Size in Bytes</returns>
+        internal static int GetFormatSizeInBytes(GraphicsFormat format)
+        {
+            if (graphicsFormatSizeCache.TryGetValue(format, out var size))
+                return size;
+
+            // Compute the size by parsing the enum name: Note that it does not works with compressed formats
+            string name = format.ToString();
+            int underscoreIndex = name.IndexOf('_');
+            name = name.Substring(0, underscoreIndex == -1 ? name.Length : underscoreIndex);
+
+            // Extract all numbers from the format name:
+            int bits = 0;
+            foreach (Match m in Regex.Matches(name, @"\d+"))
+                bits += int.Parse(m.Value);
+
+            size = bits / 8;
+            graphicsFormatSizeCache[format] = size;
+            return size;
+        }
 
         internal static void DisplayUnsupportedMessage(string msg)
         {
