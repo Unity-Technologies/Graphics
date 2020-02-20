@@ -15,13 +15,15 @@
 // TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
-#define SSS_BILATERAL_FILTER  1
-#define SSS_USE_LDS_CACHE     1
-#define SSS_RANDOM_ROTATION   1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
-#define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
-#define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
-#define SSS_DEBUG_LOD         0
-#define SSS_DEBUG_NORMAL_VS   0
+#define SSS_BILATERAL_FILTER      1
+#define SSS_USE_LDS_CACHE         1
+#define SSS_RANDOM_ROTATION       1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
+#define SSS_USE_TANGENT_PLANE     0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
+#define SSS_CLAMP_ARTIFACT        0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
+#define SSS_DEBUG_LOD             0
+#define SSS_DEBUG_NORMAL_VS       0
+#define SSS_ELIMINATE_CONSTANTS   1 // Help the compiler remove redundant operations
+#define SSS_SSS_ADAPTIVE_SAMPLING 1
 
 // Do not modify these.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -31,7 +33,6 @@
 #define TEXTURE_CACHE_BORDER  2
 #define TEXTURE_CACHE_SIZE_1D (GROUP_SIZE_1D + 2 * TEXTURE_CACHE_BORDER)
 #define TEXTURE_CACHE_SIZE_2D (TEXTURE_CACHE_SIZE_1D * TEXTURE_CACHE_SIZE_1D)
-#define ADAPTIVE_SAMPLING     1
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
@@ -153,9 +154,9 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 
 #if SSS_CLAMP_ARTIFACT
-    return saturate(DisneyProfilePolar(r, S) * area);
+    return saturate(EvalBurleyDiffusionProfile(r, S) * area);
 #else
-    return DisneyProfilePolar(r, S) * area;
+    return EvalBurleyDiffusionProfile(r, S) * area;
 #endif
 }
 
@@ -164,21 +165,21 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
                     float startAngle, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
-    // The relative sample position is known at the compile time.
-#if ADAPTIVE_SAMPLING
+    float r, rcpPdf;
+#if SSS_SSS_ADAPTIVE_SAMPLING
     // Undo premultiplication...
-    const float log2e = 1.44269504088896340736f;
-    const float k     = (-1.0f / 3.0f) * log2e;
+    float  k = (-1.0f / 3.0f) * LOG2_E;
     float3 S = shapeParam / k;
     // ShapeParam = 1 / ScatteringDistance.
     // We importance sample the color channel with the widest scattering distance.
-    float rcpPar = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
+    float rcpS   = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
     float scale  = rcp(n);
     float offset = 0.5 * rcp(n);
     // Precompute all of the above...
-    float r   = SampleBurleyDiffusionProfile(i * scale + offset, rcpPar);
+    SampleBurleyDiffusionProfile(i * scale + offset, rcpS, r, rcpPdf);
 #else
-    float r   = _FilterKernels[profileID][i][iR];
+    r      = _FilterKernels[profileID][i][iR];
+    rcpPdf = _FilterKernels[profileID][i][iP];
 #endif
     float phi = SampleDiskFibonacci(i, n).y;
 
@@ -217,8 +218,7 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
         // Apply bilateral weighting.
         float  viewZ  = textureSample.a;
         float  relZ   = viewZ - centerPosVS.z;
-        float  rcpPdf = _FilterKernels[profileID][i][iP];
-        float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, shapeParam, rcpPdf);
+        float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, S, rcpPdf);
 
         // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
         totalIrradiance += weight * irradiance;
@@ -457,35 +457,10 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
     uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
 
-
-#if ADAPTIVE_SAMPLING
-    // Undo premultiplication...
-    const float log2e = 1.44269504088896340736f;
-    const float k     = (-1.0f / 3.0f) * log2e;
-    float3 S = shapeParam / k;
-    // ShapeParam = 1 / ScatteringDistance.
-    // We importance sample the color channel with the widest scattering distance.
-    float rcpPar = rcp(max(FLT_EPS, Min3(S.x, S.y, S.z)));
-    float scale  = rcp(n);
-    float offset = 0.5 * rcp(n);
-    // Precompute all of the above...
-    float centerRadius  = SampleBurleyDiffusionProfile(0 * scale + offset, rcpPar);
-#else
-    float  centerRadius = _FilterKernels[profileID][0][iR];
-#endif
-
-    float  centerRcpPdf = _FilterKernels[profileID][0][iP];
-    float3 centerWeight = DisneyProfilePolar(centerRadius, shapeParam) * centerRcpPdf;
-
-    // If the shape parameter is 0, the weight is be 0.
-    // This is desirable for all but the central sample.
-    // We make sure that if the shape parameter is 0, the weight is non-zero.
-    // Weight normalization will ensure that the result is correct.
-    centerWeight = max(centerWeight, FLT_EPS);
-
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
-    float3 totalIrradiance = centerWeight * centerIrradiance;
-    float3 totalWeight     = centerWeight;
+    float3 centerWeight    = 1; // (value / pdf) = albedo
+    float3 totalIrradiance = centerIrradiance;
+    float3 totalWeight     = 1;
 
     uint i; // Declare once to avoid the warning from the Unity shader compiler.
 
