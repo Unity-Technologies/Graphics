@@ -183,6 +183,95 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        public struct VFXTimeModeTest
+        {
+            public override string ToString()
+            {
+                return name;
+            }
+
+            public string name { get; }
+            public uint vfxUpdateMode { get; }
+            public uint expectedUpdateCount { get; }
+            public float expectedDeltaTime { get; }
+
+            public VFXTimeModeTest(string name, uint vfxUpdateMode, uint expectedUpdateCount, float expectedDeltaTime)
+            {
+                this.name = name;
+                this.vfxUpdateMode = vfxUpdateMode;
+                this.expectedUpdateCount = expectedUpdateCount;
+                this.expectedDeltaTime = expectedDeltaTime;
+            }
+        }
+
+        const float s_Check_Time_Mode_SleepingTimeInSecond = 1.0f;
+        const float s_Check_Time_Mode_FixedDeltaTime = 0.1f;
+        const float s_Check_Time_Mode_MaxDeltaTime = 0.7f;
+
+        static VFXTimeModeTest[] s_CheckTimeMode = new[]
+        {
+            new VFXTimeModeTest("FixedDeltaTime", (uint)VFXUpdateMode.FixedDeltaTime, 1u, s_Check_Time_Mode_MaxDeltaTime),
+            new VFXTimeModeTest("ExactFixedDeltaTime", (uint)VFXUpdateMode.ExactFixedTimeStep, (uint)Mathf.Floor(s_Check_Time_Mode_MaxDeltaTime / s_Check_Time_Mode_FixedDeltaTime), s_Check_Time_Mode_FixedDeltaTime),
+        };
+
+        //Fix 1216631 : Check Exact time has actually an effect in low fps condition
+        [UnityTest]
+        public IEnumerator Create_Spawner_Check_Time_Mode_Update_Count([ValueSource("s_CheckTimeMode")] VFXTimeModeTest timeMode)
+        {
+            yield return new EnterPlayMode();
+
+            var spawnCountValue = 651.0f;
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerUpdateCounterTest)));
+            basicSpawner.AddChild(blockCustomSpawner);
+
+            graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            UnityEngine.VFX.VFXManager.fixedTimeStep = s_Check_Time_Mode_FixedDeltaTime;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = s_Check_Time_Mode_MaxDeltaTime;
+
+            VFXCustomSpawnerUpdateCounterTest.s_UpdateCount = 0;
+            //Wait for the first warm up
+            int maxFrame = 128;
+            while (VFXCustomSpawnerUpdateCounterTest.s_UpdateCount == 0 && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.AreNotEqual(0u, VFXCustomSpawnerUpdateCounterTest.s_UpdateCount);
+
+            vfxComponent.Reinit();
+            VFXCustomSpawnerUpdateCounterTest.s_UpdateCount = 0;
+            VFXCustomSpawnerUpdateCounterTest.s_LastDeltaTime = 0.0f;
+            Time.captureDeltaTime = s_Check_Time_Mode_SleepingTimeInSecond;
+
+            while (VFXCustomSpawnerUpdateCounterTest.s_UpdateCount == 0)
+            {
+                yield return null;
+            }
+            Assert.AreEqual(timeMode.expectedUpdateCount, VFXCustomSpawnerUpdateCounterTest.s_UpdateCount);
+            Assert.AreEqual(timeMode.expectedDeltaTime, VFXCustomSpawnerUpdateCounterTest.s_LastDeltaTime);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
+
+            yield return new ExitPlayMode();
+        }
+
         [Retry(3)]
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_Plugging_OnStop_Into_Start_Input_Flow()
