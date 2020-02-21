@@ -16,6 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedObject;
         private SerializedHDRenderPipelineAsset serializedRPAsset;
 
+        private const int CPUCacheSizeMinValue = 256;
+        private const int GPUCacheSizeMinValue = 32;
+
         public void OnGUI(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             CheckStyles();
@@ -29,8 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.DelayedIntField(serialized.virtualTexturingSettings.cpuCacheSizeInMegaBytes, s_Styles.cpuCacheSize); ;
-                EditorGUILayout.DelayedIntField(serialized.virtualTexturingSettings.gpuCacheSizeInMegaBytes, s_Styles.gpuCacheSize);
+                serialized.virtualTexturingSettings.cpuCacheSizeInMegaBytes.intValue = Mathf.Max(CPUCacheSizeMinValue, EditorGUILayout.DelayedIntField(s_Styles.cpuCacheSize, serialized.virtualTexturingSettings.cpuCacheSizeInMegaBytes.intValue));
+                serialized.virtualTexturingSettings.gpuCacheSizeInMegaBytes.intValue = Mathf.Max(GPUCacheSizeMinValue, EditorGUILayout.DelayedIntField(s_Styles.gpuCacheSize, serialized.virtualTexturingSettings.gpuCacheSizeInMegaBytes.intValue));
 
                 // GPU Cache size overrides
                 if (m_GPUCacheSizeOverrideListStreaming == null ||
@@ -216,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.position += new Vector2(sizeLabelWidth, 0);
                 rect.width = sizeWidth;
 
-                cacheSizeOverride.sizeInMegaBytes = (uint) Mathf.Max(2,
+                cacheSizeOverride.sizeInMegaBytes = (uint) Mathf.Max(GPUCacheSizeMinValue,
                     EditorGUI.DelayedIntField(rect, (int) cacheSizeOverride.sizeInMegaBytes));
                 cacheSizeOverrideProperty.FindPropertyRelative("sizeInMegaBytes").intValue =
                     (int) cacheSizeOverride.sizeInMegaBytes;
@@ -230,8 +233,8 @@ namespace UnityEditor.Rendering.HighDefinition
             sealed class Styles
             {
                 public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size", "Amount of CPU memory (in MB) that can be allocated by the Virtual Texturing system to use to cache texture data.");
-                public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to use to cache texture data.");
-                public readonly GUIContent gpuCacheSizeOverrides = new GUIContent("Streaming GPU Cache Size Overrides", "Override the GPU cache size per format for Streaming Virtual Texturing.");
+                public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size per format (Default)", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to cache texture data. Can be overridden to use a different size per format.");
+                public readonly GUIContent gpuCacheSizeOverrides = new GUIContent("GPU Cache Size Overrides", "Override the GPU cache size per format.");
 
                 public readonly GUIContent gpuCacheSizeOverrideFormat = new GUIContent("Format", "Format and channel transform that will be overridden.");
                 public readonly GUIContent gpuCacheSizeOverrideSize = new GUIContent("Size", "Size (in MB) of the override.");
