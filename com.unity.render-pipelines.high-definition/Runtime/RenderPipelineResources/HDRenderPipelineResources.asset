@@ -168,6 +168,8 @@ MonoBehaviour:
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
       type: 3}
+    temporalAntialiasing2PS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
+      type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}
   textures:

@@ -1,3 +1,6 @@
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+
 #define HDR_MAPUNMAP        1
 #define CLIP_AABB           1
 #define RADIUS              0.75
@@ -112,7 +115,8 @@ float2 GetClosestFragment(float2 positionSS)
     closest = lerp(closest, float3(-1.0,  1.0, neighborhood.z), COMPARE_DEPTH(neighborhood.z, closest.z));
     closest = lerp(closest, float3( 1.0,  1.0, neighborhood.w), COMPARE_DEPTH(neighborhood.w, closest.z));
 
-    return positionSS + closest.xy;
+
+    return positionSS + float2(1.0, -1.0);
 }
 
 CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
@@ -127,4 +131,102 @@ CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
     CTYPE ts = abs(extents) / max(abs(offset), 1e-4);
     float t = saturate(Min3(ts.x, ts.y,  ts.z));
     return center + offset * t;
+}
+
+float3 ClipToAABB2(float3 color, float3 minimum, float3 maximum)
+{
+    // note: only clips towards aabb center (but fast!)
+    float3 center = 0.5 * (maximum + minimum);
+    float3 extents = 0.5 * (maximum - minimum);
+
+    // This is actually `distance`, however the keyword is reserved
+    float3 offset = color - center;
+
+    float3 ts = abs(extents) / max(abs(offset), 1e-4);
+    float t = saturate(Min3(ts.x, ts.y, ts.z));
+    return center + offset * t;
+}
+
+// ---- Options to get history ----
+
+// --------------------------------------
+// Higher level options
+// --------------------------------------
+
+
+// --------------------------------------
+// History fetching utilities
+// --------------------------------------
+
+#define LOAD 0
+#define BICUBIC 1
+#define HISTORY_LOAD_METHOD LOAD
+
+
+float4 FetchHistoryLoad(TEXTURE2D_X(tex), float2 UV)
+{
+    return Fetch4(tex, UV, 0.0, _RTHandleScaleHistory.zw);
+}
+
+float4 FetchHistoryBicubic4(TEXTURE2D_X(tex), float2 UV)
+{
+    float2 TexSize = _ScreenSize.xy * rcp(_RTHandleScale.xy);
+    float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
+
+    return SampleTexture2DBicubic(TEXTURE2D_X_ARGS(tex, s_linear_clamp_sampler),
+        UV * _RTHandleScale.xy,
+        bicubicWnd,
+        (1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy,
+        unity_StereoEyeIndex);
+}
+
+float3 HistoryCatmull5Tap(TEXTURE2D_X(_InputTexture), float2 UV, float4 Size, float Velocity)
+{
+    float2 screenPos = UV * Size.xy;
+    float2 centerPosition = floor(screenPos - 0.5) + 0.5;
+    float2 f = screenPos - centerPosition;
+    float2 f2 = f * f;
+
+    const float   c = 0.5;  // Add sharpening
+    float2 w0, w1, w2, w3;
+
+    // Horners form of polynomial
+    w1 = f * (f * (((2.0 - c) * f) - ((3.0 - c)))) + 1.0;
+    w2 = f * (f * ((-(2.0 - c) * f) + ((3.0 - 2.0 * c))) + c);
+
+    float2 w12 = w1 + w2;
+    float2 rcpw12 = rcp(w12);
+    float2 tc12 = Size.zw * (centerPosition + w2 * rcpw12); 
+    float3 centerColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, float2(tc12.x, tc12.y), 0).xyz;
+
+    w0 = f * (f * ((-c * f) + (2.0 * c)) - (c));
+    w3 = f2 * (f * c - c);
+    float2 tc0 = Size.zw * (centerPosition - 1.0);
+    float2 tc3 = Size.zw * (centerPosition + 2.0);
+
+    float4 color = float4(SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, float2(tc12.x, tc0.y), 0).rgb, 1.0) * (w12.x * w0.y) +
+        float4(SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, float2(tc0.x, tc12.y), 0).rgb, 1.0) * (w0.x * w12.y) +
+        float4(centerColor, 1.0) * (w12.x * w12.y) +
+        float4(SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, float2(tc3.x, tc12.y), 0).rgb, 1.0) * (w3.x * w12.y) +
+        float4(SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, float2(tc12.x, tc3.y), 0).rgb, 1.0) * (w12.x * w3.y);
+
+    return color.rgb * rcp(color.a);
+}
+
+void PLAN()
+{
+
+     // Work in YCoCG space
+
+    // Find closest sample and pick velocity from closest. TODO: Experiment with size of offset, maybe 2? 
+
+    // Find reprojected velocity ? ??? << verify
+
+    // Filter history with catmull rom?
+
+    // Compute neighbourhood (try variance, simple min/max, distance)
+
+    // 
+
+
 }

@@ -296,6 +296,12 @@ TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
 #ifndef INTRINSIC_QUAD_SHUFFLE
     // Important! Only valid in pixel shaders!
+
+    float2 GetQuadOffset(int2 screenPos)
+    {
+        return float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+    }
+
     float QuadReadAcrossX(float value, int2 screenPos)
     {
         return value - (ddx_fine(value) * (float(screenPos.x & 1) * 2.0 - 1.0));
@@ -310,7 +316,7 @@ TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
     {
         float dX = ddx_fine(value);
         float dY = ddy_fine(value);
-        float2 quadDir = float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+        float2 quadDir = GetQuadOffset(screenPos);
         float X = value - (dX * quadDir.x);
         return X - (ddy_fine(value) * quadDir.y);
     }
