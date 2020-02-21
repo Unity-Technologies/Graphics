@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Camera Stacking when using the Forward Renderer. This introduces the Camera `Render Type` property. A Base Camera can be initialized with either the Skybox or Solid Color, and can combine its output with that of one or more Overlay Cameras. An Overlay Camera is always initialized with the contents of the previous Camera that rendered in the Camera Stack.
 - Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
 - Added `[MainTexture]` and `[MainColor]` shader property attributes to URP shader properties. These will link script material.mainTextureOffset and material.color to `_BaseMap` and `_BaseColor` shader properties.
-
+- Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Scene view now mirrors the Volume Layer Mask set on the Main Camera.
 - Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipline.
 - Made MaterialDescriptionPreprocessors private.
+- UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
+- The number of maximum visible lights is now determined by whether the platform is mobile or not.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
