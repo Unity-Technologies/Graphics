@@ -54,13 +54,13 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     case CustomBlitMasterNode.BlendType.None:
                         pass.BlendOpOverride = "Blend Off";
                         break;
-                    case CustomBlitMasterNode.BlendType.Multiply:
+                    case CustomBlitMasterNode.BlendType.Blend:
                         pass.BlendOpOverride = "Blend SrcAlpha OneMinusSrcAlpha";
                         break;
                     case CustomBlitMasterNode.BlendType.Add:
                         pass.BlendOpOverride = "Blend One One";
                         break;
-                }
+                }               
             }
         };
 
@@ -110,7 +110,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     case CustomBlitMasterNode.BlendType.None:
                         pass.BlendOpOverride = "Blend Off";
                         break;
-                    case CustomBlitMasterNode.BlendType.Multiply:
+                    case CustomBlitMasterNode.BlendType.Blend:
                         pass.BlendOpOverride = "Blend SrcAlpha OneMinusSrcAlpha";
                         break;
                     case CustomBlitMasterNode.BlendType.Add:

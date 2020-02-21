@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             None,
             Add,
-            Multiply
+            Blend
         }
 
         [SerializeField]

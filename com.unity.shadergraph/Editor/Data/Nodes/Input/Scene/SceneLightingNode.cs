@@ -19,8 +19,7 @@ namespace UnityEditor.ShaderGraph
         public enum LightingType
         {
             SSAO, 
-            SSR,
-            Volumetric
+            SSR
         }
 
         public SceneLightingNode()
@@ -69,11 +68,7 @@ namespace UnityEditor.ShaderGraph
                 case LightingType.SSR:
                     result = string.Format("$precision4 {0} = SHADERGRAPH_LOAD_SCENE_SSR({1}.xy);", GetVariableNameForSlot(kLightingOutputSlotId),
                         GetSlotValue(kUvInputSlotId, generationMode));
-                    break;
-                case LightingType.Volumetric:
-                    result = string.Format("$precision4 {0} = SHADERGRAPH_LOAD_SCENE_VOLUMETRIC({1}.xy);", GetVariableNameForSlot(kLightingOutputSlotId),
-                        GetSlotValue(kUvInputSlotId, generationMode));
-                    break;
+                    break;                
             }
          
             sb.AppendLine(result);
