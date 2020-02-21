@@ -91,21 +91,18 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
 
         float2 temp = SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasOctahedralDepth, s_linear_clamp_sampler, probeOctahedralDepthAtlasUV, 0).xy;
         float mean = temp.x;
-        float variance = abs(Sq(mean) - temp.y);
+        float variance = temp.y;
 
-        // TODO: Still need to actually use chebyshevWeight, but need to pre-compute variance. Currently we only actually have depth.
-        weights[i] *= (probeToSampleBiasedDistanceWS <= (mean + 0.01)) ? 1.0 : 0.2;
-        //
-        // // http://www.punkuser.net/vsm/vsm_paper.pdf; equation 5
-        // // Need the max in the denominator because biasing can cause a negative displacement
-        // float chebyshevWeight = variance / (variance + Sq(max(probeToSampleBiasedDistanceWS - mean, 0.0)));
+        // http://www.punkuser.net/vsm/vsm_paper.pdf; equation 5
+        // Need the max in the denominator because biasing can cause a negative displacement
+        float chebyshevWeight = variance / (variance + Sq(max(probeToSampleBiasedDistanceWS - mean, 0.0)));
 
-        // // Increase contrast in the weight
-        // chebyshevWeight = max(chebyshevWeight * chebyshevWeight * chebyshevWeight, 0.0);
+        // Increase contrast in the weight
+        chebyshevWeight = max(chebyshevWeight * chebyshevWeight * chebyshevWeight, 0.0);
 
-        // // Avoid visibility weights ever going all of the way to zero because when *no* probe has
-        // // visibility we need some fallback value.
-        // weights[i] *= max(0.2, ((probeToSampleBiasedDistanceWS <= mean) ? 1.0 : chebyshevWeight));
+        // Avoid visibility weights ever going all of the way to zero because when *no* probe has
+        // visibility we need some fallback value.
+        weights[i] *= max(0.2, ((probeToSampleBiasedDistanceWS <= mean) ? 1.0 : chebyshevWeight));
 
         // Avoid zero weight
         weights[i] = max(0.000001, weights[i]);

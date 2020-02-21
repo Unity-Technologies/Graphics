@@ -79,6 +79,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeVolumeAtlasBlitCS;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthBlit.compute")]
             public ComputeShader probeVolumeAtlasOctahedralDepthBlitCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthConvolve.compute")]
+            public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 

@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
 StructuredBuffer<float> _ProbeVolumeAtlasOctahedralDepthReadBuffer;
-RWTexture2D<float> _ProbeVolumeAtlasOctahedralDepthWriteTexture;
+RWTexture2D<float2> _ProbeVolumeAtlasOctahedralDepthWriteTexture;
 
 uint _ProbeVolumeAtlasOctahedralDepthReadBufferCount;
 float3 _ProbeVolumeResolution;
@@ -65,5 +65,6 @@ void PROBE_VOLUME_ATLAS_OCTAHEDRAL_DEPTH_BLIT_KERNEL(uint groupThreadId : SV_Gro
     uint2 writeIndexOctahedral = uint2(readIndexOctahedral % 8, readIndexOctahedral / 8);
     uint2 writeIndex = writeIndexProbe * 8 + writeIndexOctahedral;
 
-    _ProbeVolumeAtlasOctahedralDepthWriteTexture[uint2(writeIndex.x, writeIndex.y)] = _ProbeVolumeAtlasOctahedralDepthReadBuffer[readIndex];
+    // Depth sample is placed in X component, in order to be filtered into a mean, variance distribution and stored into XY in a following pass.
+    _ProbeVolumeAtlasOctahedralDepthWriteTexture[uint2(writeIndex.x, writeIndex.y)] = float2(_ProbeVolumeAtlasOctahedralDepthReadBuffer[readIndex], 0.0f);
 }

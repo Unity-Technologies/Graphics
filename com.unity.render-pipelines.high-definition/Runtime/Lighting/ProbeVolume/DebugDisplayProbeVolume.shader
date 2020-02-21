@@ -64,7 +64,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 float4 valueShAg = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 1, 0) - _ValidRange.x) * _ValidRange.y);
                 float4 valueShAb = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 2, 0) - _ValidRange.x) * _ValidRange.y);
                 float valueValidity = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 3, 0).x - _ValidRange.x) * _ValidRange.y);
-                float valueOctahedralDepth = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord, 0).x - _ValidRange.x) * _ValidRange.y);
+                float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord, 0).xy - _ValidRange.x) * _ValidRange.y);
 
                 switch (_ProbeVolumeAtlasSliceMode)
                 {
@@ -96,7 +96,13 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                     case PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH:
                     {
-                        return float4(valueOctahedralDepth, valueOctahedralDepth, valueOctahedralDepth, 1.0f);
+                        // Tonemap variance with sqrt() to bring it into a more similar scale to mean to make it more readable.
+                        return float4(
+                            valueOctahedralDepthMeanAndVariance.x,
+                            (valueOctahedralDepthMeanAndVariance.y > 0.0f) ? sqrt(valueOctahedralDepthMeanAndVariance.y) : 0.0f,
+                            0.0f,
+                            1.0f
+                        );
                     }
 
                     default: return float4(0.0, 0.0, 0.0, 1.0);

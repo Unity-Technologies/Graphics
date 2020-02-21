@@ -95,15 +95,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static ComputeShader s_ProbeVolumeAtlasOctahedralDepthBlitCS = null;
+        static ComputeShader s_ProbeVolumeAtlasOctahedralDepthConvolveCS = null;
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static int s_ProbeVolumeAtlasOctahedralDepthBlitKernel = -1;
+        static int s_ProbeVolumeAtlasOctahedralDepthConvolveKernel = -1;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasOctahedralDepthBuffer = null;
         static int s_ProbeVolumeAtlasWidth = 1024;
         static int s_ProbeVolumeAtlasHeight = 1024;
-        static int s_ProbeVolumeAtlasOctahedralDepthWidth = 2048;
-        static int s_ProbeVolumeAtlasOctahedralDepthHeight = 2048;
+        static int s_ProbeVolumeAtlasOctahedralDepthWidth = 4096;
+        static int s_ProbeVolumeAtlasOctahedralDepthHeight = 1024;
         static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / 8) * (s_ProbeVolumeAtlasOctahedralDepthHeight / 8);
         public const int k_ProbeOctahedralDepthWidth = 8;
         public const int k_ProbeOctahedralDepthHeight = 8;
@@ -133,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_ProbeVolumeAtlasOctahedralDepthWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth;
             s_ProbeVolumeAtlasOctahedralDepthHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight;
-            k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / 8) * (s_ProbeVolumeAtlasOctahedralDepthHeight / 8);
+            k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / k_ProbeOctahedralDepthWidth) * (s_ProbeVolumeAtlasOctahedralDepthHeight / k_ProbeOctahedralDepthWidth);
 
             if (m_SupportProbeVolume)
             {
@@ -144,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 s_ProbeVolumeAtlasOctahedralDepthBlitCS = asset.renderPipelineResources.shaders.probeVolumeAtlasOctahedralDepthBlitCS;
                 s_ProbeVolumeAtlasOctahedralDepthBlitKernel = s_ProbeVolumeAtlasOctahedralDepthBlitCS.FindKernel("ProbeVolumeAtlasOctahedralDepthBlitKernel");
+                s_ProbeVolumeAtlasOctahedralDepthConvolveCS = asset.renderPipelineResources.shaders.probeVolumeAtlasOctahedralDepthConvolveCS;
+                s_ProbeVolumeAtlasOctahedralDepthConvolveKernel = s_ProbeVolumeAtlasOctahedralDepthConvolveCS.FindKernel("ProbeVolumeAtlasOctahedralDepthConvolveKernel");
             }
             else
             {
@@ -190,10 +194,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 height: s_ProbeVolumeAtlasOctahedralDepthHeight,
                 slices: 1,
                 dimension: TextureDimension.Tex2D,
-                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat, // float2(mean, variance)
                 enableRandomWrite: true,
                 useMipMap: false,
-                name: "ProbeVolumeAtlasOctahedralDepth"
+                name: "ProbeVolumeAtlasOctahedralDepthMeanAndVariance"
             );
 
             probeVolumeAtlasOctahedralDepth = new Texture2DAtlasDynamic(
@@ -431,38 +435,71 @@ namespace UnityEngine.Rendering.HighDefinition
                         return false;
                     }
 
-                    //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
-                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeResolution", new Vector3(
-                        volume.parameters.resolutionX,
-                        volume.parameters.resolutionY,
-                        volume.parameters.resolutionZ
-                    ));
-                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeResolutionInverse", new Vector3(
-                        1.0f / (float)volume.parameters.resolutionX,
-                        1.0f / (float)volume.parameters.resolutionY,
-                        1.0f / (float)volume.parameters.resolutionZ
-                    ));
-                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthScaleBias",
-                        volume.parameters.octahedralDepthScaleBias
-                    );
-                    cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthResolutionAndInverse", new Vector4(
-                        m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
-                        m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height,
-                        1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
-                        1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
-                    ));
+                    // Blit:
+                    {
+                        //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeResolution", new Vector3(
+                            volume.parameters.resolutionX,
+                            volume.parameters.resolutionY,
+                            volume.parameters.resolutionZ
+                        ));
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeResolutionInverse", new Vector3(
+                            1.0f / (float)volume.parameters.resolutionX,
+                            1.0f / (float)volume.parameters.resolutionY,
+                            1.0f / (float)volume.parameters.resolutionZ
+                        ));
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthScaleBias",
+                            volume.parameters.octahedralDepthScaleBias
+                        );
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthResolutionAndInverse", new Vector4(
+                            m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
+                            m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height,
+                            1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.width,
+                            1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
+                        ));
 
-                    Debug.Assert(dataOctahedralDepth.Length == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + dataOctahedralDepth.Length + ", but resolution size is " + size + ".");
+                        Debug.Assert(dataOctahedralDepth.Length == size, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + dataOctahedralDepth.Length + ", but resolution size is " + size + ".");
 
-                    s_ProbeVolumeAtlasOctahedralDepthBuffer.SetData(dataOctahedralDepth);
-                    cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthReadBufferCount", size);
-                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, "_ProbeVolumeAtlasOctahedralDepthReadBuffer", s_ProbeVolumeAtlasOctahedralDepthBuffer);
-                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, "_ProbeVolumeAtlasOctahedralDepthWriteTexture", m_ProbeVolumeAtlasOctahedralDepthRTHandle);
+                        s_ProbeVolumeAtlasOctahedralDepthBuffer.SetData(dataOctahedralDepth);
+                        cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, "_ProbeVolumeAtlasOctahedralDepthReadBufferCount", size);
+                        cmd.SetComputeBufferParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, "_ProbeVolumeAtlasOctahedralDepthReadBuffer", s_ProbeVolumeAtlasOctahedralDepthBuffer);
+                        cmd.SetComputeTextureParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, "_ProbeVolumeAtlasOctahedralDepthWriteTexture", m_ProbeVolumeAtlasOctahedralDepthRTHandle);
 
-                    // TODO: Determine optimal batch size.
-                    const int kBatchSize = 256;
-                    int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
-                    cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, numThreadGroups, 1, 1);
+                        // TODO: Determine optimal batch size.
+                        const int kBatchSize = 256;
+                        int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
+                        cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthBlitCS, s_ProbeVolumeAtlasOctahedralDepthBlitKernel, numThreadGroups, 1, 1);
+                    }
+
+                    // Convolve:
+                    {
+                        Vector4 probeVolumeAtlasOctahedralDepthScaleBiasTexels = new Vector4(
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.x * s_ProbeVolumeAtlasOctahedralDepthWidth + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.y * s_ProbeVolumeAtlasOctahedralDepthHeight + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.z * s_ProbeVolumeAtlasOctahedralDepthWidth + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.w * s_ProbeVolumeAtlasOctahedralDepthHeight + 0.5f)
+                        );
+
+                        cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, "_ProbeVolumeAtlasOctahedralDepthScaleBiasTexels",
+                            probeVolumeAtlasOctahedralDepthScaleBiasTexels
+                        );
+
+                        cmd.SetComputeTextureParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, s_ProbeVolumeAtlasOctahedralDepthConvolveKernel, "_ProbeVolumeAtlasOctahedralDepthRWTexture", m_ProbeVolumeAtlasOctahedralDepthRTHandle);
+
+                        cmd.SetComputeIntParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, "_FilterSampleCount", 16); // TODO: Expose
+                        cmd.SetComputeFloatParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, "_FilterSharpness", 6.0f); // TODO: Expose
+
+                        // Warning: This kernel numthreads must be an integer multiple of OCTAHEDRAL_DEPTH_RESOLUTION
+                        // We read + write from the same texture, so any partial work would pollute / cause feedback into neighboring chunks.
+                        int widthPixels = (int)(volume.parameters.octahedralDepthScaleBias.x * (float)s_ProbeVolumeAtlasOctahedralDepthWidth);
+                        int heightPixels = (int)(volume.parameters.octahedralDepthScaleBias.y * (float)s_ProbeVolumeAtlasOctahedralDepthHeight);
+                        int probeCountX = widthPixels / k_ProbeOctahedralDepthWidth;
+                        int probeCountY = heightPixels / k_ProbeOctahedralDepthHeight;
+                        Debug.Assert((k_ProbeOctahedralDepthWidth == k_ProbeOctahedralDepthHeight) && (k_ProbeOctahedralDepthWidth == 8));
+                        Debug.Assert((probeCountX * k_ProbeOctahedralDepthWidth) == widthPixels);
+                        Debug.Assert((probeCountY * k_ProbeOctahedralDepthHeight) == heightPixels);
+                        cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, s_ProbeVolumeAtlasOctahedralDepthConvolveKernel, probeCountX, probeCountY, 1);
+                    }
                     return true;
 
                 }
