@@ -15,7 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
+            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
+            ^ SurfaceOptionUIBlock.Features.ReceiveSSR;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
@@ -40,12 +41,31 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
-            BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
+            bool isLitSSS = material.GetMaterialId() == MaterialId.LitSSS;
+
+            BaseLitGUI.SetupStencil(material, receiveSSR || isLitSSS, useSplitLighting);
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
+            if (material.HasProperty(kMaterialID))
+            {
+                MaterialId materialId = material.GetMaterialId();
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent
+                                    || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
+
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == MaterialId.LitAniso);
+
+                // No material Id for clear coat, just test the attribute
+                var coatMaskMap = material.HasProperty("_CoatMaskMap");
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT",
+                                     material.GetFloat("_CoatMask") > 0.0 || (coatMaskMap && material.GetTexture("_CoatMaskMap")));
+
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == MaterialId.LitIridescence);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == MaterialId.LitSpecular);
+            }
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
