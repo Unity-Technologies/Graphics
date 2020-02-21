@@ -86,7 +86,7 @@ linux_apis:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
     {% endif %}
 
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --artifacts_path=test-results --timeout=3600 --player-load-path=../../players --player-connection-ip=auto
   artifacts:
     logs:
       paths:
@@ -113,7 +113,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
     {% endif %}
 
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=3600 --player-save-path=../../players --build-only
   artifacts:
     logs:
       paths:
@@ -182,7 +182,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
     {% endif %}
 
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=3600 --player-save-path=../../players --build-only
   artifacts:
     logs:
       paths:
@@ -211,7 +211,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
     {% endif %}
 
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=3600 --player-load-path=../../players --player-connection-ip=auto
   dependencies:
   - .yamato/upm-ci-universal.yml#Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}
   artifacts:
@@ -243,7 +243,7 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=test-results   
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=3600
     {% else %}
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
@@ -282,7 +282,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published
     {% endif %}
 
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=3600 --player-save-path=../../players --build-only
   artifacts:
     logs:
       paths:
@@ -315,7 +315,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     # - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmd }} -c editor --wait --published'
     # {% endif %}
     # - |
-      # ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200 --player-save-path=players --build-only'
+      # ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=3600 --player-save-path=players --build-only'
 
       # UTR_RESULT=$?
       # mkdir -p TestProjects/{{ project.folder }}/test-results/
@@ -355,7 +355,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli {{ editor.cmd }} -c editor --wait --published'
     {% endif %}
     
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200 --player-load-path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/players --player-connection-ip=auto'
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=3600 --player-load-path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/players --player-connection-ip=auto'
 
   after:
     - mkdir -p TestProjects/{{ project.folder }}/test-results/
@@ -477,7 +477,7 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
       %ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%
    - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
    - NetSh Advfirewall set allprofiles state off
-   - utr\utr --suite=playmode --platform=Android --testproject=TestProjects\{{ project.folder }} --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=il2cpp --timeout=1200
+   - utr\utr --suite=playmode --platform=Android --testproject=TestProjects\{{ project.folder }} --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=il2cpp --timeout=3600
    - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
   artifacts:
     logs:
