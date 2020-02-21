@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
-- The `Reference Suffix` of Keyword Enum entries can no longer be editted to ensure the material keywords compile properly. 
+- Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
