@@ -72,6 +72,11 @@ Shader "Hidden/HDRP/TAA2"
         {
             return float3(QuadReadAcrossY(val.x, positionSS), QuadReadAcrossY(val.y, positionSS), QuadReadAcrossY(val.z, positionSS));
         }
+        float3 QuadReadAcrossDiagonal_3(float3 val, int2 positionSS)
+        {
+            return float3(QuadReadAcrossDiagonal(val.x, positionSS), QuadReadAcrossDiagonal(val.y, positionSS), QuadReadAcrossDiagonal(val.z, positionSS));
+        }
+
 
         float2 GetQuadOffset_other(int2 screenPos)
         {
@@ -150,7 +155,7 @@ Shader "Hidden/HDRP/TAA2"
         float3 HistoryBicubic5Tap(float2 UV)
         {
             float4 texSize = _ScreenSize * float4(_RTHandleScaleHistory.xy, rcp(_RTHandleScaleHistory.xy));
-            const float sharpening = 0.1f;  
+            const float sharpening = -0.4;  
 
             float2 samplePos = UV * texSize.xy;
             float2 tc1 = floor(samplePos - 0.5) + 0.5;
@@ -210,11 +215,14 @@ Shader "Hidden/HDRP/TAA2"
         {
             float3 neighbours[8];
             float3 central;
+            float3 minNeighbour;
+            float3 maxNeighbour;
+            float3 avgNeighbour;
         };
 
         void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out NeighbourhoodSamples samples)
         {
-            samples.neighbours = (float3[8])0; // TODO_FCC VERIFY
+            samples = (NeighbourhoodSamples)0; // TODO_FCC VERIFY
 
             samples.central = centralColor;
 
@@ -234,7 +242,7 @@ Shader "Hidden/HDRP/TAA2"
             int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
             int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
 
-            samples.neighbours[4] = QuadReadAcrossDiagonal(centralColor, positionSS);
+            samples.neighbours[4] = QuadReadAcrossDiagonal_3(centralColor, positionSS);
             samples.neighbours[5] = ReadAsYCoCg(_InputTexture, UV, offset1, _RTHandleScale.xy);
             samples.neighbours[6] = ReadAsYCoCg(_InputTexture, UV, offset2, _RTHandleScale.xy);
             samples.neighbours[7] = ReadAsYCoCg(_InputTexture, UV, offset3, _RTHandleScale.xy);
@@ -256,7 +264,7 @@ Shader "Hidden/HDRP/TAA2"
             int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
             int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
 
-            samples.neighbours[0] = QuadReadAcrossDiagonal(centralColor, positionSS);
+            samples.neighbours[0] = QuadReadAcrossDiagonal_3(centralColor, positionSS);
             samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, offset1, _RTHandleScale.xy);
             samples.neighbours[2] = ReadAsYCoCg(_InputTexture, UV, offset2, _RTHandleScale.xy);
             samples.neighbours[3] = ReadAsYCoCg(_InputTexture, UV, offset3, _RTHandleScale.xy);
@@ -266,25 +274,25 @@ Shader "Hidden/HDRP/TAA2"
 #endif // !WIDE_NEIGHBOURHOOD
         }
 
-        void MinMaxNeighbourhood(NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour)
+        void MinMaxNeighbourhood(inout NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour)
         {
             // We always have at least the first 4 neighbours.
-            minNeighbour = MinColor(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
-            minNeighbour = MinColor(minNeighbour, samples.central, samples.neighbours[3]);
+            samples.minNeighbour = MinColor(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
+            samples.minNeighbour = MinColor(samples.minNeighbour, samples.central, samples.neighbours[3]);
 
-            maxNeighbour = MaxColor(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
-            maxNeighbour = MaxColor(maxNeighbour, samples.central, samples.neighbours[3]);
+            samples.maxNeighbour = MaxColor(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
+            samples.maxNeighbour = MaxColor(samples.maxNeighbour, samples.central, samples.neighbours[3]);
 
 #if WIDE_NEIGHBOURHOOD
-            minNeighbour = MinColor(minNeighbour, samples.neighbours[4], samples.neighbours[5]);
-            minNeighbour = MinColor(minNeighbour, samples.neighbours[6], samples.neighbours[7]);
+            samples.minNeighbour = MinColor(samples.minNeighbour, samples.neighbours[4], samples.neighbours[5]);
+            samples.minNeighbour = MinColor(samples.minNeighbour, samples.neighbours[6], samples.neighbours[7]);
 
-            maxNeighbour = MaxColor(maxNeighbour, samples.neighbours[4], samples.neighbours[5]);
-            maxNeighbour = MaxColor(maxNeighbour, samples.neighbours[6], samples.neighbours[7]);
+            samples.maxNeighbour = MaxColor(samples.maxNeighbour, samples.neighbours[4], samples.neighbours[5]);
+            samples.maxNeighbour = MaxColor(samples.maxNeighbour, samples.neighbours[6], samples.neighbours[7]);
 #endif
         }
 
-        void VarianceNeighbourhood(NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour, out float stdDevOut)
+        void VarianceNeighbourhood(inout NeighbourhoodSamples samples, out float stdDevOut)
         {
             float3 moment1 = samples.central;
             float3 moment2 = samples.central * samples.central;
@@ -302,22 +310,23 @@ Shader "Hidden/HDRP/TAA2"
             float3 stdDev = sqrt(abs(moment2 - moment1 * moment1));
 
             float stDevMultiplier = lerp(1.15, 2.0, saturate((stdDev - 0.1) / (0.5 - 0.1)));
-            stDevMultiplier = 1.8;
+            stDevMultiplier = 1.5;
             stdDevOut = stdDev;
-            minNeighbour = moment1 - stDevMultiplier * stdDev;
-            maxNeighbour = moment1 + stDevMultiplier * stdDev;
+            samples.minNeighbour = moment1 - stDevMultiplier * stdDev;
+            samples.maxNeighbour = moment1 + stDevMultiplier * stdDev;
         }
 
 #define MINMAX 0
 #define VARIANCE 1
 #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
 
-        void GetNeighbourhoodCorners(NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour, out float stdDevOut)
+        void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, out float stdDevOut)
         {
+            stdDevOut = 0;
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
-            MinMaxNeighbourhood(samples, minNeighbour, maxNeighbour);
+            MinMaxNeighbourhood(samples);
 #else
-            VarianceNeighbourhood(samples, minNeighbour, maxNeighbour, stdDevOut);
+            VarianceNeighbourhood(samples, stdDevOut);
 #endif
         }
 
@@ -326,7 +335,13 @@ Shader "Hidden/HDRP/TAA2"
         // ---------------------------------------------------
         float3 FilterCentralColor(NeighbourhoodSamples samples)
         {
-            return samples.central;
+            float3 avg = samples.central;
+            for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+            {
+                avg += samples.neighbours[i];
+            }
+             return avg / (1+NEIGHBOUR_COUNT);
+            return  samples.central;// 
         }
 
 
@@ -335,7 +350,9 @@ Shader "Hidden/HDRP/TAA2"
         // ---------------------------------------------------
 
 #define OLD_FEEDBACK 0
-#define BLEND_FACTOR_METHOD OLD_FEEDBACK
+#define LUMA_AABB_HISTORY_CONTRAST 1
+#define JIMENEZ 2
+#define BLEND_FACTOR_METHOD LUMA_AABB_HISTORY_CONTRAST
 
         float OldLuminanceDiff(float colorLuma, float historyLuma)
         {
@@ -345,19 +362,37 @@ Shader "Hidden/HDRP/TAA2"
             return 1.0f - feedback;
         }
 
-        float OldLuminanceDiff(float colorLuma, float historyLuma)
+        float FBLuminanceDiff(float historyLuma, float minNeighbourLuma, float maxNeighbourLuma)
         {
-            float diff = abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma);
-            float weight = 1.0 - diff;
-            float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
-            return 1.0f - feedback;
+            // We have 8 frames
+            float baseContribution = 0.125f;
+            float lumaContrast = max(maxNeighbourLuma - minNeighbourLuma, 0) / historyLuma;
+
+            // TODO_FCC : Antiflicker here
+            return saturate(baseContribution / (1.0f + lumaContrast));
         }
 
+        float3 SpatialContrast(NeighbourhoodSamples samples)
+        {
 
-        float GetBlendFactor(float colorLuma, float historyLuma)
+        }
+
+        float JimenezWeigth(float historyLuma, float minNeighbourLuma, float maxNeighbourLuma)
+        {
+            // We have 8 frames
+            float baseContribution = 0.125f;
+            float lumaContrast = max(maxNeighbourLuma - minNeighbourLuma, 0) / historyLuma;
+
+            // TODO_FCC : Antiflicker here
+            return saturate(baseContribution / (1.0f + lumaContrast));
+        }
+
+        float GetBlendFactor(float colorLuma, float historyLuma, float minNeighbourLuma, float maxNeighbourLuma)
         {
 #if BLEND_FACTOR_METHOD == OLD_FEEDBACK
             return OldLuminanceDiff(colorLuma, historyLuma);
+#elif BLEND_FACTOR_METHOD == LUMA_AABB_HISTORY_CONTRAST
+            return FBLuminanceDiff(historyLuma, minNeighbourLuma, maxNeighbourLuma);
 #endif
             return 0.95;
         }
@@ -401,24 +436,23 @@ Shader "Hidden/HDRP/TAA2"
             // -----------------------------------------------------
 
             // --------------- Get neighbourhood information and clamp history --------------- 
-            float3 minNeighbour, maxNeighbour;
             float stdDevOut;
-            GetNeighbourhoodCorners(samples, minNeighbour, maxNeighbour, stdDevOut);
+            GetNeighbourhoodCorners(samples, stdDevOut);
 
             float colorLuma = GetLuma(color);
             float historyLuma = GetLuma(history);
 
     #if CLIP_AABB
-            history = ClipToAABB2(history.xyz, minNeighbour.xyz, maxNeighbour.xyz);
+            history = ClipToAABB2(history.xyz, samples.minNeighbour.xyz, samples.maxNeighbour.xyz);
     #else
-            history = clamp(history, minNeighbour, maxNeighbour);
+            history = clamp(history, samples.minNeighbour, samples.maxNeighbour);
     #endif
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
 
             // Feedback weight from unbiased luminance diff (Timothy Lottes)
-            float feedback = OldLuminanceDiff(colorLuma, historyLuma);
+            float feedback = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
             // --------------------------------------------------------
 
             // --------------- Blend to final value and output --------------- 
