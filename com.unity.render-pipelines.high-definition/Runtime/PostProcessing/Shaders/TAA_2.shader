@@ -73,12 +73,10 @@ Shader "Hidden/HDRP/TAA2"
             return float3(QuadReadAcrossY(val.x, positionSS), QuadReadAcrossY(val.y, positionSS), QuadReadAcrossY(val.z, positionSS));
         }
 
-
         float2 GetQuadOffset_other(int2 screenPos)
         {
             return float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
         }
-        #define DEPTH_NEIGHBOUR_RADIUS 1
 
         float2 GetClosestFragment2(float2 positionSS)
         {
@@ -126,6 +124,12 @@ Shader "Hidden/HDRP/TAA2"
                 Max3(a.z, b.z, c.z));
         }
 
+        float GetLuma(float3 color)
+        {
+            // We work in YCoCg hence the luminance is in the first channel.
+            return color.x;
+        }
+
         // ---------------------------------------------------
         // History sampling 
         // ---------------------------------------------------
@@ -133,66 +137,20 @@ Shader "Hidden/HDRP/TAA2"
         // TODO: Check to avoid sampling outside the screen!
 
         #define BILINEAR 0
-        #define OUR_BICUBIC 1
-        #define BICUBIC_5TAP 2
+        #define BICUBIC_5TAP 1
         #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
 
-        float3 HistoryLoad(float2 UV)
+        float3 HistoryBilinear(float2 UV)
         {
             float4 rgb = Fetch4(_InputHistoryTexture, UV, 0.0, _RTHandleScaleHistory.xy);
             return rgb.xyz;
         }
 
-        float3 HistoryBicubic4Tap(float2 UV)
-        {
-            // TODO Is using _ScreenSize correct here? 
-            float2 TexSize = _ScreenSize.xy * rcp(_RTHandleScaleHistory.xy);
-            float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
-
-            return SampleTexture2DBicubic(
-                TEXTURE2D_X_ARGS(_InputHistoryTexture, s_linear_clamp_sampler),
-                UV * _RTHandleScaleHistory.xy,
-                bicubicWnd,
-                (1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScaleHistory.xy,
-                unity_StereoEyeIndex).xyz;
-        }
-
-        float3 Bicubic(TEXTURE2D_X(tex), float2 UV)
-        {
-            float4 texSize = _ScreenSize * float4(_RTHandleScaleHistory.xy, rcp(_RTHandleScaleHistory.xy));
-            const float Sharpening = 0.15;  // [-0.5, 0.5]
-
-            float2 samplePos = UV * texSize.xy;
-            float2 tc1 = floor(samplePos - 0.5) + 0.5;
-            float2 f = samplePos - tc1;
-            float2 f2 = f * f;
-            float2 f3 = f * f2;
-
-            // Catmull-Rom weights // TODO_FCC: REFACTOR, SIMPLIFY.
-            const float c = 0.5 + Sharpening;
-            float2 w0 = -(c)* f3 + (2.0 * c)        * f2 - (c * f);
-            float2 w1 = (2.0 - c) * f3 - (3.0 - c)        * f2 + 1.0;
-            float2 w2 = -(2.0 - c) * f3 + (3.0 - 2.0 * c) * f2 + (c * f);
-            float2 w3 = (c)* f3 - (c)* f2;
-
-            float2 w12 = w1 + w2;
-            float2 tc0 = (tc1 - 1.0)      * texSize.zw;
-            float2 tc3 = (tc1 + 2.0)      * texSize.zw;
-            float2 tc12 = (tc1 + w2 / w12) * texSize.zw;
-
-            float4 historyFiltered = float4(Fetch(tex, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x * w0.y) +
-                float4(Fetch(tex, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w0.x * w12.y) +
-                float4(Fetch(tex, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0) * (w12.x * w12.y) +
-                float4(Fetch(tex, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)   * (w3.x * w12.y) +
-                float4(Fetch(tex, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x *  w3.y);
-
-            return historyFiltered.rgb * rcp(historyFiltered.a);
-        }
-
+        // From Filmic SMAA presentation[Jimenez 2016]
         float3 HistoryBicubic5Tap(float2 UV)
         {
             float4 texSize = _ScreenSize * float4(_RTHandleScaleHistory.xy, rcp(_RTHandleScaleHistory.xy));
-            const float Sharpening = 0.0f;  
+            const float sharpening = 0.1f;  
 
             float2 samplePos = UV * texSize.xy;
             float2 tc1 = floor(samplePos - 0.5) + 0.5;
@@ -200,16 +158,17 @@ Shader "Hidden/HDRP/TAA2"
             float2 f2 = f * f;
             float2 f3 = f * f2;
 
-            const float c = 0.5 + Sharpening;
-            float2 w0 = -(c)* f3 + (2.0 * c)        * f2 - (c * f);
-            float2 w1 = (2.0 - c) * f3 - (3.0 - c)        * f2 + 1.0;
-            float2 w2 = -(2.0 - c) * f3 + (3.0 - 2.0 * c) * f2 + (c * f);
-            float2 w3 = (c)* f3 - (c)* f2;
+            const float c = 0.5 + sharpening;
+
+            float2 w0 =         -c * f3 +  2.0 * c        * f2 - c * f;
+            float2 w1 =  (2.0 - c) * f3 - (3.0 - c)        * f2 + 1.0;
+            float2 w2 = -(2.0 - c) * f3 +  (3.0 - 2.0 * c) * f2 + c * f;
+            float2 w3 =          c * f3 -                c * f2;
 
             float2 w12 = w1 + w2;
-            float2 tc0 = (tc1 - 1.0)      * texSize.zw;
-            float2 tc3 = (tc1 + 2.0)      * texSize.zw;
-            float2 tc12 = (tc1 + w2 / w12) * texSize.zw;
+            float2 tc0  = texSize.zw  * (tc1 - 1.0);
+            float2 tc3  = texSize.zw  * (tc1 + 2.0);
+            float2 tc12 = texSize.zw  * (tc1 + w2 / w12);
 
             float4 historyFiltered = float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x * w0.y) +
                 float4(Fetch(_InputHistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w0.x * w12.y) +
@@ -225,9 +184,7 @@ Shader "Hidden/HDRP/TAA2"
             float3 history = 0;
 
 #if HISTORY_SAMPLING_METHOD == BILINEAR
-            history = HistoryLoad(UV);
-#elif HISTORY_SAMPLING_METHOD == OUR_BICUBIC
-            history = HistoryBicubic4Tap(UV);
+            history = HistoryBilinear(UV);
 #elif HISTORY_SAMPLING_METHOD == BICUBIC_5TAP
             history = HistoryBicubic5Tap(UV);
 #endif
@@ -235,24 +192,18 @@ Shader "Hidden/HDRP/TAA2"
             return RGBToYCoCg(history);
         }
 
-    // ---------------------------------------------------
-    // Neighbourhood color.
-    // ---------------------------------------------------
-
-        // CRUCIAL TO DO THE READ ACROSS!
-        // NOTE (TODO_FCC) With the read across, wide neighbourhood would be a      5 samples
-        //                                       plus small neighbourhood would  be 2
-        //                                       cross small neighbourhood would be 3
+        // ---------------------------------------------------
+        // Neighbourhood handling.
+        // ---------------------------------------------------
 
         #define PLUS 0    // Faster! Can allow for read across twice (paying cost of 2 samples only)
         #define CROSS 1   // Can only do one fast read diagonal 
         #define SMALL_NEIGHBOURHOOD_SHAPE PLUS
 
         #define SMALL_NEIGHBOURHOOD_SIZE 4 
-        // If 0, the neighbourhood is smaller (4 or 5, depends on shape), if 1 the neighbourhood is 9 samples (full 3x3)
+        // If 0, the neighbourhood is smaller, if 1 the neighbourhood is 9 samples (full 3x3)
         #define WIDE_NEIGHBOURHOOD 0
 
-        // NOT TO CONFIG MANULLY!
         #define NEIGHBOUR_COUNT ((WIDE_NEIGHBOURHOOD == 0) ? 4 : 8)
 
         struct NeighbourhoodSamples
@@ -261,31 +212,37 @@ Shader "Hidden/HDRP/TAA2"
             float3 central;
         };
 
-
-        // TODO_FCC! Verify if actually we need to do the conversion on read or can be done only on the corners? 
-
         void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out NeighbourhoodSamples samples)
         {
             samples.neighbours = (float3[8])0; // TODO_FCC VERIFY
 
             samples.central = centralColor;
 
+            float2 quadOffset = GetQuadOffset_other(positionSS);
+
 #if WIDE_NEIGHBOURHOOD
 
-            samples.neighbours[0] = ReadAsYCoCg(_InputTexture, UV, float2( 1.0,  0.0), _RTHandleScale.xy);
-            samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, float2( 0.0,  1.0), _RTHandleScale.xy);
-            samples.neighbours[2] = ReadAsYCoCg(_InputTexture, UV, float2(-1.0,  0.0), _RTHandleScale.xy);
-            samples.neighbours[3] = ReadAsYCoCg(_InputTexture, UV, float2( 0.0, -1.0), _RTHandleScale.xy);
-            samples.neighbours[4] = ReadAsYCoCg(_InputTexture, UV, float2( 1.0,  1.0), _RTHandleScale.xy);
-            samples.neighbours[5] = ReadAsYCoCg(_InputTexture, UV, float2( 1.0, -1.0), _RTHandleScale.xy);
-            samples.neighbours[6] = ReadAsYCoCg(_InputTexture, UV, float2(-1.0, -1.0), _RTHandleScale.xy);
-            samples.neighbours[7] = ReadAsYCoCg(_InputTexture, UV, float2(-1.0,  1.0), _RTHandleScale.xy);
+            // Plus shape
+            samples.neighbours[0] = ReadAsYCoCg(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy);
+            samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy);
+            samples.neighbours[2] = QuadReadAcrossX_3(centralColor, positionSS);
+            samples.neighbours[3] = QuadReadAcrossY_3(centralColor, positionSS);
+
+            // Cross shape
+            int2 fastOffset = int2(quadOffset.x > 0 ? -1 : 1, quadOffset.y > 0 ? 1 : -1);
+            int2 offset1 = (quadOffset.x == quadOffset.y) ? int2(1, 1) : int2(-1, 1);
+            int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
+            int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
+
+            samples.neighbours[4] = QuadReadAcrossDiagonal(centralColor, positionSS);
+            samples.neighbours[5] = ReadAsYCoCg(_InputTexture, UV, offset1, _RTHandleScale.xy);
+            samples.neighbours[6] = ReadAsYCoCg(_InputTexture, UV, offset2, _RTHandleScale.xy);
+            samples.neighbours[7] = ReadAsYCoCg(_InputTexture, UV, offset3, _RTHandleScale.xy);
 
 #else // !WIDE_NEIGHBOURHOOD
 
 #if SMALL_NEIGHBOURHOOD_SHAPE == PLUS
 
-            float2 quadOffset = GetQuadOffset_other(positionSS);
 
             samples.neighbours[0] = ReadAsYCoCg(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy);
             samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy);
@@ -294,16 +251,20 @@ Shader "Hidden/HDRP/TAA2"
 
 #else // SMALL_NEIGHBOURHOOD_SHAPE == CROSS
 
-            samples.neighbours[0] = ReadAsYCoCg(_InputTexture, UV, float2( 1.0,  1.0), _RTHandleScale.xy);
-            samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, float2( 1.0, -1.0), _RTHandleScale.xy);
-            samples.neighbours[2] = ReadAsYCoCg(_InputTexture, UV, float2(-1.0, -1.0), _RTHandleScale.xy);
-            samples.neighbours[3] = ReadAsYCoCg(_InputTexture, UV, float2(-1.0,  1.0), _RTHandleScale.xy);
+            int2 fastOffset = int2(quadOffset.x > 0 ? -1 : 1, quadOffset.y > 0 ? 1 : -1);
+            int2 offset1 = (quadOffset.x == quadOffset.y) ? int2(1, 1) : int2(-1, 1);
+            int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
+            int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
+
+            samples.neighbours[0] = QuadReadAcrossDiagonal(centralColor, positionSS);
+            samples.neighbours[1] = ReadAsYCoCg(_InputTexture, UV, offset1, _RTHandleScale.xy);
+            samples.neighbours[2] = ReadAsYCoCg(_InputTexture, UV, offset2, _RTHandleScale.xy);
+            samples.neighbours[3] = ReadAsYCoCg(_InputTexture, UV, offset3, _RTHandleScale.xy);
 
 #endif // SMALL_NEIGHBOURHOOD_SHAPE == 5
 
 #endif // !WIDE_NEIGHBOURHOOD
         }
-
 
         void MinMaxNeighbourhood(NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour)
         {
@@ -360,6 +321,47 @@ Shader "Hidden/HDRP/TAA2"
 #endif
         }
 
+        // ---------------------------------------------------
+        // Filter main color
+        // ---------------------------------------------------
+        float3 FilterCentralColor(NeighbourhoodSamples samples)
+        {
+            return samples.central;
+        }
+
+
+        // ---------------------------------------------------
+        // Blend factor calculation
+        // ---------------------------------------------------
+
+#define OLD_FEEDBACK 0
+#define BLEND_FACTOR_METHOD OLD_FEEDBACK
+
+        float OldLuminanceDiff(float colorLuma, float historyLuma)
+        {
+            float diff = abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma);
+            float weight = 1.0 - diff;
+            float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+            return 1.0f - feedback;
+        }
+
+        float OldLuminanceDiff(float colorLuma, float historyLuma)
+        {
+            float diff = abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma);
+            float weight = 1.0 - diff;
+            float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+            return 1.0f - feedback;
+        }
+
+
+        float GetBlendFactor(float colorLuma, float historyLuma)
+        {
+#if BLEND_FACTOR_METHOD == OLD_FEEDBACK
+            return OldLuminanceDiff(colorLuma, historyLuma);
+#endif
+            return 0.95;
+        }
+
     // ------------------------------------------------------------------
 
 
@@ -372,52 +374,59 @@ Shader "Hidden/HDRP/TAA2"
 
             float2 uv = input.texcoord - jitter;
 
+            // --------------- Gather neigbourhood data --------------- 
             float3 color = ReadAsYCoCg(_InputTexture, uv, 0.0, _RTHandleScale.xy);
-            // Gather neigbourhood
             NeighbourhoodSamples samples;
             GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
+            // --------------------------------------------------------
 
+            // --------------- Filter central sample ---------------
+            color = FilterCentralColor(samples);
+            // ------------------------------------------------------
+
+
+            // --------------- Get closest motion vector --------------- 
     #if defined(ORTHOGRAPHIC)
-            // Don't dilate in ortho
             float2 closest = input.positionCS.xy;
     #else
+            // Front most neighbourhood velocity ([Karis 2014])
             float2 closest = GetClosestFragment2(input.positionCS.xy);
     #endif
-
             float2 motionVector;
             DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+            // --------------------------------------------------------
 
+            // --------------- Get resampled history --------------- 
             float3 history = GetFilteredHistory(input.texcoord - motionVector);
+            // -----------------------------------------------------
 
-            // Find min/max
+            // --------------- Get neighbourhood information and clamp history --------------- 
             float3 minNeighbour, maxNeighbour;
             float stdDevOut;
             GetNeighbourhoodCorners(samples, minNeighbour, maxNeighbour, stdDevOut);
 
-            // Get luminance values (we are in YCoCg, so the luminance is the x channel)
-            float colorLuma = color.x ;
-            float historyLuma = history.x;
+            float colorLuma = GetLuma(color);
+            float historyLuma = GetLuma(history);
 
-
-            // Clip history samples
     #if CLIP_AABB
             history = ClipToAABB2(history.xyz, minNeighbour.xyz, maxNeighbour.xyz);
     #else
             history = clamp(history, minNeighbour, maxNeighbour);
     #endif
+            // ------------------------------------------------------------------------------
 
+            // --------------- Compute blend factor for history ---------------
 
-            //flickerFactor = 1.0;
-            // Blend color & history
             // Feedback weight from unbiased luminance diff (Timothy Lottes)
-            float diff = abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma);
-            float weight = 1.0 - diff * 1;
-            float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+            float feedback = OldLuminanceDiff(colorLuma, historyLuma);
+            // --------------------------------------------------------
 
-            color.xyz = YCoCgToRGB(lerp(color.xyz, history.xyz, feedback));
+            // --------------- Blend to final value and output --------------- 
+            color.xyz = YCoCgToRGB(lerp(history.xyz, color.xyz, feedback));
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
-            outColor = color/* + float3(antiFlickerDist > 1.5 ? antiFlickerDist * 0.5 : 0, 0, 0)*/;
+            outColor = color;
+            // -------------------------------------------------------------
         }
 
         void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)
