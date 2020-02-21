@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.AnimatedValues;
+using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -335,8 +336,8 @@ namespace UnityEditor.Rendering.Universal
 
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
-            Camera[] allCameras = new Camera[Camera.allCamerasCount];
-            Camera.GetAllCameras(allCameras);
+            StageHandle stageHandle = StageUtility.GetStageHandle(camera.gameObject);
+            var allCameras = stageHandle.FindComponentsOfType<Camera>();
             foreach (var camera in allCameras)
             {
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
