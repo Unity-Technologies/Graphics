@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private string m_ProfilerTag = "DepthNormal Prepass";
         private Material m_DepthNormalMaterial;
-        private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
+        private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthNormals");
         private FilteringSettings m_FilteringSettings;
 
         /// <summary>
@@ -32,8 +32,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthNormalAttachmentHandle)
         {
             depthNormalsAttachmentHandle = depthNormalAttachmentHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+            baseDescriptor.colorFormat = RenderTextureFormat.ARGBHalf;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
+            baseDescriptor.sRGB = true;
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
@@ -59,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
-                drawSettings.overrideMaterial = m_DepthNormalMaterial;
+                //drawSettings.overrideMaterial = m_DepthNormalMaterial;
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;

@@ -55,6 +55,10 @@ namespace UnityEngine.Rendering.Universal
         Material m_ScreenspaceShadowsMaterial;
         Material m_ScreenspaceAOMaterial;
 
+        // TODO! ELVAR => Make this a proper setting!
+        bool isDeferred = false;
+        bool requiresDepthNormal = true;
+
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -79,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask, m_DepthNormalMaterial);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
-            m_ScreenSpaceAmbientOcclusionPass = new ScreenSpaceAOPass(data.screenSpaceAO, m_ScreenspaceAOMaterial, data.blueNoiseNormal);
+            m_ScreenSpaceAmbientOcclusionPass = new ScreenSpaceAOPass(data.screenSpaceAO, isDeferred, requiresDepthNormal, m_ScreenspaceAOMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, m_CopyDepthMaterial);
@@ -102,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorAttachment.Init("_CameraColorTexture");
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
-            m_DepthNormalTexture.Init("_CameraDepthNormalTexture");
+            m_DepthNormalTexture.Init("_CameraDepthNormalsTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
@@ -154,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
             bool screenSpaceAO = m_ScreenSpaceAmbientOcclusionPass.Setup(ref renderingData);
-            bool requiresDepthNormal = true;
+            
 
             // Depth prepass is generated in the following cases:
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.

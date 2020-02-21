@@ -1,4 +1,4 @@
-﻿#ifndef UNIVERSAL_AO_INCLUDED
+#ifndef UNIVERSAL_AO_INCLUDED
 #define UNIVERSAL_AO_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -11,7 +11,8 @@
 #endif
 
 SAMPLER(sampler_CameraDepthTexture);
-TEXTURE2D(_NoiseTex); SAMPLER(sampler_NoiseTex);
+TEXTURE2D(_NoiseTex);
+SAMPLER(sampler_NoiseTex);
 
 #define SAMPLE_DEPTH_AO(uv) LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r, _ZBufferParams);
 //#define SAMPLE_DEPTH_AO(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
