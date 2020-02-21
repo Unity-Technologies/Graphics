@@ -492,8 +492,10 @@ namespace UnityEditor.ShaderGraph
         public void AddContexts()
         {
             m_VertexContext = new ContextData();
+            m_VertexContext.contextStage = ContextStage.Vertex;
             m_VertexContext.position = new Vector2(0, 0);
             m_FragmentContext = new ContextData();
+            m_FragmentContext.contextStage = ContextStage.Fragment;
             m_FragmentContext.position = new Vector2(0, 200);
         }
 
@@ -1371,17 +1373,21 @@ namespace UnityEditor.ShaderGraph
                 AddEdgeToNodeEdges(edge);
 
             // Process Blocks
+            m_VertexContext.contextStage = ContextStage.Vertex;
             var vertexBlockCount = m_VertexContext.blockGuids.Count;
             for(int i = 0; i < vertexBlockCount; i++)
             {
                 var vertexBlock = GetNodeFromGuid<BlockNode>(m_VertexContext.blockGuids[i]);
+                vertexBlock.contextStage = ContextStage.Vertex;
                 vertexBlock.contextData = m_VertexContext;
                 vertexBlock.index = i;
             }
+            m_FragmentContext.contextStage = ContextStage.Fragment;
             var fragmentBlockCount = m_FragmentContext.blockGuids.Count;
             for(int i = 0; i < fragmentBlockCount; i++)
             {
                 var fragmentBlock = GetNodeFromGuid<BlockNode>(m_FragmentContext.blockGuids[i]);
+                fragmentBlock.contextStage = ContextStage.Fragment;
                 fragmentBlock.contextData = m_FragmentContext;
                 fragmentBlock.index = i;
             }

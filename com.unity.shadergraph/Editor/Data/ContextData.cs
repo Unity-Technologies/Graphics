@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,6 +18,9 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Guid> m_BlockGuids = new List<Guid>();
 
+        [NonSerialized]
+        ContextStage m_ContextStage;
+
         public ContextData()
         {
         }
@@ -27,6 +31,12 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_Position;
             set => m_Position = value;
+        }
+
+        public ContextStage contextStage
+        {
+            get => m_ContextStage;
+            set => m_ContextStage = value;
         }
 
         public void OnBeforeSerialize()

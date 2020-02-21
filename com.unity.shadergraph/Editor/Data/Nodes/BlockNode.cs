@@ -13,13 +13,11 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         int m_Index;
 
-        // TODO: This whole class is temporary
-        // TODO: Generate BlockNode from FieldDescriptors
+        [NonSerialized]
+        ContextStage m_ContextStage;
+
         public BlockNode()
         {
-            name = GuidEncoder.Encode(guid);
-            AddSlot(new DynamicVectorMaterialSlot(0, name, name, SlotType.Input, Vector4.zero));
-            RemoveSlotsNameNotMatching(new int[] {0});
         }
 
         public ContextData contextData
@@ -32,6 +30,57 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_Index;
             set => m_Index = value;
+        }
+
+        public ContextStage contextStage
+        {
+            get => m_ContextStage;
+            set => m_ContextStage = value;
+        }
+
+        public void Init(BlockFieldDescriptor fieldDescriptor)
+        {
+            name = fieldDescriptor.name;
+            m_ContextStage = fieldDescriptor.contextStage;
+            AddSlot(fieldDescriptor.control);
+        }
+
+        void AddSlot(IControl control)
+        {
+            switch(control)
+            {
+                case ObjectSpacePositionControl objectSpacePositionControl:
+                    AddSlot(new PositionMaterialSlot(0, name, name, CoordinateSpace.Object, GetStageCapability()));
+                    break;
+                case ObjectSpaceNormalControl objectSpaceNormalControl:
+                    AddSlot(new NormalMaterialSlot(0, name, name, CoordinateSpace.Object, GetStageCapability()));
+                    break;
+                case ObjectSpaceTangentControl objectSpaceTangentControl:
+                    AddSlot(new TangentMaterialSlot(0, name, name, CoordinateSpace.Object, GetStageCapability()));
+                    break;
+                case TangentSpaceNormalControl tangentSpaceNormalControl:
+                    AddSlot(new NormalMaterialSlot(0, name, name, CoordinateSpace.Tangent, GetStageCapability()));
+                    break;
+                case ColorControl colorControl:
+                    var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
+                    AddSlot(new ColorRGBMaterialSlot(0, name, name, SlotType.Input, colorControl.value, colorMode, GetStageCapability()));
+                    break;
+                case FloatControl floatControl:
+                    AddSlot(new Vector1MaterialSlot(0, name, name, SlotType.Input, floatControl.value, GetStageCapability()));
+                    break;
+            }
+            RemoveSlotsNameNotMatching(new int[] {0});
+        }
+
+        ShaderStageCapability GetStageCapability()
+        {
+            switch(m_ContextStage)
+            {
+                case ContextStage.Vertex:
+                    return ShaderStageCapability.Vertex;
+                default:
+                    return ShaderStageCapability.Fragment;
+            }
         }
     }
 }

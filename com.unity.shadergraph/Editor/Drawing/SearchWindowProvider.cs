@@ -9,6 +9,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -66,11 +67,40 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             if(target is ContextView contextView)
             {
-                // TODO: Get BlockNode entries from FieldDesriptors here...
-                // TODO: Do I still need to sort lexicographically?
-                var node = (AbstractMaterialNode)Activator.CreateInstance(typeof(BlockNode));
-                AddEntries(node, new string[]{ "Block" }, nodeEntries);
-                currentNodeEntries = nodeEntries;
+                // Iterate all nested types looking for GenerateBlocks attributes
+                var fields = new List<BlockFieldDescriptor>();
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                    {
+                        var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                        if (attrs == null || attrs.Length <= 0)
+                            continue;
+
+                        // Get all fields that are BlockFieldDescriptor
+                        // If field and context stages match add to list
+                        foreach (var fieldInfo in nestedType.GetFields())
+                        {
+                            if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                            {
+                                if(blockFieldDescriptor.contextStage == contextView.contextData.contextStage)
+                                {
+                                    fields.Add(blockFieldDescriptor);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Iterate all field descriptors matching search criteria
+                // Create and initialize BlockNode instance then add entry
+                foreach(var field in fields)
+                {
+                    var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    node.Init(field);
+                    AddEntries(node, new string[]{ field.name }, nodeEntries);
+                    currentNodeEntries = nodeEntries;
+                }
                 return;
             }
 
@@ -288,6 +318,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if(!(target is ContextView contextView))
                     return false;
 
+                // Test against all current BlockNodes in the Context
+                // Never allow duplicate BlockNodes
+                var blockNodes = new BlockNode[contextView.contextData.blockGuids.Count]; 
+                for(int i = 0; i < blockNodes.Length; i++)
+                {
+                    blockNodes[i] = m_Graph.GetNodeFromGuid<BlockNode>(contextView.contextData.blockGuids[i]);
+                }
+                if(blockNodes.Where(x => x.name == blockNode.name).FirstOrDefault() != null)
+                    return false;
+                
+                // Insert block to Data
                 blockNode.owner = m_Graph;
                 int index = contextView.GetInsertionIndex(screenMousePosition);
                 m_Graph.AddBlock(blockNode, contextView.contextData, index);
