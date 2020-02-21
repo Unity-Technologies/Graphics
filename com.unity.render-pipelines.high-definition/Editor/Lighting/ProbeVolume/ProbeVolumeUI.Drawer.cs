@@ -23,29 +23,53 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
-            CED.FoldoutGroup(
-                Styles.k_VolumeHeader,
-                Expandable.Volume,
-                k_ExpandedStateVolume,
-                Drawer_ToolBar,
-                Drawer_AdvancedSwitch,
-                Drawer_VolumeContent
+            CED.Conditional(
+                IsFeatureDisabled,
+                Drawer_DisabledMessage
                 ),
-            CED.space,
-            CED.FoldoutGroup(
-                Styles.k_ProbesHeader,
-                Expandable.Probes,
-                k_ExpandedStateProbes,
-                Drawer_PrimarySettings
-                ),
-            CED.space,
-            CED.FoldoutGroup(
-                Styles.k_BakingHeader,
-                Expandable.Baking,
-                k_ExpandedStateBaking,
-                Drawer_BakeToolBar
+            CED.Conditional(
+                IsFeatureEnabled,
+                CED.Group(
+                    CED.FoldoutGroup(
+                        Styles.k_VolumeHeader,
+                        Expandable.Volume,
+                        k_ExpandedStateVolume,
+                        Drawer_ToolBar,
+                        Drawer_AdvancedSwitch,
+                        Drawer_VolumeContent
+                        ),
+                    CED.space,
+                    CED.FoldoutGroup(
+                        Styles.k_ProbesHeader,
+                        Expandable.Probes,
+                        k_ExpandedStateProbes,
+                        Drawer_PrimarySettings
+                        ),
+                    CED.space,
+                    CED.FoldoutGroup(
+                        Styles.k_BakingHeader,
+                        Expandable.Baking,
+                        k_ExpandedStateBaking,
+                        Drawer_BakeToolBar
+                        )
+                    )
                 )
             );
+
+        static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
+        {
+            return ShaderOptions.ProbeVolumes > 0;
+        }
+
+        static bool IsFeatureDisabled(SerializedProbeVolume serialized, Editor owner)
+        {
+            return ShaderOptions.ProbeVolumes == 0;
+        }
+
+        static void Drawer_DisabledMessage(SerializedProbeVolume serialized, Editor owner)
+        {
+            EditorGUILayout.HelpBox("The ProbeVolume feature has been disabled. Please enable it via the HDRP configuration package.", MessageType.Error);
+        }
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
@@ -66,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
+
             EditMode.DoInspectorToolbar(new[] { ProbeVolumeEditor.k_EditShape, ProbeVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
                 {
                     var bounds = new Bounds();
