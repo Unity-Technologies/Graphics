@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 // Copied from VolumeVoxelization.compute
 float ProbeVolumeComputeFadeFactor(
@@ -16,6 +17,112 @@ float ProbeVolumeComputeFadeFactor(
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
     return dstF * fade;
+}
+
+void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
+    out float weights[8],
+    float3 probeVolumeTexel3DMin,
+    float3 probeVolumeResolution,
+    float3x3 probeVolumeWorldFromTexel3DRotationScale,
+    float3 probeVolumeWorldFromTexel3DTranslation,
+    float4 probeVolumeOctahedralDepthScaleBias,
+    float4 probeVolumeAtlasOctahedralDepthResolutionAndInverse,
+    float3 samplePositionUnbiasedWS,
+    float3 samplePositionBiasedWS,
+    float3 sampleNormalWS)
+{
+    // Convert from 3D [0, probeVolumeResolution] space into 2D slice (probe) array local space.
+    int2 probeVolumeTexel2DMinBack = int2(
+        (int)(probeVolumeTexel3DMin.z * probeVolumeResolution.x + probeVolumeTexel3DMin.x),
+        (int)probeVolumeTexel3DMin.y
+    );
+    int2 probeVolumeTexel2DMinFront = int2(probeVolumeTexel2DMinBack.x + (int)probeVolumeResolution.x, probeVolumeTexel2DMinBack.y);
+
+    // Convert from 2D slice (probe) array local space into 2D slice (octahedral depth) array local space
+    const int OCTAHEDRAL_DEPTH_RESOLUTION = 8;
+    probeVolumeTexel2DMinBack *= OCTAHEDRAL_DEPTH_RESOLUTION;
+    probeVolumeTexel2DMinFront *= OCTAHEDRAL_DEPTH_RESOLUTION;
+
+    // Iterate over adjacent probe cage
+    for (uint i = 0; i < 8; ++i)
+    {
+        // Compute the offset grid coord and clamp to the probe grid boundary
+        // Offset = 0 or 1 along each axis
+        // TODO: Evaluate if using a static LUT for these offset calculations would be better / worse.
+        float3 probeVolumeTexel3DOffset = (float3)(uint3(i, i >> 1, i >> 2) & uint3(1, 1, 1));
+        float3 probeVolumeTexel3D = clamp(probeVolumeTexel3DMin + probeVolumeTexel3DOffset, probeVolumeResolution * 0.5, probeVolumeResolution * -0.5 + 1.0);
+
+        float3 probePositionWS = mul(probeVolumeWorldFromTexel3DRotationScale, probeVolumeTexel3D) + probeVolumeWorldFromTexel3DTranslation;
+
+        // Bias the position at which visibility is computed; this avoids performing a shadow
+        // test *at* a surface, which is a dangerous location because that is exactly the line
+        // between shadowed and unshadowed. If the normal bias is too small, there will be
+        // light and dark leaks. If it is too large, then samples can pass through thin occluders to
+        // the other side (this can only happen if there are MULTIPLE occluders near each other, a wall surface
+        // won't pass through itself.)
+        float3 probeToSampleBiasedWS = samplePositionBiasedWS - probePositionWS;
+        float probeToSampleBiasedDistanceWS = length(probeToSampleBiasedWS);
+        float3 probeToSampleBiasedDirectionWS = normalize(probeToSampleBiasedWS);
+
+        // Clamp all of the multiplies. We can't let the weight go to zero because then it would be
+        // possible for *all* weights to be equally low and get normalized
+        // up to 1/n. We want to distinguish between weights that are
+        // low because of different factors.
+
+        // Computed without the biasing applied to the "dir" variable.
+        // This test can cause reflection-map looking errors in the image
+        // (stuff looks shiny) if the transition is poor.
+        float3 probeToSampleUnbiasedDirectionWS = normalize(samplePositionUnbiasedWS - probePositionWS);
+
+        // The naive soft backface weight would ignore a probe when
+        // it is behind the surface. That's good for walls. But for small details inside of a
+        // room, the normals on the details might rule out all of the probes that have mutual
+        // visibility to the point. So, we instead use a "wrap shading" test below inspired by
+        // NPR work.
+        //
+        // The small offset at the end reduces the "going to zero" impact
+        // where this is really close to exactly opposite
+        weights[i] = Sq(dot(-probeToSampleUnbiasedDirectionWS, sampleNormalWS) * 0.5 + 0.5) + 0.2;
+
+        float2 probeOctahedralDepthUV = PackNormalOctRectEncode(probeToSampleBiasedDirectionWS);
+        int2 probeVolumeTexel2DMin = (probeVolumeTexel3DOffset.z == 0.0) ? probeVolumeTexel2DMinBack : probeVolumeTexel2DMinFront;
+        float2 probeOctahedralDepthTexel2D = (probeOctahedralDepthUV + probeVolumeTexel3DOffset.xy) * (float)OCTAHEDRAL_DEPTH_RESOLUTION + (float2)probeVolumeTexel2DMin;
+        float2 probeOctahedralDepthAtlasUV = probeOctahedralDepthTexel2D * probeVolumeAtlasOctahedralDepthResolutionAndInverse.zw + probeVolumeOctahedralDepthScaleBias.zw;
+
+        float2 temp = SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasOctahedralDepth, s_linear_clamp_sampler, probeOctahedralDepthAtlasUV, 0).xy;
+        float mean = temp.x;
+        float variance = abs(Sq(mean) - temp.y);
+
+        // TODO: Still need to actually use chebyshevWeight, but need to pre-compute variance. Currently we only actually have depth.
+        weights[i] *= (probeToSampleBiasedDistanceWS <= (mean + 0.01)) ? 1.0 : 0.2;
+        //
+        // // http://www.punkuser.net/vsm/vsm_paper.pdf; equation 5
+        // // Need the max in the denominator because biasing can cause a negative displacement
+        // float chebyshevWeight = variance / (variance + Sq(max(probeToSampleBiasedDistanceWS - mean, 0.0)));
+
+        // // Increase contrast in the weight
+        // chebyshevWeight = max(chebyshevWeight * chebyshevWeight * chebyshevWeight, 0.0);
+
+        // // Avoid visibility weights ever going all of the way to zero because when *no* probe has
+        // // visibility we need some fallback value.
+        // weights[i] *= max(0.2, ((probeToSampleBiasedDistanceWS <= mean) ? 1.0 : chebyshevWeight));
+
+        // Avoid zero weight
+        weights[i] = max(0.000001, weights[i]);
+
+        // A tiny bit of light is really visible due to log perception, so
+        // crush tiny weights but keep the curve continuous.
+        const float CRUSH_THRESHOLD = 0.2;
+        if (weights[i] < CRUSH_THRESHOLD)
+        {
+            weights[i] *= weights[i] * weights[i] * (1.0 / Sq(CRUSH_THRESHOLD));
+        }
+
+        // Aggressively prevent weights from going anywhere near 0.0f no matter
+        // what the compiler (or, for that matter, the algorithm) thinks.
+        const bool RECURSIVE = true;
+        weights[i] = clamp(weights[i], (RECURSIVE ? 0.1 : 0.0), 1.01);
+    }
 }
 
 void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout BuiltinData builtinData)
@@ -194,6 +301,42 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                                 probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 1, probeVolumeTexel2DBackSW.y + 1), 3, 0).x);
                                 probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 0, probeVolumeTexel2DFrontSW.y + 1), 3, 0).x);
                                 probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 1, probeVolumeTexel2DFrontSW.y + 1), 3, 0).x);
+                            }
+                            else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
+                            {
+                                float3 probeVolumeTexel3DMin = floor(probeVolumeTexel3D - 0.5) + 0.5;
+
+                                // TODO: Evaluate if we should we build this 3x3 matrix and a float3 bias term cpu side to decrease alu at the cost of more bandwidth.
+                                float3 probeVolumeWorldFromTexel3DScale = s_probeVolumeData.resolutionInverse * 2.0 * obbExtents; // [0, resolution3D] to [0.0, probeVolumeSize3D]
+                                float3x3 probeVolumeWorldFromTexel3DRotationScale = float3x3(
+                                    obbFrame[0] * probeVolumeWorldFromTexel3DScale,
+                                    obbFrame[1] * probeVolumeWorldFromTexel3DScale,
+                                    obbFrame[2] * probeVolumeWorldFromTexel3DScale
+                                );
+                                float3 probeVolumeWorldFromTexel3DTranslation = mul(obbFrame, -obbExtents) + s_probeVolumeBounds.center;
+
+                                float probeWeights[8];
+                                EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
+                                    probeWeights,
+                                    probeVolumeTexel3DMin,
+                                    s_probeVolumeData.resolution,
+                                    probeVolumeWorldFromTexel3DRotationScale,
+                                    probeVolumeWorldFromTexel3DTranslation,
+                                    s_probeVolumeData.octahedralDepthScaleBias,
+                                    _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse,
+                                    posInput.positionWS, // unbiased
+                                    samplePositionWS, // biased
+                                    bsdfData.normalWS
+                                );
+                                probeWeightBSW = probeWeights[0]; // (i == 0) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(0, 0 >> 1, 0 >> 2) & int3(1, 1, 1)) => int3(0, 0, 0)
+                                probeWeightBSE = probeWeights[1]; // (i == 1) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(1, 1 >> 1, 1 >> 2) & int3(1, 1, 1)) => int3(1, 0, 0)
+                                probeWeightBNW = probeWeights[2]; // (i == 2) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(2, 2 >> 1, 2 >> 2) & int3(1, 1, 1)) => int3(0, 1, 0)
+                                probeWeightBNE = probeWeights[3]; // (i == 3) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(3, 3 >> 1, 3 >> 2) & int3(1, 1, 1)) => int3(1, 1, 0)
+
+                                probeWeightTSW = probeWeights[4]; // (i == 4) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(4, 4 >> 1, 4 >> 2) & int3(1, 1, 1)) => int3(0, 0, 1)
+                                probeWeightTSE = probeWeights[5]; // (i == 5) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(5, 5 >> 1, 5 >> 2) & int3(1, 1, 1)) => int3(1, 0, 1)
+                                probeWeightTNW = probeWeights[6]; // (i == 6) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(6, 6 >> 1, 6 >> 2) & int3(1, 1, 1)) => int3(0, 1, 1)
+                                probeWeightTNE = probeWeights[7]; // (i == 7) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(7, 7 >> 1, 7 >> 2) & int3(1, 1, 1)) => int3(1, 1, 1)
                             }
 
                             // Blend between Geometric Weights and simple trilinear filter weights based on user defined _ProbeVolumeBilateralFilterWeight.

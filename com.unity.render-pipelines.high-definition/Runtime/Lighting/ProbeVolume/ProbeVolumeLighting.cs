@@ -65,7 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         NormalBias = 0,
         GeometricFilter,
-        ProbeValidityFilter
+        ProbeValidityFilter,
+        OctahedralDepthOcclusionFilter
     }
 
     struct ProbeVolumeList
@@ -287,7 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float bilateralFilterWeight = (settings == null) ? 0.0f : settings.bilateralFilterWeight.value;
             if (leakMitigationMode != LeakMitigationMode.NormalBias)
             {
-                normalBiasWS = 0.0f;
+                if (leakMitigationMode != LeakMitigationMode.OctahedralDepthOcclusionFilter)
+                {
+                    normalBiasWS = 0.0f;
+                }
 
                 if (bilateralFilterWeight < 1e-5f)
                 {
