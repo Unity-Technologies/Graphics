@@ -2566,8 +2566,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
-                var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
-                float probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias))
+                var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
+                float probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias && settings.leakMitigationMode != LeakMitigationMode.OctahedralDepthOcclusionFilter))
                     ? 0.0f
                     : settings.normalBiasWS.value;
 
