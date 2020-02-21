@@ -148,11 +148,6 @@ namespace UnityEditor.ShaderAnalysis
             public List<VariantFilterDefinition> variantFilters;
             public List<PassFilterDefinition> passFilters;
             public List<ProcessAssetDefinition> assetDefinitions;
-
-            public static BuildReportAndSendStatisticsArgs FromJSON(string json)
-            {
-throw new NotImplementedException();
-            }
         }
 
         [Serializable]
@@ -205,45 +200,6 @@ throw new NotImplementedException();
         {
             public string name;
             public string passFilter;
-        }
-
-        public static void BuildReportAndSendStatistics()
-        {
-            var inputFilePath = string.Empty;
-            var args = Environment.GetCommandLineArgs();
-            for (var index = 0; index < args.Length; index++)
-            {
-                var arg = args[index];
-                switch (arg)
-                {
-                    case "-inputFile":
-                        ++index;
-                        if (index >= args.Length) throw new ArgumentException($"Missing value for 'inputfile'");
-                        inputFilePath = args[index];
-                        break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(inputFilePath))
-                throw new ArgumentException($"Missing value for 'inputfile'");
-            var fileContent = File.ReadAllText(inputFilePath);
-
-            var parsedArgs = BuildReportAndSendStatisticsArgs.FromJSON(fileContent);
-
-            InternalBuildReportAndSendStatistics(parsedArgs);
-        }
-
-        static void InternalBuildReportAndSendStatistics(BuildReportAndSendStatisticsArgs parsedArgs)
-        {
-            var passFilters = parsedArgs.passFilters.ToDictionary(s => s.name);
-            var variantFilters = parsedArgs.variantFilters.ToDictionary(s => s.name);
-
-            foreach (var assetDefinition in parsedArgs.assetDefinitions)
-            {
-                // var passFilter = assetDefinition.passFilter.Resolve(passFilters);
-                // var variantFilter = assetDefinition.variantFilter.Resolve(variantFilters);
-
-            }
         }
     }
 }
