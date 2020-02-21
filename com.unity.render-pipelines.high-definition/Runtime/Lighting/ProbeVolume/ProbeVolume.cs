@@ -348,7 +348,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnLightingDataAssetCleared()
         {
+            if (probeVolumeAsset == null)
+                return;
+
             string assetPath = UnityEditor.AssetDatabase.GetAssetPath(probeVolumeAsset);
+            if (assetPath == "")
+                return;
+
             UnityEditor.AssetDatabase.DeleteAsset(assetPath);
             UnityEditor.AssetDatabase.Refresh();
         }
