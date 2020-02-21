@@ -16,5 +16,12 @@
         "mobile",
 		"render",
 		"pipeline"
+    ],
+    "samples": [
+        {
+            "displayName": "Test Sample",
+            "description": "Testing Setup",
+            "path": "Samples~/TestSample"
+        }
     ]
 }
