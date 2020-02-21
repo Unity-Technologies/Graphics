@@ -35,7 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made MaterialDescriptionPreprocessors private.
 - UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
 - The number of maximum visible lights is now determined by whether the platform is mobile or not.
-- Custom renderers can now support `ScriptableRendererFeatures` by calling `base.Setup` in their `Setup` method.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
