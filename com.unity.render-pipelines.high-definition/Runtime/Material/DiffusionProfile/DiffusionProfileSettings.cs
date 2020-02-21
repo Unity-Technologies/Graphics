@@ -72,11 +72,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 sd = (Vector3)(Vector4)scatteringDistance;
 
             // Rather inconvenient to support (S = Inf).
-            shapeParam = new Vector3(Mathf.Min(16777215, 1.0f / sd.x),
-                                     Mathf.Min(16777215, 1.0f / sd.y),
-                                     Mathf.Min(16777215, 1.0f / sd.z));
+            shapeParam = new Vector3(Mathf.Min(16777216, 1.0f / sd.x),
+                                     Mathf.Min(16777216, 1.0f / sd.y),
+                                     Mathf.Min(16777216, 1.0f / sd.z));
 
-            int   n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; // TODO
+            int   n = DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD; // TODO
             float p = ((n - 1) + 0.5f) * (1.0f / n);                      // Last sample
 
             // Importance sample the normalized diffuse reflectance profile for the computed value of 's'.
@@ -240,8 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void SetDefaultParams()
         {
-            worldScalesAndFilterRadii  = new Vector4(1, 1, 0, 0);
-            shapeParamAndMaxScatterDist     = new Vector4(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity, 0);
+            worldScalesAndFilterRadii       = new Vector4(1, 0, 0, 0);
+            shapeParamAndMaxScatterDist     = new Vector4(16777216, 16777216, 16777216, 0);
             transmissionTintAndFresnel0.w = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
         }
     }
