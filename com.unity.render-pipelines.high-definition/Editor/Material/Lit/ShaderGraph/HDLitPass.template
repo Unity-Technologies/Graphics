@@ -46,11 +46,20 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
 
-    $Material.SubsurfaceScattering:      #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
-    $Material.Transmission:              #define _MATERIAL_FEATURE_TRANSMISSION 1
-    $Material.Anisotropy:                #define _MATERIAL_FEATURE_ANISOTROPY 1
-    $Material.Iridescence:               #define _MATERIAL_FEATURE_IRIDESCENCE 1
-    $Material.SpecularColor:             #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
+    ///$Material.SubsurfaceScattering:      #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
+    ///$Material.Transmission:              #define _MATERIAL_FEATURE_TRANSMISSION 1
+    ///$Material.Anisotropy:                #define _MATERIAL_FEATURE_ANISOTROPY 1
+    ///$Material.Iridescence:               #define _MATERIAL_FEATURE_IRIDESCENCE 1
+    ///$Material.SpecularColor:             #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
+
+    // MaterialFeature are used as shader feature to allow compiler to optimize properly
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature_local _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature_local _MATERIAL_FEATURE_SPECULAR_COLOR
+
     $AmbientOcclusion:                   #define _AMBIENT_OCCLUSION 1
     $SpecularOcclusionFromAO:            #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal:  #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1

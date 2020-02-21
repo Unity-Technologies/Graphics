@@ -105,8 +105,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public enum MaterialType
         {
-            Standard,
             SubsurfaceScattering,
+            Standard,
             Anisotropy,
             Iridescence,
             SpecularColor,
@@ -156,39 +156,46 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexTangent = 1 << VertexTangentSlotID
         }
 
-        const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
-        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
-        const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
-        const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
-        const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
-        const SlotMask TranslucentSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask StandardSlotMask =               SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask SubsurfaceScatteringSlotMask =   SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask AnisotropySlotMask =             SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask IridescenceSlotMask =            SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask SpecularColorSlotMask =          SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+        const SlotMask TranslucentSlotMask =            SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
+
+        const SlotMask AllSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.SubsurfaceMask | SlotMask.Thickness |
+                                     SlotMask.DiffusionProfile | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.Specular | SlotMask.CoatMask |
+                                     SlotMask.Metallic | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass |
+                                     SlotMask.AlphaThresholdDepthPostpass | SlotMask.Anisotropy | SlotMask.SpecularOcclusion | SlotMask.AlphaThresholdShadow | SlotMask.Lighting |
+                                     SlotMask.BackLighting | SlotMask.DepthOffset | SlotMask.VertexNormal | SlotMask.VertexTangent;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
         {
-            switch (materialType)
+            return AllSlotMask;
+            /*switch (materialType)
             {
                 case MaterialType.Standard:
                     return StandardSlotMask;
-
+            
                 case MaterialType.SubsurfaceScattering:
                     return SubsurfaceScatteringSlotMask;
-
+            
                 case MaterialType.Anisotropy:
                     return AnisotropySlotMask;
-
+            
                 case MaterialType.Iridescence:
                     return IridescenceSlotMask;
-
+            
                 case MaterialType.SpecularColor:
                     return SpecularColorSlotMask;
-
+            
                 case MaterialType.Translucent:
                     return TranslucentSlotMask;
-
+            
                 default:
                     return SlotMask.None;
-            }
+            }*/
         }
 
         bool MaterialTypeUsesSlotMask(SlotMask mask)
@@ -1087,6 +1094,57 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
                 value = (int)renderingPass,
             });
+
+            ////////////
+
+            // Add `MaterialType` property
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = kMaterialID,
+                floatType = FloatType.Enum,
+                value = (int)(m_MaterialType),
+                enumNames = { "SubsurfaceScattering",
+                              "Standard",
+                              "Anisotropy",
+                              "Iridescence",
+                              "SpecularColor",
+                              "Translucent" },
+                enumValues = { (int)MaterialId.LitSSS,
+                               (int)MaterialId.LitStandard,
+                               (int)MaterialId.LitAniso,
+                               (int)MaterialId.LitIridescence,
+                               (int)MaterialId.LitSpecular,
+                               (int)MaterialId.LitTranslucent
+                            },
+                hidden = true,
+            });
+
+            // Add `TransmissionEnable` property
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kTransmissionEnable,
+                value = m_SSSTransmission,
+                hidden = true,
+            });
+
+            // Add `Receive SSR` property
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                overrideReferenceName = kEnableSSR,
+                value = m_ReceivesSSR,
+                hidden = true,
+            });
+
+            // Add `CoatMaskValue` property
+            var coatMaskSlot = this.FindSlot<Vector1MaterialSlot>(HDLitMasterNode.CoatMaskSlotId);
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_CoatMask",
+                value = coatMaskSlot?.value ?? 0.0f,
+                hidden = true,
+            });
+            
+            ////////////
 
             //See SG-ADDITIONALVELOCITY-NOTE
             if (addPrecomputedVelocity.isOn)
