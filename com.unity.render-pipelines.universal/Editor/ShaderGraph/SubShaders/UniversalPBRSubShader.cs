@@ -80,7 +80,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
+#if ENABLE_HYBRID_RENDERER_V2
                 "target 4.5",
+#else
+                "target 2.0",
+#endif
                 "multi_compile_fog",
                 "multi_compile_instancing",
             },
@@ -137,7 +141,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
+#if ENABLE_HYBRID_RENDERER_V2
                 "target 4.5",
+#else
+                "target 2.0",
+#endif
                 "multi_compile_instancing",
             },
         };
@@ -187,7 +195,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
+#if ENABLE_HYBRID_RENDERER_V2
                 "target 4.5",
+#else
+                "target 2.0",
+#endif
                 "multi_compile_instancing",
             },
         };
@@ -240,7 +252,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
+#if ENABLE_HYBRID_RENDERER_V2
                 "target 4.5",
+#else
+                "target 2.0",
+#endif
             },
             keywords = new KeywordDescriptor[]
             {
@@ -283,7 +299,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
+#if ENABLE_HYBRID_RENDERER_V2
                 "target 4.5",
+#else
+                "target 2.0",
+#endif
                 "multi_compile_instancing",
             },
         };
