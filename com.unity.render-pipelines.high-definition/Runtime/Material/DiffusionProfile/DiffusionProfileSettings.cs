@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal DiffusionProfile profile;
 
         [NonSerialized] internal Vector4 thicknessRemap;                      // Remap: 0 = start, 1 = end - start
-        [NonSerialized] internal Vector4 worldScalesAndFilterRadii;           // X = meters per world unit, Y = filter radius (in mm), Z = 1/X, W = 1/Y
+        [NonSerialized] internal Vector4 worldScalesAndFilterRadii;           // X = meters per world unit, Y = filter radius (in mm)
         [NonSerialized] internal Vector4 shapeParamAndMaxScatterDist;         // RGB = S = 1 / D, A = d = RgbMax(D)
         [NonSerialized] internal Vector4 transmissionTintAndFresnel0;         // RGB = color, A = fresnel0
         [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void UpdateCache()
         {
             thicknessRemap            = new Vector4(profile.thicknessRemap.x, profile.thicknessRemap.y - profile.thicknessRemap.x, 0, 0);
-            worldScalesAndFilterRadii = new Vector4(profile.worldScale, profile.filterRadius, 1.0f / profile.worldScale, 1.0f / profile.filterRadius);
+            worldScalesAndFilterRadii = new Vector4(profile.worldScale, profile.filterRadius, 0, 0);
 
             shapeParamAndMaxScatterDist   = profile.shapeParam;
             shapeParamAndMaxScatterDist.w = profile.maxScatteringDistance;
