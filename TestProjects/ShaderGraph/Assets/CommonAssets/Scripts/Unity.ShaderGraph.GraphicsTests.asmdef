@@ -4,7 +4,8 @@
         "UnityEngine.TestTools.Graphics",
         "Unity.ShaderGraph.Editor",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.ShaderGraph.Editor.GraphicsTests"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -17,5 +18,6 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }
