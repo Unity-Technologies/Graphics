@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
             ));
 
-            var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
+            var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
             LeakMitigationMode leakMitigationMode = (settings == null)
                 ? LeakMitigationMode.NormalBias
                 : settings.leakMitigationMode.value;
