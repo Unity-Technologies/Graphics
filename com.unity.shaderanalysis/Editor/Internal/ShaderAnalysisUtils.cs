@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderAnalysis.Internal
 {
-    public static partial class ShaderAnalysisUtils
+    public static class ShaderAnalysisUtils
     {
         ////#pragma target 4.5
         static readonly Regex k_RegexShaderModel = new Regex(@"^[\s\r]*#pragma\s+target\s+([\d\.]+)\s+[\s\r]*$");
@@ -242,8 +242,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 s_AssetMetadatas[rootHash] = metadatabase;
             }
 
-            if (metadatabase.ContainsKey(target))
-                return metadatabase[target];
+            if (metadatabase.TryGetValue(target, out var value) && value != null && !value.Equals(null))
+                return value;
 
             AssetMetadata result = null;
             var file = GetAssetMetadataFileFor(target, rootFolder);

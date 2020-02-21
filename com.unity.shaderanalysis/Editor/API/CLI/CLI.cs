@@ -98,26 +98,9 @@ namespace UnityEditor.ShaderAnalysis
             if (string.IsNullOrEmpty(guid))
                 throw new ArgumentException($"{assetPath} is not a valid asset path.");
 
+            var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
             var filter = ShaderProgramFilter.Parse(shaderPassFilter, variantFilter);
-            var assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-            AsyncBuildReportJob buildReportJob = null;
-            if (assetType == typeof(ComputeShader))
-            {
-                var castedAsset = AssetDatabase.LoadAssetAtPath<ComputeShader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
-            }
-            else if (assetType == typeof(Shader))
-            {
-                var castedAsset = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
-            }
-            else if (assetType == typeof(Material))
-            {
-                var castedAsset = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-                buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsync(castedAsset, targetPlatform, filter, (BuildReportFeature)(-1));
-            }
-            else
-                throw new ArgumentException($"Unsupported asset type: {assetType}");
+            var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(asset, targetPlatform, filter, (BuildReportFeature)(-1));;
 
             var time = Time.realtimeSinceStartup;
             var startTime = time;
@@ -140,66 +123,6 @@ namespace UnityEditor.ShaderAnalysis
 
             var report = buildReportJob.builtReport;
             ExporterUtilities.Export(index, report, outputFile);
-        }
-
-        [Serializable]
-        public struct BuildReportAndSendStatisticsArgs
-        {
-            public List<VariantFilterDefinition> variantFilters;
-            public List<PassFilterDefinition> passFilters;
-            public List<ProcessAssetDefinition> assetDefinitions;
-        }
-
-        [Serializable]
-        public struct MarkerDefinitions
-        {
-
-        }
-
-        [Serializable]
-        public struct ProcessAssetDefinition
-        {
-            public string assetPath;
-            public VariantFilter variantFilter;
-            public PassFilter passFilter;
-        }
-
-        [Serializable]
-        public enum FilterType
-        {
-            None,
-            Definition,
-            Reference,
-        }
-
-        [Serializable]
-        public struct VariantFilter
-        {
-            public FilterType filterType;
-            public string referenceName;
-            public VariantFilterDefinition definition;
-        }
-
-        [Serializable]
-        public struct PassFilter
-        {
-            public FilterType filterType;
-            public string referenceName;
-            public PassFilterDefinition definition;
-        }
-
-        [Serializable]
-        public struct VariantFilterDefinition
-        {
-            public string name;
-            public string keywordFilter;
-        }
-
-        [Serializable]
-        public struct PassFilterDefinition
-        {
-            public string name;
-            public string passFilter;
         }
     }
 }

@@ -40,3 +40,24 @@ public static class PerformanceTestUtils
     public static string FormatSampleGroupName(string metricName, string category, string dataName = null)
         => $"{metricName}_{category}";
 }
+
+public struct TestName
+{
+    public readonly string inputData;
+    public readonly string inputDataCategory;
+    public readonly string settings;
+    public readonly string settingsCategory;
+    public readonly string name;
+
+    public TestName(string inputData, string inputDataCategory, string settings, string settingsCategory, string name)
+    {
+        this.inputData = string.IsNullOrEmpty(inputData) ? "NA" : inputData;
+        this.inputDataCategory = string.IsNullOrEmpty(inputDataCategory) ? "NA" : inputDataCategory;
+        this.settings = string.IsNullOrEmpty(settings) ? "NA" : settings;
+        this.settingsCategory = string.IsNullOrEmpty(settingsCategory) ? "NA" : settingsCategory;
+        this.name = string.IsNullOrEmpty(name) ? "NA" : name;
+    }
+
+    public override string ToString()
+        => PerformanceTestUtils.FormatTestName(inputData, inputDataCategory, settings, settingsCategory, name);
+}

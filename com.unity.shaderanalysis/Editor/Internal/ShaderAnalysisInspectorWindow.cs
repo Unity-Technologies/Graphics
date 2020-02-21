@@ -705,19 +705,19 @@ namespace UnityEditor.ShaderAnalysis.Internal
         IAsyncJob BuildShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Shader, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature); ;
+            return EditorShaderTools.GenerateBuildReportAsync(m_Shader, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
         }
 
         IAsyncJob BuildComputeShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Compute, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature); ;
+            return EditorShaderTools.GenerateBuildReportAsync(m_Compute, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
         }
 
         IAsyncJob BuildMaterialReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Material, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature); ;
+            return EditorShaderTools.GenerateBuildReportAsync(m_Material, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
         }
 
         void NOOPGUI()
