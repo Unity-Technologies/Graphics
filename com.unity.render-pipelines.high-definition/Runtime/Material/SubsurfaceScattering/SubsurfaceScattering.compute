@@ -14,12 +14,12 @@
 
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER      1
-#define SSS_USE_LDS_CACHE         1
+#define SSS_USE_LDS_CACHE         1 // Use LDS as an L0 texture cache.
 #define SSS_RANDOM_ROTATION       1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
 #define SSS_USE_TANGENT_PLANE     0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
 #define SSS_CLAMP_ARTIFACT        0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
-#define SSS_DEBUG_LOD             0
-#define SSS_DEBUG_NORMAL_VS       0
+#define SSS_DEBUG_LOD             0 // Displays the sampling rate: green = no filtering, blue = 1 sample, red = _SssSampleBudget samples.
+#define SSS_DEBUG_NORMAL_VS       0 // Allows detection of back-facing normals.
 
 // Do not modify these.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -163,6 +163,7 @@ void EvaluateSample(uint i, uint n, uint profileIndex, float2 centerCoord, int2 
                     float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
+    // The sample count is loop-invariant.
     const float scale  = rcp(n);
     const float offset = rcp(n) * 0.5;
 
@@ -375,27 +376,31 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float2 unitsPerPixel = 2 * abs(cornerPosVS.xy - centerPosVS.xy);
     float2 pixelsPerMm   = rcp(unitsPerPixel) * unitsPerMm;
 
-    // We perform point sampling. Therefore, we can avoid the cost
-    // of filtering if we stay within the bounds of the current pixel.
-    // We use the value of 1 instead of 0.5 as an optimization.
-    // N.b.: our LoD selection algorithm is the same regardless of
-    // whether we integrate over the tangent plane or not, since we
-    // don't want the orientation of the tangent plane to create
-    // divergence of execution across the warp.
-    float maxDistInPixels = filterRadius * max(pixelsPerMm.x, pixelsPerMm.y);
+    // Area of an ellipse.
+    float filterArea   = PI * Sq(filterRadius) * (pixelsPerMm.x * pixelsPerMm.y);
+    uint  sampleCount  = (uint)(filterArea * rcp(SSS_PIXELS_PER_SAMPLE));
+    uint  sampleBudget = (uint)_SssSampleBudget;
 
     uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileIndex);
     float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
-    UNITY_BRANCH if (distScale == 0 || maxDistInPixels < 1)
+    UNITY_BRANCH if (distScale == 0 || sampleCount < 1)
     {
-        #if SSS_DEBUG_LOD
-            StoreResult(pixelCoord, float3(0, 0, 1));
-        #else
-            StoreResult(pixelCoord, albedo * centerIrradiance);
-        #endif
-            return;
+    #if SSS_DEBUG_LOD
+        float3 green = float3(0, 1, 0);
+        StoreResult(pixelCoord, green);
+    #else
+        StoreResult(pixelCoord, albedo * centerIrradiance);
+    #endif
+        return;
     }
+
+#if SSS_DEBUG_LOD
+    float3 red  = float3(1, 0, 0);
+    float3 blue = float3(0, 0, 1);
+    StoreResult(pixelCoord, lerp(blue, red, saturate(sampleCount * rcp(sampleBudget))));
+    return;
+#endif
 
     float4x4 viewMatrix, projMatrix;
     GetLeftHandedViewSpaceMatrices(viewMatrix, projMatrix);
@@ -431,7 +436,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float phase = 0;
 #endif
 
-    uint n = (uint)_SssSampleBudget;
+    uint n = min(sampleCount, sampleBudget);
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
     float3 centerWeight    = 0; // Defer (* albedo)

@@ -82,8 +82,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                      Mathf.Min(16777216, 1.0f / sd.y),
                                      Mathf.Min(16777216, 1.0f / sd.z));
 
-            int   n = DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD; // TODO
-            float p = ((n - 1) + 0.5f) * (1.0f / n);                      // Last sample
+            // TODO: should use the value from FrameSettings, but it's not available. :-(
+            // Is this a serious problem in practice? Maybe! I don't know!
+            int   n = (int)DefaultSssSampleBudgetForQualityLevel.High;
+            float p = ((n - 1) + 0.5f) * (1.0f / n); // Last sample
 
             // Importance sample the normalized diffuse reflectance profile for the computed value of 's'.
             // ------------------------------------------------------------------------------------
