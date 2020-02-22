@@ -95,8 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
-            string kernelName = "SubsurfaceScatteringHQ";
-            string kernelNameMSAA = "SubsurfaceScatteringHQ_MSAA";
+            string kernelName = "SubsurfaceScattering";
+            string kernelNameMSAA = "SubsurfaceScattering_MSAA";
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_SubsurfaceScatteringKernelMSAA = m_SubsurfaceScatteringCS.FindKernel(kernelNameMSAA);

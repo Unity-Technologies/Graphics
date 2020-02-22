@@ -7,10 +7,8 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel SubsurfaceScatteringMQ SubsurfaceScattering=SubsurfaceScatteringMQ SSS_ENABLE_NEAR_FIELD=0
-#pragma kernel SubsurfaceScatteringHQ SubsurfaceScattering=SubsurfaceScatteringHQ SSS_ENABLE_NEAR_FIELD=1
-#pragma kernel SubsurfaceScatteringMQ_MSAA SubsurfaceScattering=SubsurfaceScatteringMQ_MSAA SSS_ENABLE_NEAR_FIELD=0 ENABLE_MSAA
-#pragma kernel SubsurfaceScatteringHQ_MSAA SubsurfaceScattering=SubsurfaceScatteringHQ_MSAA SSS_ENABLE_NEAR_FIELD=1 ENABLE_MSAA
+#pragma kernel SubsurfaceScattering SubsurfaceScattering=SubsurfaceScattering
+#pragma kernel SubsurfaceScattering_MSAA SubsurfaceScattering=SubsurfaceScattering_MSAA ENABLE_MSAA
 
 // TODO: use sharp load hoisting on PS4.
 
@@ -160,7 +158,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #endif
 }
 
-void EvaluateSample(uint i, uint n, uint profileIndex, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
+void EvaluateSample(uint i, uint n, uint profileIndex, float2 centerCoord, int2 cacheOffset,
                     float3 S, float d, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
                     float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
@@ -433,18 +431,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float phase = 0;
 #endif
 
-    // Use more samples for SS regions larger than 5x5 pixels (rotated by 45 degrees).
-    bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_PIXELS_PER_SAMPLE;
-
-#if SSS_DEBUG_LOD
-    StoreResult(pixelCoord, useNearFieldKernel ? float3(1, 0, 0) : float3(0.5, 0.5, 0));
-    return;
-#endif
-
-    // Compute the indices used to access the individual components of the float4 of the kernel.
-    uint iR = useNearFieldKernel ? 0 : 2; // radius
-    uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
-    uint n  = (uint)_SssSampleBudget;
+    uint n = (uint)_SssSampleBudget;
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
     float3 centerWeight    = 0; // Defer (* albedo)
@@ -454,7 +441,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     for (uint i = 0; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
-        EvaluateSample(i, n, profileIndex, iR, iP, pixelCoord + 0.5, cacheOffset,
+        EvaluateSample(i, n, profileIndex, pixelCoord + 0.5, cacheOffset,
                        S, d, centerPosVS, mmPerUnit, pixelsPerMm,
                        phase, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
