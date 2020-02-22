@@ -216,19 +216,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct SubsurfaceScatteringParameters
         {
-            public ComputeShader    subsurfaceScatteringCS;
-            public int              subsurfaceScatteringCSKernel;
-            public int              sampleBudget;
-            public bool             needTemporaryBuffer;
-            public Material         copyStencilForSplitLighting;
-            public Material         combineLighting;
-            public uint             texturingModeFlags;
-            public int              numTilesX;
-            public int              numTilesY;
-            public int              numTilesZ;
-            public Vector4[]        worldScales;
-            public Vector4[]        shapeParams;
-            public float[]          diffusionProfileHashes;
+            public ComputeShader subsurfaceScatteringCS;
+            public int           subsurfaceScatteringCSKernel;
+            public int           sampleBudget;
+            public bool          needTemporaryBuffer;
+            public Material      copyStencilForSplitLighting;
+            public Material      combineLighting;
+            public uint          texturingModeFlags;
+            public int           numTilesX;
+            public int           numTilesY;
+            public int           numTilesZ;
+            public Vector4[]     worldScalesAndFilterRadiiAndThicknessRemaps;
+            public Vector4[]     shapeParamsAndMaxScatterDists;
+            public float[]       diffusionProfileHashes;
         }
 
         struct SubsurfaceScatteringResources
@@ -258,8 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesZ = hdCamera.viewCount;
             parameters.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
 
-            parameters.worldScales = m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
-            parameters.shapeParams = m_SSSShapeParamsAndMaxScatterDists;
+            parameters.worldScalesAndFilterRadiiAndThicknessRemaps = m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps;
+            parameters.shapeParamsAndMaxScatterDists = m_SSSShapeParamsAndMaxScatterDists;
             parameters.diffusionProfileHashes = m_SSSDiffusionProfileHashes;
 
             return parameters;
@@ -439,8 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeFloatParam(parameters.subsurfaceScatteringCS, HDShaderIDs._TexturingModeFlags, *(float*)&textureingModeFlags);
             }
 
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScalesAndFilterRadiiAndThicknessRemaps, parameters.worldScales);
-            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParamsAndMaxScatterDists, parameters.shapeParams);
+            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScalesAndFilterRadiiAndThicknessRemaps, parameters.worldScalesAndFilterRadiiAndThicknessRemaps);
+            cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParamsAndMaxScatterDists, parameters.shapeParamsAndMaxScatterDists);
             cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
             cmd.SetComputeIntParam(parameters.subsurfaceScatteringCS, HDShaderIDs._SssSampleBudget, parameters.sampleBudget);
 
