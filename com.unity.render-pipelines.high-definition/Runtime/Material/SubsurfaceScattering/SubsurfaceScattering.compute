@@ -22,7 +22,6 @@
 #define SSS_CLAMP_ARTIFACT        0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD             0
 #define SSS_DEBUG_NORMAL_VS       0
-#define SSS_SSS_ADAPTIVE_SAMPLING 1
 
 // Do not modify these.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -163,31 +162,27 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 
 void EvaluateSample(uint i, uint n, uint profileIndex, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
                     float3 S, float d, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
-                    float startAngle, float3 tangentX, float3 tangentY, float4x4 projMatrix,
+                    float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
     const float scale  = rcp(n);
-    const float offset = 0.5 * rcp(n);
+    const float offset = rcp(n) * 0.5;
+
+    // The phase angle is loop-invariant.
+    float sinPhase, cosPhase;
+    sincos(phase, sinPhase, cosPhase);
 
     float r, rcpPdf;
-#if SSS_SSS_ADAPTIVE_SAMPLING
     SampleBurleyDiffusionProfile(i * scale + offset, d, r, rcpPdf);
-#else
-    r      = _FilterKernels[profileIndex][i][iR];
-    rcpPdf = _FilterKernels[profileIndex][i][iP];
-#endif
+
     float phi = SampleDiskGolden(i, n).y;
+    float sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
 
-    // The angle 'psi' is loop-invariant.
-    float sinPsi = sin(startAngle);
-    float cosPsi = cos(startAngle);
+    float sinPsi = cosPhase * sinPhi  + sinPhase * cosPhi; // sin(phase + phi)
+    float cosPsi = cosPhase * cosPhi  - sinPhase * sinPhi; // cos(phase + phi)
 
-    // cos(a + b) = cos(a) * cos(b) - sin(a) * sin(b)
-    // sin(a + b) = sin(a) * cos(b) + cos(a) * sin(b)
-    float cosSum = cos(phi) * cosPsi - sin(phi) * sinPsi;
-    float sinSum = sin(phi) * cosPsi + cos(phi) * sinPsi;
-
-    float2 vec = r * float2(cosSum, sinSum);
+    float2 vec = r * float2(cosPsi, sinPsi);
 
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
     int2 position; float xy2;
@@ -433,9 +428,9 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
 
 #if SSS_RANDOM_ROTATION
     // Note that GenerateHashedRandomFloat() only uses the 23 low bits, hence the 2^24 factor.
-    float startAngle = TWO_PI * GenerateHashedRandomFloat(uint3(pixelCoord, (uint)(centerDepth * 16777216)));
+    float phase = TWO_PI * GenerateHashedRandomFloat(uint3(pixelCoord, (uint)(centerDepth * 16777216)));
 #else
-    float startAngle = 0;
+    float phase = 0;
 #endif
 
     // Use more samples for SS regions larger than 5x5 pixels (rotated by 45 degrees).
@@ -461,9 +456,9 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileIndex, iR, iP, pixelCoord + 0.5, cacheOffset,
                        S, d, centerPosVS, mmPerUnit, pixelsPerMm,
-                       startAngle, tangentX, tangentY, projMatrix,
+                       phase, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
     }
 
-    StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
+    StoreResult(pixelCoord, albedo * (totalIrradiance / totalWeight));
 }
