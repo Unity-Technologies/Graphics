@@ -13,13 +13,13 @@
 // TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
-#define SSS_BILATERAL_FILTER      1
-#define SSS_USE_LDS_CACHE         1 // Use LDS as an L0 texture cache.
-#define SSS_RANDOM_ROTATION       1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
-#define SSS_USE_TANGENT_PLANE     0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
-#define SSS_CLAMP_ARTIFACT        0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
-#define SSS_DEBUG_LOD             0 // Displays the sampling rate: green = no filtering, blue = 1 sample, red = _SssSampleBudget samples.
-#define SSS_DEBUG_NORMAL_VS       0 // Allows detection of back-facing normals.
+#define SSS_BILATERAL_FILTER  1
+#define SSS_USE_LDS_CACHE     1 // Use LDS as an L0 texture cache.
+#define SSS_RANDOM_ROTATION   1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
+#define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
+#define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
+#define SSS_DEBUG_LOD         0 // Displays the sampling rate: green = no filtering, blue = 1 sample, red = _SssSampleBudget samples.
+#define SSS_DEBUG_NORMAL_VS   0 // Allows detection of back-facing normals.
 
 // Do not modify these.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -178,8 +178,8 @@ void EvaluateSample(uint i, uint n, uint profileIndex, float2 centerCoord, int2 
     float sinPhi, cosPhi;
     sincos(phi, sinPhi, cosPhi);
 
-    float sinPsi = cosPhase * sinPhi  + sinPhase * cosPhi; // sin(phase + phi)
-    float cosPsi = cosPhase * cosPhi  - sinPhase * sinPhi; // cos(phase + phi)
+    float sinPsi = cosPhase * sinPhi + sinPhase * cosPhi; // sin(phase + phi)
+    float cosPsi = cosPhase * cosPhi - sinPhase * sinPhi; // cos(phase + phi)
 
     float2 vec = r * float2(cosPsi, sinPsi);
 
