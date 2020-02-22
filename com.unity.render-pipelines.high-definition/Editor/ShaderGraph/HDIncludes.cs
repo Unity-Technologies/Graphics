@@ -57,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kShaderVariablesRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl";
         const string kRaytracingIntersection = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl";
         const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
+        const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
         const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
         const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
@@ -69,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         const string kPassRaytracingForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl";
         const string kPassRaytracingGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl";
         const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
+        const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
 #endregion
 
 #region Shared Includes
@@ -398,153 +400,69 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 #endregion
 
-#region HDLitRaytracing
-        public static IncludeCollection LitRaytracingCommon = new IncludeCollection
+#region Raytracing Includes
+        public static IncludeCollection Raytracing = new IncludeCollection
         {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kLighting, IncludeLocation.Pregraph },
-            { kLightLoopDef, IncludeLocation.Pregraph },
-            { kLit, IncludeLocation.Pregraph },
-            { kLitRaytracing, IncludeLocation.Pregraph },
-            { kRaytracingLightLoop, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-        };
-        public static IncludeCollection HDLitRaytracingIndirect = new IncludeCollection
-        {
-            { LitRaytracingCommon },
-            { kPassRaytracingIndirect, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDLitRaytracingVisibility = new IncludeCollection
-        {
-            { LitRaytracingCommon },
-            { kPassRaytracingVisbility, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDLitRaytracingForward = new IncludeCollection
-        {
-            { LitRaytracingCommon },
-            { kPassRaytracingForward, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDLitRaytracingGBuffer = new IncludeCollection
-        {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kLit, IncludeLocation.Pregraph },
-            { kStandardLit, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassRaytracingGBuffer, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDLitRaytracingPathTracing = new IncludeCollection
-        {
-            { LitRaytracingCommon },
-            { kPassPathTracing, IncludeLocation.Postgraph },
-        };
-#endregion
-
-#region HDUnlitRaytracing
-        public static IncludeCollection UnlitRaytracingCommon = new IncludeCollection
-        {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kUnlit, IncludeLocation.Pregraph },
-            { kUnlitRaytracing, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-        };
-        public static IncludeCollection HDUnlitRaytracingIndirect = new IncludeCollection
-        {
-            { UnlitRaytracingCommon },
-            { kPassRaytracingIndirect, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDUnlitRaytracingForward = new IncludeCollection
-        {
-            { UnlitRaytracingCommon },
-            { kPassRaytracingForward, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDUnlitRaytracingVisibility = new IncludeCollection
-        {
-            { UnlitRaytracingCommon },
-            { kPassRaytracingVisbility, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection HDUnlitRaytracingGBuffer = new IncludeCollection
-        {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kUnlit, IncludeLocation.Pregraph },
-            { kNormalBuffer, IncludeLocation.Pregraph },
-            { kStandardLit, IncludeLocation.Pregraph },
-            { kUnlitRaytracing, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassRaytracingGBuffer, IncludeLocation.Postgraph },
-        };
-#endregion
-
-#region FabricRaytracing
-        public static IncludeCollection FabricRaytracingCommon = new IncludeCollection
-        {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kLighting, IncludeLocation.Pregraph },
-            { kLightLoopDef, IncludeLocation.Pregraph },
-            { kFabric, IncludeLocation.Pregraph },
-            { kFabricRaytracing, IncludeLocation.Pregraph },
-            { kRaytracingLightLoop, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-        };
-        public static IncludeCollection FabricRaytracingIndirect = new IncludeCollection
-        {
-            { FabricRaytracingCommon },
-            { kPassRaytracingIndirect, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection FabricRaytracingForward = new IncludeCollection
-        {
-            { FabricRaytracingCommon },
-            { kPassRaytracingForward, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection FabricRaytracingVisibility = new IncludeCollection
-        {
-            { CorePregraph },
-            { CoreRaytracing },
-            { kFabric, IncludeLocation.Pregraph },
-            { kFabricRaytracing, IncludeLocation.Pregraph },
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassRaytracingVisbility, IncludeLocation.Postgraph },
-        };
-
-        public static IncludeCollection FabricRaytracingGBuffer = new IncludeCollection
-        {
-            { CorePregraph },
+            //pregraph includes
+            { kCommon, IncludeLocation.Pregraph },
+            { kShaderVariables, IncludeLocation.Pregraph },
+            { kFragInputs, IncludeLocation.Pregraph },
+            { kShaderPass, IncludeLocation.Pregraph },
             { kRaytracingMacros, IncludeLocation.Pregraph },
+            { kMaterial, IncludeLocation.Pregraph },
             { kShaderVariablesRaytracing, IncludeLocation.Pregraph },
             { kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
-            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph },
-            { kFabric, IncludeLocation.Pregraph },
-            { kStandardLit, IncludeLocation.Pregraph },
-            { kFabricRaytracing, IncludeLocation.Pregraph },
+            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
+            { kRaytracingIntersectionSubSurface, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true),
+                new FieldCondition(HDFields.SubShader.Unlit, false) }},
+            { kRaytracingIntersection, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false) }},
+            { kLighting, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
+                new FieldCondition(HDFields.SubShader.Unlit, false) }},
+            { kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
+                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
+                new FieldCondition(HDFields.SubShader.Unlit, false) }},
+            { kLit, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Lit, true)},
+            { kFabric, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Fabric, true)},
+            { kUnlit, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Unlit, true )},
+            { kNormalBuffer, IncludeLocation.Pregraph, new FieldCondition[]{
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true ),
+                new FieldCondition(HDFields.SubShader.Unlit, true ) }},
+            { kStandardLit, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
+            { kLitRaytracing, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Lit, true)},
+            { kFabricRaytracing, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Fabric, true)},
+            { kUnlitRaytracing, IncludeLocation.Pregraph,
+                new FieldCondition(HDFields.SubShader.Unlit, true )},
             { CoreUtility },
             { kRaytracingCommon, IncludeLocation.Pregraph },
             { kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { kPassRaytracingGBuffer, IncludeLocation.Postgraph },
+            //post graph includes
+            { kPassRaytracingIndirect, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RaytracingIndirect, true) },
+            { kPassRaytracingVisbility, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, true) },
+            { kPassRaytracingForward, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RaytracingForward, true) },
+            { kPassRaytracingGBuffer, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true) },
+            { kPassPathTracing, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, true) },
+            { kPassRaytracingSubSurface, IncludeLocation.Postgraph,
+                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true) }
         };
 #endregion
     }

@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDataBasedSpecularOcclusionBaseMode = "DataBasedSpecularOcclusionBaseMode";
         const string kDataBasedSpecularOcclusionAOConeSize = "DataBasedSpecularOcclusionAOConeSize";
         const string kSpecularOcclusionConeFixupMethod = "SpecularOcclusionConeFixupMethod";
+        const string kShaderPass = "ShaderPass";
+        const string kSubShader = "SubShader";
 #endregion
 
 #region Fields
@@ -153,6 +155,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostBSDFRoughness = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostBSDFRoughness", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS");
         public static FieldDescriptor SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "TiltDirectionToGeomNormal", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM");
         public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostAndTilt = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostAndTilt", "_BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)");
+
+        public struct ShaderPass
+        {
+            public static FieldDescriptor RayTracingGBuffer = new FieldDescriptor(kShaderPass, "Raytracing GBuffer","SHADERPASS_RAYTRACING_GBUFFER");
+            public static FieldDescriptor RaytracingSubSurface = new FieldDescriptor(kShaderPass, "Raytracing SubSurface", "SHADERPASS_RAYTRACING_SUB_SURFACE");
+            public static FieldDescriptor RaytracingIndirect = new FieldDescriptor(kShaderPass, "Raytracing Indirect", "SHADERPASS_RAYTRACING_INDIRECT");
+            public static FieldDescriptor RaytracingForward = new FieldDescriptor(kShaderPass, "Raytracing Forward", "SHADERPASS_RAYTRACING_FORWARD");
+            public static FieldDescriptor RaytracingPathTracing = new FieldDescriptor(kShaderPass, "Raytracing Path Tracing", "SHADERPASS_PATH_TRACING");
+            public static FieldDescriptor RaytracingVisibility = new FieldDescriptor(kShaderPass, "Raytracing Visibility", "SHADERPASS_RAYTRACING_VISIBILITY");
+        }
+
+        public struct SubShader 
+        {
+            public static FieldDescriptor Lit = new FieldDescriptor(kSubShader, "Lit Subshader", "");
+            public static FieldDescriptor Fabric = new FieldDescriptor(kSubShader, "Fabric SubShader", "");
+            public static FieldDescriptor Unlit = new FieldDescriptor(kSubShader, "Unlit SubShader", "");
+        }
+        
 #endregion
     }
 }
