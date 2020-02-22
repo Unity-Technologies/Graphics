@@ -132,7 +132,7 @@ float3 EvaluateTransmittance_Punctual(LightLoopContext lightLoopContext,
     // Note: based on the artist's input, dependence on the NdotL has been disabled.
     float distFrontFaceToLight   = distances.x;
     float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-    float metersPerUnit          = _WorldScalesAndFilterRadii[bsdfData.diffusionProfileIndex].x;
+    float metersPerUnit          = _WorldScalesAndFilterRadiiAndThicknessRemaps[bsdfData.diffusionProfileIndex].x;
     float thicknessInMeters      = thicknessInUnits * metersPerUnit;
     float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 

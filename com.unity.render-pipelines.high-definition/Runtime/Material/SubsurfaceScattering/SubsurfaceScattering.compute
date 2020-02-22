@@ -358,8 +358,8 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float  distScale     = sssData.subsurfaceMask;
     float3 S             = _ShapeParamsAndMaxScatterDists[profileIndex].rgb;
     float  d             = _ShapeParamsAndMaxScatterDists[profileIndex].a;
-    float  metersPerUnit = _WorldScalesAndFilterRadii[profileIndex].x;
-    float  filterRadius  = _WorldScalesAndFilterRadii[profileIndex].y; // In millimeters
+    float  metersPerUnit = _WorldScalesAndFilterRadiiAndThicknessRemaps[profileIndex].x;
+    float  filterRadius  = _WorldScalesAndFilterRadiiAndThicknessRemaps[profileIndex].y; // In millimeters
 
     // Reconstruct the view-space position corresponding to the central sample.
     float2 centerPosNDC = posInput.positionNDC;

@@ -7,8 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public const int DIFFUSION_PROFILE_COUNT      = 16; // Max. number of profiles, including the slot taken by the neutral profile
         public const int DIFFUSION_PROFILE_NEUTRAL_ID = 0;  // Does not result in blurring
-        public const int SSS_N_SAMPLES_NEAR_FIELD     = 55; // Used for extreme close ups; must be a Fibonacci number
-        public const int SSS_N_SAMPLES_FAR_FIELD      = 21; // Used at a regular distance; must be a Fibonacci number
         public const int SSS_PIXELS_PER_SAMPLE        = 4;
     }
 
@@ -193,11 +191,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal DiffusionProfile profile;
 
-        [NonSerialized] internal Vector4 thicknessRemap;                      // Remap: 0 = start, 1 = end - start
-        [NonSerialized] internal Vector4 worldScalesAndFilterRadii;           // X = meters per world unit, Y = filter radius (in mm)
-        [NonSerialized] internal Vector4 shapeParamAndMaxScatterDist;         // RGB = S = 1 / D, A = d = RgbMax(D)
-        [NonSerialized] internal Vector4 transmissionTintAndFresnel0;         // RGB = color, A = fresnel0
-        [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0; // RGB = black, A = fresnel0 - For debug to remove the transmission
+        [NonSerialized] internal Vector4 worldScaleAndFilterRadiusAndThicknessRemap; // X = meters per world unit, Y = filter radius (in mm), Z = remap start, W = end - start
+        [NonSerialized] internal Vector4 shapeParamAndMaxScatterDist;                // RGB = S = 1 / D, A = d = RgbMax(D)
+        [NonSerialized] internal Vector4 transmissionTintAndFresnel0;                // RGB = color, A = fresnel0
+        [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0;        // RGB = black, A = fresnel0 - For debug to remove the transmission
         [NonSerialized] internal int updateCount;
 
         void OnEnable()
@@ -224,9 +221,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateCache()
         {
-            thicknessRemap            = new Vector4(profile.thicknessRemap.x, profile.thicknessRemap.y - profile.thicknessRemap.x, 0, 0);
-            worldScalesAndFilterRadii = new Vector4(profile.worldScale, profile.filterRadius, 0, 0);
-
+            worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(profile.worldScale,
+                                                                     profile.filterRadius,
+                                                                     profile.thicknessRemap.x,
+                                                                     profile.thicknessRemap.y - profile.thicknessRemap.x);
             shapeParamAndMaxScatterDist   = profile.shapeParam;
             shapeParamAndMaxScatterDist.w = profile.maxScatteringDistance;
             // Convert ior to fresnel0
@@ -248,9 +246,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void SetDefaultParams()
         {
-            worldScalesAndFilterRadii       = new Vector4(1, 0, 0, 0);
-            shapeParamAndMaxScatterDist     = new Vector4(16777216, 16777216, 16777216, 0);
-            transmissionTintAndFresnel0.w = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
+            worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(1, 0, 0, 1);
+            shapeParamAndMaxScatterDist                = new Vector4(16777216, 16777216, 16777216, 0);
+            transmissionTintAndFresnel0.w              = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
         }
     }
 }
