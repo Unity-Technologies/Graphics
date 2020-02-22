@@ -56,7 +56,7 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+int _SssSampleBudget;
 
 TEXTURE2D_X(_DepthTexture);                           // Z-buffer
 TEXTURE2D_X(_IrradianceSource);                       // Includes transmitted light
@@ -176,7 +176,7 @@ void EvaluateSample(uint i, uint n, uint profileIndex, uint iR, uint iP, float2 
     r      = _FilterKernels[profileIndex][i][iR];
     rcpPdf = _FilterKernels[profileIndex][i][iP];
 #endif
-    float phi = SampleDiskFibonacci(i, n).y;
+    float phi = SampleDiskGolden(i, n).y;
 
     // The angle 'psi' is loop-invariant.
     float sinPsi = sin(startAngle);
@@ -432,9 +432,6 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
 #endif
 
 #if SSS_RANDOM_ROTATION
-    // Previously, we used asuint(centerPosVS) as the seed.
-    // This was not temporarily stable for some reason (pattern changed every frame),
-    // even if both the camera and the scene were completely static.
     // Note that GenerateHashedRandomFloat() only uses the 23 low bits, hence the 2^24 factor.
     float startAngle = TWO_PI * GenerateHashedRandomFloat(uint3(pixelCoord, (uint)(centerDepth * 16777216)));
 #else
@@ -452,23 +449,14 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // Compute the indices used to access the individual components of the float4 of the kernel.
     uint iR = useNearFieldKernel ? 0 : 2; // radius
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
-    uint n  = SSS_N_SAMPLES_FAR_FIELD;
-
-    const float scale  = rcp(n);
-    const float offset = 0.5 * rcp(n);
-
-    float r, rcpPdf;
-    SampleBurleyDiffusionProfile(0 * scale + offset, d, r, rcpPdf);
+    uint n  = (uint)_SssSampleBudget;
 
     // Accumulate filtered irradiance and bilateral weights (for renormalization).
-    float3 centerWeight    = EvalBurleyDiffusionProfile(r, S) * rcpPdf; // Defer (* albedo)
-    float3 totalIrradiance = centerWeight * centerIrradiance;
-    float3 totalWeight     = centerWeight;
+    float3 centerWeight    = 0; // Defer (* albedo)
+    float3 totalIrradiance = 0;
+    float3 totalWeight     = 0;
 
-    uint i; // Declare once to avoid the warning from the Unity shader compiler.
-
-    UNITY_UNROLL
-    for (i = 1; i < n; i++)
+    for (uint i = 0; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileIndex, iR, iP, pixelCoord + 0.5, cacheOffset,

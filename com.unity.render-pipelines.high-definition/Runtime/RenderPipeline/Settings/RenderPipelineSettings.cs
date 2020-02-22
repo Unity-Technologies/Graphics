@@ -64,6 +64,9 @@ namespace UnityEngine.Rendering.HighDefinition
             supportShadowMask = true,
             supportSSAO = true,
             supportSubsurfaceScattering = true,
+            sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.Medium,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
             supportVolumetrics = true,
             supportDistortion = true,
             supportTransparentBackface = true,
@@ -122,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSSAO;
         /// <summary>Support subsurface scattering.</summary>
         public bool supportSubsurfaceScattering;
-        /// <summary>High quality subsurface scattering.</summary>
-        public bool increaseSssSampleCount;
+        /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
+        public IntScalableSetting sssSampleBudget;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
         /// <summary>High quality volumetric lighting.</summary>

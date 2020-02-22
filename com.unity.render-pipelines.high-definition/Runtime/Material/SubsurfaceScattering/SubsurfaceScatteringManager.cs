@@ -95,8 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
-            string kernelName = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
-            string kernelNameMSAA = asset.currentPlatformRenderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ_MSAA" : "SubsurfaceScatteringMQ_MSAA";
+            string kernelName = "SubsurfaceScatteringHQ";
+            string kernelNameMSAA = "SubsurfaceScatteringHQ_MSAA";
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_SubsurfaceScatteringKernelMSAA = m_SubsurfaceScatteringCS.FindKernel(kernelNameMSAA);
@@ -222,6 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeShader    subsurfaceScatteringCS;
             public int              subsurfaceScatteringCSKernel;
+            public int              sampleBudget;
             public bool             needTemporaryBuffer;
             public Material         copyStencilForSplitLighting;
             public Material         combineLighting;
@@ -232,7 +233,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4[]        worldScales;
             public Vector4[]        shapeParams;
             public float[]          diffusionProfileHashes;
-
         }
 
         struct SubsurfaceScatteringResources
@@ -260,6 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
             parameters.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
             parameters.numTilesZ = hdCamera.viewCount;
+            parameters.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
 
             parameters.worldScales = m_SSSWorldScalesAndFilterRadii;
             parameters.shapeParams = m_SSSShapeParamsAndMaxScatterDists;
@@ -445,6 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._WorldScalesAndFilterRadii, parameters.worldScales);
             cmd.SetComputeVectorArrayParam(parameters.subsurfaceScatteringCS, HDShaderIDs._ShapeParamsAndMaxScatterDists, parameters.shapeParams);
             cmd.SetComputeFloatParams(parameters.subsurfaceScatteringCS, HDShaderIDs._DiffusionProfileHashTable, parameters.diffusionProfileHashes);
+            cmd.SetComputeIntParam(parameters.subsurfaceScatteringCS, HDShaderIDs._SssSampleBudget, parameters.sampleBudget);
 
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, resources.diffuseBuffer);
