@@ -405,7 +405,7 @@ Pass
         #endif
 
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-        $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
+        $Material.CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
 
         // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
         // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as

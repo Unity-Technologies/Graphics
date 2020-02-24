@@ -1481,7 +1481,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // if capHazinessWrtMetallic.isOn.
                 new ConditionalField(HDFields.CapHazinessIfNotMetallic,     dualSpecularLobe.isOn && 
                                                                                 dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss &&
-                                                                                capHazinessWrtMetallic.isOn && pass.pixelPorts.Contains(HazyGlossMaxDielectricF0SlotId)),
+                                                                                capHazinessWrtMetallic.isOn && baseParametrization == StackLit.BaseParametrization.BaseMetallic
+                                                                                && pass.pixelPorts.Contains(HazyGlossMaxDielectricF0SlotId)),
                 // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
                 // into a single $GeometricSpecularAA pedicate.
                 //
