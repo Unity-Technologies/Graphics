@@ -82,10 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                      Mathf.Min(16777216, 1.0f / sd.y),
                                      Mathf.Min(16777216, 1.0f / sd.z));
 
-            // TODO: should use the value from FrameSettings, but it's not available. :-(
-            // Is this a serious problem in practice? Maybe! I don't know!
-            int   n = (int)DefaultSssSampleBudgetForQualityLevel.High;
-            float p = ((n - 1) + 0.5f) * (1.0f / n); // Last sample
+            // Filter radius is, strictly speaking, infinite.
+            // The magnitude of the function decays exponentially, but it is never truly zero.
+            // To estimate the radius, we can use adapt the "three-sigma rule" by defining
+            // the radius of the kernel by the value of the CDF which corresponds to 99.7%
+            // of the energy of the filter.
+            float cdf = 0.997f;
 
             // Importance sample the normalized diffuse reflectance profile for the computed value of 's'.
             // ------------------------------------------------------------------------------------
@@ -96,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We importance sample the color channel with the widest scattering distance.
             maxScatteringDistance = Mathf.Max(sd.x, sd.y, sd.z);
 
-            filterRadius = SampleBurleyDiffusionProfile(p, maxScatteringDistance);
+            filterRadius = SampleBurleyDiffusionProfile(cdf, maxScatteringDistance);
         }
 
         static float DisneyProfile(float r, float s)
@@ -156,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // https://zero-radiance.github.io/post/sampling-diffusion/
         // Performs sampling of a Normalized Burley diffusion profile in polar coordinates.
-        // 'u' is the random number: [0, 1).
+        // 'u' is the random number (the value of the CDF): [0, 1).
         // rcp(s) = 1 / ShapeParam = ScatteringDistance.
         // Returns the sampled radial distance, s.t. (u = 0 -> r = 0) and (u = 1 -> r = Inf).
         static float SampleBurleyDiffusionProfile(float u, float rcpS)
