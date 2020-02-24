@@ -37,36 +37,21 @@ float4x4 ProjectionMatrix;
 float4 _MainTex_TexelSize;
 float4 _ScreenSpaceAOTexture_TexelSize;
 
-//Common Settings
-half _AO_Intensity;
-half _AO_Radius;
-float3 _AOColor;
-
 // SSAO Settings
+half _SSAO_Intensity;
+half _SSAO_Radius;
 int _SSAO_Samples;
-float _SSAO_Area;
 
 // Constants
 #define EPSILON         1.0e-4
 
 // Other parameters
-#define INTENSITY _AO_Intensity
-#define RADIUS _AO_Radius
-#define DOWNSAMPLE 1//_AOParams.z
+#define INTENSITY _SSAO_Intensity
+#define RADIUS _SSAO_Radius
+#define DOWNSAMPLE 0.5//_AOParams.z
 #define SAMPLE_COUNT _SSAO_Samples
 
-//////// REMOVE?
 
-// Interleaved gradient function from Jimenez 2014
-// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-float GradientNoise(float2 uv)
-{
-    uv = floor(uv * _ScreenParams.xy);
-    float f = dot(float2(0.06711056, 0.00583715), uv);
-    return frac(52.9829189 * frac(f));
-}
-
-//////
 
 // --------
 // Options for further customization
@@ -108,11 +93,11 @@ static const float kBeta = 0.002;
 // Gamma encoding (only needed in gamma lighting mode)
 half EncodeAO(half x)
 {
-#if UNITY_COLORSPACE_GAMMA
-    return 1.0 - max(LinearToSRGB(1.0 - saturate(x)), 0.0);
-#else
-    return x;
-#endif
+    #if UNITY_COLORSPACE_GAMMA
+        return 1.0 - max(LinearToSRGB(1.0 - saturate(x)), 0.0);
+    #else
+        return x;
+    #endif
 }
 
 // Accessors for packed AO/normal buffer
@@ -129,85 +114,6 @@ half GetPackedAO(half4 p)
 half3 GetPackedNormal(half4 p)
 {
     return p.gba * 2.0 - 1.0;
-}
-
-// Boundary check for depth sampler
-// (returns a very large value if it lies out of bounds)
-float CheckBounds(float2 uv, float d)
-{
-    float ob = any(uv < 0.0) + any(uv > 1.0);
-    ob += (d <= _ProjectionParams.y + 0.02); // Near Plane
-    ob += (d >= _ProjectionParams.z - EPSILON); // Far Plane
-    //ob += (d >= 2); // Near Plane
-    /*
-    #if defined(UNITY_REVERSED_Z)
-        ob += (d <= 0.0001);
-    #else
-        ob += (d >= 0.9999);
-    #endif
-    */
-    return ob * 1e8;
-}
-
-// Depth/normal sampling functions
-float SampleDepth(float2 uv)
-{
-    float4 cdn = SAMPLE_TEXTURE2D(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv);
-
-    float depth = UnpackFloatFromR8G8(cdn.zw);
-    float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
-    return linearEyeDepth + CheckBounds(uv, linearEyeDepth);
-}
-
-float3 SampleNormal(float2 uv)
-{
-    float3 normal;
-    // Deferred
-#if defined(SOURCE_GBUFFER)
-    normal = SAMPLE_TEXTURE2D(_CameraGBufferTexture2, sampler_CameraGBufferTexture2, uv).xyz;
-    normal = normal * 2 - any(normal); // gets (0,0,0) when norm == 0
-    normal = mul((float3x3)unity_WorldToCamera, normal);
-#if defined(VALIDATE_NORMALS)
-    normal = normalize(normal);
-#endif
-
-    return normal;
-#endif
-
-    // Forward
-    float4 cdn = SAMPLE_TEXTURE2D(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv);
-    normal = UnpackNormalOctRectEncode(cdn.xy) * float3(1.0, 1.0, 1.0);
-    
-    return normal;
-}
-
-float SampleDepthNormal(float2 uv, out float3 normal)
-{
-    // Deferred
-    #if defined(SOURCE_GBUFFER)
-        normal = SAMPLE_TEXTURE2D(_CameraGBufferTexture2, sampler_CameraGBufferTexture2, uv).xyz;
-        normal = normal * 2 - any(normal); // gets (0,0,0) when norm == 0
-        normal = mul((float3x3)unity_WorldToCamera, normal);
-        #if defined(VALIDATE_NORMALS)
-            normal = normalize(normal);
-        #endif
-
-        return SampleDepth(uv);
-    #endif
-
-    // Forward
-    float4 cdn = SAMPLE_TEXTURE2D(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv);
-    normal = UnpackNormalOctRectEncode(cdn.xy) * float3(1.0, 1.0, 1.0);
-    
-    float depth = UnpackFloatFromR8G8(cdn.zw);
-    float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
-    return linearEyeDepth + CheckBounds(uv, linearEyeDepth);
-}
-
-// Normal vector comparer (for geometry-aware weighting)
-half CompareNormal(half3 d1, half3 d2)
-{
-    return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
 
 // Trigonometric function utility
@@ -240,6 +146,15 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
     return float3((uv * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(depth), depth);
 }
 
+// Interleaved gradient function from Jimenez 2014
+// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float GradientNoise(float2 uv)
+{
+    uv = floor(uv * _ScreenParams.xy);
+    float f = dot(float2(0.06711056, 0.00583715), uv);
+    return frac(52.9829189 * frac(f));
+}
+
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float index)
 {
@@ -261,6 +176,86 @@ float3 PickSamplePoint(float2 uv, float index)
     return v * l;
 }
 
+// Normal vector comparer (for geometry-aware weighting)
+half CompareNormal(half3 d1, half3 d2)
+{
+    return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
+}
+
+// Boundary check for depth sampler
+// (returns a very large value if it lies out of bounds)
+float CheckBounds(float2 uv, float linear01Depth)
+{
+    float ob = any(uv < 0.0) + any(uv > 1.0);
+    
+    #if defined(UNITY_REVERSED_Z)
+        ob += lerp(0.0, 1.0, step(linear01Depth, 0.00001));
+    #else
+        ob += lerp(0.0, 1.0, step(0.99999, linear01Depth));
+    #endif
+    
+    return ob * 1e8;
+}
+
+// Calculates the normals from a texture sample
+float3 CalculateNormalFromTextureSample(float4 textureValue)
+{
+    // Deferred
+    #if defined(SOURCE_GBUFFER)
+        float3 normal = textureValue.xyz;
+        normal = normal * 2 - any(normal); // gets (0,0,0) when norm == 0
+        normal = mul((float3x3)unity_WorldToCamera, normal);
+
+        #if defined(VALIDATE_NORMALS)
+            normal = normalize(normal);
+        #endif
+
+        return normal;
+    #endif
+
+    // Forward
+    return UnpackNormalOctRectEncode(textureValue.xy) * float3(1.0, 1.0, -1.0);
+}
+
+// Calculates the depth from a texture sample
+float CalculateDepthFromTextureSample(float4 textureValue, float2 uv)
+{
+    float depth = UnpackFloatFromR8G8(textureValue.zw);
+    float linear01Depth = Linear01Depth(depth, _ZBufferParams);
+    float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
+    return linearEyeDepth + CheckBounds(uv, linear01Depth);
+}
+
+float4 SampleTexture(float2 uv)
+{
+    // Deferred
+#if defined(SOURCE_GBUFFER)
+    return SAMPLE_TEXTURE2D(_CameraGBufferTexture2, sampler_CameraGBufferTexture2, uv);
+#endif
+
+    // Forward
+    return SAMPLE_TEXTURE2D_LOD(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv, 0);
+}
+
+// Samples a texture for depth
+float SampleDepth(float2 uv)
+{
+    float4 cdn = SampleTexture(uv);
+    return CalculateDepthFromTextureSample(cdn, uv);
+}
+
+// Samples a texture for normals
+float3 SampleNormal(float2 uv)
+{
+    // Deferred
+    #if defined(SOURCE_GBUFFER)
+        return CalculateNormalFromTextureSample(SampleTexture(uv));
+    #endif
+
+    // Forward
+    return CalculateNormalFromTextureSample(SampleTexture(uv));
+}
+
 
 //
 // Distance-based AO estimator based on Morgan 2011
@@ -270,15 +265,16 @@ float3 PickSamplePoint(float2 uv, float index)
 float4 SSAO(Varyings input) : SV_Target
 {
     float2 uv = input.uv.xy;
-    //return float4(uv.xy, 0, 0);
+
     // Parameters used in coordinate conversion
     float3x3 proj = (float3x3)unity_CameraProjection;
     float2 p11_22 = float2(unity_CameraProjection._11, unity_CameraProjection._22);
     float2 p13_31 = float2(unity_CameraProjection._13, unity_CameraProjection._23);
 
     // View space normal and depth
-    float3 norm_o;
-    float depth_o = SampleDepthNormal(uv, norm_o);
+    float4 textureVal = SampleTexture(uv);
+    float3 norm_o = CalculateNormalFromTextureSample(textureVal);
+    float depth_o = CalculateDepthFromTextureSample(textureVal, uv);
 
     // Reconstruct the view-space position.
     float3 vpos_o = ReconstructViewPos(uv, depth_o, p11_22, p13_31);
@@ -286,14 +282,13 @@ float4 SSAO(Varyings input) : SV_Target
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
     {
-        // Sample point
         #if defined(SHADER_API_D3D11)
-            // This 'floor(1.0001 * s)' operation is needed to avoid a NVidia shader issue. This issue
-            // is only observed on DX11.
-            float3 v_s1 = PickSamplePoint(uv, floor(1.0001 * s));
-        #else
-            float3 v_s1 = PickSamplePoint(uv, s);
+            // This 'floor(1.0001 * s)' operation is needed to avoid a DX11 NVidia shader issue.
+            s = floor(1.0001 * s);
         #endif
+
+        // Sample point
+        float3 v_s1 = PickSamplePoint(uv, s);
 
         v_s1 = faceforward(v_s1, -norm_o, v_s1);
         float3 vpos_s1 = vpos_o + v_s1;
@@ -328,15 +323,12 @@ float4 SSAO(Varyings input) : SV_Target
 float4 FragBlur(Varyings input) : SV_Target
 {
     float2 uv = input.uv.xy;
-    //return float4(uv.xy, 0, 0);
 
     #if defined(BLUR_HORIZONTAL)
-        // Horizontal pass: Always use 2 texels interval to match to
-        // the dither pattern.
+        // Horizontal pass: Always use 2 texels interval to match to the dither pattern.
         float2 delta = float2(_MainTex_TexelSize.x * 2.0, 0.0);
     #else
-        // Vertical pass: Apply _Downsample to match to the dither
-        // pattern in the original occlusion buffer.
+        // Vertical pass: Apply _Downsample to match to the dither pattern in the original occlusion buffer.
         float2 delta = float2(0.0, _MainTex_TexelSize.y / DOWNSAMPLE * 2.0);
     #endif
 
@@ -439,14 +431,11 @@ half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
 float4 FragComposition(Varyings input) : SV_Target
 {
     float2 uv = input.uv.xy;
-    //return float4(i.uv.xy, 0, 0);
 
     float2 delta = _MainTex_TexelSize.xy / DOWNSAMPLE;
     half ao = BlurSmall(TEXTURE2D_ARGS(_MainTex, sampler_MainTex), uv, delta);
 
-    ao = EncodeAO(ao);
-    return ao;
-    return float4(ao * _AOColor, ao);
+    return 1.0 - EncodeAO(ao);
 }
 
 
@@ -466,7 +455,7 @@ float4 FragComposition(Varyings input) : SV_Target
 
         CompositionOutput o;
         o.gbuffer0 = half4(0.0, 0.0, 0.0, ao);
-        o.gbuffer3 = half4((half3)EncodeAO(ao) * _AOColor, 0.0);
+        o.gbuffer3 = half4((half3)EncodeAO(ao), 0.0);
         return o;
     }
 #else

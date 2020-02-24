@@ -22,11 +22,17 @@ class AmbientOcclusion : VolumeComponent
     public ClampedFloatParameter radius = new ClampedFloatParameter(0.025f, 0.001f, 1.0f, false);
 
     //SSAO Options
-    public FloatParameter area = new FloatParameter(50, false);
+    //public FloatParameter area = new FloatParameter(50, false);
+    public BoolParameter downSample = new BoolParameter(false);
     public ClampedIntParameter sampleCount = new ClampedIntParameter(16, 2, 32, false);
     public SSAOQuality quality = SSAOQuality.Medium;
 
     [Serializable]
-    public sealed class AOModeParameter : VolumeParameter<AOMode> { public AOModeParameter(AOMode value, bool overrideState = false) : base(value, overrideState) { } }
+    public sealed class AOModeParameter : VolumeParameter<AOMode>
+    {
+        public AOModeParameter(AOMode value, bool overrideState = false) : base(value, overrideState)
+        {
+        }
+    }
 
 }

@@ -155,7 +155,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         Pass
         {
             Name "SSAO_FinalComposition"
-            Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
+            //Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
 
             HLSLPROGRAM
                 #pragma vertex VertDefault
