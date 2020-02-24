@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderAnalysis
         string m_Name = "Build shader report";
 
         public override string name => m_Name;
+
         /// <summary>Whether the job was cancelled.</summary>
         protected bool isCancelled { get; private set; }
         /// <summary>The shader to process.</summary>
