@@ -31,6 +31,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: 312de1f115b043b42804703d66a0e4b8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TexStack6E4297F5_6E4297F5_Texture_5:
+        m_Texture: {fileID: 2800000, guid: 402f77c2ec784934a884d97647d9fe9b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TexStack92BB29F_92BB29F_Texture_5:
+        m_Texture: {fileID: 2800000, guid: 312de1f115b043b42804703d66a0e4b8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
