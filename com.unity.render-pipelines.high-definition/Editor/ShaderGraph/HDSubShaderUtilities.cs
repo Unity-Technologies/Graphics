@@ -816,7 +816,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Generate Hybrid V1 code if Hybrid V2 is disabled            
             var dotsInstancingCode = new ShaderStringBuilder();
             #if !ENABLE_HYBRID_RENDERER_V2
-            if (instanceCount > 0)
+            if (instancedCount > 0)
             {
                 dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
                 dotsInstancingCode.AppendLine("// Dots Instancing vars");
