@@ -347,7 +347,8 @@ namespace UnityEngine.Rendering.Universal
             m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
             for (int i = 0; i < m_RendererDataList.Length; ++i)
             {
-                m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
+                if (m_RendererDataList[i] != null)
+                    m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
             }
         }
 
