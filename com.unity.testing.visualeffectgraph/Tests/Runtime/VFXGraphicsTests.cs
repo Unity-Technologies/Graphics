@@ -68,9 +68,11 @@ namespace UnityEngine.VFX.Test
             UnityEngine.VFX.VFXManager.maxDeltaTime = period;
 
             //Waiting for the capture frame rate to be effective
-            int maxFrame = 64;
-            while (Time.deltaTime != period && maxFrame-->0)
+            const int maxFrameWaiting = 8;
+            int maxFrame = maxFrameWaiting;
+            while (Time.deltaTime != period && maxFrame-- > 0)
                 yield return null;
+            Assert.Greater(maxFrame, 0);
 
             int captureSizeWidth = 512;
             int captureSizeHeight = 512;
@@ -89,9 +91,10 @@ namespace UnityEngine.VFX.Test
                 camera.targetTexture = rt;
 
                 //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
-                maxFrame = 64;
-                while (maxFrame-->0 && vfxComponents.All(o => o.culled))
+                maxFrame = maxFrameWaiting;
+                while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
                     yield return null;
+                Assert.Greater(maxFrame, 0);
 
                 foreach (var component in vfxComponents) 
                     component.Reinit();
