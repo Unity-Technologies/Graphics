@@ -1,4 +1,8 @@
 editors:
+  - version: 2020.1
+    cmd: -u 2020.1/staging
+  - version: fast-2020.1
+    cmd: -u 2020.1/staging --fast
   - version: trunk
     cmd: -u trunk
   - version: fast-trunk
@@ -48,36 +52,44 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-    - path: .yamato/upm-ci-packages.yml#all_package_ci
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
-  {% if editor.version == "fast-trunk" %}
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
+  {% if editor.version == "fast-2020.1" %}
   triggers:
-    pull_requests:
-      - targets:
-          only:
-            - "master"
+    branches:
+      only:
+        - trying
+        - staging
   {% endif %}
 {% endfor %}
 
 
 # a separate job so that only trunk is run nightly, not fast-trunk
-all_project_ci_nightly:
-  name: _Nightly ABV against trunk
+{% for editor in editors %}
+ {% if editor.version == '2020.1' or editor.version == 'trunk'%}
+all_project_ci_nightly_{{ editor.version }}:
+  name: _Nightly ABV against {{ editor.version }}
   dependencies:
   {% for project in projects %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_trunk
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
   {% for testplatform in testplatforms %} 
-    - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_trunk
+    - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-    - path: .yamato/upm-ci-packages.yml#all_package_ci
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
       rerun: always
   triggers:
     recurring:
       - branch: master
         frequency: daily     
+  {% endif %}
+{% endfor %}
 
 {% for testplatform in testplatforms %} 
 {% for editor in editors %}
