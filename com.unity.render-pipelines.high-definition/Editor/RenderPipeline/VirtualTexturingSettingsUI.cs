@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedObject;
         private SerializedHDRenderPipelineAsset serializedRPAsset;
 
-        private const int CPUCacheSizeMinValue = 256;
+        private const int CPUCacheSizeMinValue = 64;
         private const int GPUCacheSizeMinValue = 32;
 
         public void OnGUI(SerializedHDRenderPipelineAsset serialized, Editor owner)
