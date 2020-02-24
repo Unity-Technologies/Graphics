@@ -501,16 +501,21 @@ namespace UnityEditor.ShaderGraph
 
         public void AddBlock(BlockNode blockNode, ContextData contextData, int index)
         {
+            AddBlockNoValidate(blockNode, contextData, index);
+            ValidateGraph();
+        }
+
+        void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
+        {
             // Regular AddNode path
             AddNodeNoValidate(blockNode);
-            ValidateGraph();
 
             // Set BlockNode properties
             blockNode.index = index;
             blockNode.contextData = contextData;
             
             // Add to ContextData
-            if(index == -1)
+            if(index == -1 || index >= contextData.blockGuids.Count)
             {
                 contextData.blockGuids.Add(blockNode.guid);
             }
@@ -573,7 +578,7 @@ namespace UnityEditor.ShaderGraph
                 groupItems.Remove(node);
             }
 
-            if(node is BlockNode blockNode)
+            if(node is BlockNode blockNode && blockNode.contextData != null)
             {
                 // Remove from ContextData
                 blockNode.contextData.blockGuids.Remove(blockNode.guid);
@@ -1180,7 +1185,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var node in other.GetNodes<AbstractMaterialNode>())
-                AddNodeNoValidate(node);
+            {
+                if(node is BlockNode blockNode)
+                {
+                    var contextData = blockNode.contextStage == ContextStage.Vertex ? vertexContext : fragmentContext;
+                    AddBlockNoValidate(blockNode, contextData, blockNode.index);
+                }
+                else
+                {
+                    AddNodeNoValidate(node);
+                }
+            }
 
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
