@@ -8,7 +8,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 4.5
+            #pragma target 2.0
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #include "UnityCG.cginc"
 

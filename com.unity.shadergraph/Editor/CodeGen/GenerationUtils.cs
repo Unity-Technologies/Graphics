@@ -240,12 +240,12 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphInputName);
 
 
-            var instanceCount = propertyCollector.GetDotsInstancingPropertiesCount(mode);
+            var instancedCount = propertyCollector.GetDotsInstancingPropertiesCount(mode);
             using (var instancingOptions = new ShaderStringBuilder())
             {
                 instancingOptions.AppendLine("#pragma multi_compile_instancing");
 
-                if (instanceCount> 0)
+                if (instancedCount> 0)
                 {
                     instancingOptions.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     instancingOptions.AppendLine("#define UNITY_SUPPORT_INSTANCING");
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph
             using (var dotsInstancingCode = new ShaderStringBuilder())
             {
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (instanceCount > 0)
+                if (instancedCount > 0)
                 {
                     dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
                     dotsInstancingCode.AppendLine("// Dots Instancing vars");

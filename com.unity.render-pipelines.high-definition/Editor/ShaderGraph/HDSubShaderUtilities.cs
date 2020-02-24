@@ -779,13 +779,13 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs, debugOutput);
 
 
-            int instanceCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
                 instancingOptions.AddShaderChunk("#pragma multi_compile _ DOTS_INSTANCING_ON", true);
 
-                if ( instanceCount> 0)
+                if ( instancedCount> 0)
                 {
                     instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
