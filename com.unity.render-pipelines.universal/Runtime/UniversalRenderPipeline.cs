@@ -89,18 +89,8 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
-        ScriptableRenderer[] renderers = null;
-        int m_DefaultRendererIndex = -1;
-
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
-            m_DefaultRendererIndex = asset.m_DefaultRendererIndex;
-
-            int rendererCount = asset.m_RendererDataList.Length;
-            renderers = new ScriptableRenderer[rendererCount];
-            for (int i = 0; i < rendererCount; ++i)
-                renderers[i] = asset.m_RendererDataList[i]?.InternalCreateRenderer();
-
             SetSupportedRenderingFeatures();
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
@@ -119,7 +109,12 @@ namespace UnityEngine.Rendering.Universal
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
+#if ENABLE_VR && ENABLE_VR_MODULE
+                XR.XRDevice.UpdateEyeTextureMSAASetting();
+#endif
+            }
 
             // For compatibility reasons we also match old LightweightPipeline tag.
             Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
@@ -134,9 +129,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-
-            foreach (var renderer in renderers)
-                renderer?.Dispose();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
