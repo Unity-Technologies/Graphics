@@ -5,7 +5,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.5",
+    "com.unity.test-framework": "1.1.11",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",

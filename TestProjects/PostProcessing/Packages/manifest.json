@@ -5,7 +5,7 @@
     "com.unity.ide.visualstudio": "1.0.11",
     "com.unity.ide.vscode": "1.1.3",
     "com.unity.postprocessing": "2.1.6",
-    "com.unity.test-framework": "1.1.5",
+    "com.unity.test-framework": "1.1.11",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.legacyinputhelpers": "1.3.7",
