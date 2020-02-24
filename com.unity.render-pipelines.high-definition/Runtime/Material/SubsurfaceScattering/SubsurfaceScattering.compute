@@ -159,7 +159,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 }
 
 void EvaluateSample(uint i, uint n, uint profileIndex, float2 centerCoord, int2 cacheOffset,
-                    float3 S, float d, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
+                    float3 S, float d, float3 centerPosVS, float mmPerUnit, float pixelsPerMm,
                     float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
@@ -373,11 +373,12 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float unitsPerMm = rcp(mmPerUnit);
 
     // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
-    float2 unitsPerPixel = 2 * abs(cornerPosVS.xy - centerPosVS.xy);
-    float2 pixelsPerMm   = rcp(unitsPerPixel) * unitsPerMm;
+    // Assuming square pixels, both X and Y are have the same dimensions.
+    float unitsPerPixel = 2 * abs(cornerPosVS.x - centerPosVS.x);
+    float pixelsPerMm   = rcp(unitsPerPixel) * unitsPerMm;
 
-    // Area of an ellipse.
-    float filterArea   = PI * Sq(filterRadius) * (pixelsPerMm.x * pixelsPerMm.y);
+    // Area of a disk.
+    float filterArea   = PI * Sq(filterRadius * pixelsPerMm);
     uint  sampleCount  = (uint)(filterArea * rcp(SSS_PIXELS_PER_SAMPLE));
     uint  sampleBudget = (uint)_SssSampleBudget;
 
