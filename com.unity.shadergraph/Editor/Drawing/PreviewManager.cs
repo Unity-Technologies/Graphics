@@ -491,6 +491,41 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RefreshTimedNodes = false;
         }
 
+        void RequestVTData(Material mat)
+        {
+            Shader shad = mat.shader;
+            for (int i = 0; i < shad.GetPropertyCount(); i++)
+            {
+                if (shad.GetPropertyType(i) != UnityEngine.Rendering.ShaderPropertyType.Texture) continue;
+
+                string name;
+                int layer;
+
+                if (shad.FindTextureStack(i, out name, out layer))
+                {
+                    int stackPropertyId = Shader.PropertyToID(name);
+                    try
+                    {
+                        // Ensure we always request the mip sized 256x256
+                        int width, height;
+                        UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                        int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
+                        const int baseMip = 8;
+                        int mip = Math.Max(textureMip - baseMip, 0);
+                        UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
+                        // This is valid in this case as we're still authoring the material.
+                    }
+                }
+            }
+
+            // If only shadergraph windows are visible HDRP will may render cameras and VT won't tick. So always to a tick here just to be sure.
+            UnityEngine.Rendering.VirtualTexturing.System.Update();
+        }
+
         void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
         {
             var node = renderData.shaderData.node;
@@ -501,6 +536,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = m_ErrorTexture;
                 return;
             }
+
+            RequestVTData(renderData.shaderData.mat);
 
             var previousRenderTexture = RenderTexture.active;
 

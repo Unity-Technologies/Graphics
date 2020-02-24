@@ -72,6 +72,9 @@ Pass
     // --------------------------------------------------
     // Graph
 
+    // Graph Includes
+    $splice(GraphIncludes)    
+
     // Graph Properties
     $splice(GraphProperties)
 

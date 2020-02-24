@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction
+        , IGeneratesInclude
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -398,8 +399,10 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var slot in asset.outputs)
             {
-                AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(), 
-                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage));
+                var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
+                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage);
+                newSlot.hidden = slot.hidden;
+                AddSlot(newSlot);
                 validNames.Add(slot.id);
             }
 
@@ -466,6 +469,36 @@ namespace UnityEditor.ShaderGraph
             {
                 visitor.AddShaderProperty(property);
             }
+
+            // Get name of textures connected to texture inputs
+            List<KeyValuePair<string, string>> textureValues = new List<KeyValuePair<string, string>>();
+            for (int propertyIndex=0; propertyIndex<m_PropertyIds.Count; propertyIndex++)
+            {
+                int slotId = m_PropertyIds[propertyIndex];
+                if (FindInputSlot<Texture2DInputMaterialSlot>(slotId) != null)
+                {
+                    var value = GetSlotValue(slotId, generationMode);
+                    var guid = m_PropertyGuids[propertyIndex];
+                    var input = asset.inputs.First(el => el.guid == Guid.Parse(guid)) as Texture2DShaderProperty;
+                    if (input != null)
+                    {
+                        textureValues.Add(new KeyValuePair<string, string>(value, input.textureStack));
+                    }
+
+                }
+            }
+
+            // Set textureStacks of any texture properties matching the connected textures
+            foreach (var prop in visitor.properties.OfType<Texture2DShaderProperty>())
+            {
+                foreach (var connectedTexture in textureValues)                
+                {
+                    if (string.Compare(connectedTexture.Key, prop.referenceName) == 0)
+                    {
+                        prop.textureStack = connectedTexture.Value;
+                    }
+                }
+            }
         }
 
         public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
@@ -503,6 +536,17 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLines(function.value);
                 });
+            }
+        }
+
+        public virtual void GenerateNodeInclude(IncludeRegistry registry, GenerationMode generationMode)
+        {
+            if (asset == null || hasError)
+                return;
+
+            foreach (var function in asset.includes)
+            {
+                registry.ProvideIncludeBlock(function.key, function.value);
             }
         }
 

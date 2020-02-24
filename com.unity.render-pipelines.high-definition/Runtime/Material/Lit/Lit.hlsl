@@ -653,7 +653,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    OUT_GBUFFER_VTFEEDBACK = GetPackedVTFeedback(builtinData.vtFeedback);
+    OUT_GBUFFER_VTFEEDBACK = builtinData.vtPackedFeedback;
 #endif
 }
 

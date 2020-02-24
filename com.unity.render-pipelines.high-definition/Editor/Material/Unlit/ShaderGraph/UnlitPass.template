@@ -142,7 +142,7 @@ $include("SharedCode.template.hlsl")
         builtinData.opacity = surfaceDescription.Alpha;
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
-        $SurfaceDescription.VTFeedback: builtinData.vtFeedback = surfaceDescription.VTFeedback;
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 #endif
     }
 

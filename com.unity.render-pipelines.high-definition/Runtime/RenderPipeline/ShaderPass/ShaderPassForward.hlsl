@@ -250,6 +250,6 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-    outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
+    outVTFeedback = builtinData.vtPackedFeedback;
 #endif
 }

@@ -601,6 +601,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGraphRequirementsPerKeyword vertexRequirements = new ShaderGraphRequirementsPerKeyword();
             ShaderGraphRequirementsPerKeyword graphRequirements = new ShaderGraphRequirementsPerKeyword();
 
+            // Include Registry tracks includes to remove duplicates, it wraps a string builder that stores the combined function string
+            ShaderStringBuilder graphIncludes = new ShaderStringBuilder();
+            var includeRegistry = new IncludeRegistry(graphIncludes);
+
             // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
             graphNodeFunctions.IncreaseIndent();
@@ -705,6 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 masterNode,
                 masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
+                includeRegistry,
                 functionRegistry,
                 sharedProperties,
                 sharedKeywords,
@@ -736,6 +741,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 SubShaderGenerator.GenerateVertexDescriptionFunction(
                     masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
+                    includeRegistry,
                     functionRegistry,
                     sharedProperties,
                     sharedKeywords,
@@ -898,6 +904,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // build graph code
             var graph = new ShaderGenerator();
             {
+                graph.AddShaderChunk("// Graph includes");
+                graph.AddShaderChunk(graphIncludes.ToString());
+
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
                 graph.AddShaderChunk(shaderPropertyUniforms.ToString());
 
