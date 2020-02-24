@@ -495,11 +495,58 @@ uint FastLog2(uint x)
 }
 #endif
 
-// Using pow often result to a warning like this
+// PositivePow: Same as pow(x,y) but considers x always positive and never exactly 0 such that
+// PositivePow(0,y) will numerically converge to 1 as y -> 0, including PositivePow(0,0) returning 1.
+//
+// Using pow often results in a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
-// PositivePow remove this warning when you know the value is positive or 0 and avoid inf/NAN.
-// Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
-TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
+//
+// First, PositivePow removes this warning for when you know the x value is positive or 0 and you know you avoid a NaN:
+// ie you know that x == 0 and y > 0, such that pow(x,y) == pow(0, >0) == 0
+// PositivePow(0, y) will however return close to 1 as y -> 0, see below.
+//
+// Also, pow(x,y) is most probably approximated as exp2(log2(x) * y), so pow(0,0) will give exp2(-inf * 0) == exp2(NaN) == NaN.
+//
+// PositivePow avoids NaN in allowing PositivePow(x,y) where (x,y) == (0,y) for any y including 0 by clamping x to a
+// minimum of FLT_EPS. The consequences are:
+//
+// -As a replacement for pow(0,y) where y >= 1, the result of PositivePow(x,y) should be close enough to 0.
+// -For cases where we substitute for pow(0,y) where 0 < y < 1, PositivePow(x,y) will quickly reach 1 as y -> 0, while
+// normally pow(0,y) would give 0 instead of 1 for all 0 < y.
+// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32), 
+// PositivePow(0, 0.1)   = 0.1894646
+// PositivePow(0, 0.01)  = 0.8467453
+// PositivePow(0, 0.001) = 0.9835021
+//
+// Depending on the intended usage of pow(), this difference in behavior might be a moot point since:
+// 1) by leaving "y" free to get to 0, we get a NaNs
+// 2) the behavior of PositivePow() has more continuity when both x and y get closer together to 0, since
+// when x is assured to be positive non-zero, pow(x,x) -> 1 as x -> 0.
+//
+// TL;DR: PositivePow(x,y) avoids NaN and is safe for positive (x,y) including (x,y) == (0,0),
+//        but PositivePow(0, y) will return close to 1 as y -> 0, instead of 0, so watch out
+//        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
+//
+// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
+float PositivePow(float base, float power)
+{
+    return pow(max(abs(base), float(FLT_EPS)), power);
+}
+
+float2 PositivePow(float2 base, float2 power)
+{
+    return pow(max(abs(base), float2(FLT_EPS, FLT_EPS)), power);
+}
+
+float3 PositivePow(float3 base, float3 power)
+{
+    return pow(max(abs(base), float3(FLT_EPS, FLT_EPS, FLT_EPS)), power);
+}
+
+float4 PositivePow(float4 base, float4 power)
+{
+    return pow(max(abs(base), float4(FLT_EPS, FLT_EPS, FLT_EPS, FLT_EPS)), power);
+}
 
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.

@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                 // Whiteout blend method
                 // https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a
                 case TextureType.Normal:
-                    sb.AppendLine("$precision3 {0}_Blend = max(pow(abs({1}), {2}), 0);"
+                    sb.AppendLine("$precision3 {0}_Blend = PositivePow({1}, {2});"
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode)
                         , GetSlotValue(BlendInputId, generationMode));
@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode());
                     break;
                 default:
-                    sb.AppendLine("$precision3 {0}_Blend = pow(abs({1}), {2});"
+                    sb.AppendLine("$precision3 {0}_Blend = PositivePow({1}, {2});"
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode)
                         , GetSlotValue(BlendInputId, generationMode));
