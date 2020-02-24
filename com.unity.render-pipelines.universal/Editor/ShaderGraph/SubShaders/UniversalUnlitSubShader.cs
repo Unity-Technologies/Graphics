@@ -18,164 +18,179 @@ namespace UnityEditor.Rendering.Universal
     class UniversalUnlitSubShader : IUnlitSubShader
     {
 #region Passes
-        ShaderPass m_UnlitPass = new ShaderPass
+
+        ShaderPass GetUnlitPass(bool dots)
         {
-            // Definition
-            displayName = "Pass",
-            referenceName = "SHADERPASS_UNLIT",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            useInPreview = true,
+            var pass = new ShaderPass
+            {
+                // Definition
+                displayName = "Pass",
+                referenceName = "SHADERPASS_UNLIT",
+                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
+                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+                useInPreview = true,
 
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>
-            {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    UnlitMasterNode.PositionSlotId,
+                    UnlitMasterNode.VertNormalSlotId,
+                    UnlitMasterNode.VertTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    UnlitMasterNode.ColorSlotId,
+                    UnlitMasterNode.AlphaSlotId,
+                    UnlitMasterNode.AlphaThresholdSlotId
+                },
 
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-#if ENABLE_HYBRID_RENDERER_V2
-                "target 4.5",
-#else
-                "target 2.0",
-#endif
-                "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_LightmapKeyword,
-                s_DirectionalLightmapCombinedKeyword,
-                s_SampleGIKeyword,
-            },
-        };
+                // Pass setup
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
+                },
+                pragmas = new List<string>()
+                {
+                    "prefer_hlslcc gles",
+                    "exclude_renderers d3d11_9x",
+                    dots ? "target 4.5" : "target 2.0",
+                    "multi_compile_instancing",
+                },
+                keywords = new KeywordDescriptor[]
+                {
+                    s_LightmapKeyword,
+                    s_DirectionalLightmapCombinedKeyword,
+                    s_SampleGIKeyword,
+                },
+            };
+            
+            if(dots)
+                pass.pragmas = pass.pragmas.Append("multi_compile _ DOTS_INSTANCING_ON");
+            return pass;
+        }
 
-        ShaderPass m_DepthOnlyPass = new ShaderPass()
+        ShaderPass GetDepthOnlyPass(bool dots)
         {
-            // Definition
-            displayName = "DepthOnly",
-            referenceName = "SHADERPASS_DEPTHONLY",
-            lightMode = "DepthOnly",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            useInPreview = true,
 
-            // Port mask
-            vertexPorts = new List<int>()
+            var pass = new ShaderPass()
             {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>()
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
+                // Definition
+                displayName = "DepthOnly",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "DepthOnly",
+                passInclude =
+                    "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl",
+                varyingsInclude =
+                    "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+                useInPreview = true,
 
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    UnlitMasterNode.PositionSlotId,
+                    UnlitMasterNode.VertNormalSlotId,
+                    UnlitMasterNode.VertTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    UnlitMasterNode.AlphaSlotId,
+                    UnlitMasterNode.AlphaThresholdSlotId
+                },
 
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-#if ENABLE_HYBRID_RENDERER_V2
-                "target 4.5",
-#else
-                "target 2.0",
-#endif
-                "multi_compile_instancing",
-            },
-        };
+                // Render State Overrides
+                ZWriteOverride = "ZWrite On",
+                ColorMaskOverride = "ColorMask 0",
 
-        ShaderPass m_ShadowCasterPass = new ShaderPass()
+                // Pass setup
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
+                },
+                pragmas = new List<string>()
+                {
+                    "prefer_hlslcc gles",
+                    "exclude_renderers d3d11_9x",
+                    dots ? "target 4.5" : "target 2.0",
+                    "multi_compile_instancing",
+                },
+            };
+            if(dots)
+                pass.pragmas = pass.pragmas.Append("multi_compile _ DOTS_INSTANCING_ON");
+            return pass;
+        }
+
+        ShaderPass GetShadowCasterPass(bool dots)
         {
-            // Definition
-            displayName = "ShadowCaster",
-            referenceName = "SHADERPASS_SHADOWCASTER",
-            lightMode = "ShadowCaster",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+            var pass = new ShaderPass()
+            {
+                // Definition
+                displayName = "ShadowCaster",
+                referenceName = "SHADERPASS_SHADOWCASTER",
+                lightMode = "ShadowCaster",
+                passInclude =
+                    "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
+                varyingsInclude =
+                    "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>()
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    UnlitMasterNode.PositionSlotId,
+                    UnlitMasterNode.VertNormalSlotId,
+                    UnlitMasterNode.VertTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    UnlitMasterNode.AlphaSlotId,
+                    UnlitMasterNode.AlphaThresholdSlotId
+                },
 
-            // Required fields
-            requiredAttributes = new List<string>()
-            {
-                "Attributes.normalOS",
-            },
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "Attributes.normalOS",
+                },
 
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ZTestOverride = "ZTest LEqual",
+                // Render State Overrides
+                ZWriteOverride = "ZWrite On",
+                ZTestOverride = "ZTest LEqual",
 
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-#if ENABLE_HYBRID_RENDERER_V2
-                "target 4.5",
-#else
-                "target 2.0",
-#endif
-                "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_SmoothnessChannelKeyword,
-            },
-        };
-#endregion
+                // Pass setup
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
+                },
+                pragmas = new List<string>()
+                {
+                    "prefer_hlslcc gles",
+                    "exclude_renderers d3d11_9x",
+                    dots ? "target 4.5" : "target 2.0",
+                    "multi_compile_instancing",
+                },
+                keywords = new KeywordDescriptor[]
+                {
+                    s_SmoothnessChannelKeyword,
+                },
+            };
+            
+            if(dots)
+                pass.pragmas = pass.pragmas.Append("multi_compile _ DOTS_INSTANCING_ON");
+            return pass;
+        }
+
+        #endregion
 
 #region Keywords
         static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
@@ -287,9 +302,22 @@ namespace UnityEditor.Rendering.Universal
             // Master Node data
             var unlitMasterNode = masterNode as UnlitMasterNode;
             var subShader = new ShaderGenerator();
+            
+            GetSubShader(mode, sourceAssetDependencyPaths, subShader, unlitMasterNode, true);
+            GetSubShader(mode, sourceAssetDependencyPaths, subShader, unlitMasterNode, false);
 
-            subShader.AddShaderChunk("SubShader", true);
-            subShader.AddShaderChunk("{", true);
+            return subShader.GetShaderString(0);
+        }
+
+        private void GetSubShader(
+            GenerationMode mode,
+            List<string> sourceAssetDependencyPaths, 
+            ShaderGenerator subShader,
+            UnlitMasterNode unlitMasterNode,
+            bool dots)
+        {
+            subShader.AddShaderChunk("SubShader");
+            subShader.AddShaderChunk("{");
             subShader.Indent();
             {
                 var surfaceTags = ShaderGenerator.BuildMaterialTags(unlitMasterNode.surfaceType);
@@ -297,14 +325,12 @@ namespace UnityEditor.Rendering.Universal
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
-                GenerateShaderPass(unlitMasterNode, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(unlitMasterNode, GetUnlitPass(dots), mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(unlitMasterNode, GetShadowCasterPass(dots), mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(unlitMasterNode, GetDepthOnlyPass(dots), mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
-            subShader.AddShaderChunk("}", true);
-
-            return subShader.GetShaderString(0);
+            subShader.AddShaderChunk("}");
         }
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
