@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Color: {r: 0.030893529, g: 0, b: 0.4056604, a: 1}
   m_Intensity: 2.74
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: 00000000eb0feddf
+  m_ApplyToSortingLayers: 0000000035e481ca
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 1
@@ -303,6 +303,8 @@ MonoBehaviour:
   m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
   m_RendererIndex: 3
   m_VolumeLayerMask:
     serializedVersion: 2
@@ -313,6 +315,7 @@ MonoBehaviour:
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
+  m_ClearDepth: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -369,7 +372,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 116359401
+  m_SortingLayerID: -1517841517
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
@@ -433,7 +436,7 @@ MonoBehaviour:
   m_Color: {r: 0, g: 1, b: 0.20634079, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0.077
-  m_ApplyToSortingLayers: eb0feddf
+  m_ApplyToSortingLayers: 35e481ca
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 0
@@ -509,7 +512,7 @@ MonoBehaviour:
   m_Color: {r: 0.25162834, g: 0, b: 0.2735849, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0.5
-  m_ApplyToSortingLayers: eb0feddfe980ef06
+  m_ApplyToSortingLayers: 35e481ca939387a5
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 1
   m_LightOrder: 0
@@ -599,7 +602,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 116359401
+  m_SortingLayerID: -1517841517
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
@@ -663,7 +666,7 @@ MonoBehaviour:
   m_Color: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
   m_Intensity: 4.75
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: e980ef06
+  m_ApplyToSortingLayers: 939387a5
   m_LightCookieSprite: {fileID: 21300000, guid: 86ce912717672b8429c58e6960c12e25,
     type: 3}
   m_UseNormalMap: 1
@@ -736,7 +739,7 @@ MonoBehaviour:
   m_Color: {r: 1, g: 0.15420003, b: 0, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: eb0feddf
+  m_ApplyToSortingLayers: 35e481ca
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 0
@@ -808,7 +811,7 @@ MonoBehaviour:
   m_Color: {r: 0.9150943, g: 0.11654504, b: 0.7928844, a: 1}
   m_Intensity: 2.74
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: 00000000eb0feddf
+  m_ApplyToSortingLayers: 0000000035e481ca
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 0
@@ -979,7 +982,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 116359401
+  m_SortingLayerID: -1517841517
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
@@ -1061,7 +1064,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 116359401
+  m_SortingLayerID: -1517841517
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
@@ -1125,7 +1128,7 @@ MonoBehaviour:
   m_Color: {r: 0.37983054, g: 0.8207547, b: 0.375534, a: 1}
   m_Intensity: 0.5
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: eb0feddfe980ef0600000000
+  m_ApplyToSortingLayers: 35e481ca00000000939387a5
   m_LightCookieSprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
     type: 3}
   m_UseNormalMap: 0
@@ -1216,7 +1219,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -538112021
+  m_SortingLayerID: -897457099
   m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: a30d0b0e1afd8ab4ea8a4a0290404f59, type: 3}

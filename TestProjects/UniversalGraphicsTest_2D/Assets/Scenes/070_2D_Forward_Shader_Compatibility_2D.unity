@@ -231,6 +231,8 @@ MonoBehaviour:
   m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
   m_RendererIndex: 2
   m_VolumeLayerMask:
     serializedVersion: 2
@@ -241,6 +243,7 @@ MonoBehaviour:
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
+  m_ClearDepth: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -279,7 +282,7 @@ MonoBehaviour:
   m_Color: {r: 1, g: 0.15420003, b: 0, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0
-  m_ApplyToSortingLayers: eb0feddf
+  m_ApplyToSortingLayers: 35e481ca
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 0
@@ -328,6 +331,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Objects
       objectReference: {fileID: 0}
+    - target: {fileID: 8686941707109939518, guid: efc9431b3060359419f0075245ee6ffd,
+        type: 3}
+      propertyPath: m_LightType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8686941707975464830, guid: efc9431b3060359419f0075245ee6ffd,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: dd46ded8ce2d822448c69a59f8d0e24f, type: 2}
+    - target: {fileID: 8686941708676956963, guid: efc9431b3060359419f0075245ee6ffd,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e2d404d8109454745a80fe86dd2f4319, type: 2}
     - target: {fileID: 8701114088550318862, guid: efc9431b3060359419f0075245ee6ffd,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -383,15 +401,5 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8686941707975464830, guid: efc9431b3060359419f0075245ee6ffd,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: dd46ded8ce2d822448c69a59f8d0e24f, type: 2}
-    - target: {fileID: 8686941708676956963, guid: efc9431b3060359419f0075245ee6ffd,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e2d404d8109454745a80fe86dd2f4319, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: efc9431b3060359419f0075245ee6ffd, type: 3}
