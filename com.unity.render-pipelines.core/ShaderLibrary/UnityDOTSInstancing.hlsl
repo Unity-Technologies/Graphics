@@ -152,16 +152,14 @@ type LoadDOTSInstancedData_##type(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type); \
     return conv(unity_DOTSInstanceData.Load(address)); \
-} \
-type LoadDOTSInstancedData(type dummy, uint metadata) { return LoadDOTSInstancedData_##type(metadata); }
+}
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv, sizeof_type) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width); \
     return conv(unity_DOTSInstanceData.Load##width(address)); \
-} \
-type##width LoadDOTSInstancedData(type##width dummy, uint metadata) { return LoadDOTSInstancedData_##type##width(metadata); }
+}
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(int,   int,     4)
