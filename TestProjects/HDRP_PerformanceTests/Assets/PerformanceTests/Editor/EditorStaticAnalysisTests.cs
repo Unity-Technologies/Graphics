@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEditor.ShaderAnalysis;
+using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -111,7 +112,7 @@ public class EditorStaticAnalysisTests
         }
     }
 
-    [Test, Version("1")]
+    [Test, Version("1"), Timeout(120000)]
     public void StaticAnalysisPS4([ValueSource(nameof(GetStaticAnalysisEntriesPS4))] StaticAnalysisEntry entries)
     {
         StaticAnalysisExecute(entries);
@@ -126,6 +127,7 @@ public class EditorStaticAnalysisTests
     void StaticAnalysisExecute(StaticAnalysisEntry entry)
     {
         var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(entry.asset, entry.buildTarget, entry.filter, (BuildReportFeature)(-1));;
+        buildReportJob.throwOnError = true;
 
         var time = Time.realtimeSinceStartup;
         var startTime = time;
@@ -142,7 +144,18 @@ public class EditorStaticAnalysisTests
                 buildReportJob.Cancel();
                 throw new Exception($"Timeout {entry.timeout} s");
             }
-            buildReportJob.Tick();
+
+            try
+            {
+                buildReportJob.Tick();
+                EditorUpdateManager.Tick();
+            }
+            catch (Exception e)
+            {
+                buildReportJob.Cancel();
+                Debug.LogException(e);
+                Assert.Fail(e.Message);
+            }
         }
 
         var report = buildReportJob.builtReport;
