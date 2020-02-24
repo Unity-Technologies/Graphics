@@ -516,26 +516,6 @@ namespace UnityEditor.Rendering.Universal
             var pbrMasterNode = masterNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
 
-#if ENABLE_HYBRID_RENDERER_V2
-            subShader.AddShaderChunk("SubShader", true);
-            subShader.AddShaderChunk("{", true);
-            subShader.Indent();
-            {
-                var surfaceTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
-                var tagsBuilder = new ShaderStringBuilder(0);
-                surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
-                subShader.AddShaderChunk(tagsBuilder.ToString());
-
-                GenerateShaderPass(pbrMasterNode, m_ForwardPass, mode, subShader, sourceAssetDependencyPaths, true);
-                GenerateShaderPass(pbrMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths, true);
-                GenerateShaderPass(pbrMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths, true);
-                GenerateShaderPass(pbrMasterNode, m_LitMetaPass, mode, subShader, sourceAssetDependencyPaths, true);
-                GenerateShaderPass(pbrMasterNode, m_2DPass, mode, subShader, sourceAssetDependencyPaths, true);
-            }
-            subShader.Deindent();
-            subShader.AddShaderChunk("}", true);
-#endif
-
             BuildSubShader(mode, sourceAssetDependencyPaths, subShader, pbrMasterNode, true);
             BuildSubShader(mode, sourceAssetDependencyPaths, subShader, pbrMasterNode, false);
 
