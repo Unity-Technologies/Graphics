@@ -68,4 +68,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/022_xr_Static_Batching.unity
     guid: 673142619e30f4f1e8cb6883a726b00d
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: fb0974442fb128f419470fbc90defa63,
+      type: 2}
