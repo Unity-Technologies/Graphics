@@ -452,5 +452,8 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
                        totalIrradiance, totalWeight);
     }
 
+    // Total weight is 0 for color channels without scattering.
+    totalWeight = max(totalWeight, FLT_MIN);
+
     StoreResult(pixelCoord, albedo * (totalIrradiance / totalWeight));
 }
