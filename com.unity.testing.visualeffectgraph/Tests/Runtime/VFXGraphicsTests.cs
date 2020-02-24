@@ -61,15 +61,15 @@ namespace UnityEngine.VFX.Test
                 simulateTime = vfxTestSettingsInScene.simulateTime;
                 captureFrameRate = vfxTestSettingsInScene.captureFrameRate;
             }
-            float frequency = 1.0f / captureFrameRate;
+            float period = 1.0f / captureFrameRate;
 
             Time.captureFramerate = captureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = period;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = period;
 
             //Waiting for the capture frame rate to be effective
             int maxFrame = 64;
-            while (Time.deltaTime != frequency && maxFrame-->0)
+            while (Time.deltaTime != period && maxFrame-->0)
                 yield return null;
 
             int captureSizeWidth = 512;
@@ -115,7 +115,7 @@ namespace UnityEngine.VFX.Test
                     }
                 }
 
-                int waitFrameCount = (int)(simulateTime / frequency);
+                int waitFrameCount = (int)(simulateTime / period);
                 int startFrameIndex = Time.frameCount;
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;
 
