@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,
                 StructFields.Varyings.instanceID,
                 StructFields.Varyings.cullFace,
+                UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
                 UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
-                UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0
             }
         };
     }
