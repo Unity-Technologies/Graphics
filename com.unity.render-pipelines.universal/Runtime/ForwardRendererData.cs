@@ -72,13 +72,54 @@ namespace UnityEngine.Rendering.Universal
             return new ForwardRenderer(this);
         }
 
-        internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
+        /// <summary>
+        /// Use this to configure how to filter opaque objects.
+        /// </summary>
+        public LayerMask opaqueLayerMask
+        {
+            get => m_OpaqueLayerMask;
+            set
+            {
+                SetDirty();
+                m_OpaqueLayerMask = value;
+            }
+        }
 
-        public LayerMask transparentLayerMask => m_TransparentLayerMask;
+        /// <summary>
+        /// Use this to configure how to filter transparent objects.
+        /// </summary>
+        public LayerMask transparentLayerMask
+        {
+            get => m_TransparentLayerMask;
+            set
+            {
+                SetDirty();
+                m_TransparentLayerMask = value;
+            }
+        }
 
-        public StencilStateData defaultStencilState => m_DefaultStencilState;
+        public StencilStateData defaultStencilState
+        {
+            get => m_DefaultStencilState;
+            set
+            {
+                SetDirty();
+                m_DefaultStencilState = value;
+            }
+        }
 
-        public bool shadowTransparentReceive => m_ShadowTransparentReceive;
+        /// <summary>
+        /// True if transparent objects receive shadows.
+        /// </summary>
+        public bool shadowTransparentReceive
+        {
+            get => m_ShadowTransparentReceive;
+            set
+            {
+                SetDirty();
+                m_ShadowTransparentReceive = value;
+            }
+        }
 
         protected override void OnEnable()
         {

@@ -9,7 +9,7 @@ Samples a **Gradient** given the input of **Time**. Returns a **Vector 4** color
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Gradient      | Input | Gradient | None | Gradient to sample |
-| Time      | Input | Vector 1 | None | Point at which to sample gradient |
+| Time      | Input | Vector 1 | None | Point at which to sample gradient (0.0–1.0) |
 | Out | Output      |    Vector 4 | None | Output value as Vector4 |
 
 ## Generated Code Example
