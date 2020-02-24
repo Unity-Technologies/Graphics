@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1953259897 &8574412962073106934
+TerrainLayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: layer_Grass
+  m_DiffuseTexture: {fileID: 2800000, guid: 54d1a2e17b16046f89285443bffe218f, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 019f5fddbbaa14850a51242e357f28cb, type: 3}
+  m_TileSize: {x: 3.5, y: 3.5}
+  m_TileOffset: {x: 0, y: 0}
+  m_Specular: {r: 0, g: 0, b: 0, a: 0}
+  m_Metallic: 0
+  m_Smoothness: 0
