@@ -1,8 +1,8 @@
 editors:
   - version: 2019.3
-    cmd: -u 2019.3/staging
+    cmd: -u 2019.3/graphics/vfx/fix/1220947-add-validation-while-loading-vfx
   - version: fast-2019.3
-    cmd: -u 2019.3/staging --fast
+    cmd: -u 2019.3/graphics/vfx/fix/1220947-add-validation-while-loading-vfx --fast
   - version: CUSTOM-REVISION
     cmdwin: -r %CUSTOM_REVISION%
     cmdposix: -r $CUSTOM_REVISION
