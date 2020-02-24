@@ -191,10 +191,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void ConfigureColorAttachment(RenderTargetHandle target, int idx = 0)
+        {
+            m_ColorAttachments.Insert(idx, target);
+        }
+
+        internal void ConfigureDepthAttachment(RenderTargetHandle target)
+        {
+            m_DepthAttachment = target;
+        }
         internal void ConfigureColorAttachment(ref RenderTargetHandle target, bool loadExistingContents, bool storeResults,
             bool shouldClear = false, int idx = 0)
         {
-            m_InputAttachments.Clear();
             target.targetDescriptor
                 .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
             if (loadExistingContents) //TODO: cannot change it to load from clear atm
@@ -328,6 +336,11 @@ namespace UnityEngine.Rendering.Universal
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, RenderTargetHandle.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source.Identifier(), destination.Identifier(), material, passIndex);
+        }
+        public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
+        {
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CurrentActive, clearFlag, clearColor);
+            cmd.Blit(source, destination, material, passIndex);
         }
 
         /// <summary>

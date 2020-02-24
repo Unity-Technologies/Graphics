@@ -79,8 +79,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 case Downsampling.None:
 //                    Blit(cmd, source, opaqueColorRT);
+                    cmd.SetGlobalTexture("_BlitTex", source.Identifier());
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.SetViewport(cameraData.pixelRect);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                     break;

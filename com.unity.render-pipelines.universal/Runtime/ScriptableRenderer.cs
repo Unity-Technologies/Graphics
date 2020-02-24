@@ -123,6 +123,8 @@ namespace UnityEngine.Rendering.Universal
 
         const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
+        const string k_NativeRenderPass = "Execute Native RenderPass";
+        private const string k_RenderPass = "Execute Render pass";
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static List<RenderTargetHandle> m_ActiveColorAttachments = new List<RenderTargetHandle>();
@@ -213,7 +215,30 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
         }
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData, RenderTargetHandle renderFeatureTarget)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                rendererFeatures[i].SetFeatureColorTarget(renderFeatureTarget);
+            }
 
+            // Remove null render passes from the list
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+        }
+
+        public virtual void SetupRendererFeaturesTarget(ref RenderingData renderingData, RenderTargetHandle target)
+        {
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].SetFeatureColorTarget(target);
+            }
+        }
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
         /// compute and upload light CBUFFER for example.
@@ -343,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
             ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData, eyeIndex, true);
 
             // Transparent blocks...
-//            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex, true);
+            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex, true);
 
             // Draw Gizmos...
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
@@ -483,7 +508,7 @@ namespace UnityEngine.Rendering.Universal
                         new NativeArray<int>(renderPass.colorAttachments.Count, Allocator.Temp);
                     NativeArray<int> inputIndices =
                         new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp);
-                    CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+                    CommandBuffer cmd = CommandBufferPool.Get(k_NativeRenderPass);
 
                     if (asSingleRenderPass && !renderPassStarted)
                     {
@@ -606,7 +631,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             bool firstTimeStereo = false;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
 
@@ -834,11 +859,16 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetHandle colorAttachment, RenderTargetHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachments[0] = colorAttachment;
+            SetRenderTarget(cmd, colorAttachment.Identifier(), depthAttachment.Identifier(), clearFlag, clearColor);
+        }
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            var activeAttachment = m_ActiveColorAttachments[0];
+            activeAttachment.identifier = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Count; ++i)
                 m_ActiveColorAttachments.RemoveAt(i);
-
-            m_ActiveDepthAttachment = depthAttachment;
+            m_ActiveColorAttachments[0] = activeAttachment;
+            m_ActiveDepthAttachment.identifier = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
@@ -847,8 +877,8 @@ namespace UnityEngine.Rendering.Universal
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
-            SetRenderTarget(cmd, colorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store,
-                depthAttachment.Identifier(), depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
+                depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
         }
 
         static void SetRenderTarget(

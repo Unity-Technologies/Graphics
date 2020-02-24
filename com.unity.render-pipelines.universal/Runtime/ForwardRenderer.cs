@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 

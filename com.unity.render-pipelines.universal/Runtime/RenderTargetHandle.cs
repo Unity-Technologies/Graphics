@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.Universal
             targetDescriptor = new AttachmentDescriptor(format);
         }
 
+        public void ConfigureLoadStoreActions(RenderBufferStoreAction storeAction, RenderBufferLoadAction loadAction)
+        {
+            targetDescriptor.ConfigureTarget(identifier, loadAction == RenderBufferLoadAction.Load, storeAction == RenderBufferStoreAction.Store);
+            if (loadAction == RenderBufferLoadAction.Clear)
+                targetDescriptor.ConfigureClear(Color.black);
+        }
+
         public RenderTargetIdentifier Identifier()
         {
             if (id == -1)
