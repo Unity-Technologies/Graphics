@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [8.0.0] - 2020-05-25
+
 ### Added
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
