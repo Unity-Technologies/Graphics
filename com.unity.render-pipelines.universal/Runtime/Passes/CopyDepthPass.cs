@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        private bool AllocateRT { get; set; }
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
@@ -29,10 +30,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Targt</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
+        /// <param name="allocateRT">The destination must be temporarily allocated</param>
+        public void Setup(RenderTargetHandle source, RenderTargetHandle destination, bool allocateRT = true)
         {
             this.source = source;
             this.destination = destination;
+            this.AllocateRT = allocateRT;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -41,7 +44,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            if (this.AllocateRT)
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
             ConfigureTarget(destination.Identifier());
@@ -109,7 +113,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(destination.id);
+            if (this.AllocateRT)
+                cmd.ReleaseTemporaryRT(destination.id);
             destination = RenderTargetHandle.CameraTarget;
         }
     }

@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] bool m_PreferDepthPrepass = true;
         [SerializeField] bool m_AccurateGbufferNormals = true;
         [SerializeField] bool m_TiledDeferredShading = false;
 
@@ -86,6 +87,8 @@ namespace UnityEngine.Rendering.Universal
         public StencilStateData defaultStencilState => m_DefaultStencilState;
 
         public bool shadowTransparentReceive => m_ShadowTransparentReceive;
+
+        public bool preferDepthPrepass => m_PreferDepthPrepass;
 
         public bool accurateGbufferNormals => m_AccurateGbufferNormals;
 

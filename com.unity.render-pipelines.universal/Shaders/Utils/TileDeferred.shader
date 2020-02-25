@@ -180,7 +180,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     #endif
 
-    TEXTURE2D_X(_DepthTex);
+    TEXTURE2D_X(_CameraDepthTexture);
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
@@ -188,7 +188,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     half4 PunctualLightShading(Varyings input) : SV_Target
     {
-        float d        = LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        float d        = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = LOAD_TEXTURE2D_X(_GBuffer0, input.positionCS.xy);
         half4 gbuffer1 = LOAD_TEXTURE2D_X(_GBuffer1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_TEXTURE2D_X(_GBuffer2, input.positionCS.xy);

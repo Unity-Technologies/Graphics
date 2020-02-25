@@ -4,18 +4,15 @@ using Unity.Collections;
 using Unity.Jobs;
 using static Unity.Mathematics.math;
 
-// TODO _DepthTex may need to be renamed _CameraDepthTexture, as URP uses this name to address the camera depth texture by convention.
 // TODO SimpleLit material, when smoothness is encoded into gbuffer it goes through exp2() -> log2() operations, fix that.
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
 // TODO use InitializeParticleLitSurfaceData() in forward pass for ParticleLitForwardPass.hlsl ? Similar refactoring for ParticleSimpleLitForwardPass.hlsl
-// TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
 // TODO remove Vector4UInt
 // TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 // TODO Rename shaderTagId for UniversalForward, UniversalForwardOnly Forward, ForwardOnly ? Match HDRP
-// TODO PostProcessing bind depth-buffer copy texture without any valid mechanism?
 // TODO BakedLit.shader has a Universal2D pass, but Unlit.shader doesn't have?
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -108,7 +105,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
-            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
@@ -763,10 +759,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // This must be set for each eye in XR mode multipass.
             SetupMatrixConstants(cmd, ref renderingData);
 
-            // We bind a copy of depth buffer because we cannot make it readonly at the moment.
-            // This binding may be used by the deferred shaders and the transparent pass (soft-particles).
-            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
-
             // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
             // Workaround is to bind gbuffer textures explicitely here.
             cmd.SetGlobalTexture(m_GbufferColorAttachments[0].id, this.m_GbufferColorAttachments[0].Identifier());
@@ -776,11 +768,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTileLights(context, cmd, ref renderingData);
 
             RenderStencilLights(context, cmd, ref renderingData);
-
-            // We need to fix the fact we polluted the binding for "_CameraDepthTexture" with our own texture copy.
-            // If other passes require "_CameraDepthTexture", make sure they are getting the "correct" one
-            // (ex: Post-processing gaussiaan DoF and Bokeh DoF).
-            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthTexture.Identifier());
 
             // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
             RenderFog(context, cmd, ref renderingData);
@@ -1077,8 +1064,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
-
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
@@ -1137,8 +1122,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture a readonly but currently not possible yet
 
                 int soffset = 0;
 
