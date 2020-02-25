@@ -171,6 +171,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;
+        internal float                  taaHistorySharpening;
+        // REMOVE THE FOLLOWING TWO
+        internal float                  taaStdDevBoost;
+        internal bool oldTAA;
+
         internal Vector4                zBufferParams;
         internal Vector4                unity_OrthoParams;
         internal Vector4                projectionParams;
@@ -842,6 +847,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     antialiasing = m_AdditionalCameraData.antialiasing;
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
+                    taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
+                    taaStdDevBoost = m_AdditionalCameraData.taaStdDevBoost;
+                    oldTAA = m_AdditionalCameraData.oldTAA;
+
                 }
                 else
                     antialiasing = AntialiasingMode.None;

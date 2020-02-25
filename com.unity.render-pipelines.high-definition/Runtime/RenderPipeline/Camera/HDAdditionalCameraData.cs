@@ -264,6 +264,17 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0, 2)]
         public float taaSharpenStrength = 0.6f;
 
+        /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
+        [Range(0, 1)]
+        public float taaHistorySharpening = 0.5f;
+
+        // IMPORTANT REMOVE
+        [Range(0.75f, 5.0f)]
+        public float taaStdDevBoost = 1.5f;
+
+        // REMOVE!
+        public bool oldTAA = false;
+
         /// <summary>Physical camera parameters.</summary>
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 

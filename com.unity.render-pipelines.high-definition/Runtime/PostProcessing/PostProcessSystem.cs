@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_AntialiasingFS)
                     {
-                        taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
+                        taaEnabled = camera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
 
                         if (taaEnabled)
                         {
@@ -909,10 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer, RTHandle depthMipChain)
         {
-
-            bool HACKY_SECOND_TAA = camera.taaSharpenStrength < 0.1f;
-
-            Material TAAMat = HACKY_SECOND_TAA ? m_TemporalAAMaterial2 : m_TemporalAAMaterial;
+            Material TAAMat = camera.oldTAA ? m_TemporalAAMaterial : m_TemporalAAMaterial2;
 
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
 
@@ -937,6 +934,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
+
+            var taaParameters = new Vector4(camera.taaHistorySharpening - 0.5f, camera.taaStdDevBoost, 0.0f, 0.0f);
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
+
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);

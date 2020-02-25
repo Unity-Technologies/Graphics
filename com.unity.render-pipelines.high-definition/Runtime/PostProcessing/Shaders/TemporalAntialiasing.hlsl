@@ -133,7 +133,7 @@ CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
     return center + offset * t;
 }
 
-float3 ClipToAABB2(float3 color, float3 minimum, float3 maximum)
+float3 ClipToAABB3(float3 color, float3 minimum, float3 maximum)
 {
     // note: only clips towards aabb center (but fast!)
     float3 center = 0.5 * (maximum + minimum);
