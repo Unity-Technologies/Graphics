@@ -1048,10 +1048,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildCoarseStencilAndResolveIfNeeded(HDCamera hdCamera, RTHandle depthStencilBuffer, RTHandle resolvedStencilBuffer, ComputeBuffer coarseStencilBuffer, CommandBuffer cmd)
+        struct BuildCoarseStencilAndResolveParameters
+        {
+            public HDCamera hdCamera;
+            public ComputeShader resolveStencilCS;
+        }
+
+        BuildCoarseStencilAndResolveParameters PrepareBuildCoarseStencilParameters(HDCamera hdCamera)
+        {
+            var parameters = new BuildCoarseStencilAndResolveParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
+            return parameters;
+        }
+
+        void BuildCoarseStencilAndResolveIfNeeded(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            var parameters = PrepareBuildCoarseStencilParameters(hdCamera);
+            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            BuildCoarseStencilAndResolveIfNeeded(parameters, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
+                         msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
+                         m_SharedRTManager.GetCoarseStencilBuffer(), cmd);
+
+        }
+
+        static void BuildCoarseStencilAndResolveIfNeeded(BuildCoarseStencilAndResolveParameters parameters, RTHandle depthStencilBuffer, RTHandle resolvedStencilBuffer, ComputeBuffer coarseStencilBuffer, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CoarseStencilGeneration)))
             {
+                var hdCamera = parameters.hdCamera;
                 bool MSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
                 // The following features require a copy of the stencil, if none are active, no need to do the resolve.
@@ -1062,7 +1087,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We need the resolve only with msaa
                 resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
 
-                ComputeShader cs = defaultResources.shaders.resolveStencilCS;
+                ComputeShader cs = parameters.resolveStencilCS;
                 int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
                 kernel = resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
                 int coarseStencilWidth = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
@@ -2050,10 +2075,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
                 }
 
-                bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                BuildCoarseStencilAndResolveIfNeeded(hdCamera, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
-                                                     msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
-                                                     m_SharedRTManager.GetCoarseStencilBuffer(), cmd);
+                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
 
                 hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
@@ -2217,9 +2239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 {
                     // We need htile for SSS, but we don't need to resolve again
-                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
-                                                     msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
-                                                     m_SharedRTManager.GetCoarseStencilBuffer(), cmd);
+                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
                 }
 
                 // SSS pass here handle both SSS material from deferred and forward
@@ -2243,9 +2263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
                 {
                     // We need htile for SSS, but we don't need to resolve again
-                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled),
-                                                     msaaEnabled ? m_SharedRTManager.GetStencilBuffer(msaaEnabled) : null,
-                                                     m_SharedRTManager.GetCoarseStencilBuffer(), cmd);
+                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
                 }
 
                 RenderSSRTransparent(hdCamera, cmd, renderContext);

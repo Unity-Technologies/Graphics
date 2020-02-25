@@ -176,9 +176,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
                 }
 
-                RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
+                // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
+                if (!needCameraMVBeforeResolve)
+                {
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
+                }
 
-                // TODO RENDERGRAPH
+                // TODO RENDERGRAPH / Probably need to move this somewhere else.
                 //RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
 
                 ResolveStencilBufferIfNeeded(renderGraph, hdCamera, ref result);
@@ -500,6 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ResolveStencilPassData
         {
+            public BuildCoarseStencilAndResolveParameters parameters;
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
             public ComputeBuffer coarseStencilBuffer;
@@ -509,6 +514,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
             {
+                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
                 passData.inputDepth = output.depthBuffer;
                 passData.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
                 passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
@@ -516,7 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
                     var res = context.resources;
-                    BuildCoarseStencilAndResolveIfNeeded(hdCamera,
+                    BuildCoarseStencilAndResolveIfNeeded(data.parameters,
                         res.GetTexture(data.inputDepth),
                         res.GetTexture(data.resolvedStencil),
                         data.coarseStencilBuffer,
