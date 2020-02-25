@@ -125,4 +125,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
+  - enabled: 1
+    path: Assets/Scenes/110_StencilWithBatcher.unity
+    guid: 00f74f0a1d2374a478d6bf69cce4adce
   m_configObjects: {}

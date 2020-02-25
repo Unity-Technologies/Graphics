@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: 2D_Renderer_Shader_Compatibility
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
-  m_TransparencySortMode: 0
-  m_TransparencySortAxis: {x: 0, y: 1, z: 0}
   m_HDREmulationScale: 1
   m_LightBlendStyles:
   - enabled: 1
@@ -50,13 +48,6 @@ MonoBehaviour:
       multiplicative: 0
       additive: 0
   m_UseDepthStencilBuffer: 1
-  m_DefaultMaterialType: 0
-  m_DefaultCustomMaterial: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3,
-    type: 2}
-  m_DefaultLitMaterial: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3,
-    type: 2}
-  m_DefaultUnlitMaterial: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40,
-    type: 2}
   m_ShapeLightShader: {fileID: 4800000, guid: d79e1c784eaf80c4585c0be7391f757a, type: 3}
   m_ShapeLightVolumeShader: {fileID: 4800000, guid: 7e60080c8cd24a2468cb08b4bfee5606,
     type: 3}
