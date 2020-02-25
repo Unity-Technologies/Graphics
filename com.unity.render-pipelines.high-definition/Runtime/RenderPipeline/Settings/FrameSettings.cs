@@ -420,6 +420,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -469,6 +472,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -516,6 +522,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.

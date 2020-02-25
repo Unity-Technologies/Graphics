@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def
   m_EditorClassIdentifier: 
-  m_Version: 12
+  m_Version: 14
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -153,17 +153,21 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
     type: 2}
-  m_DefaultLookDevProfile: {fileID: 0}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 69180639936349
-      data2: 4539628424926265344
+      data2: 4539628425463136256
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 0
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
@@ -175,6 +179,9 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 0
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
@@ -186,13 +193,19 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 0
     materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    increaseSssSampleCount: 0
+    sssSampleBudget:
+      m_Values: 140000002800000050000000
+      m_SchemaId:
+        m_Id: With3Levels
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 1
     supportLightLayers: 1
@@ -219,15 +232,14 @@ MonoBehaviour:
     supportDitheringCrossFade: 0
     supportTerrainHole: 1
     supportRayTracing: 0
-    supportedRaytracingTier: 2
     lightLoopSettings:
       cookieAtlasSize: 4096
-      cookieAtlasFormat: 74
+      cookieFormat: 74
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
-      cookieAreaTextureArraySize: 16
-      planarReflectionAtlasSize: 2048
+      cookieTexArraySize: 1
+      planarReflectionAtlasSize: 8192
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
@@ -281,6 +293,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
+      bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
