@@ -90,9 +90,15 @@ EditorBuildSettings:
     path: Assets/Scenes/801_SubSurfaceScattering.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
-    path: Assets/Scenes/3001_AreaShadows.unity
+    path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
-    path: Assets/Scenes/3002_AreaShadows_Denoiser.unity
+    path: Assets/Scenes/3001_AreaShadowsForward.unity
+    guid: 18a3a10168d8d3847abf880a745f365e
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsDeferred_Denoiser.unity
+    guid: 41b45b20479911741adc4a16ec5a07f0
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsForward_Denoiser.unity
     guid: 22e35301dfb0fdf468a423c8a8390b13
   m_configObjects: {}
