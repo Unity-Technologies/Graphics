@@ -13,7 +13,9 @@ using UnityEditor.Build.Reporting;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEngine.Rendering;
 using static PerformanceTestUtils;
+using static PerformanceMetricNames;
 
 using Object = UnityEngine.Object;
 
@@ -27,23 +29,27 @@ public class EditorPerformaceTests
     static TestSceneAsset testScenesAsset = Resources.Load<TestSceneAsset>(testSceneResourcePath);
     static HDRenderPipelineAsset defaultHDAsset = Resources.Load<HDRenderPipelineAsset>("defaultHDAsset");
 
-    static IEnumerable<string> EnumerateTestScenes(IEnumerable<TestSceneAsset.SceneData> sceneDatas)
+    public static IEnumerable<BuildTestDescription> GetBuildTests()
     {
-        foreach (var sceneData in sceneDatas)
-            if (sceneData.enabled)
-                yield return sceneData.scene;
+        // testName is hardcoded for now
+        foreach (var (scene, asset) in testScenesAsset.buildTestSuite.GetTestList())
+            yield return new BuildTestDescription{ assetData = asset, sceneData = scene, testName = "MainTest" };
     }
 
-    public static IEnumerable<string> GetScenesForBuild() => EnumerateTestScenes(testScenesAsset.buildTestScenes);
-    public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForBuild() => testScenesAsset.buildHDAssets;
+    public struct BuildTestDescription
+    {
+        public TestSceneAsset.SceneData     sceneData;
+        public TestSceneAsset.HDAssetData   assetData;
+        public string                       testName;
 
+        public override string ToString()
+            => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, testName);
+    }
 
     [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
-    public IEnumerator Build(
-        [ValueSource(nameof(GetScenesForBuild))] string sceneName,
-        [ValueSource(nameof(GetHDAssetsForBuild))] HDRenderPipelineAsset hdAsset)
+    public IEnumerator Build([ValueSource(nameof(GetBuildTests))] BuildTestDescription testDescription)
     {
-        SetupTest(sceneName, hdAsset);
+        SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
 
         HDRPreprocessShaders.reportShaderStrippingData += ReportShaderStrippingData;
 
@@ -51,7 +57,7 @@ public class EditorPerformaceTests
 
         using (new EditorLogWatcher(OnEditorLogWritten))
         {
-            yield return BuildPlayer(testScenesAsset.GetScenePath(sceneName));
+            yield return BuildPlayer(testScenesAsset.GetScenePath(testDescription.sceneData.scene));
         }
 
         HDRPreprocessShaders.reportShaderStrippingData -= ReportShaderStrippingData;
@@ -62,7 +68,11 @@ public class EditorPerformaceTests
     // The list of shaders we want to keep track of
     IEnumerable<Object> EnumerateWatchedShaders()
     {
-        var sr = HDRenderPipeline.currentPipeline.defaultResources.shaders;
+        var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        if (hdrp == null)
+            yield break;
+
+        var sr = hdrp.defaultResources.shaders;
 
         yield return sr.defaultPS;
         yield return sr.deferredCS;
@@ -76,17 +86,18 @@ public class EditorPerformaceTests
         buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
         buildPlayerOptions.options = BuildOptions.Development; // TODO: remove dev build test
 
+        // Make sure we compile the shaders when we build:
+        ClearShaderCache();
+
         BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildSummary summary = report.summary;
 
-        Measure.Custom("Build Total Size", summary.totalSize);
-        Measure.Custom("Build Shader Size", GetAssetSizeInBuild(report, typeof(Shader)));
-        Measure.Custom("Build ComputeShader Size", GetAssetSizeInBuild(report, typeof(ComputeShader)));
-        MeasureShaderSize(report, "Lit");
-        MeasureShaderSize(report, "Deferred");
-        Measure.Custom("Build Time", summary.totalTime.TotalMilliseconds);
-        Measure.Custom("Build Warnings", summary.totalWarnings);
-        Measure.Custom("Build Success", summary.result == BuildResult.Succeeded ? 1 : 0);
+        Measure.Custom(FormatSampleGroupName(kSize, kTotal), summary.totalSize);
+        Measure.Custom(FormatSampleGroupName(kSize, kShader), GetAssetSizeInBuild(report, typeof(Shader)));
+        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader), GetAssetSizeInBuild(report, typeof(ComputeShader)));
+        Measure.Custom(FormatSampleGroupName(kTime, kTotal), summary.totalTime.TotalMilliseconds);
+        Measure.Custom(FormatSampleGroupName(kBuild, kWarnings), summary.totalWarnings);
+        Measure.Custom(FormatSampleGroupName(kBuild, kSuccess), summary.result == BuildResult.Succeeded ? 1 : 0);
 
         // Shader report:
         foreach (var s in EnumerateWatchedShaders())
@@ -94,9 +105,6 @@ public class EditorPerformaceTests
             var fileName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(s));
             MeasureShaderSize(report, fileName);
         }
-
-        // Remove build:
-        // Directory.Delete(Path.GetFullPath(buildLocation), true);
 
         // Wait for the Editor.log file to be updated so we can gather infos from it.
         yield return null;
@@ -130,33 +138,37 @@ public class EditorPerformaceTests
             }
         }
 
-        Measure.Custom($"Build Shader {shaderFileName} Size", assetSize);
+        Measure.Custom(FormatSampleGroupName(kSize, kShader, shaderFileName), assetSize);
     }
 
-    void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount)
+    void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
     {
         // filter out shaders that we don't care about
         if (!EnumerateWatchedShaders().Contains(shader))
             return;
 
-        SampleGroup shaderSampleGroup = new SampleGroup($"Shader Stripping {shader.name} - {data.passName}", SampleUnit.Undefined, false);
-        Measure.Custom(shaderSampleGroup, currentVariantCount);
+        SampleGroup strippingPassCount = new SampleGroup(FormatSampleGroupName(kStriping, shader.name, data.passName), SampleUnit.Undefined, false);
+        SampleGroup strippingTimeSample = new SampleGroup(FormatSampleGroupName(kStripingTime, shader.name, data.passName), SampleUnit.Millisecond, false);
+        Measure.Custom(strippingPassCount, currentVariantCount);
+        Measure.Custom(strippingTimeSample, strippingTime);
     }
 
+    static string lastCompiledShader = kNA;
     void OnEditorLogWritten(string line)
     {
         switch (line)
         {
             // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
             case var _ when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", line, out var match):
-                SampleGroup shaderCompilationTime = new SampleGroup($"Build Shader Compilation Time {match.Groups[1].Value}", SampleUnit.Second);
+                lastCompiledShader = match.Groups[1].Value; // store the value of the shader for internal program count report
+                SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Second);
                 Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value));
                 break;
 
             // Match this line in the editor log: d3d11 (total internal programs: 204, unique: 192)
             case var _ when MatchRegex(@"^(\w{1,}) \(total internal programs: (\d{1,}), unique: (\d{1,})\)$", line, out var match):
                 // Note that we only take the unique internal programs count.
-                Measure.Custom($"Build Shader Compilation Programs {match.Groups[1].Value}", double.Parse(match.Groups[3].Value));
+                Measure.Custom(FormatSampleGroupName(kShaderProgramCount, lastCompiledShader, match.Groups[1].Value), double.Parse(match.Groups[3].Value));
                 break;
         }
 
@@ -165,5 +177,13 @@ public class EditorPerformaceTests
             match = new Regex(regex).Match(input);
             return match.Success;
         }
+    }
+
+    void ClearShaderCache()
+    {
+        // Didn't found any public / internal C# API to clear the shader cache so ...
+        try {
+            Directory.Delete("Library/ShaderCache", true);
+        } catch {}
     }
 }

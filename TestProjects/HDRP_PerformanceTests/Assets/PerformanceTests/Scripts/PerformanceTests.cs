@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 using System.Linq;
 using UnityEngine.Profiling;
 using static PerformanceTestUtils;
+using static PerformanceMetricNames;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -28,10 +29,10 @@ public class PerformanceTests : IPrebuildSetup
     {
 #if UNITY_EDITOR
         // Add all test scenes from the asset to the build settings:
-        var testScenes = EnumerateTestScenes(testScenesAsset.GetAllScenes())
-            .Select(sceneName => {
-            var scene = SceneManager.GetSceneByName(sceneName);
-            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName}").FirstOrDefault();
+        var testScenes = testScenesAsset.GetAllTests()
+            .Select(test => {
+            var scene = SceneManager.GetSceneByName(test.sceneData.scene);
+            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {test.sceneData.scene}").FirstOrDefault();
             var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
             return new EditorBuildSettingsScene(scenePath, true);
         });
@@ -40,41 +41,38 @@ public class PerformanceTests : IPrebuildSetup
 #endif
     }
 
-    public static IEnumerable<string> GetScenesForCounters() => EnumerateTestScenes(testScenesAsset.performanceCounterScenes);
-    public static IEnumerable<string> GetScenesForMemory() => EnumerateTestScenes(testScenesAsset.memoryTestScenes);
-    public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForCounters() => testScenesAsset.performanceCounterHDAssets;
-    public static IEnumerable<HDRenderPipelineAsset> GetHDAssetsForMemory() => testScenesAsset.memoryTestHDAssets;
+    public struct CounterTestDescription
+    {
+        public TestSceneAsset.SceneData    sceneData;
+        public TestSceneAsset.HDAssetData  assetData;
 
-    HDProfileId[] profiledMarkers = new HDProfileId[] {
-        HDProfileId.VolumeUpdate,
-        HDProfileId.ClearBuffers,
-        HDProfileId.RenderShadowMaps,
-        HDProfileId.GBuffer,
-        HDProfileId.PrepareLightsForGPU,
-        HDProfileId.VolumeVoxelization,
-        HDProfileId.VolumetricLighting,
-        HDProfileId.RenderDeferredLightingCompute,
-        HDProfileId.ForwardOpaque,
-        HDProfileId.ForwardTransparent,
-        HDProfileId.ForwardPreRefraction,
-        HDProfileId.ColorPyramid,
-        HDProfileId.DepthPyramid,
-        HDProfileId.PostProcessing,
-    };
+        public override string ToString()
+            => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, kDefault);
+    }
+
+    public static IEnumerable<CounterTestDescription> GetCounterTests()
+    {
+        foreach (var (scene, asset) in testScenesAsset.counterTestSuite.GetTestList())
+            yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
+    }
+
+    IEnumerable<HDProfileId> GetAllMarkers()
+    {
+        foreach (var val in Enum.GetValues(typeof(HDProfileId)))
+            yield return (HDProfileId)val;
+    }
 
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
-    public IEnumerator Counters(
-        [ValueSource(nameof(GetScenesForCounters))] string sceneName,
-        [ValueSource(nameof(GetHDAssetsForCounters))] HDRenderPipelineAsset hdAsset)
+    public IEnumerator Counters([ValueSource(nameof(GetCounterTests))] CounterTestDescription testDescription)
     {
-        yield return SetupTest(sceneName, hdAsset);
+        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
 
         var camera = GameObject.FindObjectOfType<Camera>();
         var hdCamera = HDCamera.GetOrCreate(camera, 0); // We don't support XR for now
 
         // Enable all the markers
         hdCamera.profilingSampler.enableRecording = true;
-        foreach (var marker in profiledMarkers)
+        foreach (var marker in GetAllMarkers())
             ProfilingSampler.Get(marker).enableRecording = true;
 
         // Wait for the markers to be initialized
@@ -84,22 +82,27 @@ public class PerformanceTests : IPrebuildSetup
         for (int i = 0; i < MeasurementCount; i++)
         {
             MeasureTime(hdCamera.profilingSampler);
-            foreach (var marker in profiledMarkers)
+            foreach (var marker in GetAllMarkers())
                 MeasureTime(ProfilingSampler.Get(marker));
         }
 
         // disable all the markers
         hdCamera.profilingSampler.enableRecording = false;
-        foreach (var marker in profiledMarkers)
+        foreach (var marker in GetAllMarkers())
             ProfilingSampler.Get(marker).enableRecording = false;
         
         void MeasureTime(ProfilingSampler sampler)
         {
-            SampleGroup cpuSample = new SampleGroup($"CPU {sampler.name}", SampleUnit.Millisecond, false);
-            SampleGroup gpuSample = new SampleGroup($"GPU {sampler.name}", SampleUnit.Millisecond, false);
+            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Millisecond, false);
+            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Millisecond, false);
 
-            Measure.Custom(cpuSample, sampler.cpuElapsedTime);
-            Measure.Custom(gpuSample, sampler.gpuElapsedTime);
+            if (sampler.cpuElapsedTime > 0)
+                Measure.Custom(cpuSample, sampler.cpuElapsedTime);
+            if (sampler.gpuElapsedTime > 0)
+                Measure.Custom(gpuSample, sampler.gpuElapsedTime);
+            if (sampler.inlineCpuElapsedTime > 0)
+                Measure.Custom(inlineCPUSample, sampler.inlineCpuElapsedTime);
         }
     }
 
@@ -115,16 +118,30 @@ public class PerformanceTests : IPrebuildSetup
         yield return typeof(ComputeShader);
     }
 
-    [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
-    public IEnumerator Memory(
-        [ValueSource(nameof(GetScenesForMemory))] string sceneName,
-        [ValueSource(nameof(GetMemoryObjectTypes))] Type type,
-        [ValueSource(nameof(GetHDAssetsForMemory))] HDRenderPipelineAsset hdAsset)
+    public static IEnumerable<MemoryTestDescription> GetMemoryTests()
     {
-        yield return SetupTest(sceneName, hdAsset);
+        foreach (var (scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
+            foreach (var objectType in GetMemoryObjectTypes())
+                yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
+    }
+
+    public struct MemoryTestDescription
+    {
+        public TestSceneAsset.SceneData     sceneData;
+        public TestSceneAsset.HDAssetData   assetData;
+        public Type                         assetType;
+
+        public override string ToString()
+            => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, assetType.Name);
+    }
+
+    [Timeout(BuildTimeout), Version("1"), UnityTest, Performance]
+    public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
+    {
+        yield return SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
 
         long totalMemory = 0;
-        var data = Resources.FindObjectsOfTypeAll(type);
+        var data = Resources.FindObjectsOfTypeAll(testDescription.assetType);
         var results = new List<(string name, long size)>();
 
         // Measure memory
@@ -145,8 +162,8 @@ public class PerformanceTests : IPrebuildSetup
 
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(result.name, SampleUnit.Byte, false), result.size);
-        Measure.Custom(new SampleGroup($"Total Memory - {type}", SampleUnit.Byte, false), totalMemory);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(kMemory, result.name), SampleUnit.Byte, false), result.size);
+        Measure.Custom(new SampleGroup(FormatSampleGroupName(kTotalMemory, testDescription.assetType.Name), SampleUnit.Byte, false), totalMemory);
     }
 
     [Version("1"), UnityTest]
