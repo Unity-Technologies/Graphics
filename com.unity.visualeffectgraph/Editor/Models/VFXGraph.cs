@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    static class VisualEffectAssetExtensions
+    static class VisualEffectResourceExtensions
     {
         public static VFXGraph GetOrCreateGraph(this VisualEffectResource resource)
         {
@@ -172,17 +172,31 @@ namespace UnityEditor.VFX
         {
             resource.GetOrCreateGraph().UpdateSubAssets();
         }
+    }
 
-        public static VisualEffectResource GetResource<T>(this T asset) where T : VisualEffectObject
+    static class VisualEffectObjectExtensions
+    {
+        public static VisualEffectResource GetOrCreateResource(this VisualEffectObject asset)
         {
             string assetPath = AssetDatabase.GetAssetPath(asset);
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
-            
+
             if (resource == null && !string.IsNullOrEmpty(assetPath))
             {
                 resource = new VisualEffectResource();
                 resource.SetAssetPath(assetPath);
             }
+            return resource;
+        }
+
+        public static VisualEffectResource GetResource(this VisualEffectObject asset)
+        {
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+
+            if (resource == null && !string.IsNullOrEmpty(assetPath))
+                throw new NullReferenceException($"VFX resource does not exist for this asset at path: {assetPath}");
+
             return resource;
         }
     }
@@ -553,16 +567,18 @@ namespace UnityEditor.VFX
             }
         }
 
-        void RecurseSubgraphRecreateCopy(VFXGraph graph)
+        void RecurseSubgraphRecreateCopy(IEnumerable<VFXModel> children)
         {
-            foreach (var child in graph.children)
+            foreach (var child in children)
             {
                 if (child is VFXSubgraphContext)
                 {
                     var subgraphContext = child as VFXSubgraphContext;
-                    if( subgraphContext.subgraph != null)
-                        RecurseSubgraphRecreateCopy(subgraphContext.subgraph.GetResource().GetOrCreateGraph());
                     subgraphContext.RecreateCopy();
+                    if (subgraphContext.subgraph != null)
+                    {
+                        RecurseSubgraphRecreateCopy(subgraphContext.subChildren);
+                    }
                 }
                 else if(child is VFXContext)
                 {
@@ -571,9 +587,9 @@ namespace UnityEditor.VFX
                         if( block is VFXSubgraphBlock)
                         {
                             var subgraphBlock = block as VFXSubgraphBlock;
-                            if (subgraphBlock.subgraph != null)
-                                RecurseSubgraphRecreateCopy(subgraphBlock.subgraph.GetResource().GetOrCreateGraph());
                             subgraphBlock.RecreateCopy();
+                            if (subgraphBlock.subgraph != null)
+                                RecurseSubgraphRecreateCopy(subgraphBlock.subChildren);
                         }
                     }
                 }
@@ -646,8 +662,8 @@ namespace UnityEditor.VFX
         private void PrepareSubgraphs()
         {
             Profiler.BeginSample("PrepareSubgraphs");
-            RecurseSubgraphRecreateCopy(this);
-            RecurseSubgraphPatchInputExpression(this.children);
+            RecurseSubgraphRecreateCopy(children);
+            RecurseSubgraphPatchInputExpression(children);
             Profiler.EndSample();
         }
 

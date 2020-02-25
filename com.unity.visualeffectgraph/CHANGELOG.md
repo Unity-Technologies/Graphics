@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-11-18
+## [Unreleased]
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -71,6 +71,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
 - Filter out unrelevant events from event desc while compiling
 - Missing Packing.hlsl include while using an unlit shadergraph.
+- Fix for nesting of VFXSubgraphContexts.
+- Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602] https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps
+- Fix compilation error in runtime mode when Speed Range is 0 in Attribute By Speed block [Case 1118665] https://issuetracker.unity3d.com/issues/vfx-shader-errors-are-thrown-when-quad-outputs-speed-range-is-set-to-zero
 
 ## [7.1.1] - 2019-09-05
 ### Added
@@ -183,7 +186,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.5.0-preview] - 2019-03-07
 
-## [6.4.0-preview] - 2019-02-21 
+## [6.4.0-preview] - 2019-02-21
 
 ## [6.3.0-preview] - 2019-02-18
 

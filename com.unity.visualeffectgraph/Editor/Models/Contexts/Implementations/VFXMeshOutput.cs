@@ -56,11 +56,11 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if( shaderGraph == null)
-                    foreach (var property in PropertiesFromType("OptionalInputProperties"))
-                        yield return property;
                 foreach (var property in base.inputProperties)
                     yield return property;
+                if ( shaderGraph == null)
+                    foreach (var property in PropertiesFromType("OptionalInputProperties"))
+                        yield return property;
             }
         }
 
