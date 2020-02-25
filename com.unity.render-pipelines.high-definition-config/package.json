@@ -1,11 +1,11 @@
 {
     "name": "com.unity.render-pipelines.high-definition-config",
     "description": "Configuration files for the High Definition Render Pipeline.",
-    "version": "8.0.0",
+    "version": "8.0.1",
     "unity": "2020.1",
     "unityRelease": "0a23",
     "displayName": "High Definition RP Config",
     "dependencies": {
-        "com.unity.render-pipelines.core": "8.0.0"
+        "com.unity.render-pipelines.core": "8.0.1"
     }
 }
