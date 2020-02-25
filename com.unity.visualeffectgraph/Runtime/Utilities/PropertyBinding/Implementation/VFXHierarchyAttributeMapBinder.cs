@@ -58,7 +58,6 @@ namespace UnityEngine.VFX.Utility
         {
             bones = ChildrenOf(HierarchyRoot, MaximumDepth);
             int count = bones.Count;
-            Debug.Log("Found Bone Count: " + count);
 
             position = new Texture2D(count, 1, TextureFormat.RGBAHalf, false, true);
             targetPosition = new Texture2D(count, 1, TextureFormat.RGBAHalf, false, true);

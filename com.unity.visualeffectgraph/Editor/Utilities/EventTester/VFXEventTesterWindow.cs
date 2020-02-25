@@ -244,7 +244,7 @@ namespace UnityEditor.VFX
             EditorGUILayout.Space();
             list.DoLayoutList();
             EditorGUILayout.Space();
-            using (new GUILayout.HorizontalScope(GUILayout.Width(360)))
+            using (new GUILayout.HorizontalScope(GUILayout.Width(358)))
             {
                 if (GUILayout.Button("Play", Styles.leftButton, GUILayout.Height(24)))
                 {

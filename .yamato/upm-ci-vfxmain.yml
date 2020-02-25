@@ -1,6 +1,10 @@
 editors:
-  - version: graphics/vfx/fix/read-attribute-in-spawner
-    cmd: -u graphics/vfx/fix/read-attribute-in-spawner
+  - version: 2020.1
+    cmd: -u 2020.1/staging
+  - version: fast-2020.1
+    cmd: -u 2020.1/staging --fast
+  - version: trunk
+    cmd: -u trunk
   - version: fast-trunk
     cmd: -u trunk --fast
   - version: CUSTOM-REVISION

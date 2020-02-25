@@ -28,11 +28,22 @@ namespace UnityEditor.VFX
                 OnGraphChanged(graph);
         }
 
+
+        public IEnumerable<VFXModel> subChildren
+        { get { return m_SubChildren; } }
+
         static Action<VFXGraph> OnGraphChanged; 
 
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
         {
-            
+
+        }
+
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+            if (!object.ReferenceEquals(m_Subgraph,null))
+                dependencies.Add(m_Subgraph.GetInstanceID());
         }
 
         void GraphParameterChanged(VFXGraph graph)
@@ -46,10 +57,24 @@ namespace UnityEditor.VFX
         protected override int inputFlowCount { get { return m_InputFlowNames.Count > s_MaxInputFlow ? s_MaxInputFlow : m_InputFlowNames.Count; } }
 
         public sealed override string name { get { return m_Subgraph!= null ? m_Subgraph.name : "Subgraph"; } }
-
+        
+        void RefreshSubgraphObject()
+        {
+            if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
+            {
+                string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
+                
+                var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+                if( newSubgraph != null )
+                {
+                    m_Subgraph = newSubgraph;
+                }
+            }
+        }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get {
+                RefreshSubgraphObject();
                 if(m_SubChildren == null && m_Subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                 {
                     foreach (var slot in inputSlots)
@@ -150,6 +175,7 @@ namespace UnityEditor.VFX
         public void RecreateCopy()
         {
             DetachFromOriginal();
+            RefreshSubgraphObject();
 
             if (m_Subgraph == null)
             {
@@ -331,16 +357,12 @@ namespace UnityEditor.VFX
         {
             if (m_SubChildren == null) return;
 
-            var toInvalidate = new HashSet<VFXSlot>();
-
             var inputExpressions = new List<VFXExpression>();
 
             foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
                 inputExpressions.Add(subSlot.GetExpression());
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
-            foreach (var slot in toInvalidate)
-                slot.InvalidateExpressionTree();
         }
         protected override void OnAdded()
         {
@@ -359,7 +381,7 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
+            if( cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
             {
 
                 if (cause == InvalidationCause.kSettingChanged)
@@ -386,11 +408,6 @@ namespace UnityEditor.VFX
                 base.OnInvalidate(model, cause);
         }
 
-        public VFXModel[] subChildren
-        {
-            get { return m_SubChildren; }
-        }
-
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             base.CollectDependencies(objs, ownedOnly);
@@ -400,11 +417,12 @@ namespace UnityEditor.VFX
 
             if( m_Subgraph != null && m_SubChildren == null)
                 RecreateCopy();
-            if(m_SubChildren != null)
+
+            if (m_SubChildren != null)
             {
                 foreach (var child in m_SubChildren)
                 {
-                    if (!(child is VFXParameter))
+                if( ! (child is VFXParameter) )
                     {
                         objs.Add(child);
 
@@ -414,5 +432,5 @@ namespace UnityEditor.VFX
                 }
             }
         }
-    }
+}
 }

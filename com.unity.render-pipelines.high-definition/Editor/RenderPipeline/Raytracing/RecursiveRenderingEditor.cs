@@ -34,15 +34,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
-                if (currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier == RenderPipelineSettings.RaytracingTier.Tier1)
-                {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.HelpBox("The current HDRP Asset does not support Recursive Rendering.", MessageType.Error, wide: true);
-                    return;
-                }
-
                 PropertyField(m_Enable);
 
                 if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)

@@ -19,7 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 return ((RenderTexture)texture).useMipMap;
         }
-
+        override public bool IsCreated()
+        {
+            return m_Cache.IsCreated();
+        }
         protected override bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
             // Make sure the array is not null or empty and that the first texture is a render-texture or a texture2D
@@ -49,16 +52,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int texIDx = 0; texIDx < textureArray.Length; ++texIDx)
             {
+                if (!TextureHasMipmaps(textureArray[texIDx]))
+                    Debug.LogWarning("The texture '" + textureArray[texIDx] + "' should have mipmaps to be handled by the cookie texture array");
+
                 if (mismatch)
                 {
                     cmd.Blit(textureArray[texIDx], m_Cache, 0, m_SliceSize * sliceIndex + texIDx);
                 }
                 else
                 {
-                    if (TextureHasMipmaps(textureArray[texIDx]))
-                        cmd.CopyTexture(textureArray[texIDx], 0, m_Cache, m_SliceSize * sliceIndex + texIDx);
-                    else
-                        Debug.LogWarning("The texture '" + textureArray[texIDx] + "' should have mipmaps to be handled by the cookie texture array");
+                    cmd.CopyTexture(textureArray[texIDx], 0, m_Cache, m_SliceSize * sliceIndex + texIDx);
                 }
             }
             return true;
@@ -90,9 +93,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 name = CoreUtils.GetTextureAutoName(width, height, format, TextureDimension.Tex2DArray, depth: numTextures, name: m_CacheName)
             };
 
+            // We need to clear the content in case it is read on first frame, since on console we have no guarantee that
+            // the content won't be NaN
+            ClearCache();
             m_Cache.Create();
 
             return res;
+        }
+
+        internal void ClearCache()
+        {
+            var desc = m_Cache.descriptor;
+            bool isMipped = desc.useMipMap;
+            int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
+            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
+            {
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_Cache, mipIdx, CubemapFace.Unknown, depthSlice);
+                    GL.Clear(false, true, Color.clear);
+                }
+            }
         }
 
         public void Release()

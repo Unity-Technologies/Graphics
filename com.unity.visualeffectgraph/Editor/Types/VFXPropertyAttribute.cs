@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -47,7 +48,10 @@ namespace UnityEditor.VFX
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
         {
-            return attributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+            if (attributes.Any(a => !(a is Attribute)))
+                throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
+
+            return attributes.Where(t=> t!= null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
                 .Select(o => o.Value(a))).ToArray();
         }
 
@@ -118,6 +122,7 @@ namespace UnityEditor.VFX
 
         public static void ApplyToGUI(VFXPropertyAttribute[] attributes, ref string label, ref string tooltip)
         {
+            string tooltipAddon = "";
             if (attributes != null)
             {
                 foreach (VFXPropertyAttribute attribute in attributes)
@@ -127,16 +132,16 @@ namespace UnityEditor.VFX
                         case Type.kRange:
                             break;
                         case Type.kMin:
-                            label += " (Min: " + attribute.m_Min + ")";
+                            tooltipAddon += string.Format(CultureInfo.InvariantCulture," (Min: {0})", attribute.m_Min);
                             break;
                         case Type.kNormalize:
-                            label += " (Normalized)";
+                            tooltipAddon += " (Normalized)";
                             break;
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
                         case Type.kAngle:
-                            label += " (Angle)";
+                            tooltipAddon += " (Angle)";
                             break;
                         case Type.kColor:
                         case Type.kRegex:
@@ -148,6 +153,11 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            if( string.IsNullOrEmpty(tooltip))
+                tooltip = label;
+
+            tooltip = tooltip + tooltipAddon;
         }
 
         public static Vector2 FindRange(VFXPropertyAttribute[] attributes)

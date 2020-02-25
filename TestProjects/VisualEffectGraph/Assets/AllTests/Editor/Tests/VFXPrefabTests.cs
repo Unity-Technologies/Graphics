@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections;
 using UnityEditor.VFX.Block.Test;
 using System.Collections.Generic;
+using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
@@ -38,7 +39,7 @@ namespace UnityEditor.VFX.Test
             {
                 try
                 {
-                    UnityEngine.Object.DestroyImmediate(gameObject);
+                    UnityEngine.Object.DestroyImmediate(gameObject, true);
                 }
                 catch (System.Exception)
                 {
@@ -55,6 +56,8 @@ namespace UnityEditor.VFX.Test
                 {
                 }
             }
+
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         static readonly string k_tempFileFormat = "Assets/TmpTests/vfx_prefab_{0}.{1}";
@@ -66,17 +69,6 @@ namespace UnityEditor.VFX.Test
             var tempFilePath = string.Format(k_tempFileFormat, m_TempFileCounter, extension);
             m_assetToDelete.Add(tempFilePath);
             return tempFilePath;
-        }
-
-        VFXGraph MakeTemporaryGraph()
-        {
-            var tempFilePath = MakeTempFilePath("vfx");
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
-            var resource = asset.GetResource(); // force resource creation
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
-            graph.visualEffectResource = resource;
-
-            return graph;
         }
 
         void MakeTemporaryPrebab(GameObject gameObject, out GameObject newGameObject, out GameObject prefabInstanceObject)
@@ -100,7 +92,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Prefab_Several_Override()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersIntDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(int)).First();
 
             Func<VisualEffect, string> dumpPropertySheetInteger = delegate(VisualEffect target)
@@ -141,7 +133,8 @@ namespace UnityEditor.VFX.Test
                 parameter.value = i + 1;
                 graph.AddChild(parameter);
             }
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var mainObject = MakeTemporaryGameObject();
             var vfx = mainObject.AddComponent<VisualEffect>();
@@ -224,6 +217,106 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        private void Add_Valid_System(VFXGraph graph)
+        {
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var slotCount = blockConstantRate.GetInputSlot(0);
+
+            var basicInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var quadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
+
+            var setPosition = ScriptableObject.CreateInstance<Block.SetAttribute>(); //only needed to allocate a minimal attributeBuffer
+            setPosition.SetSettingValue("attribute", "position");
+            setPosition.inputSlots[0].value = VFX.Position.defaultValue;
+            basicInitialize.AddChild(setPosition);
+
+            slotCount.value = 1.0f;
+
+            spawnerContext.AddChild(blockConstantRate);
+            graph.AddChild(spawnerContext);
+            graph.AddChild(basicInitialize);
+            graph.AddChild(quadOutput);
+
+            basicInitialize.LinkFrom(spawnerContext);
+            quadOutput.LinkFrom(basicInitialize);
+        }
+
+        //Cover regression from 1213773
+        [UnityTest]
+        public IEnumerator Create_Prefab_Switch_To_Empty_VisualEffectAsset()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            const int systemCount = 3;
+            for (int i = 0; i < systemCount; ++i)
+            {
+                Add_Valid_System(graph);
+            }
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var mainObject = MakeTemporaryGameObject();
+            GameObject prefabInstanceObject;
+            {
+                var tempVFX = mainObject.AddComponent<VisualEffect>();
+                tempVFX.visualEffectAsset = graph.visualEffectResource.asset;
+
+                GameObject newGameObject;
+                MakeTemporaryPrebab(mainObject, out newGameObject, out prefabInstanceObject);
+                GameObject.DestroyImmediate(mainObject);
+
+                mainObject = PrefabUtility.InstantiatePrefab(prefabInstanceObject) as GameObject;
+            }
+            yield return null;
+
+            var vfx = mainObject.GetComponent<VisualEffect>();
+
+            var vfxInPrefab = prefabInstanceObject.GetComponent<VisualEffect>();
+            var systemNames = new List<string>();
+
+            systemNames.Clear();
+            vfx.GetSystemNames(systemNames);
+            Assert.AreEqual(systemCount * 2, systemNames.Count);
+
+            systemNames.Clear();
+            vfxInPrefab.GetSystemNames(systemNames);
+            Assert.AreEqual(systemCount * 2, systemNames.Count);
+
+            while (!vfx.isActiveAndEnabled)
+                yield return null;
+
+            yield return null;
+            {
+                //vfxInPrefab.visualEffectAsset = null; //Doesn't cover awake from load beahavior which is the most common
+
+                //modifying prefab using serialized property
+                var editor = Editor.CreateEditor(vfxInPrefab);
+                editor.serializedObject.Update();
+
+                var assetProperty = editor.serializedObject.FindProperty("m_Asset");
+                assetProperty.objectReferenceValue = null;
+                editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+
+                GameObject.DestroyImmediate(editor);
+                EditorUtility.SetDirty(prefabInstanceObject);
+            }
+
+            PrefabUtility.SavePrefabAsset(prefabInstanceObject); //It will crash !
+
+            yield return null;
+
+            systemNames.Clear();
+            vfx.GetSystemNames(systemNames);
+            Assert.AreEqual(0u, systemNames.Count);
+
+            systemNames.Clear();
+            vfxInPrefab.GetSystemNames(systemNames);
+            Assert.AreEqual(0u, systemNames.Count);
+
+            Assert.IsTrue(true); //Should not have crashed here
+        }
+
         static readonly bool k_HasFixed_DisabledState = true;
         static readonly bool k_HasFixed_PrefabOverride = true;
 
@@ -231,7 +324,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Create_Prefab_Modify_And_Expect_No_Override()
         {
-            var graph = MakeTemporaryGraph();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
             var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
 
             var exposedName = "ghjkl";
@@ -240,7 +333,8 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var mainObject = MakeTemporaryGameObject();
 

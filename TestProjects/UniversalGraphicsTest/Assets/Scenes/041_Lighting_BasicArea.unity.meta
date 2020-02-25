@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: cd37c7e9d54e74dd7add9b40a2698ada
-timeCreated: 1509705368
-licenseType: Pro
+labels:
+- TestRunnerBake
 DefaultImporter:
   externalObjects: {}
   userData: 

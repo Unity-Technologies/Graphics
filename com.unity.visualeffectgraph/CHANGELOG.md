@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-11-18
+## [Unreleased]
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom Z axis option for strip output
 - Custom Inspector for Update context, display update position/rotation instead of integration
 - Tooltips to blocks, nodes, contexts, and various menus and options
+- VFX asset compilation is done at import instead of when the asset is saved.
 - New operators: Exp, Log and LoadTexture
 - Duplicate with edges.
 - Right click on edge to create a interstitial node.
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Naming for particles system and spawn context
 - Noise evaluation now performed on CPU when possible
 - Range and Min attributes support on int and uint parameters
+- New Construct Matrix from Vector4 operator
 - Ability to read attribute in spawn context through graph 
 
 ### Fixed
@@ -66,6 +68,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Inspector doesn't trigger any exception if VisualEffectAsset comes from an Asset Bundle [case 1203616](https://issuetracker.unity3d.com/issues/visual-effect-component-is-not-fully-shown-in-the-inspector-if-vfx-is-loaded-from-asset-bundle)
 - OnStop Event to the start of a Spawn Context makes it also trigger when OnPlay is sent [Case 1198339] https://issuetracker.unity3d.com/product/unity/issues/guid/1198339/
 - Remove unexpected public API : UnityEditor.VFX.VFXSeedMode & IncrementStripIndexOnStart
+- Fix yamato error : check vfx manager on domain reload instead of vfx import.
+- Filter out unrelevant events from event desc while compiling
+- Missing Packing.hlsl include while using an unlit shadergraph.
+- Fix for nesting of VFXSubgraphContexts.
+- Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602] https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps
+- Fix compilation error in runtime mode when Speed Range is 0 in Attribute By Speed block [Case 1118665] https://issuetracker.unity3d.com/issues/vfx-shader-errors-are-thrown-when-quad-outputs-speed-range-is-set-to-zero
 
 ## [7.1.1] - 2019-09-05
 ### Added
@@ -178,7 +186,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.5.0-preview] - 2019-03-07
 
-## [6.4.0-preview] - 2019-02-21 
+## [6.4.0-preview] - 2019-02-21
 
 ## [6.3.0-preview] - 2019-02-18
 
