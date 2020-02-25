@@ -176,9 +176,10 @@ all_package_ci:
 {% endfor %}
 {% endfor %}
 
+{% for editor in editors %}
 {% for package in packages %}
-publish_{{ package.id }}:
-  name: z_(do not use) Publish {{ package.name }}
+publish_{{ package.id }}_{{ editor.version }}:
+  name: z_(do not use) Publish {{ package.name }} - {{ editor.version }}
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -192,15 +193,15 @@ publish_{{ package.id }}:
         - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ package.id }}
-{% for editor in editors %}
 {% for platform in platforms %}
     - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_{{ editor.version }}
 {% endfor %}
 {% endfor %}
 {% endfor %}
 
-publish_all:
-  name: Publish all packages
+{% for editor in editors %}
+publish_all_{{ editor.version }}:
+  name: Publish all packages - {{ editor.version }}
   agent:
     type: Unity::VM
     image: package-ci/ubuntu:stable
@@ -210,5 +211,6 @@ publish_all:
     - git push origin --tags
   dependencies:
 {% for package in packages %}
-    - .yamato/upm-ci-packages.yml#publish_{{ package.id }}
+    - .yamato/upm-ci-packages.yml#publish_{{ package.id }}_{{ editor.version }}
+{% endfor %}
 {% endfor %}
