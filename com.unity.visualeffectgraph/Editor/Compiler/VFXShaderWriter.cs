@@ -219,27 +219,25 @@ namespace UnityEditor.VFX
         {
             foreach (var buffer in mapper.buffers)
             {
-                string name = mapper.GetName(buffer);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType),name);
+                var names = mapper.GetNames(buffer);
+                string actualName = names[0];
+
+                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), actualName);
                 if (VFXExpression.IsTexture(buffer.valueType)) //Mesh doesn't require a sampler or texel helper
                 {
-                var names = mapper.GetNames(texture);
-
-                // First write the actual texture
-                string actualName = names[0];
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), actualName);
-                WriteLineFormat("SamplerState sampler{0};", actualName);
-                WriteLineFormat("float4 {0}_TexelSize;", actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
-                WriteLine();
-
-                // Then write defines for all other names the texture is referenced as so it can be used by those names directly in template
-                for (int i = 1; i < names.Count; ++i)
-                {
-                    WriteLineFormat("#define {0} {1}", names[i], actualName);
-                    WriteLineFormat("#define sampler{0} sampler{1}", names[i], actualName);
-                    WriteLineFormat("#define {0}_TexelSize {1}_TexelSize", names[i], actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                    // First write the actual texture
+                    WriteLineFormat("SamplerState sampler{0};", actualName);
+                    WriteLineFormat("float4 {0}_TexelSize;", actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
                     WriteLine();
-                }
+
+                    // Then write defines for all other names the texture is referenced as so it can be used by those names directly in template
+                    for (int i = 1; i < names.Count; ++i)
+                    {
+                        WriteLineFormat("#define {0} {1}", names[i], actualName);
+                        WriteLineFormat("#define sampler{0} sampler{1}", names[i], actualName);
+                        WriteLineFormat("#define {0}_TexelSize {1}_TexelSize", names[i], actualName); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                        WriteLine();
+                    }
                 }
             }
         }
