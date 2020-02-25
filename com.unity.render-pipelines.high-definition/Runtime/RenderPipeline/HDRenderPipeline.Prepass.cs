@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.msaaEnabled)
                         mrt[1] = context.resources.GetTexture(data.depthAsColorBuffer);
 
-                    bool useRayTracing = passData.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+                    bool useRayTracing = data.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
                     RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
                                     , mrt
@@ -543,10 +543,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDBufferPassData
         {
-            public TextureHandle[]      mrt = new TextureHandle[Decal.GetMaterialDBufferCount()];
-            public int                  dBufferCount;
-            public RendererListHandle   meshDecalsRendererList;
-            public TextureHandle        depthStencilBuffer;
+            public RenderDBufferParameters  parameters;
+            public TextureHandle[]          mrt = new TextureHandle[Decal.GetMaterialDBufferCount()];
+            public int                      dBufferCount;
+            public RendererListHandle       meshDecalsRendererList;
+            public TextureHandle            depthStencilBuffer;
         }
 
         struct DBufferOutput
@@ -610,6 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
+                passData.parameters = PrepareRenderDBufferParameters();
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
 
@@ -629,14 +631,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         rti[i] = rt[i];
                     }
 
-                    RenderDBuffer(data.dBufferCount == 4,
+                    RenderDBuffer(  data.parameters,
                                     rti,
                                     rt,
                                     resources.GetTexture(data.depthStencilBuffer),
-                                    m_DbufferManager.propertyMaskBuffer,
-                                    m_DbufferManager.clearPropertyMaskBufferShader,
-                                    m_DbufferManager.clearPropertyMaskBufferKernel,
-                                    m_DbufferManager.propertyMaskBufferSize,
                                     resources.GetRendererList(data.meshDecalsRendererList),
                                     context.renderContext,
                                     context.cmd);
