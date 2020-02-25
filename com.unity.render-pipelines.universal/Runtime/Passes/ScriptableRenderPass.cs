@@ -180,71 +180,57 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = clearColor;
         }
 
-        internal void ConfigureColorAttachments(ref List<RenderTargetHandle> targets, bool loadExistingContents,
-            bool storeResults, bool shouldClear = false)
+        internal void ConfigureColorAttachments(List<RenderTargetHandle> targets)
         {
             for (var i = 0; i < targets.Count; i++)
             {
-                var target = targets[i];
-                if (!m_ColorAttachments.Contains(target))
-                    ConfigureColorAttachment(ref target, loadExistingContents, storeResults, shouldClear, i);
+                ConfigureColorAttachment(targets[i], i);
+            }
+        }
+
+        internal void ConfigureColorAttachments(RenderTargetHandle[] targets)
+        {
+           // colorAttachments.Clear();
+            for (var i = 0; i < targets.Length; i++)
+            {
+                ConfigureColorAttachment(targets[i], i);
             }
         }
 
         internal void ConfigureColorAttachment(RenderTargetHandle target, int idx = 0)
         {
-            m_ColorAttachments.Insert(idx, target);
+            m_ColorAttachments[idx] = target;
         }
 
         internal void ConfigureDepthAttachment(RenderTargetHandle target)
         {
             m_DepthAttachment = target;
         }
-        internal void ConfigureColorAttachment(ref RenderTargetHandle target, bool loadExistingContents, bool storeResults,
-            bool shouldClear = false, int idx = 0)
+
+        internal void ConfigureAttachments(RenderTargetHandle color, RenderTargetHandle depth)
         {
-            target.targetDescriptor
-                .ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
-            if (loadExistingContents) //TODO: cannot change it to load from clear atm
-                target.targetDescriptor.loadAction = RenderBufferLoadAction.Load;
-            if (!storeResults) //TODO: cannot change from Store to DontCare
-                target.targetDescriptor.storeAction = RenderBufferStoreAction.DontCare;
-            if (shouldClear)
-                target.targetDescriptor.ConfigureClear(m_ClearColor, 0.0f, 0);
-
-            m_ColorAttachments.Insert(idx, target);
-
-        }
-
-        internal void ConfigureDepthAttachment(ref RenderTargetHandle target, bool loadExistingContents, bool storeResults,
-            bool shouldClear = false)
-        {
-            target.targetDescriptor.ConfigureTarget(target.Identifier(), loadExistingContents, storeResults);
-            if (loadExistingContents) //TODO: cannot change it to load from clear atm
-                target.targetDescriptor.loadAction = RenderBufferLoadAction.Load;
-            if (!storeResults)
-                target.targetDescriptor.storeAction = RenderBufferStoreAction.DontCare;
-            if (shouldClear)
-                target.targetDescriptor.ConfigureClear(m_ClearColor, 1.0f, 1);
-            m_DepthAttachment = target;
+            m_ColorAttachments[0] = color;
+            m_DepthAttachment = depth;
         }
 
         internal void ConfigureInputAttachment(RenderTargetHandle input, int idx = 0/*Maybe we should not make this implicit?*/)
         {
             hasInputAttachment = true;
-//            if (!m_InputAttachments.Contains(input))
-//            {
-//                if (m_InputAttachments.Count < 1)
-                    m_InputAttachments.Add(input);
-//                else
-//                    m_InputAttachments.Insert(idx, input);
-//            }
+            m_InputAttachments.Add(input);
         }
 
         internal void ConfigureInputAttachments(List<RenderTargetHandle> inputs)
         {
             m_InputAttachments.Clear();
             for (int i = 0; i < inputs.Count; i++)
+            {
+                ConfigureInputAttachment(inputs[i], i);
+            }
+        }
+        internal void ConfigureInputAttachments(RenderTargetHandle[] inputs)
+        {
+            m_InputAttachments.Clear();
+            for (int i = 0; i < inputs.Length; i++)
             {
                 ConfigureInputAttachment(inputs[i], i);
             }

@@ -232,11 +232,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public virtual void SetupRendererFeaturesTarget(ref RenderingData renderingData, RenderTargetHandle target)
+        public virtual void SetupRendererFeaturesTarget(ref RenderingData renderingData, RenderTargetHandle target, RenderTargetHandle depth)
         {
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].SetFeatureColorTarget(target);
+                rendererFeatures[i].SetFeatureDepthTarget(depth);
             }
         }
         /// <summary>

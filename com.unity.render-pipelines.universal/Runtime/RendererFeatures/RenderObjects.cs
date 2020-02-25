@@ -88,7 +88,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void SetFeatureColorTarget(RenderTargetHandle color)
         {
-            renderObjectsPass.colorAttachments.Clear();
             renderObjectsPass.ConfigureColorAttachment(color);
         }
 
