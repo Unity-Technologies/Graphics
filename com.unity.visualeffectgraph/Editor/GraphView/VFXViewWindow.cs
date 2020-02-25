@@ -186,6 +186,9 @@ namespace  UnityEditor.VFX.UI
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
+
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+            titleContent.image = icon;
         }
 
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
@@ -231,8 +234,6 @@ namespace  UnityEditor.VFX.UI
 
         public bool autoCompile {get; set; }
 
-        public bool autoCompileDependent { get; set; }
-
         void Update()
         {
             if (graphView == null)
@@ -259,9 +260,13 @@ namespace  UnityEditor.VFX.UI
                         {
                             filename += "*";
                         }
+                        if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
+                        {
+                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                        }
+                        else
+                            graph.RecompileIfNeeded(true, true);
 
-
-                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }

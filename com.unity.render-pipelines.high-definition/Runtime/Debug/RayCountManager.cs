@@ -10,16 +10,27 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public enum RayCountValues
     {
+        /// <summary>Ray count for the ray traced ambient occlusion effect.</summary>
         AmbientOcclusion = 0,
+        /// <summary>Ray count for the ray traced directional shadow effect.</summary>
         ShadowDirectional = 1,
+        /// <summary>Ray count for the ray traced point shadow effect.</summary>
         ShadowPointSpot = 2,
+        /// <summary>Ray count for the ray traced area shadow effect.</summary>
         ShadowAreaLight = 3,
+        /// <summary>Ray count for the forward ray traced indirect diffuse effect.</summary>
         DiffuseGI_Forward = 4,
+        /// <summary>Ray count for the deferred ray traced indirect diffuse effect.</summary>
         DiffuseGI_Deferred = 5,
+        /// <summary>Ray count for the forward ray traced reflection effect.</summary>
         ReflectionForward = 6,
+        /// <summary>Ray count for the deferred ray traced reflection effect.</summary>
         ReflectionDeferred = 7,
+        /// <summary>Ray count for the recursive rendering effect.</summary>
         Recursive = 8,
+        /// <summary>Total number of ray count values that may be requested.</summary>
         Count = 9,
+        /// <summary>Total number of entries.</summary>
         Total = 10
     }
 

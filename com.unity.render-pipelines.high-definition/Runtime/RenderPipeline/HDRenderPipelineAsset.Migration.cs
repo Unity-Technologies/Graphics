@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ScalableSettingsRefactor,
             ShadowFilteringVeryHighQualityRemoval,
             SeparateColorGradingAndTonemappingFrameSettings,
+            ReplaceTextureArraysByAtlasForCookieAndPlanar,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -78,11 +79,30 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.SeparateColorGradingAndTonemappingFrameSettings, (HDRenderPipelineAsset data) =>
             {
                 FrameSettings.MigrateToSeparateColorGradingAndTonemapping(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.ReplaceTextureArraysByAtlasForCookieAndPlanar, (HDRenderPipelineAsset data) => 
+            {
+                ref var lightLoopSettings = ref data.m_RenderPipelineSettings.lightLoopSettings;
+
+#pragma warning disable 618 // Type or member is obsolete
+                int cookieAtlasSize = (int)lightLoopSettings.cookieAtlasSize * lightLoopSettings.cookieTexArraySize;
+#pragma warning restore 618
+                int planarSize = (int)lightLoopSettings.planarReflectionAtlasSize * lightLoopSettings.maxPlanarReflectionOnScreen;
+
+                // The atlas only supports power of two sizes
+                cookieAtlasSize = Mathf.ClosestPowerOfTwo(cookieAtlasSize);
+                planarSize = Mathf.ClosestPowerOfTwo(planarSize);
+                // Clamp to avoid too large atlases
+                cookieAtlasSize = Mathf.Clamp(cookieAtlasSize, (int)CookieAtlasResolution.CookieResolution256, (int)CookieAtlasResolution.CookieResolution8192);
+                planarSize = Mathf.Clamp(planarSize, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution256, (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution8192);
+
+                lightLoopSettings.cookieAtlasSize = (CookieAtlasResolution)cookieAtlasSize;
+                lightLoopSettings.planarReflectionAtlasSize = (PlanarReflectionAtlasResolution)planarSize;
             })
         );
 
         [SerializeField]
-        Version m_Version;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
         void Awake() => k_Migration.Migrate(this);

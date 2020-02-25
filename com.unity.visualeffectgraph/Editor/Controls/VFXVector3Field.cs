@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        public new void SetEnabled(bool value)
+        public override void SetEnabled(bool value)
         {
             for(int i = 0; i < componentCount; ++i)
             {

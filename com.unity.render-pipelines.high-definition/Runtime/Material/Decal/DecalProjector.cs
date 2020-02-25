@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Decal Projector component.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
@@ -127,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
         /// <summary>
         /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
@@ -230,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
             m_OldMaterial = m_Material;
-                  
+
 #if UNITY_EDITOR
             m_Layer = gameObject.layer;
             // Handle scene visibility
@@ -285,10 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
                 if (m_OldMaterial != m_Material)
                 {
-                    if (m_OldMaterial != null)
-                    {
-                        DecalSystem.instance.RemoveDecal(m_Handle);
-                    }
+                    DecalSystem.instance.RemoveDecal(m_Handle);
 
                     if (m_Material != null)
                     {
@@ -359,8 +359,4 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
     }
-
-
-    [Obsolete("DecalProjectorComponent have been renamed DecalProjector for API alignment", true)]
-    public sealed class DecalProjectorComponent { }
 }

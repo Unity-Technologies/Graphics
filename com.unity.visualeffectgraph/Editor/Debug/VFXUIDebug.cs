@@ -552,7 +552,8 @@ namespace UnityEditor.VFX.UI
                 default:
                     break;
             }
-            m_Curves.Notify(e);
+            if( m_Curves != null)
+                m_Curves.Notify(e);
         }
 
         static Color GetColor(int i)

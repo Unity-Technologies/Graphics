@@ -2,12 +2,12 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum CameraProjection { Perspective, Orthographic };
+    internal enum CameraProjection { Perspective, Orthographic };
 
     /// <summary>Obsolete</summary>
     [Flags]
     [Obsolete]
-    public enum ObsoleteCaptureSettingsOverrides
+    internal enum ObsoleteCaptureSettingsOverrides
     {
         //CubeResolution = 1 << 0,
         //PlanarResolution = 1 << 1,
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>Obsolete</summary>
     [Serializable]
     [Obsolete]
-    public class ObsoleteCaptureSettings
+    internal class ObsoleteCaptureSettings
     {
         /// <summary>Obsolete</summary>
         public static ObsoleteCaptureSettings @default = new ObsoleteCaptureSettings();

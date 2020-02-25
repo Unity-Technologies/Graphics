@@ -22,13 +22,9 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 
     void OnPreprocessAsset()
     {
-        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
-        if (isVFX)
-        {
-            VFXManagerEditor.CheckVFXManager();
-        }
         if (!allowExternalization)
             return;
+        bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
         if (isVFX)
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
@@ -86,63 +82,6 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             {
                 resource.shaderSources = descs;
             }
-        }
-    }
-
-    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-    {
-        foreach (var assetPath in deletedAssets)
-        {
-            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
-            {
-                VisualEffectResource.DeleteAtPath(assetPath);
-            }
-        }
-
-        if (!allowExternalization)
-            return;
-        HashSet<string> vfxToRefresh = new HashSet<string>();
-        HashSet<string> vfxToRecompile = new HashSet<string>(); // Recompile vfx if a shader is deleted to replace
-        foreach (string assetPath in importedAssets.Concat(deletedAssets).Concat(movedAssets))
-        {
-            if (assetPath.EndsWith(k_ShaderExt))
-            {
-                string shaderDirectory = Path.GetDirectoryName(assetPath);
-                string vfxName = Path.GetFileName(shaderDirectory);
-                string vfxPath = Path.GetDirectoryName(shaderDirectory);
-
-                if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
-                    continue;
-
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
-
-                if (deletedAssets.Contains(assetPath))
-                    vfxToRecompile.Add(vfxPath);
-                else
-                    vfxToRefresh.Add(vfxPath);
-            }
-        }
-
-        foreach (var assetPath in vfxToRecompile)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                continue;
-
-            // Force Recompilation to restore the previous shaders
-            VisualEffectResource resource = asset.GetResource();
-            if (resource == null)
-                continue;
-            resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
-        }
-
-        foreach (var assetPath in vfxToRefresh)
-        {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-            if (asset == null)
-                return;
-            AssetDatabase.ImportAsset(assetPath);
         }
     }
 }
@@ -306,13 +245,13 @@ class VisualEffectAssetEditor : Editor
         if (targetResources.Any())
         {
             resourceObject = new SerializedObject(targetResources);
-            resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
-            cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
-            motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
-            prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
-            prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
-            initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
-        }
+        resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
+        cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
+        motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
+        prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+        prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+        initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+    }
     }
 
     PreviewRenderUtility m_PreviewUtility;

@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             float indent = k_IndentPerLevel * EditorGUI.indentLevel;
 
-            Rect lineRect = GUILayoutUtility.GetRect(1f, EditorGUIUtility.singleLineHeight);
+            Rect lineRect = EditorGUILayout.GetControlRect();
             Rect labelRect = lineRect;
             Rect levelRect = lineRect;
             Rect fieldRect = lineRect;

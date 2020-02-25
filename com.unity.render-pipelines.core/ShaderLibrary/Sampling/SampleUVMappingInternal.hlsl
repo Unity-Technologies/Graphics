@@ -43,7 +43,7 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName)
 #undef UNPACK_DERIVATIVE_FUNC
 
 // This version is for normalmap with AG encoding only. Use with details map encoded with others properties (like smoothness).
-#define ADD_NORMAL_FUNC_SUFFIX(Name) Name##AG
+#define ADD_NORMAL_FUNC_SUFFIX(Name) MERGE_NAME(Name, AG)
 #define UNPACK_NORMAL_FUNC UnpackNormalAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingNormalInternal.hlsl"
@@ -52,7 +52,7 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName)
 #undef UNPACK_DERIVATIVE_FUNC
 
 // This version is for normalmap with RGB encoding only, i.e uncompress or BC7.
-#define ADD_NORMAL_FUNC_SUFFIX(Name) Name##RGB
+#define ADD_NORMAL_FUNC_SUFFIX(Name) MERGE_NAME(Name, RGB)
 #define UNPACK_NORMAL_FUNC UnpackNormalRGB
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingNormalInternal.hlsl"
