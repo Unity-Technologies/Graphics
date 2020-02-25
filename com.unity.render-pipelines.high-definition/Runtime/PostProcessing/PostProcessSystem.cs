@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_AntialiasingFS)
                     {
-                        taaEnabled = camera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                        taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
 
                         if (taaEnabled)
                         {

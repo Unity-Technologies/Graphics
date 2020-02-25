@@ -19,7 +19,7 @@ Shader "Hidden/HDRP/TAA2"
         #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
         #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-
+        #pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -64,7 +64,10 @@ Shader "Hidden/HDRP/TAA2"
             float2 uv = input.texcoord - jitter;
 
             // --------------- Gather neigbourhood data --------------- 
-            float3 color = ConvertToWorkingSpace(Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy));
+            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+            color = clamp(color, 0, CLAMP_MAX);
+            color = ConvertToWorkingSpace(color);
+
             NeighbourhoodSamples samples;
             GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
             // --------------------------------------------------------
@@ -95,6 +98,9 @@ Shader "Hidden/HDRP/TAA2"
             float historyLuma = GetLuma(history);
 
             history = GetClippedHistory(filteredColor, history.xyz, samples.minNeighbour.xyz, samples.maxNeighbour.xyz);
+
+            filteredColor.y = clamp(filteredColor.y, 0, CLAMP_MAX);
+            filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
@@ -109,6 +115,7 @@ Shader "Hidden/HDRP/TAA2"
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
+
             // -------------------------------------------------------------
 
 

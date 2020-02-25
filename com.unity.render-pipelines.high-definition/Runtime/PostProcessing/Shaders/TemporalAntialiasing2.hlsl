@@ -52,7 +52,7 @@ float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 #define CROSS 1   // Can only do one fast read diagonal 
 #define SMALL_NEIGHBOURHOOD_SHAPE PLUS
 // If 0, the neighbourhood is smaller, if 1 the neighbourhood is 9 samples (full 3x3)
-#define WIDE_NEIGHBOURHOOD 1
+#define WIDE_NEIGHBOURHOOD 0
 
 // Neighbourhood AABB options
 #define MINMAX 0
@@ -226,11 +226,11 @@ float3 HistoryBicubic5Tap(float2 UV)
     float2 tc3 = texSize.zw  * (tc1 + 2.0);
     float2 tc12 = texSize.zw  * (tc1 + w2 / w12);
 
-        float4 historyFiltered = float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x * w0.y) +
-        float4(Fetch(_InputHistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w0.x * w12.y) +
-        float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0) * (w12.x * w12.y) +
-        float4(Fetch(_InputHistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)   * (w3.x * w12.y) +
-        float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x *  w3.y);
+    float4 historyFiltered = float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x * w0.y) +
+    float4(Fetch(_InputHistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w0.x * w12.y) +
+    float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy), 1.0) * (w12.x * w12.y) +
+    float4(Fetch(_InputHistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy), 1.0)   * (w3.x * w12.y) +
+    float4(Fetch(_InputHistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy), 1.0)  * (w12.x *  w3.y);
 
     return historyFiltered.rgb * rcp(historyFiltered.a);
 }
@@ -244,6 +244,8 @@ float3 GetFilteredHistory(float2 UV)
 #elif HISTORY_SAMPLING_METHOD == BICUBIC_5TAP
     history = HistoryBicubic5Tap(UV);
 #endif
+
+    history = clamp(history, 0, CLAMP_MAX);
 
     return ConvertToWorkingSpace(history);
 }
@@ -317,7 +319,7 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out 
 #endif // !WIDE_NEIGHBOURHOOD
 }
 
-void MinMaxNeighbourhood(inout NeighbourhoodSamples samples, out float3 minNeighbour, out float3 maxNeighbour)
+void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
 {
     // We always have at least the first 4 neighbours.
     samples.minNeighbour = MinColor(samples.neighbours[0], samples.neighbours[1], samples.neighbours[2]);
@@ -333,18 +335,29 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples, out float3 minNeigh
     samples.maxNeighbour = MaxColor(samples.maxNeighbour, samples.neighbours[4], samples.neighbours[5]);
     samples.maxNeighbour = MaxColor(samples.maxNeighbour, samples.neighbours[6], samples.neighbours[7]);
 #endif
+
+    samples.avgNeighbour = 0;
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    {
+        samples.avgNeighbour += samples.neighbours[i];
+    }
+    samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
 void VarianceNeighbourhood(inout NeighbourhoodSamples samples)
 {
-    float3 moment1 = samples.central;
-    float3 moment2 = samples.central * samples.central;
+    float3 moment1 = 0;
+    float3 moment2 = 0;
 
     for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
     {
         moment1 += samples.neighbours[i];
         moment2 += samples.neighbours[i] * samples.neighbours[i];
     }
+    samples.avgNeighbour = moment1 * rcp(NEIGHBOUR_COUNT);
+
+    moment1 += samples.central;
+    moment2 += samples.central *  samples.central;
 
     const int sampleCount = NEIGHBOUR_COUNT + 1;
     moment1 *= rcp(sampleCount);
@@ -496,3 +509,9 @@ float3 GetClippedHistory(float3 filteredColor, float3 history, float3 minimum, f
 // ---------------------------------------------------
 // Sharpening
 // ---------------------------------------------------
+
+float3 SharpenColor(NeighbourhoodSamples samples, float3 color, float sharpenStrength)
+{
+    color += (color - samples.avgNeighbour) * sharpenStrength * 2;
+    return color;
+}
