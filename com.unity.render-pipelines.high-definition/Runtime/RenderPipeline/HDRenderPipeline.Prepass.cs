@@ -130,13 +130,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 //}
                 //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
 
-                bool renderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
+                bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
 
-                if (!renderMotionVectorAfterGBuffer)
+                if (!shouldRenderMotionVectorAfterGBuffer)
                 {
                     // If objects motion vectors are enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
                     // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
+                }
+
+                // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
+                // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
+                bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                if (needCameraMVBeforeResolve)
+                {
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
                 }
 
                 // TODO RENDERGRAPH
@@ -162,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //// Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 //SendGeometryGraphicsBuffers(cmd, hdCamera);
 
-                if (renderMotionVectorAfterGBuffer)
+                if (shouldRenderMotionVectorAfterGBuffer)
                 {
                     // See the call RenderObjectsMotionVectors() above and comment
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
@@ -644,9 +652,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthStencilBuffer = builder.ReadTexture(output.resolvedDepthBuffer);
 
                     builder.SetRenderFunc(
-                    (DBufferNormalPatchData data, RenderGraphContext context) =>
+                    (DBufferNormalPatchData data, RenderGraphContext ctx) =>
                     {
-                        DecalNormalPatch(hdCamera, context.cmd, context.renderContext);
+                        DecalNormalPatch(   data.parameters,
+                                            ctx.resources.GetTexture(data.depthStencilBuffer),
+                                            ctx.resources.GetTexture(data.normalBuffer),
+                                            ctx.cmd);
                     });
                 }
             }
