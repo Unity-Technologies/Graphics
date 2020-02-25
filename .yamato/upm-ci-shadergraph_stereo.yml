@@ -108,7 +108,6 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
     CUSTOM_REVISION: custom_revision_not_set
 {% endif %}
   commands:
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     
