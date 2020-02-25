@@ -186,6 +186,9 @@ namespace  UnityEditor.VFX.UI
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
+
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+            titleContent.image = icon;
         }
 
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
