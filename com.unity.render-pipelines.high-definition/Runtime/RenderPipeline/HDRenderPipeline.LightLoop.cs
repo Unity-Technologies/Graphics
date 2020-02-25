@@ -67,13 +67,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.buildGPULightListResources.depthBuffer = context.resources.GetTexture(data.depthBuffer);
                     data.buildGPULightListResources.stencilTexture = context.resources.GetTexture(data.stencilTexture);
-                    if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
+                    if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
                     {
                         data.buildGPULightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
                         for (int i = 0; i < data.gBufferCount; ++i)
                             data.buildGPULightListResources.gBuffer[i] = context.resources.GetTexture(data.gBuffer[i]);
                     }
 
+                    ClearLightLists(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
                     GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
                     BigTilePrepass(data.buildGPULightListParameters, data.buildGPULightListResources, context.cmd);
                     BuildPerTileLightList(data.buildGPULightListParameters, data.buildGPULightListResources, ref tileFlagsWritten, context.cmd);
@@ -81,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
-                    // WARNING: Note that the three set of variables are bound here, but it should be handled differently.
+                    // WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
                     PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
