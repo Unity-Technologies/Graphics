@@ -6,8 +6,6 @@ editors:
   - version: CUSTOM-REVISION
     cmd: -u %CUSTOM_REVISION%
 projects:
-  - name: Universal
-    folder: UniversalGraphicsTest
   - name: Universal_Stereo
     folder: UniversalGfxTestStereo
   - name: ShaderGraph
@@ -36,6 +34,8 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
+    - path: .yamato/urp_all.yml#urp_all_ci_{{ editor.version }}
+      rerun: always
   {% if editor.version == "fast-2019.3" %}
   triggers:
     pull_requests:
@@ -55,6 +55,8 @@ all_project_ci_nightly:
     - path: .yamato/upm-ci-abv.yml#all_smoke_tests_2019.3
       rerun: always
     - path: .yamato/upm-ci-packages.yml#all_package_ci
+      rerun: always
+    - path: .yamato/urp_all.yml#urp_all_ci_trunk
       rerun: always
   triggers:
     recurring:
@@ -123,3 +125,5 @@ trunk_verification:
     {% endif %}
     {% endfor %}
     {% endfor %}
+    - path: .yamato/urp_all.yml#urp_all_ci_{{ editor.version }}
+      rerun: always
