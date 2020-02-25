@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
 #if ENABLE_VIRTUALTEXTURES
         [SerializeField]
-        public VirtualTexturingSettings virtualTexturingSettings;
+        public VirtualTexturingSettingsSRP virtualTexturingSettings;
 #endif
 
 #if UNITY_EDITOR

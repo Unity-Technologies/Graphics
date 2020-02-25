@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
 #if ENABLE_VIRTUALTEXTURES
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "VirtualTexturing - Settings" + Documentation.endURL)]
-    [Serializable]
-    public sealed class VirtualTexturingSettings
+    public sealed class VirtualTexturingSettingsSRP
     {
         public int cpuCacheSizeInMegaBytes = 256;
         public int gpuCacheSizeInMegaBytes = 64;
@@ -39,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings settings = new UnityEngine.Rendering.VirtualTexturing.VirtualTexturingSettings();
                 settings.cpuCache.sizeInMegaBytes = 64;
-                settings.gpuCache.sizeInMegaBytes = 128;
+                settings.gpuCache.sizeInMegaBytes = 256;
                 return settings;
             }
         }
