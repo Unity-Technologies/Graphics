@@ -19,20 +19,20 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 2
     min: 0
     max: 4
   radius:
     m_OverrideState: 1
-    m_Value: 0.116
+    m_Value: 0.1
     min: 0.001
     max: 1
-  area:
-    m_OverrideState: 0
-    m_Value: 50
+  downSample:
+    m_OverrideState: 1
+    m_Value: 0
   sampleCount:
     m_OverrideState: 1
-    m_Value: 16
+    m_Value: 12
     min: 2
     max: 32
   quality: 1
@@ -77,7 +77,7 @@ MonoBehaviour:
     m_Value: 1
     min: 0.001
     max: 1
-  area:
+  downSample:
     m_OverrideState: 0
     m_Value: 0
   sampleCount:
