@@ -53,7 +53,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fddcdd964deca1d42b2952f32f67f694
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/106_MRT_CameraClearFlag.unity
     guid: 3959cb47829dbc04eb99168004b60d90
   - enabled: 1
@@ -80,13 +80,13 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
     guid: c44973f9bcb9e469ea540fc8b0f0324a
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
   - enabled: 1
     path: Assets/Scenes/002_Camera_Clip.unity
     guid: 4be459bb4af62441893ba57ce669de7f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/105_MRT.unity
     guid: e85a7afbf2b4621488740c65f25b210f
   - enabled: 1
