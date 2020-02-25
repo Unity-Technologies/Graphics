@@ -2,17 +2,13 @@ using System.Runtime.CompilerServices;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
-// TODO SimpleLit material, when smoothness is encoded into gbuffer it goes through exp2() -> log2() operations, fix that.
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
 // TODO use InitializeParticleLitSurfaceData() in forward pass for ParticleLitForwardPass.hlsl ? Similar refactoring for ParticleSimpleLitForwardPass.hlsl
-// TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
-// TODO remove Vector4UInt
 // TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
-// TODO Check if there is a bitarray structure (with dynamic size) available in Unity
-// TODO Rename shaderTagId for UniversalForward, UniversalForwardOnly Forward, ForwardOnly ? Match HDRP
 // TODO BakedLit.shader has a Universal2D pass, but Unlit.shader doesn't have?
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -926,8 +922,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
                 ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
 
-                NativeArray<Vector4UInt> tileList = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                NativeArray<Vector4UInt> punctualLightBuffer = new NativeArray<Vector4UInt>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint4> tileList = new NativeArray<uint4>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint> relLightList = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 // Acceleration structure to quickly find if a light has already been added to the uniform block data for the current draw call.
@@ -1281,7 +1277,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return trimCount;
         }
 
-        void StorePunctualLightData(ref NativeArray<Vector4UInt> punctualLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
+        void StorePunctualLightData(ref NativeArray<uint4> punctualLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             // tile lights do not support shadows, so shadowLightIndex is -1.
             int shadowLightIndex = -1;
@@ -1294,16 +1290,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
                 out lightAttenuation, out lightSpotDir);
 
-            punctualLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
-            punctualLightBuffer[storeIndex * 4 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
-            punctualLightBuffer[storeIndex * 4 + 2] = new Vector4UInt(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            punctualLightBuffer[storeIndex * 4 + 3] = new Vector4UInt(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)shadowLightIndex);
+            punctualLightBuffer[storeIndex * 4 + 0] = new uint4(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            punctualLightBuffer[storeIndex * 4 + 1] = new uint4(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
+            punctualLightBuffer[storeIndex * 4 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            punctualLightBuffer[storeIndex * 4 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)shadowLightIndex);
         }
 
-        void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
+        void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
         {
             // See struct TileData in TileDeferred.shader.
-            tileList[storeIndex] = new Vector4UInt { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
+            tileList[storeIndex] = new uint4 { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1537,22 +1533,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Mem[bitIndex >> 5] |= 1u << (bitIndex & 31);
             else
                 m_Mem[bitIndex >> 5] &= ~(1u << (bitIndex & 31));
-        }
-    };
-
-    struct Vector4UInt
-    {
-        public uint x;
-        public uint y;
-        public uint z;
-        public uint w;
-
-        public Vector4UInt(uint _x, uint _y, uint _z, uint _w)
-        {
-            x = _x;
-            y = _y;
-            z = _z;
-            w = _w;
         }
     };
 }
