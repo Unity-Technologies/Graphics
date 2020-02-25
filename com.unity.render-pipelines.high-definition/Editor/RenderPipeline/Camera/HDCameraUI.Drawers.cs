@@ -468,6 +468,9 @@ namespace UnityEditor.Rendering.HighDefinition
             else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
             {
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
+                EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
+                EditorGUILayout.PropertyField(p.taaStdDevBoost, TAAStdDevBoost);
+                EditorGUILayout.PropertyField(p.oldTAA, OldTAA);
             }
         }
 

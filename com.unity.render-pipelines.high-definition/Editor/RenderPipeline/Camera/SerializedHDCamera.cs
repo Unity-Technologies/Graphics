@@ -22,6 +22,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
+        // TODO_FCC: Cleanup
+        public SerializedProperty taaHistorySharpening;
+        public SerializedProperty taaStdDevBoost;
+        public SerializedProperty oldTAA;
+
         public SerializedProperty dithering;
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
@@ -67,6 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
+            taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
+            taaStdDevBoost = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaStdDevBoost);
+            oldTAA = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.oldTAA);
+
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
