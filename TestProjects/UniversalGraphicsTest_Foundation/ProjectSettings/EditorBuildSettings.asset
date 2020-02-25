@@ -29,7 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/052_LWCallbacks.unity
     guid: 58d22e8497ba91141b3ae7abd7b0bb41
   - enabled: 1
@@ -47,7 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/001_SimpleCube.unity
     guid: d0462e56cffa64b7e86823f437fc329c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
   - enabled: 1
@@ -59,13 +59,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
     guid: 2b6b74b7929ae4191b3b936c12236e0a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/040_UpgradeScene.unity
     guid: 5b50bbd7a4d4f4f49b5a50ebed1ba42c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/053_UnlitShader.unity
     guid: a28e1d48e6e3c0e42a4050ab4e770bf8
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
   - enabled: 1
@@ -77,10 +77,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/120_RenderUICustomRendererNoPP.unity
     guid: 40c4ce99a7711204d978b31395d890b4
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
     guid: c44973f9bcb9e469ea540fc8b0f0324a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
   - enabled: 1
@@ -92,7 +92,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/124_CameraStackingClearRT.unity
     guid: 2fac616c9e61b45ccb7fcfa4fb18ae60
   - enabled: 1
@@ -101,7 +101,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/121_RenderUICustomRendererNoAA.unity
     guid: 74cb351d2fc32de4d812e3f2f08744e7
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/123_CameraStackingClear.unity
     guid: 9aa9851df0da149c9a83a0f26072e234
   - enabled: 1
@@ -122,7 +122,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/020_Lighting_BasicDirectional.unity
     guid: 212f11efb89a64145b37e753079f1b51
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
   m_configObjects: {}
