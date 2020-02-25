@@ -1,3 +1,4 @@
+#define PROCEDURAL_VT_IN_GRAPH
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -319,52 +320,29 @@ namespace UnityEditor.ShaderGraph
 
         public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes)
         {
-            List<KeyValuePair<string, string>> slotNames = new List<KeyValuePair<string, string>>();
+            var slotNames = new Dictionary<string, string>();
 
             foreach (SampleTextureStackNode node in nodes)
             {
+                if (node.isProcedural)
+                    continue;
+
                 for (int i = 0; i < node.numSlots; i++)
                 {
-                    if (!node.isProcedural)
-                    {
-                        string value = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
-                        string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
+                    string key = node.GetSlotValue(node.TextureInputIds[i], GenerationMode.ForReals);
+                    string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
 
-                        // Check if there is already a slot with the same value
-                        int found = slotNames.FindIndex(elem => elem.Key == value);
-                        if (found >= 0)
-                        {
-                            // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{value}' shares it's input with another stack input '{slotNames[found].Value}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
-                        }
-                        else
-                        {
-                            // Save it for checking against other slots
-                            slotNames.Add(new KeyValuePair<string, string>(value, name));
-                        }
-                    }
-
-#if PROCEDURAL_VT_IN_GRAPH
-                    // Check if there is already a node with the same sampleid
-                    SampleTextureStackProceduralNode ssp = node as SampleTextureStackProceduralNode;
-                    if (ssp != null)
+                    // Check if there is already a slot with the same value
+                    if (slotNames.ContainsKey(key))
                     {
-                        string value = ssp.GetStackName();
-                        string name = ssp.GetStackName();
-                        // Check if there is already a slot with the same value
-                        int found = slotNames.FindIndex(elem => elem.Key == value);
-                        if (found >= 0)
-                        {
-                            // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"This node has the same procedural ID as another node. Nodes need to have different procedural IDs.", ShaderCompilerMessageSeverity.Error);
-                        }
-                        else
-                        {
-                            // Save it for checking against other slots
-                            slotNames.Add(new KeyValuePair<string, string>(value, name));
-                        }
+                        // Add a validation error, values need to be unique
+                        node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{key}' shares it's input with another stack input '{slotNames[key]}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                     }
-#endif
+                    else
+                    {
+                        // Save it for checking against other slots
+                        slotNames.Add(key, name);
+                    }
                 }
             }
         }
@@ -399,7 +377,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (isProcedural)
             {
-                return GetStackName() + "_stacks_are_not_supported_with_vt_off_" + layerIndex;
+                return $"{GetStackName()}_{layerIndex}";
             }
             else
             {
@@ -457,15 +435,17 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_LodCalculation == LodCalculation.Automatic)
                 {
-                    string result = string.Format("StackInfo {0}_info = PrepareStack({1}, {0});"
+                    string result = string.Format("StackInfo {1}_info = PrepareStack({2}, {0});"
                         , stackName
+                        , GetVariableNameForNode()
                         , GetSlotValue(UVInputId, generationMode));
                     sb.AppendLine(result);
                 }
                 else
                 {
-                    string result = string.Format("StackInfo {0}_info = PrepareStackLod({1}, {0}, {2});"
+                    string result = string.Format("StackInfo {1}_info = PrepareStackLod({2}, {0}, {3});"
                         , stackName
+                        , GetVariableNameForNode()
                         , GetSlotValue(UVInputId, generationMode)
                         , GetSlotValue(LODInputId, generationMode));
                     sb.AppendLine(result);
@@ -478,7 +458,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var id = GetTextureName(i, generationMode);
                     string resultLayer = string.Format("$precision4 {1} = {3}({0}_info, {2});"
-                            , stackName
+                            , GetVariableNameForNode()
                             , GetVariableNameForSlot(OutputSlotIds[i])
                             , id
                             , GetSampleFunction());
@@ -510,7 +490,7 @@ namespace UnityEditor.ShaderGraph
                 //TODO: Investigate if the feedback pass can use halfs
                 string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
                         GetVariableNameForSlot(FeedbackSlotId),
-                        stackName);
+                        GetVariableNameForNode());
                 sb.AppendLine(feedBackCode);
             }
         }
@@ -746,16 +726,16 @@ namespace UnityEditor.ShaderGraph
         public SampleTextureStackProceduralNode() : base(1, true)
         { }
 
-        [IntegerControl("Sample ID")]
-        public int sampleID
+        [StringControl("Texture Stack Name")]
+        public string stackName
         {
-            get { return m_sampleId; }
+            get { return m_StackName; }
             set
             {
-                if (m_sampleId == value)
+                if (m_StackName == value)
                     return;
 
-                m_sampleId = value;
+                m_StackName = value;
                 Dirty(ModificationScope.Graph);
 
                 ValidateNode();
@@ -763,12 +743,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        int m_sampleId = 0;
+        string m_StackName = "_Procedural";
 
         protected override string GetStackName()
-        {
-            return "Procedural" + m_sampleId;
-        }
+            => m_StackName;
     }
 #endif
 }

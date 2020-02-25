@@ -127,6 +127,7 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 \
 	StackInfo info = (StackInfo) 0;\
     GR_LOOKUP(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
+    info.lookupDataLod = (GraniteLODLookupData)0; \
 	return info;\
 } \
 StackInfo PrepareVTLod_##stackName(float2 uv, float mip) \
@@ -147,6 +148,7 @@ StackInfo PrepareVTLod_##stackName(float2 uv, float mip) \
 \
     StackInfo info = (StackInfo) 0;\
     GR_LOOKUP_LOD(grCB, translationTable, uv, mip, info.lookupDataLod, info.resolveOutput);\
+    info.lookupData = (GraniteLookupData)0; \
 	return info;\
 }
 #define jj2(a, b) a##b
@@ -284,6 +286,7 @@ StackInfo MakeStackInfo(float2 uv)
 {
     StackInfo result;
     result.uv = uv;
+    result.lod = 0;
     return result;
 }
 StackInfo MakeStackInfoLod(float2 uv, float lod)
