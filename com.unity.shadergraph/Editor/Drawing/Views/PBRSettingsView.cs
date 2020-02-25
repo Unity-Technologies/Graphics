@@ -20,31 +20,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropertySheet ps = new PropertySheet();
 
             ps.Add(new PropertyRow(new Label("Workflow")), (row) =>
+            {
+                row.Add(new EnumField(PBRMasterNode.Model.Metallic), (field) =>
                 {
-                    row.Add(new EnumField(PBRMasterNode.Model.Metallic), (field) =>
-                    {
-                        field.value = m_Node.model;
-                        field.RegisterValueChangedCallback(ChangeWorkFlow);
-                    });
+                    field.value = m_Node.model;
+                    field.RegisterValueChangedCallback(ChangeWorkFlow);
                 });
+            });
 
             ps.Add(new PropertyRow(new Label("Surface")), (row) =>
+            {
+                row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                 {
-                    row.Add(new EnumField(SurfaceType.Opaque), (field) =>
-                    {
-                        field.value = m_Node.surfaceType;
-                        field.RegisterValueChangedCallback(ChangeSurface);
-                    });
+                    field.value = m_Node.surfaceType;
+                    field.RegisterValueChangedCallback(ChangeSurface);
                 });
+            });
 
             ps.Add(new PropertyRow(new Label("Blend")), (row) =>
+            {
+                row.Add(new EnumField(AlphaMode.Additive), (field) =>
                 {
-                    row.Add(new EnumField(AlphaMode.Additive), (field) =>
-                    {
-                        field.value = m_Node.alphaMode;
-                        field.RegisterValueChangedCallback(ChangeAlphaMode);
-                    });
+                    field.value = m_Node.alphaMode;
+                    field.RegisterValueChangedCallback(ChangeAlphaMode);
                 });
+            });
 
             ps.Add(new PropertyRow(new Label("Fragment Normal Space")), (row) =>
             {
@@ -56,13 +56,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             ps.Add(new PropertyRow(new Label("Two Sided")), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
                 {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.twoSided.isOn;
-                        toggle.OnToggleChanged(ChangeTwoSided);
-                    });
+                    toggle.value = m_Node.twoSided.isOn;
+                    toggle.OnToggleChanged(ChangeTwoSided);
                 });
+            });
+
             ps.Add(new PropertyRow(new Label("DOTS instancing")), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -71,6 +72,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     toggle.OnToggleChanged(ChangeDotsInstancing);
                 });
             });
+
+            if (m_Node.dotsInstancing.isOn)
+            {
+                ps.Add(new PropertyRow(new Label("    No Instance Matrices")), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.noMatrices.isOn;
+                        toggle.OnToggleChanged(ChangeNoMatrices);
+                    });
+                });
+            }
 
             Add(ps);
         }
@@ -125,6 +138,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.dotsInstancing;
             td.isOn = evt.newValue;
             m_Node.dotsInstancing = td;
+        }
+
+        void ChangeNoMatrices(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("NoMatrices Change");
+            ToggleData td = m_Node.noMatrices;
+            td.isOn = evt.newValue;
+            m_Node.noMatrices = td;
         }
     }
 }

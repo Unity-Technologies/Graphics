@@ -43,6 +43,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_NoMatrices = false; // "nomatrices" instancing directive.
+
+        public ToggleData noMatrices
+        {
+            get { return new ToggleData(m_NoMatrices); }
+            set
+            {
+                if (m_NoMatrices == value.isOn)
+                    return;
+
+                m_NoMatrices = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public abstract string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
         public abstract bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
         public abstract int GetPreviewPassIndex();

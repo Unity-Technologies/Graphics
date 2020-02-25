@@ -248,8 +248,9 @@ namespace UnityEditor.ShaderGraph
                 if (masterNode is MasterNode node && node.dotsInstancing.isOn)
                 {
                     instancingOptions.AppendLine("#define UNITY_DOTS_SHADER");
-                    instancingOptions.AppendLine("#pragma instancing_options nolightprobe");
-                    instancingOptions.AppendLine("#pragma instancing_options nolodfade");
+                    instancingOptions.AppendLine("#pragma instancing_options nolodfade nolightprobe");
+                    if (node.noMatrices.isOn)
+                        instancingOptions.AppendLine("#pragma instancing_options nomatrices");
                 }
 
                 if ( instanceCount> 0)

@@ -235,6 +235,19 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            if (m_Node.dotsInstancing.isOn)
+            {
+                ++indentLevel;
+                ps.Add(new PropertyRow(CreateLabel("No Instance Matrices", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.noMatrices.isOn;
+                        toggle.OnToggleChanged(ChangeNoMatrices);
+                    });
+                });
+                --indentLevel;
+            }
 
             Add(ps);
         }
@@ -301,6 +314,13 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.dotsInstancing = td;
         }
 
+        void ChangeNoMatrices(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("NoMatrices Change");
+            ToggleData td = m_Node.noMatrices;
+            td.isOn = evt.newValue;
+            m_Node.noMatrices = td;
+        }
 
         void UpdateRenderingPassValue(HDRenderQueue.RenderQueueType newValue)
         {

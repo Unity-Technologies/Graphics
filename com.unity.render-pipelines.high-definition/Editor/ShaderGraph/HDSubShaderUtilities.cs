@@ -797,8 +797,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (masterNode is MasterNode node && node.dotsInstancing.isOn)
                 {
                     instancingOptions.AddShaderChunk("#define UNITY_DOTS_SHADER");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade nolightprobe");
+                    if (node.noMatrices.isOn)
+                        instancingOptions.AddShaderChunk("#pragma instancing_options nomatrices");
                 }
 
                 if (instancedCount > 0)
