@@ -39,7 +39,7 @@ float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 // ---------------------------------------------------
 
 // Working space options
-#define PERCEPTUAL_SPACE 1
+#define PERCEPTUAL_SPACE 0
 #define YCOCG 1
 
 // History sampling options
@@ -127,37 +127,40 @@ float GetLuma(float3 color)
     return Luminance(color);
 #endif
 }
-float3 ToneMap(float3 c)
+
+float PerceptualWeight(float3 c, float localWeight)
 {
 #if PERCEPTUAL_SPACE
-    return  c * rcp(GetLuma(c) + 1.0);
+    return localWeight / (1.0 + GetLuma(c) * localWeight);
 #else
-    return c;
+    return 1;
 #endif
 }
-float3 ReverseToneMap(float3 c)
+
+float PerceptualInvWeight(float3 c, float localWeight)
 {
 #if PERCEPTUAL_SPACE
-    return  c * rcp(1.0 - GetLuma(c));
+    return 1.0 / ((1.0 - GetLuma(c)) * localWeight);
 #else
-    return c;
+    return 1;
 #endif
 }
+
 float3 ConvertToWorkingSpace(float3 rgb)
 {
 #if YCOCG
-    return ToneMap(RGBToYCoCg(rgb)).xyz;
+    return RGBToYCoCg(rgb);
 #else
-    return ToneMap(rgb).xyz;
+    return rgb;
 #endif
 
 }
 float3 ConvertToOutputSpace(float3 rgb)
 {
 #if YCOCG
-    return YCoCgToRGB(ReverseToneMap(rgb));
+    return YCoCgToRGB(rgb);
 #else
-    return ReverseToneMap(rgb);
+    return rgb;
 #endif
 }
 
@@ -263,11 +266,22 @@ struct NeighbourhoodSamples
     float3 minNeighbour;
     float3 maxNeighbour;
     float3 avgNeighbour;
+    float  test_remove;
 };
+
+
+void ConvertNeighboursToPerceptualSpace(inout NeighbourhoodSamples samples)
+{
+    samples.neighbours[0] *= PerceptualWeight(samples.neighbours[0], samples.test_remove);
+    samples.neighbours[1] *= PerceptualWeight(samples.neighbours[1], samples.test_remove);
+    samples.neighbours[2] *= PerceptualWeight(samples.neighbours[2], samples.test_remove);
+    samples.neighbours[3] *= PerceptualWeight(samples.neighbours[3], samples.test_remove);
+    samples.central       *= PerceptualWeight(samples.central, samples.test_remove);
+}
 
 void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out NeighbourhoodSamples samples)
 {
-    samples = (NeighbourhoodSamples)0; // TODO_FCC VERIFY
+    samples = (NeighbourhoodSamples)0;
 
     samples.central = centralColor;
 
@@ -276,29 +290,29 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out 
 #if WIDE_NEIGHBOURHOOD
 
     // Plus shape
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy));
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy));
+    samples.neighbours[0] = RGBToYCoCg(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy));
+    samples.neighbours[1] = RGBToYCoCg(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy));
     samples.neighbours[2] = QuadReadAcrossX_3(centralColor, positionSS);
     samples.neighbours[3] = QuadReadAcrossY_3(centralColor, positionSS);
 
     // Cross shape
     int2 fastOffset = int2(quadOffset.x > 0 ? -1 : 1, quadOffset.y > 0 ? 1 : -1);
     int2 offset1 = (quadOffset.x == quadOffset.y) ? int2(1, 1) : int2(-1, 1);
-    int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
-    int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
+    int2 offset2 = (quadOffset.x == -1 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
+    int2 offset3 = (quadOffset.x == -1 && quadOffset.y == -1) ? int2(-1, 1) : int2(1, -1);
 
     samples.neighbours[4] = QuadReadAcrossDiagonal_3(centralColor, positionSS);
-    samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy));
-    samples.neighbours[6] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy));
-    samples.neighbours[7] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy));
+    samples.neighbours[5] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy));
+    samples.neighbours[6] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy));
+    samples.neighbours[7] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy));
 
 #else // !WIDE_NEIGHBOURHOOD
 
 #if SMALL_NEIGHBOURHOOD_SHAPE == PLUS
 
 
-    samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy));
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy));
+    samples.neighbours[0] = RGBToYCoCg(Fetch4(_InputTexture, UV, float2(0.0f, quadOffset.y), _RTHandleScale.xy));
+    samples.neighbours[1] = RGBToYCoCg(Fetch4(_InputTexture, UV, float2(quadOffset.x, 0.0f), _RTHandleScale.xy));
     samples.neighbours[2] = QuadReadAcrossX_3(centralColor, positionSS);
     samples.neighbours[3] = QuadReadAcrossY_3(centralColor, positionSS);
 
@@ -306,18 +320,30 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, float3 centralColor, out 
 
     int2 fastOffset = int2(quadOffset.x > 0 ? -1 : 1, quadOffset.y > 0 ? 1 : -1);
     int2 offset1 = (quadOffset.x == quadOffset.y) ? int2(1, 1) : int2(-1, 1);
-    int2 offset2 = (quadOffset.x == 0 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
-    int2 offset3 = (quadOffset.x == 0 && quadOffset.y == 0) ? int2(-1, 1) : int2(1, -1);
+    int2 offset2 = (quadOffset.x == -1 && quadOffset.y == 1) ? int2(1, 1) : int2(-1, -1);
+    int2 offset3 = (quadOffset.x == -1 && quadOffset.y == -1) ? int2(-1, 1) : int2(1, -1);
 
     samples.neighbours[0] = QuadReadAcrossDiagonal_3(centralColor, positionSS);
-    samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy));
-    samples.neighbours[2] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy));
-    samples.neighbours[3] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy));
+    samples.neighbours[1] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy));
+    samples.neighbours[2] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy));
+    samples.neighbours[3] = RGBToYCoCg(Fetch4(_InputTexture, UV, offset3, _RTHandleScale.xy));
 
-#endif // SMALL_NEIGHBOURHOOD_SHAPE == 5
+#endif // SMALL_NEIGHBOURHOOD_SHAPE == 4
 
 #endif // !WIDE_NEIGHBOURHOOD
+
+#if PERCEPTUAL_SPACE
+    samples.test_remove = GetLuma(samples.central) * 0.23792f;
+    samples.test_remove += GetLuma(samples.neighbours[0]) * 0.190518f;
+    samples.test_remove += GetLuma(samples.neighbours[1]) * 0.190518f;
+    samples.test_remove += GetLuma(samples.neighbours[2]) * 0.190518f;
+    samples.test_remove += GetLuma(samples.neighbours[3]) * 0.190518f;
+
+    samples.test_remove =  1.0f / clamp(samples.test_remove, 0.01, 1e3f);
+    ConvertNeighboursToPerceptualSpace(samples);
+#endif
 }
+
 
 void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
 {

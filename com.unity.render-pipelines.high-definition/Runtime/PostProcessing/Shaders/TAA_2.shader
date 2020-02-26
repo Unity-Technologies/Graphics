@@ -66,7 +66,7 @@ Shader "Hidden/HDRP/TAA2"
             // --------------- Gather neigbourhood data --------------- 
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
             color = clamp(color, 0, CLAMP_MAX);
-            color = ConvertToWorkingSpace(color);
+            color = RGBToYCoCg(color);
 
             NeighbourhoodSamples samples;
             GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
@@ -89,6 +89,7 @@ Shader "Hidden/HDRP/TAA2"
 
             // --------------- Get resampled history --------------- 
             float3 history = GetFilteredHistory(input.texcoord - motionVector);
+            history *= PerceptualWeight(history, samples.test_remove);
             // -----------------------------------------------------
 
             // --------------- Get neighbourhood information and clamp history --------------- 
@@ -111,13 +112,13 @@ Shader "Hidden/HDRP/TAA2"
 
             // --------------- Blend to final value and output ---------------
             float3 finalColor = lerp(history.xyz, filteredColor.xyz, feedback);
+            finalColor *= PerceptualInvWeight(finalColor, samples.test_remove);
             color.xyz = ConvertToOutputSpace(finalColor);
-
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
-            outColor = color;
 
             // -------------------------------------------------------------
 
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
+            outColor = color.CTYPE_SWIZZLE;
 
             // -------------------------------------------------------------
         }
