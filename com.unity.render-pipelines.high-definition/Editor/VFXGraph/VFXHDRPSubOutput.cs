@@ -10,11 +10,14 @@ namespace UnityEditor.VFX
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue opaque particles are drawn. This is useful for drawing particles after post processing so they are not affected by effects such as Depth of Field.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector | VFXSettingAttribute.VisibleFlags.InGraph), Header("HDRP"), Tooltip("Specifies when in the render queue opaque particles are drawn. This is useful for drawing particles after post processing so they are not affected by effects such as Depth of Field.")]
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector | VFXSettingAttribute.VisibleFlags.InGraph), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
         public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
+
+
+        
 
         // Caps
         public override bool supportsExposure { get { return true; } } 
@@ -39,6 +42,18 @@ namespace UnityEditor.VFX
                 else
                     yield return "opaqueRenderQueue";
             }
+        }
+
+        public override IEnumerable<int> GetFilteredOutValues(string name)
+        {
+            switch (name)
+            {
+                case "opaqueRenderQueue":
+                    return new int[] { (int)OpaqueRenderQueue.Raytracing };
+                case "transparentRenderQueue":
+                    return new int[] { (int)TransparentRenderQueue.Raytracing };
+            }
+            return null;
         }
 
         public override string GetBlendModeStr()

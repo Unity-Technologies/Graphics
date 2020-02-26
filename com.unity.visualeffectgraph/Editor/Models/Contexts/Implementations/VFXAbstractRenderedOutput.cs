@@ -44,6 +44,12 @@ namespace UnityEditor.VFX
 
         protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
+
+
+        public override IEnumerable<int> GetFilteredOutValues(string name)
+        {
+            return subOutput.GetFilteredOutValues(name);
+        }
         public VFXSRPSubOutput subOutput
         {
             get

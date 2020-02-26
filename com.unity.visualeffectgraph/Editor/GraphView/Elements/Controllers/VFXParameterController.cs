@@ -67,6 +67,7 @@ namespace UnityEditor.VFX.UI
                 return m_Children;
             }
         }
+        IEnumerable<int> IPropertyRMProvider.filteredOutValues { get { return null; } }
 
         VFXCoordinateSpace IPropertyRMProvider.space
         {
@@ -213,6 +214,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        IEnumerable<int> IPropertyRMProvider.filteredOutValues { get { return null; } }
         public string name
         {
             get { return m_Min ? "Min" : "Max"; }
@@ -336,6 +338,7 @@ namespace UnityEditor.VFX.UI
                 return;
             NotifyChange(ValueChanged);
         }
+        IEnumerable<int> IPropertyRMProvider.filteredOutValues { get { return null; } }
 
         Dictionary<string, VFXSubParameterController> m_ChildrenByPath = new Dictionary<string, VFXSubParameterController>();
 

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             if (owner == null)
                 throw new NullReferenceException("Owner cannot be null");
 
-            m_Owner = owner;    
+            m_Owner = owner;
         }
 
         private VFXAbstractRenderedOutput m_Owner;

@@ -28,6 +28,8 @@ namespace UnityEditor.VFX.UI
         Type portType { get; }
         int depth {get; }
         bool editable { get; }
+
+        IEnumerable<int> filteredOutValues { get; }
         void RetractPath();
         void ExpandPath();
     }
@@ -67,6 +69,9 @@ namespace UnityEditor.VFX.UI
                 m_Setter((T)value);
             }
         }
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutValues { get { return null; } }
+
         string IPropertyRMProvider.name
         {
             get { return m_Name; }

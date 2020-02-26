@@ -225,6 +225,7 @@ namespace UnityEditor.VFX.UI
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
 
+        IEnumerable<int> IPropertyRMProvider.filteredOutValues { get { return null; } }
         public object value
         {
             get
