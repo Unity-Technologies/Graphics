@@ -170,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.FabricRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.FabricRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.FabricRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
             },
         };
 
@@ -183,6 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDPasses.HDLitRaytracing.Visibility, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.Forward, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.GBuffer, new FieldCondition(Fields.IsPreview, false) },
+                { HDPasses.HDLitRaytracing.SubSurface, new FieldCondition(Fields.IsPreview, false) },
                 { HDPasses.HDLitRaytracing.PathTracing, new FieldCondition(Fields.IsPreview, false) },
             },
         };

@@ -1831,6 +1831,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingInstanced,
+                defines = HDDefines.HDLitRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
+                passTemplatePath = GetPassTemplatePath("Lit"),
+            };
         }
 #endregion
 
@@ -2034,6 +2058,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Fabric, HDFields.ShaderPass.RayTracingGBuffer },
 
                 // Custom Template
+                passTemplatePath = GetPassTemplatePath("Fabric"),
+            };
+            public static PassDescriptor SubSurface = new PassDescriptor()
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                //Port mask
+                vertexPorts = HDPortMasks.Vertex.HDLitDefault,
+                pixelPorts = HDPortMasks.Pixel.HDLitDefault,
+
+                //Collections
+                structs = HDStructCollections.Default,
+                fieldDependencies = HDFieldDependencies.Default,
+                pragmas = HDPragmas.RaytracingInstanced,
+                defines = HDDefines.FabricRaytracingGBuffer,
+                keywords = HDKeywords.RaytracingGBufferForward,
+                includes = HDIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.SubShader.Fabric, HDFields.ShaderPass.RaytracingSubSurface },
+
+                //Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
         }
