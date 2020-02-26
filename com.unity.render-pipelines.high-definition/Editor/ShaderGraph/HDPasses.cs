@@ -372,7 +372,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.Meta,
                 pragmas = HDPragmas.Instanced,
-                keywords = HDKeywords.TransparentBlend,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitMeta,
 
                 // Custom Template
@@ -396,7 +396,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDShadowCaster,
                 pragmas = HDPragmas.Instanced,
-                keywords = HDKeywords.TransparentBlend,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDepthOnly,
 
                 // Custom Template
@@ -421,7 +421,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDUnlitSceneSelection,
                 pragmas = HDPragmas.InstancedEditorSync,
                 defines = HDDefines.SceneSelection,
-                keywords = HDKeywords.TransparentBlend,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDepthOnly,
 
                 // Custom Template
@@ -494,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = HDFieldDependencies.Default,
                 renderStates = HDRenderStates.HDUnlitDistortion,
                 pragmas = HDPragmas.Instanced,
-                keywords = HDKeywords.TransparentBlend,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.UnlitDistortion,
 
                 // Custom Template
@@ -1848,7 +1848,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 pragmas = HDPragmas.RaytracingBasic,
-                keywords = HDKeywords.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldDescriptor[]{ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingIndirect },
 
@@ -1872,7 +1872,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 pragmas = HDPragmas.RaytracingBasic,
-                keywords = HDKeywords.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldDescriptor[]{ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingVisibility },
 
@@ -1896,7 +1896,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 pragmas = HDPragmas.RaytracingBasic,
-                keywords = HDKeywords.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldDescriptor[]{ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingForward },
 
@@ -1920,7 +1920,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 pragmas = HDPragmas.RaytracingBasic,
-                keywords = HDKeywords.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldDescriptor[]{ HDFields.SubShader.Unlit, HDFields.ShaderPass.RayTracingGBuffer },
 
@@ -1974,7 +1974,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDStructCollections.Default,
                 fieldDependencies = HDFieldDependencies.Default,
                 pragmas = HDPragmas.RaytracingInstanced,
-                keywords = HDKeywords.RaytracingBasic,
+                keywords = HDKeywords.HDBase,
                 includes = HDIncludes.Raytracing,
                 requiredFields = new FieldDescriptor[]{ HDFields.SubShader.Fabric, HDFields.ShaderPass.RaytracingVisibility },
 

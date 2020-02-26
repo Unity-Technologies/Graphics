@@ -245,7 +245,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
             };
+
+            public static KeywordDescriptor AlphaTest = new KeywordDescriptor()
+            {
+                displayName = "Alpha Test",
+                referenceName = "_ALPHATEST_ON",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local
+            };
         }
+        public static KeywordCollection HDBase = new KeywordCollection
+        {
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
+            { Descriptors.SurfaceTypeTransparent },
+            { Descriptors.BlendMode },
+            { Descriptors.DoubleSided },
+            { Descriptors.FogOnTransparent },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
+        };
+
+        public static KeywordCollection Lightmaps = new KeywordCollection
+        {
+            { Descriptors.Lightmap },
+            { Descriptors.DirectionalLightmapCombined },
+            { Descriptors.DynamicLightmap },
+        };
 
         public static KeywordCollection WriteMsaaDepth = new KeywordCollection
         {
@@ -266,12 +291,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Descriptors.LodFadeCrossfade },
             { Descriptors.DebugDisplay },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { Lightmaps },
             { Descriptors.ShadowsShadowmask },
             { Descriptors.LightLayers },
             { Descriptors.Decals },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
         public static KeywordCollection DepthMotionVectors = new KeywordCollection
@@ -279,133 +303,78 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.WriteMsaaDepth },
             { Descriptors.WriteNormalBuffer },
             { Descriptors.LodFadeCrossfade },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
         public static KeywordCollection Forward = new KeywordCollection
         {
             { Descriptors.LodFadeCrossfade },
             { Descriptors.DebugDisplay },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { Lightmaps },
             { Descriptors.ShadowsShadowmask },
             { Descriptors.Decals },
             { Descriptors.Shadow },
             { Descriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true) },
-        };
-
-        public static KeywordCollection TransparentBlend = new KeywordCollection
-        {
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.FogOnTransparent },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
         public static KeywordCollection HDDepthMotionVectors = new KeywordCollection
         {
+            { HDBase },
             { Descriptors.WriteMsaaDepth },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDUnlitForward = new KeywordCollection
         {
+            { HDBase },
             { Descriptors.DebugDisplay },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDGBuffer = new KeywordCollection
         {
-            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.DoubleSided },
-            { Descriptors.BlendMode },
+            { HDBase },
             { Descriptors.DebugDisplay },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { Lightmaps },
             { Descriptors.ShadowsShadowmask },
             { Descriptors.LightLayers },
             { Descriptors.Decals },
-            { Descriptors.FogOnTransparent },
-        };
-
-        public static KeywordCollection HDBase = new KeywordCollection
-        {
-            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.DoubleSided },
-            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDLitDepthMotionVectors = new KeywordCollection
         {
+            { HDBase },
             { Descriptors.WriteMsaaDepth },
             { Descriptors.WriteNormalBuffer },
-            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.DoubleSided },
-            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDForward = new KeywordCollection
         {
-            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.DoubleSided },
-            { Descriptors.BlendMode },
+            { HDBase },
             { Descriptors.DebugDisplay },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { Lightmaps },
             { Descriptors.ShadowsShadowmask },
             { Descriptors.Shadow },
             { Descriptors.Decals },
             { Descriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true) },
-            { Descriptors.FogOnTransparent },
         };
 
         public static KeywordCollection HDDepthMotionVectorsNoNormal = new KeywordCollection
         {
+            { HDBase },
             { Descriptors.WriteMsaaDepth },
-            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.BlendMode },
-            { Descriptors.DoubleSided },
-            { Descriptors.FogOnTransparent },
-        };
-
-        public static KeywordCollection RaytracingBasic = new KeywordCollection
-        {
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.DoubleSided },
-            { Descriptors.BlendMode },
         };
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
         {
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.DoubleSided },
-            { Descriptors.BlendMode },
+            { HDBase },
             { Descriptors.DiffuseLightingOnly },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { Lightmaps },
         };
 
         public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
         {
-            { Descriptors.SurfaceTypeTransparent },
-            { Descriptors.DoubleSided },
-            { Descriptors.BlendMode },
-            { Descriptors.Lightmap },
-            { Descriptors.DirectionalLightmapCombined },
-            { Descriptors.DynamicLightmap },
+            { HDBase },
+            { Lightmaps },
         };
     }
 }
