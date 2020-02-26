@@ -1,23 +1,108 @@
 using System;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
-namespace UnityEngine.Rendering.Universal.Internal
+public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
 {
-    class ScreenSpaceAOPass : ScriptableRenderPass
+    // Public Variables
+    public Settings settings = new Settings();
+    public override bool HasFeatureRequirements => true;
+
+    // Private Variables
+    private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
+
+    [SerializeField]
+    public enum DepthTextureSource
     {
+        Depth,
+        DepthNormals,
+        GBuffer
+    }
+
+
+    [Serializable]
+    public class Settings
+    {
+        public DepthTextureSource depthTextureSource = DepthTextureSource.Depth;
+    }
+
+
+    public ScreenSpaceAmbientOcclusion()
+    {
+        
+    }
+
+    // Called from OnEnable and OnValidate...
+    public override void Create()
+    {
+        // Get the array of renderers...
+        ScriptableRendererData[] rendererDataArray = UniversalRenderPipeline.asset.m_RendererDataList;
+        if (rendererDataArray == null || rendererDataArray[0] == null)
+        {
+            return;
+        }
+
+        // Try to get data from the forward renderer...
+        ForwardRendererData forwardData = null;
+        forwardData = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
+        if (forwardData == null)
+        {
+            return;
+        }
+
+        // TODO: Deferred...
+        // When implemented we need to to get the data from it.
+
+        // Create the pass if we haven't already done so...
+        if (m_SSAOPass == null)
+        {
+            m_SSAOPass = new ScreenSpaceAmbientOcclusionPass(name, forwardData.shaders.screenSpaceAmbientOcclusionPS, RenderPassEvent.AfterRenderingPrePasses);
+        }
+    }
+
+    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
+    {
+        m_SSAOPass.Setup(name, ref renderingData, settings.depthTextureSource);
+        renderer.EnqueuePass(m_SSAOPass);
+    }
+
+    public override RenderFeatureRequirements GetFeatureRequirements()
+    {
+        return new RenderFeatureRequirements()
+        {
+            depthTexture = settings.depthTextureSource == DepthTextureSource.Depth,
+            depthNormalTexture = settings.depthTextureSource == DepthTextureSource.DepthNormals,
+        };
+    }
+
+    public override void Cleanup()
+    {
+        Debug.Log("ScreenSpaceAmbientOcclusion.Cleanup()");
+
+        if (m_SSAOPass != null)
+        {
+            m_SSAOPass.Cleanup();
+        }
+    }
+
+
+
+    private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
+    {
+        private Material m_Material;
+        private RenderTargetHandle m_Texture;
         private RenderTextureDescriptor m_Descriptor;
         private RenderTargetIdentifier screenSpaceOcclusionTexture;
 
-        private Material m_ScreenSpaceAOMaterial;
-        private RenderTargetHandle m_ScreenSpaceAmbientOcclusion;
-        private const string m_ProfilerTag = "Screen Space Ambient Occlusion";
-        private bool m_Enabled;
-        private bool m_IsDeferred = false;
-        private bool m_HasDepthNormalTexture = false;
-        private int m_DownScale = 1;
+        private string m_ProfilerTag;
+        private DepthTextureSource m_DepthTextureMode = DepthTextureSource.Depth;
 
-        public static readonly int _TempTarget = Shader.PropertyToID("_TempTarget");
-        public static readonly int _TempTarget2 = Shader.PropertyToID("_TempTarget2");
+        private const string m_TextureName = "_ScreenSpaceAOTexture";
+        public static readonly int _TempRenderTexture1 = Shader.PropertyToID("_TempRenderTexture1");
+        public static readonly int _TempRenderTexture2 = Shader.PropertyToID("_TempRenderTexture2");
 
         private enum SSAOShaderPasses
         {
@@ -31,87 +116,97 @@ namespace UnityEngine.Rendering.Universal.Internal
             FinalComposition = 7,
         }
 
-        public ScreenSpaceAOPass(Material screenspaceAOMaterial, bool enabled)
+        public ScreenSpaceAmbientOcclusionPass(string profilerTag, Shader screenSpaceAmbientOcclusionShader, RenderPassEvent rpEvent)
         {
-            m_Enabled = enabled;
-            m_ScreenSpaceAOMaterial = screenspaceAOMaterial;
-            m_ScreenSpaceAmbientOcclusion.Init("_ScreenSpaceAOTexture");
-            renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+            m_ProfilerTag = profilerTag;
+            m_Material = CoreUtils.CreateEngineMaterial(screenSpaceAmbientOcclusionShader);
+            m_Texture.Init(m_TextureName);
+            renderPassEvent = rpEvent;
         }
 
-        public bool Setup(ref RenderingData renderingData, bool isDeferred, bool hasDepthNormalTexture)
+        public void Setup(string profilerTag, ref RenderingData renderingData, DepthTextureSource depthTextureMode)
         {
-            m_IsDeferred = isDeferred;
-            m_HasDepthNormalTexture = hasDepthNormalTexture;
-
-            return m_Enabled;
+            m_ProfilerTag = profilerTag;
+            m_DepthTextureMode = depthTextureMode;
         }
-        
+
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             AmbientOcclusion ambientOcclusion = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            int downScale = 1;
+            float intensity = 1.0f;
+            float radius = 0.1f;
+            int sampleCount = 12;
 
-            m_DownScale = ambientOcclusion.downSample.value ? 2 : 1;
+            if (ambientOcclusion != null)
+            {
+                downScale = ambientOcclusion.downSample.value ? 2 : 1;
+                intensity = ambientOcclusion.intensity.value;
+                radius = ambientOcclusion.radius.value;
+                sampleCount = ambientOcclusion.sampleCount.value;
+            }
+
 
             // Setup descriptor
             m_Descriptor = cameraTextureDescriptor;
             m_Descriptor.msaaSamples = 1;
             m_Descriptor.depthBufferBits = 0;
-            m_Descriptor.width = m_Descriptor.width / m_DownScale;
-            m_Descriptor.height = m_Descriptor.height / m_DownScale;
+            m_Descriptor.width = m_Descriptor.width / downScale;
+            m_Descriptor.height = m_Descriptor.height / downScale;
             m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             // SSAO settings
-            m_ScreenSpaceAOMaterial.SetFloat("_SSAO_Intensity", ambientOcclusion.intensity.value);
-            m_ScreenSpaceAOMaterial.SetFloat("_SSAO_Radius", ambientOcclusion.radius.value);
-            m_ScreenSpaceAOMaterial.SetInt("_SSAO_Samples", ambientOcclusion.sampleCount.value);
+            m_Material.SetFloat("_SSAO_DownScale", 1.0f / downScale);
+            m_Material.SetFloat("_SSAO_Intensity", intensity);
+            m_Material.SetFloat("_SSAO_Radius", radius);
+            m_Material.SetInt("_SSAO_Samples", sampleCount);
 
-            cmd.GetTemporaryRT(m_ScreenSpaceAmbientOcclusion.id, m_Descriptor, FilterMode.Bilinear);
+            var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * downScale, m_Descriptor.height * downScale, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(_TempRenderTexture1, desc, FilterMode.Point);
+            cmd.GetTemporaryRT(_TempRenderTexture2, desc, FilterMode.Point);
 
-            var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * m_DownScale, m_Descriptor.height * m_DownScale, GraphicsFormat.R8G8B8A8_UNorm);
-            cmd.GetTemporaryRT(_TempTarget, desc, FilterMode.Bilinear);
-            cmd.GetTemporaryRT(_TempTarget2, desc, FilterMode.Bilinear);
-
-            screenSpaceOcclusionTexture = m_ScreenSpaceAmbientOcclusion.Identifier();
+            screenSpaceOcclusionTexture = m_Texture.Identifier();
 
             ConfigureTarget(screenSpaceOcclusionTexture);
-            ConfigureClear(ClearFlag.All, Color.black);
+            ConfigureClear(ClearFlag.All, Color.white);
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (m_ScreenSpaceAOMaterial == null)
+            if (m_Material == null)
             {
                 Debug.LogErrorFormat(
                     "Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.",
-                    m_ScreenSpaceAOMaterial, GetType().Name);
+                    m_Material, GetType().Name);
                 return;
             }
 
             Camera camera = renderingData.cameraData.camera;
-            m_ScreenSpaceAOMaterial.SetMatrix("ProjectionMatrix", camera.projectionMatrix);
-            bool stereo = renderingData.cameraData.isStereoEnabled;
+            m_Material.SetMatrix("ProjectionMatrix", camera.projectionMatrix);
+            bool isStereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            if (!stereo)
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, true);
+            if (!isStereo)
             {
-                if (m_IsDeferred)
+                switch (m_DepthTextureMode)
                 {
-                    ExecuteGBuffer(camera, cmd);
-                }
-                else if (!m_HasDepthNormalTexture)
-                {
-                    ExecuteDepthTexture(camera, cmd);
-                }
-                else
-                {
-                    ExecuteDepthNormalTexture(camera, cmd);
+                    case DepthTextureSource.Depth:
+                        ExecuteDepthTexture(camera, cmd);
+                        break;
+                    case DepthTextureSource.DepthNormals:
+                        ExecuteDepthNormalTexture(camera, cmd);
+                        break;
+                    case DepthTextureSource.GBuffer:
+                        ExecuteGBuffer(camera, cmd);
+                        break;
                 }
             }
             else
             {
-                ExecuteBlit(camera, cmd);
+                // ????
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -125,7 +220,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private void ExecuteDepthTexture(Camera camera, CommandBuffer cmd)
         {
-            Debug.LogError("Only DEPTH is not Implemented!!!!");
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+
+            // Occlusion pass
+            cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, (int)SSAOShaderPasses.OcclusionDepth);
+
+            // Horizontal Blur
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture1);
+            cmd.Blit(_TempRenderTexture1, _TempRenderTexture2, m_Material, (int)SSAOShaderPasses.HorizontalBlurDepth);
+
+            // Vertical Blur
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture2);
+            cmd.Blit(_TempRenderTexture2, _TempRenderTexture1, m_Material, (int)SSAOShaderPasses.VerticalBlur);
+
+            // Final Composition
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture1);
+            cmd.Blit(_TempRenderTexture1, screenSpaceOcclusionTexture, m_Material, (int)SSAOShaderPasses.FinalComposition);
+
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         private void ExecuteDepthNormalTexture(Camera camera, CommandBuffer cmd)
@@ -133,27 +245,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
             // Occlusion pass
-            cmd.Blit(_TempTarget, _TempTarget, m_ScreenSpaceAOMaterial, (int)SSAOShaderPasses.OcclusionDepthNormals);
+            cmd.Blit(_TempRenderTexture1, _TempRenderTexture1, m_Material, (int)SSAOShaderPasses.OcclusionDepthNormals);
 
             // Horizontal Blur
-            cmd.SetGlobalTexture("_MainTex", _TempTarget);
-            cmd.Blit(_TempTarget, _TempTarget2, m_ScreenSpaceAOMaterial, (int)SSAOShaderPasses.HorizontalBlurDepthNormals);
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture1);
+            cmd.Blit(_TempRenderTexture1, _TempRenderTexture2, m_Material, (int)SSAOShaderPasses.HorizontalBlurDepthNormals);
 
             // Vertical Blur
-            cmd.SetGlobalTexture("_MainTex", _TempTarget2);
-            cmd.Blit(_TempTarget2, _TempTarget, m_ScreenSpaceAOMaterial, (int)SSAOShaderPasses.VerticalBlur);
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture2);
+            cmd.Blit(_TempRenderTexture2, _TempRenderTexture1, m_Material, (int)SSAOShaderPasses.VerticalBlur);
 
             // Final Composition
-            cmd.SetGlobalTexture("_MainTex", _TempTarget);
-            cmd.Blit(_TempTarget, screenSpaceOcclusionTexture, m_ScreenSpaceAOMaterial, (int)SSAOShaderPasses.FinalComposition);
+            cmd.SetGlobalTexture("_MainTex", _TempRenderTexture1);
+            cmd.Blit(_TempRenderTexture1, screenSpaceOcclusionTexture, m_Material, (int)SSAOShaderPasses.FinalComposition);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-        }
-
-        private void ExecuteBlit(Camera camera, CommandBuffer cmd)
-        {
-            // Avoid setting and restoring camera view and projection matrices when in stereo.
-            Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceAOMaterial);
         }
 
         /// <inheritdoc/>
@@ -164,22 +270,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
             }
 
-            cmd.ReleaseTemporaryRT(m_ScreenSpaceAmbientOcclusion.id);
-            cmd.ReleaseTemporaryRT(_TempTarget);
-            cmd.ReleaseTemporaryRT(_TempTarget2);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceAmbientOcclusion, false);
+            cmd.ReleaseTemporaryRT(m_Texture.id);
+            cmd.ReleaseTemporaryRT(_TempRenderTexture1);
+            cmd.ReleaseTemporaryRT(_TempRenderTexture2);
         }
 
         RenderTextureDescriptor GetStereoCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
+         {
+             // Inherit the VR setup from the camera descriptor
+             var desc = m_Descriptor;
+             desc.depthBufferBits = depthBufferBits;
+             desc.msaaSamples = 1;
+             desc.width = width;
+             desc.height = height;
+             desc.graphicsFormat = format;
+             return desc;
+         }
+
+        public void Cleanup()
         {
-            // Inherit the VR setup from the camera descriptor
-            var desc = m_Descriptor;
-            desc.depthBufferBits = depthBufferBits;
-            desc.msaaSamples = 1;
-            desc.width = width;
-            desc.height = height;
-            desc.graphicsFormat = format;
-            return desc;
+            CoreUtils.Destroy(m_Material);
         }
     }
+
+
 }
 

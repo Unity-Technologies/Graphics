@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
-        ScreenSpaceAOPass m_ScreenSpaceAmbientOcclusionPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
@@ -53,11 +52,6 @@ namespace UnityEngine.Rendering.Universal
         Material m_CopyDepthMaterial;
         Material m_SamplingMaterial;
         Material m_ScreenspaceShadowsMaterial;
-        Material m_ScreenspaceAOMaterial;
-
-        // TODO! ELVAR => Make this a proper setting!
-        bool isDeferred = false;
-        bool requiresDepthNormal = true;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -66,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
-            m_ScreenspaceAOMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceAOPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -83,7 +76,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask, m_DepthNormalMaterial);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
-            m_ScreenSpaceAmbientOcclusionPass = new ScreenSpaceAOPass(m_ScreenspaceAOMaterial, data.screenSpaceAO);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, m_CopyDepthMaterial);
@@ -116,13 +108,18 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Cleanup()
         {
+            // Make all renderer features clean up...
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                rendererFeatures[i].Cleanup();
+            }
+
             m_PostProcessPass.Cleanup();
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_DepthNormalMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_ScreenspaceShadowsMaterial);
-            CoreUtils.Destroy(m_ScreenspaceAOMaterial);
         }
 
         /// <inheritdoc />
@@ -149,6 +146,21 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            // Find out what our render features require...
+            RenderFeatureRequirements renderFeatureRequirements = new RenderFeatureRequirements();
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                // Skip if the feature doesn't have any specific requirements...
+                if (!rendererFeatures[i].HasFeatureRequirements)
+                {
+                    continue;
+                }
+
+                RenderFeatureRequirements rqr = rendererFeatures[i].GetFeatureRequirements();
+                renderFeatureRequirements.depthTexture       |= rqr.depthTexture;
+                renderFeatureRequirements.depthNormalTexture |= rqr.depthNormalTexture;
+            }
+
             bool postProcessEnabled = cameraData.postProcessEnabled;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
@@ -157,13 +169,11 @@ namespace UnityEngine.Rendering.Universal
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
-            bool isSSAOEnabled = m_ScreenSpaceAmbientOcclusionPass.Setup(ref renderingData, isDeferred, requiresDepthNormal);
-            
 
             // Depth prepass is generated in the following cases:
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = isSceneViewCamera || isSSAOEnabled;
+            bool requiresDepthPrepass = isSceneViewCamera || renderFeatureRequirements.depthTexture || renderFeatureRequirements.depthNormalTexture;
             requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
 
             // The copying of depth should normally happen after rendering skybox.
@@ -227,21 +237,16 @@ namespace UnityEngine.Rendering.Universal
 
             if (requiresDepthPrepass)
             {
-                if (requiresDepthNormal)
+                if (renderFeatureRequirements.depthNormalTexture)
                 {
                     m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthNormalTexture);
                     EnqueuePass(m_DepthNormalPrepass);
                 }
-                else
+                else if (renderFeatureRequirements.depthTexture)
                 {
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                     EnqueuePass(m_DepthPrepass);
                 }
-            }
-
-            if (isSSAOEnabled)
-            {
-                EnqueuePass(m_ScreenSpaceAmbientOcclusionPass);
             }
 
             if (postProcessEnabled)

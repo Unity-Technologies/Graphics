@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
 
             [Reload("Shaders/Utils/ScreenSpaceAmbientOcclusion.shader")]
-            public Shader screenSpaceAOPS;
+            public Shader screenSpaceAmbientOcclusionPS;
         }
 
         [Reload("Textures/BlueNoiseNormal.png")]

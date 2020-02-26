@@ -31,7 +31,9 @@
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
 
+#if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
 TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -370,8 +372,11 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 // Sample the SSAO map
 half SampleAO(half3 positionCS)
 {
-    //half2 positionNDC = ComputeNormalizedDeviceCoordinates(positionCS);
+#if defined(_SCREEN_SPACE_AMBIENT_OCCLUSION)
     return SAMPLE_TEXTURE2D(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture, positionCS.xy * (_ScreenParams.zw - 1)).x;
+#endif
+
+    return 1.0;
 }
 
 // Samples SH L0, L1 and L2 terms

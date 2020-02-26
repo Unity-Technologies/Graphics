@@ -2,6 +2,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public struct RenderFeatureRequirements
+    {
+        public bool depthTexture;
+        public bool depthNormalTexture;
+    }
+
     /// <summary>
     /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
     /// </summary>
@@ -19,8 +25,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="renderPasses">List of render passes to add to.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
-        public abstract void AddRenderPasses(ScriptableRenderer renderer,
-            ref RenderingData renderingData);
+        public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
+
 
         void OnEnable()
         {
@@ -30,6 +36,18 @@ namespace UnityEngine.Rendering.Universal
         void OnValidate()
         {
             Create();
+        }
+
+        public virtual bool HasFeatureRequirements { get { return false; } }
+
+        public virtual RenderFeatureRequirements GetFeatureRequirements()
+        {
+            return new RenderFeatureRequirements();
+        }
+
+        public virtual void Cleanup()
+        {
+
         }
     }
 }

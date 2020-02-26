@@ -48,7 +48,7 @@ Shader "Hidden/Universal Render Pipeline/DepthNormal"
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal);
 
                 output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
-                output.positionCS = vertexInput.positionCS;
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.positionWS = vertexInput.positionWS;
 
                 return output;

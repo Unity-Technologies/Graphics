@@ -56,7 +56,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Cull Off
 
             HLSLPROGRAM
-                #pragma vertex   VertDefault
+                #define SOURCE_DEPTH
+                #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
@@ -72,7 +73,8 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Cull Off
 
             HLSLPROGRAM
-                #pragma vertex   VertDefault
+                #define SOURCE_DEPTH_NORMALS
+                #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
@@ -84,11 +86,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_OcclusionWithGBuffer"
 
             HLSLPROGRAM
+                #define SOURCE_GBUFFER
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #pragma multi_compile _ APPLY_FORWARD_FOG
                 #pragma multi_compile _ FOG_LINEAR FOG_EXP FOG_EXP2
-                #define SOURCE_GBUFFER
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -99,11 +101,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_HorizontalBlurWithCameraDepthTexture"
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragBlur
-                #define SOURCE_DEPTHNORMALS
+                #define SOURCE_DEPTH
                 #define BLUR_HORIZONTAL
                 #define BLUR_SAMPLE_CENTER_NORMAL
+                #pragma vertex VertDefault
+                #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -114,11 +116,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_HorizontalBlurWithCameraDepthNormalsTexture"
 
             HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragBlur
                 #define SOURCE_DEPTHNORMALS
                 #define BLUR_HORIZONTAL
                 #define BLUR_SAMPLE_CENTER_NORMAL
+                #pragma vertex VertDefault
+                #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -129,9 +131,9 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_GBuffer"
 
             HLSLPROGRAM
+                #define SOURCE_GBUFFER
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
-                #define SOURCE_GBUFFER
                 #define BLUR_HORIZONTAL
                 #define BLUR_SAMPLE_CENTER_NORMAL
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
@@ -144,9 +146,9 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             Name "SSAO_VerticalBlurWithCameraDepthNormalsTexture"
             
             HLSLPROGRAM
+                #define BLUR_VERTICAL
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
-                #define BLUR_VERTICAL
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -163,54 +165,5 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
-
-        // 8 - Final composition (ambient only mode)
-        Pass
-        {
-            Blend Zero OneMinusSrcColor, Zero OneMinusSrcAlpha
-
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragCompositionGBuffer
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        // 9 - Debug overlay
-        Pass
-        {
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragDebugOverlay
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-            ENDHLSL
-        }
-
-        /*Pass
-        {
-            Name "DepthBlur"
-            ZTest Always
-            ZWrite Off
-            Cull Off
-
-            HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma vertex Vertex
-            #pragma fragment FragBoxDownsample
-
-            TEXTURE2D(_ScreenSpaceAOTexture);
-            SAMPLER(sampler_ScreenSpaceAOTexture);
-            float4 _ScreenSpaceAOTexture_TexelSize;
-
-            float _SampleOffset;
-
-            half4 FragBoxDownsample(Varyings input) : SV_Target
-            {
-                half4 col = DepthBlur(TEXTURE2D_ARGS(_ScreenSpaceAOTexture, sampler_ScreenSpaceAOTexture), input.uv, _ScreenSpaceAOTexture_TexelSize.xy);
-                return half4(col.rgb, 1);
-            }
-            ENDHLSL
-        }*/
     }
 }

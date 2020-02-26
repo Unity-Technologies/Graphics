@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             baseDescriptor.colorFormat = RenderTextureFormat.ARGBHalf;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
-            baseDescriptor.sRGB = true;
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
