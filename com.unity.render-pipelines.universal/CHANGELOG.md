@@ -115,6 +115,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where camera stacking didn't work properly inside prefab mode. [case 1220509](https://issuetracker.unity3d.com/issues/urp-cannot-assign-overlay-cameras-to-a-camera-stack-while-in-prefab-mode)
 - Fixed an issue with shadow cascade values were not readable in the render pipeline asset [case 1219003](https://issuetracker.unity3d.com/issues/urp-cascade-values-truncated-on-selecting-two-or-four-cascades-in-shadows-under-universalrenderpipelineasset)
 - Fixed the definition of `mad()` in SMAA shader for OpenGL.
+- Fixed an issue where partical shaders failed to handle Single-Pass Stereo VR rendering with Double-Wide Textures. [case 1201208](https://issuetracker.unity3d.com/issues/urp-vr-each-eye-uses-the-cameraopaquetexture-of-both-eyes-for-rendering-when-using-single-pass-rendering-mode)
 - Fixed an issue that caused assets to be reimported if player prefs were cleared. [case 1192259](https://issuetracker.unity3d.com/issues/lwrp-clearing-playerprefs-through-a-script-or-editor-causes-delay-and-console-errors-to-appear-when-entering-the-play-mode)
 - Fixed missing Custom Render Features after Library deletion. [case 1196338](https://issuetracker.unity3d.com/product/unity/issues/guid/1196338/)
 - Fixed not being able to remove a Renderer Feature due to tricky UI selection rects. [case 1208113](https://issuetracker.unity3d.com/product/unity/issues/guid/1208113/)
