@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
-            { Descriptors.DoubleSided },
+            { Descriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
             { Descriptors.FogOnTransparent },
             { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };

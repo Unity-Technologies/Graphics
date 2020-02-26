@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDRequiredFields
     {
-        public static FieldDescriptor[] Meta = new FieldDescriptor[]
+        public static FieldCollection Meta = new FieldCollection()
         {
             HDStructFields.AttributesMesh.normalOS,
             HDStructFields.AttributesMesh.tangentOS,
@@ -14,12 +14,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.uv2,
         };
 
-        public static FieldDescriptor[] PositionRWS = new FieldDescriptor[]
+        public static FieldCollection PositionRWS = new FieldCollection()
         {
             HDStructFields.VaryingsMeshToPS.positionRWS,
         };
 
-        public static FieldDescriptor[] LitMinimal = new FieldDescriptor[]
+        public static FieldCollection LitMinimal = new FieldCollection()
         {
             HDStructFields.FragInputs.tangentToWorld,
             HDStructFields.FragInputs.positionRWS,
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.texCoord2,
         };
 
-        public static FieldDescriptor[] LitFull = new FieldDescriptor[]
+        public static FieldCollection LitFull = new FieldCollection()
         {
             HDStructFields.AttributesMesh.normalOS,
             HDStructFields.AttributesMesh.tangentOS,
@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.color,
         };
 
-        public static FieldDescriptor[] DecalMesh = new FieldDescriptor[]
+        public static FieldCollection DecalMesh = new FieldCollection()
         {   
             HDStructFields.AttributesMesh.normalOS,
             HDStructFields.AttributesMesh.tangentOS,

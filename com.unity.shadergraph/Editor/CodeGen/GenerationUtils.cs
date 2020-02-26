@@ -438,13 +438,13 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        internal static void AddRequiredFields(FieldDescriptor[] passRequiredFields,IActiveFieldsSet activeFields)
+        internal static void AddRequiredFields(FieldCollection passRequiredFields,IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)
             {
-                foreach (var requiredField in passRequiredFields)
+                foreach (FieldCollection.Item requiredField in passRequiredFields)
                 {
-                    activeFields.AddAll(requiredField);
+                    activeFields.AddAll(requiredField.field);
                 }
             }
         }
