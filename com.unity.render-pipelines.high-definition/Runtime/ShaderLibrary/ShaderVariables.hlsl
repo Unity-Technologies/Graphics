@@ -245,7 +245,8 @@ CBUFFER_START(UnityGlobal)
     float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
 
     float  _ContactShadowOpacity;
-    float4 _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+    float3 _VBufferLightingViewportScale;  // Necessary to support sub-allocation of the RT system
+    float3 _VBufferLightingViewportLimit;  // Necessary to support sub-allocation of the RT system
 
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
@@ -254,7 +255,8 @@ CBUFFER_START(UnityGlobal)
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
     float4 _VBufferPrevViewportSize;
-    float4 _VBufferHistoryUvScaleAndLimit;
+    float3 _VBufferHistoryViewportScale;   // Necessary to support sub-allocation of the RT system
+    float3 _VBufferHistoryViewportLimit;   // Necessary to support sub-allocation of the RT system
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 

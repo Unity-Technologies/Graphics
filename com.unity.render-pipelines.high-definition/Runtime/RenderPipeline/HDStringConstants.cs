@@ -497,11 +497,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferSliceCount                 = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferRcpSliceCount              = Shader.PropertyToID("_VBufferRcpSliceCount");
         public static readonly int _VBufferRcpInstancedViewCount      = Shader.PropertyToID("_VBufferRcpInstancedViewCount");
-        public static readonly int _VBufferSharedUvScaleAndLimit      = Shader.PropertyToID("_VBufferSharedUvScaleAndLimit");
+        public static readonly int _VBufferLightingViewportScale      = Shader.PropertyToID("_VBufferLightingViewportScale");
+        public static readonly int _VBufferLightingViewportLimit      = Shader.PropertyToID("_VBufferLightingViewportLimit");
         public static readonly int _VBufferDistanceEncodingParams     = Shader.PropertyToID("_VBufferDistanceEncodingParams");
         public static readonly int _VBufferDistanceDecodingParams     = Shader.PropertyToID("_VBufferDistanceDecodingParams");
         public static readonly int _VBufferPrevViewportSize           = Shader.PropertyToID("_VBufferPrevViewportSize");
-        public static readonly int _VBufferHistoryUvScaleAndLimit     = Shader.PropertyToID("_VBufferHistoryUvScaleAndLimit");
+        public static readonly int _VBufferHistoryViewportScale       = Shader.PropertyToID("_VBufferHistoryViewportScale");
+        public static readonly int _VBufferHistoryViewportLimit       = Shader.PropertyToID("_VBufferHistoryViewportLimit");
         public static readonly int _VBufferPrevDepthEncodingParams    = Shader.PropertyToID("_VBufferPrevDepthEncodingParams");
         public static readonly int _VBufferPrevDepthDecodingParams    = Shader.PropertyToID("_VBufferPrevDepthDecodingParams");
         public static readonly int _VBufferLastSliceDist              = Shader.PropertyToID("_VBufferLastSliceDist");

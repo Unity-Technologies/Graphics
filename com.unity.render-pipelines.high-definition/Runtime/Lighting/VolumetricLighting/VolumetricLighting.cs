@@ -113,10 +113,18 @@ namespace UnityEngine.Rendering.HighDefinition
             depthDecodingParams = ComputeLogarithmicDepthDecodingParams(nearDist, farDist, c);
         }
 
-        internal Vector4 ComputeUvScaleAndLimit(Vector2Int bufferSize)
+        internal Vector3 ComputeViewportScale(Vector3Int bufferSize)
         {
-            // The slice count is fixed for now.
-            return HDUtils.ComputeUvScaleAndLimit(new Vector2Int(viewportSize.x, viewportSize.y), bufferSize);
+            return new Vector3(HDUtils.ComputeViewportScale(viewportSize.x, bufferSize.x),
+                               HDUtils.ComputeViewportScale(viewportSize.y, bufferSize.y),
+                               HDUtils.ComputeViewportScale(viewportSize.z, bufferSize.z));
+        }
+
+        internal Vector3 ComputeViewportLimit(Vector3Int bufferSize)
+        {
+            return new Vector3(HDUtils.ComputeViewportLimit(viewportSize.x, bufferSize.x),
+                               HDUtils.ComputeViewportLimit(viewportSize.y, bufferSize.y),
+                               HDUtils.ComputeViewportLimit(viewportSize.z, bufferSize.z));
         }
 
         internal float ComputeLastSliceDistance(int sliceCount)
@@ -554,23 +562,23 @@ namespace UnityEngine.Rendering.HighDefinition
             // The viewport size is the same for all of these buffers.
             // All of these buffers may have sub-native-resolution viewports.
             // The 3rd dimension (number of slices) is the same for all of these buffers.
-            Vector2Int sharedBufferSize = new Vector2Int(m_LightingBuffer.width, m_LightingBuffer.height);
+            Vector3Int lightingBufferSize = new Vector3Int(m_LightingBuffer.width, m_LightingBuffer.height, m_LightingBuffer.volumeDepth);
 
             Debug.Assert(m_LightingBuffer.width  == m_DensityBuffer.width);
             Debug.Assert(m_LightingBuffer.height == m_DensityBuffer.height);
 
-            Vector2Int historyBufferSize = Vector2Int.zero;
+            Vector3Int historyBufferSize = Vector3Int.zero;
 
             if (hdCamera.IsVolumetricReprojectionEnabled())
             {
                 RenderTexture historyRT = hdCamera.volumetricHistoryBuffers[prevIdx];
 
-                historyBufferSize = new Vector2Int(historyRT.width, historyRT.height);
+                historyBufferSize = new Vector3Int(historyRT.width, historyRT.height, historyRT.volumeDepth);
 
                 // Handle case of first frame. When we are on the first frame, we reuse the value of original frame.
                 if (historyBufferSize.x == 0.0f && historyBufferSize.y == 0.0f)
                 {
-                    historyBufferSize = sharedBufferSize;
+                    historyBufferSize = lightingBufferSize;
                 }
             }
 
@@ -583,18 +591,20 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,            new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
             cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              sliceCount);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / sliceCount);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferSharedUvScaleAndLimit,   currFrameParams.ComputeUvScaleAndLimit(sharedBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportScale,   currFrameParams.ComputeViewportScale(lightingBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportLimit,   currFrameParams.ComputeViewportLimit(lightingBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance(sliceCount));
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevViewportSize,        new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
-            cmd.SetGlobalVector(HDShaderIDs._VBufferHistoryUvScaleAndLimit,  prevFrameParams.ComputeUvScaleAndLimit(historyBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferHistoryViewportScale,    prevFrameParams.ComputeViewportScale(historyBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferHistoryViewportLimit,    prevFrameParams.ComputeViewportLimit(historyBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
 
-            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                  m_LightingBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,               m_LightingBuffer);
         }
 
         DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
