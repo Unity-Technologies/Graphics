@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: ForwardRenderer
   m_EditorClassIdentifier: 
-  m_RendererFeatures: []
+  m_RendererFeatures:
+  - {fileID: 2959526473908130213}
   blueNoiseNormal: {fileID: 2800000, guid: 9d80ba761c2804b5ea44bca1eb92da43, type: 3}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
@@ -23,7 +24,8 @@ MonoBehaviour:
       type: 3}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
-    screenSpaceAOPS: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+    screenSpaceAmbientOcclusionPS: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017,
+      type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -39,3 +41,17 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_ScreenSpaceAO: 1
+--- !u!114 &2959526473908130213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
+  m_Name: NewScreenSpaceAmbientOcclusion
+  m_EditorClassIdentifier: 
+  settings:
+    depthTextureMode: 2
