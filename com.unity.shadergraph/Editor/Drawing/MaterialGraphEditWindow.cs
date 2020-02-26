@@ -286,6 +286,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (oldShader != null)
                     ShaderUtil.ClearShaderMessages(oldShader);
 
+                ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, graphObject.graph);
+
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
