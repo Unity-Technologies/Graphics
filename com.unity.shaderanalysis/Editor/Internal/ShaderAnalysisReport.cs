@@ -22,11 +22,11 @@ namespace UnityEditor.ShaderAnalysis.Internal
             return m_PlatformJobFactories.ContainsKey(targetPlatform) && m_PlatformJobFactories[targetPlatform].HasCapability(job);
         }
 
-        public IAsyncJob BuildReportAsync(Object asset, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
+        public IAsyncJob BuildReportAsync<TAsset>(ShaderAnalysisReport<TAsset> args)
         {
-            if (!DoesPlatformSupport(targetPlatform, PlatformJob.BuildComputeShaderPerfReport))
+            if (!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildComputeShaderPerfReport))
             {
-                Debug.LogWarningFormat("Platform {0} is not supported to build shader reports", targetPlatform);
+                Debug.LogWarningFormat("Platform {0} is not supported to build shader reports", args.common.targetPlatform);
                 return null;
             }
 
@@ -38,20 +38,9 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
             PackagesUtilities.CreateProjectLocalPackagesSymlinks();
 
-            var factory = m_PlatformJobFactories[targetPlatform];
+            var factory = m_PlatformJobFactories[args.common.targetPlatform];
 
-            IAsyncJob job;
-            var shader = asset as Shader;
-            var compute = asset as ComputeShader;
-            var material = asset as Material;
-            if (shader != null)
-                job = factory.CreateBuildReportJob(shader, filter, features);
-            else if (compute != null)
-                job = factory.CreateBuildReportJob(compute, filter, features);
-            else if (material != null)
-                job = factory.CreateBuildReportJob(material, filter, features);
-            else
-                throw new ArgumentException("Invalid asset");
+            var job = factory.CreateBuildReportJob(args);
             m_Jobs.Add(job);
             RegisterUpdate();
             return job;

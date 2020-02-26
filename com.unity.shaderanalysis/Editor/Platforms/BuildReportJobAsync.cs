@@ -43,12 +43,12 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="shader">Shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="shader"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Shader shader, ShaderProgramFilter filter, BuildReportFeature features)
-            : base(target, filter, features)
+        protected BuildReportJobAsync(ShaderAnalysisReport<Shader> args)
+            : base(args.common)
         {
-            if (shader != null && shader.Equals(null))
-                throw new ArgumentNullException(nameof(shader));
-            this.shader = shader;
+            if (args.asset != null && args.asset.Equals(null))
+                throw new ArgumentNullException(nameof(args.asset));
+            shader = args.asset;
             m_Name = $"Build Shader Report ({shader})";
         }
 
@@ -56,26 +56,26 @@ namespace UnityEditor.ShaderAnalysis
         /// <param name="target">Build target to use.</param>
         /// <param name="compute">Compute shader to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="compute"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, ComputeShader compute, ShaderProgramFilter filter, BuildReportFeature features)
-            : base(target, filter, features)
+        protected BuildReportJobAsync(ShaderAnalysisReport<ComputeShader> args)
+            : base(args.common)
         {
-            if (compute != null && compute.Equals(null))
-                throw new ArgumentNullException(nameof(compute));
-            this.compute = compute;
-            m_Name = $"Build Compute Shader Report ({shader})";
+            if (args.asset != null && args.asset.Equals(null))
+                throw new ArgumentNullException(nameof(args.asset));
+            compute = args.asset;
+            m_Name = $"Build Compute Shader Report ({compute})";
         }
 
         /// <summary>Create an instance to process the <paramref name="material"/>.</summary>
         /// <param name="target">Build target to use.</param>
         /// <param name="material">Material to process.</param>
         /// <exception cref="ArgumentNullException">when <paramref name="material"/> is null.</exception>
-        protected BuildReportJobAsync(BuildTarget target, Material material, ShaderProgramFilter filter, BuildReportFeature features)
-            : base(target, filter, features)
+        protected BuildReportJobAsync(ShaderAnalysisReport<Material> args)
+            : base(args.common)
         {
-            if (material != null && material.Equals(null))
-                throw new ArgumentNullException(nameof(material));
-            this.material = material;
-            m_Name = $"Build Material Report ({shader})";
+            if (args.asset != null && args.asset.Equals(null))
+                throw new ArgumentNullException(nameof(args.asset));
+            material = args.asset;
+            m_Name = $"Build Material Report ({material})";
         }
 
         /// <inheritdoc cref="AsyncBuildReportJob"/>

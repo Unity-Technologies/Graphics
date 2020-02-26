@@ -71,6 +71,7 @@ namespace UnityEditor.ShaderAnalysis
         public ShaderProgramFilter filter { get; }
 
         public bool throwOnError { get; set; }
+        public bool logCommandLine { get; set; }
 
         protected ReportBuildData(
             DirectoryInfo temporaryDirectory,
@@ -175,6 +176,8 @@ namespace UnityEditor.ShaderAnalysis
                     var (unit, unitIndex) = compileUnitToProcess[0];
                     compileUnitToProcess.RemoveAt(0);
                     var job = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
+                    if (logCommandLine)
+                        Debug.Log($"[ShaderAnalysis][Compile CL] {job.commandLine}");
                     m_CompileJobMap[job] = unitIndex;
                 }
 

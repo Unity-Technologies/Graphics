@@ -19,14 +19,17 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary> Throw an exception when an error occurs. Useful when running in batch mode to interrupt a process.</summary>
         public bool throwOnError { get; set; } = false;
 
+        public bool logCommandLine { get; set; } = false;
+
         public ShaderProgramFilter filter { get; }
         protected BuildReportFeature features { get; }
 
-        protected AsyncBuildReportJob(BuildTarget target, ShaderProgramFilter filter, BuildReportFeature features)
+        protected AsyncBuildReportJob(ShaderAnalysisReport args)
         {
-            this.target = target;
-            this.filter = filter ?? new ShaderProgramFilter();
-            this.features = features;
+            target = args.targetPlatform;
+            filter = args.filter ?? new ShaderProgramFilter();
+            features = args.features;
+            logCommandLine = args.logCommandLines;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -11,92 +12,69 @@ namespace UnityEditor.ShaderAnalysis
     /// </summary>
     public static class EditorShaderTools
     {
-        static ShaderAnalysisReport s_Instance = new ShaderAnalysisReport();
+        static Internal.ShaderAnalysisReport s_Instance = new Internal.ShaderAnalysisReport();
 
         public static IEnumerable<BuildTarget> SupportedBuildTargets => s_Instance.SupportedBuildTargets;
 
         /// <summary>
-        /// Generate a performance report for <paramref name="shader"/> for the platform <paramref name="targetPlatform"/>.
+        /// Generate a performance report for <paramref name="args"/>.asset for the platform <paramref name="args"/>.targetPlatform.
         /// </summary>
-        /// <param name="shader">Shader to build.</param>
-        /// <param name="targetPlatform">Target to build.</param>
         /// <returns>An async job that builds the report.</returns>
-        /// <exception cref="ArgumentNullException">for <paramref name="shader"/></exception>
+        /// <exception cref="ArgumentNullException">for <paramref name="args"/>.asset</exception>
         /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(Shader shader, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
+        public static IAsyncJob GenerateBuildReportAsync<TAsset>(ShaderAnalysisReport<TAsset> args)
         {
-            if (shader == null || shader.Equals(null))
-                throw new ArgumentNullException(nameof(shader));
-            if(!DoesPlatformSupport(targetPlatform, PlatformJob.BuildShaderPerfReport))
-                throw new InvalidOperationException(
-                    $"Job {PlatformJob.BuildShaderPerfReport} is not supported for {targetPlatform}."
-                );
+            if (args.asset == null || args.asset.Equals(null))
+                throw new ArgumentNullException(nameof(args.asset));
 
-            return s_Instance.BuildReportAsync(shader, targetPlatform, filter, features);
-        }
-
-        /// <summary>
-        /// Generate a performance report for the shader used by <paramref name="material"/> for the platform <paramref name="targetPlatform"/>.
-        /// </summary>
-        /// <param name="material">Material to build.</param>
-        /// <param name="targetPlatform">Target to build.</param>
-        /// <returns>An async job that builds the report.</returns>
-        /// <exception cref="ArgumentNullException">for <paramref name="material"/></exception>
-        /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildMaterialPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(Material material, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
-        {
-            if (material == null || material.Equals(null))
-                throw new ArgumentNullException(nameof(material));
-            if (!DoesPlatformSupport(targetPlatform, PlatformJob.BuildMaterialPerfReport))
-                throw new InvalidOperationException(
-                    $"Job {PlatformJob.BuildMaterialPerfReport} is not supported for {targetPlatform}."
-                );
-
-            return s_Instance.BuildReportAsync(material, targetPlatform, filter, features);
-        }
-
-        /// <summary>
-        /// Generate a performance report for <paramref name="compute"/> for the platform <paramref name="targetPlatform"/>.
-        /// </summary>
-        /// <param name="compute">Material to build.</param>
-        /// <param name="targetPlatform">Target to build.</param>
-        /// <returns>An async job that builds the report.</returns>
-        /// <exception cref="ArgumentNullException">for <paramref name="compute"/></exception>
-        /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildComputeShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsync(ComputeShader compute, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
-        {
-            if (compute == null || compute.Equals(null))
-                throw new ArgumentNullException(nameof(compute));
-            if (!DoesPlatformSupport(targetPlatform, PlatformJob.BuildComputeShaderPerfReport))
-                throw new InvalidOperationException(
-                    $"Job {PlatformJob.BuildComputeShaderPerfReport} is not supported for {targetPlatform}."
-                );
-
-            return s_Instance.BuildReportAsync(compute, targetPlatform, filter, features);
-        }
-
-        /// <summary>
-        /// Generate a performance report for <paramref name="compute"/> for the platform <paramref name="targetPlatform"/>.
-        /// </summary>
-        /// <param name="compute">Material to build.</param>
-        /// <param name="targetPlatform">Target to build.</param>
-        /// <returns>An async job that builds the report.</returns>
-        /// <exception cref="ArgumentNullException">for <paramref name="compute"/></exception>
-        /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildComputeShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
-        public static IAsyncJob GenerateBuildReportAsyncGeneric(Object asset, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
-        {
-            if (asset == null || asset.Equals(null))
-                throw new ArgumentNullException(nameof(asset));
-
-            switch (asset)
+            if (typeof(TAsset) == typeof(Shader))
             {
-                case ComputeShader compute:
-                    return GenerateBuildReportAsync(compute, targetPlatform, filter, features);
-                case Shader shader:
-                    return GenerateBuildReportAsync(shader, targetPlatform, filter, features);
-                case Material material:
-                    return GenerateBuildReportAsync(material, targetPlatform, filter, features);
-                default: throw new ArgumentException($"Invalid asset: {asset}");
+                if(!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildShaderPerfReport))
+                    throw new InvalidOperationException(
+                        $"Job {PlatformJob.BuildShaderPerfReport} is not supported for {args.common.targetPlatform}."
+                    );
+            }
+            else if (typeof(TAsset) == typeof(ComputeShader))
+            {
+                if (!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildComputeShaderPerfReport))
+                    throw new InvalidOperationException(
+                        $"Job {PlatformJob.BuildComputeShaderPerfReport} is not supported for {args.common.targetPlatform}."
+                    );
+            }
+            else if (typeof(TAsset) == typeof(Material))
+            {
+                if (!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildMaterialPerfReport))
+                    throw new InvalidOperationException(
+                        $"Job {PlatformJob.BuildMaterialPerfReport} is not supported for {args.common.targetPlatform}."
+                    );
+            }
+            else
+                throw new ArgumentOutOfRangeException(nameof(TAsset));
+
+
+            return s_Instance.BuildReportAsync(args);
+        }
+
+        /// <summary>
+        /// Generate a performance report for <paramref name="compute"/> for the platform <paramref name="targetPlatform"/>.
+        /// </summary>
+        /// <returns>An async job that builds the report.</returns>
+        /// <exception cref="ArgumentNullException">for <paramref name="compute"/></exception>
+        /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildComputeShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
+        public static IAsyncJob GenerateBuildReportAsyncGeneric(ShaderAnalysisReport<Object> args)
+        {
+            if (args.asset == null || args.asset.Equals(null))
+                throw new ArgumentNullException(nameof(args.asset));
+
+            switch (args.asset)
+            {
+                case ComputeShader _:
+                    return GenerateBuildReportAsync(args.Into<ComputeShader>());
+                case Shader _:
+                    return GenerateBuildReportAsync(args.Into<Shader>());
+                case Material _:
+                    return GenerateBuildReportAsync(args.Into<Material>());
+                default: throw new ArgumentException($"Invalid asset: {args.asset}");
             }
         }
 

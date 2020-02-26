@@ -54,6 +54,8 @@ namespace UnityEditor.ShaderAnalysis
             /// <summary>Whether the operation has completed.</summary>
             public bool isComplete => m_Process.IsComplete();
 
+            public string commandLine { get; }
+
             /// <summary>Cancels the operation.</summary>
             public void Cancel() => ProcessManager.Cancel(m_Process);
 
@@ -80,6 +82,8 @@ namespace UnityEditor.ShaderAnalysis
                 startInfo.RedirectStandardOutput = true;
                 startInfo.UseShellExecute = false;
                 startInfo.CreateNoWindow = true;
+
+                commandLine = $"{startInfo.FileName} {startInfo.Arguments}";
 
                 m_Process = ProcessManager.Enqueue(startInfo, PreStart, PostStart);
 

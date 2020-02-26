@@ -131,6 +131,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
         string m_KeywordFilter;
         ShaderProgramFilter m_ShaderFilter;
         BuildReportFeature m_BuildReportFeature = (BuildReportFeature)(-1);
+        /// <summary>Whether the command line executed is logged in the Unity console.</summary>
+        bool m_LogCompilerArguments;
 
         void OnEnable()
         {
@@ -339,7 +341,10 @@ namespace UnityEditor.ShaderAnalysis.Internal
         void OnGUI_Content(List<GUIAction> actions, Object asset)
         {
             if (m_ShowSettings)
+            {
                 OnGUI_Settings(actions);
+                OnGUI_Info(actions);
+            }
             else
             {
                 OnGUI_FilterToolbar();
@@ -347,10 +352,19 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
         }
 
+        void OnGUI_Info(List<GUIAction> _)
+        {
+            EditorGUILayout.HelpBox("Static analysis is performed with a release profile." +
+                "Results may be different if you inspect a development build.", MessageType.Info);
+        }
+
         void OnGUI_Settings(List<GUIAction> actions)
         {
             EditorGUILayout.BeginVertical();
             {
+                m_LogCompilerArguments = EditorGUILayout.Toggle(
+                    EditorGUIUtility.TrTempContent("Log compiler arguments."), m_LogCompilerArguments);
+
                 EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
                 {
                     EditorGUILayout.LabelField(UIUtils.Text("Reference Folder: "), GUILayout.Width(200));
@@ -705,19 +719,19 @@ namespace UnityEditor.ShaderAnalysis.Internal
         IAsyncJob BuildShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Shader, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Shader, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildComputeShaderReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Compute, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Compute, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         IAsyncJob BuildMaterialReport()
         {
             m_ShaderFilter = ShaderProgramFilter.Parse(m_ShaderPassFilter, m_KeywordFilter);
-            return EditorShaderTools.GenerateBuildReportAsync(m_Material, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature);
+            return EditorShaderTools.GenerateBuildReportAsync(ShaderAnalysis.ShaderAnalysisReport.New(m_Material, m_CurrentPlatform, m_ShaderFilter, m_BuildReportFeature, m_LogCompilerArguments));
         }
 
         void NOOPGUI()
