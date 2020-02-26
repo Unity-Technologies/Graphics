@@ -83,9 +83,9 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferLightingIntegral);
-RW_TEXTURE3D(float4, _VBufferLightingFeedback);
-TEXTURE3D(_VBufferLightingHistory);
+RW_TEXTURE3D(float4, _VBufferLighting);
+RW_TEXTURE3D(float4, _VBufferFeedback);
+TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 
 // TODO: avoid creating another Constant Buffer...
@@ -95,7 +95,7 @@ CBUFFER_START(UnityVolumetricLighting)
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;         // Not used by this shader
     float    _CornetteShanksConstant;
-    uint     _VBufferLightingHistoryIsValid;
+    uint     _VBufferHistoryIsValid;
 
     float4   _VBufferSampleOffset;
     float4   _VolumeMaskDimensions;             // Not used by this shader
@@ -580,7 +580,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         // Reproject the history at 'centerWS'.
-        float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLightingHistory, s_linear_clamp_sampler),
+        float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevCamPosRWS,
                                            UNITY_MATRIX_PREV_VP,
@@ -591,7 +591,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferPrevDepthDecodingParams,
                                            false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
 
-        bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
+        bool reprojSuccess = (_VBufferHistoryIsValid != 0) && (reprojValue.a != 0);
 
         if (reprojSuccess)
         {
@@ -603,7 +603,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
         // do not support reprojection and should neither read nor write to the history buffer.
         // This will cause them to alias, but it is the only way to prevent ghosting.
-        _VBufferLightingFeedback[voxelCoord] = normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferFeedback[voxelCoord] = normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1);
 
         float4 linearizedBlendValue = normalizedBlendValue * dt;
         float4 blendValue = DelinearizeRGBD(linearizedBlendValue);
@@ -661,7 +661,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // This means storing the tone mapped radiance and transmittance instead of optical depth.
         // See "A Fresh Look at Generalized Sampling", p. 51.
         // TODO: re-enable tone mapping after implementing pre-exposure.
-        _VBufferLightingIntegral[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferLighting[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
@@ -777,7 +777,7 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             // Compute the next tapping coordinate
             int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
             // Tap the value we should be tapping from
-            float4 currentValue = _VBufferLightingFeedback[tapCoord];
+            float4 currentValue = _VBufferFeedback[tapCoord];
             // Compute the weight for this tap
             float weight = Gaussian(abs(idx), SIGMA_FILTER);
 
@@ -793,6 +793,6 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             sumW += weight;
         }
         // Normalize and output
-        _VBufferLightingIntegral[voxelCoord] = value / sumW;
+        _VBufferLighting[voxelCoord] = value / sumW;
     }
 }

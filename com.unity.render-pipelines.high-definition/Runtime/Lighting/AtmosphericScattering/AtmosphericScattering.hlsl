@@ -14,6 +14,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
+TEXTURE3D(_VBufferLighting);
+
 float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
 {
     // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
