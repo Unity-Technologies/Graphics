@@ -314,6 +314,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 keywordNode.owner = m_Graph;
                 keywordNode.keywordGuid = ((KeywordNode)oldNode).keywordGuid;
+                keywordNode.owner = null;
             }
             return newNode;
         }
