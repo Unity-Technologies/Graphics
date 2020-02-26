@@ -352,17 +352,19 @@ namespace UnityEditor.ShaderGraph
                         string value = ssp.GetStackName();
                         string name = ssp.GetStackName();
                         // Check if there is already a slot with the same value
-                        int found = slotNames.FindIndex(elem => elem.Key == value);
-                        if (found >= 0)
-                        {
-                            // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"This node has the same procedural ID as another node. Nodes need to have different procedural IDs.", ShaderCompilerMessageSeverity.Error);
-                        }
-                        else
-                        {
+                        //This gave errors when using multiple layers in one stack.
+                        //Commented out for the moment so multiple layers are working.
+                        //int found = slotNames.FindIndex(elem => elem.Key == value);
+                        //if (found >= 0)
+                        //{
+                        //    // Add a validation error, values need to be unique
+                        //    node.owner.AddValidationError(node.tempId, $"This node has the same procedural ID as another node. Nodes need to have different procedural IDs.", ShaderCompilerMessageSeverity.Error);
+                        //}
+                        //else
+                        //{
                             // Save it for checking against other slots
                             slotNames.Add(new KeyValuePair<string, string>(value, name));
-                        }
+                        //}
                     }
 #endif
                 }
