@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Unity.PerformanceTesting;
 using UnityEditor;
@@ -64,6 +65,8 @@ public class EditorStaticAnalysisTests
                     errorString, "NA", "NA", "NA", "NA"
                 );
     }
+
+    const int k_MaxMeasurePerTest = 200;
 
     public static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntries(BuildTarget buildTarget)
     {
@@ -144,12 +147,19 @@ public class EditorStaticAnalysisTests
         }
 
         var report = buildReportJob.builtReport;
+
+        // Evaluate the number of metrics to send
+        // We fail if we exceed the allowed number of metrics per test
+        var numberOfMetrics = 0;
+        foreach (var program in report.programs)
+            numberOfMetrics += k_MesureCount * program.performanceUnits.Count();
+        Assert.LessOrEqual(numberOfMetrics, k_MaxMeasurePerTest, $"We are trying to send {numberOfMetrics} metrics while the capacity is {k_MaxMeasurePerTest}." +
+            $"Please reduce the number of variants to evaluate for this test.");
+
         foreach (var program in report.programs)
         {
             foreach (var performanceUnit in program.performanceUnits)
-            {
                 SendMeasure(performanceUnit);
-            }
         }
     }
 
@@ -169,7 +179,7 @@ public class EditorStaticAnalysisTests
     ) GetReportSampleGroups(ShaderBuildReport.PerformanceUnit unit)
     {
         var name = string.Join(";", unit.compileUnit.defines);
-        var fullName = $"{unit.program.name}|{name}";
+        var fullName = $"{unit.program.name}:{name}";
         return (
             new SampleGroup(PerformanceTestUtils.FormatSampleGroupName("VGPR_Count", "GPU", fullName), SampleUnit.Undefined),
             new SampleGroup(PerformanceTestUtils.FormatSampleGroupName("VGPR_Used_Count", "GPU", fullName), SampleUnit.Undefined),
@@ -186,6 +196,9 @@ public class EditorStaticAnalysisTests
         );
     }
 
+    // Update this counter if you add a measure in the 'SendMeasure' function
+    // We use this to know if we reach the measure capacity per test.
+    const int k_MesureCount = 12;
     static void SendMeasure(ShaderBuildReport.PerformanceUnit unit)
     {
         var sg = GetReportSampleGroups(unit);

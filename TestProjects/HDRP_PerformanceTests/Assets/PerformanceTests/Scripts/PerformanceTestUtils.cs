@@ -28,10 +28,10 @@ public static class PerformanceTestUtils
     public static string FormatTestName(string inputData, string inputDataCategory, string settings, string settingsCategory, string testName)
         => $"{inputData}:{inputDataCategory},{settings}:{settingsCategory},{testName}";
 
-    // Counter example: Timing_GPU_Gbuffer
-    // Memory example: AllocatedBytes_CPU
+    // Counter example: Timing,GPU,Gbuffer
+    // Memory example: AllocatedBytes,CPU,Default
     public static string FormatSampleGroupName(string metricName, string category, string dataName = null)
-        => $"{metricName}_{category}_{dataName ?? "Default"}";
+        => $"{metricName},{category},{dataName ?? "Default"}";
 }
 
 public struct TestName
