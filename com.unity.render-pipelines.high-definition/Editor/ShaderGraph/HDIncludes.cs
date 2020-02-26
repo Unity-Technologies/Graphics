@@ -87,13 +87,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kBuiltInUtilities, IncludeLocation.Pregraph },
             { kMaterialUtilities, IncludeLocation.Pregraph },
         };
-        public static IncludeCollection CoreRaytracing = new IncludeCollection
-        {
-            { kRaytracingMacros, IncludeLocation.Pregraph },
-            { kShaderVariablesRaytracing, IncludeLocation.Pregraph },
-            { kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
-            { kRaytracingIntersection, IncludeLocation.Pregraph },
-        };
 #endregion
 
 #region Unlit
