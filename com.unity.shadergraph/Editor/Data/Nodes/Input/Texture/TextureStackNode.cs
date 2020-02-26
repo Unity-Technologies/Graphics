@@ -4,11 +4,10 @@ using UnityEditor.Graphing;
 using System.Collections.Generic;
 using System;
 using System.Globalization;
-using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
@@ -199,74 +198,39 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        /*
-            This is a lot of code for a text box that simply only accepts
-            abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ as input characters.
-            But as the AcceptCharacter function is internal and cannot be overridden we'll have to do with this...
-        */
-        public class TextureStackNameField : UIElements.TextValueField<string>
+        protected string CleanupStackName(string name)
         {
-            TextureStackNameInput tsInput => (TextureStackNameInput)textInputBase;
+            // Procedural stacks allow sharing the same name. This means they will sample the same data as well.
+            // This also allows sampling the same stack both from VS and PS.
 
-            public new class UxmlFactory : UxmlFactory<TextureStackNameField, UxmlTraits> { }
-            public new class UxmlTraits : UIElements.TextValueFieldTraits<string, UxmlStringAttributeDescription> { }
+            if (isProcedural) return name;
 
-            protected override string ValueToString(string v)
+            // Make sure there is no other node with the same name
+            // if there is patch the current name by adding "_" so it's unique
+            var stacks = owner.GetNodes<SampleTextureStackNode>();
+            int tries = stacks.Count();
+
+            for (int i = 0; i < tries; i++)
             {
-                return v;
+                bool conflict = false;
+                foreach (var node in stacks)
+                {
+                    if (node == this) continue;
+                    if (node.GetStackName() == name)
+                    {
+                        conflict = true;
+                        break;
+                    }
+                }
+                if (!conflict)
+                {
+                    return name;
+                }
+                // Try again to find a free one
+                name = name + "_";
             }
 
-            protected override string StringToValue(string str)
-            {
-                return str;
-            }
-
-            public new static readonly string ussClassName = "unity-texturestacknamefield-field";
-            public new static readonly string labelUssClassName = ussClassName + "__label";
-            public new static readonly string inputUssClassName = ussClassName + "__input";
-
-            public TextureStackNameField() : this((string)null) { }
-
-            public TextureStackNameField(string label) : base(label, -1, new TextureStackNameInput())
-            {
-                AddToClassList(ussClassName);
-                labelElement.AddToClassList(labelUssClassName);
-                tsInput.AddToClassList(inputUssClassName);
-            }
-
-            public override void ApplyInputDeviceDelta(Vector3 delta, UIElements.DeltaSpeed speed, string startValue)
-            {
-                tsInput.ApplyInputDeviceDelta(delta, speed, startValue);
-            }
-
-            class TextureStackNameInput : TextValueInput
-            {
-                TextureStackNameField parentField => (TextureStackNameField)parent;
-
-                internal TextureStackNameInput()
-                {
-                    formatString = null;
-                }
-
-                protected override string allowedCharacters
-                {
-                    get { return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"; }
-                }
-
-                public override void ApplyInputDeviceDelta(Vector3 delta, UIElements.DeltaSpeed speed, string startValue)
-                {
-                }
-
-                protected override string ValueToString(string v)
-                {
-                    return v;
-                }
-
-                protected override string StringToValue(string str)
-                {
-                    return str;
-                }
-            }
+            return name;
         }
 
         /*
@@ -283,13 +247,13 @@ namespace UnityEditor.ShaderGraph
 
                 ps.Add(new PropertyRow(new Label("Stack Name")), (row) =>
                 {
-                    row.Add(new TextureStackNameField(), (field) =>
+                    row.Add(new IdentifierField(), (field) =>
                     {
                         field.value = m_Node.stackName;
                         field.isDelayed = true;
                         field.RegisterValueChangedCallback(evt =>
                         {
-                            var clean = CleanupStackName(evt.newValue);
+                            var clean = m_Node.CleanupStackName(evt.newValue);
                             if (m_Node.stackName == clean)
                                 return;
 
@@ -405,42 +369,6 @@ namespace UnityEditor.ShaderGraph
 
                 Add(ps);
             }
-
-            string CleanupStackName(string name)
-            {
-                // Make sure this is a valid hlsl identifier. Allowed characters already ensures the characters are valid
-                // but identifiers can't start with a number so fix this here.
-                if ( Char.IsDigit(name[0]) )
-                {
-                    name =  "_" + name;
-                }
-
-                // Make sure there is no other node with the same name
-                var stacks = m_Node.owner.GetNodes<SampleTextureStackNode>();
-                int tries = stacks.Count();
-
-                for (int i = 0; i < tries; i++)
-                {
-                    bool conflict = false;
-                    foreach (var node in stacks)
-                    {
-                        if (node == m_Node) continue;
-                        if (node.GetStackName() == name)
-                        {
-                            conflict = true;
-                            break;
-                        }
-                    }
-                    if (!conflict)
-                    {
-                        return name;
-                    }
-                    // Try again to find a free one
-                    name = name + "_";
-                }
-
-                return name;
-            }
         }
 
         public VisualElement CreateSettingsElement()
@@ -532,25 +460,57 @@ namespace UnityEditor.ShaderGraph
             name = GetStackName();
         }
 
-        public static void ValidatNodes(GraphData d)
+        public static bool SubGraphHasStacks(SubGraphNode node)
         {
-            ValidatNodes(d.GetNodes<SampleTextureStackNode>());
+            var asset = node.asset;
+            foreach(var input in asset.inputs)
+            {
+                var texInput = input as Texture2DShaderProperty;
+                if (texInput != null && !string.IsNullOrEmpty(texInput.textureStack))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes)
+        public static List<string> GetSubGraphInputStacks(SubGraphNode node)
         {
-            var slotNames = new List<KeyValuePair<string, string>>();
+            // There could be more stacks in the subgraph but as they are not part of inputs they don't
+            // leak out so we don't case about those.
+            List<string> result = new List<string>(); //todo pooled list
+            var asset = node.asset;
+            foreach (var input in asset.inputs)
+            {
+                var texInput = input as Texture2DShaderProperty;
+                if (texInput != null && !string.IsNullOrEmpty(texInput.textureStack))
+                {
+                    result.Add(texInput.textureStack);
+                }
+            }
+            return result;
+        }
+
+        public static void ValidatNodes(GraphData d)
+        {
+            ValidatNodes(d.GetNodes<SampleTextureStackNode>(), d.GetNodes<SubGraphNode>());
+        }
+
+        public static void ValidatNodes(IEnumerable<SampleTextureStackNode> nodes, IEnumerable<SubGraphNode> subNodes)
+        {
+            var valueNameLookup = new Dictionary<string, string>();
             var nodeNames = new HashSet<string>();
 
             foreach (SampleTextureStackNode node in nodes)
             {
-                if (nodeNames.Contains(node.GetStackName()))
+                if (nodeNames.Contains(node.GetStackName()) && !node.isProcedural)
                 {
                     // Add a validation error, values need to be unique
-                    node.owner.AddValidationError(node.tempId, $"Some stack nodes have the same name, please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
+                    node.owner.AddValidationError(node.tempId, $"Some stack nodes have the same name '{node.GetStackName()}', please ensure all stack nodes have unique names.", ShaderCompilerMessageSeverity.Error);
                 }
                 else
                 {
+                    // Procedural nodes are still added here as we disallow procedural and regular nodes with the same name...
                     nodeNames.Add(node.GetStackName());
                 }
 
@@ -562,40 +522,52 @@ namespace UnityEditor.ShaderGraph
                         string name = node.FindSlot<MaterialSlot>(node.TextureInputIds[i]).displayName;
 
                         // Check if there is already a slot with the same value
-                        int found = slotNames.FindIndex(elem => elem.Key == value);
-                        if (found >= 0)
+                        string displayName;
+                        if (valueNameLookup.TryGetValue(value, out displayName))
                         {
                             // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"Slot stack input slot '{value}' shares it's input with another stack input '{slotNames[found].Value}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                            node.owner.AddValidationError(node.tempId, $"Input slot '{name}' shares it's value '{value}' with another stack '{displayName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
                         }
                         else
                         {
                             // Save it for checking against other slots
-                            slotNames.Add(new KeyValuePair<string, string>(value, name));
+                            valueNameLookup.Add(value, node.GetStackName() + " (slot " + name + ")");
                         }
                     }
+                }
+            }
 
-#if PROCEDURAL_VT_IN_GRAPH
-                    // Check if there is already a node with the same sampleid
-                    SampleTextureStackProceduralNode ssp = node as SampleTextureStackProceduralNode;
-                    if (ssp != null)
+            foreach (SubGraphNode node in subNodes)
+            {
+                var subStacks = GetSubGraphInputStacks(node);
+                foreach (var subStack in subStacks)
+                {
+                    // Todo how to exclude procedurals in subgraphs?
+                    if (nodeNames.Contains(subStack))
                     {
-                        string value = ssp.GetStackName();
-                        string name = ssp.GetStackName();
-                        // Check if there is already a slot with the same value
-                        int found = slotNames.FindIndex(elem => elem.Key == value);
-                        if (found >= 0)
-                        {
-                            // Add a validation error, values need to be unique
-                            node.owner.AddValidationError(node.tempId, $"This node has the same procedural ID as another node. Nodes need to have different procedural IDs.", ShaderCompilerMessageSeverity.Error);
-                        }
-                        else
-                        {
-                            // Save it for checking against other slots
-                            slotNames.Add(new KeyValuePair<string, string>(value, name));
-                        }
+                        node.owner.AddValidationError(node.tempId, $"Some stack nodes in sub graphs have the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
                     }
-#endif
+                    else
+                    {
+                        nodeNames.Add(subStack);
+                    }
+                }
+
+                Dictionary<string, string> valueToStackLookup = node.GetValueToTextureStackDictionary(GenerationMode.ForReals);
+                foreach (var kvp in valueToStackLookup)
+                {
+                    // Check if there is already a slot with the same value
+                    string stackName;
+                    if (valueNameLookup.TryGetValue(kvp.Key, out stackName))
+                    {
+                        // Add a validation error, values need to be unique
+                        node.owner.AddValidationError(node.tempId, $"Stack '{kvp.Value}' shares it's value '{kvp.Key}' with another stack '{stackName}'. Please make sure every slot has unique input textures attached to it.", ShaderCompilerMessageSeverity.Error);
+                    }
+                    else
+                    {
+                        // Save it for checking against other slots
+                        valueNameLookup.Add(kvp.Key, kvp.Value);
+                    }
                 }
             }
         }
@@ -630,8 +602,6 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 return string.Format("TexStack_{0}", GuidEncoder.Encode(guid));
-                //this.guid
-                //return GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
             }
         }
 
@@ -710,7 +680,11 @@ namespace UnityEditor.ShaderGraph
 
             // Not all outputs may be connected (well one is or we wouldn't get called) so we are careful to
             // only generate code for connected outputs
+
             string stackName = GetStackName();
+            string localVariablePrefix = GetVariableNameForNode();
+            string parametersVariableNme = localVariablePrefix + "_pars";
+            string infoVariableName = localVariablePrefix + "_info";
 
             bool anyConnected = false;
             for (int i = 0; i < numSlots; i++)
@@ -726,10 +700,8 @@ namespace UnityEditor.ShaderGraph
 
             if (anyConnected)
             {
-                string parametersName = stackName + "_pars";
-
                 sb.Append(MakeVtParameters(
-                    parametersName,
+                    parametersVariableNme,
                     GetSlotValue(UVInputId, generationMode),
                     (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
                     GetSlotValue(DxInputId, generationMode),
@@ -740,9 +712,10 @@ namespace UnityEditor.ShaderGraph
                     UvSpace.VtUvSpace_Regular,
                     m_SampleQuality));
 
-                sb.AppendLine(string.Format("StackInfo {0}_info = PrepareStack({1}, {0});"
-                                        , stackName
-                                        , parametersName));
+                sb.AppendLine(string.Format("StackInfo {0} = PrepareStack({1}, {2});"
+                                        , infoVariableName
+                                        , parametersVariableNme
+                                        , stackName));
             }
 
             for (int i = 0; i < numSlots; i++)
@@ -756,7 +729,7 @@ namespace UnityEditor.ShaderGraph
                             , textureName
                             , GetSampleFunction());
                     sb.AppendLine(resultLayer);*/
-                    sb.AppendLine(MakeVtSample(stackName + "_info", textureName, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
+                    sb.AppendLine(MakeVtSample(infoVariableName, textureName, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
                 }
             }
 
@@ -782,9 +755,9 @@ namespace UnityEditor.ShaderGraph
             if (!noFeedback && feedbackConnected)
             {
                 //TODO: Investigate if the feedback pass can use halfs
-                string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
+                string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1});",
                         GetVariableNameForSlot(FeedbackSlotId),
-                        stackName);
+                        infoVariableName);
                 sb.AppendLine(feedBackCode);
             }
         }
