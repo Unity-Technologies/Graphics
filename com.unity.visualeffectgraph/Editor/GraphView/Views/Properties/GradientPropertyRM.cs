@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         {
             m_GradientField = new GradientField(m_Label);
             m_GradientField.RegisterCallback<ChangeEvent<Gradient>>(OnValueChanged);
-
+            m_GradientField.control.linear = true;
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
             m_GradientField.style.flexGrow = 1f;
