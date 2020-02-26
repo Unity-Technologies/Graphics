@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             m_GUI = NOOPGUI;
             if (m_SelectedAsset != null && !m_SelectedAsset.Equals(null))
                 OpenAsset(m_SelectedAsset);
-            if (m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex <= m_SupportedPlatforms.Length)
+            if (m_SelectedPlatformIndex >= 0 && m_SelectedPlatformIndex < m_SupportedPlatforms.Length)
             {
                 m_CurrentPlatform = m_SupportedPlatforms[m_SelectedPlatformIndex];
                 m_AssetMetadata = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform);
