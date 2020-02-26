@@ -770,7 +770,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
-            float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
+            float initialMipCount = Mathf.Log((float)reflectionTexture.width, 2.0f) + 1;
+            // The last 3 mips are never filled so for smaller textures, 6 is not enough.
+            float mipCount = Mathf.Clamp(initialMipCount, 0.0f, Mathf.Min(initialMipCount - 3.0f, 6.0f));
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
 
             if (IsLightingSkyValid(hdCamera))
