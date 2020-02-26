@@ -65,10 +65,7 @@ public class EditorStaticAnalysisTests
                 );
     }
 
-    static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntriesPS4() => GetStaticAnalysisEntries(BuildTarget.PS4);
-    static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntriesXboxOne() => GetStaticAnalysisEntries(BuildTarget.XboxOne);
-
-    static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntries(BuildTarget buildTarget)
+    public static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntries(BuildTarget buildTarget)
     {
         var resource = Resources.Load<EditorShaderStaticAnalysisAsset>("Editor Shader Static Analysis Tests");
         foreach (var definition in resource.processAssetDefinitions)
@@ -112,19 +109,7 @@ public class EditorStaticAnalysisTests
         }
     }
 
-    [Test, Version("1"), Timeout(120000)]
-    public void StaticAnalysisPS4([ValueSource(nameof(GetStaticAnalysisEntriesPS4))] StaticAnalysisEntry entries)
-    {
-        StaticAnalysisExecute(entries);
-    }
-
-    [Test, Version("1")]
-    public void StaticAnalysisXboxOne([ValueSource(nameof(GetStaticAnalysisEntriesXboxOne))] StaticAnalysisEntry entry)
-    {
-        StaticAnalysisExecute(entry);
-    }
-
-    void StaticAnalysisExecute(StaticAnalysisEntry entry)
+    public static void StaticAnalysisExecute(StaticAnalysisEntry entry)
     {
         var buildReportJob = (AsyncBuildReportJob)EditorShaderTools.GenerateBuildReportAsyncGeneric(entry.asset, entry.buildTarget, entry.filter, (BuildReportFeature)(-1));;
         buildReportJob.throwOnError = true;
@@ -168,7 +153,7 @@ public class EditorStaticAnalysisTests
         }
     }
 
-    (
+    static (
         SampleGroup vgprCount,
         SampleGroup vgprUsedCount,
         SampleGroup sgprCount,
@@ -201,7 +186,7 @@ public class EditorStaticAnalysisTests
         );
     }
 
-    void SendMeasure(ShaderBuildReport.PerformanceUnit unit)
+    static void SendMeasure(ShaderBuildReport.PerformanceUnit unit)
     {
         var sg = GetReportSampleGroups(unit);
         Measure.Custom(sg.sgprCount, unit.parsedReport.SGPRCount);
