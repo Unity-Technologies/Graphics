@@ -380,16 +380,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera);
+                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, GetFrameCount());
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
-                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeVBufferResolutionXY, false, false)
+
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera);
+
+                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
                     {
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
+                        slices = viewportSize.z,
                         /* useDynamicScale: true, // <- TODO ,*/
                         name = "VBufferDensity"
                     }));
@@ -434,19 +437,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = parameters;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(ComputeVBufferResolutionXY, false, false)
+
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera);
+
+                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
                     {
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
+                        slices = viewportSize.z,
                         /* useDynamicScale: true, // <- TODO ,*/
-                        name = "VBufferIntegral"
+                        name = "VBufferLighting"
                     }, HDShaderIDs._VBufferLighting));
                     if (passData.parameters.enableReprojection)
                     {
-                        passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)));
-                        passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)));
+                        // Cannot import a RenderTexture => WILL BE HORRIBLY BROKEN.
+                        //passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[0]));
+                        //passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[1]));
+                        passData.feedbackBuffer = passData.lightingBuffer;
+                        passData.historyBuffer = passData.densityBuffer;
                     }
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);

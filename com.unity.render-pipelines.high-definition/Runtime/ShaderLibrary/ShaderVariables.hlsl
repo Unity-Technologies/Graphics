@@ -254,7 +254,7 @@ CBUFFER_START(UnityGlobal)
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
     float4 _VBufferPrevViewportSize;
-    float4 _VBufferHistoryPrevUvScaleAndLimit;
+    float4 _VBufferHistoryUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 

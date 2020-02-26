@@ -872,7 +872,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd, HDCamera hdCamera,
                                                       RTHandle colorBuffer,
-                                                      RTHandle volumetricLighting,
+                                                      RenderTexture volumetricLighting,
                                                       RTHandle intermediateBuffer,
                                                       RTHandle depthBuffer,
                                                       Matrix4x4 pixelCoordToViewDirWS, bool isMSAA)
