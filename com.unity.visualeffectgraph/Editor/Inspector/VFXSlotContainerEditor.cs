@@ -37,6 +37,11 @@ class VFXSlotContainerEditor : Editor
     {
         public string name;
         public Type type;
+
+        public override int GetHashCode()
+        {
+            return name.GetHashCode() * 23 + type.GetHashCode();
+        }
     }
 
     public virtual void DoInspectorGUI()
