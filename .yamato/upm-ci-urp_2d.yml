@@ -1,8 +1,8 @@
 editors:
-  - version: trunk
-    cmd: -u trunk
-  - version: fast-trunk
-    cmd: -u trunk --fast
+  - version: 2019.3
+    cmd: -u 2019.3/staging
+  - version: fast-2019.3
+    cmd: -u 2019.3/staging --fast
   - version: CUSTOM-REVISION
     cmdwin: -r %CUSTOM_REVISION%
     cmdposix: -r $CUSTOM_REVISION

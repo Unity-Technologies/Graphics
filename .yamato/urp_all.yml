@@ -1,6 +1,6 @@
 editors:
-  - version: trunk
-  - version: fast-trunk
+  - version: 2019.3
+  - version: fast-2019.3
   - version: CUSTOM-REVISION
 projects:
   - name: URP_2D
