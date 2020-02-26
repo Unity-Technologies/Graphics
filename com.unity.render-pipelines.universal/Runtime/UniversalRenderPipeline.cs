@@ -502,8 +502,7 @@ namespace UnityEngine.Rendering.Universal
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
             
-            baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
-            var renderer = baseCameraAdditionalData?.scriptableRenderer;
+            var renderer = baseAdditionalCameraData?.scriptableRenderer;
             bool rendererSupportsMSAA = renderer == null || renderer.supportedRenderingFeatures.msaa;
 
             int msaaSamples = 1;
