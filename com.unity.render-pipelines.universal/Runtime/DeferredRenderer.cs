@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.Universal
             supportedRenderingFeatures = new RenderingFeatures()
             {
                 cameraStacking = false, // TODO debug it
+                msaa = false,
             };
         }
 
