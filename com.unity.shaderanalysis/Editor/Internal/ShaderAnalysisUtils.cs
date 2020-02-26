@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderAnalysis.Internal
 {
-    public static partial class ShaderAnalysisUtils
+    public static class ShaderAnalysisUtils
     {
         ////#pragma target 4.5
         static readonly Regex k_RegexShaderModel = new Regex(@"^[\s\r]*#pragma\s+target\s+([\d\.]+)\s+[\s\r]*$");
@@ -242,8 +242,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 s_AssetMetadatas[rootHash] = metadatabase;
             }
 
-            if (metadatabase.ContainsKey(target))
-                return metadatabase[target];
+            if (metadatabase.TryGetValue(target, out var value) && value != null && !value.Equals(null))
+                return value;
 
             AssetMetadata result = null;
             var file = GetAssetMetadataFileFor(target, rootFolder);
@@ -367,6 +367,61 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
 
             return diff;
+        }
+
+        public const string DefineFragment = "SHADER_STAGE_FRAGMENT=1";
+        public const string DefineCompute = "SHADER_STAGE_COMPUTE=1";
+
+        public static ShaderCompilerOptions DefaultCompileOptions(
+            IEnumerable<string> defines, string entry, DirectoryInfo sourceDir, string shaderModel = null
+        )
+        {
+            var includes = new HashSet<string>
+            {
+                sourceDir.FullName
+            };
+
+            var compileOptions = new ShaderCompilerOptions
+            {
+                includeFolders = includes,
+                defines = new HashSet<string>(),
+                entry = entry
+            };
+
+            compileOptions.defines.UnionWith(defines);
+            if (!string.IsNullOrEmpty(shaderModel))
+                compileOptions.defines.Add($"SHADER_TARGET={shaderModel}");
+
+            // Add default unity includes
+            var path = Path.Combine(EditorApplication.applicationContentsPath, "CGIncludes");
+            if (Directory.Exists(path))
+                compileOptions.includeFolders.Add(path);
+
+            // Add package symlinks folder
+            // So shader compiler will find include files with "Package/<package_id>/..."
+            compileOptions.includeFolders.Add(Path.GetFullPath(Path.Combine(Application.dataPath,
+                $"../{PackagesUtilities.PackageSymbolicLinkFolder}")));
+
+            // add include folders of playback engines
+            foreach (var playbackEnginePath in new[]
+            {
+                "../..",
+                "PlaybackEngines"
+            })
+            {
+                var directory = new DirectoryInfo(Path.Combine(EditorApplication.applicationContentsPath, playbackEnginePath));
+                if (directory.Exists)
+                {
+                    foreach (var engineDir in directory.EnumerateDirectories())
+                    {
+                        var includeDir = new DirectoryInfo(Path.Combine(engineDir.FullName, "CgBatchPlugins64/include"));
+                        if (includeDir.Exists)
+                            compileOptions.includeFolders.Add(includeDir.FullName);
+                    }
+                }
+            }
+
+            return compileOptions;
         }
     }
 }

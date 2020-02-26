@@ -83,11 +83,11 @@ namespace UnityEditor.ShaderAnalysis
 
                 progress.SetNormalizedProgress(s * i, "Building compile units {0:D3} / {1:D3}", i + 1, c);
 
-                var compileOptions = Utility.DefaultCompileOptions(kernel.defines, kernel.name, sourceDir, target);
-                compileOptions.defines.Add(Utility.k_DefineCompute);
+                var compileOptions = ShaderAnalysisUtils.DefaultCompileOptions(kernel.defines, kernel.name, sourceDir);
+                compileOptions.defines.Add(ShaderAnalysisUtils.DefineCompute);
 
 
-                compileOptions.defines.Add(Utility.k_DefineCompute);
+                compileOptions.defines.Add(ShaderAnalysisUtils.DefineCompute);
 
                 var unit = new CompileUnit
                 {

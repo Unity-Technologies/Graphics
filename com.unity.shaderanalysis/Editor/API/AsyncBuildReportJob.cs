@@ -16,6 +16,9 @@ namespace UnityEditor.ShaderAnalysis
         /// <summary>Wether the <see cref="builtReport"/> is available.</summary>
         public abstract bool hasReport { get; }
 
+        /// <summary> Throw an exception when an error occurs. Useful when running in batch mode to interrupt a process.</summary>
+        public bool throwOnError { get; set; } = false;
+
         public ShaderProgramFilter filter { get; }
         protected BuildReportFeature features { get; }
 

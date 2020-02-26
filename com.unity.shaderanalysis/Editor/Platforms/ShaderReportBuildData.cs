@@ -181,14 +181,13 @@ namespace UnityEditor.ShaderAnalysis
 
                     var entryPoint = match.Groups[1].Value;
 
-                    var compileOptions = Utility.DefaultCompileOptions(
+                    var compileOptions = ShaderAnalysisUtils.DefaultCompileOptions(
                         m_ShaderKeywords,
                         entryPoint,
                         sourceDir,
-                        target,
                         pass.shaderModel);
                     compileOptions.defines.UnionWith(pass.combinedMulticompiles[j]);
-                    compileOptions.defines.Add(Utility.k_DefineFragment);
+                    compileOptions.defines.Add(ShaderAnalysisUtils.DefineFragment);
 
                     var unit = new CompileUnit
                     {

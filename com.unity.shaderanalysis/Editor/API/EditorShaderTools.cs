@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -72,6 +73,31 @@ namespace UnityEditor.ShaderAnalysis
                 );
 
             return s_Instance.BuildReportAsync(compute, targetPlatform, filter, features);
+        }
+
+        /// <summary>
+        /// Generate a performance report for <paramref name="compute"/> for the platform <paramref name="targetPlatform"/>.
+        /// </summary>
+        /// <param name="compute">Material to build.</param>
+        /// <param name="targetPlatform">Target to build.</param>
+        /// <returns>An async job that builds the report.</returns>
+        /// <exception cref="ArgumentNullException">for <paramref name="compute"/></exception>
+        /// <exception cref="InvalidOperationException">if <see cref="PlatformJob.BuildComputeShaderPerfReport"/> is not supported for <paramref name="targetPlatform"/></exception>
+        public static IAsyncJob GenerateBuildReportAsyncGeneric(Object asset, BuildTarget targetPlatform, ShaderProgramFilter filter, BuildReportFeature features)
+        {
+            if (asset == null || asset.Equals(null))
+                throw new ArgumentNullException(nameof(asset));
+
+            switch (asset)
+            {
+                case ComputeShader compute:
+                    return GenerateBuildReportAsync(compute, targetPlatform, filter, features);
+                case Shader shader:
+                    return GenerateBuildReportAsync(shader, targetPlatform, filter, features);
+                case Material material:
+                    return GenerateBuildReportAsync(material, targetPlatform, filter, features);
+                default: throw new ArgumentException($"Invalid asset: {asset}");
+            }
         }
 
         /// <summary>Check whether a specific job is supported.</summary>
