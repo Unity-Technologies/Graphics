@@ -307,6 +307,9 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     {% endif %}
 
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=3600 --player-save-path=../../players --build-only
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
     logs:
       paths:
@@ -386,7 +389,10 @@ Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}:
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
     - exit $UTR_RESULT
   dependencies:
-  - .yamato/upm-ci-universal.yml#Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+      rerun: {{ editor.rerun_strategy }}
+    - path: .yamato/upm-ci-universal.yml#Build_{{ project.name }}_OSX_Metal_Player_{{ editor.version }}
+      rerun: {{ editor.rerun_strategy }}
   artifacts:
       logs:
           paths:
