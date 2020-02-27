@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; internal set; }
         public Vector2 targetPosition { get; internal set; }
+        public bool regenerateEntries { get; set; }
         private const string k_HiddenFolderName = "Hidden";
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
@@ -206,8 +207,11 @@ namespace UnityEditor.ShaderGraph.Drawing
     {        
         public Searcher.Searcher LoadSearchWindow()
         {
-            GenerateNodeEntries();
-
+            if (regenerateEntries)
+            {
+                GenerateNodeEntries();
+                regenerateEntries = false;
+            }
             //create empty root for searcher tree 
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
@@ -262,7 +266,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return false;
            
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
-            var node = nodeEntry.node;
+            var node = CopyNodeForGraph(nodeEntry.node);
 
             var drawState = node.drawState;
 
@@ -292,6 +296,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return true;
+        }
+        public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
+        {
+            var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (newNode is SubGraphNode subgraphNode)
+            {
+                subgraphNode.asset = ((SubGraphNode)oldNode).asset;
+            }
+            else if(newNode is PropertyNode propertyNode)
+            {
+                propertyNode.owner = m_Graph;
+                propertyNode.propertyGuid = ((PropertyNode)oldNode).propertyGuid;
+                propertyNode.owner = null;
+            }
+            else if(newNode is KeywordNode keywordNode)
+            {
+                keywordNode.owner = m_Graph;
+                keywordNode.keywordGuid = ((KeywordNode)oldNode).keywordGuid;
+                keywordNode.owner = null;
+            }
+            return newNode;
         }
     }
     
