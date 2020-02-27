@@ -211,11 +211,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static internal int RoundToNearestInt(float f)
-        {
-            return (int)(f + 0.5f);
-        }
-
         static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float voxelSize)
         {
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
@@ -226,8 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float screenFraction = controller.screenResolutionPercentage.value * 0.01f;
             int   sliceCount     = controller.volumeSliceCount.value;
 
-            int w = RoundToNearestInt(viewportWidth  * screenFraction);
-            int h = RoundToNearestInt(viewportHeight * screenFraction);
+            int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
+            int h = Mathf.RoundToInt(viewportHeight * screenFraction);
             int d = sliceCount;
 
             if (controller.screenResolutionPercentage.value == (1.0f/8.0f) * 100)
