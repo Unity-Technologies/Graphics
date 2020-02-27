@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Resolution of the volumetric buffer (3D texture) along the X and Y axes relative to the resolution of the frame buffer.</summary>
         [Tooltip("Resolution of the volumetric buffer (3D texture) along the X and Y axes relative to the resolution of the frame buffer. " +
         "Setting it to 12.5% (1/8) means the number of voxels per slice is 1/8^2 = 1/64 = 1.5625% of the resolution of the frame buffer.")]
-        public ClampedFloatParameter screenResolutionPercentage = new ClampedFloatParameter((1.0f/8.0f) * 100, (1.0f/12.0f) * 100, 100);
+        public ClampedFloatParameter screenResolutionPercentage = new ClampedFloatParameter((1.0f/8.0f) * 100, (1.0f/16.0f) * 100, 100);
         /// <summary>Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.</summary>
         [Tooltip("Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.")]
         public ClampedIntParameter volumeSliceCount = new ClampedIntParameter(64, 1, 1024);
