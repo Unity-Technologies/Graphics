@@ -182,6 +182,16 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
+
+        public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+        public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+        public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+        public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+        public static readonly string _SPOT = "_SPOT";
+        public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
+        public static readonly string _POINT = "_POINT";
+        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
     }
 
     public sealed partial class UniversalRenderPipeline

@@ -69,16 +69,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         public static class ShaderConstants
         {
-            public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
-            public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
-            public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
-            public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
-            public static readonly string _SPOT = "_SPOT";
-            public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
-            public static readonly string _POINT = "_POINT";
-            public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
-            public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
-
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
             public static readonly int _DownsamplingWidth = Shader.PropertyToID("_DownsamplingWidth");
@@ -637,13 +627,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (tilePixelWidth == tilePixelHeight)
             {
                 if (intermediateMipLevel == 1)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
                 else if (intermediateMipLevel == 2)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
                 else if (intermediateMipLevel == 3)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
                 else if (intermediateMipLevel == 4)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_16;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_16;
             }
             if (shaderVariant != null)
                 cmd.EnableShaderKeyword(shaderVariant);
@@ -728,11 +718,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             string shaderVariant = null;
             if (diffWidthLevel == 1 && diffHeightLevel == 1)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
             else if (diffWidthLevel == 2 && diffHeightLevel == 2)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
             else if (diffWidthLevel == 3 && diffHeightLevel == 3)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
 
             if (shaderVariant != null)
                 cmd.EnableShaderKeyword(shaderVariant);
@@ -1123,7 +1113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Spot lights.
 
-                cmd.EnableShaderKeyword(ShaderConstants._SPOT);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
 
                 for (; soffset < m_stencilVisLights.Length; ++soffset)
                 {
@@ -1148,9 +1138,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                     cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1169,8 +1159,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._SPOT);
-                cmd.EnableShaderKeyword(ShaderConstants._DIRECTIONAL);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
 
                 // Directional lights.
 
@@ -1195,8 +1185,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._DIRECTIONAL);
-                cmd.EnableShaderKeyword(ShaderConstants._POINT);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
 
                 // Point lights.
 
@@ -1225,9 +1215,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
                     cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
@@ -1242,7 +1232,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._POINT);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
             }
 
             Profiler.EndSample();

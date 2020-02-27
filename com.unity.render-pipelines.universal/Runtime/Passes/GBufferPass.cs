@@ -93,9 +93,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
                 if (m_DeferredLights.accurateGbufferNormals)
-                    gbufferCommands.EnableShaderKeyword(DeferredLights.ShaderConstants._GBUFFER_NORMALS_OCT);
+                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
                 else
-                    gbufferCommands.DisableShaderKeyword(DeferredLights.ShaderConstants._GBUFFER_NORMALS_OCT);
+                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
                 gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
