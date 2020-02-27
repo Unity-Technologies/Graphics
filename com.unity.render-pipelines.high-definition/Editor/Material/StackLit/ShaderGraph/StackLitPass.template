@@ -288,7 +288,6 @@ Pass
     #define DISABLE_MODIFY_BAKED_DIFFUSE_LIGHTING
 #endif
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #ifdef DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
