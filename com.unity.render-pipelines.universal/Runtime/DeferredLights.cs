@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
-            ForwardLights.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+            UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
             cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
@@ -1141,7 +1141,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
-                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                         vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
@@ -1218,7 +1218,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
-                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                         vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
@@ -1285,7 +1285,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Vector4 lightAttenuation;
             Vector4 lightSpotDir;
-            ForwardLights.GetLightAttenuationAndSpotDirection(
+            UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                 visibleLights[index].lightType, visibleLights[index].range, visibleLights[index].localToWorldMatrix,
                 visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
                 out lightAttenuation, out lightSpotDir);
