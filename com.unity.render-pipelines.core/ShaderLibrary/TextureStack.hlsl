@@ -233,20 +233,22 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 
 // Sample just samples the texture
 #define SampleStack(info, lodMode, quality, texture) \
-    (lodMode == VtLevel_Automatic) ?
-        SAMPLE_TEXTURE2D(texture, sampler##texture, info.vt.uv)
-    :( (lodMode == VtLevel_Lod) ?
-        SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)
-    :( (lodMode == VtLevel_Bias) ?
-        SAMPLE_TEXTURE2D_BIAS(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)        
-    :( /*(lodMode == /VtLevel_Derivatives)*/
-        SAMPLE_TEXTURE2D_GRAD(texture, sampler##texture, info.vt.uv, info.vt.dx, info.vt.dy) 
+    (lodMode == VtLevel_Automatic) ?\
+        SAMPLE_TEXTURE2D(texture, sampler##texture, info.vt.uv)\
+    :( (lodMode == VtLevel_Lod) ?\
+        SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
+    :( (lodMode == VtLevel_Bias) ?\
+        SAMPLE_TEXTURE2D_BIAS(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
+    :( /*(lodMode == /VtLevel_Derivatives)*/\
+        SAMPLE_TEXTURE2D_GRAD(texture, sampler##texture, info.vt.uv, info.vt.dx, info.vt.dy)\
     )));
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define ResolveStack(uv, stackName) float4(1,1,1,1)
 #define PackResolveOutput(output) output
+#define GetPackedVTFeedback(feedback) feedback
+
 
 #endif
 
