@@ -1093,6 +1093,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.SpecularOcclusionCustom,      specularOcclusionMode == SpecularOcclusionMode.Custom),
 
                 //Distortion
+                new ConditionalField(HDFields.DistortionDepthTest,          distortionDepthTest.isOn),
+                new ConditionalField(HDFields.DistortionAdd,                distortionMode == DistortionMode.Add),
+                new ConditionalField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
                 new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Refraction

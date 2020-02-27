@@ -1435,6 +1435,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
 
                 // Distortion
+                new ConditionalField(HDFields.DistortionDepthTest,          distortionDepthTest.isOn),
+                new ConditionalField(HDFields.DistortionAdd,                distortionMode == DistortionMode.Add),
+                new ConditionalField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
                 new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Base Parametrization
