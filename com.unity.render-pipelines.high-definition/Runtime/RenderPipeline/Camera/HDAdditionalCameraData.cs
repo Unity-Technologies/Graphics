@@ -262,15 +262,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Strength of the sharpening component of temporal anti-aliasing.</summary>
         [Range(0, 2)]
-        public float taaSharpenStrength = 0.6f;
+        public float taaSharpenStrength = 0.5f;
 
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
-        public float taaHistorySharpening = 0.5f;
+        public float taaHistorySharpening = 0.35f;
 
-        // IMPORTANT REMOVE
-        [Range(0.75f, 5.0f)]
-        public float taaStdDevBoost = 1.5f;
+        /// <summary>Drive the anti-flicker mechanism. With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.</summary>
+        [Range(0.0f, 1.0f)]
+        public float taaAntiFlicker = 0.33f;
 
         // REMOVE!
         public bool oldTAA = false;

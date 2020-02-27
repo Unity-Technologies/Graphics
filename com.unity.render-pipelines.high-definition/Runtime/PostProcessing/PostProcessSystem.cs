@@ -935,9 +935,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
 
-            var taaParameters = new Vector4(camera.taaHistorySharpening - 0.5f, camera.taaStdDevBoost, 0.0f, 0.0f);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
+            float minAntiflicker = 0.0f;
+            float maxAntiflicker = 1.5f;
+            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), 0.0f, 0.0f);
+            Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
+                                              prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
+            var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
+            var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
 
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);

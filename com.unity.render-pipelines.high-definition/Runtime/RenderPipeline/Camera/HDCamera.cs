@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float                  taaSharpenStrength;
         internal float                  taaHistorySharpening;
         // REMOVE THE FOLLOWING TWO
-        internal float                  taaStdDevBoost;
+        internal float                  taaAntiFlicker;
         internal bool oldTAA;
 
         internal Vector4                zBufferParams;
@@ -848,7 +848,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
                     taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
-                    taaStdDevBoost = m_AdditionalCameraData.taaStdDevBoost;
+                    taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
                     oldTAA = m_AdditionalCameraData.oldTAA;
 
                 }

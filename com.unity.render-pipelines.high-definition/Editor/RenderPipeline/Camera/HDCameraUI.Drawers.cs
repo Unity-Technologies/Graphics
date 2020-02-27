@@ -469,7 +469,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
                 EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
-                EditorGUILayout.PropertyField(p.taaStdDevBoost, TAAStdDevBoost);
+                EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
                 EditorGUILayout.PropertyField(p.oldTAA, OldTAA);
             }
         }

@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaSharpenStrength;
         // TODO_FCC: Cleanup
         public SerializedProperty taaHistorySharpening;
-        public SerializedProperty taaStdDevBoost;
+        public SerializedProperty taaAntiFlicker;
         public SerializedProperty oldTAA;
 
         public SerializedProperty dithering;
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
             taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
-            taaStdDevBoost = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaStdDevBoost);
+            taaAntiFlicker = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiFlicker);
             oldTAA = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.oldTAA);
 
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);

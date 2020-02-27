@@ -77,12 +77,12 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             CTYPE corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
             // Sharpen output
-    //#if SHARPEN
-    //        CTYPE topRight = Fetch4(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-    //        CTYPE bottomLeft = Fetch4(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
-    //        CTYPE blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
-    //        color += (color - blur) * sharpenStrength;
-    //#endif
+    #if SHARPEN
+            CTYPE topRight = Fetch4(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
+            CTYPE bottomLeft = Fetch4(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy).CTYPE_SWIZZLE;
+            CTYPE blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
+            color += (color - blur) * sharpenStrength;
+    #endif
 
             color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
 
@@ -129,6 +129,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             //color = colorLuma;
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
+           // outColor = abs(averageLuma - colorLuma);
         }
 
         void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)

@@ -15,11 +15,7 @@ Shader "Hidden/HDRP/TAA2"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma multi_compile_local _ ORTHOGRAPHIC
-        #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
-        #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-        #pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -54,7 +50,7 @@ Shader "Hidden/HDRP/TAA2"
     // ------------------------------------------------------------------
 
 
-        void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
+        void FragTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -63,10 +59,27 @@ Shader "Hidden/HDRP/TAA2"
 
             float2 uv = input.texcoord - jitter;
 
+            // --------------- Get closest motion vector ---------------
+            float2 motionVector;
+
+            float2 closest = GetClosestFragment(int2(input.positionCS.xy));
+            DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+            // --------------------------------------------------------
+
+            // --------------- Get resampled history ---------------
+            float2 prevUV = input.texcoord - motionVector;
+
+            float3 history = GetFilteredHistory(prevUV);
+
+            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
+
+            history *= PerceptualWeight(history);
+            // -----------------------------------------------------
+
             // --------------- Gather neigbourhood data --------------- 
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
             color = clamp(color, 0, CLAMP_MAX);
-            color = RGBToYCoCg(color);
+            color = ConvertToWorkingSpace(color.xyz);
 
             NeighbourhoodSamples samples;
             GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
@@ -76,61 +89,41 @@ Shader "Hidden/HDRP/TAA2"
             float3 filteredColor = FilterCentralColor(samples);
             // ------------------------------------------------------
 
-
-            // --------------- Get closest motion vector --------------- 
-    #if defined(ORTHOGRAPHIC)
-            float2 closest = input.positionCS.xy;
-    #else
-            float2 closest = GetClosestFragment(input.positionCS.xy);
-    #endif
-            float2 motionVector;
-            DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
-            // --------------------------------------------------------
-
-            // --------------- Get resampled history --------------- 
-            float3 history = GetFilteredHistory(input.texcoord - motionVector);
-            history *= PerceptualWeight(history, samples.test_remove);
-            // -----------------------------------------------------
+            if (offScreen)
+                history = filteredColor;
 
             // --------------- Get neighbourhood information and clamp history --------------- 
-            GetNeighbourhoodCorners(samples);
-
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma);
 
             history = GetClippedHistory(filteredColor, history.xyz, samples.minNeighbour.xyz, samples.maxNeighbour.xyz);
-
-            filteredColor.y = clamp(filteredColor.y, 0, CLAMP_MAX);
             filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
-
-            // Feedback weight from unbiased luminance diff (Timothy Lottes)
             float feedback = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
             // --------------------------------------------------------
 
             // --------------- Blend to final value and output ---------------
             float3 finalColor = lerp(history.xyz, filteredColor.xyz, feedback);
-            finalColor *= PerceptualInvWeight(finalColor, samples.test_remove);
+
+            finalColor *= PerceptualInvWeight(finalColor);
             color.xyz = ConvertToOutputSpace(finalColor);
 
-            // -------------------------------------------------------------
-
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
-            outColor = color.CTYPE_SWIZZLE;
-
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = float4(color.xyz, 1);
+            outColor = color;
             // -------------------------------------------------------------
         }
 
-        void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)
+        void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord - jitter;
 
-            outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).xyz;
         }
     ENDHLSL
 
