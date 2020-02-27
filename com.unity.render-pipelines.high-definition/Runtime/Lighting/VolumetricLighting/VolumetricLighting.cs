@@ -97,11 +97,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // The V-Buffer is sphere-capped, while the camera frustum is not.
             // We always start from the near plane of the camera.
 
-            float aspectRatio = viewportSize.x / (float)viewportSize.y;
+            float aspectRatio    = viewportSize.x / (float)viewportSize.y;
             float farPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV) * camFar;
-            float farPlaneWidth = farPlaneHeight * aspectRatio;
+            float farPlaneWidth  = farPlaneHeight * aspectRatio;
             float farPlaneMaxDim = Mathf.Max(farPlaneWidth, farPlaneHeight);
-            float farPlaneDist = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
+            float farPlaneDist   = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
 
             float nearDist = camNear;
             float farDist = Math.Min(nearDist + depthExtent, farPlaneDist);
@@ -734,8 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                             ComputeBuffer                   bigTileLightList,
                                             CommandBuffer                   cmd)
         {
-            // Before we set the buffer, we must make sure
-
             cmd.SetComputeIntParam(parameters.voxelizationCS, HDShaderIDs._NumTileBigTileX, parameters.numBigTileX);
             cmd.SetComputeIntParam(parameters.voxelizationCS, HDShaderIDs._NumTileBigTileY, parameters.numBigTileY);
             if (parameters.tiledLighting)
@@ -920,8 +918,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferLighting, outputBuffer); // Write
                 cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelX, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
 
-                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFeedback, outputBuffer);  // Read
-                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLighting, inputBuffer); // Write
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFeedback, outputBuffer); // Read
+                cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferLighting, inputBuffer);  // Write
                 cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricFilteringKernelY, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
             }
         }
