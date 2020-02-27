@@ -202,6 +202,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4[] m_PixelCoordToViewDirWS;
 
+        static internal void SafeDestroy(ref RenderTexture rt)
+        {
+            if (rt != null)
+            {
+                rt.Release(); // The texture itself is not destroyed: https://docs.unity3d.com/ScriptReference/RenderTexture.Release.html
+                Object.DestroyImmediate(rt); // Destroy() may not be called from the Edit mode
+            }
+        }
+
         static internal int RoundToNearestInt(float f)
         {
             return (int)(f + 0.5f);
@@ -372,17 +381,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // Must be called AFTER UpdateVolumetricBufferParams.
         static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera, int frameIndex)
         {
-            if (hdCamera.volumetricHistoryBuffers == null)
+            if (!hdCamera.IsVolumetricReprojectionEnabled())
                 return;
 
             Debug.Assert(hdCamera.vBufferParams != null);
             Debug.Assert(hdCamera.vBufferParams.Length == 2);
-            Debug.Assert(hdCamera.volumetricHistoryBuffers.Length == 2);
+            Debug.Assert(hdCamera.volumetricHistoryBuffers != null);
 
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
             var currentParams = hdCamera.vBufferParams[currIdx];
+
+            // Render texture contents can become "lost" on certain events, like loading a new level,
+            // system going to a screensaver mode, in and out of fullscreen and so on.
+            // https://docs.unity3d.com/ScriptReference/RenderTexture.html
+            if (hdCamera.volumetricHistoryBuffers[0] == null || hdCamera.volumetricHistoryBuffers[1] == null)
+            {
+                DestroyVolumetricHistoryBuffers(hdCamera);
+                CreateVolumetricHistoryBuffers(hdCamera, hdCamera.vBufferParams.Length); // Basically, assume it's 2
+            }
 
             // We only resize the feedback buffer (#0), not the history buffer (#1).
             // We must NOT resize the buffer from the previous frame (#1), as that would invalidate its contents.
@@ -425,20 +443,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(success);
         }
 
-        static internal void SafeRelease(RenderTexture rt)
-        {
-            if (rt != null)
-            {
-                rt.Release();
-            }
-
-            rt = null;
-        }
-
         internal void DestroyVolumetricLightingBuffers()
         {
-            SafeRelease(m_LightingBuffer);
-            SafeRelease(m_DensityBuffer);
+            SafeDestroy(ref m_LightingBuffer);
+            SafeDestroy(ref m_DensityBuffer);
 
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
@@ -454,8 +462,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             Debug.Assert(hdCamera.vBufferParams != null);
-            Debug.Assert(m_DensityBuffer        != null);
-            Debug.Assert(m_LightingBuffer       != null);
+
+            // Render texture contents can become "lost" on certain events, like loading a new level,
+            // system going to a screensaver mode, in and out of fullscreen and so on.
+            // https://docs.unity3d.com/ScriptReference/RenderTexture.html
+            if (m_DensityBuffer == null || m_LightingBuffer == null)
+            {
+                DestroyVolumetricLightingBuffers();
+                CreateVolumetricLightingBuffers();
+            }
 
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
