@@ -161,14 +161,14 @@ namespace UnityEditor.ShaderGraph
                 string result;
                 if (explicitMip)
                 {
-                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
+                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0}, {2});"
                             , stackName
                             , GetSlotValue(WorldPosInputId, generationMode)
                             , GetSlotValue(MipLevelInputId, generationMode));
                 }
                 else
                 {
-                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
+                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0});"
                         , stackName
                         , GetSlotValue(WorldPosInputId, generationMode));
                 }
@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = "float4 " + stackName + "_worldToUVTransform",
+                overrideReferenceName = "float4 " + stackName + "_WorldToUVTransform",
                 m_Batchable = true
             });
 

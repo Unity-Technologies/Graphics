@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         bool useFeedback = true;
 
         [SerializeField]
-        string textureStackName = "HeightmapStack";
+        string textureStackName = "_TerrainHeightmapStack";
 
         internal enum MipCalculation
         {
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetTerrainHeightLayerName()
         {
-            return "Height";
+            return $"{textureStackName}_0";
         }
 
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -138,14 +138,14 @@ namespace UnityEditor.ShaderGraph
                 string result;
                 if (explicitMip)
                 {
-                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
+                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0}, {2});"
                             , stackName
                             , GetSlotValue(WorldPosInputId, generationMode)
                             , GetSlotValue(MipLevelInputId, generationMode));
                 }
                 else
                 {
-                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
+                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0});"
                             , stackName
                             , GetSlotValue(WorldPosInputId, generationMode));
                 }
@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}).r * {0}_heightTransform.x + {0}_heightTransform.y;"
+                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}).r * {0}_HeightTransform.x + {0}_HeightTransform.y;"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId
@@ -210,13 +210,13 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = "float4 " + stackName + "_worldToUVTransform",
+                overrideReferenceName = "float4 " + stackName + "_WorldToUVTransform",
                 m_Batchable = true
             });
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = "float4 " + stackName + "_heightTransform",
+                overrideReferenceName = "float4 " + stackName + "_HeightTransform",
                 m_Batchable = true
             });
 
