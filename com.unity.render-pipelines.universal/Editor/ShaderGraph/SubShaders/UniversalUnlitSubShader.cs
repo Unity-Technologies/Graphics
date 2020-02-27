@@ -55,7 +55,6 @@ namespace UnityEditor.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
-                "multi_compile_fog",
                 "multi_compile_instancing",
             },
             keywords = new KeywordDescriptor[]
@@ -107,7 +106,6 @@ namespace UnityEditor.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
-                "multi_compile_fog",
                 "multi_compile_instancing",
             },
         };
