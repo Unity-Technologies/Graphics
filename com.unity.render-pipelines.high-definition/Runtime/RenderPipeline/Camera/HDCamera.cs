@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Have to do this every frame in case the settings have changed.
                 // The condition inside controls whether we perform init/deinit or not.
-                HDRenderPipeline.ReinitializeVolumetricBufferParams(this, hdrp.GetFrameCount());
+                HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;

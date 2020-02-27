@@ -385,7 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
 
-                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera);
+                    float tileSize = 0;
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
                     passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
                     {
@@ -438,7 +439,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.bigTileLightListBuffer = bigTileLightListBuffer;
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
 
-                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera);
+                    float tileSize = 0;
+                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
                     passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
                     {

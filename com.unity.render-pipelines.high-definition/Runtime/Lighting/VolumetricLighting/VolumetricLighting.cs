@@ -85,14 +85,14 @@ namespace UnityEngine.Rendering.HighDefinition
     struct VBufferParameters
     {
         public Vector3Int viewportSize;
-        public int        frameIndex;
+        public float      tileSize;
         public Vector4    depthEncodingParams;
         public Vector4    depthDecodingParams;
 
-        public VBufferParameters(Vector3Int viewportSize, float depthExtent, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity, int frameIndex)
+        public VBufferParameters(Vector3Int viewportSize, float depthExtent, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity, float tileSize)
         {
             this.viewportSize = viewportSize;
-            this.frameIndex   = frameIndex;
+            this.tileSize     = tileSize;
 
             // The V-Buffer is sphere-capped, while the camera frustum is not.
             // We always start from the near plane of the camera.
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (int)(f + 0.5f);
         }
 
-        static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera)
+        static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float tileSize)
         {
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
             Debug.Assert(controller != null);
@@ -256,24 +256,31 @@ namespace UnityEngine.Rendering.HighDefinition
             int h = RoundToNearestInt(viewportHeight * screenFraction);
             int d = sliceCount;
 
+            if (controller.screenResolutionPercentage.value == (1.0f/8.0f) * 100)
+                tileSize = 8;
+            else
+                tileSize = 1.0f / screenFraction; // Does not account for rounding
+
             return new Vector3Int(w, h, d);
         }
 
-        static internal VBufferParameters ComputeVolumetricBufferParameters(HDCamera hdCamera, int frameIndex)
+        static internal VBufferParameters ComputeVolumetricBufferParameters(HDCamera hdCamera)
         {
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
             Debug.Assert(controller != null);
 
-            Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera);
+            float tileSize = 0;
+            Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
             return new VBufferParameters(viewportSize, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
                                          hdCamera.camera.farClipPlane,
                                          hdCamera.camera.fieldOfView,
-                                         controller.sliceDistributionUniformity.value, frameIndex);
+                                         controller.sliceDistributionUniformity.value,
+                                         tileSize);
         }
 
-        static internal void ReinitializeVolumetricBufferParams(HDCamera hdCamera, int frameIndex)
+        static internal void ReinitializeVolumetricBufferParams(HDCamera hdCamera)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
@@ -292,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Initialize.
                     // Start with the same parameters for both frames. Then update them one by one every frame.
-                    var parameters = ComputeVolumetricBufferParameters(hdCamera, frameIndex);
+                    var parameters = ComputeVolumetricBufferParameters(hdCamera);
                     hdCamera.vBufferParams = new VBufferParameters[2];
                     hdCamera.vBufferParams[0] = parameters;
                     hdCamera.vBufferParams[1] = parameters;
@@ -310,22 +317,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(hdCamera.vBufferParams != null);
             Debug.Assert(hdCamera.vBufferParams.Length == 2);
 
-            var currentParams = ComputeVolumetricBufferParameters(hdCamera, frameIndex);
+            var currentParams = ComputeVolumetricBufferParameters(hdCamera);
 
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
-            if (hdCamera.vBufferParams[currIdx].frameIndex != frameIndex)
-            {
-                // Swap the two buffers.
-                hdCamera.vBufferParams[prevIdx] = hdCamera.vBufferParams[currIdx];
-                hdCamera.vBufferParams[currIdx] = currentParams;
-            }
-            else
-            {
-                // Multiple updates per frame. Do not swap.
-                hdCamera.vBufferParams[currIdx] = currentParams;
-            }
+            hdCamera.vBufferParams[currIdx] = currentParams;
 
             // Handle case of first frame. When we are on the first frame, we reuse the value of original frame.
             if (hdCamera.vBufferParams[prevIdx].viewportSize.x == 0.0f && hdCamera.vBufferParams[prevIdx].viewportSize.y == 0.0f)
@@ -407,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.volumetricHistoryBuffers = null;
         }
 
-        // Must be called AFTER UpdateVolumetricBufferParams (which swaps and updates the parameters).
+        // Must be called AFTER UpdateVolumetricBufferParams.
         static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera, int frameIndex)
         {
             if (hdCamera.volumetricHistoryBuffers == null)
@@ -485,7 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleVolumeBounds = null; // free()
         }
 
-        // Must be called AFTER UpdateVolumetricBufferParams (which swaps and updates the parameters).
+        // Must be called AFTER UpdateVolumetricBufferParams.
         internal void ResizeVolumetricLightingBuffers(HDCamera hdCamera, int frameIndex)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
@@ -557,11 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lighting & density buffers are shared by all cameras.
             // The history & feedback buffers are specific to the camera.
             // These 2 types of buffers can have different sizes.
-            // Additionally, history buffers can have different sizes, since they are not resized at the same time
-            // (every frame, we swap the buffers, and resize the feedback buffer but not the history buffer).
-            // The viewport size is the same for all of these buffers.
-            // All of these buffers may have sub-native-resolution viewports.
-            // The 3rd dimension (number of slices) is the same for all of these buffers.
+            // Additionally, history buffers can have different sizes, since they are not resized at the same time.
             Vector3Int lightingBufferSize = new Vector3Int(m_LightingBuffer.width, m_LightingBuffer.height, m_LightingBuffer.volumeDepth);
 
             Debug.Assert(m_LightingBuffer.width  == m_DensityBuffer.width);
@@ -591,6 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,            new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
             cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              sliceCount);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / sliceCount);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferTileSize,                currFrameParams.tileSize);
             cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportScale,   currFrameParams.ComputeViewportScale(lightingBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportLimit,   currFrameParams.ComputeViewportLimit(lightingBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
@@ -686,20 +680,21 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new VolumeVoxelizationParameters();
 
+            var currIdx = (frameIndex + 0) & 1;
+            var prevIdx = (frameIndex + 1) & 1;
+
+            var currFrameParams = hdCamera.vBufferParams[currIdx];
+
             parameters.viewCount = hdCamera.viewCount;
             parameters.numBigTileX = GetNumTileBigTileX(hdCamera);
             parameters.numBigTileY = GetNumTileBigTileY(hdCamera);
 
             parameters.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-            bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
+            bool optimal = currFrameParams.tileSize == 8;
 
             parameters.voxelizationCS = m_VolumeVoxelizationCS;
-            parameters.voxelizationKernel = (parameters.tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
+            parameters.voxelizationKernel = (parameters.tiledLighting ? 1 : 0) | (!optimal ? 2 : 0);
 
-            var currIdx = (frameIndex + 0) & 1;
-            var prevIdx = (frameIndex + 1) & 1;
-
-            var currFrameParams = hdCamera.vBufferParams[currIdx];
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
@@ -833,6 +828,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new VolumetricLightingParameters();
 
+            var currIdx = (frameIndex + 0) & 1;
+            var prevIdx = (frameIndex + 1) & 1;
+
+            var currFrameParams = hdCamera.vBufferParams[currIdx];
+
             // Get the interpolated anisotropy value.
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
@@ -840,17 +840,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
             parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled();
             bool enableAnisotropy = fog.anisotropy.value != 0;
-            bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
+            bool optimal = currFrameParams.tileSize == 8;
 
             parameters.volumetricLightingCS = m_VolumetricLightingCS;
-            parameters.volumetricLightingKernel = (parameters.tiledLighting ? 1 : 0) | (parameters.enableReprojection ? 2 : 0) | (enableAnisotropy ? 4 : 0) | (highQuality ? 8 : 0);
+            parameters.volumetricLightingKernel = (parameters.tiledLighting ? 1 : 0) | (parameters.enableReprojection ? 2 : 0) | (enableAnisotropy ? 4 : 0) | (!optimal ? 8 : 0);
             parameters.volumetricFilteringKernelX = 16;
             parameters.volumetricFilteringKernelY = 17;
 
-            var currIdx = (frameIndex + 0) & 1;
-            var prevIdx = (frameIndex + 1) & 1;
-
-            var currFrameParams = hdCamera.vBufferParams[currIdx];
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
