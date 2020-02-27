@@ -202,27 +202,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4[] m_PixelCoordToViewDirWS;
 
-        void InitializeVolumetricLighting()
-        {
-            m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
-
-            if (!m_SupportVolumetrics)
-                return;
-
-            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
-            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
-
-            m_PackedCoeffs = new Vector4[7];
-            m_PhaseZH = new ZonalHarmonicsL2();
-            m_PhaseZH.coeffs = new float[3];
-
-            m_xySeq = new Vector2[7];
-
-            m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
-
-            CreateVolumetricLightingBuffers();
-        }
-
         static internal int RoundToNearestInt(float f)
         {
             return (int)(f + 0.5f);
@@ -489,6 +468,27 @@ namespace UnityEngine.Rendering.HighDefinition
             ResizeVolumetricBuffer(ref m_LightingBuffer, currentParams.viewportSize.x,
                                                          currentParams.viewportSize.y,
                                                          currentParams.viewportSize.z);
+        }
+
+        void InitializeVolumetricLighting()
+        {
+            m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
+
+            if (!m_SupportVolumetrics)
+                return;
+
+            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
+            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
+
+            m_PackedCoeffs = new Vector4[7];
+            m_PhaseZH = new ZonalHarmonicsL2();
+            m_PhaseZH.coeffs = new float[3];
+
+            m_xySeq = new Vector2[7];
+
+            m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+
+            CreateVolumetricLightingBuffers();
         }
 
         void CleanupVolumetricLighting()
