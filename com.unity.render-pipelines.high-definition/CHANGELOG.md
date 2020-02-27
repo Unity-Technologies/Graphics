@@ -413,6 +413,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a leak in the PBR sky renderer.
 - Added a tooltip to the Ambient Mode parameter in the Visual Envionment volume component.
 - Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
+- Fixed a leak in the sky system.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -496,6 +497,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
 - Moved BeginCameraRendering callback right before culling.
+- Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 
 ## [7.1.1] - 2019-09-05
 

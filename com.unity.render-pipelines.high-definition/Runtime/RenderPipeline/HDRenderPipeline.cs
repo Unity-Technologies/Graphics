@@ -242,6 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         readonly SkyManager m_SkyManager = new SkyManager();
+        internal SkyManager skyManager { get { return m_SkyManager; } }
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
 
         // Debugging

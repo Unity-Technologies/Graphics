@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe)
+        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe, string name)
         {
             Debug.Assert(m_CachedSkyContexts[slot].hash == 0);
             ref var context = ref m_CachedSkyContexts[slot];
@@ -550,14 +550,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (context.renderingContext == null)
-                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe);
+                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
             else
                 context.renderingContext.UpdateAmbientProbe(previousAmbientProbe);
             skyContext.cachedSkyRenderingContextId = slot;
         }
 
         // Returns whether or not the data should be updated
-        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash, bool supportConvolution = true)
+        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash, string name = "", bool supportConvolution = true)
         {
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
             // Release the old context if needed.
@@ -599,24 +599,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     firstFreeContext = i;
             }
 
+            if (name == "")
+                name = "SkyboxCubemap";
+
             if (firstFreeContext != -1)
             {
-                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe, name);
             }
             else
             {
                 int newContextId = m_CachedSkyContexts.Add(new CachedSkyContext());
-                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe, name);
             }
 
             return true;
         }
 
-        void ReleaseCachedContext(int id)
+        internal void ReleaseCachedContext(int id)
         {
+            if (id == -1)
+                return;
+
             ref var cachedContext = ref m_CachedSkyContexts[id];
+
+            // This can happen if 2 cameras use the same context and release it in the same frame.
+            // The first release the context but the next one will still have this id.
+            if (cachedContext.refCount == 0)
+            {
+                Debug.Assert(cachedContext.renderingContext == null); // Context should already have been cleaned up.
+                return;
+            }
+
             cachedContext.refCount--;
-            Debug.Assert(cachedContext.refCount >= 0);
             if (cachedContext.refCount == 0)
                 cachedContext.Cleanup();
         }
@@ -683,7 +697,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool forceUpdate = updateRequired;
 
                 // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
-                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, !staticSky);
+                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, staticSky ? "SkyboxCubemap_Static" : "SkyboxCubemap", !staticSky);
 
                 ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 var renderingContext = cachedContext.renderingContext;
