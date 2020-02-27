@@ -45,33 +45,45 @@ namespace UnityEditor.ShaderGraph
         // Keep these in sync with "VirtualTexturing.hlsl"
         public enum LodCalculation
         {
+            [InspectorName("Automatic")]
             VtLevel_Automatic = 0,
+            [InspectorName("Lod Level")]
             VtLevel_Lod = 1,
+            [InspectorName("Lod Bias")]
             VtLevel_Bias = 2,
+            [InspectorName("Derivatives")]
             VtLevel_Derivatives = 3
         }
 
         public enum AddresMode
         {
+            [InspectorName("Wrap")]
             VtAddressMode_Wrap = 0,
+            [InspectorName("Clamp")]
             VtAddressMode_Clamp = 1,
+            [InspectorName("Udim")]
             VtAddressMode_Udim = 2
         }
 
         public enum FilterMode
         {
+            [InspectorName("Anisotropic")]
             VtFilter_Anisotropic = 0
         }
 
         public enum UvSpace
         {
+            [InspectorName("Regular")]
             VtUvSpace_Regular = 0,
+            [InspectorName("Pre Transformed")]
             VtUvSpace_PreTransformed = 1
         }
 
         public enum QualityMode
         {
+            [InspectorName("Low")]
             VtSampleQuality_Low = 0,
+            [InspectorName("High")]
             VtSampleQuality_High = 1
         }
 
@@ -314,7 +326,7 @@ namespace UnityEditor.ShaderGraph
                     });
                 });
 
-                ps.Add(new PropertyRow(new Label("No Resolve")), (row) =>
+                ps.Add(new PropertyRow(new Label("No Feedback")), (row) =>
                 {
                     row.Add(new UnityEngine.UIElements.Toggle(), (field) =>
                     {
@@ -545,7 +557,7 @@ namespace UnityEditor.ShaderGraph
                     // Todo how to exclude procedurals in subgraphs?
                     if (nodeNames.Contains(subStack))
                     {
-                        node.owner.AddValidationError(node.tempId, $"Some stack nodes in sub graphs have the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
+                        node.owner.AddValidationError(node.tempId, $"A stack node in a subgraph which is exposed through a texture argument has the same name '{subStack}', please ensure all stack nodes have unique names across the whole shader using them.", ShaderCompilerMessageSeverity.Error);
                     }
                     else
                     {
@@ -660,24 +672,6 @@ namespace UnityEditor.ShaderGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
-            // as vt headers get included even if there are no vt nodes yet.
-            sb.AppendLine("#if defined(_SURFACE_TYPE_TRANSPARENT)");
-            sb.AppendLine("#error VT cannot be used on transparent surfaces.");
-            sb.AppendLine("#endif");
-            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)"); //SHADERPASS is not defined for preview materials so check this first.
-            sb.AppendLine("#error VT cannot be used on decals. (DBuffer)");
-            sb.AppendLine("#endif");
-            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_MESH)");
-            sb.AppendLine("#error VT cannot be used on decals. (Mesh)");
-            sb.AppendLine("#endif");
-            sb.AppendLine("#if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)");
-            sb.AppendLine("#error VT cannot be used on decals. (Projector)");
-            sb.AppendLine("#endif");
-            sb.AppendLine("#if defined(FORCE_VIRTUAL_TEXTURING_OFF) && defined(VIRTUAL_TEXTURING_SHADER_ENABLED)");
-            sb.AppendLine("#error FORCE_VIRTUAL_TEXTURING_OFF define was set after including TextureStack.hlsl without this define. Fix your include order.");
-            sb.AppendLine("#endif");
-
             // Not all outputs may be connected (well one is or we wouldn't get called) so we are careful to
             // only generate code for connected outputs
 
@@ -767,22 +761,21 @@ namespace UnityEditor.ShaderGraph
             // This is not in templates or headers so this error only gets checked in shaders actually using the VT node
             // as vt headers get included even if there are no vt nodes yet.
             registry.ProvideIncludeBlock("disable-vt-if-unsupported", @"#if defined(_SURFACE_TYPE_TRANSPARENT)
-#warning VT cannot be used on transparent surfaces.
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
+#error VT cannot be used on transparent surfaces.
 #endif
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-#warning VT cannot be used on decals. (DBuffer)
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
+#error VT cannot be used on decals. (DBuffer)
 #endif
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-#warning VT cannot be used on decals. (Mesh)
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
+#error VT cannot be used on decals. (Mesh)
 #endif
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
-#warning VT cannot be used on decals. (Projector)
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
+#error VT cannot be used on decals. (Projector)
 #endif");
-
             registry.ProvideInclude("Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl");
         }
 
