@@ -177,22 +177,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Target");
-                    graph.activeTargetIndex = EditorGUILayout.Popup(graph.activeTargetIndex, 
-                        graph.validTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
-                    GUILayout.Label("Implementations");
-                    graph.activeTargetImplementationBitmask = EditorGUILayout.MaskField(graph.activeTargetImplementationBitmask, 
-                        graph.validImplementations.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        graph.UpdateTargets();
-                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                        {
-                            node.Dirty(ModificationScope.Graph);
-                        }
-                    }
-
                     if (isCheckedOut != null)
                     {
                         if (!isCheckedOut() && Provider.enabled && Provider.isActive)

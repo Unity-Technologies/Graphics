@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode is IMasterNode masterNode)
             {
-                m_TargetImplementations = m_GraphData.activeTargetImplementations.ToArray();
+                m_TargetImplementations = m_GraphData.validImplementations.ToArray();
             }
             else
             {

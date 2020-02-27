@@ -319,42 +319,10 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<ITarget> m_ValidTargets = new List<ITarget>();
 
-        public List<ITarget> validTargets => m_ValidTargets;
-        
-        [SerializeField]
-        int m_ActiveTargetIndex;
-
-        public int activeTargetIndex
-        {
-            get => m_ActiveTargetIndex;
-            set => m_ActiveTargetIndex = value;
-        }
-
-        public ITarget activeTarget => m_ValidTargets[m_ActiveTargetIndex];
-
         [NonSerialized]
         List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
 
         public List<ITargetImplementation> validImplementations => m_ValidImplementations;
-
-        [SerializeField]
-        int m_ActiveTargetImplementationBitmask = -1;
-
-        public int activeTargetImplementationBitmask
-        {
-            get => m_ActiveTargetImplementationBitmask;
-            set => m_ActiveTargetImplementationBitmask = value;
-        }
-
-        public List<ITargetImplementation> activeTargetImplementations
-        {
-            get
-            {
-                // Return a list of all valid TargetImplementations enabled in the bitmask
-                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
-                    m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
-            }
-        }
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -1447,54 +1415,9 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            // Assembly reload, just rebuild the non-serialized lists
-            if(m_ValidTargets.Count == 0)
-            {
-                m_ValidTargets = foundTargets;
-                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            }
-
-            // Active Target is no longer valid
-            // Reset all Target selections and return
-            if(!foundTargets.Select(s => s.GetType()).Contains(m_ValidTargets[m_ActiveTargetIndex].GetType()))
-            {
-                m_ActiveTargetIndex = 0; // Default
-                m_ActiveTargetImplementationBitmask = -1; // Everything
-                m_ValidTargets = foundTargets;
-                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-                return;
-            }
-
-            // Active Target index has changed
-            // Still need to validate TargetImplementation bitmask
-            if(foundTargets[m_ActiveTargetIndex].GetType() != activeTarget.GetType())
-            {
-                var activeTargetInFoundList = foundTargets.Where(s => s.GetType() == activeTarget.GetType()).FirstOrDefault();
-                m_ActiveTargetIndex = foundTargets.IndexOf(activeTargetInFoundList);
-            }
-
-            // Update valid Targets and TargetImplementations
             m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
+            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
             
-            // Nothing or Everything. No need to update bitmask.
-            if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
-                return;
-
-            // Current ITargetImplementation bitmask is set to Mixed...
-            // We need to build a new bitmask from the indicies in the new Implementation list
-            int newBitmask = 0;
-            foreach(ITargetImplementation implementation in activeTargetImplementations)
-            {
-                var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
-                if(implementationInFound != null)
-                {
-                    // If the new Implementation list contains this Implementation
-                    // add its new index to the bitmask
-                    newBitmask = newBitmask | (1 << foundImplementations.IndexOf(implementationInFound));
-                }
-            }
-            m_ActiveTargetImplementationBitmask = newBitmask;
         }
     }
 
