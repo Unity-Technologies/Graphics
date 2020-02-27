@@ -128,6 +128,8 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTexture.Init("_CameraDepthTexture");
             m_CameraDepthTexture.InitDescriptor(RenderTextureFormat.Depth);
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
+            m_CameraDepthAttachment.InitDescriptor(RenderTextureFormat.Depth);
+
             m_GBufferAttachments[0].Init("_GBuffer0");
             m_GBufferAttachments[1].Init("_GBuffer1");
             m_GBufferAttachments[2].Init("_GBuffer2");
@@ -240,10 +242,10 @@ namespace UnityEngine.Rendering.Universal
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
             m_CameraColorTexture.InitDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
-            m_CameraDepthTexture.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
+            m_CameraDepthAttachment.ConfigureLoadStoreActions(RenderBufferStoreAction.Store, RenderBufferLoadAction.Clear);
 
 
-            base.SetupRendererFeaturesTarget(ref renderingData, m_CameraColorTexture, m_CameraDepthTexture);
+            base.SetupRendererFeaturesTarget(ref renderingData, m_CameraColorTexture, m_CameraDepthAttachment);
 
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;

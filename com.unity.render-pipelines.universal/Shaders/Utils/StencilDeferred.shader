@@ -164,8 +164,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     }
 
     half4 FragFog(Varyings input) : SV_Target
-
-        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;//LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
+    {
+        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);
