@@ -108,6 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SphericalHarmonicsL2    m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
         bool                    m_UpdateRequired = false;
+        bool                    m_StaticSkyUpdateRequired = false;
         int                     m_Resolution;
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
@@ -130,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool         logOnce = true;
 
         // This boolean here is only to track the first frame after a domain reload or creation.
-        bool m_requireWaitForAsyncReadBackRequest = true;
+        bool m_RequireWaitForAsyncReadBackRequest = true;
 
         MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
@@ -646,6 +647,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpdateRequired = true;
         }
 
+        internal void RequestStaticEnvironmentUpdate()
+        {
+            m_StaticSkyUpdateRequired = true;
+            m_RequireWaitForAsyncReadBackRequest = true;
+        }
+
         public void UpdateEnvironment(  HDCamera                hdCamera,
                                         ScriptableRenderContext renderContext,
                                         SkyUpdateContext        skyContext,
@@ -708,14 +715,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 {
                                     // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
                                     // otherwise ambient probe isn't correct for one frame.
-                                    if (m_requireWaitForAsyncReadBackRequest)
+                                    if (m_RequireWaitForAsyncReadBackRequest)
                                     {
                                         cmd.WaitAllAsyncReadbackRequests();
                                         renderContext.ExecuteCommandBuffer(cmd);
                                         CommandBufferPool.Release(cmd);
                                         renderContext.Submit();
                                         cmd = CommandBufferPool.Get();
-                                        m_requireWaitForAsyncReadBackRequest = false;
+                                        m_RequireWaitForAsyncReadBackRequest = false;
                                     }
                                 }
                             }
@@ -756,13 +763,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
             // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
             // and we use the one from the main camera.
-            if (ambientMode == SkyAmbientMode.Static && hdCamera.camera.cameraType != CameraType.Preview)
+            bool forceStaticUpdate = false;
+#if UNITY_EDITOR
+            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case.
+            forceStaticUpdate = true;
+#endif
+            if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 StaticLightingSky staticLightingSky = GetStaticLightingSky();
                 if (staticLightingSky != null)
                 {
                     m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, false, true, true, ambientMode, frameIndex, cmd);
+                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                    m_StaticSkyUpdateRequired = false;
                 }
             }
 

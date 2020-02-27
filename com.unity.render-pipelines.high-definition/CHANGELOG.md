@@ -410,6 +410,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
 - Fixed a bug related to ray traced area light shadow history.
+- Fixed a leak in the PBR sky renderer.
+- Added a tooltip to the Ambient Mode parameter in the Visual Envionment volume component.
+- Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
