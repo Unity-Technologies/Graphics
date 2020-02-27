@@ -64,7 +64,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
         descriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
         descriptor.useMipMap = false;
         descriptor.autoGenerateMips = false;
-        descriptor.depthBufferBits = 24;
+        descriptor.depthBufferBits = 0;
         descriptor.msaaSamples = 1;
         descriptor.dimension = TextureDimension.Tex2D;
 
@@ -162,7 +162,7 @@ public class Deferred2DShadingPass : ScriptableRenderPass
 
             // Draw the g-buffer.
             DrawingSettings drawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_GBufferRenderState);
+            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings/*, ref m_GBufferRenderState*/);
 
             // Render the lights.
             if (m_GlobalLightMaterial == null)
