@@ -682,16 +682,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public string renderTypeTag
-        {
-            get
-            {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
-                else
-                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
-            }
-        }
+        public string renderTypeTag => "HDLitShader";
 
         public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
