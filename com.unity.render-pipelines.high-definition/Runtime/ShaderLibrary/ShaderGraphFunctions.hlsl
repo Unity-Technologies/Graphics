@@ -1,6 +1,8 @@
 #ifndef UNITY_GRAPHFUNCTIONS_HD_INCLUDED
 #define UNITY_GRAPHFUNCTIONS_HD_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
 #define SHADERGRAPH_LOAD_SCENE_COLOR(uv, lod) shadergraph_HDLoadSceneColor(uv, lod)
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv, s, lod) shadergraph_HDSampleSceneColor(uv, s, lod)
