@@ -167,10 +167,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                    {
-                        ClearMessage();
                         break;
-                    }
                     //if no active target implemenetations are valid with the current pipeline, display the error
                     AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
                 }
