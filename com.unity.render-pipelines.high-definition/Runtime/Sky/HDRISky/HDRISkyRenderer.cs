@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DefaultDumper(request, "___LatLongIntegrated", latLongMap.rt.graphicsFormat);
             });
 
-            ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap, 0, 0, cmd, true, 0);
+            ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap, cmd, true, 0);
 
             return true;
         }

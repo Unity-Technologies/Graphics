@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {GraphicsFormat.RGB_BC6H_SFloat, 1}, // BC6H uses 128 bits for each 4x4 tile which is 8 bits per pixel
         };
 
-        static Dictionary<GraphicsFormat, int> graphicsFormatChannel = new Dictionary<GraphicsFormat, int>
+        static Dictionary<GraphicsFormat, int> graphicsFormatChannelsCount = new Dictionary<GraphicsFormat, int>
         {
             // Init some default format so we don't allocate more memory on the first frame.
             {GraphicsFormat.R16G16B16A16_SFloat, 4},
@@ -945,7 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Channels Count</returns>
         internal static int GetFormatChannelsCount(GraphicsFormat format)
         {
-            if (graphicsFormatChannel.TryGetValue(format, out var channelsCount))
+            if (graphicsFormatChannelsCount.TryGetValue(format, out var channelsCount))
                 return channelsCount;
 
             // Compute the size by parsing the enum name: Note that it does not works with compressed formats
@@ -954,12 +954,34 @@ namespace UnityEngine.Rendering.HighDefinition
             name = name.Substring(0, underscoreIndex == -1 ? name.Length : underscoreIndex);
 
             channelsCount  = 0;
-            channelsCount += name.IndexOf('R') != -1 ? 1 : 0;
-            channelsCount += name.IndexOf('G') != -1 ? 1 : 0;
-            channelsCount += name.IndexOf('B') != -1 ? 1 : 0;
-            channelsCount += name.IndexOf('A') != -1 ? 1 : 0;
+            foreach (char c in name)
+            {
+                if (c == 'R')
+                    ++channelsCount;
+                else if (c == 'G')
+                    ++channelsCount;
+                else if (c == 'B')
+                    ++channelsCount;
+                else if (c == 'A')
+                    ++channelsCount;
+            }
 
-            graphicsFormatSizeCache[format] = channelsCount;
+            /*
+            if (name.IndexOf("BC") != -1) // BC4, BC5, BC6H, BC7
+                --channelsCount;
+            if (name.IndexOf("SRGB") != -1) // ..._SRGB
+                channelsCount -= 3;
+            if (name.IndexOf("Bpp") != -1)
+                --channelsCount;
+            if (name.IndexOf("PVRTC") != -1)
+                --channelsCount;
+            if (name.IndexOf("EAC") != -1)
+                --channelsCount;
+            if (name.IndexOf("ASTC") != -1)
+                --channelsCount;
+            */
+
+            graphicsFormatChannelsCount[format] = channelsCount;
 
             return channelsCount;
         }

@@ -5,13 +5,15 @@
 #pragma kernel CSMainMult       Mult                KerName=CSMainMult
 #pragma kernel CSMainDiv        Div                 KerName=CSMainDiv
 #pragma kernel CSMainMAD        MAD                 KerName=CSMainMAD
-#pragma kernel CSMainMAD        MAD_RG              KerName=CSMainMAD_RG
+#pragma kernel CSMainMAD_RG     MAD_RG              KerName=CSMainMAD_RG
+#pragma kernel CSMainMean       Mean                KerName=CSMainMean
 #pragma kernel CSMainSelfAdd    READ_WRITE  Add     KerName=CSMainSelfAdd
 #pragma kernel CSMainSelfSub    READ_WRITE  Sub     KerName=CSMainSelfSub
 #pragma kernel CSMainSelfMult   READ_WRITE  Mult    KerName=CSMainSelfMult
 #pragma kernel CSMainSelfDiv    READ_WRITE  Div     KerName=CSMainSelfDiv
 #pragma kernel CSMainSelfMAD    READ_WRITE  MAD     KerName=CSMainSelfMAD
 #pragma kernel CSMainSelfMAD_RG READ_WRITE  MAD_RG  KerName=CSMainSelfMAD_RG
+#pragma kernel CSMainSelfMean   READ_WRITE  Mean    KerName=CSMainSelfMean
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
@@ -48,6 +50,9 @@ void KerName(uint3 id : SV_DispatchThreadID)
         _Output[id.xy] = sign(a)*v/max(abs(a), 1e-4f);
 #elif defined(MAD)
         _Output[id.xy] = v*_InputVal[uint2(0, 0)] + _InputVal[uint2(1, 0)];
+#elif defined(Mean)
+        float mean = dot(v.xyz, float3((1.0f/3.0f).xxx));
+        _Output[id.xy] = mean.xxxx;
 #endif
     }
 }

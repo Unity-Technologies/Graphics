@@ -49,6 +49,32 @@ namespace UnityEngine.Rendering
         //    cmd.DispatchCompute     (cs, kernel, numTilesX, numTilesY, 1);
         //}
 
+        internal static GraphicsFormat GetFormat(int channelCount, bool isFullPrecision = false)
+        {
+            if (isFullPrecision)
+            {
+                if (channelCount == 1)
+                    return GraphicsFormat.R32_SFloat;
+                else if (channelCount == 2)
+                    return GraphicsFormat.R32G32_SFloat;
+                else if (channelCount == 4)
+                    return GraphicsFormat.R32G32B32A32_SFloat;
+                else
+                    return GraphicsFormat.None;
+            }
+            else
+            {
+                if (channelCount == 1)
+                    return GraphicsFormat.R16_SFloat;
+                else if (channelCount == 2)
+                    return GraphicsFormat.R16G16_SFloat;
+                else if (channelCount == 4)
+                    return GraphicsFormat.R16G16B16A16_SFloat;
+                else
+                    return GraphicsFormat.None;
+            }
+        }
+
         static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction opDirection, GraphicsFormat sumFormat = GraphicsFormat.None)
         {
             if (input == null)
@@ -62,10 +88,25 @@ namespace UnityEngine.Rendering
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader scanCS = hdrp.renderPipelineResources.shaders.gpuScanCS;
 
+            bool isFullPrecision;
+            if (HDUtils.GetFormatMaxPrecisionBits(input.rt.graphicsFormat) == 32)
+            {
+                isFullPrecision = true;
+            }
+            else
+            {
+                isFullPrecision = false;
+            }
+
+            GraphicsFormat format2 = GetFormat(2, isFullPrecision);
+
             GraphicsFormat format;
             if (sumFormat == GraphicsFormat.None)
             {
-                format = input.rt.graphicsFormat;
+                if (operation == Operation.MinMax)
+                    format = format2;
+                else
+                    format = input.rt.graphicsFormat;
             }
             else
             {
@@ -95,8 +136,8 @@ namespace UnityEngine.Rendering
                 addon = "4";
             }
 
-            Debug.Assert((operation == Operation.MinMax && HDUtils.GetFormatChannelsCount(input.rt.graphicsFormat) == 1) ||
-                         operation == Operation.Add || operation == Operation.Total);
+            Debug.Assert((operation == Operation.MinMax && (channelsCount == 1 || channelsCount == 2)) ||
+                          operation == Operation.Add || operation == Operation.Total);
 
             string preAddOn = "";
             switch(operation)
@@ -106,6 +147,7 @@ namespace UnityEngine.Rendering
                     addon += "Add";
             break;
             case Operation.MinMax:
+                //if (channelsCount == 1)
                 preAddOn = "First";
                 addon += "MinMax";
             break;

@@ -166,12 +166,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
             bool updateDefaultShadowTint = false;
-            int hdriID = ImportanceSamplers.GetIdentifier(hdri);
+            const bool buildHemisphere = true;
+            int hdriID = ImportanceSamplers.GetIdentifier(hdri, buildHemisphere);
             if (EditorGUI.EndChangeCheck())
             {
                 //ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri);
-                ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri, true);
-                //tUpperHemisphereLuxValue();
+                ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri, buildHemisphere);
+                //GetUpperHemisphereLuxValue();
                 bUpdate = true;
                 //updateDefaultShadowTint = true;
             }
@@ -200,6 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         System.IO.File.WriteAllBytes(path, bytes0);
                     }
                 }
+
                 {
                     Texture2D condMargTex = new Texture2D(condMarginal.rt.width, condMarginal.rt.height, condMarginal.rt.graphicsFormat, TextureCreationFlags.None);
                     RenderTexture.active = condMarginal.rt;
@@ -217,10 +219,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                int samplesCount = 4096;
+                int samplesCount = 4*4096;
 
                 // Generate Important Sampled Samples
-                RTHandle samples = ImportanceSampler2D.GenerateSamples((uint)samplesCount, marginal, condMarginal, GPUOperation.Direction.Horizontal, null);
+                RTHandle samples = ImportanceSampler2D.GenerateSamples((uint)samplesCount, marginal, condMarginal, GPUOperation.Direction.Horizontal, null, true);
                 Texture2D samplesTex = new Texture2D(samples.rt.width, samples.rt.height, samples.rt.graphicsFormat, TextureCreationFlags.None);
                 RenderTexture.active = samples.rt;
                 samplesTex.ReadPixels(new Rect(0.0f, 0.0f, samples.rt.width, samples.rt.height), 0, 0);
@@ -240,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Cubemap to EquiRectangular
                     RTHandle latLongMap;
                     {
-                        latLongMap = RTHandles.Alloc(   4*hdri.width, hdri.width,
+                        latLongMap = RTHandles.Alloc(   4*hdri.width, (buildHemisphere ? 1 : 2)*hdri.width,
                                                         colorFormat: GraphicsFormat.R32_SFloat,
                                                         enableRandomWrite: true);
                         RTHandleDeleter.ScheduleRelease(latLongMap);
@@ -296,8 +298,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     int kernel = outputDebug2D.FindKernel("CSMain");
 
-                    outputDebug2D.SetTexture(kernel, HDShaderIDs._Output,  m_OutDebug);
-                    outputDebug2D.SetTexture(kernel, HDShaderIDs._Samples, samples);
+                    outputDebug2D.SetTexture(kernel, HDShaderIDs._PDF,      latLongMap);
+                    outputDebug2D.SetTexture(kernel, HDShaderIDs._Output,   m_OutDebug);
+                    outputDebug2D.SetTexture(kernel, HDShaderIDs._Samples,  samples);
                     outputDebug2D.SetInts   (HDShaderIDs._Sizes,
                                              latLongMap.rt.width, latLongMap.rt.height, samples.rt.width, 1);
 
@@ -327,25 +330,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_IntegrateMIS.SetTexture   ("_Cubemap",             hdri);
                 m_IntegrateMIS.SetTexture   ("_Marginal",            marginal);
                 m_IntegrateMIS.SetTexture   ("_ConditionalMarginal", condMarginal);
+                m_IntegrateMIS.SetTexture   ("_Integral",            marginals.integral);
                 m_IntegrateMIS.SetInt       ("_SamplesCount",        samplesCount);
-                m_IntegrateMIS.SetVector    ("_Sizes", new Vector4(condMarginal.rt.height, 1.0f/condMarginal.rt.height, 0.5f/condMarginal.rt.height, 1.0f));
+                m_IntegrateMIS.SetVector    ("_Sizes", new Vector4(condMarginal.rt.height, 1.0f/condMarginal.rt.height, 0.5f/condMarginal.rt.height, samplesCount));
                 Graphics.Blit(Texture2D.whiteTexture, integrals.rt, m_IntegrateMIS, 0);
 
                 RTHandle integral = GPUScan.ComputeOperation(integrals, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, integrals.rt.graphicsFormat);
                 RTHandleDeleter.ScheduleRelease(integral);
 
-                RenderTexture.active = integral.rt;
+                //RenderTexture.active = marginals.integral;
+                RenderTexture.active = integral;
                 m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
                 RenderTexture.active = null;
 
                 // And then the value inside this texture
                 Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
+                //Color hdriIntensity = Color.white;
                 //m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
-                float coef =                            Mathf.PI*Mathf.PI
+                float coef =                            1.0f
                             / // -------------------------------------------------------------------
-                                    (4.0f*(float)(condMarginal.rt.width*condMarginal.rt.height));
+                                    (4.0f*(float)(hdri.width*3));
 
-                m_UpperHemisphereLuxValue.value.floatValue = /*4.0f*coef*/Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+                m_UpperHemisphereLuxValue.value.floatValue = /*4.0f*coef*/coef*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
                 //m_UpperHemisphereLuxValue.value.floatValue =        Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
                 //                                            / // ----------------------------------------------------------------------------------------
                 //                                                            (4.0f*(float)(condMarginal.rt.width*condMarginal.rt.height));

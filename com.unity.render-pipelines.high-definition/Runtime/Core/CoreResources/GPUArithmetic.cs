@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering
             Add,
             Mult,
             Div,
+            Mean,
             MAD, // MulAdd
             MAD_RG // MulAdd with multiplier stored in the red channel and the adder stored in the green channel
         }
@@ -17,7 +18,7 @@ namespace UnityEngine.Rendering
         static public void ComputeOperation(RTHandle output, RTHandle input, RTHandle paramsRT, CommandBuffer cmd, Operation operation)
         {
             Debug.Assert(input != null);
-            Debug.Assert(paramsRT != null);
+            Debug.Assert(operation == Operation.Mean || paramsRT != null);
 
             Debug.Assert(output == null || (output.rt.width == input.rt.width && output.rt.height == input.rt.height));
 
@@ -46,6 +47,9 @@ namespace UnityEngine.Rendering
             case Operation.Div:
                 addon += "Div";
             break;
+            case Operation.Mean:
+                addon += "Mean";
+            break;
             case Operation.MAD:
                 addon += "MAD";
             break;
@@ -63,7 +67,8 @@ namespace UnityEngine.Rendering
                 if (self)
                 {
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Output,   input);
-                    cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
+                    if (paramsRT != null)
+                        cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
                     cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
                                                input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
@@ -72,7 +77,8 @@ namespace UnityEngine.Rendering
                 {
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Output,   output);
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Input,    input);
-                    cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
+                    if (paramsRT != null)
+                        cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
                     cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
                                                input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
@@ -83,7 +89,8 @@ namespace UnityEngine.Rendering
                 if (self)
                 {
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Output,   input);
-                    arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
+                    if (paramsRT != null)
+                        arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
                     arithmeticsCS.SetInts   (HDShaderIDs._Sizes,
                                                input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);
@@ -92,7 +99,8 @@ namespace UnityEngine.Rendering
                 {
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Output,   output);
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Input,    input);
-                    arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
+                    if (paramsRT != null)
+                        arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
                     arithmeticsCS.SetInts   (HDShaderIDs._Sizes,
                                                input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);

@@ -5,7 +5,6 @@
 #pragma kernel CSMainS      SINGLE      KerName=CSMainS
 #pragma kernel CSMainValue  VALUE       KerName=CSMainValue
 
-#pragma multi_compile _ MINMAX
 #pragma multi_compile _ READ_WRITE
 #pragma multi_compile _ VALUE
 

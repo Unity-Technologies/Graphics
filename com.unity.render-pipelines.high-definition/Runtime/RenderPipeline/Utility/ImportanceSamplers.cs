@@ -80,9 +80,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get convenient ID to identify a texture in the Importance Sampling
         /// </summary>
         /// <param name="texture">Texture which we want to have an ID from.</param>
-        public static int GetIdentifier(Texture texture)
+        /// <param name="buildHemisphere">Used if texture is a Cubemap.</param>
+        public static int GetIdentifier(Texture texture, bool buildHemisphere = false)
         {
-            return 23*texture.GetHashCode() + texture.updateCount.GetHashCode();
+            int hash = 23*texture.GetHashCode();
+            hash = 23*hash + texture.updateCount.GetHashCode();
+
+            if (texture.dimension == TextureDimension.Cube ||
+                texture.dimension == TextureDimension.CubeArray)
+                hash = 23*hash + buildHemisphere.GetHashCode();
+
+            return hash;
         }
     }
 }

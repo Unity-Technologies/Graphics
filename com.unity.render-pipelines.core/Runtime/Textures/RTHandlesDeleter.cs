@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     {
         internal class RTHandleDesc
         {
-            public int         lifetime = 5;
+            public int         lifetime = 3;
             public RTHandle    rtHandle = null;
         }
 
@@ -20,8 +20,8 @@ namespace UnityEngine.Rendering
         /// Schedule a release of a RTHandle in 'lifetime' frames
         /// </summary>
         /// <param name="rtHandle">Considered rtHandle.</param>
-        /// <param name="lifetime">lifetime remaining of this rtHandle (unit: frame), default: 5 frames.</param>
-        public static void ScheduleRelease(RTHandle rtHandle, int lifetime = 2)
+        /// <param name="lifetime">lifetime remaining of this rtHandle (unit: frame), default: 3 frames.</param>
+        public static void ScheduleRelease(RTHandle rtHandle, int lifetime = 3)
         {
             if (rtHandle != null && lifetime > 0)
             {
