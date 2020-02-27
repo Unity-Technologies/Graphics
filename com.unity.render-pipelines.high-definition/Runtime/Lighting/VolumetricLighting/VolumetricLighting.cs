@@ -361,6 +361,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool success = hdCamera.volumetricHistoryBuffers[i].Create();
                 Debug.Assert(success);
             }
+
+            hdCamera.volumetricHistoryIsValid = false;
         }
 
         static internal void DestroyVolumetricHistoryBuffers(HDCamera hdCamera)
@@ -376,6 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             hdCamera.volumetricHistoryBuffers = null;
+            hdCamera.volumetricHistoryIsValid = false;
         }
 
         // Must be called AFTER UpdateVolumetricBufferParams.

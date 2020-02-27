@@ -406,7 +406,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    volumetricHistoryIsValid = false;
 
                     HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
