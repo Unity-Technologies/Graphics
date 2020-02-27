@@ -265,6 +265,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
+        public static KeywordCollection TransparentDepthPrepass = new KeywordCollection
+        {
+            { HDBase },
+            { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPrepass, true) },
+        };
+
+        public static KeywordCollection TransparentDepthPostpass = new KeywordCollection
+        {
+            { HDBase },
+            { Descriptors.AlphaTest, new FieldCondition(HDFields.AlphaTestPostpass, true) },
+        };
+        
         public static KeywordCollection Lightmaps = new KeywordCollection
         {
             { Descriptors.Lightmap },

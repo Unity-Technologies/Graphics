@@ -731,7 +731,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.DotsInstanced,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.HDBase,
+                keywords = HDKeywords.TransparentDepthPrepass,
                 includes = HDIncludes.LitDepthOnly,
 
                 // Custom Template
@@ -807,7 +807,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.DotsInstanced,
                 defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.HDBase,
+                keywords = HDKeywords.TransparentDepthPostpass,
                 includes = HDIncludes.LitDepthOnly,
 
                 // Custom Template
@@ -1274,7 +1274,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.InstancedRenderingPlayer,
                 defines = HDDefines.TransparentDepthPrepass,
-                keywords = HDKeywords.HDBase,
+                keywords = HDKeywords.TransparentDepthPrepass,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template
@@ -1351,7 +1351,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = HDRenderStates.HDTransparentDepthPrePostPass,
                 pragmas = HDPragmas.InstancedRenderingPlayer,
                 defines = HDDefines.TransparentDepthPostpass,
-                keywords = HDKeywords.HDBase,
+                keywords = HDKeywords.TransparentDepthPostpass,
                 includes = HDIncludes.HairDepthOnly,
 
                 // Custom Template
