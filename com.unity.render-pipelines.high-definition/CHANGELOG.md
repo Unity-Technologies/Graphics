@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Thin Refraction Model and Lit's Clear Coat in Path Tracing.
 - Added the Tint parameter to Sky Colored Fog.
 - Added support for Quality Levels to Subsurface Scattering.
+- Added support for arbitrary resolution scaling of Volumetric Lighting based on the Volume Framework.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
