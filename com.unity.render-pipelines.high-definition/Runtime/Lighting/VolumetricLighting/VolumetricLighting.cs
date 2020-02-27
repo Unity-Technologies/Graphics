@@ -77,14 +77,14 @@ namespace UnityEngine.Rendering.HighDefinition
     struct VBufferParameters
     {
         public Vector3Int viewportSize;
-        public float      tileSize;
+        public float      voxelSize;
         public Vector4    depthEncodingParams;
         public Vector4    depthDecodingParams;
 
-        public VBufferParameters(Vector3Int viewportSize, float depthExtent, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity, float tileSize)
+        public VBufferParameters(Vector3Int viewportSize, float depthExtent, float camNear, float camFar, float camVFoV, float sliceDistributionUniformity, float voxelSize)
         {
             this.viewportSize = viewportSize;
-            this.tileSize     = tileSize;
+            this.voxelSize    = voxelSize;
 
             // The V-Buffer is sphere-capped, while the camera frustum is not.
             // We always start from the near plane of the camera.
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (int)(f + 0.5f);
         }
 
-        static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float tileSize)
+        static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float voxelSize)
         {
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
             Debug.Assert(controller != null);
@@ -231,9 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int d = sliceCount;
 
             if (controller.screenResolutionPercentage.value == (1.0f/8.0f) * 100)
-                tileSize = 8;
+                voxelSize = 8;
             else
-                tileSize = 1.0f / screenFraction; // Does not account for rounding
+                voxelSize = 1.0f / screenFraction; // Does not account for rounding (same function, above)
 
             return new Vector3Int(w, h, d);
         }
@@ -243,15 +243,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var controller = hdCamera.volumeStack.GetComponent<Fog>();
             Debug.Assert(controller != null);
 
-            float tileSize = 0;
-            Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
+            float voxelSize = 0;
+            Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref voxelSize);
 
             return new VBufferParameters(viewportSize, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
                                          hdCamera.camera.farClipPlane,
                                          hdCamera.camera.fieldOfView,
                                          controller.sliceDistributionUniformity.value,
-                                         tileSize);
+                                         voxelSize);
         }
 
         static internal void ReinitializeVolumetricBufferParams(HDCamera hdCamera)
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,            new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
             cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              sliceCount);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / sliceCount);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferTileSize,                currFrameParams.tileSize);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferVoxelSize,               currFrameParams.voxelSize);
             cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportScale,   currFrameParams.ComputeViewportScale(lightingBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferLightingViewportLimit,   currFrameParams.ComputeViewportLimit(lightingBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
@@ -694,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTileY = GetNumTileBigTileY(hdCamera);
 
             parameters.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-            bool optimal = currFrameParams.tileSize == 8;
+            bool optimal = currFrameParams.voxelSize == 8;
 
             parameters.voxelizationCS = m_VolumeVoxelizationCS;
             parameters.voxelizationKernel = (parameters.tiledLighting ? 1 : 0) | (!optimal ? 2 : 0);
@@ -842,7 +842,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
             parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled();
             bool enableAnisotropy = fog.anisotropy.value != 0;
-            bool optimal = currFrameParams.tileSize == 8;
+            bool optimal = currFrameParams.voxelSize == 8;
 
             parameters.volumetricLightingCS = m_VolumetricLightingCS;
             parameters.volumetricLightingKernel = (parameters.tiledLighting ? 1 : 0) | (parameters.enableReprojection ? 2 : 0) | (enableAnisotropy ? 4 : 0) | (!optimal ? 8 : 0);

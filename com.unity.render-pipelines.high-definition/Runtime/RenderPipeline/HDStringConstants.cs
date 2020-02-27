@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VBufferSliceCount                 = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferRcpSliceCount              = Shader.PropertyToID("_VBufferRcpSliceCount");
         public static readonly int _VBufferRcpInstancedViewCount      = Shader.PropertyToID("_VBufferRcpInstancedViewCount");
-        public static readonly int _VBufferTileSize                   = Shader.PropertyToID("_VBufferTileSize");
+        public static readonly int _VBufferVoxelSize                  = Shader.PropertyToID("_VBufferVoxelSize");
         public static readonly int _VBufferLightingViewportScale      = Shader.PropertyToID("_VBufferLightingViewportScale");
         public static readonly int _VBufferLightingViewportLimit      = Shader.PropertyToID("_VBufferLightingViewportLimit");
         public static readonly int _VBufferDistanceEncodingParams     = Shader.PropertyToID("_VBufferDistanceEncodingParams");

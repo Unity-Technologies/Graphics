@@ -243,7 +243,7 @@ CBUFFER_START(UnityGlobal)
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
     float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-    float  _VBufferTileSize;
+    float  _VBufferVoxelSize;              // In pixels
 
     float3 _VBufferLightingViewportScale;  // Necessary to support sub-allocation of the RT system
     float  _ContactShadowOpacity;

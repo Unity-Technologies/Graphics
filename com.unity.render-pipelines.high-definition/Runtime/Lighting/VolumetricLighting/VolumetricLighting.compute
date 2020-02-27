@@ -37,10 +37,7 @@
 
 #ifdef VL_PRESET_OPTIMAL
     // E.g. for 1080p: (1920/8)x(1080/8)x(64) = 2,073,600 voxels
-    #define VBUFFER_TILE_SIZE 8
-#else
-
-    #define VBUFFER_TILE_SIZE _VBufferTileSize
+    #define VBUFFER_VOXEL_SIZE 8
 #endif
 
 #define GROUP_SIZE_1D         8
@@ -674,11 +671,17 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
-    // Note that if VBUFFER_TILE_SIZE is not an integer, a voxel may straddle a tile boundary.
+#ifdef VL_PRESET_OPTIMAL
+    // The entire thread group is within the same light tile.
+    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
+#else
+    // No compile-time optimizations, no scalarization.
+    // Note that if _VBufferVoxelSize is not an integer, a voxel may straddle a tile boundary.
     // This means different voxel subsamples may belong to different tiles.
-    // We accept this error, and simply use the coordinates of the corner of the voxel.
-    uint2 tileCoord   = (uint2)(groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE);
-    uint  tileIndex   = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+    // We accept this error, and simply use the coordinates of the center of the voxel.
+    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
+#endif
+    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use
