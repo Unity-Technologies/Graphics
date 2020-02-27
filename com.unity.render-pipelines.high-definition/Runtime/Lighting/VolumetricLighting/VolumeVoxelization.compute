@@ -339,7 +339,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Note that if VBUFFER_TILE_SIZE is not an integer, a voxel may straddle a tile boundary.
     // This means different voxel subsamples may belong to different tiles.
     // We accept this error, and simply use the coordinates of the corner of the voxel.
-    uint2 tileCoord   = (uint2)(groupOffset * (VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE));
+    uint2 tileCoord   = (uint2)(groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE);
     uint  tileIndex   = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).

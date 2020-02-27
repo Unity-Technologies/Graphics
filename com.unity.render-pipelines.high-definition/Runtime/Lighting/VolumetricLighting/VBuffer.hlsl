@@ -38,7 +38,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     }
     else
     {
-        coordIsInsideFrustum = true; // No clipping
+        coordIsInsideFrustum = true; // No clipping, only clamping
     }
 
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
