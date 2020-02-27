@@ -61,7 +61,7 @@ all_project_ci_{{ editor.version }}:
   {% if editor.version == "fast-2020.1" %}
   triggers:
     branches:
-          only:
+      only:
         - trying
         - staging
   {% endif %}
