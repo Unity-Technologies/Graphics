@@ -17,10 +17,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphData m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
+        List<NodeEntry> currentNodeEntries;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; private set; }
         public Vector2 targetPosition { get; private set; }
+        public bool regenerateEntries { get; set; }
         private const string k_HiddenFolderName = "Hidden";
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
@@ -28,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EditorWindow = editorWindow;
             m_Graph = graph;
             m_GraphView = graphView;
+            GenerateNodeEntries();
 
             // Transparent icon to trick search window into indenting items
             m_Icon = new Texture2D(1, 1);
@@ -54,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
-        public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
+        public void GenerateNodeEntries()
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             var nodeEntries = new List<NodeEntry>();
@@ -139,7 +142,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     return 0;
                 });
+            
+            currentNodeEntries = nodeEntries;
+        }
 
+        public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
+        {
+            if (regenerateEntries)
+            {
+                GenerateNodeEntries();
+                regenerateEntries = false;
+            }
             //* Build up the data structure needed by SearchWindow.
 
             // `groups` contains the current group path we're in.
@@ -151,7 +164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 new SearchTreeGroupEntry(new GUIContent("Create Node"), 0),
             };
 
-            foreach (var nodeEntry in nodeEntries)
+            foreach (var nodeEntry in currentNodeEntries)
             {
                 // `createIndex` represents from where we should add new group entries from the current entry's group path.
                 var createIndex = int.MaxValue;
@@ -255,7 +268,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
         {
             var nodeEntry = (NodeEntry)entry.userData;
-            var node = nodeEntry.node;
+            var node = CopyNodeForGraph(nodeEntry.node);
 
             var drawState = node.drawState;
 
@@ -285,6 +298,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return true;
+        }
+        public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
+        {
+            var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (newNode is SubGraphNode subgraphNode)
+            {
+                subgraphNode.asset = ((SubGraphNode)oldNode).asset;
+            }
+            else if(newNode is PropertyNode propertyNode)
+            {
+                propertyNode.owner = m_Graph;
+                propertyNode.propertyGuid = ((PropertyNode)oldNode).propertyGuid;
+                propertyNode.owner = null;
+            }
+            else if(newNode is KeywordNode keywordNode)
+            {
+                keywordNode.owner = m_Graph;
+                keywordNode.keywordGuid = ((KeywordNode)oldNode).keywordGuid;
+                keywordNode.owner = null;
+            }
+            return newNode;
         }
     }
 }

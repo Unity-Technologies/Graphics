@@ -251,6 +251,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_SearchWindowProvider.connectedPort = null;
                     SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
                 };
+            m_GraphView.RegisterCallback<FocusInEvent>( evt =>
+            {
+                //regenerate entries when graph view is refocused, to propogate subgraph changes
+                m_SearchWindowProvider.regenerateEntries = true;
+            });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
 
@@ -541,6 +546,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
