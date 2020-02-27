@@ -493,6 +493,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void RequestVTData(Material mat)
         {
+#if ENABLE_VIRTUALTEXTURES
             Shader shad = mat.shader;
             for (int i = 0; i < shad.GetPropertyCount(); i++)
             {
@@ -524,6 +525,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // If only shadergraph windows are visible HDRP will may render cameras and VT won't tick. So always to a tick here just to be sure.
             UnityEngine.Rendering.VirtualTexturing.System.Update();
+#endif
         }
 
         void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
