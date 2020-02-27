@@ -36,6 +36,11 @@ namespace UnityEngine.Rendering.Universal
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             /// </summary>
             public bool cameraStacking { get; set; } = false;
+
+            /// <summary>
+            /// This setting controls if the Universal Render Pipeline asset should expose MSAA option.
+            /// </summary>
+            public bool msaa { get; set; } = true;
         }
 
         void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)

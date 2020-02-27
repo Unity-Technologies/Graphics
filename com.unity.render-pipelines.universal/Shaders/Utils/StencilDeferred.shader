@@ -82,6 +82,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     float3 _LightPosWS;
     float3 _LightColor;
+
     float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
     float3 _LightDirection; // directional/spotLights support
     int _ShadowLightIndex;
@@ -106,10 +107,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
             posWS.xyz *= rcp(posWS.w);
         #else
-//            #if UNITY_REVERSED_Z
-//            d = 1.0 - d;
-//            #endif
-//            d = d * 2.0 - 1.0;
+            #if UNITY_REVERSED_Z
+            d = 1.0 - d;
+            #endif
+            d = d * 2.0 - 1.0;
             float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
             #if UNITY_UV_STARTS_AT_TOP
 //            posCS.y = -posCS.y;
@@ -163,12 +164,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     }
 
     half4 FragFog(Varyings input) : SV_Target
-    {
-       // float d = LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
-       //TODO: not working and gives 0
+
         float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;//LOAD_TEXTURE2D_X(_DepthTex, input.positionCS.xy).x;
-        float z = LinearEyeDepth(d, _ZBufferParams);
-        half fogFactor = ComputeFogFactorFromLinearEyeDepth(z);
+        float eye_z = LinearEyeDepth(d, _ZBufferParams);
+        float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
+        half fogFactor = ComputeFogFactor(clip_z);
         half fogIntensity = ComputeFogIntensity(fogFactor);
         return half4(unity_FogColor.rgb, fogIntensity);
     }

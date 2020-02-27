@@ -182,10 +182,31 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
+
+        public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+        public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+        public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+        public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+        public static readonly string _SPOT = "_SPOT";
+        public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
+        public static readonly string _POINT = "_POINT";
+        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
     }
 
     public sealed partial class UniversalRenderPipeline
     {
+        // Holds light direction for directional lights or position for punctual lights.
+        // When w is set to 1.0, it means it's a punctual light.
+        static Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        static Vector4 k_DefaultLightColor = Color.black;
+
+        // Default light attenuation is setup in a particular way that it causes
+        // directional lights to return 1.0 for both distance and angle attenuation
+        static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+        static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
         /// <summary>
@@ -393,6 +414,120 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
         };
+
+        // called from DeferredLights.cs too
+        public static void GetLightAttenuationAndSpotDirection(
+            LightType lightType, float lightRange, Matrix4x4 lightLocalToWorldMatrix,
+            float spotAngle, float? innerSpotAngle,
+            out Vector4 lightAttenuation, out Vector4 lightSpotDir)
+        {
+            lightAttenuation = k_DefaultLightAttenuation;
+            lightSpotDir = k_DefaultLightSpotDirection;
+
+            // Directional Light attenuation is initialize so distance attenuation always be 1.0
+            if (lightType != LightType.Directional)
+            {
+                // Light attenuation in universal matches the unity vanilla one.
+                // attenuation = 1.0 / distanceToLightSqr
+                // We offer two different smoothing factors.
+                // The smoothing factors make sure that the light intensity is zero at the light range limit.
+                // The first smoothing factor is a linear fade starting at 80 % of the light range.
+                // smoothFactor = (lightRangeSqr - distanceToLightSqr) / (lightRangeSqr - fadeStartDistanceSqr)
+                // We rewrite smoothFactor to be able to pre compute the constant terms below and apply the smooth factor
+                // with one MAD instruction
+                // smoothFactor =  distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
+                //                 distanceSqr *           oneOverFadeRangeSqr             +              lightRangeSqrOverFadeRangeSqr
+
+                // The other smoothing factor matches the one used in the Unity lightmapper but is slower than the linear one.
+                // smoothFactor = (1.0 - saturate((distanceSqr * 1.0 / lightrangeSqr)^2))^2
+                float lightRangeSqr = lightRange * lightRange;
+                float fadeStartDistanceSqr = 0.8f * 0.8f * lightRangeSqr;
+                float fadeRangeSqr = (fadeStartDistanceSqr - lightRangeSqr);
+                float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
+                float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
+                float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
+
+                // On mobile and Nintendo Switch: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
+                // On other devices: Use the smoothing factor that matches the GI.
+                lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
+            }
+
+            if (lightType == LightType.Spot)
+            {
+                Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
+                lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
+
+                // Spot Attenuation with a linear falloff can be defined as
+                // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+                // This can be rewritten as
+                // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+                // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+                // If we precompute the terms in a MAD instruction
+                float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
+                // We neeed to do a null check for particle lights
+                // This should be changed in the future
+                // Particle lights will use an inline function
+                float cosInnerAngle;
+                if (innerSpotAngle.HasValue)
+                    cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
+                else
+                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
+                float invAngleRange = 1.0f / smoothAngleRange;
+                float add = -cosOuterAngle * invAngleRange;
+                lightAttenuation.z = invAngleRange;
+                lightAttenuation.w = add;
+            }
+        }
+
+        public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
+        {
+            lightPos = k_DefaultLightPosition;
+            lightColor = k_DefaultLightColor;
+            lightOcclusionProbeChannel = k_DefaultLightsProbeChannel;
+            lightAttenuation = k_DefaultLightAttenuation;
+            lightSpotDir = k_DefaultLightSpotDirection;
+
+            // When no lights are visible, main light will be set to -1.
+            // In this case we initialize it to default values and return
+            if (lightIndex < 0)
+                return;
+
+            VisibleLight lightData = lights[lightIndex];
+            if (lightData.lightType == LightType.Directional)
+            {
+                Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
+            }
+            else
+            {
+                Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+            }
+
+            // VisibleLight.finalColor already returns color in active color space
+            lightColor = lightData.finalColor;
+
+            GetLightAttenuationAndSpotDirection(
+                lightData.lightType, lightData.range, lightData.localToWorldMatrix,
+                lightData.spotAngle, lightData.light?.innerSpotAngle,
+                out lightAttenuation, out lightSpotDir);
+
+            Light light = lightData.light;
+
+            // Set the occlusion probe channel.
+            int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
+
+            // If we have baked the light, the occlusion channel is the index we need to sample in 'unity_ProbesOcclusion'
+            // If we have not baked the light, the occlusion channel is -1.
+            // In case there is no occlusion channel is -1, we set it to zero, and then set the second value in the
+            // input to one. We then, in the shader max with the second value for non-occluded lights.
+            lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
+            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
+        }
+
+
     }
 
     internal enum URPProfileId

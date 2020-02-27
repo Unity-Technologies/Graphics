@@ -180,14 +180,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
     #endif
 
-    //TEXTURE2D_X(_DepthTex);
-   // TEXTURE2D_X_HALF(_GBuffer0);
     UNITY_DECLARE_FRAMEBUFFER_INPUT(0, HALF);
-   // TEXTURE2D_X_HALF(_GBuffer1);
     UNITY_DECLARE_FRAMEBUFFER_INPUT(1, HALF);
     UNITY_DECLARE_FRAMEBUFFER_INPUT(2, HALF);
     UNITY_DECLARE_FRAMEBUFFER_INPUT(3, FLOAT);
-
 
     float4x4 _ScreenToWorld;
 

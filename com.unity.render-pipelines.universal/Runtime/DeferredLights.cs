@@ -2,17 +2,11 @@ using System.Runtime.CompilerServices;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
-// TODO _DepthTex may need to be renamed _CameraDepthTexture, as URP uses this name to address the camera depth texture by convention.
-// TODO SimpleLit material, when smoothness is encoded into gbuffer it goes through exp2() -> log2() operations, fix that.
-// TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
-// TODO use InitializeSimpleLitSurfaceData() in all shader code
-// TODO use InitializeParticleLitSurfaceData() in forward pass for ParticleLitForwardPass.hlsl ? Similar refactoring for ParticleSimpleLitForwardPass.hlsl
-// TODO use subpass API to hide extra TileDepthPass
-// TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
-// TODO remove Vector4UInt
-// TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
+
+
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 // TODO Rename shaderTagId for UniversalForward, UniversalForwardOnly Forward, ForwardOnly ? Match HDRP
 // TODO PostProcessing bind depth-buffer copy texture without any valid mechanism?
@@ -76,16 +70,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         public static class ShaderConstants
         {
-            public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
-            public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
-            public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
-            public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
-            public static readonly string _SPOT = "_SPOT";
-            public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
-            public static readonly string _POINT = "_POINT";
-            public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
-            public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
-
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
             public static readonly int _DownsamplingWidth = Shader.PropertyToID("_DownsamplingWidth");
@@ -108,7 +92,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
-            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
@@ -308,7 +291,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
-            ForwardLights.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+            UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
             cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
@@ -656,13 +639,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (tilePixelWidth == tilePixelHeight)
             {
                 if (intermediateMipLevel == 1)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
                 else if (intermediateMipLevel == 2)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
                 else if (intermediateMipLevel == 3)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
                 else if (intermediateMipLevel == 4)
-                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_16;
+                    shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_16;
             }
             if (shaderVariant != null)
                 cmd.EnableShaderKeyword(shaderVariant);
@@ -747,11 +730,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             string shaderVariant = null;
             if (diffWidthLevel == 1 && diffHeightLevel == 1)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_2;
             else if (diffWidthLevel == 2 && diffHeightLevel == 2)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_4;
             else if (diffWidthLevel == 3 && diffHeightLevel == 3)
-                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+                shaderVariant = ShaderKeywordStrings.DOWNSAMPLING_SIZE_8;
 
             if (shaderVariant != null)
                 cmd.EnableShaderKeyword(shaderVariant);
@@ -769,14 +752,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
 
+
             Profiler.BeginSample(k_DeferredPass);
 
             // This must be set for each eye in XR mode multipass.
             SetupMatrixConstants(cmd, ref renderingData);
-
-            // We bind a copy of depth buffer because we cannot make it readonly at the moment.
-            // This binding may be used by the deferred shaders and the transparent pass (soft-particles).
-            //cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
 
             // Bug in XR Multi-pass mode where gbuffer2 is not correctly rendered/bound for the right eye.
             // Workaround is to bind gbuffer textures explicitely here.
@@ -787,11 +767,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTileLights(context, cmd, ref renderingData);
 
             RenderStencilLights(context, cmd, ref renderingData);
-
-            // We need to fix the fact we polluted the binding for "_CameraDepthTexture" with our own texture copy.
-            // If other passes require "_CameraDepthTexture", make sure they are getting the "correct" one
-            // (ex: Post-processing gaussiaan DoF and Bokeh DoF).
-            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthTexture.Identifier());
 
             // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
             RenderFog(context, cmd, ref renderingData);
@@ -950,8 +925,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ComputeBuffer _punctualLightBuffer = DeferredShaderData.instance.ReserveBuffer<PunctualLightData>(m_MaxPunctualLightPerBatch, DeferredConfig.kUseCBufferForLightData);
                 ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
 
-                NativeArray<Vector4UInt> tileList = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                NativeArray<Vector4UInt> punctualLightBuffer = new NativeArray<Vector4UInt>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint4> tileList = new NativeArray<uint4>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint4> punctualLightBuffer = new NativeArray<uint4>(m_MaxPunctualLightPerBatch * sizeof_vec4_PunctualLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint> relLightList = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 // Acceleration structure to quickly find if a light has already been added to the uniform block data for the current draw call.
@@ -1088,7 +1063,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
-                //cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
 
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
@@ -1149,13 +1123,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-              //  cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture a readonly but currently not possible yet
-
                 int soffset = 0;
 
                 // Spot lights.
 
-                cmd.EnableShaderKeyword(ShaderConstants._SPOT);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
 
                 for (; soffset < m_stencilVisLights.Length; ++soffset)
                 {
@@ -1173,16 +1145,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
-                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                         vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                     cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1201,8 +1173,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._SPOT);
-                cmd.EnableShaderKeyword(ShaderConstants._DIRECTIONAL);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
 
                 // Directional lights.
 
@@ -1227,8 +1199,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._DIRECTIONAL);
-                cmd.EnableShaderKeyword(ShaderConstants._POINT);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._POINT);
 
                 // Point lights.
 
@@ -1250,16 +1222,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
-                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                    UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                         vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
                     if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
-                        cmd.EnableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
                     else
-                        cmd.DisableShaderKeyword(ShaderConstants._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
                     cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
@@ -1274,7 +1246,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
-                cmd.DisableShaderKeyword(ShaderConstants._POINT);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
             }
 
             Profiler.EndSample();
@@ -1309,7 +1281,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return trimCount;
         }
 
-        void StorePunctualLightData(ref NativeArray<Vector4UInt> punctualLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
+        void StorePunctualLightData(ref NativeArray<uint4> punctualLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             // tile lights do not support shadows, so shadowLightIndex is -1.
             int shadowLightIndex = -1;
@@ -1317,21 +1289,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Vector4 lightAttenuation;
             Vector4 lightSpotDir;
-            ForwardLights.GetLightAttenuationAndSpotDirection(
+            UniversalRenderPipeline.GetLightAttenuationAndSpotDirection(
                 visibleLights[index].lightType, visibleLights[index].range, visibleLights[index].localToWorldMatrix,
                 visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
                 out lightAttenuation, out lightSpotDir);
 
-            punctualLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
-            punctualLightBuffer[storeIndex * 4 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
-            punctualLightBuffer[storeIndex * 4 + 2] = new Vector4UInt(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            punctualLightBuffer[storeIndex * 4 + 3] = new Vector4UInt(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)shadowLightIndex);
+            punctualLightBuffer[storeIndex * 4 + 0] = new uint4(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            punctualLightBuffer[storeIndex * 4 + 1] = new uint4(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
+            punctualLightBuffer[storeIndex * 4 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            punctualLightBuffer[storeIndex * 4 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)shadowLightIndex);
         }
 
-        void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
+        void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
         {
             // See struct TileData in TileDeferred.shader.
-            tileList[storeIndex] = new Vector4UInt { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
+            tileList[storeIndex] = new uint4 { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1565,22 +1537,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Mem[bitIndex >> 5] |= 1u << (bitIndex & 31);
             else
                 m_Mem[bitIndex >> 5] &= ~(1u << (bitIndex & 31));
-        }
-    };
-
-    struct Vector4UInt
-    {
-        public uint x;
-        public uint y;
-        public uint z;
-        public uint w;
-
-        public Vector4UInt(uint _x, uint _y, uint _z, uint _w)
-        {
-            x = _x;
-            y = _y;
-            z = _z;
-            w = _w;
         }
     };
 }
