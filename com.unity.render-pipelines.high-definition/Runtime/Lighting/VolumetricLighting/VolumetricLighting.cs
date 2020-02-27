@@ -74,14 +74,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public List<DensityVolumeEngineData> density;
     }
 
-    enum VolumetricLightingPreset
-    {
-        Off,
-        Medium,
-        High,
-        Count
-    }
-
     struct VBufferParameters
     {
         public Vector3Int viewportSize;
@@ -171,8 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        VolumetricLightingPreset      volumetricLightingPreset = VolumetricLightingPreset.Off;
-
         ComputeShader                 m_VolumeVoxelizationCS      = null;
         ComputeShader                 m_VolumetricLightingCS      = null;
 
@@ -218,10 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_SupportVolumetrics)
                 return;
-
-            volumetricLightingPreset = asset.currentPlatformRenderPipelineSettings.increaseResolutionOfVolumetrics
-                ? VolumetricLightingPreset.High
-                : VolumetricLightingPreset.Medium;
 
             m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
             m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;

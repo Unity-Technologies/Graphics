@@ -129,8 +129,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public IntScalableSetting sssSampleBudget;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
-        /// <summary>High quality volumetric lighting.</summary>
-        public bool increaseResolutionOfVolumetrics;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
         /// <summary>Name for light layer 0.</summary>
