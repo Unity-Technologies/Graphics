@@ -194,42 +194,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the current render pipeline instance that is being used to render.
-        /// Returns null if no UniversalRenderPipeline asset is being in use.
-        /// </summary>
-        public static UniversalRenderPipeline currentRenderPipeline
-        {
-            get => RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-        }
-
-        /// <summary>
-        /// Returns a renderer from the current render pipeline.
-        /// </summary>
-        /// <param name="index">Index to the renderer list in the pipeline asset.</param>
-        /// <returns>If valid index the given renderer from the pipeline asset, otherwise null.</returns>
-        public ScriptableRenderer GetRenderer(int index)
-        {
-            if (renderers == null)
-            {
-                Debug.LogError("RenderPipeline is corrupted. The list of renderers is not valid.");
-                return null;
-            }
-
-            // -1 means default renderer.
-            // In this case we return the default renderer from the asset.
-            if (index < 0)
-                index = m_DefaultRendererIndex;
-
-            if (index < 0 || index >= renderers.Length)
-            {
-                Debug.LogError("Trying to access an invalid renderer");
-                return null;
-            }
-
-            return renderers[index];
-        }
-
-        /// <summary>
         /// Checks if a camera is rendering in MultiPass stereo mode.
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
