@@ -449,7 +449,7 @@ using Object = UnityEngine.Object;
             addAction.Invoke();
             var newlyAdded = graph.addedNodes.Where(newlyAddedNode => previouslyAdded.Contains(newlyAddedNode) == false).ToList();
             Assert.IsTrue(newlyAdded.Count > 0);
-            AbstractMaterialNode addedNode = newlyAdded.Where(newlyAddedNode => newlyAddedNode.GetType() == typeof(PropertyNode)).First();
+            AbstractMaterialNode addedNode = newlyAdded.Where(newlyAddedNode => newlyAddedNode.GetType() == expectedNodeType).First();
             Assert.IsNotNull(addedNode);
             return addedNode;
         }
