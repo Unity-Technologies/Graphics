@@ -20,7 +20,7 @@ struct SphQuad
     float S;
 };
 
-void SphQuadInit(float3 s, float3 ex, float3 ey, float3 o, inout SphQuad squad)
+void SphQuadInit(float3 s, float3 ex, float3 ey, float3 o, out SphQuad squad)
 {
     squad.o = o;
 

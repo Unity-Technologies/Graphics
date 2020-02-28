@@ -103,6 +103,8 @@ CBUFFER_START(UnityPerMaterial)
     //////////////////////////////////////////////////////////////////////////////
 
 float _AlphaCutoff;
+float _UseShadowThreshold;
+float _AlphaCutoffShadow;
 float4 _DoubleSidedConstants;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"

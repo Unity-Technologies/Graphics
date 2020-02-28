@@ -75,14 +75,12 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Type                 type;
         public SkyRenderingContext  renderingContext;
-        public int                  lastFrameUsed;
         public int                  hash;
         public int                  refCount;
 
         public void Reset()
         {
             // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
-            lastFrameUsed = 0;
             hash = 0;
             refCount = 0;
             if (renderingContext != null)
@@ -110,6 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SphericalHarmonicsL2    m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
         bool                    m_UpdateRequired = false;
+        bool                    m_StaticSkyUpdateRequired = false;
         int                     m_Resolution;
 
         // Sky used for static lighting. It will be used for ambient lighting if Ambient Mode is set to Static (even when realtime GI is enabled)
@@ -132,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool         logOnce = true;
 
         // This boolean here is only to track the first frame after a domain reload or creation.
-        bool m_requireWaitForAsyncReadBackRequest = true;
+        bool m_RequireWaitForAsyncReadBackRequest = true;
 
         MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
@@ -156,8 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
-
-        int m_CurrentFrameIndex = -1;
 
         public SkyManager()
         {
@@ -361,7 +358,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.ambientProbe;
             }
             else
@@ -375,7 +371,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxCubemapRT;
             }
             else
@@ -389,7 +384,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (skyContext.IsValid() && IsCachedContextValid(skyContext))
             {
                 ref var context = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                context.lastFrameUsed = m_CurrentFrameIndex;
                 return context.renderingContext.skyboxBSDFCubemapArray;
             }
             else
@@ -549,7 +543,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe)
+        void AllocateNewRenderingContext(SkyUpdateContext skyContext, int slot, int newHash, bool supportConvolution, in SphericalHarmonicsL2 previousAmbientProbe, string name)
         {
             Debug.Assert(m_CachedSkyContexts[slot].hash == 0);
             ref var context = ref m_CachedSkyContexts[slot];
@@ -564,16 +558,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (context.renderingContext == null)
-                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe);
+                context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
             else
                 context.renderingContext.UpdateAmbientProbe(previousAmbientProbe);
             skyContext.cachedSkyRenderingContextId = slot;
         }
 
         // Returns whether or not the data should be updated
-        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash)
+        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash, string name = "", bool supportConvolution = true)
         {
-            bool supportConvolution = true; // TODO: See how we can avoid allocating associated RT for static sky (issue is when the same sky is used for both static and lighting sky)
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
             // Release the old context if needed.
             if (IsCachedContextValid(updateContext))
@@ -601,7 +594,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // If the hash hasn't changed, keep it.
-                    cachedContext.lastFrameUsed = m_CurrentFrameIndex;
                     return false;
                 }
             }
@@ -614,7 +606,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_CachedSkyContexts[i].hash == newHash)
                 {
                     m_CachedSkyContexts[i].refCount++;
-                    m_CachedSkyContexts[i].lastFrameUsed = m_CurrentFrameIndex;
                     updateContext.cachedSkyRenderingContextId = i;
                     updateContext.skyParametersHash = newHash;
                     return false;
@@ -625,24 +616,40 @@ namespace UnityEngine.Rendering.HighDefinition
                     firstFreeContext = i;
             }
 
+            if (name == "")
+                name = "SkyboxCubemap";
+
             if (firstFreeContext != -1)
             {
-                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, firstFreeContext, newHash, supportConvolution, cachedAmbientProbe, name);
             }
             else
             {
                 int newContextId = m_CachedSkyContexts.Add(new CachedSkyContext());
-                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe);
+                AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe, name);
             }
 
             return true;
         }
 
-        void ReleaseCachedContext(int id)
+        internal void ReleaseCachedContext(int id)
         {
+            if (id == -1)
+                return;
+
             ref var cachedContext = ref m_CachedSkyContexts[id];
+
+            // This can happen if 2 cameras use the same context and release it in the same frame.
+            // The first release the context but the next one will still have this id.
+            if (cachedContext.refCount == 0)
+            {
+                Debug.Assert(cachedContext.renderingContext == null); // Context should already have been cleaned up.
+                return;
+            }
+
             cachedContext.refCount--;
-            Debug.Assert(cachedContext.refCount >= 0);
+            if (cachedContext.refCount == 0)
+                cachedContext.Cleanup();
         }
 
         bool IsCachedContextValid(SkyUpdateContext skyContext)
@@ -655,24 +662,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
         }
 
-        void CleanupUnusedCachedContexts()
-        {
-            for (int i = 0; i < m_CachedSkyContexts.size; ++i)
-            {
-                ref var context = ref m_CachedSkyContexts[i];
-                if (context.refCount == 0 && (m_CurrentFrameIndex - context.lastFrameUsed > 30))
-                {
-                    context.Cleanup();
-                }
-            }
-        }
-
-        int ComputeSkyHash(SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode)
+        int ComputeSkyHash(SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
         {
             int sunHash = 0;
             if (sunLight != null)
                 sunHash = GetSunLightHashCode(sunLight);
             int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
+            skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
         }
@@ -682,7 +678,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpdateRequired = true;
         }
 
-        public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, SkyUpdateContext skyContext, Light sunLight, bool updateRequired, bool updateAmbientProbe, SkyAmbientMode ambientMode, int frameIndex, CommandBuffer cmd)
+        internal void RequestStaticEnvironmentUpdate()
+        {
+            m_StaticSkyUpdateRequired = true;
+            m_RequireWaitForAsyncReadBackRequest = true;
+        }
+
+        public void UpdateEnvironment(  HDCamera                hdCamera,
+                                        ScriptableRenderContext renderContext,
+                                        SkyUpdateContext        skyContext,
+                                        Light                   sunLight,
+                                        bool                    updateRequired,
+                                        bool                    updateAmbientProbe,
+                                        bool                    staticSky,
+                                        SkyAmbientMode          ambientMode,
+                                        int                     frameIndex,
+                                        CommandBuffer           cmd)
         {
             if (skyContext.IsValid())
             {
@@ -699,11 +710,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
 
                 // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
-                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash);
+                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash, staticSky ? "SkyboxCubemap_Static" : "SkyboxCubemap", !staticSky);
 
                 ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 var renderingContext = cachedContext.renderingContext;
@@ -728,31 +739,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
                                 cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
 
-                                // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                // otherwise ambient probe isn't correct for one frame.
-                                if (m_requireWaitForAsyncReadBackRequest)
+                                // When the profiler is enabled, we don't want to submit the render context because
+                                // it will break all the profiling sample Begin() calls issued previously, which leads
+                                // to profiling sample mismatch errors in the console.
+                                if (!UnityEngine.Profiling.Profiler.enabled)
                                 {
-                                    cmd.SetComputeBufferParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, renderingContext.ambientProbeResult);
-                                    cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
-                                    cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
-                                    cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
-
-                                    // When the profiler is enabled, we don't want to submit the render context because
-                                    // it will break all the profiling sample Begin() calls issued previously, which leads
-                                    // to profiling sample mismatch errors in the console.
-                                    if (!UnityEngine.Profiling.Profiler.enabled)
+                                    // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
+                                    // otherwise ambient probe isn't correct for one frame.
+                                    if (m_RequireWaitForAsyncReadBackRequest)
                                     {
-                                        // In case we are the first frame after a domain reload, we need to wait for async readback request to complete
-                                        // otherwise ambient probe isn't correct for one frame.
-                                        if (m_requireWaitForAsyncReadBackRequest)
-                                        {
-                                            cmd.WaitAllAsyncReadbackRequests();
-                                            renderContext.ExecuteCommandBuffer(cmd);
-                                            CommandBufferPool.Release(cmd);
-                                            renderContext.Submit();
-                                            cmd = CommandBufferPool.Get();
-                                            m_requireWaitForAsyncReadBackRequest = false;
-                                        }
+                                        cmd.WaitAllAsyncReadbackRequests();
+                                        renderContext.ExecuteCommandBuffer(cmd);
+                                        CommandBufferPool.Release(cmd);
+                                        renderContext.Submit();
+                                        cmd = CommandBufferPool.Get();
+                                        m_RequireWaitForAsyncReadBackRequest = false;
                                     }
                                 }
                             }
@@ -787,24 +788,26 @@ namespace UnityEngine.Rendering.HighDefinition
         //static bool notDone = true;
         public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
-            m_CurrentFrameIndex = frameIndex;
-
-            CleanupUnusedCachedContexts();
-
             SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-            UpdateEnvironment(hdCamera, renderContext, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, ambientMode, frameIndex, cmd);
+            UpdateEnvironment(hdCamera, renderContext, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode, frameIndex, cmd);
 
             // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
             // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
             // and we use the one from the main camera.
-            if (ambientMode == SkyAmbientMode.Static && hdCamera.camera.cameraType != CameraType.Preview)
+            bool forceStaticUpdate = false;
+#if UNITY_EDITOR
+            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case.
+            forceStaticUpdate = true;
+#endif
+            if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 StaticLightingSky staticLightingSky = GetStaticLightingSky();
                 if (staticLightingSky != null)
                 {
                     m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, false, true, ambientMode, frameIndex, cmd);
+                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                    m_StaticSkyUpdateRequired = false;
                 }
             }
 

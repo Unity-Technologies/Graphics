@@ -292,6 +292,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The realtime mode of the probe
         /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
+        /// <summary>
+        /// Resolution of the probee.
+        /// </summary>
         public PlanarReflectionAtlasResolution resolution { get => m_ProbeSettings.resolution; set => m_ProbeSettings.resolution = value; }
 
         // Lighting

@@ -73,6 +73,11 @@ namespace UnityEngine.Rendering.UI
             {
                 // None was selected so we reset all the bits to false
                 m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, 0));
+                foreach (var toggle in toggles)
+                {
+                    if (toggle.getter != null)
+                        toggle.UpdateValueLabel();
+                }
             }
             else
             {

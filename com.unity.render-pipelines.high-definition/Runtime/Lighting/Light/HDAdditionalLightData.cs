@@ -26,6 +26,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
+    /// <summary>
+    /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
@@ -967,6 +970,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
+        /// <summary>
+        /// Returns a mask of shadow light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// </summary>
+        /// <returns></returns>
+        public uint GetShadowLayers()
+        {
+            int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
         float    m_ShadowNearPlane = 0.1f;
@@ -1128,6 +1141,10 @@ namespace UnityEngine.Rendering.HighDefinition
             @override = k_DefaultShadowResolution,
             useOverride = true,
         };
+
+        /// <summary>
+        /// Retrieve the scalable setting for shadow resolution. Use the SetShadowResolution function to set a custom resolution.
+        /// </summary>
         public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
@@ -1185,6 +1202,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
+
+        /// <summary>
+        /// Retrieve the scalable setting to use/ignore contact shadows. Toggle the use contact shadow using @override property of the ScalableSetting.
+        /// </summary>
         public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]
@@ -1552,12 +1573,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
             {
                 bool validShadow = false;
-                if (processedLight.gpuLightType == GPULightType.Rectangle && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                {
-                    // For area light shadows, we only support them  when in deferred mode
-                    validShadow = true;
-                }
-                else if (processedLight.gpuLightType == GPULightType.Point || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                if (processedLight.gpuLightType == GPULightType.Point
+                        || processedLight.gpuLightType == GPULightType.Rectangle
+                        || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
                 {
                     validShadow = true;
                 }
@@ -2489,7 +2507,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
-        /// <param name="hdLight"></param>
         /// <param name="enable"></param>
         public void EnableColorTemperature(bool enable)
         {
@@ -2526,9 +2543,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Set light cookie.
+        /// Set light cookie. Note that the texture must have a power of two size.
         /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         /// <param name="directionalLightCookieSize">area light </param>
         public void SetCookie(Texture cookie, Vector2 directionalLightCookieSize)
         {
@@ -2566,7 +2583,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set light cookie.
         /// </summary>
-        /// <param name="cookie2D">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
+        /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
 
         /// <summary>
@@ -2583,8 +2600,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the dimmer for light and volumetric light.
         /// </summary>
-        /// <param name="dimmer"></param>
-        /// <param name="volumetricLightDimmer"></param>
+        /// <param name="dimmer">Dimmer for the light</param>
+        /// <param name="volumetricDimmer">Dimmer for the volumetrics</param>
         public void SetLightDimmer(float dimmer = 1, float volumetricDimmer = 1)
         {
             this.lightDimmer = dimmer;
@@ -2594,7 +2611,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the light unit.
         /// </summary>
-        /// <param name="unit"></param>
+        /// <param name="unit">Unit of the light</param>
         public void SetLightUnit(LightUnit unit) => lightUnit = unit;
 
         /// <summary>
@@ -2618,7 +2635,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set whether the shadow resolution use the override value.
         /// </summary>
-        /// <param name="@override">True to use the override value, false otherwise.</param>
+        /// <param name="useOverride">True to use the override value, false otherwise.</param>
         public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
@@ -2645,8 +2662,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
-        /// <param name="shadowLightLayerMask"></param>
+        /// <param name="lightLayerMask">Layer mask for receiving light</param>
+        /// <param name="shadowLayerMask">Layer mask for shadow rendering</param>
         public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
         {
             // disable the shadow / light layer link
@@ -2696,7 +2713,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
-        /// <param name="lightLayerMask"></param>
+        /// <param name="shadowLayerMask"></param>
         public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>

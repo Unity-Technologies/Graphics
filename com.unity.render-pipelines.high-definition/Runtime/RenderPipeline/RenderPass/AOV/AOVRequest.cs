@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Flags]
     public enum LightingProperty
     {
+        /// <summary>No debug output.</summary>
         None = 0,
         /// <summary>Render only diffuse.</summary>
         DiffuseOnly = 1 << 0,
