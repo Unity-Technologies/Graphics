@@ -96,6 +96,19 @@ namespace UnityEditor.ShaderGraph
                     throw new ArgumentOutOfRangeException();
             }
         }
+        
+        public static string ToKeywordString(this KeywordDescriptor keyword, int value)
+        {
+            switch(keyword.type)
+            {
+                case KeywordType.Boolean:
+                    return value == 1 ? $"{keyword.referenceName}" : string.Empty;
+                case KeywordType.Enum:
+                    return $"{keyword.referenceName}_{keyword.entries[value].referenceName}";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         public static int GetKeywordPermutationCount(this GraphData graph)
         {

@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
+                /*
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
                 
                 for(int i = 0; i < m_TargetImplementations.Length; i++)
@@ -113,6 +114,37 @@ namespace UnityEditor.ShaderGraph
                     m_TargetImplementations[i].SetupTarget(ref context); 
                     GetAssetDependencyPaths(context);
                     GenerateSubShader(i, context.descriptor);
+                }
+                */
+
+                // NOTE : This is split to make sure the properties from the target
+                // get injected before the PropertiesBlock is generated.
+                List<TargetSetupContext> targetContexts = new List<TargetSetupContext>();
+
+                for (int i = 0; i < m_TargetImplementations.Length; i++)
+                {
+                    TargetSetupContext context = new TargetSetupContext();
+                    context.SetMasterNode(m_OutputNode as IMasterNode);
+                    m_TargetImplementations[i].SetupTarget(ref context);
+
+                    if (context.descriptor.shaderProperties != null)
+                    {
+                        IEnumerator<AbstractShaderProperty> curProp = context.descriptor.shaderProperties.GetEnumerator();
+                        while ((curProp.MoveNext()) && (curProp.Current != null))
+                        {
+                            shaderProperties.AddShaderProperty(curProp.Current);
+                        }
+                    }
+
+                    targetContexts.Add(context);
+                }
+
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+
+                for (int i = 0; i < targetContexts.Count; ++i)
+                {
+                    GetAssetDependencyPaths(targetContexts[i]);
+                    GenerateSubShader(i, targetContexts[i].descriptor);
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");

@@ -8,5 +8,6 @@
         public bool generatesPreview;
         public PassCollection passes;
         public string customEditorOverride;
+        public ShaderPropertyCollection shaderProperties;
     }
 }
