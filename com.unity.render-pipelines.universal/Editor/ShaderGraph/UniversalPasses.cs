@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Conditional State
             renderStates = UniversalRenderStates.Default,
-            pragmas = UniversalPragmas.Instanced,
+            pragmas = UniversalPragmas.Forward,
             keywords = UniversalKeywords.Unlit,
             includes = UniversalIncludes.Unlit,
         };
