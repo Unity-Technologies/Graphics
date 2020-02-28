@@ -260,18 +260,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!settings.debugLightLayers)
                 return 0;
 
-            if (!settings.debugSelectionLightLayers)
-                return settings.debugLightLayersFilterMask;
+#if UNITY_EDITOR
+            if (settings.debugSelectionLightLayers)
+            {
+                if (UnityEditor.Selection.activeGameObject == null)
+                    return 0;
+                var light = UnityEditor.Selection.activeGameObject.GetComponent<HDAdditionalLightData>();
+                if (light == null)
+                    return 0;
 
-            if (UnityEditor.Selection.activeGameObject == null)
-                return 0;
-            var light = UnityEditor.Selection.activeGameObject.GetComponent<HDAdditionalLightData>();
-            if (light == null)
-                return 0;
+                if (settings.debugSelectionShadowLayers)
+                    return (DebugLightLayersMask)light.GetShadowLayers();
+                return (DebugLightLayersMask)light.GetLightLayers();
+            }
+#endif
 
-            if (settings.debugSelectionShadowLayers)
-                return (DebugLightLayersMask)light.GetShadowLayers();
-            return (DebugLightLayersMask)light.GetLightLayers();
+            return settings.debugLightLayersFilterMask;
         }
 
         /// <summary>
