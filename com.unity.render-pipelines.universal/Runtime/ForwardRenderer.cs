@@ -147,20 +147,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Find out what our render features require...
-            RenderFeatureRequirements renderFeatureRequirements = new RenderFeatureRequirements();
-            for (int i = 0; i < rendererFeatures.Count; ++i)
-            {
-                // Skip if the feature doesn't have any specific requirements...
-                if (!rendererFeatures[i].HasFeatureRequirements)
-                {
-                    continue;
-                }
-
-                RenderFeatureRequirements rqr = rendererFeatures[i].GetFeatureRequirements();
-                renderFeatureRequirements.depthTexture       |= rqr.depthTexture;
-                renderFeatureRequirements.depthNormalTexture |= rqr.depthNormalTexture;
-            }
-
+            RenderFeatureRequirements renderFeatureRequirements = GetRenderFeatureRequirements();
+                
             bool postProcessEnabled = cameraData.postProcessEnabled;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
@@ -393,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(m_ActiveCameraDepthAttachment.id);
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        private void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
             var descriptor = cameraData.cameraTargetDescriptor;
@@ -419,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupBackbufferFormat(int msaaSamples, bool stereo)
+        private void SetupBackbufferFormat(int msaaSamples, bool stereo)
         {
 #if ENABLE_VR
             bool msaaSampleCountHasChanged = false;
@@ -443,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
+        private bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
@@ -467,7 +455,7 @@ namespace UnityEngine.Rendering.Universal
                    !isCompatibleBackbufferTextureDimension || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer;
         }
 
-        bool CanCopyDepth(ref CameraData cameraData)
+        private bool CanCopyDepth(ref CameraData cameraData)
         {
             bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
             bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
@@ -479,6 +467,24 @@ namespace UnityEngine.Rendering.Universal
             //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
             bool msaaDepthResolve = false;
             return supportsDepthCopy || msaaDepthResolve;
+        }
+
+        private RenderFeatureRequirements GetRenderFeatureRequirements()
+        {
+            RenderFeatureRequirements renderFeatureRequirements = new RenderFeatureRequirements();
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                // Skip if the feature doesn't have any specific requirements...
+                if (!rendererFeatures[i].HasFeatureRequirements)
+                {
+                    continue;
+                }
+
+                RenderFeatureRequirements rqr = rendererFeatures[i].GetFeatureRequirements();
+                renderFeatureRequirements.depthTexture |= rqr.depthTexture;
+                renderFeatureRequirements.depthNormalTexture |= rqr.depthNormalTexture;
+            }
+            return renderFeatureRequirements;
         }
     }
 }

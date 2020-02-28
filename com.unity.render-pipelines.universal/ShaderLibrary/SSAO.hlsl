@@ -27,8 +27,11 @@ SAMPLER(sampler_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthNormalsTexture);
 SAMPLER(sampler_CameraGBufferTexture2);
 
-
-#define SAMPLE_DEPTH_AO(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv).r;
+#if defined(SOURCE_DEPTH)
+#define SAMPLE_DEPTH(uvScreenSpace) SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uvScreenSpace);
+#else
+#define SAMPLE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv).r;
+#endif
 
 //float4 _ScreenParams;
 float4x4 ProjectionMatrix;
@@ -197,48 +200,34 @@ float CheckBounds(float2 uv, float linear01Depth)
     return ob * 1e8;
 }
 
-
-struct CoordDepth
-{
-    float4 uv;
-    float d;
-};
-
-
 // Try reconstructing normal accurately from depth buffer.
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
 float3 ReconstructNormalSimple(float4 uv)
 {
+    float flippedProjectionMultiplier = _ProjectionParams.x;
     float2 texSize = _ScreenSpaceAOTexture_TexelSize.xy;
+    float2 uvScreenSpace = uv.xy;
+    float2 uvProj = uv.zw;
 
-    CoordDepth c = (CoordDepth)0; // Center
-    CoordDepth l = (CoordDepth)0; // Left
-    CoordDepth r = (CoordDepth)0; // Right
-    CoordDepth u = (CoordDepth)0; // Up
-    CoordDepth d = (CoordDepth)0; // Down
+    // Projection position xy and depth
+    float3 c = float3(uvProj,                                                        0.0); // Center
+    float3 l = float3(uvProj - float2(texSize.x, 0.0),                               0.0); // Left
+    float3 r = float3(uvProj + float2(texSize.x, 0.0),                               0.0); // Right
+    float3 u = float3(uvProj + float2(0.0, texSize.y) * flippedProjectionMultiplier, 0.0); // Up
+    float3 d = float3(uvProj - float2(0.0, texSize.y) * flippedProjectionMultiplier, 0.0); // Down
 
-
-    float flipped = _ProjectionParams.x;
-    float flipped2 = 1;// _ProjectionParams.x;
-
-    // Calculate the center depth and then left, right, up and down pixels
-    c.uv = uv;                                                       
-    l.uv = c.uv - float4(texSize.x*flipped2,        0.0, texSize.x*flipped2,       0.0);
-    r.uv = c.uv + float4(texSize.x*flipped2,        0.0, texSize.x*flipped2,       0.0);
-    u.uv = c.uv + float4(      0.0,  texSize.y*flipped,       0.0, texSize.y*flipped);
-    d.uv = c.uv - float4(      0.0,  texSize.y*flipped,       0.0, texSize.y*flipped);
-
-    c.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(c.uv.xy));
-    l.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(l.uv.xy));
-    r.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(r.uv.xy));
-    u.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(u.uv.xy));
-    d.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(d.uv.xy));
+    // Calculate the center, left, right, up and down depths...
+    c.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace)                          );
+    l.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(texSize.x, 0.0)) );
+    r.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(texSize.x, 0.0)) );
+    u.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(0.0, texSize.y)) );
+    d.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(0.0, texSize.y)) );
 
     // Determine the closest horizontal and vertical pixels...
     // horizontal: left = 0.0 right = 1.0
     // vertical  : down = 0.0    up = 1.0
-    const uint closest_horizontal = step(abs(r.d - c.d), abs(l.d - c.d));
-    const uint closest_vertical   = step(abs(u.d - c.d), abs(d.d - c.d));
+    const uint closest_horizontal = step(abs(r.z - c.z), abs(l.z - c.z));
+    const uint closest_vertical   = step(abs(u.z - c.z), abs(d.z - c.z));
 
     // Calculate the triangle to use based on the closest horizontal and vertical depths
     // Using lerps instead of if statements.
@@ -246,34 +235,27 @@ float3 ReconstructNormalSimple(float4 uv)
     // h == 0.0 && v == 1.0: p1 = up,    p2 = left
     // h == 1.0 && v == 0.0: p1 = down,  p2 = right
     // h == 1.0 && v == 1.0: p1 = right, p2 = up
-    float3 p1 = lerp(lerp(float3(l.uv.zw, l.d), float3(d.uv.zw, d.d), closest_horizontal), lerp(float3(u.uv.zw, u.d), float3(r.uv.zw, r.d), closest_horizontal), closest_vertical);
-    float3 p2 = lerp(lerp(float3(d.uv.zw, d.d), float3(r.uv.zw, r.d), closest_horizontal), lerp(float3(l.uv.zw, l.d), float3(u.uv.zw, u.d), closest_horizontal), closest_vertical);
+    float3 p1 = lerp(lerp(l, d, closest_horizontal), lerp(u, r, closest_horizontal), closest_vertical);
+    float3 p2 = lerp(lerp(d, r, closest_horizontal), lerp(l, u, closest_horizontal), closest_vertical);
 
-    // Depth ....
+    // Adjust depth for view space calculations...
     #if UNITY_REVERSED_Z
-        c.d = 1.0 - c.d;
+        c.z = 1.0 - c.z;
         p1.z = 1.0 - p1.z;
         p2.z = 1.0 - p2.z;
     #endif
      
-    c.d  = 2.0 * c.d  - 1.0;
+    c.z  = 2.0 * c.z - 1.0;
     p1.z = 2.0 * p1.z - 1.0;
     p2.z = 2.0 * p2.z - 1.0;
 
-    // Calculate the view space positions...
-    float3 P  = ComputeViewSpacePosition(c.uv.zw, c.d, unity_CameraInvProjection); 
-    float3 P1 = ComputeViewSpacePosition(p1.xy,  p1.z, unity_CameraInvProjection);
-    float3 P2 = ComputeViewSpacePosition(p2.xy,  p2.z, unity_CameraInvProjection);
+    // Calculate the view space positions for the three points...
+    float3 P  = ComputeViewSpacePosition( c.xy,  c.z, unity_CameraInvProjection); 
+    float3 P1 = ComputeViewSpacePosition(p1.xy, p1.z, unity_CameraInvProjection);
+    float3 P2 = ComputeViewSpacePosition(p2.xy, p2.z, unity_CameraInvProjection);
 
     // Use the cross product to calculate the normal...
-    // OpenGL
-    if (flipped > 0)
-    {
-        return normalize(cross(P2 - P, P1 - P));
-    }
-
-    // Direct X
-    return normalize(cross(P1 - P, P2 - P)) * float3(-1, 1,- 1);
+    return normalize(cross(P2 - P, P1 - P));
 }
 //#define DEBUG_NORMAL
 
