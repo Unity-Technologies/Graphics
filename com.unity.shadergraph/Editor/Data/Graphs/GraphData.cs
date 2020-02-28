@@ -1416,8 +1416,10 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
+            foreach(ITarget tgt in foundTargets)
+            {
+                m_ValidImplementations.AddRange(foundImplementations.Where(s => s.targetType == tgt.GetType()).ToList());
+            }
         }
     }
 
