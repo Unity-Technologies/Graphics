@@ -1,4 +1,4 @@
-*Shader "Hidden/CubeToPano" {
+Shader "Hidden/CubeToPano" {
 Properties {
     _SrcBlend ("", Float) = 1
     _DstBlend ("", Float) = 1
@@ -88,7 +88,7 @@ float GetScale(float angle)
     }
     if (_preMultiplyBySolidAngle == 1)
     {
-        scale *= 0.25f * pi * pi * _Sizes.z * _Sizes.w;
+        scale *= 0.25f*pi*pi*_Sizes.z*_Sizes.w;
     }
 
     return scale;

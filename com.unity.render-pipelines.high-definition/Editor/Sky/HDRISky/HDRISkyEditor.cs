@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         RTHandle m_IntensityTexture;
         Texture2D m_ReadBackTexture;
         Material m_CubeToHemiLatLong;
-        Material m_CubeToLatLong;
+
         public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
@@ -66,7 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrp != null)
             {
                 m_CubeToHemiLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);
-                m_CubeToLatLong     = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
             }
             m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
@@ -118,36 +117,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 System.IO.File.WriteAllBytes(path, bytes0);
             }
 
-            flatten = null;
-
             RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
             RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
             RTHandleDeleter.ScheduleRelease(totalRows);
             RTHandleDeleter.ScheduleRelease(totalCols);
-            /*
-            RTHandle totalCols = RTHandles.Alloc(   1, 1,
-                                                    colorFormat: GraphicsFormat.R32G32B32A32_SFloat,
-                                                    enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(totalCols);
 
-            m_IntegrateMIS.SetTexture("_Cubemap", hdri);
-            Graphics.Blit(Texture2D.whiteTexture, totalCols.rt, m_IntegrateMIS, 0);
-            */
             RenderTexture.active = totalCols.rt;
             m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1.0f, 1.0f), 0, 0);
             RenderTexture.active = null;
 
-            // And then the value inside this texture
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
-            //m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
-            //m_UpperHemisphereLuxValue.value.floatValue = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+
             m_UpperHemisphereLuxValue.value.floatValue =          Mathf.PI*Mathf.PI*Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b)
                                                         / // ----------------------------------------------------------------------------------------
                                                                             (4.0f*(float)(latLongMap.rt.width*latLongMap.rt.height));
-                                                                //(Mathf.PI*Mathf.PI*(1.0f/(float)(latLongMap.rt.width*latLongMap.rt.height))*0.25f);
+
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
             if (max == 0.0f)
                 max = 1.0f;
+
             m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 50% to not have too dark or too bright shadow
         }
@@ -159,14 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_hdriSky);
                 base.CommonSkySettingsGUI();
             }
-            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
             bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
             {
-                //ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri);
-                //ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri, buildHemisphere);
                 GetUpperHemisphereLuxValue();
-                //bUpdate = true;
                 updateDefaultShadowTint = true;
             }
 
