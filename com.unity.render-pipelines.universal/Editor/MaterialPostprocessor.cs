@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -21,95 +21,35 @@ namespace UnityEditor.Rendering.Universal
 
     class MaterialReimporter : Editor
     {
-        static bool s_NeedToCheckProjSettingExistence = true;
+        const string Key = "LWRP-material-upgrader";
 
+        // Upgrade materials only after we compiled shaders.
+        // This fixes a case that caused ReloadAllNullIn to be called before shaders finished compiling.
+        [Callbacks.DidReloadScripts]
         static void ReimportAllMaterials()
         {
-            string[] guids = AssetDatabase.FindAssets("t:material", null);
-            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
-            var distinctGuids = guids.Distinct();
+            //Check to see if the upgrader has been run for this project/LWRP version
+            PackageManager.PackageInfo lwrpInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetAssembly(typeof(UniversalRenderPipeline)));
+            var lwrpVersion = lwrpInfo.version;
+            var curUpgradeVersion = PlayerPrefs.GetString(Key);
 
-            int materialIdx = 0;
-            int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
+            if (curUpgradeVersion != lwrpVersion)
             {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
-            }
-            EditorUtility.ClearProgressBar();
+                string[] guids = AssetDatabase.FindAssets("t:material", null);
 
-            MaterialPostprocessor.s_NeedsSavingAssets = true;
-        }
-
-        [InitializeOnLoadMethod]
-        static void RegisterUpgraderReimport()
-        {
-            EditorApplication.update += () =>
-            {
-                if (Time.renderedFrameCount > 0)
+                foreach (var asset in guids)
                 {
-                    bool fileExist = true;
-                    // We check the file existence only once to avoid IO operations every frame.
-                    if (s_NeedToCheckProjSettingExistence)
-                    {
-                        fileExist = System.IO.File.Exists(UniversalProjectSettings.filePath);
-                        s_NeedToCheckProjSettingExistence = false;
-                    }
-
-                    //This method is called at opening and when URP package change (update of manifest.json)
-                    var curUpgradeVersion = UniversalProjectSettings.materialVersionForUpgrade;
-
-                    if (curUpgradeVersion != MaterialPostprocessor.k_Upgraders.Length)
-                    {
-                        string commandLineOptions = Environment.CommandLine;
-                        bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist)
-                        {
-                            EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
-                                                        " Unity must upgrade them to be compatible with your current version of URP. \n" +
-                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                                        " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
-                        }
-
-                        ReimportAllMaterials();
-                    }
-
-                    if (MaterialPostprocessor.s_NeedsSavingAssets)
-                        MaterialPostprocessor.SaveAssetsToDisk();
+                    var path = AssetDatabase.GUIDToAssetPath(asset);
+                    AssetDatabase.ImportAsset(path);
                 }
-            };
+                PlayerPrefs.SetString(Key, lwrpVersion);
+            }
         }
     }
 
     class MaterialPostprocessor : AssetPostprocessor
     {
         public static List<string> s_CreatedAssets = new List<string>();
-        internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
-        internal static bool s_NeedsSavingAssets = false;
-
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1 };
-
-        static internal void SaveAssetsToDisk()
-        {
-            string commandLineOptions = System.Environment.CommandLine;
-            bool inTestSuite = commandLineOptions.Contains("-testResults");
-            if (inTestSuite)
-                return;
-
-            foreach (var asset in s_ImportedAssetThatNeedSaving)
-            {
-                AssetDatabase.MakeEditable(asset);
-            }
-
-            AssetDatabase.SaveAssets();
-            //to prevent data loss, only update the saved version if user applied change and assets are written to
-            UniversalProjectSettings.materialVersionForUpgrade = k_Upgraders.Length;
-
-            s_ImportedAssetThatNeedSaving.Clear();
-            s_NeedsSavingAssets = false;
-        }
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
@@ -118,12 +58,17 @@ namespace UnityEditor.Rendering.Universal
 
             foreach (var asset in importedAssets)
             {
+
                 if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                {
                     continue;
+                }
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
                 if (!ShaderUtils.IsLWShader(material.shader))
+                {
                     continue;
+                }
 
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
@@ -169,11 +114,15 @@ namespace UnityEditor.Rendering.Universal
                     upgradeLog += debug;
                     upgradeCount++;
                     EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
                 }
             }
+
+            // Don't print the log as we don't have any way to figure out if a material us upgraded or just created
+            //if(upgradeCount > 0)
+            //    Debug.Log(upgradeLog);
         }
+
+        static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1 };
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
@@ -215,7 +164,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    // Upgraders v1
+    // Upgaders v1
     #region UpgradersV1
 
     internal class LitUpdaterV1 : MaterialUpgrader
@@ -344,6 +293,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
     }
-    #endregion
-}
 
+    #endregion
+
+}
