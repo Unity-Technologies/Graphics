@@ -171,12 +171,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 //ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri);
-                ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri, buildHemisphere);
-                //GetUpperHemisphereLuxValue();
-                bUpdate = true;
-                //updateDefaultShadowTint = true;
+                //ImportanceSamplers.ScheduleMarginalGeneration(hdriID, hdri, buildHemisphere);
+                GetUpperHemisphereLuxValue();
+                //bUpdate = true;
+                updateDefaultShadowTint = true;
             }
-            if (bUpdate && ImportanceSamplers.ExistAndReady(hdriID))
+            if (false && bUpdate && ImportanceSamplers.ExistAndReady(hdriID))
             {
                 var hdrp = HDRenderPipeline.defaultAsset;
                 if (hdrp == null)
