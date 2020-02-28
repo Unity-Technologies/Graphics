@@ -88,7 +88,7 @@ static const float kGeometryCoeff = 0.8;
 // for suppressing self-shadowing noise, and Epsilon is used to prevent
 // calculation underflow. See the paper (Morgan 2011 http://goo.gl/2iz3P)
 // for further details of these constants.
-static const float kBeta = 0.0075;
+static const float kBeta = 0.002;
 
 // Gamma encoding (only needed in gamma lighting mode)
 half EncodeAO(half x)
@@ -197,97 +197,86 @@ float CheckBounds(float2 uv, float linear01Depth)
     return ob * 1e8;
 }
 
-#define DEBUG_NORMAL
-SAMPLER(sampler_PointClamp);
+
+struct CoordDepth
+{
+    float4 uv;
+    float d;
+};
+
+
 // Try reconstructing normal accurately from depth buffer.
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormalSimple(float4 spos)
+float3 ReconstructNormalSimple(float4 uv)
 {
     float2 texSize = _ScreenSpaceAOTexture_TexelSize.xy;
 
-    
+    CoordDepth c = (CoordDepth)0; // Center
+    CoordDepth l = (CoordDepth)0; // Left
+    CoordDepth r = (CoordDepth)0; // Right
+    CoordDepth u = (CoordDepth)0; // Up
+    CoordDepth d = (CoordDepth)0; // Down
 
 
-    
+    float flipped = _ProjectionParams.x;
+    float flipped2 = 1;// _ProjectionParams.x;
 
     // Calculate the center depth and then left, right, up and down pixels
-    float3 c = float3(spos.xy,             0.0); // center
-    float3 l = float3(c.xy - float2(texSize.x,       0.0), 0.0); // Left
-    float3 r = float3(c.xy + float2(texSize.x,       0.0), 0.0); // Right
-    float3 u = float3(c.xy + float2(      0.0, texSize.y), 0.0); // Up
-    float3 d = float3(c.xy - float2(      0.0, texSize.y), 0.0); // Down
-    l.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, l.xy);
-    r.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, r.xy);
-    c.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, c.xy);
-    u.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, u.xy);
-    d.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, d.xy);
+    c.uv = uv;                                                       
+    l.uv = c.uv - float4(texSize.x*flipped2,        0.0, texSize.x*flipped2,       0.0);
+    r.uv = c.uv + float4(texSize.x*flipped2,        0.0, texSize.x*flipped2,       0.0);
+    u.uv = c.uv + float4(      0.0,  texSize.y*flipped,       0.0, texSize.y*flipped);
+    d.uv = c.uv - float4(      0.0,  texSize.y*flipped,       0.0, texSize.y*flipped);
 
-    // Determine the closest horizontal and vertical points...
-    const uint best_Z_horizontal = step( abs(l.z - c.z), abs(r.z - c.z) );
-	const uint best_Z_vertical   = step( abs(u.z - c.z), abs(d.z - c.z) );
-    
+    c.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(c.uv.xy));
+    l.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(l.uv.xy));
+    r.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(r.uv.xy));
+    u.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(u.uv.xy));
+    d.d = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(d.uv.xy));
+
+    // Determine the closest horizontal and vertical pixels...
+    // horizontal: left = 0.0 right = 1.0
+    // vertical  : down = 0.0    up = 1.0
+    const uint closest_horizontal = step(abs(r.d - c.d), abs(l.d - c.d));
+    const uint closest_vertical   = step(abs(u.d - c.d), abs(d.d - c.d));
+
+    // Calculate the triangle to use based on the closest horizontal and vertical depths
     // Using lerps instead of if statements.
-    // h == 0 && v == 0 => p1 = d, p2 = r
-    // h == 0 && v == 1 => p1 = r, p2 = u
-    // h == 1 && v == 0 => p1 = l, p2 = d
-    // h == 1 && v == 1 => p1 = u, p2 = l
-    float3 p1 = lerp(lerp(d, l, best_Z_horizontal), lerp(r, u, best_Z_horizontal), best_Z_vertical);
-    float3 p2 = lerp(lerp(r, d, best_Z_horizontal), lerp(u, l, best_Z_horizontal), best_Z_vertical);
+    // h == 0.0 && v == 0.0: p1 = left,  p2 = down
+    // h == 0.0 && v == 1.0: p1 = up,    p2 = left
+    // h == 1.0 && v == 0.0: p1 = down,  p2 = right
+    // h == 1.0 && v == 1.0: p1 = right, p2 = up
+    float3 p1 = lerp(lerp(float3(l.uv.zw, l.d), float3(d.uv.zw, d.d), closest_horizontal), lerp(float3(u.uv.zw, u.d), float3(r.uv.zw, r.d), closest_horizontal), closest_vertical);
+    float3 p2 = lerp(lerp(float3(d.uv.zw, d.d), float3(r.uv.zw, r.d), closest_horizontal), lerp(float3(l.uv.zw, l.d), float3(u.uv.zw, u.d), closest_horizontal), closest_vertical);
 
-    
-
-    // Calculate the normal
-	//const float3 P  = ComputeWorldSpacePosition(c.xy,   c.z, UNITY_MATRIX_I_VP);
-    //             p1 = ComputeWorldSpacePosition(p1.xy, p1.z, UNITY_MATRIX_I_VP);
-    //             p2 = ComputeWorldSpacePosition(p2.xy, p2.z, UNITY_MATRIX_I_VP);
-
-
-
-/*float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, spos.xy);
-    float deviceDepth2 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, spos.xy - float2(texSize.x,       0.0));
-
-#if UNITY_REVERSED_Z
-    deviceDepth = 1 - deviceDepth;
-    deviceDepth2 = 1 - deviceDepth2;
-#endif
-    deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
-    deviceDepth2 = 2 * deviceDepth2 - 1; //NOTE: Currently must massage depth before computing CS position.
-
-    float3 vpos = ComputeViewSpacePosition(spos.zw, deviceDepth, unity_CameraInvProjection);
-    float3 vpos2 = ComputeViewSpacePosition(spos.zw - float2(texSize.x, 0.0), deviceDepth2, unity_CameraInvProjection);
-
-
-    return normalize(cross(ddy(vpos2), ddx(vpos2)));
-    return normalize(cross(ddy(vpos), ddx(vpos)));
-*/
-
-
-    p1 = d;
-    p2 = r;
-
-    float2 CC = spos.zw;
-    float2 p1C = CC - float2(      0.0, texSize.y);
-    float2 p2C = CC + float2(texSize.x,       0.0);
-    
-
+    // Depth ....
     #if UNITY_REVERSED_Z
-         c.z = 1 - c.z;
-         p1.z = 1 - p1.z;
-         p2.z = 1 - p2.z;
-     #endif
+        c.d = 1.0 - c.d;
+        p1.z = 1.0 - p1.z;
+        p2.z = 1.0 - p2.z;
+    #endif
      
-     c.z = 2.0 * c.z - 1.0;
-     p1.z = 2.0 * p1.z - 1.0;
-     p2.z = 2.0 * p2.z - 1.0;
-     
-     const float3 P  = ComputeViewSpacePosition(CC,   c.z, unity_CameraInvProjection);
-                  p1 = ComputeViewSpacePosition(p1C, p1.z, unity_CameraInvProjection);
-                  p2 = ComputeViewSpacePosition(p2C, p2.z, unity_CameraInvProjection);
-     return normalize(cross(ddy(P), ddx(P)));
-	float3 normal = normalize(cross(p1 - P, p2 - P)) * float3(1,-1,1);
+    c.d  = 2.0 * c.d  - 1.0;
+    p1.z = 2.0 * p1.z - 1.0;
+    p2.z = 2.0 * p2.z - 1.0;
 
-    return normal;
+    // Calculate the view space positions...
+    float3 P  = ComputeViewSpacePosition(c.uv.zw, c.d, unity_CameraInvProjection); 
+    float3 P1 = ComputeViewSpacePosition(p1.xy,  p1.z, unity_CameraInvProjection);
+    float3 P2 = ComputeViewSpacePosition(p2.xy,  p2.z, unity_CameraInvProjection);
+
+    // Use the cross product to calculate the normal...
+    // OpenGL
+    if (flipped > 0)
+    {
+        return normalize(cross(P2 - P, P1 - P));
+    }
+
+    // Direct X
+    return normalize(cross(P1 - P, P2 - P)) * float3(-1, 1,- 1);
 }
+//#define DEBUG_NORMAL
+
 
 // Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
@@ -543,7 +532,7 @@ float4 SSAO(Varyings input) : SV_Target
     float depth_o = CalculateDepthFromTextureSample(textureVal, uv);
 
 #if defined(DEBUG_NORMAL)
-    return float4(norm_o, 0.0);
+    return float4(norm_o.xy, (norm_o.z), 0.0);
 #endif
 
     // Reconstruct the view-space position.

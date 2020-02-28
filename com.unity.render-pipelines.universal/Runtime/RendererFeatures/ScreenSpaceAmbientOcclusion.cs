@@ -42,6 +42,7 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
         ScriptableRendererData[] rendererDataArray = UniversalRenderPipeline.asset.m_RendererDataList;
         if (rendererDataArray == null || rendererDataArray[0] == null)
         {
+            Debug.LogError("Unable to find renderer data in \"UniversalRenderPipeline.asset.m_RendererDataList\" !");
             return;
         }
 
@@ -50,6 +51,7 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
         forwardData = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
         if (forwardData == null)
         {
+            Debug.LogError("Unable to find ForwardRendererData in \"UniversalRenderPipeline.asset.m_RendererDataList[0]\" !");
             return;
         }
 
@@ -95,12 +97,13 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
         private RenderTextureDescriptor m_Descriptor;
         private RenderTargetIdentifier screenSpaceOcclusionTexture;
 
+        private Shader m_Shader;
         private string m_ProfilerTag;
         private DepthTextureSource m_DepthTextureMode = DepthTextureSource.Depth;
 
         private const string m_TextureName = "_ScreenSpaceAOTexture";
-        public static readonly int _TempRenderTexture1 = Shader.PropertyToID("_TempRenderTexture1");
-        public static readonly int _TempRenderTexture2 = Shader.PropertyToID("_TempRenderTexture2");
+        private static readonly int _TempRenderTexture1 = Shader.PropertyToID("_TempRenderTexture1");
+        private static readonly int _TempRenderTexture2 = Shader.PropertyToID("_TempRenderTexture2");
 
         private enum SSAOShaderPasses
         {
@@ -117,7 +120,7 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
         public ScreenSpaceAmbientOcclusionPass(string profilerTag, Shader screenSpaceAmbientOcclusionShader, RenderPassEvent rpEvent)
         {
             m_ProfilerTag = profilerTag;
-            m_Material = CoreUtils.CreateEngineMaterial(screenSpaceAmbientOcclusionShader);
+            m_Shader = screenSpaceAmbientOcclusionShader;
 
             m_Texture.Init(m_TextureName);
             renderPassEvent = rpEvent;
@@ -131,6 +134,11 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            if (m_Material == null)
+            {
+                m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
+            }
+
             AmbientOcclusion ambientOcclusion = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             int downScale = 1;
             float intensity = 1.0f;
