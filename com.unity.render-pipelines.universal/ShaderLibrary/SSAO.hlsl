@@ -88,7 +88,7 @@ static const float kGeometryCoeff = 0.8;
 // for suppressing self-shadowing noise, and Epsilon is used to prevent
 // calculation underflow. See the paper (Morgan 2011 http://goo.gl/2iz3P)
 // for further details of these constants.
-static const float kBeta = 0.002;
+static const float kBeta = 0.0075;
 
 // Gamma encoding (only needed in gamma lighting mode)
 half EncodeAO(half x)
@@ -197,97 +197,241 @@ float CheckBounds(float2 uv, float linear01Depth)
     return ob * 1e8;
 }
 
-
-float3 reconstructPosition(in float2 uv, in float z, in float4x4 InvVP)
+#define DEBUG_NORMAL
+SAMPLER(sampler_PointClamp);
+// Try reconstructing normal accurately from depth buffer.
+// https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
+float3 ReconstructNormalSimple(float4 spos)
 {
-    float x = uv.x * 2.0f - 1.0f;
-    float y = (1.0 - uv.y) * 2.0f - 1.0f;
+    float2 texSize = _ScreenSpaceAOTexture_TexelSize.xy;
 
-    float4 position_s = float4(x, y, z, 1.0f);
-    float4 position_v = mul(InvVP, position_s);
-    return position_v.xyz / position_v.w;
+    
+
+
+    
+
+    // Calculate the center depth and then left, right, up and down pixels
+    float3 c = float3(spos.xy,             0.0); // center
+    float3 l = float3(c.xy - float2(texSize.x,       0.0), 0.0); // Left
+    float3 r = float3(c.xy + float2(texSize.x,       0.0), 0.0); // Right
+    float3 u = float3(c.xy + float2(      0.0, texSize.y), 0.0); // Up
+    float3 d = float3(c.xy - float2(      0.0, texSize.y), 0.0); // Down
+    l.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, l.xy);
+    r.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, r.xy);
+    c.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, c.xy);
+    u.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, u.xy);
+    d.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, d.xy);
+
+    // Determine the closest horizontal and vertical points...
+    const uint best_Z_horizontal = step( abs(l.z - c.z), abs(r.z - c.z) );
+	const uint best_Z_vertical   = step( abs(u.z - c.z), abs(d.z - c.z) );
+    
+    // Using lerps instead of if statements.
+    // h == 0 && v == 0 => p1 = d, p2 = r
+    // h == 0 && v == 1 => p1 = r, p2 = u
+    // h == 1 && v == 0 => p1 = l, p2 = d
+    // h == 1 && v == 1 => p1 = u, p2 = l
+    float3 p1 = lerp(lerp(d, l, best_Z_horizontal), lerp(r, u, best_Z_horizontal), best_Z_vertical);
+    float3 p2 = lerp(lerp(r, d, best_Z_horizontal), lerp(u, l, best_Z_horizontal), best_Z_vertical);
+
+    
+
+    // Calculate the normal
+	//const float3 P  = ComputeWorldSpacePosition(c.xy,   c.z, UNITY_MATRIX_I_VP);
+    //             p1 = ComputeWorldSpacePosition(p1.xy, p1.z, UNITY_MATRIX_I_VP);
+    //             p2 = ComputeWorldSpacePosition(p2.xy, p2.z, UNITY_MATRIX_I_VP);
+
+
+
+/*float deviceDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, spos.xy);
+    float deviceDepth2 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, spos.xy - float2(texSize.x,       0.0));
+
+#if UNITY_REVERSED_Z
+    deviceDepth = 1 - deviceDepth;
+    deviceDepth2 = 1 - deviceDepth2;
+#endif
+    deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
+    deviceDepth2 = 2 * deviceDepth2 - 1; //NOTE: Currently must massage depth before computing CS position.
+
+    float3 vpos = ComputeViewSpacePosition(spos.zw, deviceDepth, unity_CameraInvProjection);
+    float3 vpos2 = ComputeViewSpacePosition(spos.zw - float2(texSize.x, 0.0), deviceDepth2, unity_CameraInvProjection);
+
+
+    return normalize(cross(ddy(vpos2), ddx(vpos2)));
+    return normalize(cross(ddy(vpos), ddx(vpos)));
+*/
+
+
+    p1 = d;
+    p2 = r;
+
+    float2 CC = spos.zw;
+    float2 p1C = CC - float2(      0.0, texSize.y);
+    float2 p2C = CC + float2(texSize.x,       0.0);
+    
+
+    #if UNITY_REVERSED_Z
+         c.z = 1 - c.z;
+         p1.z = 1 - p1.z;
+         p2.z = 1 - p2.z;
+     #endif
+     
+     c.z = 2.0 * c.z - 1.0;
+     p1.z = 2.0 * p1.z - 1.0;
+     p2.z = 2.0 * p2.z - 1.0;
+     
+     const float3 P  = ComputeViewSpacePosition(CC,   c.z, unity_CameraInvProjection);
+                  p1 = ComputeViewSpacePosition(p1C, p1.z, unity_CameraInvProjection);
+                  p2 = ComputeViewSpacePosition(p2C, p2.z, unity_CameraInvProjection);
+     return normalize(cross(ddy(P), ddx(P)));
+	float3 normal = normalize(cross(p1 - P, p2 - P)) * float3(1,-1,1);
+
+    return normal;
 }
 
 // Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
 // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
 // https://atyuwen.github.io/posts/normal-reconstruction/
-float3 ReconstructNormal(float2 spos)
+float3 ReconstructNormal(float4 spos)
 {
-    float2 stc = spos / _ScreenParams.xy;
-    float depth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, stc).x;
+    return ReconstructNormalSimple(spos);
 
-/*#if defined(SOURCE_DEPTH_NORMALS)
-    float depth = UnpackFloatFromR8G8(_CameraDepthNormalsTexture.Sample(sampler_CameraDepthNormalsTexture, stc));
-    float3 pos = ComputeWorldSpacePosition(stc, depth, UNITY_MATRIX_I_VP);
-    return normalize(cross(ddx(pos), ddy(pos)));
-#else
-    float3 pos = ComputeWorldSpacePosition(stc, depth, UNITY_MATRIX_I_VP);
-    return normalize(cross(ddy(pos), ddx(pos)));
-#endif*/
+/*
+    float3 center = float3(spos / _ScreenParams.xy, 0.0);
+    
+    //return depth;
+    //float3 P = ComputeWorldSpacePosition(stc, depth, UNITY_MATRIX_I_VP);
+    //return normalize(cross(ddy(P), ddx(P)));
 
-    float2 hXCoord = stc - float2(1.0 / _ScreenParams.x, 0.0                  );
-    float2 hYCoord = stc + float2(1.0 / _ScreenParams.x, 0.0                  );
-    float2 hZCoord = stc - float2(2.0 / _ScreenParams.x, 0.0                  );
-    float2 hWCoord = stc + float2(2.0 / _ScreenParams.x, 0.0                  );
-    float2 vXCoord = stc - float2(0.0,                   1.0 / _ScreenParams.y);
-    float2 vYCoord = stc + float2(0.0,                   1.0 / _ScreenParams.y);
-    float2 vZCoord = stc - float2(0.0,                   2.0 / _ScreenParams.y);
-    float2 vWCoord = stc + float2(0.0,                   2.0 / _ScreenParams.y);
+    float3 l2 = float3(center.xy - float2(2.0 / _ScreenParams.x, 0.0                  ), 0.0);
+    float3 l1 = float3(center.xy - float2(1.0 / _ScreenParams.x, 0.0                  ), 0.0);
+    float3 r1 = float3(center.xy + float2(1.0 / _ScreenParams.x, 0.0                  ), 0.0);
+    float3 r2 = float3(center.xy + float2(2.0 / _ScreenParams.x, 0.0                  ), 0.0);
+    float3 u2 = float3(center.xy + float2(0.0,                   2.0 / _ScreenParams.y), 0.0);
+    float3 u1 = float3(center.xy + float2(0.0,                   1.0 / _ScreenParams.y), 0.0);
+    float3 d1 = float3(center.xy - float2(0.0,                   1.0 / _ScreenParams.y), 0.0);
+    float3 d2 = float3(center.xy - float2(0.0,                   2.0 / _ScreenParams.y), 0.0);
 
-    float4 H;
-    H.x = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, hXCoord).x;
-    H.y = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, hYCoord).x;
-    H.z = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, hZCoord).x;
-    H.w = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, hWCoord).x;
+    l2.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, l2.xy);
+    l1.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, l1.xy);
+    r1.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, r1.xy);
+    r2.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, r2.xy);
+    center.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, center.xy);
+    u2.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, u2.xy);
+    u1.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, u1.xy);
+    d1.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, d1.xy);
+    d2.z = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, d2.xy);
 
-    float4 V;
-    V.x = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, vXCoord).x;
-    V.y = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, vYCoord).x;
-    V.z = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, vZCoord).x;
-    V.w = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, vWCoord).x;
 
+    float3 H = l1.z < (r1.z - EPSILON) ? float3(l1.xy, l1.z) : float3(r1.xy, r1.z);
+    float3 V = u1.z < (d1.z - EPSILON) ? float3(u1.xy, u1.z) : float3(d1.xy, d1.z);
+
+    float3 HPos = ComputeWorldSpacePosition(H.xy, H.z, UNITY_MATRIX_I_VP);
+    float3 VPos = ComputeWorldSpacePosition(V.xy, V.z, UNITY_MATRIX_I_VP);
+
+    float3 dddd = ddx(HPos);
+    float3 bbbb = ddy(HPos);
+    return normalize(cross(bbbb, dddd));
+    //return normalize(cross(HPos, VPos));
+
+    
+
+            //float2 he = abs(float2(h_x.z, h_y.z) * float2(h_z.z, h_w.z) * rcp(2.0 * float2(h_z.z, h_w.z) - float2(h_x.z, h_y.z)) - depth);
+            //return float3(he, 0);
+            //he = abs(2.0 * h_x.z - h_y.z) - depth;
+
+            //float2 ve = abs(V.xy * V.zw * rcp(2 * V.zw - V.xy) - depth);
+            //float2 ve = abs(float2(v_x.z, v_y.z) * float2(v_z.z, v_w.z) * rcp(2.0 * float2(v_z.z, v_w.z) - float2(v_x.z, v_y.z)) - depth);
+            //float2 ve = abs(2.0 * v_x.z - v_y.z) - depth;
+            //return float3(ve, 0);
+
+            //float linearXZ = Linear01Depth(_CameraDepthTexture.Sample(sampler_CameraDepthTexture, h_x.xy).x, _ZBufferParams);
+            //float linearYZ = Linear01Depth(_CameraDepthTexture.Sample(sampler_CameraDepthTexture, h_x.xy).x, _ZBufferParams);
+            //const uint best_Z_horizontal = abs(h_x.z - depth) < abs(h_y.z - depth) ? 2 : 1;
+            //const uint best_Z_vertical = abs(v_x.z - depth) < abs(v_y.z - depth) ? 2 : 1;
+            //if (best_Z_horizontal == 1)
+            //if (best_Z_vertical == 1)
+
+            //float L1 = Linear01Depth(l1.z, _ZBufferParams);
+            //float L2 = Linear01Depth(l2.z, _ZBufferParams);
+            //float R1 = Linear01Depth(r1.z, _ZBufferParams);
+            //float R2 = Linear01Depth(r2.z, _ZBufferParams);
+            //float D  = Linear01Depth(center.z, _ZBufferParams);
+            //float2 he = float2( abs( (2.0 * L1 - L2) - D), abs( (2.0 * R2 - R1) - D) );
+
+    float3 hDeriv;
+    float3 vDeriv;
     float3 a, b;
 
-    //float2 he = abs(H.xy * H.zw * rcp(2 * H.zw - H.xy) - depth);
-    float2 he = abs(2.0 * H.x - H.z) - depth;
+    // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
+    //float2 he = float2(abs(2.0 * l2.z - l1.z), abs(2.0 * r2.z - r1.z)) - center.z;
+    //float2 ve = float2(abs(2.0 * u2.z - u1.z), abs(2.0 * d2.z - d1.z)) - center.z;
+
+    // If the depth is stored as is (not linearized) there is no need for this kind of interpolation and abs(2 * H.x - H.z) - depth) is sufficient,
+    float2 he = float2( abs( (2.0 * l1.z - l2.z) - center.z), abs( (2.0 * r2.z - r1.z) - center.z) );
+    float2 ve = float2( abs( (2.0 * u1.z - u2.z) - center.z), abs( (2.0 * d2.z - d1.z) - center.z) );
+
+    //return float3(he, 0.0);
     if (he.x > he.y)
     {
+        return float3(1,0,0);
         //hDeriv = Calculate horizontal derivative of world position from taps | z | x |
-        a = ComputeWorldSpacePosition(hZCoord, H.z, UNITY_MATRIX_I_VP);
-        b = ComputeWorldSpacePosition(hXCoord, H.x, UNITY_MATRIX_I_VP);
+        if (l2.z > l1.z)
+        {
+return float3(1,0,0);
+            hDeriv = ddx(ComputeWorldSpacePosition(l2.xy, l2.z, UNITY_MATRIX_I_VP));
+        }
+        else
+        {
+return float3(0,1,0);
+            hDeriv = ddx(ComputeWorldSpacePosition(l1.xy, l1.z, UNITY_MATRIX_I_VP));
+        }
+
+        a = ComputeWorldSpacePosition(l2.xy, l2.z, UNITY_MATRIX_I_VP);
+        b = ComputeWorldSpacePosition(l1.xy, l1.z, UNITY_MATRIX_I_VP);
     }
     else
     {
+        if (r2.z > r1.z)
+        {
+            hDeriv = ddx(ComputeWorldSpacePosition(r2.xy, r2.z, UNITY_MATRIX_I_VP));
+        }
+        else
+        {
+            hDeriv = ddx(ComputeWorldSpacePosition(r1.xy, r1.z, UNITY_MATRIX_I_VP));
+        }
+        return float3(0,0,0);
         //hDeriv = Calculate horizontal derivative of world position from taps | y | w |
-        a = ComputeWorldSpacePosition(hYCoord, H.y, UNITY_MATRIX_I_VP);
-        b = ComputeWorldSpacePosition(hWCoord, H.w, UNITY_MATRIX_I_VP);
+        a = ComputeWorldSpacePosition(r2.xy, r2.z, UNITY_MATRIX_I_VP);
+        b = ComputeWorldSpacePosition(r1.xy, r1.z, UNITY_MATRIX_I_VP);
     }
-    float3 hDeriv = ddx(lerp(a, b, 0.5));
+    //hDeriv = ddx(lerp(a, b, 0.50));
+    return hDeriv;
 
-
-    //float2 ve = abs(V.xy * V.zw * rcp(2 * V.zw - V.xy) - depth);
-    float2 ve = abs(2.0 * V.x - V.z) - depth;
+    
     if (ve.x > ve.y)
     {
+        //return float3(1,0,0);
         //vDeriv = Calculate vertical derivative of world position from taps | z | x |
-        a = ComputeWorldSpacePosition(vZCoord, V.z, UNITY_MATRIX_I_VP);
-        b = ComputeWorldSpacePosition(vXCoord, V.x, UNITY_MATRIX_I_VP);
+        a = ComputeWorldSpacePosition(u2.xy, u2.z, UNITY_MATRIX_I_VP);
+        b = ComputeWorldSpacePosition(u1.xy, u1.z, UNITY_MATRIX_I_VP);
     }
     else
     {
+        //return float3(0,1,0);
         //vDeriv = Calculate vertical derivative of world position from taps | y | w |
-        a = ComputeWorldSpacePosition(vYCoord, V.y, UNITY_MATRIX_I_VP);
-        b = ComputeWorldSpacePosition(vWCoord, V.w, UNITY_MATRIX_I_VP);
+        a = ComputeWorldSpacePosition(d2.xy, d2.z, UNITY_MATRIX_I_VP);
+        b = ComputeWorldSpacePosition(d1.xy, d1.z, UNITY_MATRIX_I_VP);
     }
-    float3 vDeriv = ddy(lerp(a, b, 0.5));
-
+    vDeriv = ddy(lerp(a, b, 0.50));
 
     return normalize(cross(vDeriv, hDeriv));
+*/
 }
 
 // Calculates the normals from a texture sample
-float3 CalculateNormalFromTextureSample(float4 textureValue, half2 positionCS)
+float3 CalculateNormalFromTextureSample(float4 textureValue, float4 positionCS)
 {
     // Deferred...
     #if defined(SOURCE_GBUFFER)
@@ -307,7 +451,7 @@ float3 CalculateNormalFromTextureSample(float4 textureValue, half2 positionCS)
 
     // Forward with Depth texture
     #else
-        return ReconstructNormal(positionCS.xy);
+        return ReconstructNormal(positionCS);
     #endif
 }
 
@@ -361,15 +505,15 @@ float SampleDepth(float2 uv)
 }
 
 // Samples a texture for normals
-float3 SampleNormal(float2 uv, float2 positionCS)
+float3 SampleNormal(float2 uv, float4 positionCS)
 {
     // Deferred
     #if defined(SOURCE_GBUFFER)
-        return CalculateNormalFromTextureSample(SampleTexture(uv), float2(0.0,0.0));
+        return CalculateNormalFromTextureSample(SampleTexture(uv), float4(0.0,0.0, 0.0, 0.0));
 
     // Forward with DepthNormals texture...
     #elif defined(SOURCE_DEPTH_NORMALS)
-        return CalculateNormalFromTextureSample(SampleTexture(uv), float2(0.0, 0.0));
+        return CalculateNormalFromTextureSample(SampleTexture(uv), float4(0.0, 0.0, 0.0, 0.0));
 
     // Forward with Depth texture
     #else
@@ -384,8 +528,9 @@ float3 SampleNormal(float2 uv, float2 positionCS)
 //
 float4 SSAO(Varyings input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.uv.xy;
-    float2 positionCS = input.positionCS.xy;
+    float4 positionCS = input.positionCS;
 
     // Parameters used in coordinate conversion
     float3x3 proj = (float3x3)unity_CameraProjection;
@@ -394,17 +539,12 @@ float4 SSAO(Varyings input) : SV_Target
 
     // View space normal and depth
     float4 textureVal = SampleTexture(uv);
-    float3 norm_o = CalculateNormalFromTextureSample(textureVal, positionCS);
+    float3 norm_o = CalculateNormalFromTextureSample(textureVal, input.uv);
     float depth_o = CalculateDepthFromTextureSample(textureVal, uv);
 
-    /*return float4(norm_o, 0.0);
-#if defined(SOURCE_DEPTH_NORMALS)
-    return UnpackFloatFromR8G8(SampleTexture(uv).zw);
-#else
-    return SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, uv, 0).x;
+#if defined(DEBUG_NORMAL)
+    return float4(norm_o, 0.0);
 #endif
-    //return float4(depth_o, 0,0, 0.0);
-*/
 
     // Reconstruct the view-space position.
     float3 vpos_o = ReconstructViewPos(uv, depth_o, p11_22, p13_31);
@@ -453,7 +593,7 @@ float4 SSAO(Varyings input) : SV_Target
 float4 FragBlur(Varyings input) : SV_Target
 {
     float2 uv = input.uv.xy;
-    float2 positionCS = input.positionCS.xy;
+    float4 positionCS = input.positionCS;
 
     #if defined(BLUR_HORIZONTAL)
         // Horizontal pass: Always use 2 texels interval to match to the dither pattern.

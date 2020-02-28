@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
         [SerializeField] bool m_ShadowTransparentReceive = true;
-        [SerializeField] private bool m_ScreenSpaceAO = true;
 
         protected override ScriptableRenderer Create()
         {
@@ -89,8 +88,6 @@ namespace UnityEngine.Rendering.Universal
         public StencilStateData defaultStencilState => m_DefaultStencilState;
 
         public bool shadowTransparentReceive => m_ShadowTransparentReceive;
-
-        public bool screenSpaceAO => m_ScreenSpaceAO;
 
         protected override void OnEnable()
         {

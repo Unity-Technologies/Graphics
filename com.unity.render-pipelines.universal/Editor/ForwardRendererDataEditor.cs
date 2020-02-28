@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for Universal RP.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Forward Renderer.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
-            public static readonly GUIContent ssaoLabel = EditorGUIUtility.TrTextContent("SSAO", "Screen Space Ambient Occlusion.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
         }
 
@@ -22,7 +21,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
-        SerializedProperty m_ScreenSpaceAOProp;
         SerializedProperty m_ShadowTransparentReceiveProp;
 
         private void OnEnable()
@@ -32,7 +30,6 @@ namespace UnityEditor.Rendering.Universal
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
-            m_ScreenSpaceAOProp = serializedObject.FindProperty("m_ScreenSpaceAO");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
         }
 
@@ -47,10 +44,6 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck()) // We copy the opaque mask to the transparent mask, later we might expose both
                 m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
             EditorGUILayout.PropertyField(m_PostProcessData);
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Lighting", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_ScreenSpaceAOProp, Styles.ssaoLabel);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shadows", EditorStyles.boldLabel);

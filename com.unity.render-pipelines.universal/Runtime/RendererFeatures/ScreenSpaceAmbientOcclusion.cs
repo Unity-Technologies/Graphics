@@ -80,8 +80,6 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
 
     public override void Cleanup()
     {
-        Debug.Log("ScreenSpaceAmbientOcclusion.Cleanup()");
-
         if (m_SSAOPass != null)
         {
             m_SSAOPass.Cleanup();
@@ -120,6 +118,7 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
         {
             m_ProfilerTag = profilerTag;
             m_Material = CoreUtils.CreateEngineMaterial(screenSpaceAmbientOcclusionShader);
+
             m_Texture.Init(m_TextureName);
             renderPassEvent = rpEvent;
         }

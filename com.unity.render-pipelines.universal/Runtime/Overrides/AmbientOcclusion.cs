@@ -17,7 +17,7 @@ class AmbientOcclusion : VolumeComponent
     }
 
     // Common Options
-    public AOModeParameter type = new AOModeParameter(AOMode.SSAO, false);
+    private AOModeParameter type = new AOModeParameter(AOMode.SSAO, false);
     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f, false);
     public ClampedFloatParameter radius = new ClampedFloatParameter(0.025f, 0.001f, 1.0f, false);
 
