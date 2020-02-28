@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Add SampleCubemapProjectionNode to be able to project Cubemap to Geometry
+- Update Integration of HDRI Sky for Lux intensity
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
 - You can now save your graph as a new Asset.

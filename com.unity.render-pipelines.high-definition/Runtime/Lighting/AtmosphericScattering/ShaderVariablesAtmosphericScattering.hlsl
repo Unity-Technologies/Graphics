@@ -3,8 +3,6 @@
 #else
     TEXTURE3D(_VBufferLighting);
     TEXTURECUBE_ARRAY(_SkyTexture);
-    TEXTURE2D_ARRAY(_SkyMarginal);
-    TEXTURE2D_ARRAY(_SkyConditionalMarginal);
 
     #define _MipFogNear                     _MipFogParameters.x
     #define _MipFogFar                      _MipFogParameters.y

@@ -118,8 +118,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader hdriSkyPS;
             [Reload("Runtime/Sky/HDRISky/IntegrateHDRISky.shader")]
             public Shader integrateHdriSkyPS;
-            [Reload("Runtime/Sky/HDRISky/IntegrateHDRISkyMIS.shader")]
-            public Shader integrateHdriSkyMISPS;
             [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
             public Shader skyboxCubemapPS;
             [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
@@ -156,27 +154,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
-            [Reload("Runtime/Core/CoreResources/GPUOperations.compute")]
-            public ComputeShader gpuOperationsCS;
             [Reload("Runtime/Core/CoreResources/GPUScan.compute")]
             public ComputeShader gpuScanCS;
             [Reload("Runtime/Core/CoreResources/Arithmetics.compute")]
             public ComputeShader gpuArithmeticsCS;
-            [Reload("Runtime/Core/CoreResources/CDF1D.compute")]
-            public ComputeShader cdf1DCS;
-            [Reload("Runtime/Core/CoreResources/InverseCDF1D.compute")]
-            public ComputeShader inverseCDF1DCS;
-            [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
-            public ComputeShader rescale01CS;
-            [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
-            public ComputeShader importanceSample2DCS;
-            [Reload("Runtime/Core/CoreResources/ImportanceLatLongIntegration.compute")]
-            public ComputeShader importanceLatLongIntegrationCS;
-            [Reload("Runtime/Core/CoreResources/SetChannel.compute")]
-            public ComputeShader setChannelCS;
-            // TODO Remove
-            [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
-            public ComputeShader OutputDebugCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

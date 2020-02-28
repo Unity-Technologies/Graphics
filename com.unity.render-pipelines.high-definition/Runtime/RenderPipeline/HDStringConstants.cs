@@ -217,13 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
         public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
 
-        public static readonly int _EnvLightSkyEnabled      = Shader.PropertyToID("_EnvLightSkyEnabled");
-        public static readonly int _AmbientOcclusionParam   = Shader.PropertyToID("_AmbientOcclusionParam");
-        public static readonly int _SkyTexture              = Shader.PropertyToID("_SkyTexture");
-        public static readonly int _SkyTextureMipCount      = Shader.PropertyToID("_SkyTextureMipCount");
-        public static readonly int _SkyMarginal             = Shader.PropertyToID("_SkyMarginal");
-        public static readonly int _SkyConditionalMarginal  = Shader.PropertyToID("_SkyConditionalMarginal");
-
         public static readonly int _EnableSubsurfaceScattering = Shader.PropertyToID("_EnableSubsurfaceScattering");
         public static readonly int _TransmittanceMultiplier = Shader.PropertyToID("_TransmittanceMultiplier");
         public static readonly int _TexturingModeFlags = Shader.PropertyToID("_TexturingModeFlags");
@@ -744,8 +737,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
         public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
         public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
-        public static readonly int _SliceInvCDF                    = Shader.PropertyToID("_SliceInvCDF");
-        public static readonly int _InvCDF                         = Shader.PropertyToID("_InvCDF");
         public static readonly int _PDF                            = Shader.PropertyToID("_PDF");
         public static readonly int _CDF                            = Shader.PropertyToID("_CDF");
 

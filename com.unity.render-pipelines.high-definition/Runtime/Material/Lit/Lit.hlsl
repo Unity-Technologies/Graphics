@@ -11,12 +11,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
-// For Multiple Importance Sampling with the HDRI Sky
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ImportanceSampling2D.hlsl"
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
-
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -1835,119 +1829,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 //    #else
 //    envLighting += IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData);
 //    #endif
-
-#elif false && defined(RAYTRACING_ENABLED)
-
-/*
-    float rnd = GenerateHashedRandomFloat(posInput.positionSS);
-    if (rnd <= 0.5f)
-        envLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, preLightData, lightData, bsdfData, 1);
-    else
-    {
-        float3 L;
-        float2 latlongUV;
-        float2 xi;
-        xi.x = GenerateHashedRandomFloat(2*_RaytracingFrameIndex + 0);
-        xi.y = GenerateHashedRandomFloat(2*_RaytracingFrameIndex + 1);
-
-        float lightPDF = ImportanceSamplingLatLong(latlongUV, L, xi.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
-
-        float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
-
-        float VdotH;
-        float NdotL;
-        float3 L;
-        float weightOverPdf;
-        float3x3 localToWorld;
-
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        {
-            localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-        }
-        else
-        {
-            // We do not have a tangent frame unless we use anisotropic GGX.
-            localToWorld = GetLocalFrame(bsdfData.normalWS);
-        }
-
-        //float NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
-        //
-        //// GGX BRDF
-        //if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        //{
-        //    ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
-        //}
-        //else
-        //{
-        //    ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughnessT, NdotV, L, VdotH, NdotL, weightOverPdf);
-        //}
-        //
-        //float D = D_GGX(NdotH, bsdfData.roughnessT);
-        //float BRDF_PDF = D*NdotH/(4.0*VdotH);
-        //
-        //float3 F = F_Schlick(bsdfData.fresnel0, VdotH);
-        //float Vg = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughnessT);
-        //float BRDF = D*Vg;
-        //
-        //(F*val.rgb)*(weight*NdotL*NdotL*Vg*D)/lightPDF
-
-        envLighting = float4(val.rgb, 1.0f/lightPDF);
-    }
-    /*
-        float3 L;
-        float2 latlongUV;
-        float2 xi;
-        xi.x = GenerateHashedRandomFloat(2*_RaytracingFrameIndex + 0);
-        xi.y = GenerateHashedRandomFloat(2*_RaytracingFrameIndex + 1);
-
-        float lightPDF = ImportanceSamplingLatLong(latlongUV, L, xi.xy, _SkyMarginal, s_linear_clamp_sampler, _SkyConditionalMarginal, s_linear_clamp_sampler);
-
-        // Jacobian
-        lightPDF /= max(abs(sin(latlongUV.y * PI)), 1e-4);
-
-        envLighting += SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);;
-
-        //float VdotH;
-        //float NdotL;
-        //float3 L;
-        //float weightOverPdf;
-        //float3x3 localToWorld;
-
-        //if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        //{
-        //    localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
-        //}
-        //else
-        //{
-        //    // We do not have a tangent frame unless we use anisotropic GGX.
-        //    localToWorld = GetLocalFrame(bsdfData.normalWS);
-        //}
-
-        //float NdotV = ClampNdotV(dot(bsdfData.normalWS, V));
-
-        //// GGX BRDF
-        //if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        //{
-        //    ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
-        //}
-        //else
-        //{
-        //    ImportanceSampleGGX(u, V, localToWorld, bsdfData.roughnessT, NdotV, L, VdotH, NdotL, weightOverPdf);
-        //}
-
-        //float D = D_GGX(NdotH, bsdfData.roughnessT);
-        //float BRDF_PDF = D*NdotH/(4.0*VdotH);
-
-        //float3 F = F_Schlick(bsdfData.fresnel0, VdotH);
-        //float Vg = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughnessT);
-        //float BRDF = D*Vg;
-
-        //float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
-
-        //envLighting += (F*val.rgb)*(weight*NdotL*NdotL*Vg*D)/lightPDF;
-    }
-    */
-/**/
 
 #else
 

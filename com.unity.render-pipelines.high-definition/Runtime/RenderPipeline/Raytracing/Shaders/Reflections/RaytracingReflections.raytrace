@@ -24,13 +24,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
-//#define ENABLE_HDRISKY_MIS
-
-//#ifdef ENABLE_HDRISKY_MIS
-//// For Multiple Importance Sampling with the HDRI Sky
-//#   include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ImportanceSampling2D.hlsl"
-//#endif
-
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);

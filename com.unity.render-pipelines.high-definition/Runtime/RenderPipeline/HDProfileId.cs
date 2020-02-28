@@ -139,7 +139,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderDeferredLightingSinglePassMRT,
 
         // Misc
-        BuildMarginals,
         VolumeUpdate,
         CustomPassVolumeUpdate,
         XROcclusionMesh,
