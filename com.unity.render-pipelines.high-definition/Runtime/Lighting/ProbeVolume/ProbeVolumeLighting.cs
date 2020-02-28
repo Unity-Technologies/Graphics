@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public struct ProbeVolumeEngineData
     {
+        public float   weight;
         public Vector3 debugColor;
         public int     payloadIndex;
         public Vector3 rcpPosFaceFade;
@@ -26,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeEngineData data;
 
+            data.weight = 0.0f;
             data.debugColor = Vector3.zero;
             data.payloadIndex  = -1;
             data.rcpPosFaceFade = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);

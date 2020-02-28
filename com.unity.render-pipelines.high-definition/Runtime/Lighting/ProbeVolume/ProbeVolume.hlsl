@@ -237,6 +237,8 @@ void EvaluateProbeVolumes(PositionInputs posInput, BSDFData bsdfData, inout Buil
                         s_probeVolumeData.endTimesRcpDistFadeLen
                     );
 
+                    fadeFactor *= s_probeVolumeData.weight;
+
                     if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_ADDITIVE)
                         weight = fadeFactor;
                     else if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_SUBTRACTIVE)
