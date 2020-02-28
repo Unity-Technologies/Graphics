@@ -17,6 +17,12 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
+    #pragma multi_compile _ DEBUG_DISPLAY
+
+    #ifdef DEBUG_DISPLAY
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyDebugUtils.hlsl"
+    #endif
 
     int _HasGroundAlbedoTexture;    // bool...
     int _HasGroundEmissionTexture;  // bool...
@@ -236,6 +242,10 @@ Shader "Hidden/HDRP/Sky/PbrSky"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float4 value = RenderSky(input);
         value.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
+#ifdef DEBUG_DISPLAY
+        value = ModifySkyColorDebug(value);
+#endif
+
         return value;
     }
 

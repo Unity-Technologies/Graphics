@@ -235,11 +235,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return RenderSky(input, 1.0);
     }
 
-    float4 FragRender(Varyings input) : SV_Target
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        return RenderSky(input, GetCurrentExposureMultiplier());
-    }
 
     float4 RenderBackplate(Varyings input, float exposure)
     {
@@ -350,6 +345,23 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+            #pragma multi_compile _ DEBUG_DISPLAY
+
+            #ifdef DEBUG_DISPLAY
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+                #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyDebugUtils.hlsl"
+            #endif
+
+                float4 FragRender(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                    float4 color = RenderSky(input, GetCurrentExposureMultiplier());
+
+            #ifdef DEBUG_DISPLAY
+                    color = ModifySkyColorDebug(color);
+            #endif
+                    return color;
+                }
                 #pragma fragment FragRender
             ENDHLSL
         }

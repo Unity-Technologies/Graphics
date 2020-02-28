@@ -2534,7 +2534,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out float3 diffuseLighting, out float3 specularLighting, out DecomposedLighting decomposedLighting)
 {
     // There is no AmbientOcclusion from data with AxF, but let's apply our SSAO
     AmbientOcclusionFactor aoFactor;
@@ -2550,6 +2550,14 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Not supported: Display a flashy color instead
     diffuseLighting = 10 * float3(1, 0.3, 0.01);
 #endif
+
+    decomposedLighting.directDiffuse = bsdfData.diffuseColor * lighting.direct.diffuse;
+    decomposedLighting.directSpecular = lighting.direct.specular;
+    decomposedLighting.indirectDiffuse = builtinData.bakeDiffuseLighting;
+    decomposedLighting.reflection = lighting.indirect.specularReflected;
+    decomposedLighting.refraction = 0;
+    decomposedLighting.transmittance = 0;
+    decomposedLighting.emissive = 0;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

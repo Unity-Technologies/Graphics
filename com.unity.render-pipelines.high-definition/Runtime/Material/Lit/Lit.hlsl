@@ -1934,7 +1934,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out float3 diffuseLighting, out float3 specularLighting, out DecomposedLighting decomposedLighting)
 {
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
@@ -1966,6 +1966,14 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
+
+    decomposedLighting.directDiffuse = modifiedDiffuseColor * lighting.direct.diffuse;
+    decomposedLighting.directSpecular = lighting.direct.specular * (1.0 + bsdfData.fresnel0 * preLightData.energyCompensation);
+    decomposedLighting.indirectDiffuse = builtinData.bakeDiffuseLighting;
+    decomposedLighting.reflection = lighting.indirect.specularReflected * (1.0 + bsdfData.fresnel0 * preLightData.energyCompensation);
+    decomposedLighting.refraction = lighting.indirect.specularTransmitted;
+    decomposedLighting.transmittance = bsdfData.transmittanceMask * _EnableSSRefraction;
+    decomposedLighting.emissive = builtinData.emissiveColor;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

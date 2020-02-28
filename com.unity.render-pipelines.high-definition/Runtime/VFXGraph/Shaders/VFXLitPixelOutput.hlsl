@@ -5,6 +5,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 {
     float3 diffuseLighting;
     float3 specularLighting;
+    DecomposedLighting decomposedLighting;
 
 
     #if IS_OPAQUE_PARTICLE
@@ -26,6 +27,10 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 
     #endif
     LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+#ifdef DEBUG_DISPLAY
+    PostLightLoopDebugDisplay(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData,
+        decomposedLighting, diffuseLighting, specularLighting, builtinData.opacity);
+#endif
 
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();

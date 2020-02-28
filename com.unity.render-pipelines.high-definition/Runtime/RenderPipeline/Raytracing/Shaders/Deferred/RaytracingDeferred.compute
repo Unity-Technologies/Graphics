@@ -91,7 +91,13 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    DecomposedLighting decomposedLighting;
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting, decomposedLighting);
+
+#ifdef DEBUG_DISPLAY
+    PostLightLoopDebugDisplay(V, posInput, preLightData, bsdfData, builtinData,
+        decomposedLighting, diffuseLighting, specularLighting, builtinData.opacity);
+#endif
 
     float3 finalColor = clamp((diffuseLighting + specularLighting) * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp)
                         * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());

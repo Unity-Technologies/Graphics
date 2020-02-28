@@ -1876,6 +1876,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
 
+            // Frame setting may have changed at this point
+            // Need to make sure the new frame setting is respected so AOV output is correct
+            FrameSettings originalFrameSettings = hdCamera.frameSettings;
+            {
+                FrameSettings newFrameSettings = originalFrameSettings;
+
+                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                {
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess())
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+                    }
+
+                    // Disable exposure if required
+                    if (!m_CurrentDebugDisplaySettings.DebugNeedsExposure())
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
+                    }
+
+                    // Disable SSS if luxmeter is enabled
+                    if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                    {
+                        newFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                    }
+                }
+
+                hdCamera.Update(newFrameSettings, this, hdCamera.msaaSamples, hdCamera.xr);
+            }
+
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 // Must update after getting DebugDisplaySettings
@@ -2428,6 +2458,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
+                {
+                    hdCamera.Update(originalFrameSettings, this, hdCamera.msaaSamples, hdCamera.xr);
+                }
+
             }
 
             // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.

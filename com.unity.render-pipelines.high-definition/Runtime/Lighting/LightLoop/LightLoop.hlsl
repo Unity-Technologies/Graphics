@@ -102,7 +102,8 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out float3 diffuseLighting,
-                out float3 specularLighting)
+                out float3 specularLighting,
+                out DecomposedLighting decomposedLighting)
 {
     LightLoopContext context;
 
@@ -413,7 +414,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
     PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
-                        diffuseLighting, specularLighting);
+                        diffuseLighting, specularLighting, decomposedLighting);
 
     ApplyDebug(context, posInput, bsdfData, diffuseLighting, specularLighting);
 }

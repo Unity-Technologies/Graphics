@@ -57,12 +57,24 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         return RenderSky(input);
     }
 
+    #pragma multi_compile _ DEBUG_DISPLAY
+
+    #ifdef DEBUG_DISPLAY
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyDebugUtils.hlsl"
+    #endif
+
     float4 FragRender(Varyings input) : SV_Target
     {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float4 color = RenderSky(input);
-        color.rgb *= GetCurrentExposureMultiplier();
-        return color;
+          UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+          float4 color = RenderSky(input);
+          color.rgb *= GetCurrentExposureMultiplier();
+
+          #ifdef DEBUG_DISPLAY
+          color = ModifySkyColorDebug(color);
+          #endif
+
+          return color;
     }
 
     ENDHLSL

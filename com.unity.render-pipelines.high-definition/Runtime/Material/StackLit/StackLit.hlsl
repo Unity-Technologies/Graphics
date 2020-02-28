@@ -4387,7 +4387,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out float3 diffuseLighting, out float3 specularLighting, out DecomposedLighting decomposedLighting)
 {
     // Specular occlusion has been pre-computed in GetPreLightData() and applied on indirect specular light
     // while screenSpaceAmbientOcclusion has also been cached in preLightData.
@@ -4418,6 +4418,14 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+
+    decomposedLighting.directDiffuse = modifiedDiffuseColor * lighting.direct.diffuse;
+    decomposedLighting.directSpecular = lighting.direct.specular;
+    decomposedLighting.indirectDiffuse = builtinData.bakeDiffuseLighting * diffuseOcclusion;
+    decomposedLighting.reflection = lighting.indirect.specularReflected;
+    decomposedLighting.refraction = 0;
+    decomposedLighting.transmittance = 0;
+    decomposedLighting.emissive = builtinData.emissiveColor;
 
 #ifdef DEBUG_DISPLAY
     // For specularOcclusion we display red to indicate there's not one value possible here.

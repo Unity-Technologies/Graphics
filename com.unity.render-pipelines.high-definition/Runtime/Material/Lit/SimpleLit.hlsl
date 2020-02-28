@@ -446,7 +446,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out float3 diffuseLighting, out float3 specularLighting, out DecomposedLighting decomposedLighting)
 {
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
@@ -467,6 +467,14 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     #endif
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+
+    decomposedLighting.directDiffuse = modifiedDiffuseColor * lighting.direct.diffuse;
+    decomposedLighting.directSpecular = lighting.direct.specular;
+    decomposedLighting.indirectDiffuse = builtinData.bakeDiffuseLighting * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+    decomposedLighting.reflection = lighting.indirect.specularReflected;
+    decomposedLighting.refraction = 0;
+    decomposedLighting.transmittance = 0;
+    decomposedLighting.emissive = builtinData.emissiveColor;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
