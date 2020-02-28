@@ -34,6 +34,20 @@ namespace UnityEditor.VFX
             }
         }
 
+
+        public override void GetImportDependentAssets(HashSet<int> dependencies)
+        {
+            base.GetImportDependentAssets(dependencies);
+
+            if( m_customType != null)
+            {
+                var function = ScriptableObject.CreateInstance(m_customType);
+                var monoScript = MonoScript.FromScriptableObject(function);
+                if( monoScript != null)
+                    dependencies.Add(monoScript.GetInstanceID());
+            }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

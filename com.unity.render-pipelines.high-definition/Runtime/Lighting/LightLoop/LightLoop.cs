@@ -1707,6 +1707,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
 
+            // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+            if (!probe.HasValidRenderedData()) return false;
+
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
             Vector4 atlasScaleOffset = Vector4.zero;

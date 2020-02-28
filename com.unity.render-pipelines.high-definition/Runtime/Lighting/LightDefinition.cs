@@ -43,11 +43,17 @@ namespace UnityEngine.Rendering.HighDefinition
         Refraction
     };
 
+    /// <summary>
+    /// Cookie Mode
+    /// </summary>
     [GenerateHLSL]
     public enum CookieMode
     {
+        /// <summary>No cookie at all.</summary>
         None,
+        /// <summary>Cookie texture with clamped sampling mode.</summary>
         Clamp,
+        /// <summary>Cookie texture with repeat sampling mode.</summary>
         Repeat,
     }
 

@@ -2612,9 +2612,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public void SetHWDynamicResolutionState(HDCamera camera)
             {
                 bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
-                if (needsHW && !m_HasHWDynamicResolution)
+                if (m_Targets.Count > 0 && needsHW != m_HasHWDynamicResolution)
                 {
-                    // If any target has no dynamic resolution enabled, but we require it, we need to cleanup the pool.
+                    // If any target has no dynamic resolution enabled, but we require it or vice versa, we need to cleanup the pool.
                     bool missDynamicScale = false;
                     foreach (var kvp in m_Targets)
                     {
@@ -2623,8 +2623,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (stack == null)
                             continue;
 
-                        // We found a RT with no dynamic scale
-                        if (stack.Count > 0 && !stack.Peek().rt.useDynamicScale)
+                        // We found a RT with incorrect dynamic scale setting
+                        if (stack.Count > 0 && (stack.Peek().rt.useDynamicScale != needsHW))
                         {
                             missDynamicScale = true;
                             break;
@@ -2633,9 +2633,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (missDynamicScale)
                     {
-                        m_HasHWDynamicResolution = needsHW;
                         Cleanup();
                     }
+                    m_HasHWDynamicResolution = needsHW;
                 }
             }
 

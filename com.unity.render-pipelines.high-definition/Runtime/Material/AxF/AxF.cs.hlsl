@@ -5,6 +5,17 @@
 #ifndef AXF_CS_HLSL
 #define AXF_CS_HLSL
 //
+// UnityEngine.Rendering.HighDefinition.AxF+FeatureFlags:  static fields
+//
+#define FEATUREFLAGS_AXF_ANISOTROPY (1)
+#define FEATUREFLAGS_AXF_CLEAR_COAT (2)
+#define FEATUREFLAGS_AXF_CLEAR_COAT_REFRACTION (4)
+#define FEATUREFLAGS_AXF_USE_HEIGHT_MAP (8)
+#define FEATUREFLAGS_AXF_BRDFCOLOR_DIAGONAL_CLAMP (16)
+#define FEATUREFLAGS_AXF_HONOR_MIN_ROUGHNESS (256)
+#define FEATUREFLAGS_AXF_HONOR_MIN_ROUGHNESS_COAT (512)
+
+//
 // UnityEngine.Rendering.HighDefinition.AxF+SurfaceData:  static fields
 //
 #define DEBUGVIEW_AXF_SURFACEDATA_NORMAL (1200)

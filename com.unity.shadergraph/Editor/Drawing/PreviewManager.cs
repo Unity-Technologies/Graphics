@@ -415,6 +415,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     }
 
+                    // Force the material to re-generate all it's shader properties.
+                    renderData.shaderData.mat.shader = renderData.shaderData.shader;
+
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);

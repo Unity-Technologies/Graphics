@@ -13,18 +13,44 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Cubemap used to render the HDRI sky.</summary>
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
         public CubemapParameter         hdriSky             = new CubemapParameter(null);
+        /// <summary>Enable Backplate to have it visible.</summary>
+        [Tooltip("Enable or disable the backplate.")]
         public BoolParameter            enableBackplate     = new BoolParameter(false);
+        /// <summary>Backplate Type {Disc, Rectangle, Ellipse, Infinite (Plane)}.</summary>
+        [Tooltip("Backplate type.")]
         public BackplateTypeParameter   backplateType       = new BackplateTypeParameter(BackplateType.Disc);
+        /// <summary>Define the ground level of the Backplate.</summary>
+        [Tooltip("Define the ground level of the Backplate.")]
         public FloatParameter           groundLevel         = new FloatParameter(0.0f);
+        /// <summary>Extent of the Backplate (if circle only the X value is considered).</summary>
+        [Tooltip("Extent of the Backplate (if circle only the X value is considered).")]
         public Vector2Parameter         scale               = new Vector2Parameter(Vector2.one*32.0f);
+        /// <summary>Backplate's projection distance to varying the cubemap projection on the plate.</summary>
+        [Tooltip("Backplate's projection distance to varying the cubemap projection on the plate.")]
         public MinFloatParameter        projectionDistance  = new MinFloatParameter(16.0f, 1e-7f);
+        /// <summary>Backplate rotation parameter for the geometry.</summary>
+        [Tooltip("Backplate rotation parameter for the geometry.")]
         public ClampedFloatParameter    plateRotation       = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        /// <summary>Backplate rotation parameter for the projected texture.</summary>
+        [Tooltip("Backplate rotation parameter for the projected texture.")]
         public ClampedFloatParameter    plateTexRotation    = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        /// <summary>Backplate projection offset on the plane.</summary>
+        [Tooltip("Backplate projection offset on the plane.")]
         public Vector2Parameter         plateTexOffset      = new Vector2Parameter(Vector2.zero);
+        /// <summary>Backplate blend parameter to blend the edge of the backplate with the background.</summary>
+        [Tooltip("Backplate blend parameter to blend the edge of the backplate with the background.")]
         public ClampedFloatParameter    blendAmount         = new ClampedFloatParameter(0.0f, 0.0f, 100.0f);
+        /// <summary>Backplate Shadow Tint projected on the plane.</summary>
+        [Tooltip("Backplate Shadow Tint projected on the plane.")]
         public ColorParameter           shadowTint          = new ColorParameter(Color.grey);
+        /// <summary>Allow backplate to receive shadow from point light.</summary>
+        [Tooltip("Allow backplate to receive shadow from point light.")]
         public BoolParameter            pointLightShadow    = new BoolParameter(false);
+        /// <summary>Allow backplate to receive shadow from directional light.</summary>
+        [Tooltip("Allow backplate to receive shadow from directional light.")]
         public BoolParameter            dirLightShadow      = new BoolParameter(false);
+        /// <summary>Allow backplate to receive shadow from Area light.</summary>
+        [Tooltip("Allow backplate to receive shadow from Area light.")]
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
 
         /// <summary>

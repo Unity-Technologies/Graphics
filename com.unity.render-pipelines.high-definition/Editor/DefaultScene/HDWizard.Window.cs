@@ -60,11 +60,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 public readonly string label;
                 public readonly string error;
                 public readonly string button;
-                public ConfigStyle(string label, string error, string button = resolve)
+                public readonly MessageType messageType;
+                public ConfigStyle(string label, string error, string button = resolve, MessageType messageType = MessageType.Error)
                 {
                     this.label = label;
                     this.error = error;
                     this.button = button;
+                    this.messageType = messageType;
                 }
             }
 
@@ -108,19 +110,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "Default volume profile",
                 error: "Default volume profile must be assigned in the HDRP asset!");
 
-            public static readonly ConfigStyle vrActivated = new ConfigStyle(
-                label: "VR activated",
-                error: "VR need to be enabled in Player Settings!");
+            public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
+                label: "Legacy VR System",
+                error: "Legacy VR System need to be disabled in Player Settings!");
+            public static readonly ConfigStyle vrXRManagementPackage = new ConfigStyle(
+                label: "XR Management Package",
+                error: "XR Management Package is not correctly set. (see below)");
+            public static readonly ConfigStyle vrXRManagementPackageInstalled = new ConfigStyle(
+                label: "Package Installed",
+                error: "Last version of XR Management Package must be added in your project!");
+            public static readonly ConfigStyle vrOculusPlugin = new ConfigStyle(
+                label: "Oculus Plugin",
+                error: "Oculus Plugin must installed manually.\nGo in Edit > Project Settings > XR Plugin Manager and add Oculus XR Plugin.\n(This can't be verified by the Wizard)",
+                messageType: MessageType.Info);
+            public static readonly ConfigStyle vrSinglePassInstancing = new ConfigStyle(
+                label: "Single-Pass Instancing",
+                error: "Single-Pass Instancing must be enabled in Occulus Pluggin.\nGo in Edit > Project Settings > XR Plugin Manager > Oculus and change Stereo Rendering Mode to Single Pass Instanced.\n(This can't be verified by the Wizard)",
+                messageType: MessageType.Info);
+            public static readonly ConfigStyle vrLegacyHelpersPackage = new ConfigStyle(
+                label: "XR Legacy Helpers Package",
+                error: "XR Legacy Helpers Package will help you to handle inputs.");
 
-            public static readonly ConfigStyle dxrSupported = new ConfigStyle(
-                label: "Hardware and OS",
-                error: "You hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrAutoGraphicsAPI = new ConfigStyle(
                 label: "Auto graphics API",
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed!");
+                error: "Direct3D 12 is needed! (Editor restart is required)");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadow",
                 error: "Screen Space Shadow is required!");
@@ -135,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "DXR is not activated!");
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
-                error: "There is an issue with the DXR resources!");
+                error: "There is an issue with the DXR resources! Or your hardware and/or OS cannot be used for DXR! (unfixable in second case)");
             public static readonly ConfigStyle dxrShaderConfig = new ConfigStyle(
                 label: "DXR shader config",
                 error: "There is an issue with the DXR shader config!");
@@ -184,8 +200,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
             window.minSize = new Vector2(420, 450);
+            HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }
-
+        
         void OnGUI()
         {
             foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
@@ -206,18 +223,34 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (frameToWait > 0)
                 --frameToWait;
-            else if (HDProjectSettings.wizardIsStartPopup)
+            else
             {
                 EditorApplication.update -= WizardBehaviourDelayed;
 
-                //Application.isPlaying cannot be called in constructor. Do it here
-                if (Application.isPlaying)
-                    return;
+                if (HDProjectSettings.wizardIsStartPopup && !HDProjectSettings.wizardPopupAlreadyShownOnce)
+                {
+                    //Application.isPlaying cannot be called in constructor. Do it here
+                    if (Application.isPlaying)
+                        return;
 
-                OpenWindow();
+                    OpenWindow();
+                }
+
+                EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
             }
         }
         
+        [Callbacks.DidReloadScripts]
+        static void CheckPersistencyPopupAlreadyOpened()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                if (HDProjectSettings.wizardPopupAlreadyShownOnce)
+                    EditorApplication.quitting += () => HDProjectSettings.wizardPopupAlreadyShownOnce = false;
+            };
+        }
+        
+        [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
             //We need to wait at least one frame or the popup will not show up
@@ -225,14 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update += WizardBehaviourDelayed;
         }
         
-        [Callbacks.DidReloadScripts]
-        static void ResetDelayed()
-        {
-            //remove it from domain reload but keep it in editor opening
-            frameToWait = 0;
-            EditorApplication.update -= WizardBehaviourDelayed;
-        }
-
         #endregion
 
         #region DRAWERS
@@ -250,12 +275,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateHdrpVersionChecker());
 
+            container.Add(CreateInstallConfigPackageArea());
+
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
             container.Add(m_DefaultScene = CreateDefaultScene());
             container.Add(m_DefaultDXRScene = CreateDXRDefaultScene());
-
-            container.Add(CreateInstallConfigPackageArea());
 
             container.Add(CreateTitle(Style.configurationTitle));
             container.Add(CreateTabbedBox(
@@ -323,6 +348,9 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateLargeButton(Style.migrateMaterials, UpgradeStandardShaderMaterials.UpgradeMaterials));
 
             container.Add(CreateWizardBehaviour());
+
+            CheckPersistantNeedReboot();
+            CheckPersistentFixAll(); 
         }
 
         VisualElement CreateFolderData()
@@ -486,10 +514,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 container.Add(new ConfigInfoLine(
                     entry.configStyle.label,
                     entry.configStyle.error,
+                    entry.configStyle.messageType,
                     entry.configStyle.button,
                     () => entry.check(),
                     entry.fix == null ? (Action)null : () => entry.fix(fromAsync: false),
-                    entry.indent));
+                    entry.indent,
+                    entry.configStyle.messageType == MessageType.Error));
         }
 
         void AddHDRPConfigInfo(VisualElement container)
@@ -512,8 +542,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_LastAvailablePackageRetriever.ProcessAsync(k_HdrpPackageName, version =>
             {
-                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, packageInfo =>
+                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo) =>
                 {
+                    // installed is not used because this one will be always installed
+
                     if (packageInfo.source == PackageManager.PackageSource.Local)
                     {
                         helpBox.kind = HelpBox.Kind.Info;
