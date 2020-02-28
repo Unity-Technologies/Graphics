@@ -159,7 +159,9 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, float2(0.2, 0.2));
     float2 weight = 1.0 - diff;
     weight = weight * weight;
-    float2 feedback = (1.0 - weight) * FEEDBACK_MIN + weight * FEEDBACK_MAX;
+    const float feedbackMin = 0.96;
+    const float feedbackMax = 0.91;
+    float2 feedback = (1.0 - weight) * feedbackMin + weight * feedbackMax;
 
     color = FastTonemapPerChannelInvert(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);

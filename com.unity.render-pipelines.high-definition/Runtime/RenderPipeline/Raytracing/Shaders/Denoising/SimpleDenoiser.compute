@@ -108,7 +108,9 @@ void TEMPORAL_ACCUMULATION_SINGLE(uint3 dispatchThreadId : SV_DispatchThreadID, 
     float historyLuma = history;
     float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
     float weight = 1.0 - diff;
-    float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+    const float feedbackMin = 0.96;
+    const float feedbackMax = 0.91;
+    float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
 
     color = FastTonemapPerChannelInvert(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
@@ -173,7 +175,10 @@ void TEMPORAL_ACCUMULATION_COLOR(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float historyLuma = Luminance(history);
     float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
     float weight = 1.0 - diff;
-    float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+    const float feedbackMin = 0.96;
+    const float feedbackMax = 0.91;
+    float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
+
 
     color = FastTonemapInvert(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
