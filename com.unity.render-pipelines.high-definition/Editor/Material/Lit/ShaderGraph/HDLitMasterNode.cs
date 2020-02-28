@@ -1,3 +1,5 @@
+#define USE_ALL_MASKS
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -172,8 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
         {
-            return AllSlotMask;
-            /*switch (materialType)
+            switch (materialType)
             {
                 case MaterialType.Standard:
                     return StandardSlotMask;
@@ -195,12 +196,16 @@ namespace UnityEditor.Rendering.HighDefinition
             
                 default:
                     return SlotMask.None;
-            }*/
+            }
         }
 
         bool MaterialTypeUsesSlotMask(SlotMask mask)
         {
+#if USE_ALL_MASKS
+            SlotMask activeMask = AllSlotMask;
+#else
             SlotMask activeMask = GetActiveSlotMask();
+#endif
             return (activeMask & mask) != 0;
         }
 
@@ -1060,6 +1065,7 @@ namespace UnityEditor.Rendering.HighDefinition
             previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
             // No sorting priority for shader graph preview
             previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
+            previewMaterial.SetInt(kMaterialID, (int)(m_MaterialType));
 
             HDLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
