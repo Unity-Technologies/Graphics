@@ -443,6 +443,16 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     return lighting;
 }
 
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_LightProbeL1 for ProbeVolumes
+// ----------------------------------------------------------------------------
+
+float3 EvaluateBSDF_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
+                                 float4 shAr, float4 shAg, float4 shAb)
+{
+    return ShadeSurface_LightProbeL1(builtinData, bsdfData, shAr, shAg, shAb) * GetAmbientOcclusionForMicroShadowing(bsdfData);
+}
+
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,

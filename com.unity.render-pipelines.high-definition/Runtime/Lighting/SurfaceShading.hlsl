@@ -205,3 +205,9 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
     return lighting;
 }
+
+float3 ShadeSurface_LightProbeL1(BuiltinData builtinData, BSDFData bsdfData,
+                                 float4 shAr, float4 shAg, float4 shAb)
+{
+    return SHEvalLinearL0L1(bsdfData.normalWS, shAr, shAg, shAb) * bsdfData.diffuseColor;
+}

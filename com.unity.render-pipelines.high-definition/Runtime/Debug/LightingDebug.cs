@@ -27,7 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display indirect diffuse occlusion.</summary>
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
-        IndirectSpecularOcclusion
+        IndirectSpecularOcclusion,
+		/// <summary>Display Probe Volumes.</summary>
+		ProbeVolume
     }
 
     /// <summary>
@@ -124,6 +126,32 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Probe Volume Debug Modes.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ProbeVolumeDebugMode
+    {
+        None,
+        VisualizeAtlas,
+        VisualizeDebugColors,
+        VisualizeValidity
+    }
+
+	/// <summary>
+    /// Probe Volume Atlas Slicing Modes.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ProbeVolumeAtlasSliceMode
+    {
+        IrradianceSH00,
+        IrradianceSH1_1,
+        IrradianceSH10,
+        IrradianceSH11,
+        Validity,
+        OctahedralDepth
+    }
+
+	/// <summary>
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
@@ -143,7 +171,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
-                || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
+                || shadowDebugMode == ShadowMapDebugMode.SingleShadow
+                || probeVolumeDebugMode != ProbeVolumeDebugMode.None;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -152,7 +181,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
         /// <summary>Current Shadow Maps debug mode.</summary>
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
-        /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
+        /// <summary>Current Probe Volume Debug Mode.</summary>
+        public ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
+		/// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
+        public ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
+		/// <summary>The minimum display threshold for atlas slices.</summary>
+        public float                probeVolumeMinValue = 0.0f;
+		/// <summary>The maximum display threshold for atlas slices.</summary>
+        public float                probeVolumeMaxValue = 1.0f;
+		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
         public uint                 shadowMapIndex = 0;

@@ -96,6 +96,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent[] LightTypeTitles = { EditorGUIUtility.TrTextContent("Spot"), EditorGUIUtility.TrTextContent("Directional"), EditorGUIUtility.TrTextContent("Point"), EditorGUIUtility.TrTextContent("Area") };
             public static readonly int[] LightTypeValues = { (int)HDLightType.Spot, (int)HDLightType.Directional, (int)HDLightType.Point, (int)HDLightType.Area };
+            public static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
+            public static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
+            public static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
+            public static readonly GUIContent ResolutionY = EditorGUIUtility.TrTextContent("Resolution Y");
+            public static readonly GUIContent ResolutionZ = EditorGUIUtility.TrTextContent("Resolution Z");
+            public static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
+            public static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
 
             public static readonly GUIContent[] globalModes = { new GUIContent("Global"), new GUIContent("Local") };
         }
@@ -109,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns),
                 new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns),
                 new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns),
+                new LightingExplorerTab("Probe Volumes", GetProbeVolumes, GetProbeVolumeColumns),
                 new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns)
             };
         }
@@ -175,6 +183,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     : new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile);
             }
             return volumes;
+        }
+
+        protected virtual UnityEngine.Object[] GetProbeVolumes()
+        {
+            return Resources.FindObjectsOfTypeAll<ProbeVolume>();
         }
 
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
@@ -1019,6 +1032,117 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),                      // 0: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                   // 1: Name
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_ProbeSettings.lighting.weight", 60),    // 2: Weight
+            };
+        }
+
+        protected virtual LightingExplorerTableColumn[] GetProbeVolumeColumns()
+        {
+            return new[]
+            {
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                       // 0: Name
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.DrawProbes, "parameters", 35, (r, prop, dep) =>       // 1: Draw Probes
+                {
+                    SerializedProperty drawProbes = prop.FindPropertyRelative("drawProbes");
+                    EditorGUI.PropertyField(r, drawProbes, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("drawProbes").boolValue.CompareTo(rhs.FindPropertyRelative("drawProbes").boolValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("drawProbes").boolValue = source.FindPropertyRelative("drawProbes").boolValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Color, HDStyles.DebugColor, "parameters", 75, (r, prop, dep) =>       // 2: Debug Color
+                {
+                    SerializedProperty debugColor = prop.FindPropertyRelative("debugColor");
+                    EditorGUI.PropertyField(r, debugColor, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    float lh, ls, lv, rh, rs, rv;
+                    Color.RGBToHSV(lhs.FindPropertyRelative("debugColor").colorValue, out lh, out ls, out lv);
+                    Color.RGBToHSV(rhs.FindPropertyRelative("debugColor").colorValue, out rh, out rs, out rv);
+                    return lh.CompareTo(rh);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("debugColor").colorValue = source.FindPropertyRelative("debugColor").colorValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
+                {
+                    SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(r, resolutionX, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        resolutionX.intValue = Mathf.Max(1, resolutionX.intValue);
+                    }
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionX").intValue = source.FindPropertyRelative("resolutionX").intValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
+                {
+                    SerializedProperty resolutionY = prop.FindPropertyRelative("resolutionY");
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(r, resolutionY, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+                        resolutionY.intValue = Mathf.Max(1, resolutionY.intValue);
+                    }
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionY").intValue = source.FindPropertyRelative("resolutionY").intValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
+                {
+                    SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
+                    
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+                        resolutionZ.intValue = Mathf.Max(1, resolutionZ.intValue);
+                    }
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionZ").intValue = source.FindPropertyRelative("resolutionZ").intValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeStart, "parameters", 65, (r, prop, dep) =>        // 6: Distance Fade Start
+                {
+                    SerializedProperty distanceFadeStart = prop.FindPropertyRelative("distanceFadeStart");
+                    EditorGUI.PropertyField(r, distanceFadeStart, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("distanceFadeStart").floatValue = source.FindPropertyRelative("distanceFadeStart").floatValue;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeEnd, "parameters", 65, (r, prop, dep) =>          // 7: Distance Fade End
+                {
+                    SerializedProperty distanceFadeEnd = prop.FindPropertyRelative("distanceFadeEnd");
+                    EditorGUI.PropertyField(r, distanceFadeEnd, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("distanceFadeEnd").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeEnd").floatValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("distanceFadeEnd").floatValue = source.FindPropertyRelative("distanceFadeEnd").floatValue;
+                })
             };
         }
 

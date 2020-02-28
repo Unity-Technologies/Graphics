@@ -282,6 +282,7 @@ CBUFFER_START(UnityGlobal)
     int  _RaytracingFrameIndex;
 
     float4 _CoarseStencilBufferSize;
+    uint _EnableProbeVolumes;
 
 CBUFFER_END
 

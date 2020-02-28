@@ -1,6 +1,14 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+#define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
+
+bool IsUninitializedGI(float3 bakedGI)
+{
+    const float3 unitializedGI = UNINITIALIZED_GI;
+    return all(bakedGI == unitializedGI);
+}
+
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
 {
@@ -14,6 +22,12 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 {
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
+
+#if defined(SHADEROPTIONS_PROBE_VOLUMES)
+    // ProbeVolumes are incompatible with legacy Light robes
+    if (_EnableProbeVolumes)
+        return UNINITIALIZED_GI;
+#endif
 
     if (unity_ProbeVolumeParams.x == 0.0)
     {

@@ -184,7 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
-
+		PrepareProbeVolumeList,
+        ProbeVolumeDebug,
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
 #endif

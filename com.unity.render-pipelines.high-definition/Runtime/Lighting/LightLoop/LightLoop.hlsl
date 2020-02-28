@@ -1,6 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
-// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
+// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
@@ -93,6 +94,11 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
         diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
+    {
+        // Debug info is written to diffuseColor inside of light loop.
+        specularLighting = float3(0.0, 0.0, 0.0);
+    }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
     diffuseLighting *= exp2(_DebugExposure);
@@ -113,7 +119,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
     ApplyCameraRelativeXR(posInput.positionWS);
-    
+
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);
 
@@ -190,7 +196,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
             if (s_lightIdx == -1)
                 break;
-            
+
             LightData s_lightData = FetchLight(s_lightIdx);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
@@ -406,6 +412,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 lightData = FetchLight(lightStart, min(++i, last));
             }
         }
+    }
+#endif
+
+#if SHADEROPTIONS_PROBE_VOLUMES
+    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
+    {
+        EvaluateProbeVolumes(posInput, bsdfData, builtinData);
     }
 #endif
 
