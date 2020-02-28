@@ -65,7 +65,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     if ((stencilValue & _SsrStencilBit) == 0)
         return;
 
-    // Convert this to a world space position 
+    // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -119,7 +119,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     if (dot(sampleDir, normalData.normalWS) <= 0.00f)
         return;
 
-    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0	
+    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
 
     // In the second texture, we store the sampled direction and the invPDF of the sample
@@ -163,7 +163,7 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     // Override the roughness by the clearcoat value of this is a clear coat
     float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
-
+    
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
