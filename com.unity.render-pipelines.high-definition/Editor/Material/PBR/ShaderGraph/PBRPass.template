@@ -26,12 +26,12 @@ Pass
 
     // Defines
     $SpecularSetup:                         #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
-    $AlphaTest:                             #define _ALPHATEST 1
     $SurfaceType.Transparent:               #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                       #define _BLENDMODE_ALPHA 1
     $BlendMode.Add:                         #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:                 #define _BLENDMODE_PRE_MULTIPLY 1
     $DoubleSided:                           #define _DOUBLESIDED_ON 1
+    $DoubleSided:                           #define VARYINGS_NEED_CULLFACE
     $NormalDropOffTS:                       #define _NORMAL_DROPOFF_TS 1
     $NormalDropOffOS:                       #define _NORMAL_DROPOFF_OS 1
     $NormalDropOffWS:                       #define _NORMAL_DROPOFF_WS 1

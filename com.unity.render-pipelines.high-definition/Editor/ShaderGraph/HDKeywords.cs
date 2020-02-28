@@ -297,6 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection LodFadeCrossfade = new KeywordCollection
         {
             { Descriptors.LodFadeCrossfade },
+            { Descriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
         public static KeywordCollection GBuffer = new KeywordCollection
