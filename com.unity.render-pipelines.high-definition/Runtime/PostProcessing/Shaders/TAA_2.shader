@@ -15,6 +15,8 @@ Shader "Hidden/HDRP/TAA2"
     HLSLINCLUDE
 
         #pragma target 4.5
+        #pragma multi_compile_local _ ORTHOGRAPHIC
+        #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -62,31 +64,33 @@ Shader "Hidden/HDRP/TAA2"
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
+#if ORTHOGRAPHIC
+            float2 closest = input.positionCS.xy;
+#else
             float2 closest = GetClosestFragment(int2(input.positionCS.xy));
+#endif
             DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
             // --------------------------------------------------------
 
             // --------------- Get resampled history ---------------
             float2 prevUV = input.texcoord - motionVector;
 
-            float3 history = GetFilteredHistory(prevUV);
-
+            CTYPE history = GetFilteredHistory(prevUV);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
-
             history *= PerceptualWeight(history);
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data --------------- 
-            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
             color = clamp(color, 0, CLAMP_MAX);
-            color = ConvertToWorkingSpace(color.xyz);
+            color = ConvertToWorkingSpace(color);
 
             NeighbourhoodSamples samples;
             GatherNeighbourhood(uv, input.positionCS.xy, color, samples);
             // --------------------------------------------------------
 
             // --------------- Filter central sample ---------------
-            float3 filteredColor = FilterCentralColor(samples);
+            CTYPE filteredColor = FilterCentralColor(samples);
             // ------------------------------------------------------
 
             if (offScreen)
@@ -106,13 +110,13 @@ Shader "Hidden/HDRP/TAA2"
             // --------------------------------------------------------
 
             // --------------- Blend to final value and output ---------------
-            float3 finalColor = lerp(history.xyz, filteredColor.xyz, feedback);
+            CTYPE finalColor = lerp(history, filteredColor, feedback);
 
-            finalColor *= PerceptualInvWeight(finalColor);
-            color.xyz = ConvertToOutputSpace(finalColor);
+            finalColor.xyz *= PerceptualInvWeight(finalColor);
+            color.xyz = ConvertToOutputSpace(finalColor.xyz);
 
-            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = float4(color.xyz, 1);
-            outColor = color;
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
+            outColor = color.CTYPE_SWIZZLE;
             // -------------------------------------------------------------
         }
 
