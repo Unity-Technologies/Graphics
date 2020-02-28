@@ -105,7 +105,10 @@ float4 SampleSkyTexture(float3 texCoord, int sliceIndex)
 
 float4 SampleSkyTexture(float3 texCoord, float lod, int sliceIndex)
 {
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, lod);
+    // The convolved sky texture with mipmap only contains 6 valid mip.
+    // On top of that, the last three mips always contain NaNs (1x1 to 4x4) which means that for small sky texture resolution (<256) ), we can end up sampling it.
+    // _SkyTextureMipCount takes this into account, so we clamp with it to never sample wrong mips.
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, clamp(lod, 0, _SkyTextureMipCount - 1));
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
