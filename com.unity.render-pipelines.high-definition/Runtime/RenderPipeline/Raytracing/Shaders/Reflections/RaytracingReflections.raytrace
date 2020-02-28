@@ -93,7 +93,8 @@ void RayGenIntegration()
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
     // If this value is beyond the smothness that we allow, no need to compute it
-    if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
+    float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
+    if (_RaytracingReflectionMinSmoothness > perceptualSmoothness)
         return;
 
     // Compute the actual roughness
@@ -166,8 +167,11 @@ void RayGenIntegration()
     // Expose and clamp the final color
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
+    // We also need to compute the fade factor for this sample
+    float weightValue = _RaytracingReflectionSmoothnessFadeStart == _RaytracingReflectionMinSmoothness ? 1.0 : saturate((perceptualSmoothness - _RaytracingReflectionMinSmoothness) / (_RaytracingReflectionSmoothnessFadeStart -_RaytracingReflectionMinSmoothness));
+
     // We store the sampled color and the weight that shall be used for it (1.0)
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, weightValue);
 }
 
 [shader("closesthit")]

@@ -20,7 +20,8 @@ You can also watch the presentation from Unite Copenhagen (October 2019) to lear
 * **PS4**:
   * PSVR
 
-Please note that built-in support of OpenVR is deprecated since Unity 2019.3 but is still functional and available until Unity 2019.4 LTS. See [Unity XR platform updates](https://blogs.unity3d.com/2020/01/24/unity-xr-platform-updates/) for more details.
+Note that built-in support for Open VR is deprecated as of Unity 2019.3, but you will still be able to use it in Unity 2019.4 LTS. For more information, see [Unity XR platform updates](https://blogs.unity3d.com/2020/01/24/unity-xr-platform-updates/) on the Unity blog, and [XR Plugin Architecture](https://docs.unity3d.com/Manual/XRPluginArchitecture.html) in the Unity Manual.
+The XR Plugin architecture links to the OpenVR desktop package and has further info and recommendations.
 
 ## Resolution Control
 There are multiple methods that you can use to control the resolution of your render targets in HDRP, but be aware that HDRP does not support every method available in standard Unity using the built-in render pipeline. [XRSettings.renderViewportScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-renderViewportScale.html) has no effect in HDRP and generates a warning if you use it. Use one of the following methods instead:

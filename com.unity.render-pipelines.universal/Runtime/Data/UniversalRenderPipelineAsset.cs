@@ -99,9 +99,11 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    [ExcludeFromPreset]
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
+        ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 5;
@@ -312,7 +314,42 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            CreateRenderers();
             return new UniversalRenderPipeline(this);
+        }
+
+        void DestroyRenderers()
+        {
+            foreach (var renderer in m_Renderers)
+                renderer?.Dispose();
+        }
+
+        protected override void OnValidate()
+        {
+            DestroyRenderers();
+
+            // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
+            // assign pipeline asset reference to null
+            base.OnValidate();
+        }
+
+        protected override void OnDisable()
+        {
+            DestroyRenderers();
+
+            // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
+            // assign pipeline asset reference to null
+            base.OnDisable();
+        }
+
+        void CreateRenderers()
+        {
+            m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
+            for (int i = 0; i < m_RendererDataList.Length; ++i)
+            {
+                if (m_RendererDataList[i] != null)
+                    m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
+            }
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -346,11 +383,55 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the default renderer being used by the current render pipeline instace.
+        /// Returns the default renderer being used by this pipeline.
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.currentRenderPipeline?.GetRenderer(m_DefaultRendererIndex);
+            get
+            {
+                if (m_RendererDataList?.Length > m_DefaultRendererIndex && m_RendererDataList[m_DefaultRendererIndex] == null)
+                {
+                    Debug.LogError("Default renderer is missing from the current Pipeline Asset.", this);
+                    return null;
+                }
+
+                if (scriptableRendererData.isInvalidated || m_Renderers[m_DefaultRendererIndex] == null)
+                {
+                    m_Renderers[m_DefaultRendererIndex] = scriptableRendererData.InternalCreateRenderer();
+                }
+
+                return m_Renderers[m_DefaultRendererIndex];
+            }
+        }
+
+        /// <summary>
+        /// Returns a renderer from the current pipeline asset
+        /// </summary>
+        /// <param name="index">Index to the renderer. If invalid index is passed, the default renderer is returned instead.</param>
+        /// <returns></returns>
+        public ScriptableRenderer GetRenderer(int index)
+        {
+            if (index == -1)
+                index = m_DefaultRendererIndex;
+
+            if (index >= m_RendererDataList.Length || index < 0 || m_RendererDataList[index] == null)
+            {
+                Debug.LogWarning(
+                    $"Renderer at index {index.ToString()} is missing, falling back to Default Renderer {m_RendererDataList[m_DefaultRendererIndex].name}",
+                    this);
+                index = m_DefaultRendererIndex;
+            }
+
+            // RendererData list differs from RendererList. Create RendererList.
+            if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+                CreateRenderers();
+
+            // This renderer data is outdated or invalid, we recreate the renderer
+            // so we construct all render passes with the updated data
+            if (m_RendererDataList[index].isInvalidated || m_Renderers[index] == null)
+                m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
+
+            return m_Renderers[index];
         }
 
         internal ScriptableRendererData scriptableRendererData
