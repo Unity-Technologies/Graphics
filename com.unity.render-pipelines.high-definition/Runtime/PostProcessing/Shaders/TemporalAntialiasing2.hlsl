@@ -32,6 +32,12 @@ float3 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
+float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
+{
+    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
+}
+
 // ---------------------------------------------------
 // Options
 // ---------------------------------------------------
@@ -269,6 +275,27 @@ float2 GetClosestFragment(int2 positionSS)
     closest = COMPARE_DEPTH(s1, closest.z) ? float3(offset1, s1) : closest;
 
     return positionSS + closest.xy;
+}
+
+// Used since some compute might want to call this and we cannot use Quad reads in that case.
+float2 GetClosestFragmentCompute(float2 positionSS)
+{
+    float center = LoadCameraDepth(positionSS);
+    float nw = LoadCameraDepth(positionSS + int2(-1, -1));
+    float ne = LoadCameraDepth(positionSS + int2(1, -1));
+    float sw = LoadCameraDepth(positionSS + int2(-1, 1));
+    float se = LoadCameraDepth(positionSS + int2(1, 1));
+
+    float4 neighborhood = float4(nw, ne, sw, se);
+
+    float3 closest = float3(0.0, 0.0, center);
+    closest = lerp(closest, float3(-1.0, -1.0, neighborhood.x), COMPARE_DEPTH(neighborhood.x, closest.z));
+    closest = lerp(closest, float3(1.0, -1.0, neighborhood.y), COMPARE_DEPTH(neighborhood.y, closest.z));
+    closest = lerp(closest, float3(-1.0, 1.0, neighborhood.z), COMPARE_DEPTH(neighborhood.z, closest.z));
+    closest = lerp(closest, float3(1.0, 1.0, neighborhood.w), COMPARE_DEPTH(neighborhood.w, closest.z));
+
+
+    return positionSS + float2(1.0, -1.0);
 }
 
 // ---------------------------------------------------
