@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.HighDefinition
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
     // not used during a frame.
+
+    /// <summary>
+    /// HDCamera class.
+    /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
+    /// </summary>
     public class HDCamera
     {
         #region Public API
@@ -44,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Utility matrix (used by sky) to map screen position to WS view direction.</summary>
             public Matrix4x4 pixelCoordToViewDirWS;
+
+            // We need this to track the previous VP matrix with camera translation excluded. Internal since it is used only in its "previous" form
+            internal Matrix4x4 viewProjectionNoCameraTrans;
 
             /// <summary>World Space camera position.</summary>
             public Vector3 worldSpaceCameraPos;
@@ -930,6 +938,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
+            Matrix4x4 noTransViewMatrix = gpuView;
+            if (ShaderConfig.s_CameraRelativeRendering == 0)
+            {
+                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+
+            }
+            var gpuVPNoTrans = gpuNonJitteredProj * noTransViewMatrix;
 
             // A camera can be rendered multiple times in a single frame with different resolution/fov that would change the projection matrix
             // In this case we need to update previous rendering information.
@@ -942,12 +957,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
                 }
                 else
                 {
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
-                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.prevViewProjMatrix;
+                    viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }
             }
 
@@ -960,6 +976,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
+            viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
 
             var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
             viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
@@ -970,12 +987,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
                 viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
                 viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
-            }
-            else
-            {
-                Matrix4x4 noTransViewMatrix = viewMatrix;
-                noTransViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
-                viewConstants.prevViewProjMatrixNoCameraTrans = gpuNonJitteredProj * noTransViewMatrix;
             }
         }
 
@@ -1030,7 +1041,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 viewDir = -viewConstants.invViewMatrix.GetColumn(2);
             viewDir.Normalize();
-            Frustum.Create(frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
+            Frustum.Create(ref frustum, viewProjMatrix, viewConstants.invViewMatrix.GetColumn(3), viewDir, n, f);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
