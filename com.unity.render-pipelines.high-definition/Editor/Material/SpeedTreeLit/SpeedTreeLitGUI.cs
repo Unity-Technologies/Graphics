@@ -31,13 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);
-
-                // Apply material keywords and pass:
-                if (changed.changed)
-                {
-                    foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPassInternal(material);
-                }
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }
 
@@ -96,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool billboardOn = material.GetInt(SpeedTreeLitOptionsUIBlock.kIsBillboard) != 0;
                 CoreUtils.SetKeyword(material, HDSpeedTreeTarget.EnableBillboard.ToKeywordString(1), billboardOn);
 
-                if (material.HasProperty(SpeedTreeLitOptionsUIBlock.kBillboardFacing))
+                if (material.HasProperty(SpeedTreeLitOptionsUIBlock.kBillboardFacing) && (treeVersion == 0))
                 {
                     bool billboardFacing = (material.GetInt(SpeedTreeLitOptionsUIBlock.kBillboardFacing) != 0);
                     CoreUtils.SetKeyword(material, HDSpeedTreeTarget.BillboardFaceCam.ToKeywordString(1), billboardOn && billboardFacing);
