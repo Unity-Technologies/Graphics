@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string stencilWriteMaskGBuffer = "[_StencilWriteMaskGBuffer]";
             public static readonly string stencilRefGBuffer = "[_StencilRefGBuffer]";
             public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
+            public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
         }
 
         readonly static string[] s_DecalColorMasks = new string[8]
@@ -432,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
-                WriteMask = Uniforms.stencilRefDistortionVec,
+                WriteMask = Uniforms.stencilWriteMaskDistortionVec,
                 Ref = Uniforms.stencilRefDistortionVec,
                 Comp = "Always",
                 Pass = "Replace",
@@ -450,7 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
-                WriteMask = Uniforms.stencilRefDistortionVec,
+                WriteMask = Uniforms.stencilWriteMaskDistortionVec,
                 Ref = Uniforms.stencilRefDistortionVec,
                 Comp = "Always",
                 Pass = "Replace",
