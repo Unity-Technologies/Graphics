@@ -71,6 +71,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the Tint parameter to Sky Colored Fog.
 - Added of Screen Space Reflections for Transparent materials
 - Added a fallback for ray traced area light shadows in case the material is forward or the lit mode is forward.
+- Added a new debug mode for light layers.
+- Added an "enable" toggle to the SSR volume component.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
@@ -410,6 +412,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
 - Fixed a bug related to ray traced area light shadow history.
+- Fixed a leak in the PBR sky renderer.
+- Added a tooltip to the Ambient Mode parameter in the Visual Envionment volume component.
+- Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
+- Fixed a leak in the sky system.
 - Fixed an issue where fog sky color mode could sample NaNs in the sky cubemap.
 
 ### Changed
@@ -493,8 +499,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated VR checks in Wizard to reflect new XR System.
 - Removing unused alpha threshold depth prepass and post pass for fabric shader graph.
 - Transform result from CIE XYZ to sRGB color space in EvalSensitivity for iridescence.
-- Hide the Probes section in the Renderer editos because it was unused.
 - Moved BeginCameraRendering callback right before culling.
+- Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 
 ## [7.1.1] - 2019-09-05
 
