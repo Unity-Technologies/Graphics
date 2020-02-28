@@ -10,3 +10,4 @@
 
     #define _FogColor                       _FogColor
 #endif
+

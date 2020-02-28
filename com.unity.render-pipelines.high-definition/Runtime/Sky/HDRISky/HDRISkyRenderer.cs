@@ -12,8 +12,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
-        internal Texture    m_CurrentCubemap = null;
-
         public HDRISkyRenderer()
         {
         }
@@ -84,7 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
-
             if (hdriSky.enableBackplate.value == false)
             {
                 return;
@@ -111,29 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static private void Default(AsyncGPUReadbackRequest request, string name)
-        {
-            if (!request.hasError)
-            {
-                Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                float[] copy = new float[result.Length];
-                result.CopyTo(copy);
-                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\" + name + ".exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-            }
-        }
-
-        static bool notDone = true;
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
-            m_CurrentCubemap = hdriSky.hdriSky.value;
 
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
@@ -153,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passID = m_RenderFullscreenSkyWithBackplateID;
             }
 
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_CurrentCubemap);
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
@@ -171,109 +148,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
-
-            if (hdriSky.hdriSky.value != null && notDone)
-            {
-                return;
-                RTHandle marg;
-                RTHandle condMarg;
-                bool done = GenerateMarginalTexture(out marg, out condMarg, builtinParams.commandBuffer);
-                if (marg != null && condMarg != null)
-                {
-                    RTHandleDeleter.ScheduleRelease(marg);
-                    RTHandleDeleter.ScheduleRelease(condMarg);
-                }
-                if (done)
-                    notDone = false;
-            }
-        }
-
-
-        public bool GenerateMarginalTexture(out RTHandle marginal, out RTHandle conditionalMarginal, CommandBuffer cmd)
-        {
-            marginal            = null;
-            conditionalMarginal = null;
-
-            if (m_CurrentCubemap == null)
-                return false;
-
-            int width   = 4*m_CurrentCubemap.width;
-            int height  = 2*m_CurrentCubemap.width;
-
-            Experimental.Rendering.GraphicsFormat gfxFormat = Experimental.Rendering.GraphicsFormat.R32_SFloat;
-
-            RTHandle latLongMap = RTHandles.Alloc(  width, height,
-                                                    colorFormat: gfxFormat,
-                                                    enableRandomWrite: true);
-            RTHandleDeleter.ScheduleRelease(latLongMap);
-
-            var hdrp = HDRenderPipeline.defaultAsset;
-            Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-            cubeToLatLong.SetTexture("_srcCubeTexture", m_CurrentCubemap);
-            cubeToLatLong.SetInt    ("_cubeMipLvl",                 0);
-            cubeToLatLong.SetInt    ("_cubeArrayIndex",             0);
-            cubeToLatLong.SetInt    ("_buildPDF",                   1);
-            cubeToLatLong.SetInt    ("_preMultiplyByJacobian",      1);
-            cubeToLatLong.SetInt    ("_preMultiplyBySolidAngle",    0);
-            cubeToLatLong.SetVector (HDShaderIDs._Sizes, new Vector4(      (float)width,        (float)height,
-                                                                     1.0f/((float)width), 1.0f/((float)height)));
-            cmd.Blit(m_CurrentCubemap, latLongMap, cubeToLatLong, 0);
-
-            void DefaultDumper(AsyncGPUReadbackRequest request, string name, Experimental.Rendering.GraphicsFormat format)
-            {
-                if (!request.hasError)
-                {
-                    Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                    float[] copy = new float[result.Length];
-                    result.CopyTo(copy);
-                    byte[] bytes0 = ImageConversion.EncodeArrayToEXR(
-                                                        copy,
-                                                        format,
-                                                        (uint)request.width, (uint)request.height, 0,
-                                                        Texture2D.EXRFlags.CompressZIP);
-                    string path = @"C:\UProjects\" + name + ".exr";
-                    if (System.IO.File.Exists(path))
-                    {
-                        System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                        System.IO.File.Delete(path);
-                    }
-                    System.IO.File.WriteAllBytes(path, bytes0);
-                }
-            }
-
-            cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-            {
-                DefaultDumper(request, "___LatLongPDFJacobian", latLongMap.rt.graphicsFormat);
-            });
-
-            // Begin: Integrate Equirectangular Map
-            RTHandle cdf = GPUScan.ComputeOperation(latLongMap,
-                                                    cmd,
-                                                    GPUScan.Operation.Add,
-                                                    GPUScan.Direction.Horizontal,
-                                                    gfxFormat);
-            RTHandleDeleter.ScheduleRelease(cdf);
-            RTHandle lastCol = RTHandles.Alloc(1, cdf.rt.height, enableRandomWrite: true, colorFormat: gfxFormat);
-            RTHandleDeleter.ScheduleRelease(lastCol);
-            cmd.CopyTexture(cdf, 0, 0, cdf.rt.width - 1, 0, 1, cdf.rt.height, lastCol, 0, 0, 0, 0);
-            RTHandle integral = GPUScan.ComputeOperation(lastCol,
-                                                         cmd,
-                                                         GPUScan.Operation.Add,
-                                                         GPUScan.Direction.Vertical,
-                                                         gfxFormat);
-            RTHandleDeleter.ScheduleRelease(integral);
-            // Normalize the LatLong to have integral over sphere to be == 1
-            GPUArithmetic.ComputeOperation(latLongMap, latLongMap, integral, cmd, GPUArithmetic.Operation.Div);
-            // End: Integrate Equirectangular Map
-
-            cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-            {
-                DefaultDumper(request, "___LatLongIntegrated", latLongMap.rt.graphicsFormat);
-            });
-
-            ImportanceSampler2D.GenerateMarginals(out marginal, out conditionalMarginal, latLongMap, cmd, true, 0);
-
-            return true;
         }
     }
 }

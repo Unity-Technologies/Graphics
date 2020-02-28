@@ -574,15 +574,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     ReleaseCachedContext(updateContext.cachedSkyRenderingContextId);
-
-                    ///int marginalID = ImportanceSamplers.GetIdentifier(cachedContext.renderingContext.skyboxBSDFCubemapArray);
-                    ///ImportanceSamplers.ScheduleRelease(marginalID);
-                    ////Texture skyReflection = GetReflectionTexture(updateContext);
-                    ////if (skyReflection != m_BlackCubemapArray)
-                    ////{
-                    //// TOOD RELEASE MARGINALS
-                    ////    ImportanceSamplers.ScheduleMarginalGeneration((int)((uint)skyReflection.GetInstanceID() + skyReflection.updateCount), skyReflection);
-                    ////}
                 }
                 else
                 {
@@ -778,7 +769,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        //static bool notDone = true;
         public void UpdateEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, Light sunLight, int frameIndex, CommandBuffer cmd)
         {
             SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
