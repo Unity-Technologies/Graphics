@@ -106,16 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RenderTexture.active = latLongMap.rt;
             flatten.ReadPixels(new Rect(0.0f, 0.0f, latLongMap.rt.width, latLongMap.rt.height), 0, 0);
             RenderTexture.active = null;
-            {
-                byte[] bytes0 = ImageConversion.EncodeToEXR(flatten, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\_____Flatten.exr";
-                if (System.IO.File.Exists(path))
-                {
-                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                    System.IO.File.Delete(path);
-                }
-                System.IO.File.WriteAllBytes(path, bytes0);
-            }
 
             RTHandle totalRows = GPUScan.ComputeOperation(latLongMap, null, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, latLongMap.rt.graphicsFormat);
             RTHandle totalCols = GPUScan.ComputeOperation(totalRows,  null, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   latLongMap.rt.graphicsFormat);
