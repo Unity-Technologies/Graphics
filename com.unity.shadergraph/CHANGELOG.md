@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
 - Added a drop-down menu to the PBR Master Node that lets you select the final coordinate space of normals delivered from the fragment function. 
 - Added support for users to drag and drop Blackboard Properties from one graph to another.
+- Added some first pass integration tests to try and simulate userlike graph creation
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
