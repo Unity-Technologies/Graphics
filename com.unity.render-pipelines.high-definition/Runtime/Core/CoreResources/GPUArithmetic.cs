@@ -5,16 +5,45 @@ namespace UnityEngine.Rendering
 {
     class GPUArithmetic
     {
+        /// <summary>
+        /// Allowed operation for GPUArithmetic
+        /// </summary>
         public enum Operation
         {
+            /// <summary>
+            /// Addition
+            /// </summary>
             Add,
+            /// <summary>
+            /// Multiply
+            /// </summary>
             Mult,
+            /// <summary>
+            /// Divide
+            /// </summary>
             Div,
+            /// <summary>
+            /// RGB Mean
+            /// </summary>
             Mean,
-            MAD, // MulAdd
-            MAD_RG // MulAdd with multiplier stored in the red channel and the adder stored in the green channel
+            /// <summary>
+            /// MAD: Multiply and Addition (a*x + b)
+            /// </summary>
+            MAD,
+            /// <summary>
+            /// MAD_RB: Multiply and Addition (with each needed informations are stored on red & green channels: in.r*x + in.b)
+            /// </summary>
+            MAD_RG
         }
 
+        /// <summary>
+        /// Compute operation
+        /// </summary>
+        /// <param name="output">Output (Internally supported: +=, *=, /= ...)</param>
+        /// <param name="input">Input (Internally supported: +=, *=, /= ...)</param>
+        /// <param name="paramsRT">Parameters for add, mult, ... {paramsRT[uint2(0, 0)], paramsRT[uint2(1, 0)]}, or paramsRT[uint2(0, 0)].xy</param>
+        /// <param name="cmd">Command Buffer (can be null for immediate context)</param>
+        /// <param name="operation">Supported {Add: output = input + param, Mult: output = input*param, Div: output = input/param, Mean: output = dot(input, float3(1.0f/3.0f).xxx), MAD: output = param[0]*input + param[1], MAD_RG: output = param[0].x*input + param[0].y}</param>
         static public void ComputeOperation(RTHandle output, RTHandle input, RTHandle paramsRT, CommandBuffer cmd, Operation operation)
         {
             Debug.Assert(input != null);

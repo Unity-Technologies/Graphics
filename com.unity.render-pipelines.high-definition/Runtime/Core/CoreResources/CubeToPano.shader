@@ -1,4 +1,4 @@
-Shader "Hidden/CubeToPano" {
+*Shader "Hidden/CubeToPano" {
 Properties {
     _SrcBlend ("", Float) = 1
     _DstBlend ("", Float) = 1
@@ -10,7 +10,6 @@ HLSLINCLUDE
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "UnityCG.cginc"
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
 UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
@@ -74,6 +73,27 @@ float SampleToPDFMeasure(float4 value)
     return SampleToPDFMeasure(value.rgb);
 }
 
+float GetScale(float angle)
+{
+    float scale = 1.0f;
+    float pi = 3.1415926535897932384626433832795f;
+
+    if (_preMultiplyByJacobian == 1)
+    {
+        scale *= sin(angle);
+    }
+    if (_preMultiplyByCosTheta == 1)
+    {
+        scale *= cos(angle);
+    }
+    if (_preMultiplyBySolidAngle == 1)
+    {
+        scale *= 0.25f * pi * pi * _Sizes.z * _Sizes.w;
+    }
+
+    return scale;
+}
+
 float4 frag(v2f i) : SV_Target
 {
     uint2 pixCoord = ((uint2) i.vertex.xy);
@@ -90,20 +110,7 @@ float4 frag(v2f i) : SV_Target
     float pi    = 3.1415926535897932384626433832795f;
     float angle = (1.0f - i.texcoord.y)*pi;
 
-    if (_preMultiplyByJacobian == 1)
-    {
-        scale *= abs(sin(angle));
-    }
-    if (_preMultiplyByCosTheta == 1)
-    {
-        scale *= max(cos(angle), 0.0f);
-    }
-    if (_preMultiplyBySolidAngle == 1)
-    {
-        scale *= 0.5f*pi*pi*_Sizes.z*_Sizes.w;
-    }
-
-    output *= scale;
+    output *= GetScale(angle);
 
     return float4(output.rgb, max(output.r, max(output.g, output.b)));
 }
@@ -124,20 +131,7 @@ float4 fragArray(v2f i) : SV_Target
     float pi    = 3.1415926535897932384626433832795f;
     float angle = (1.0f - i.texcoord.y)*pi;
 
-    if (_preMultiplyByJacobian == 1)
-    {
-        scale *= abs(sin(angle));
-    }
-    if (_preMultiplyByCosTheta == 1)
-    {
-        scale *= saturate(cos(angle));
-    }
-    if (_preMultiplyBySolidAngle == 1)
-    {
-        scale *= 0.5f*pi*pi*_Sizes.z*_Sizes.w;
-    }
-
-    output *= scale;
+    output *= GetScale(angle);
 
     return float4(output.rgb, max(output.r, max(output.g, output.b)));
 }

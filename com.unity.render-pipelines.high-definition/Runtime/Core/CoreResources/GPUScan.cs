@@ -12,20 +12,43 @@ namespace UnityEngine.Rendering
     // Texture2D NxM -> Texture2D NxM
     class GPUScan
     {
+        /// <summary>
+        /// Allowed direction for GPUScan
+        /// </summary>
         public enum Direction
         {
+            /// <summary>
+            /// Vertical (Add: Vertical Inclusive Cumulative Add, Total/MinMax: Last column of a Add/MinMax)
+            /// </summary>
             Vertical,
+            /// <summary>
+            /// Horizontal (Add: Horizontal Inclusive Cumulative Add, Total/MinMax: Last row of a Add/MinMax)
+            /// </summary>
             Horizontal
         }
 
+        /// <summary>
+        /// Allowed operation for GPUScan
+        /// </summary>
         public enum Operation
         {
+            /// <summary>
+            /// Cumulative Add
+            /// </summary>
             Add,
+            /// <summary>
+            /// Total, last element (rows/columns), of a cumulative Add
+            /// </summary>
             Total,
+            /// <summary>
+            /// MinMax, last element (rows/columns), of a cumulative Add
+            ///     Vertical: MinMax of each columns stored on the red (min) and the green (max) channels
+            ///     Horizontal: MinMax of each rows stored on the red (min) and the green (max) channels
+            /// </summary>
             MinMax
         }
 
-        internal static int m_TileSizes = 64;
+        internal static int m_TileSizes = 64; // Default value
 
         internal static GraphicsFormat GetFormat(int channelCount, bool isFullPrecision = false)
         {
@@ -53,7 +76,16 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction opDirection, GraphicsFormat sumFormat = GraphicsFormat.None)
+        /// <summary>
+        /// Compute operation
+        /// </summary>
+        /// <param name="input">Texture used to performe operation</param>
+        /// <param name="cmd">Commande Buffer: null supported for immediate context</param>
+        /// <param name="operation">Operation needed</param>
+        /// <param name="direction">Direction to performe the scan</param>
+        /// <param name="outFormat">Format used for the output, if not setted, use the same precision as the input</param>
+        /// <returns>A RTHandle which contains the results of the performed scan. The lifetime of the RTHandle is managed by the user (cf. RTHandleDeleter.ScheduleRelease(...), myRTHandle.Release()).</returns>
+        static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction direction, GraphicsFormat outFormat = GraphicsFormat.None)
         {
             if (input == null)
             {
@@ -79,7 +111,7 @@ namespace UnityEngine.Rendering
             GraphicsFormat format2 = GetFormat(2, isFullPrecision);
 
             GraphicsFormat format;
-            if (sumFormat == GraphicsFormat.None)
+            if (outFormat == GraphicsFormat.None)
             {
                 if (operation == Operation.MinMax)
                     format = format2;
@@ -88,7 +120,7 @@ namespace UnityEngine.Rendering
             }
             else
             {
-                format = sumFormat;
+                format = outFormat;
             }
 
             RTHandle temp0  = RTHandles.Alloc(width, height, colorFormat: format, enableRandomWrite: true);
@@ -132,7 +164,7 @@ namespace UnityEngine.Rendering
             }
 
             string dirAddOn;
-            if (opDirection == Direction.Vertical)
+            if (direction == Direction.Vertical)
             {
                 dirAddOn = "V";
                 iteration = (uint)Mathf.Log((float)height, 2.0f);
@@ -163,7 +195,7 @@ namespace UnityEngine.Rendering
                 scanCS.SetInts   (HDShaderIDs._Sizes,
                                               input.rt.width, input.rt.height, temp0.rt.width, temp0.rt.height);
             }
-            if (opDirection == Direction.Horizontal)
+            if (direction == Direction.Horizontal)
             {
                 numTilesX = (temp0.rt.width  + (m_TileSizes - 1))/m_TileSizes;
                 numTilesY =  temp0.rt.height;
@@ -200,7 +232,7 @@ namespace UnityEngine.Rendering
                     scanCS.SetInts   (HDShaderIDs._Sizes,
                                                   ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
                 }
-                if (opDirection == Direction.Horizontal)
+                if (direction == Direction.Horizontal)
                 {
                     numTilesX = (pong.rt.width  + (m_TileSizes - 1))/m_TileSizes;
                     numTilesY =  pong.rt.height;
@@ -232,7 +264,7 @@ namespace UnityEngine.Rendering
             else if (operation == Operation.Total || operation == Operation.MinMax)
             {
                 RTHandle output;
-                if (opDirection == Direction.Horizontal)
+                if (direction == Direction.Horizontal)
                 {
                     output = RTHandles.Alloc(1, height, colorFormat: format, enableRandomWrite: true);
                     RTHandleDeleter.ScheduleRelease(cdf);

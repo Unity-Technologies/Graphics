@@ -966,21 +966,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     ++channelsCount;
             }
 
-            /*
-            if (name.IndexOf("BC") != -1) // BC4, BC5, BC6H, BC7
-                --channelsCount;
-            if (name.IndexOf("SRGB") != -1) // ..._SRGB
-                channelsCount -= 3;
-            if (name.IndexOf("Bpp") != -1)
-                --channelsCount;
-            if (name.IndexOf("PVRTC") != -1)
-                --channelsCount;
-            if (name.IndexOf("EAC") != -1)
-                --channelsCount;
-            if (name.IndexOf("ASTC") != -1)
-                --channelsCount;
-            */
-
             graphicsFormatChannelsCount[format] = channelsCount;
 
             return channelsCount;
