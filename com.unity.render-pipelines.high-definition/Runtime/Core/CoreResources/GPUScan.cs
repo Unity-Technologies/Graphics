@@ -27,28 +27,6 @@ namespace UnityEngine.Rendering
 
         internal static int m_TileSizes = 64;
 
-        //static private void Dispatch(CommandBuffer cmd, ComputeShader cs, int kernel, RTHandle output, RTHandle input, Direction direction, int inSize, int outSize, int opPerThread)
-        //{
-        //    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Input,  input);
-        //    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Output, output);
-        //    int numTilesX;
-        //    int numTilesY;
-        //    if (direction == Direction.Vertical)
-        //    {
-        //        numTilesX =  output.rt.width;
-        //        numTilesY = (outSize + (m_TileSizes - 1))/m_TileSizes;
-        //        cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, input.rt.width, inSize, output.rt.width, outSize);
-        //    }
-        //    else
-        //    {
-        //        numTilesX = (outSize + (m_TileSizes - 1))/m_TileSizes;
-        //        numTilesY =  output.rt.height;
-        //        cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, inSize, input.rt.height, outSize, output.rt.height);
-        //    }
-        //    cmd.SetComputeIntParam  (cs, HDShaderIDs._Iteration, opPerThread);
-        //    cmd.DispatchCompute     (cs, kernel, numTilesX, numTilesY, 1);
-        //}
-
         internal static GraphicsFormat GetFormat(int channelCount, bool isFullPrecision = false)
         {
             if (isFullPrecision)
