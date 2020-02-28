@@ -10,7 +10,6 @@ HLSLINCLUDE
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "UnityCG.cginc"
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 UNITY_DECLARE_TEXCUBE(_srcCubeTexture);
 UNITY_DECLARE_TEXCUBEARRAY(_srcCubeTextureArray);
