@@ -4041,6 +4041,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalFloatArray(HDShaderIDs._DebugViewMaterial, m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)debugLightingMode);
+                cmd.SetGlobalInt(HDShaderIDs._DebugLightLayersMask, (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask());
+                cmd.SetGlobalVectorArray(HDShaderIDs._DebugRenderingLayersColors, m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors);
                 cmd.SetGlobalInt(HDShaderIDs._DebugShadowMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapModeTerrainTexture, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture());

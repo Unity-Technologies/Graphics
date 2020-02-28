@@ -184,6 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterialArray");
         public static readonly int _DebugLightingMode = Shader.PropertyToID("_DebugLightingMode");
+        public static readonly int _DebugLightLayersMask = Shader.PropertyToID("_DebugLightLayersMask");
+        public static readonly int _DebugRenderingLayersColors = Shader.PropertyToID("_DebugRenderingLayersColors");
         public static readonly int _DebugShadowMapMode = Shader.PropertyToID("_DebugShadowMapMode");
         public static readonly int _DebugLightingAlbedo = Shader.PropertyToID("_DebugLightingAlbedo");
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");

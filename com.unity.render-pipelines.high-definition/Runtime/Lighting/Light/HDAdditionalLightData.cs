@@ -970,6 +970,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
+        /// <summary>
+        /// Returns a mask of shadow light layers as uint and handle the case of Everything as being 0xFF and not -1
+        /// </summary>
+        /// <returns></returns>
+        public uint GetShadowLayers()
+        {
+            int value = RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
+
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
         float    m_ShadowNearPlane = 0.1f;
