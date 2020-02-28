@@ -4,7 +4,9 @@
         "UnityEditor.TestTools.Graphics",
         "Unity.ShaderGraph.Editor",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.Searcher.Editor",
+        "Unity.Searcher.ScriptsSamples"
     ],
     "includePlatforms": [
         "Editor"
