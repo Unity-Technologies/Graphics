@@ -132,6 +132,7 @@
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
   * [Decal Projector](Decal-Projector)
+  * [Cluster Display](Cluster-Display)
 * Tools
   * Look Dev
     * [Look Dev Window](Look-Dev)
