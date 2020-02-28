@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
             {
                 displayName = "Main Light Shadows Cascade",
-                referenceName = "_MAIN_LIGHT_SHADOWCASCADE",
+                referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
