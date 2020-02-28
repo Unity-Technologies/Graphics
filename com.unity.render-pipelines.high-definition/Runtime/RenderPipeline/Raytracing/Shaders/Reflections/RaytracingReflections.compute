@@ -41,7 +41,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
     // Pick which subpixel we will be launching our effects from
     float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
-    int subPixel = clamp((int)(subPixelSample * 4.0), 0, 3);
+    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
     uint2 shift = HalfResIndexToCoordinateShift[subPixel];
 
     // Pixel where we will store the result of the raytracing
@@ -65,7 +65,7 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     if ((stencilValue & _SsrStencilBit) == 0)
         return;
 
-    // Convert this to a world space position
+    // Convert this to a world space position 
     PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -99,10 +99,9 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
-    float  samplePDF;
 
     float NdotL, NdotH, VdotH;
-    SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     // If this direction is under the surface, let's generate a new one that won't be
     // TODO: use Eric's paper on visible normal distribution sampling
@@ -114,18 +113,18 @@ void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
         sample.x = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 0);
         sample.y = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 1);
-        SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
-
-    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
-    samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness)*NdotH/(4.0*VdotH) : 1.0;
 
     // If we were not able to generate a direction over the surface, we are done
     if (dot(sampleDir, normalData.normalWS) <= 0.00f)
         return;
 
-    // In the second texture, we store the sampled direction and the invPDF of the sample
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0/samplePDF);
+    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0	
+    float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;	
+
+    // In the second texture, we store the sampled direction and the invPDF of the sample	    // In the second texture, we store the sampled direction and the invPDF of the sample
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
@@ -165,7 +164,6 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
     // Override the roughness by the clearcoat value of this is a clear coat
     float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
-
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
@@ -184,12 +182,13 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
-    float  samplePDF;
+    float NdotL, NdotH, VdotH;
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     // If this direction is under the surface, let's generate a new one that won't be
     // TODO: use Eric's paper on visible normal distribution sampling
     float NdotL, NdotH, VdotH;
-    SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     globalSampleIndex += 8;
     for (int i = 1; i < 8; ++i)
@@ -199,16 +198,16 @@ void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, 
 
         sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 0);
         sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 1);
-        SampleGGXDir(sample.xy, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
-
-    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
-    samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness)*NdotH/(4.0*VdotH) : 1.0;
 
     // If we were not able to generate a direction over the surface, we are done
     if (dot(sampleDir, normalData.normalWS) <= 0.00f)
         return;
 
-    // Write the output ray data
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(sampleDir, 1.0/samplePDF);
+    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
+    float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;	
+
+    // Write the output ray data	    // Write the output ray data
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }

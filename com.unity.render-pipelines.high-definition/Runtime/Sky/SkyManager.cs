@@ -504,17 +504,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Then copy it to the cubemap array slice
                     for (int i = 0; i < 6; ++i)
                     {
-                        m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6*bsdfIdx + i);
+                        m_BuiltinParameters.commandBuffer.CopyTexture(m_SkyboxBSDFCubemapIntermediate, i, renderingContext.skyboxBSDFCubemapArray, 6 * bsdfIdx + i);
                     }
                 }
                 renderingContext.skyboxBSDFCubemapArray.IncrementUpdateCount();
-
-                //Texture skyReflection = GetReflectionTexture(skyContext);
-                //if (skyReflection != m_BlackCubemapArray)
-                {
-                    //ImportanceSamplers.ScheduleMarginalGenerationForce((int)((uint)renderingContext.skyboxBSDFCubemapArray.GetInstanceID() + renderingContext.skyboxBSDFCubemapArray.updateCount), renderingContext.skyboxBSDFCubemapArray);
-                    ///ImportanceSamplers.ScheduleMarginalGenerationForce(renderingContext.skyboxBSDFCubemapArray.GetInstanceID(), renderingContext.skyboxBSDFCubemapArray);
-                }
             }
         }
 
@@ -817,79 +810,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
             float mipCount = Mathf.Clamp(Mathf.Log((float)reflectionTexture.width, 2.0f) + 1, 0.0f, 6.0f);
             cmd.SetGlobalFloat(HDShaderIDs._SkyTextureMipCount, mipCount);
-
-            //hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-            //         hdCamera.volumeStack.GetComponent<PathTracing>().enable.value)
-
-            //var marginals = ImportanceSamplers.GetMarginals((int)((uint)reflectionTexture.GetInstanceID() + reflectionTexture.updateCount));
-            //int marginalID = ImportanceSamplers.GetIdentifier(reflectionTexture);
-            //var marginals = ImportanceSamplers.GetMarginals(marginalID);
-            ///if (marginals != null)
-            {
-                ///var skyMarginal             = marginals.marginal;
-                ///var skyConditionalMarginal  = marginals.conditionalMarginal;
-                ///cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              skyMarginal);
-                ///cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   skyConditionalMarginal);
-            }
-            ///else
-            {
-                ///ImportanceSamplers.ScheduleMarginalGeneration(marginalID, reflectionTexture);
-                cmd.SetGlobalTexture(HDShaderIDs._SkyMarginal,              TextureXR.GetWhiteTexture());
-                cmd.SetGlobalTexture(HDShaderIDs._SkyConditionalMarginal,   TextureXR.GetWhiteTexture());
-            }
-            //if (notDone)
-            {
-                //int width  = 4*reflectionTexture.width;
-                //int height = 2*reflectionTexture.height;
-                //RTHandle latLongMap = RTHandles.Alloc(  width, height,
-                //                                        colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat,
-                //                                        enableRandomWrite: true);
-                //RTHandleDeleter.ScheduleRelease(latLongMap, 5);
-                //
-                //var hdrp = HDRenderPipeline.defaultAsset;
-                //Material cubeToLatLong = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToPanoPS);
-                //MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
-                ////materialBlock.SetTexture("_srcCubeTextureArray", reflectionTexture);
-                ////materialBlock.SetInt("_cubeMipLvl", 0);
-                ////materialBlock.SetInt("_cubeArrayIndex", 0);
-                ////cubeToLatLong.SetTexture("_srcCubeTexture", hdriSky.hdriSky.value);
-                ////cubeToLatLong.SetInt("_cubeMipLvl", 0);
-                ////cubeToLatLong.SetInt("_cubeArrayIndex", 0);
-                //cubeToLatLong.SetTexture("_srcCubeTextureArray", reflectionTexture);
-                //cubeToLatLong.SetInt("_cubeMipLvl", 0);
-                //cubeToLatLong.SetInt("_cubeArrayIndex", 0);
-                ////builtinParams.commandBuffer.Blit(hdriSky.hdriSky.value, latLongMap, cubeToLatLong);
-                ////Graphics.Blit(Texture2D.whiteTexture, latLongMap.rt, cubeToLatLong);
-                //
-                ////Vector2Int scaledViewportSize = latLongMap.GetScaledSize(latLongMap.rtHandleProperties.currentViewportSize);
-                //Vector2Int scaledViewportSize = latLongMap.rtHandleProperties.currentViewportSize;
-                ////builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
-                //HDUtils.DrawFullScreen(cmd, new Rect(0, 0, width, height), cubeToLatLong, latLongMap, materialBlock, 1);
-                ////cmd.Blit(Texture2D.whiteTexture, latLongMap, cubeToLatLong, 1);
-                ////void Default(AsyncGPUReadbackRequest request, string name, RTHandle theHandle)
-                ////{
-                ////    if (!request.hasError)
-                ////    {
-                ////        Unity.Collections.NativeArray<float> result = request.GetData<float>();
-                ////        float[] copy = new float[result.Length];
-                ////        result.CopyTo(copy);
-                ////        byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                ////        string path = @"C:\UProjects\" + name + ".exr";
-                ////        if (System.IO.File.Exists(path))
-                ////        {
-                ////            System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
-                ////            System.IO.File.Delete(path);
-                ////        }
-                ////        System.IO.File.WriteAllBytes(path, bytes0);
-                ////    }
-                ////    theHandle.Release();
-                ////}
-                ////cmd.RequestAsyncReadback(latLongMap, delegate (AsyncGPUReadbackRequest request)
-                ////{
-                ////    Default(request, "___CurrentLatLongTested", latLongMap);
-                ////});
-                ////notDone = false;
-            }
 
             if (IsLightingSkyValid(hdCamera))
             {
