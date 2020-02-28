@@ -335,10 +335,21 @@
         #define CALL_MERGE_UNITY_BUILTINS_INDEX(X)  MERGE_UNITY_BUILTINS_INDEX(X)
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
             #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray))
+            //#define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray))
+            #ifdef UNITY_ASSUME_UNIFORM_SCALING
+                #define UNITY_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_WorldToObjectArray))
+            #else
+                #define UNITY_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_WorldToObjectArray))
+            #endif
         #else
             #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+
+            //#define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+            #ifdef UNITY_ASSUME_UNIFORM_SCALING
+                #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_WorldToObjectArray)
+            #else
+                #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_WorldToObjectArray)
+            #endif
         #endif
     #endif
 
