@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added of Screen Space Reflections for Transparent materials
 - Added a fallback for ray traced area light shadows in case the material is forward or the lit mode is forward.
 - Added a new debug mode for light layers.
+- Added an "enable" toggle to the SSR volume component.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
