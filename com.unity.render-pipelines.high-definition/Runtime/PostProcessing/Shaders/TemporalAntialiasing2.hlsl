@@ -333,7 +333,7 @@ CTYPE GetFilteredHistory(float2 UV)
 {
     CTYPE history = 0;
 
-#if HISTORY_SAMPLING_METHOD == BILINEAR
+#if (HISTORY_SAMPLING_METHOD == BILINEAR || defined(FORCE_BILINEAR_HISTORY))
     history = HistoryBilinear(UV);
 #elif HISTORY_SAMPLING_METHOD == BICUBIC_5TAP
     history = HistoryBicubic5Tap(UV);

@@ -915,7 +915,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_EnableAlpha)
             {
-                m_TemporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
+                TAAMat.EnableKeyword("ENABLE_ALPHA");
+            }
+
+            if(camera.taaHistorySharpening == 0)
+            {
+                TAAMat.EnableKeyword("FORCE_BILINEAR_HISTORY");
+            }
+            else
+            {
+                TAAMat.DisableKeyword("FORCE_BILINEAR_HISTORY");
             }
 
             if (camera.resetPostProcessingHistory)

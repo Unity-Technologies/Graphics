@@ -17,6 +17,7 @@ Shader "Hidden/HDRP/TAA2"
         #pragma target 4.5
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ ENABLE_ALPHA
+        #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -77,7 +78,7 @@ Shader "Hidden/HDRP/TAA2"
 
             CTYPE history = GetFilteredHistory(prevUV);
             bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
-            history *= PerceptualWeight(history);
+            history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
 
             // --------------- Gather neigbourhood data --------------- 
@@ -106,14 +107,29 @@ Shader "Hidden/HDRP/TAA2"
             // ------------------------------------------------------------------------------
 
             // --------------- Compute blend factor for history ---------------
-            float feedback = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
+            float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour));
             // --------------------------------------------------------
 
+            // ------------------- Alpha handling ---------------------------
+#if defined(ENABLE_ALPHA)
+            // Compute the antialiased alpha value
+            filteredColor.w = lerp(history.w, filteredColor.w, blendFactor);
+            // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
+            CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
+            unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
+            unjitteredColor.xyz *= PerceptualWeight(unjitteredColor).xyz;
+            filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
+            blendFactor = color.w > 0 ? blendFactor : 1;
+#endif
+            // ---------------------------------------------------------------
+
             // --------------- Blend to final value and output ---------------
-            CTYPE finalColor = lerp(history, filteredColor, feedback);
+            CTYPE finalColor;
+            finalColor.xyz = lerp(history, filteredColor, blendFactor);
 
             finalColor.xyz *= PerceptualInvWeight(finalColor);
             color.xyz = ConvertToOutputSpace(finalColor.xyz);
+            color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
