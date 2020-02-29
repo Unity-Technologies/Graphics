@@ -11,21 +11,14 @@ TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 #else
 TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
-
-TEXTURE2D(_MainTex);
-TEXTURE2D(_TempTarget);
-TEXTURE2D(_TempTarget2);
-TEXTURE2D(_ScreenSpaceAOTexture);
-TEXTURE2D(_CameraGBufferTexture2);
-TEXTURE2D(_CameraDepthNormalsTexture);
-
-SAMPLER(sampler_MainTex);
-SAMPLER(sampler_TempTarget);
-SAMPLER(sampler_TempTarget2);
-SAMPLER(sampler_ScreenSpaceAOTexture);
 SAMPLER(sampler_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthNormalsTexture);
-SAMPLER(sampler_CameraGBufferTexture2);
+
+TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
+TEXTURE2D(_TempTarget); SAMPLER(sampler_TempTarget);
+TEXTURE2D(_TempTarget2); SAMPLER(sampler_TempTarget2);
+TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
+TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
+TEXTURE2D(_CameraDepthNormalsTexture); SAMPLER(sampler_CameraDepthNormalsTexture);
 
 #if defined(SOURCE_DEPTH)
 #define SAMPLE_DEPTH(uvScreenSpace) SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uvScreenSpace);
@@ -66,12 +59,6 @@ float _SSAO_DownScale;
 // differences are not noticeable in most cases, it may provide preferable
 // results with some special usage (e.g. NPR without textureing).
 //#define BLUR_HIGH_QUALITY
-
-// By default, a fixed sampling pattern is used in the AO estimator. Although
-// this gives preferable results in most cases, a completely random sampling
-// pattern could give aesthetically better results. Disable the macro below
-// to use such a random pattern instead of the fixed one.
-#define FIX_SAMPLING_PATTERN
 
 // The SampleNormal function normalizes samples from G-buffer because
 // they're possibly unnormalized. We can eliminate this if it can be said
@@ -149,31 +136,14 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
     return float3((uv * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(depth), depth);
 }
 
-// Interleaved gradient function from Jimenez 2014
-// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
-float GradientNoise(float2 uv)
-{
-    uv = floor(uv * _ScreenParams.xy);
-    float f = dot(float2(0.06711056, 0.00583715), uv);
-    return frac(52.9829189 * frac(f));
-}
-
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float index)
 {
-    // Uniformaly distributed points on a unit sphere
-    // http://mathworld.wolfram.com/SpherePointPicking.html
-#if defined(FIX_SAMPLING_PATTERN)
-    float gn = GradientNoise(uv * DOWNSAMPLE);
-    // FIXEME: This was added to avoid a NVIDIA driver issue.
-    //                                   vvvvvvvvvvvv
-    float u = frac(UVRandom(0.0, index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
-    float theta = (UVRandom(1.0, index + uv.x * 1e-10) + gn) * TWO_PI;
-#else
-    float u = UVRandom(uv.x + _Time.x, uv.y + index) * 2.0 - 1.0;
-    float theta = UVRandom(-uv.x - _Time.x, uv.y + index) * TWO_PI;
-#endif
+    float u = InterleavedGradientNoise(float2(UVRandom(uv.x, uv.y), UVRandom(-uv.x, uv.y)), index);
+    float theta = InterleavedGradientNoise(float2(UVRandom(uv.x, uv.y), UVRandom(uv.x, -uv.y)), index) * TWO_PI;
+
     float3 v = float3(CosSin(theta) * sqrt(1.0 - u * u), u);
+
     // Make them distributed between [0, _Radius]
     float l = sqrt((index + 1.0) / SAMPLE_COUNT) * RADIUS;
     return v * l;
