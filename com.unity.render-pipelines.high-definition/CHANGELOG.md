@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Update Integration of HDRI Sky for Lux intensity
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
 - Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
