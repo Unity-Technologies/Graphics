@@ -2,10 +2,39 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum DepthCreationOption
+    {
+        Reuse,
+        Create
+    }
+
     public struct RenderFeatureRequirements
     {
+        public RenderPassEvent renderPassEvent;
+
+        // Depth Requirements...
         public bool depthTexture;
         public bool depthNormalTexture;
+        public DepthCreationOption depthCreationOption;
+
+        public bool NeedsDepth()
+        {
+            return depthTexture || depthNormalTexture;
+        }
+
+        public bool NeedsPrepass()
+        {
+            return depthNormalTexture 
+                   || (depthTexture && renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
+            ;
+        }
+    }
+
+    public struct RenderFeatureRequirementsSummary
+    {
+        public bool needsDepthPrepass;
+        public bool needsDepth;
+        public bool needsDepthNormals;
     }
 
     /// <summary>
@@ -38,9 +67,9 @@ namespace UnityEngine.Rendering.Universal
             Create();
         }
 
-        public virtual bool HasFeatureRequirements { get { return false; } }
+        public virtual bool HasRenderingRequirements { get { return false; } }
 
-        public virtual RenderFeatureRequirements GetFeatureRequirements()
+        public virtual RenderFeatureRequirements GetRenderingRequirements()
         {
             return new RenderFeatureRequirements();
         }

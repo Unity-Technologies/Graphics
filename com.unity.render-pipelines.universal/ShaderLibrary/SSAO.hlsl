@@ -13,7 +13,7 @@ TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
 SAMPLER(sampler_CameraDepthTexture);
 
-TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
+TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
 TEXTURE2D(_TempTarget); SAMPLER(sampler_TempTarget);
 TEXTURE2D(_TempTarget2); SAMPLER(sampler_TempTarget2);
 TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
@@ -26,9 +26,11 @@ TEXTURE2D(_CameraDepthNormalsTexture); SAMPLER(sampler_CameraDepthNormalsTexture
 #define SAMPLE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv).r;
 #endif
 
+#define STEREO_UV(uv) UnityStereoTransformScreenSpaceTex(uv)
+
 //float4 _ScreenParams;
 float4x4 ProjectionMatrix;
-float4 _MainTex_TexelSize;
+float4 _BaseMap_TexelSize;
 float4 _CameraDepthTexture_TexelSize;
 float4 _ScreenSpaceAOTexture_TexelSize;
 
@@ -171,74 +173,12 @@ float CheckBounds(float2 uv, float linear01Depth)
 }
 
 // Try reconstructing normal accurately from depth buffer.
-// https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormalSimple(float4 uv)
-{
-    float flippedProjectionMultiplier = _ProjectionParams.x;
-    float2 texSize = _ScreenSpaceAOTexture_TexelSize.xy;
-    float2 uvScreenSpace = uv.xy;
-    float2 uvProj = uv.zw;
-
-    // Projection position xy and depth
-    float3 c = float3(uvProj,                                                        0.0); // Center
-    float3 l = float3(uvProj - float2(texSize.x, 0.0),                               0.0); // Left
-    float3 r = float3(uvProj + float2(texSize.x, 0.0),                               0.0); // Right
-    float3 u = float3(uvProj + float2(0.0, texSize.y) * flippedProjectionMultiplier, 0.0); // Up
-    float3 d = float3(uvProj - float2(0.0, texSize.y) * flippedProjectionMultiplier, 0.0); // Down
-
-    // Calculate the center, left, right, up and down depths...
-    c.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace)                          );
-    l.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(texSize.x, 0.0)) );
-    r.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(texSize.x, 0.0)) );
-    u.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(0.0, texSize.y)) );
-    d.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(0.0, texSize.y)) );
-
-    // Determine the closest horizontal and vertical pixels...
-    // horizontal: left = 0.0 right = 1.0
-    // vertical  : down = 0.0    up = 1.0
-    const uint closest_horizontal = step(abs(r.z - c.z), abs(l.z - c.z));
-    const uint closest_vertical   = step(abs(u.z - c.z), abs(d.z - c.z));
-
-    // Calculate the triangle, in a counter-clockwize order, to use based on the
-    // closest horizontal and vertical depths. Using lerps rather than if statements.
-    // h == 0.0 && v == 0.0: p1 = left,  p2 = down
-    // h == 0.0 && v == 1.0: p1 = up,    p2 = left
-    // h == 1.0 && v == 0.0: p1 = down,  p2 = right
-    // h == 1.0 && v == 1.0: p1 = right, p2 = up
-    float3 p1 = lerp(lerp(l, d, closest_horizontal), lerp(u, r, closest_horizontal), closest_vertical);
-    float3 p2 = lerp(lerp(d, r, closest_horizontal), lerp(l, u, closest_horizontal), closest_vertical);
-
-    // Adjust depth for view space calculations...
-    #if UNITY_REVERSED_Z
-        c.z = 1.0 - c.z;
-        p1.z = 1.0 - p1.z;
-        p2.z = 1.0 - p2.z;
-    #endif
-     
-    c.z  = 2.0 * c.z - 1.0;
-    p1.z = 2.0 * p1.z - 1.0;
-    p2.z = 2.0 * p2.z - 1.0;
-
-    // Calculate the view space positions for the three points...
-    float3 P  = ComputeViewSpacePosition( c.xy,  c.z, unity_CameraInvProjection); 
-    float3 P1 = ComputeViewSpacePosition(p1.xy, p1.z, unity_CameraInvProjection);
-    float3 P2 = ComputeViewSpacePosition(p2.xy, p2.z, unity_CameraInvProjection);
-
-    // Use the cross product to calculate the normal...
-    return normalize(cross(P2 - P, P1 - P));
-}
-//#define DEBUG_NORMAL
-
-
-// Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
 // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
 // https://atyuwen.github.io/posts/normal-reconstruction/
 float3 ReconstructNormal(float4 uv)
 {
-    //return ReconstructNormalSimple(uv);
-
-    float flippedProjectionMultiplier = _ProjectionParams.x;
+    float isFlipped = _ProjectionParams.x;
     float2 texSize = _ScreenSpaceAOTexture_TexelSize.xy;
     float2 uvScreenSpace = uv.xy;
     float2 uvProj = uv.zw;
@@ -246,28 +186,27 @@ float3 ReconstructNormal(float4 uv)
     // Projection position xy and depth
     float3 c = float3(uvProj,                                                        0.0); // Center
 
-    float3 l2 = float3(uvProj - float2(texSize.x*2.0, 0.0),                               0.0); // Left2
-    float3 l1 = float3(uvProj - float2(texSize.x*1.0, 0.0),                               0.0); // Left1
-    float3 r1 = float3(uvProj + float2(texSize.x*1.0, 0.0),                               0.0); // Right
-    float3 r2 = float3(uvProj + float2(texSize.x*2.0, 0.0),                               0.0); // Right
+    float3 l2 = float3(uvProj - float2(texSize.x * 2.0,                         0.0), 0.0); // Left2
+    float3 l1 = float3(uvProj - float2(texSize.x      ,                         0.0), 0.0); // Left1
+    float3 r1 = float3(uvProj + float2(texSize.x      ,                         0.0), 0.0); // Right
+    float3 r2 = float3(uvProj + float2(texSize.x * 2.0,                         0.0), 0.0); // Right
 
-    float3 u2 = float3(uvProj + float2(0.0, texSize.y*2.0) * flippedProjectionMultiplier, 0.0); // Up2
-    float3 u1 = float3(uvProj + float2(0.0, texSize.y*1.0) * flippedProjectionMultiplier, 0.0); // Up1
-    float3 d1 = float3(uvProj - float2(0.0, texSize.y*1.0) * flippedProjectionMultiplier, 0.0); // Down1
-    float3 d2 = float3(uvProj - float2(0.0, texSize.y*2.0) * flippedProjectionMultiplier, 0.0); // Down2
+    float3 u2 = float3(uvProj + float2(            0.0, texSize.y * 2.0 * isFlipped), 0.0); // Up2
+    float3 u1 = float3(uvProj + float2(            0.0, texSize.y       * isFlipped), 0.0); // Up1
+    float3 d1 = float3(uvProj - float2(            0.0, texSize.y       * isFlipped), 0.0); // Down1
+    float3 d2 = float3(uvProj - float2(            0.0, texSize.y * 2.0 * isFlipped), 0.0); // Down2
 
-    c.z  = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace)                          );
+    c.z  = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace)                                );
     
-    l2.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(texSize.x*2.0, 0.0)) );
-    l1.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(texSize.x*1.0, 0.0)) );
-    r1.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(texSize.x*1.0, 0.0)) );
-    r2.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(texSize.x*2.0, 0.0)) );
+    l2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(texSize.x * 2.0, 0.0)) );
+    l1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(texSize.x      , 0.0)) );
+    r1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(texSize.x      , 0.0)) );
+    r2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(texSize.x * 2.0, 0.0)) );
 
-    u2.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(0.0, texSize.y*2.0)) );
-    u1.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace + float2(0.0, texSize.y*1.0)) );
-    d1.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(0.0, texSize.y*1.0)) );
-    d2.z = SAMPLE_DEPTH( UnityStereoTransformScreenSpaceTex(uvScreenSpace - float2(0.0, texSize.y*2.0)) );
-
+    u2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(0.0, texSize.y * 2.0)) );
+    u1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(0.0, texSize.y      )) );
+    d1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(0.0, texSize.y      )) );
+    d2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(0.0, texSize.y * 2.0)) );
 
     // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
     // If the depth is stored as is (not linearized) there is no need for this kind of interpolation and abs(2 * H.x - H.z) - depth) is sufficient,
@@ -470,29 +409,28 @@ float4 SSAO(Varyings input) : SV_Target
 // Geometry-aware separable bilateral filter
 float4 FragBlur(Varyings input) : SV_Target
 {
-    float2 uv = input.uv.xy;
-    float4 positionCS = input.positionCS;
+    float4 uv = input.uv;
 
     #if defined(BLUR_HORIZONTAL)
         // Horizontal pass: Always use 2 texels interval to match to the dither pattern.
-        float2 delta = float2(_MainTex_TexelSize.x * 2.0, 0.0);
+        float2 delta = float2(_BaseMap_TexelSize.x * 2.0, 0.0);
     #else
         // Vertical pass: Apply _Downsample to match to the dither pattern in the original occlusion buffer.
-        float2 delta = float2(0.0, _MainTex_TexelSize.y / DOWNSAMPLE * 2.0);
+        float2 delta = float2(0.0, _BaseMap_TexelSize.y / DOWNSAMPLE * 2.0);
     #endif
 
     #if defined(BLUR_HIGH_QUALITY)
         // High quality 7-tap Gaussian with adaptive sampling
-        half4 p0  = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv)       );
-        half4 p1a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv - delta));
-        half4 p1b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv + delta));
-        half4 p2a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv - delta * 2.0));
-        half4 p2b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv + delta * 2.0));
-        half4 p3a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv - delta * 3.2307692308));
-        half4 p3b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv + delta * 3.2307692308));
+        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy)       );
+        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta));
+        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta));
+        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 2.0));
+        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 2.0));
+        half4 p3a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 3.2307692308));
+        half4 p3b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 3.2307692308));
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(UnityStereoTransformScreenSpaceTex(uv), positionCS);
+            half3 n0 = SampleNormal(STEREO_UV(uv.xy), uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
@@ -517,14 +455,14 @@ float4 FragBlur(Varyings input) : SV_Target
         s /= w0 + w1a + w1b + w2a + w2b + w3a + w3b;
     #else
         // Fater 5-tap Gaussian with linear sampling
-        half4 p0  = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv));
-        half4 p1a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv - delta * 1.3846153846));
-        half4 p1b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv + delta * 1.3846153846));
-        half4 p2a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv - delta * 3.2307692308));
-        half4 p2b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(uv + delta * 3.2307692308));
+        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy));
+        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 1.3846153846));
+        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 1.3846153846));
+        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 3.2307692308));
+        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 3.2307692308));
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(UnityStereoTransformScreenSpaceTex(uv), positionCS);
+            half3 n0 = SampleNormal(STEREO_UV(uv.xy), uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
@@ -552,11 +490,11 @@ float4 FragBlur(Varyings input) : SV_Target
 // Geometry-aware bilateral filter (single pass/small kernel)
 half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
 {
-    half4 p0 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv));
-    half4 p1 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, -delta.y)));
-    half4 p2 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(delta.x, -delta.y)));
-    half4 p3 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, delta.y)));
-    half4 p4 = SAMPLE_TEXTURE2D(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(delta.x, delta.y)));
+    half4 p0 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv));
+    half4 p1 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(-delta.x, -delta.y)));
+    half4 p2 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(delta.x, -delta.y)));
+    half4 p3 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(-delta.x, delta.y)));
+    half4 p4 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(delta.x, delta.y)));
 
     half3 n0 = GetPackedNormal(p0);
 
@@ -581,8 +519,8 @@ float4 FragComposition(Varyings input) : SV_Target
 {
     float2 uv = input.uv.xy;
 
-    float2 delta = _MainTex_TexelSize.xy / DOWNSAMPLE;
-    half ao = BlurSmall(TEXTURE2D_ARGS(_MainTex, sampler_MainTex), uv, delta);
+    float2 delta = _BaseMap_TexelSize.xy / DOWNSAMPLE;
+    half ao = BlurSmall(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
 
     return 1.0 - EncodeAO(ao);
 }
