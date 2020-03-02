@@ -25,6 +25,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // TODO_FCC: Cleanup
         public SerializedProperty taaHistorySharpening;
         public SerializedProperty taaAntiFlicker;
+        public SerializedProperty taaMotionVectorRejection;
+        public SerializedProperty taaQualityLevel;
+
         public SerializedProperty oldTAA;
 
         public SerializedProperty dithering;
@@ -72,8 +75,11 @@ namespace UnityEditor.Rendering.HighDefinition
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
+            taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
             taaAntiFlicker = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiFlicker);
+            taaMotionVectorRejection = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaMotionVectorRejection);
+            taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             oldTAA = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.oldTAA);
 
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);

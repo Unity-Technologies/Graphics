@@ -467,10 +467,23 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if(p.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
             {
+                EditorGUILayout.PropertyField(p.taaQualityLevel, TAAQualityLevelContent);
+
+                EditorGUI.indentLevel++;
+
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, TAASharpenContent);
-                EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
-                EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
+
+                if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
+                {
+                    EditorGUILayout.PropertyField(p.taaHistorySharpening, TAAHistorySharpening);
+                    EditorGUILayout.PropertyField(p.taaAntiFlicker, TAAAntiFlicker);
+                }
+
+                if(p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                    EditorGUILayout.PropertyField(p.taaMotionVectorRejection, TAAMotionVectorRejection);
+
                 EditorGUILayout.PropertyField(p.oldTAA, OldTAA);
+                EditorGUI.indentLevel--;
             }
         }
 

@@ -18,6 +18,9 @@ Shader "Hidden/HDRP/TAA2"
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
+        #pragma multi_compile_local _ ENABLE_MV_REJECTION
+        #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY
+
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -52,8 +55,7 @@ Shader "Hidden/HDRP/TAA2"
 
     // ------------------------------------------------------------------
 
-
-        void FragTAA(Varyings input, out float3 outColor : SV_Target0)
+        void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -102,7 +104,7 @@ Shader "Hidden/HDRP/TAA2"
             float historyLuma = GetLuma(history);
             GetNeighbourhoodCorners(samples, historyLuma, colorLuma);
 
-            history = GetClippedHistory(filteredColor, history.xyz, samples.minNeighbour.xyz, samples.maxNeighbour.xyz);
+            history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
             filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
             // ------------------------------------------------------------------------------
 
@@ -117,33 +119,50 @@ Shader "Hidden/HDRP/TAA2"
             // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
             CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
             unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
-            unjitteredColor.xyz *= PerceptualWeight(unjitteredColor).xyz;
+            unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
             filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
             blendFactor = color.w > 0 ? blendFactor : 1;
 #endif
             // ---------------------------------------------------------------
 
             // --------------- Blend to final value and output ---------------
-            CTYPE finalColor;
-            finalColor.xyz = lerp(history, filteredColor, blendFactor);
 
+#if VELOCITY_REJECTION
+            float lengthMV = length(motionVector) * 10;
+            blendFactor = ModifyBlendWithMotionVectorRejection(lengthMV, prevUV, blendFactor);
+#endif
+
+            CTYPE finalColor;
+
+#if PERCEPTUAL_SPACE_ONLY_END
+            finalColor.xyz = lerp(ReinhardToneMap(history), ReinhardToneMap(filteredColor), blendFactor);
+            finalColor = InverseReinhardToneMap(finalColor);
+#else
+            finalColor.xyz = lerp(history, filteredColor, blendFactor);
             finalColor.xyz *= PerceptualInvWeight(finalColor);
+#endif
+
+
             color.xyz = ConvertToOutputSpace(finalColor.xyz);
             color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
+
+#if VELOCITY_REJECTION
+            _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
+#endif
             // -------------------------------------------------------------
         }
 
-        void FragExcludedTAA(Varyings input, out float3 outColor : SV_Target0)
+        void FragExcludedTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord - jitter;
 
-            outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).xyz;
+            outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
         }
     ENDHLSL
 

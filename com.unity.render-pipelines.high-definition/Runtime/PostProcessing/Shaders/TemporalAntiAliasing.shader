@@ -10,7 +10,6 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         #pragma target 4.5
         #pragma multi_compile_local _ ORTHOGRAPHIC
-        #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
         #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -121,6 +120,10 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
             CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
             color.xyz = lerp(Map(unjitteredColor.xyz), color.xyz, color.w);
+
+
+
+
             feedback *= color.w;
     #endif
             color.xyz = Unmap(lerp(color.xyz, history.xyz, feedback));

@@ -236,6 +236,19 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        /// <summary>
+        /// TAA quality level.
+        /// </summary>
+        public enum TAAQualityLevel
+        {
+            /// <summary>Low quality.</summary>
+            Low,
+            /// <summary>Medium quality.</summary>
+            Medium,
+            /// <summary>High quality.</summary>
+            High
+        }
+
         /// <summary>Clear mode for the camera background.</summary>
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         /// <summary>HDR color used for clearing the camera background.</summary>
@@ -264,13 +277,21 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0, 2)]
         public float taaSharpenStrength = 0.5f;
 
+        /// <summary>Quality of the anti-aliasing when using TAA.</summary>
+        public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
+
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
         public float taaHistorySharpening = 0.35f;
 
         /// <summary>Drive the anti-flicker mechanism. With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.</summary>
         [Range(0.0f, 1.0f)]
-        public float taaAntiFlicker = 0.33f;
+        public float taaAntiFlicker = 0.5f;
+
+        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. 
+        /// Larger values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.</summary>
+        [Range(0.0f, 1.0f)]
+        public float taaMotionVectorRejection = 0.0f;
 
         // REMOVE!
         public bool oldTAA = false;

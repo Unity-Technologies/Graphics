@@ -912,6 +912,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Material TAAMat = camera.oldTAA ? m_TemporalAAMaterial : m_TemporalAAMaterial2;
 
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
 
             if (m_EnableAlpha)
             {
@@ -927,6 +928,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 TAAMat.DisableKeyword("FORCE_BILINEAR_HISTORY");
             }
 
+            if (camera.taaMotionVectorRejection > 0)
+            {
+                TAAMat.EnableKeyword("ENABLE_MV_REJECTION");
+            }
+            else
+            {
+                TAAMat.DisableKeyword("ENABLE_MV_REJECTION");
+            }
+
+            switch (camera.TAAQuality)
+            {
+                case HDAdditionalCameraData.TAAQualityLevel.Low:
+                    TAAMat.EnableKeyword("LOW_QUALITY");
+                    TAAMat.DisableKeyword("MEDIUM_QUALITY");
+                    TAAMat.DisableKeyword("HIGH_QUALITY");
+                    break;
+                case HDAdditionalCameraData.TAAQualityLevel.Medium:
+                    TAAMat.DisableKeyword("LOW_QUALITY");
+                    TAAMat.EnableKeyword("MEDIUM_QUALITY");
+                    TAAMat.DisableKeyword("HIGH_QUALITY");
+                    break;
+                case HDAdditionalCameraData.TAAQualityLevel.High:
+                    TAAMat.DisableKeyword("LOW_QUALITY");
+                    TAAMat.DisableKeyword("MEDIUM_QUALITY");
+                    TAAMat.EnableKeyword("HIGH_QUALITY");
+                    break;
+                default:
+                    TAAMat.DisableKeyword("LOW_QUALITY");
+                    TAAMat.EnableKeyword("MEDIUM_QUALITY");
+                    TAAMat.DisableKeyword("HIGH_QUALITY");
+                    break;
+            }
+
             if (camera.resetPostProcessingHistory)
             {
                 m_TAAHistoryBlitPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -937,29 +971,51 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
             }
 
+
+
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
+            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
+
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 1.5f;
-            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), 0.0f, 0.0f);
+            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection); 
+
+            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, 0.0f);
             Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
                                               prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
             var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
             var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
 
+            // Precompute weights used for the Blackman-Harris filter
+            float crossWeights = Mathf.Exp(-2.29f * 2);
+            float plusWeights = Mathf.Exp(-2.29f);
+            float centerWeight = 1;
+
+            float totalWeight = centerWeight + (4 * plusWeights);
+            if (camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            {
+                totalWeight += crossWeights * 4;
+            }
+
+            // Weights will be x: central, y: plus neighbours, z: cross neighbours, w: total
+            Vector4 taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
+
             m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
             m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
+            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaFilterWeights, taaFilterWeights);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
+            cmd.SetRandomWriteTarget(2, nextMVLen);
             cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, TAAMat, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
-         //   cmd.DrawProcedural(Matrix4x4.identity, TAAMat, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, TAAMat, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
         }
 
@@ -979,6 +1035,21 @@ namespace UnityEngine.Rendering.HighDefinition
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing);
         }
 
+        void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(
+                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
+                    enableRandomWrite: true, useDynamicScale: true, name: "Velocity magnitude"
+                );
+            }
+
+            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, Allocator, 2);
+            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
+        }
         #endregion
 
         #region Depth Of Field

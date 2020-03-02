@@ -174,6 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float                  taaHistorySharpening;
         // REMOVE THE FOLLOWING TWO
         internal float                  taaAntiFlicker;
+        internal float                  taaMotionVectorRejection;
         internal bool oldTAA;
 
         internal Vector4                zBufferParams;
@@ -285,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
+        internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
 
@@ -846,9 +848,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     antialiasing = m_AdditionalCameraData.antialiasing;
                     SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    TAAQuality = m_AdditionalCameraData.TAAQuality;
                     taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
                     taaHistorySharpening = m_AdditionalCameraData.taaHistorySharpening;
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
+                    taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
                     oldTAA = m_AdditionalCameraData.oldTAA;
 
                 }

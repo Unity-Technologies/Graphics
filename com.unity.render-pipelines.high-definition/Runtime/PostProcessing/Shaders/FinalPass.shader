@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-
+#pragma enable_d3d11_debug_symbols
         #pragma multi_compile_local _ FXAA
         #pragma multi_compile_local _ GRAIN
         #pragma multi_compile_local _ DITHER
@@ -58,6 +58,10 @@ Shader "Hidden/HDRP/FinalPass"
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
+        }
+        float2 GetQuadOffset_other(int2 screenPos)
+        {
+            return float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
         }
 
         CTYPE UpscaledResult(float2 UV)
@@ -151,8 +155,17 @@ Shader "Hidden/HDRP/FinalPass"
             #endif
 
         #if !defined(ENABLE_ALPHA)
+            //float2 quadOffset = GetQuadOffset_other(positionSS);
+            //outColor = float4(quadOffset.xyxy * 0.5 + 0.5);
+            //outColor.z = QuadReadAcrossX(outColor.x, positionSS);
+            //outAlpha = QuadReadAcrossY(outColor.x, positionSS);
+
             return float4(outColor, outAlpha);
         #else
+            float2 quadOffset = GetQuadOffset_other(positionSS);
+            outColor = float4(quadOffset.xyxy * 0.5 + 0.5);
+            outColor.z = QuadReadAcrossX(outColor.x, positionSS);
+
             return outColor;
         #endif
         }

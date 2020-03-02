@@ -119,6 +119,26 @@ float2 GetClosestFragment(float2 positionSS)
     return positionSS + float2(1.0, -1.0);
 }
 
+float2 GetClosestFragmentCompute(float2 positionSS)
+{
+    float center = LoadCameraDepth(positionSS);
+    float nw = LoadCameraDepth(positionSS + int2(-1, -1));
+    float ne = LoadCameraDepth(positionSS + int2(1, -1));
+    float sw = LoadCameraDepth(positionSS + int2(-1, 1));
+    float se = LoadCameraDepth(positionSS + int2(1, 1));
+
+    float4 neighborhood = float4(nw, ne, sw, se);
+
+    float3 closest = float3(0.0, 0.0, center);
+    closest = lerp(closest, float3(-1.0, -1.0, neighborhood.x), COMPARE_DEPTH(neighborhood.x, closest.z));
+    closest = lerp(closest, float3(1.0, -1.0, neighborhood.y), COMPARE_DEPTH(neighborhood.y, closest.z));
+    closest = lerp(closest, float3(-1.0, 1.0, neighborhood.z), COMPARE_DEPTH(neighborhood.z, closest.z));
+    closest = lerp(closest, float3(1.0, 1.0, neighborhood.w), COMPARE_DEPTH(neighborhood.w, closest.z));
+
+
+    return positionSS + float2(1.0, -1.0);
+}
+
 CTYPE ClipToAABB(CTYPE color, CTYPE minimum, CTYPE maximum)
 {
     // note: only clips towards aabb center (but fast!)
@@ -145,6 +165,24 @@ float3 ClipToAABB3(float3 color, float3 minimum, float3 maximum)
     float3 ts = abs(extents) / max(abs(offset), 1e-4);
     float t = saturate(Min3(ts.x, ts.y, ts.z));
     return center + offset * t;
+}
+
+CTYPE DirectClipToAABB(CTYPE history, CTYPE minimum, CTYPE maximum)
+{
+    // note: only clips towards aabb center (but fast!)
+    CTYPE center = 0.5 * (maximum + minimum);
+    CTYPE extents = 0.5 * (maximum - minimum);
+
+    // This is actually `distance`, however the keyword is reserved
+    CTYPE offset = history - center;
+    float3 v_unit = offset.xyz / extents;
+    float3 absUnit = abs(v_unit);
+    float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
+
+    if (maxUnit > 1.0)
+        return center + (offset / maxUnit);
+    else
+        return history;
 }
 
 // ---- Options to get history ----
