@@ -1,3 +1,7 @@
+#ifndef UNITY_NORMALBUFFER_INCLUDED
+#define UNITY_NORMALBUFFER_INCLUDED
+
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
@@ -47,3 +51,5 @@ void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 }
 
 // OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer
+
+#endif
