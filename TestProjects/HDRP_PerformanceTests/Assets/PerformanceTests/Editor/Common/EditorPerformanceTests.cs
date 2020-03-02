@@ -19,7 +19,7 @@ using static PerformanceMetricNames;
 
 using Object = UnityEngine.Object;
 
-public class EditorPerformaceTests
+public class EditorPerformanceTests
 {
     const int BuildTimeout = 10 * 60 * 1000; // 10 min for each build test
     const string buildLocation = "TmpBuild";

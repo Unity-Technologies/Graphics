@@ -28,11 +28,33 @@ public static class PerformanceTestUtils
     public static string FormatTestName(string inputData, string inputDataCategory, string settings, string settingsCategory, string testName)
         => $"{inputData}:{inputDataCategory},{settings}:{settingsCategory},{testName}";
 
-    // Counter example: Timing_GPU_Gbuffer
-    // Memory example: AllocatedBytes_CPU
+    // Counter example: Timing,GPU,Gbuffer
+    // Memory example: AllocatedBytes,CPU,Default
     public static string FormatSampleGroupName(string metricName, string category, string dataName = null)
-        => $"{metricName}_{category}_{dataName ?? "Default"}";
+        => $"{metricName},{category},{dataName ?? "Default"}";
 
     // Turn a string into a sample group
-    public static SampleGroup ToSampleGroup(this string groupName, SampleUnit unit = SampleUnit.Undefined, bool increaseIsBetter = false) => new SampleGroup(groupName, unit, increaseIsBetter);
+    public static SampleGroup ToSampleGroup(this string groupName, SampleUnit unit = SampleUnit.Undefined, bool increaseIsBetter = false)
+        => new SampleGroup(groupName, unit, increaseIsBetter);
+}
+
+public struct TestName
+{
+    public readonly string inputData;
+    public readonly string inputDataCategory;
+    public readonly string settings;
+    public readonly string settingsCategory;
+    public readonly string name;
+
+    public TestName(string inputData, string inputDataCategory, string settings, string settingsCategory, string name)
+    {
+        this.inputData = string.IsNullOrEmpty(inputData) ? "NA" : inputData;
+        this.inputDataCategory = string.IsNullOrEmpty(inputDataCategory) ? "NA" : inputDataCategory;
+        this.settings = string.IsNullOrEmpty(settings) ? "NA" : settings;
+        this.settingsCategory = string.IsNullOrEmpty(settingsCategory) ? "NA" : settingsCategory;
+        this.name = string.IsNullOrEmpty(name) ? "NA" : name;
+    }
+
+    public override string ToString()
+        => PerformanceTestUtils.FormatTestName(inputData, inputDataCategory, settings, settingsCategory, name);
 }
