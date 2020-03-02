@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool hasInputAttachment;
         internal bool useNativeRenderPass;
 
-        internal List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(8);
+        internal List<RenderTargetHandle> m_ColorAttachments = new List<RenderTargetHandle>(0);
         internal List<RenderTargetHandle> m_InputAttachments = new List<RenderTargetHandle>(0);
         RenderTargetHandle m_DepthAttachment;// = RenderTargetHandle.CameraTarget;
         RenderPassDescriptor m_RenderPassDescriptor;

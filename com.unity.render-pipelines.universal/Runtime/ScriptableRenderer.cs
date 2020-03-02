@@ -511,9 +511,9 @@ namespace UnityEngine.Rendering.Universal
                     var desc = renderPass.renderPassDescriptor;
 
                     NativeArray<int> indices =
-                        new NativeArray<int>(renderPass.colorAttachments.Count, Allocator.Temp);
+                        new NativeArray<int>(renderPass.colorAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                     NativeArray<int> inputIndices =
-                        new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp);
+                        new NativeArray<int>(renderPass.inputAttachments.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                     CommandBuffer cmd = CommandBufferPool.Get(k_NativeRenderPass);
 
                     if (asSingleRenderPass && !renderPassStarted)
@@ -590,6 +590,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             descriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
                             context.BeginRenderPass(desc.width, desc.height, desc.sampleCount, descriptors, depthAttachmentIdx);
+                            descriptors.Dispose();
                             renderPassStarted = true;
                         }
 
@@ -600,12 +601,16 @@ namespace UnityEngine.Rendering.Universal
                         if (renderPass.hasInputAttachment)
                         {
                             context.BeginSubPass(colors, inputIndices, renderPass.renderPassDescriptor.readOnlyDepth);
-                            inputIndices.Dispose();
                         }
                         else
                             context.BeginSubPass(colors);
 
-                        colors.Dispose();
+                        if (inputIndices.IsCreated)
+                            inputIndices.Dispose();
+                        if (colors.IsCreated)
+                            colors.Dispose();
+                        if (indices.IsCreated)
+                            indices.Dispose();
                         ExecuteNativeRenderPass(context, renderPass, ref renderingData);
                         context.EndSubPass();
                         if (!asSingleRenderPass && renderPassStarted)
@@ -637,7 +642,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             bool firstTimeStereo = false;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass);
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPass + " " + renderPass.GetType().ToString());
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
 
@@ -648,7 +653,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
                 // and that the depth attachment is a REAL depth attachment too.
-
 
                 // Determine what attachments need to be cleared. ----------------
 
