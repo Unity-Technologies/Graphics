@@ -612,8 +612,6 @@ MonoBehaviour:
   m_RenderShadows: 0
   m_RequiresDepthTextureOption: 0
   m_RequiresOpaqueTextureOption: 0
-  m_CameraType: 0
-  m_Cameras: []
   m_RendererIndex: 3
   m_VolumeLayerMask:
     serializedVersion: 2
@@ -624,7 +622,6 @@ MonoBehaviour:
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
-  m_ClearDepth: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -723,7 +720,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.0005
     UseHDR: 0
-  WaitFrames: 20
+  WaitFrames: 0
 --- !u!114 &599516828
 MonoBehaviour:
   m_ObjectHideFlags: 0
