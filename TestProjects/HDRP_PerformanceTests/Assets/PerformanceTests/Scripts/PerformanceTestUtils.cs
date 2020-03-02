@@ -32,4 +32,7 @@ public static class PerformanceTestUtils
     // Memory example: AllocatedBytes_CPU
     public static string FormatSampleGroupName(string metricName, string category, string dataName = null)
         => $"{metricName}_{category}_{dataName ?? "Default"}";
+
+    // Turn a string into a sample group
+    public static SampleGroup ToSampleGroup(this string groupName, SampleUnit unit = SampleUnit.Undefined, bool increaseIsBetter = false) => new SampleGroup(groupName, unit, increaseIsBetter);
 }

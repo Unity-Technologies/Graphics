@@ -52,6 +52,7 @@ public class EditorPerformaceTests
         SetupTest(testDescription.sceneData.scene, testDescription.assetData.asset);
 
         HDRPreprocessShaders.reportShaderStrippingData += ReportShaderStrippingData;
+        Debug.Log("Enable !");
 
         var match = new Regex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$").Match("Compiled shader 'HDRP/Lit' in 103.43s");
 
@@ -60,22 +61,10 @@ public class EditorPerformaceTests
             yield return BuildPlayer(testScenesAsset.GetScenePath(testDescription.sceneData.scene));
         }
 
+        Debug.Log("Disable !");
         HDRPreprocessShaders.reportShaderStrippingData -= ReportShaderStrippingData;
 
         yield return null;
-    }
-
-    // The list of shaders we want to keep track of
-    IEnumerable<Object> EnumerateWatchedShaders()
-    {
-        var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-        if (hdrp == null)
-            yield break;
-
-        var sr = hdrp.defaultResources.shaders;
-
-        yield return sr.defaultPS;
-        yield return sr.deferredCS;
     }
 
     IEnumerator BuildPlayer(string scenePath)
@@ -92,19 +81,15 @@ public class EditorPerformaceTests
         BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildSummary summary = report.summary;
 
-        Measure.Custom(FormatSampleGroupName(kSize, kTotal), summary.totalSize);
-        Measure.Custom(FormatSampleGroupName(kSize, kShader), GetAssetSizeInBuild(report, typeof(Shader)));
-        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader), GetAssetSizeInBuild(report, typeof(ComputeShader)));
-        Measure.Custom(FormatSampleGroupName(kTime, kTotal), summary.totalTime.TotalMilliseconds);
-        Measure.Custom(FormatSampleGroupName(kBuild, kWarnings), summary.totalWarnings);
-        Measure.Custom(FormatSampleGroupName(kBuild, kSuccess), summary.result == BuildResult.Succeeded ? 1 : 0);
+        Measure.Custom(FormatSampleGroupName(kSize, kTotal).ToSampleGroup(), summary.totalSize);
+        Measure.Custom(FormatSampleGroupName(kSize, kShader).ToSampleGroup(), GetAssetSizeInBuild(report, typeof(Shader)));
+        Measure.Custom(FormatSampleGroupName(kSize, kComputeShader).ToSampleGroup(), GetAssetSizeInBuild(report, typeof(ComputeShader)));
+        Measure.Custom(FormatSampleGroupName(kTime, kTotal).ToSampleGroup(), summary.totalTime.TotalMilliseconds);
+        Measure.Custom(FormatSampleGroupName(kBuild, kWarnings).ToSampleGroup(), summary.totalWarnings);
+        Measure.Custom(FormatSampleGroupName(kBuild, kSuccess).ToSampleGroup(), summary.result == BuildResult.Succeeded ? 1 : 0);
 
         // Shader report:
-        foreach (var s in EnumerateWatchedShaders())
-        {
-            var fileName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(s));
-            MeasureShaderSize(report, fileName);
-        }
+        MeasureShaderSize(report);
 
         // Wait for the Editor.log file to be updated so we can gather infos from it.
         yield return null;
@@ -123,34 +108,37 @@ public class EditorPerformaceTests
         return assetSize;
     }
 
-    void MeasureShaderSize(BuildReport report, string shaderFileName)
+    bool KeepShaderForReport(Shader shader) => shader?.name?.Contains("HDRP") ?? false;
+
+    void MeasureShaderSize(BuildReport report)
     {
-        ulong assetSize = 0;
         foreach (var packedAsset in report.packedAssets)
         {
             foreach (var content in packedAsset.contents)
             {
-                if (content.type != typeof(Shader) && content.type != typeof(ComputeShader))
-                    continue;
+                if (content.type == typeof(ComputeShader))
+                {
+                    var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(content.sourceAssetPath);
+                    Measure.Custom(FormatSampleGroupName(kSize, kComputeShader, computeShader.name).ToSampleGroup(), content.packedSize);
+                }
+                else if (content.type == typeof(Shader))
+                {
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(content.sourceAssetPath);
 
-                if (Path.GetFileNameWithoutExtension(content.sourceAssetPath) == shaderFileName)
-                    assetSize += content.packedSize;
+                    if (KeepShaderForReport(shader))
+                        Measure.Custom(FormatSampleGroupName(kSize, kShader, shader.name).ToSampleGroup(), content.packedSize);
+                }
             }
         }
-
-        Measure.Custom(FormatSampleGroupName(kSize, kShader, shaderFileName), assetSize);
     }
 
     void ReportShaderStrippingData(Shader shader, ShaderSnippetData data, int currentVariantCount, double strippingTime)
     {
-        // filter out shaders that we don't care about
-        if (!EnumerateWatchedShaders().Contains(shader))
+        if (!KeepShaderForReport(shader))
             return;
 
-        SampleGroup strippingPassCount = new SampleGroup(FormatSampleGroupName(kStriping, shader.name, data.passName), SampleUnit.Undefined, false);
-        SampleGroup strippingTimeSample = new SampleGroup(FormatSampleGroupName(kStripingTime, shader.name, data.passName), SampleUnit.Millisecond, false);
-        Measure.Custom(strippingPassCount, currentVariantCount);
-        Measure.Custom(strippingTimeSample, strippingTime);
+        Measure.Custom(FormatSampleGroupName(kStriping, shader.name, data.passName).ToSampleGroup(), currentVariantCount);
+        Measure.Custom(FormatSampleGroupName(kStripingTime, shader.name, data.passName).ToSampleGroup(), strippingTime);
     }
 
     static string lastCompiledShader = kNA;
@@ -161,14 +149,14 @@ public class EditorPerformaceTests
             // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
             case var _ when MatchRegex(@"^\s*Compiled shader '(.*)' in (\d{1,}.\d{1,})s$", line, out var match):
                 lastCompiledShader = match.Groups[1].Value; // store the value of the shader for internal program count report
-                SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Second);
+                SampleGroup shaderCompilationTime = new SampleGroup(FormatSampleGroupName(kCompilationTime, match.Groups[1].Value), SampleUnit.Undefined);
                 Measure.Custom(shaderCompilationTime, double.Parse(match.Groups[2].Value));
                 break;
 
             // Match this line in the editor log: d3d11 (total internal programs: 204, unique: 192)
-            case var _ when MatchRegex(@"^(\w{1,}) \(total internal programs: (\d{1,}), unique: (\d{1,})\)$", line, out var match):
+            case var _ when MatchRegex(@"^\s*(\w{1,}) \(total internal programs: (\d{1,}), unique: (\d{1,})\)$", line, out var match):
                 // Note that we only take the unique internal programs count.
-                Measure.Custom(FormatSampleGroupName(kShaderProgramCount, lastCompiledShader, match.Groups[1].Value), double.Parse(match.Groups[3].Value));
+                Measure.Custom(FormatSampleGroupName(kShaderProgramCount, lastCompiledShader, match.Groups[1].Value).ToSampleGroup(), double.Parse(match.Groups[3].Value));
                 break;
         }
 

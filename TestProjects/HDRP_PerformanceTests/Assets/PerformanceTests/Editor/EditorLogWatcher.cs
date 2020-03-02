@@ -26,7 +26,7 @@ class EditorLogWatcher : IDisposable
         // In case we have a -logFile argument, then we can get the file path from here
         for (int i = 0; i < args.Length; i++)
         {
-            if (args[i] == "-logFile" && i + 1 > args.Length)
+            if (args[i] == "-logFile" && i + 1 < args.Length)
                 return args[i + 1];
         }
 

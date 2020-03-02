@@ -90,12 +90,13 @@ public class PerformanceTests : IPrebuildSetup
         hdCamera.profilingSampler.enableRecording = false;
         foreach (var marker in GetAllMarkers())
             ProfilingSampler.Get(marker).enableRecording = false;
-        
+
         void MeasureTime(ProfilingSampler sampler)
         {
-            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Millisecond, false);
-            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Millisecond, false);
-            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Millisecond, false);
+            // Due to a bug about convertion of time units before sending the data to the database, we need to use Undefined units
+            SampleGroup cpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kCPU, sampler.name), SampleUnit.Undefined, false);
+            SampleGroup gpuSample = new SampleGroup(FormatSampleGroupName(kTiming, kGPU, sampler.name), SampleUnit.Undefined, false);
+            SampleGroup inlineCPUSample = new SampleGroup(FormatSampleGroupName(kTiming, kInlineCPU, sampler.name), SampleUnit.Undefined, false);
 
             if (sampler.cpuElapsedTime > 0)
                 Measure.Custom(cpuSample, sampler.cpuElapsedTime);
