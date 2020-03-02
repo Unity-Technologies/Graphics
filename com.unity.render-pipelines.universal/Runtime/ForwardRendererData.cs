@@ -37,9 +37,6 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [Reload("Shaders/Utils/DepthNormal.shader")]
-            public Shader depthNormalPS;
-
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
@@ -51,9 +48,6 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
-
-            [Reload("Shaders/Utils/ScreenSpaceAmbientOcclusion.shader")]
-            public Shader screenSpaceAmbientOcclusionPS;
         }
 
         [Reload("Textures/BlueNoiseNormal.png")]

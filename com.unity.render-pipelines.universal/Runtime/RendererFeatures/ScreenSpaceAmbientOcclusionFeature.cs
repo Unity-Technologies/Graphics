@@ -30,7 +30,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         public bool downScale = false;
         public float intensity = 1.0f;
         public float radius = 0.1f;
-        public int sampleCount = 16;
+        public int sampleCount = 10;
     }
     
     // Called from OnEnable and OnValidate...
@@ -156,10 +156,11 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_Descriptor.width = m_Descriptor.width / downScaleDivider;
             m_Descriptor.height = m_Descriptor.height / downScaleDivider;
 
-            m_Descriptor.colorFormat = RenderTextureFormat.R32;
+            m_Descriptor.colorFormat = RenderTextureFormat.R8;
             cmd.GetTemporaryRT(m_Texture.id, m_Descriptor, FilterMode.Point);
 
             var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, GraphicsFormat.R8G8B8A8_UNorm);
+            
             cmd.GetTemporaryRT(_TempRenderTexture1, desc, FilterMode.Bilinear);
             cmd.GetTemporaryRT(_TempRenderTexture2, desc, FilterMode.Bilinear);
 

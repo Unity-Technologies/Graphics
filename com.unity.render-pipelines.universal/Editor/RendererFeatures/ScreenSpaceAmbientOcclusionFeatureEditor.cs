@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    //EditorGUI.PropertyField(rect, m_DepthSource, Styles.depthSource);
 			    //rect.y += Styles.defaultLineSpace;
 
-			    EditorGUI.Slider(rect, m_Intensity, 0f, 14f, Styles.intensity);
+			    EditorGUI.Slider(rect, m_Intensity, 0f, 10f, Styles.intensity);
 			    rect.y += Styles.defaultLineSpace;
 
 			    EditorGUI.Slider(rect, m_Radius, 0f, 1f, Styles.radius);
@@ -100,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_properties.Contains(property.serializedObject))
             {
-                height *= m_UseVolumes.boolValue ? 1 : 6;
+                height *= m_UseVolumes.boolValue ? 2 : 6;
             }
 
             return height;  

@@ -5,8 +5,8 @@ using System;
 class ScreenSpaceAmbientOcclusionVolume : VolumeComponent
 {
     public BoolParameter downSample = new BoolParameter(false);
-    public ClampedIntParameter sampleCount = new ClampedIntParameter(16, 2, 32, false);
-    public ClampedFloatParameter intensity = new ClampedFloatParameter(1f, 0f, 14f, false);
+    public ClampedIntParameter sampleCount = new ClampedIntParameter(10, 2, 32, false);
+    public ClampedFloatParameter intensity = new ClampedFloatParameter(1f, 0f, 10f, false);
     public ClampedFloatParameter radius = new ClampedFloatParameter(0.05f, 0.001f, 1.0f, false);
 
     // This will be used once we've exposed render feature requirements.
