@@ -4,7 +4,7 @@
 EditorSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_ExternalVersionControlSupport: Visible Meta Files
+  m_ExternalVersionControlSupport: Hidden Meta Files
   m_SerializationMode: 2
   m_LineEndingsForNewScripts: 2
   m_DefaultBehaviorMode: 0
@@ -22,7 +22,7 @@ EditorSettings:
     inProgressEnabled: 1
   m_EnableTextureStreamingInEditMode: 1
   m_EnableTextureStreamingInPlayMode: 1
-  m_AsyncShaderCompilation: 1
+  m_AsyncShaderCompilation: 0
   m_EnterPlayModeOptionsEnabled: 0
   m_EnterPlayModeOptions: 3
   m_ShowLightmapResolutionOverlay: 1
