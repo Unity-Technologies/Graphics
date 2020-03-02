@@ -11,8 +11,8 @@ TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 #else
 TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
-SAMPLER(sampler_CameraDepthTexture);
 
+SAMPLER(sampler_CameraDepthTexture);
 TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
 TEXTURE2D(_TempTarget); SAMPLER(sampler_TempTarget);
 TEXTURE2D(_TempTarget2); SAMPLER(sampler_TempTarget2);
@@ -20,13 +20,9 @@ TEXTURE2D(_ScreenSpaceAOTexture); SAMPLER(sampler_ScreenSpaceAOTexture);
 TEXTURE2D(_CameraGBufferTexture2); SAMPLER(sampler_CameraGBufferTexture2);
 TEXTURE2D(_CameraDepthNormalsTexture); SAMPLER(sampler_CameraDepthNormalsTexture);
 
-#if defined(SOURCE_DEPTH)
 #define SAMPLE_DEPTH(uvScreenSpace) SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uvScreenSpace);
-#else
-#define SAMPLE_DEPTH(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthNormalsTexture, sampler_CameraDepthNormalsTexture, uv).r;
-#endif
-
 #define STEREO_UV(uv) UnityStereoTransformScreenSpaceTex(uv)
+
 
 //float4 _ScreenParams;
 float4x4 ProjectionMatrix;
@@ -138,12 +134,33 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
     return float3((uv * 2.0 - 1.0 - p13_31) / p11_22 * CheckPerspective(depth), depth);
 }
 
+// Interleaved gradient function from Jimenez 2014
+// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float GradientNoise(float2 uv)
+{
+    uv = floor(uv * _ScreenParams.xy);
+    float f = dot(float2(0.06711056, 0.00583715), uv);
+    return frac(52.9829189 * frac(f));
+}
+
+#define FIX_SAMPLING_PATTERN
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float index)
 {
-    float u = InterleavedGradientNoise(float2(UVRandom(uv.x, uv.y), UVRandom(-uv.x, uv.y)), index);
-    float theta = InterleavedGradientNoise(float2(UVRandom(uv.x, uv.y), UVRandom(uv.x, -uv.y)), index) * TWO_PI;
-
+    // Uniformaly distributed points on a unit sphere
+    // http://mathworld.wolfram.com/SpherePointPicking.html
+#if defined(FIX_SAMPLING_PATTERN)
+    float gn = GradientNoise(uv * DOWNSAMPLE);
+    // FIXEME: This was added to avoid a NVIDIA driver issue.
+    //                                   vvvvvvvvvvvv
+    float u = frac(UVRandom(0.0, index + uv.x * 1e-10) + gn) * 2.0 - 1.0;
+    float theta = (UVRandom(1.0, index + uv.x * 1e-10) + gn) * TWO_PI;
+#else
+    float u = UVRandom(uv.x + _Time.x, uv.y + index) * 2.0 - 1.0;
+    float theta = UVRandom(-uv.x - _Time.x, uv.y + index) * TWO_PI;
+#endif
+    //u = InterleavedGradientNoise(float2(UVRandom(uv.x, uv.y), UVRandom(-uv.x, uv.y)), index);
+    //theta = InterleavedGradientNoise(float2(UVRandom(uv.x, -uv.y), UVRandom(uv.x, uv.y)), index) * TWO_PI;
     float3 v = float3(CosSin(theta) * sqrt(1.0 - u * u), u);
 
     // Make them distributed between [0, _Radius]
@@ -172,6 +189,7 @@ float CheckBounds(float2 uv, float linear01Depth)
     return ob * 1e8;
 }
 
+
 // Try reconstructing normal accurately from depth buffer.
 // input DepthBuffer: stores linearized depth in range (0, 1).
 // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
@@ -196,17 +214,15 @@ float3 ReconstructNormal(float4 uv)
     float3 d1 = float3(uvProj - float2(            0.0, texSize.y       * isFlipped), 0.0); // Down1
     float3 d2 = float3(uvProj - float2(            0.0, texSize.y * 2.0 * isFlipped), 0.0); // Down2
 
-    c.z  = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace)                                );
-    
-    l2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(texSize.x * 2.0, 0.0)) );
-    l1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(texSize.x      , 0.0)) );
-    r1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(texSize.x      , 0.0)) );
-    r2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(texSize.x * 2.0, 0.0)) );
-
-    u2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(0.0, texSize.y * 2.0)) );
-    u1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace + float2(0.0, texSize.y      )) );
-    d1.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(0.0, texSize.y      )) );
-    d2.z = SAMPLE_DEPTH( STEREO_UV(uvScreenSpace - float2(0.0, texSize.y * 2.0)) );
+    c.z  = SAMPLE_DEPTH( uvScreenSpace                                );
+    l2.z = SAMPLE_DEPTH( uvScreenSpace - float2(texSize.x * 2.0, 0.0) );
+    l1.z = SAMPLE_DEPTH( uvScreenSpace - float2(texSize.x      , 0.0) );
+    r1.z = SAMPLE_DEPTH( uvScreenSpace + float2(texSize.x      , 0.0) );
+    r2.z = SAMPLE_DEPTH( uvScreenSpace + float2(texSize.x * 2.0, 0.0) );
+    u2.z = SAMPLE_DEPTH( uvScreenSpace + float2(0.0, texSize.y * 2.0) );
+    u1.z = SAMPLE_DEPTH( uvScreenSpace + float2(0.0, texSize.y      ) );
+    d1.z = SAMPLE_DEPTH( uvScreenSpace - float2(0.0, texSize.y      ) );
+    d2.z = SAMPLE_DEPTH( uvScreenSpace - float2(0.0, texSize.y * 2.0) );
 
     // 5 taps on each direction: | z | x | * | y | w |, '*' denotes the center sample.
     // If the depth is stored as is (not linearized) there is no need for this kind of interpolation and abs(2 * H.x - H.z) - depth) is sufficient,
@@ -311,7 +327,7 @@ float4 SampleTexture(float2 uv)
 
     // Forward with Depth texture
     #else
-        return SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, uv, 0);
+        return SAMPLE_DEPTH(uv);
     #endif
 }
 
@@ -410,6 +426,7 @@ float4 SSAO(Varyings input) : SV_Target
 float4 FragBlur(Varyings input) : SV_Target
 {
     float4 uv = input.uv;
+    uv.xy = STEREO_UV(uv.xy);
 
     #if defined(BLUR_HORIZONTAL)
         // Horizontal pass: Always use 2 texels interval to match to the dither pattern.
@@ -421,16 +438,16 @@ float4 FragBlur(Varyings input) : SV_Target
 
     #if defined(BLUR_HIGH_QUALITY)
         // High quality 7-tap Gaussian with adaptive sampling
-        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy)       );
-        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta));
-        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta));
-        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 2.0));
-        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 2.0));
-        half4 p3a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 3.2307692308));
-        half4 p3b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 3.2307692308));
+        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy       );
+        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy - delta));
+        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta));
+        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy - delta * 2.0));
+        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 2.0));
+        half4 p3a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy - delta * 3.2307692308));
+        half4 p3b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 3.2307692308));
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(STEREO_UV(uv.xy), uv);
+            half3 n0 = SampleNormal(uv.xy, uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
@@ -455,14 +472,14 @@ float4 FragBlur(Varyings input) : SV_Target
         s /= w0 + w1a + w1b + w2a + w2b + w3a + w3b;
     #else
         // Fater 5-tap Gaussian with linear sampling
-        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy));
-        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 1.3846153846));
-        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 1.3846153846));
-        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy - delta * 3.2307692308));
-        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, STEREO_UV(uv.xy + delta * 3.2307692308));
+        half4 p0  = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy                       );
+        half4 p1a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy - delta * 1.3846153846);
+        half4 p1b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 1.3846153846);
+        half4 p2a = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy - delta * 3.2307692308);
+        half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 3.2307692308);
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(STEREO_UV(uv.xy), uv);
+            half3 n0 = SampleNormal(uv.xy, uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
@@ -490,11 +507,13 @@ float4 FragBlur(Varyings input) : SV_Target
 // Geometry-aware bilateral filter (single pass/small kernel)
 half BlurSmall(TEXTURE2D_PARAM(tex, samp), float2 uv, float2 delta)
 {
-    half4 p0 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv));
-    half4 p1 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(-delta.x, -delta.y)));
-    half4 p2 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(delta.x, -delta.y)));
-    half4 p3 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(-delta.x, delta.y)));
-    half4 p4 = SAMPLE_TEXTURE2D(tex, samp, STEREO_UV(uv + float2(delta.x, delta.y)));
+    uv = STEREO_UV(uv);
+
+    half4 p0 = SAMPLE_TEXTURE2D(tex, samp, uv                             );
+    half4 p1 = SAMPLE_TEXTURE2D(tex, samp, uv + float2(-delta.x, -delta.y));
+    half4 p2 = SAMPLE_TEXTURE2D(tex, samp, uv + float2( delta.x, -delta.y));
+    half4 p3 = SAMPLE_TEXTURE2D(tex, samp, uv + float2(-delta.x,  delta.y));
+    half4 p4 = SAMPLE_TEXTURE2D(tex, samp, uv + float2( delta.x,  delta.y));
 
     half3 n0 = GetPackedNormal(p0);
 

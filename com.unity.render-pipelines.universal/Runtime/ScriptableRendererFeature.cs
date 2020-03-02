@@ -2,41 +2,6 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum DepthCreationOption
-    {
-        Reuse,
-        Create
-    }
-
-    public struct RenderFeatureRequirements
-    {
-        public RenderPassEvent renderPassEvent;
-
-        // Depth Requirements...
-        public bool depthTexture;
-        public bool depthNormalTexture;
-        public DepthCreationOption depthCreationOption;
-
-        public bool NeedsDepth()
-        {
-            return depthTexture || depthNormalTexture;
-        }
-
-        public bool NeedsPrepass()
-        {
-            return depthNormalTexture 
-                   || (depthTexture && renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
-            ;
-        }
-    }
-
-    public struct RenderFeatureRequirementsSummary
-    {
-        public bool needsDepthPrepass;
-        public bool needsDepth;
-        public bool needsDepthNormals;
-    }
-
     /// <summary>
     /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
     /// </summary>
@@ -65,13 +30,6 @@ namespace UnityEngine.Rendering.Universal
         void OnValidate()
         {
             Create();
-        }
-
-        public virtual bool HasRenderingRequirements { get { return false; } }
-
-        public virtual RenderFeatureRequirements GetRenderingRequirements()
-        {
-            return new RenderFeatureRequirements();
         }
 
         public virtual void Cleanup()

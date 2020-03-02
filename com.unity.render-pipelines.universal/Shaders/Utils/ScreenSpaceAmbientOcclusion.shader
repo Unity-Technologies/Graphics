@@ -86,10 +86,11 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         Pass
         {
             Name "SSAO_VerticalBlurWithCameraDepthTexture"
-            
+
             HLSLPROGRAM
                 #define SOURCE_DEPTH
                 #define BLUR_VERTICAL
+                #define BLUR_SAMPLE_CENTER_NORMAL
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"

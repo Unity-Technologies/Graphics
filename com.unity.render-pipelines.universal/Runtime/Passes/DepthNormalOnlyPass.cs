@@ -10,18 +10,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; private set; }
 
         private string m_ProfilerTag = "DepthNormal Prepass";
-        private Material m_DepthNormalMaterial;
         private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthNormals");
         private FilteringSettings m_FilteringSettings;
 
         /// <summary>
         /// Create the DepthNormalOnlyPass
         /// </summary>
-        public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, Material depthNormalMaterial)
+        public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-            m_DepthNormalMaterial = depthNormalMaterial;
         }
 
         /// <summary>
