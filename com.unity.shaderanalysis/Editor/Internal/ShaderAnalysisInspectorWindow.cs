@@ -154,6 +154,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
                 m_CurrentPlatform = m_SupportedPlatforms[m_SelectedPlatformIndex];
                 m_AssetMetadata = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform);
             }
+            if (!string.IsNullOrEmpty(referenceSourceFolderPath) && Directory.Exists(referenceSourceFolderPath) && m_CurrentPlatform != BuildTarget.NoTarget)
+                m_AssetMetadataReference = ShaderAnalysisUtils.LoadAssetMetadatasFor(m_CurrentPlatform, referenceFolder);
         }
 
         void OpenAsset(Object asset)
