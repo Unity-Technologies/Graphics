@@ -104,6 +104,17 @@ To make this section visible, disable **Earth Preset**.
 
 This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
+This technique assumes that you always view the Scene from above the surface of the planet. This means that if you go below the planet's surface, the sky renders black. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
+
+* If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
+* Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
+
+The default values in either mode make it so the planet's surface is at **0** on the y-axis at the Scene origin. Since the default values for **Spherical Mode** simulate Earth, the radius is so large that, when you create you Scene environment, you can consider the surface to be flat. If you want some areas of your Scene environment to be below the current surface height, you can either vertically offset your Scene environment so that the lowest areas are above **0** on the y-axis, or decrease the surface height. To do the latter:
+
+* If in **Spherical Mode**, either decrease the **Planetary  Radius**, or move the **Planet Center Position** down.
+
+* If not in **Spherical Mode**, decrease the **Sea Level**.
+
 ### Reference list
 
 * Bruneton, Eric, and Fabrice Neyret. 2008. “Precomputed Atmospheric Scattering.” *Computer Graphics Forum* 27, no. 4 (2008): 1079–86. https://doi.org/10.1111/j.1467-8659.2008.01245.x.
