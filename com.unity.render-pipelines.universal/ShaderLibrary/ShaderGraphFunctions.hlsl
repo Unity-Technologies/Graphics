@@ -2,7 +2,8 @@
 #define UNITY_GRAPHFUNCTIONS_LW_INCLUDED
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_LWSampleSceneDepth(uv)
-#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_LWSampleSceneColor(uv)
+#define SHADERGRAPH_LOAD_SCENE_COLOR(uv, lod) shadergraph_LWSampleSceneColor(uv)
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv, s, lod) shadergraph_LWSampleSceneColor(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_LWBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_REFLECTION_PROBE(viewDir, normalOS, lod) shadergraph_LWReflectionProbe(viewDir, normalOS, lod)
 #define SHADERGRAPH_FOG(position, color, density) shadergraph_LWFog(position, color, density)
