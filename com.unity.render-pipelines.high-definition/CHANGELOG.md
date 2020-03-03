@@ -420,6 +420,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a leak in the sky system.
 - Removed MSAA Buffers allocation when lit shader mode is set to "deferred only".
 - Fixed invalid cast for realtime reflection probes (case 1220504)
+- Fixed invalid game view rendering when disabling all cameras in the scene (case 1105163)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
