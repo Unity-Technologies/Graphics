@@ -19,6 +19,7 @@ Shader "Hidden/HDRP/TAA2"
         #pragma multi_compile_local _ ENABLE_ALPHA
         #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local _ ENABLE_MV_REJECTION
+        #pragma multi_compile_local _ ANTI_RINGING
         #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY
 
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch

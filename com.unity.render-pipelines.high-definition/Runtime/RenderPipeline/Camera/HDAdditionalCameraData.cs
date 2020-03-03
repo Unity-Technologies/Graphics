@@ -293,6 +293,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0.0f, 1.0f)]
         public float taaMotionVectorRejection = 0.0f;
 
+        /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
+        public bool taaAntiHistoryRinging = false;
+
         // REMOVE!
         public bool oldTAA = false;
 

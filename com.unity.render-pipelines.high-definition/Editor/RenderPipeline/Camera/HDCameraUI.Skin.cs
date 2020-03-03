@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent TAAAntiFlicker = EditorGUIUtility.TrTextContent("TAA Anti-flickering", "With high values flickering might be reduced, but it can lead to more ghosting or disocclusion artifacts.");
         static readonly GUIContent TAAMotionVectorRejection = EditorGUIUtility.TrTextContent("TAA Speed rejection", "Higher this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. High values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.");
         static readonly GUIContent TAAQualityLevelContent = EditorGUIUtility.TrTextContent("TAA Quality Preset", "Low quality is fast, but can lead to more ghosting and blurrier output when moving, Medium quality has better ghosting handling and sharper results upon movement, High allows for velocity rejection policy, has better antialiasing and has mechanism to combat ringing for over sharpening the history.");
+        static readonly GUIContent TAAAntiRingingContent = EditorGUIUtility.TrTextContent("TAA Anti-ringing", "When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.");
 
         static readonly GUIContent OldTAA = EditorGUIUtility.TrTextContent("OLD TAA", " IMPORTANT REMOVE OR RENAME.");
 

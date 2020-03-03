@@ -480,7 +480,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if(p.taaQualityLevel.intValue == (int)HDAdditionalCameraData.TAAQualityLevel.High)
+                {
                     EditorGUILayout.PropertyField(p.taaMotionVectorRejection, TAAMotionVectorRejection);
+                    EditorGUILayout.PropertyField(p.taaAntiRinging, TAAAntiRingingContent);
+                }
 
                 EditorGUILayout.PropertyField(p.oldTAA, OldTAA);
                 EditorGUI.indentLevel--;

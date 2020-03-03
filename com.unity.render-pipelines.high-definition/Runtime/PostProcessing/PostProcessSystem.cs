@@ -928,6 +928,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 TAAMat.DisableKeyword("FORCE_BILINEAR_HISTORY");
             }
 
+            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            {
+                TAAMat.EnableKeyword("ANTI_RINGING");
+            }
+            else
+            {
+                TAAMat.DisableKeyword("ANTI_RINGING");
+            }
+
+
             if (camera.taaMotionVectorRejection > 0)
             {
                 TAAMat.EnableKeyword("ENABLE_MV_REJECTION");

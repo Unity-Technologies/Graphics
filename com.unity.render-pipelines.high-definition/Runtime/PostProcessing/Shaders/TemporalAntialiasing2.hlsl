@@ -46,10 +46,6 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // Options
 // ---------------------------------------------------
 
-// Working space options
-#define PERCEPTUAL_SPACE 0
-#define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
-
 // History sampling options
 #define BILINEAR 0
 #define BICUBIC_5TAP 1
@@ -88,7 +84,8 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
     #define HISTORY_CLIP SIMPLE_CLAMP
     #define ANTI_FLICKER 0
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
-    #define ANTI_RINGING_BICUBIC 0
+    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE_ONLY_END 1 && (PERCEPTUAL_SPACE == 0)
 
 #elif defined(MEDIUM_QUALITY)
     // Currently this is around 0.89ms/PS4 @ 1080p, 0.85ms/XboxOne @ 900p 
@@ -100,7 +97,9 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
-    #define ANTI_RINGING_BICUBIC 0
+    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
 
 #elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
     #define YCOCG 1
@@ -111,7 +110,9 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
-    #define ANTI_RINGING_BICUBIC 1
+    #define PERCEPTUAL_SPACE 1
+    #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
+
 #endif
 
 // ---------------------------------------------------
@@ -390,7 +391,7 @@ CTYPE HistoryBicubic5Tap(float2 UV)
     float cw3 = (w3.x * w12.y);
     float cw4 = (w12.x *  w3.y);
 
-#if ANTI_RINGING_BICUBIC
+#ifdef ANTI_RINGING
     CTYPE min = Min3Color(s0, s1, s2);
     min = Min3Color(min, s3, s4);
 
@@ -409,7 +410,7 @@ CTYPE HistoryBicubic5Tap(float2 UV)
 
     CTYPE filteredVal = historyFiltered.CTYPE_SWIZZLE * rcp(weightSum);
 
-#if ANTI_RINGING_BICUBIC
+#if ANTI_RINGING
     // This sortof neighbourhood clamping seems to work to avoid the appearance of overly dark outlines in case
     // sharpening of history is too strong.
     return clamp(filteredVal, min, max);

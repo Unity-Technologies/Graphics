@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaHistorySharpening;
         public SerializedProperty taaAntiFlicker;
         public SerializedProperty taaMotionVectorRejection;
+        public SerializedProperty taaAntiRinging;
         public SerializedProperty taaQualityLevel;
 
         public SerializedProperty oldTAA;
@@ -79,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             taaHistorySharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistorySharpening);
             taaAntiFlicker = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiFlicker);
             taaMotionVectorRejection = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaMotionVectorRejection);
+            taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
             oldTAA = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.oldTAA);
 
