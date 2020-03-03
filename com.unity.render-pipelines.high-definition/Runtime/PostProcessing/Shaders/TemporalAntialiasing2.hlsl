@@ -274,10 +274,10 @@ float2 GetClosestFragment(int2 positionSS)
 
     int2 quadOffset = GetQuadOffset(positionSS);
 
-    int2 fastOffset = int2(-quadOffset.x, quadOffset.y);
-    int2 offset1 = quadOffset;
-    int2 offset2 = -quadOffset;
-    int2 offset3 = int2(quadOffset.x, -quadOffset.y);
+    int2 fastOffset = -quadOffset;
+    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
+    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
+    int2 offset3 = quadOffset;
 
     float s3 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, positionSS + offset3, 0).r;
     float s2 = LOAD_TEXTURE2D_X_LOD(_DepthTexture, positionSS + offset2, 0).r;
@@ -487,10 +487,11 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out N
     samples.neighbours[3] = QuadReadColorAcrossY(centralColor, positionSS);
 
     // Cross shape
-    int2 fastOffset = int2(-quadOffset.x, quadOffset.y);
-    int2 offset1 = quadOffset;
-    int2 offset2 = -quadOffset;
-    int2 offset3 = int2(quadOffset.x, -quadOffset.y);
+    int2 fastOffset = -quadOffset;
+    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
+    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
+    int2 offset3 = quadOffset;
+
 
     samples.neighbours[4] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[5] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
@@ -508,10 +509,10 @@ void GatherNeighbourhood(float2 UV, float2 positionSS, CTYPE centralColor, out N
 
 #else // SMALL_NEIGHBOURHOOD_SHAPE == CROSS
 
-    int2 fastOffset = int2(-quadOffset.x, quadOffset.y);
-    int2 offset1 = quadOffset;
-    int2 offset2 = -quadOffset;
-    int2 offset3 = int2(quadOffset.x, -quadOffset.y);
+    int2 fastOffset = -quadOffset;
+    int2 offset1 = int2(-quadOffset.x, quadOffset.y);
+    int2 offset2 = int2(quadOffset.x, -quadOffset.y);
+    int2 offset3 = quadOffset;
 
     samples.neighbours[0] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset1, _RTHandleScale.xy).CTYPE_SWIZZLE);
     samples.neighbours[1] = ConvertToWorkingSpace(Fetch4(_InputTexture, UV, offset2, _RTHandleScale.xy).CTYPE_SWIZZLE);
