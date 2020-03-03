@@ -419,6 +419,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Static lighting sky now takes the default volume into account (this fixes discrepancies between baked and realtime lighting).
 - Fixed a leak in the sky system.
 - Removed MSAA Buffers allocation when lit shader mode is set to "deferred only".
+- Fixed invalid cast for realtime reflection probes (case 1220504)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
