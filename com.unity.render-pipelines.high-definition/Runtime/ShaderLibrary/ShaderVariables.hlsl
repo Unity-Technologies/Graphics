@@ -24,9 +24,30 @@
 // This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
 #if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
 #define RAYTRACING_ENABLED (1)
+#define DirectionalShadowType float3
 #else
 #define RAYTRACING_ENABLED (0)
+#define DirectionalShadowType float
 #endif
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+// FXC Supports the naïve "recursive" concatenation, while DXC and C do not https://github.com/pfultz2/Cloak/wiki/C-Preprocessor-tricks,-tips,-and-idioms
+// However, FXC does not support the proper pattern (the one bellow), so we only override it in the case of ray tracing subshaders for the moment. 
+// Note that this should be used for all shaders when DX12 used DXC for vert/frag shaders (which it does not for the moment)
+#undef MERGE_NAME
+#define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
+#define MERGE_NAME(X, Y) MERGE_NAME_CONCAT(X, Y)
+
+#define RAY_TRACING_OPTIONAL_PARAMETERS , IntersectionVertex intersectionVertex, RayCone rayCone, out bool alphaTestResult
+#define GENERIC_ALPHA_TEST(alphaValue, alphaCutoffValue) DoAlphaTest(alphaValue, alphaCutoffValue, alphaTestResult); if (!alphaTestResult) {alphaTestResult = false; return;}
+#define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS alphaTestResult = true;
+#else
+#define RAY_TRACING_OPTIONAL_PARAMETERS
+#define GENERIC_ALPHA_TEST(alphaValue, alphaCutoffValue) DoAlphaTest(alphaValue, alphaCutoffValue);
+#define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
+#endif
+
+
 
 // ----------------------------------------------------------------------------
 
@@ -258,6 +279,9 @@ CBUFFER_START(UnityGlobal)
 
     float _ProbeExposureScale;
     int  _UseRayTracedReflections;
+    int  _RaytracingFrameIndex;
+
+    float4 _CoarseStencilBufferSize;
 
 CBUFFER_END
 
@@ -433,6 +457,17 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
+}
+
+uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
+{
+    // We need to shift the index to look up the right eye info.
+    return (pixCoord.y * screenSize.x + pixCoord.x) + eye * (screenSize.x * screenSize.y);
+}
+
+uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
+{
+    return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
 // Define Model Matrix Macro

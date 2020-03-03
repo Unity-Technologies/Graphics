@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (view != null)
                 {
-                    PasteBlocks(view, ref serializableGraph);
+                    PasteBlocks(view, ref serializableGraph, nodesInTheSameOrder);
                 }
             }
             else
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.UI
 
         static readonly GUIContent m_BlockPasteError = EditorGUIUtility.TextContent("To paste blocks, please select one target block or one target context.");
 
-        void PasteBlocks(VFXView view, ref SerializableGraph serializableGraph)
+        void PasteBlocks(VFXView view, ref SerializableGraph serializableGraph, List<VFXNodeController> nodesInTheSameOrder)
         {
             var selectedContexts = view.selection.OfType<VFXContextUI>();
             var selectedBlocks = view.selection.OfType<VFXBlockUI>();
@@ -98,7 +98,13 @@ namespace UnityEditor.VFX.UI
                 targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
             }
 
-            targetIndex = PasteBlocks(view.controller, serializableGraph.operators, targetModelContext, targetIndex);
+
+            List<VFXBlockController> blockControllers = nodesInTheSameOrder != null ? new List<VFXBlockController>() : null;
+
+            targetIndex = PasteBlocks(view.controller, serializableGraph.operators, targetModelContext, targetIndex, blockControllers);
+
+            if(nodesInTheSameOrder != null)
+                nodesInTheSameOrder.AddRange(blockControllers.Cast<VFXNodeController>());
 
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
@@ -261,6 +267,7 @@ namespace UnityEditor.VFX.UI
             }
 
             newContext.label = context.label;
+            VFXSystemNames.SetSystemName(newContext, context.systemName);
 
             if (newContext is VFXAbstractRenderedOutput)
                 PasteSubOutputs((VFXAbstractRenderedOutput)newContext, ref context);

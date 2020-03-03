@@ -9,6 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
@@ -47,7 +48,7 @@ void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     // 16 * 4 = 64. We process data by group of 4 pixel
     uint2 viTilLL = 16 * tileIDX;
 
-    float2 invScreenSize = float2(1.0f / iWidth, 1.0f / iHeight);
+    float2 invScreenSize = float2(1.0 / iWidth, 1.0 / iHeight);
 
     if (threadID == 0)
     {
@@ -57,15 +58,14 @@ void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
     uint materialFeatureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
     UNITY_UNROLL
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         int idx = i * NR_THREADS + threadID;
-        uint2 uCrd = min( uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
-
-        // StencilTexture here contain the result of testing if we are not equal to stencil usage NoLighting. i.e (stencil value != NoLighting). A value > 0 means true.
-        // This test if we are the sky/background or a forward opaque (which tag the stencil as NoLighting)
+        uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
+        
+        // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
         uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uCrd));
-        if (stencilVal > 0)
+        if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) > 0)
         {
             PositionInputs posInput = GetPositionInput(uCrd, invScreenSize);
             materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(posInput.positionSS);
@@ -75,10 +75,11 @@ void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     InterlockedOr(ldsFeatureFlags, materialFeatureFlags);   //TODO: driver might optimize this or we might have to do a manual reduction
     GroupMemoryBarrierWithGroupSync();
 
-    if(threadID == 0)
+    if (threadID == 0)
     {
         uint tileIndex = tileIDX.y * nrTilesX + tileIDX.x;
 
+        // TODO: shouldn't this always enabled?
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
         tileIndex += unity_StereoEyeIndex * nrTilesX * nrTilesY;
 #endif

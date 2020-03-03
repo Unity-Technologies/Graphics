@@ -20,6 +20,8 @@ MonoBehaviour:
     type: 3}
   shadowRaytracingRT: {fileID: 4807578003741378534, guid: 6f93cb4dc095de14993f8d2baa972d5b,
     type: 3}
+  contactShadowRayTracingRT: {fileID: 4807578003741378534, guid: acaf840af875ab541b8f10069b7444c8,
+    type: 3}
   shadowRaytracingCS: {fileID: 7200000, guid: fc95b5dff16ba594896e211a389c03fc, type: 3}
   shadowFilterCS: {fileID: 7200000, guid: f71fd853a538bf74e9e5a7228fc14dae, type: 3}
   forwardRaytracing: {fileID: 4807578003741378534, guid: d3a89a2d3f73b3e4da6f191e844fe68c,
@@ -33,6 +35,8 @@ MonoBehaviour:
   indirectDiffuseRaytracingCS: {fileID: 7200000, guid: c5ad968b7cd39114d85dd860b3809087,
     type: 3}
   aoRaytracing: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
+    type: 3}
+  subSurfaceRayTracing: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
     type: 3}
   temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
   simpleDenoiserCS: {fileID: 7200000, guid: 74a980f1da9a4f842996035350fe756c, type: 3}

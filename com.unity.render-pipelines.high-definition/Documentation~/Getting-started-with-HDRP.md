@@ -26,9 +26,9 @@ In the Template Scene, you can view GameObjects in the Inspector to see things l
 
 ## Pipeline setup
 
-Before you can use HDRP, you need an HDRP Asset, which controls the global rendering settings and creates an instance of the HD render pipeline. The **High-Definition RP** Template creates an HDRP Asset for you, but you can create different HDRP Assets to suit your rendering needs, such as one HDRP Asset for every target platform. An HDRP Asset allows you to enable features for your entire Project in the Editor. It allocates memory for the different features, so you cannot edit them at run time. For more information, see [HDRP Asset](HDRP-Asset.html).
+Before you can use HDRP, you need an HDRP Asset, which controls the global rendering settings and creates an instance of the HD render pipeline. The **High-Definition RP** Template creates an HDRP Asset for you, but you can create different HDRP Assets to suit your rendering needs, such as one HDRP Asset for every target platform. An HDRP Asset allows you to enable features for your entire Project in the Editor. It allocates memory for the different features, so you cannot edit them at runtime. For more information, see [HDRP Asset](HDRP-Asset.html).
 
-To find the right balance between render quality and run-time performance, adjust the [Frame Settings](Frame-Settings.html) for your [Cameras](HDRP-Camera.html). Frame Settings allow you to enable or disable effects at run time on a per-Camera basis, as long as you enable the effect in the HDRP Asset before entering Play Mode/building your HDRP Project.
+To find the right balance between render quality and runtime performance, adjust the [Frame Settings](Frame-Settings.html) for your [Cameras](HDRP-Camera.html). Frame Settings allow you to enable or disable effects at runtime on a per-Camera basis, as long as you enable the effect in the HDRP Asset before entering Play Mode/building your HDRP Project.
 
 ## Render Pipeline Wizard
 
@@ -60,6 +60,8 @@ HDRP provides Shaders that allow you to create a wide variety of different Mater
 ## Lighting
 
 To apply realistic lighting to your Scenes, HDRP uses Physical Light Units (PLU), which are based on real-life measurable values, just like you would see when looking for light bulbs at a store or measuring light with a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). For more information, see [Physical Light Units](Physical-Light-Units.html).
+
+Also note that because of that, the HDRI sky used by HDRP by default has an exposure of 10. However, newly created directional lights have an intensity of 3.14 which can cause objects to look black because of the auto exposure compensating for the overly bright sky. Setting a value of 10000 to your directional light should work fine for a mix of indoor and outdoor scenes. If the HDRP wizard was setup properly, newly created scenes should have coherent values out of the box.
 
 For more information, see [HDRP Lighting features](HDRP-Features.html#Lighting). For advice on adding lights to your Scene, see [Light](Light-Component.html).
 

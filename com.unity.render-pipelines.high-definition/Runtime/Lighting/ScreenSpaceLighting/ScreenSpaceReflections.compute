@@ -13,7 +13,6 @@
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
 #define SSR_TRACE_EPS            0.00024414 // 2^-12, should be good up to 4K
-#define SSR_USE_STENCIL // enable to take into account the disable reflection flags
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -51,9 +50,10 @@
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
     StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+    StructuredBuffer<uint>  _CoarseStencilBuffer;
 
 CBUFFER_START(UnityScreenSpaceReflections)
-    int   _SsrStencilExclusionValue;
+    int   _SsrStencilBit;
     int   _SsrIterLimit;
     float _SsrThicknessScale;
     float _SsrThicknessBias;
@@ -94,20 +94,31 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 #ifdef SSR_TRACE
 
 [numthreads(8, 8, 1)]
-void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
+void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
+                                   uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
 
-#ifdef SSR_USE_STENCIL
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, dispatchThreadId.xy));
-    bool doesntReceiveSSR = (stencilValue & _SsrStencilExclusionValue) != 0;
+    // Check HTile first. Note htileAddress should be already in scalar before WaveReadLaneFirst, but forcing it to be sure.
+    // TODO: Verify the need of WaveReadLaneFirst
+    uint htileAddress = WaveReadLaneFirst(Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z));
+    uint htileValue   = _CoarseStencilBuffer[htileAddress];
+
+    bool doesntReceiveSSR = (htileValue & _SsrStencilBit) == 0;
     if (doesntReceiveSSR)
     {
         WriteDebugInfo(positionSS, -1);
         return;
     }
-#endif
+
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, dispatchThreadId.xy));
+    doesntReceiveSSR = (stencilValue & _SsrStencilBit) == 0;
+    if (doesntReceiveSSR)
+    {
+        WriteDebugInfo(positionSS, -1);
+        return;
+    }
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
     float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;

@@ -19,12 +19,11 @@ namespace UnityEngine.Rendering.HighDefinition
             NeighborhoodBlending = 2
         }
 
-        const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
+        GraphicsFormat m_ColorFormat               = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat           = GraphicsFormat.R16_SFloat;
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
-        bool m_ResetHistory;
         Material m_FinalPassMaterial;
         Material m_ClearBlackMaterial;
         Material m_SMAAMaterial;
@@ -47,6 +46,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_BokehIndirectCmd;
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
+
+        //  AMD-CAS data
+        ComputeBuffer m_ContrastAdaptiveSharpen;
 
         // Bloom data
         const int k_MaxBloomMipCount = 16;
@@ -92,6 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_LensDistortionFS;
         bool m_VignetteFS;
         bool m_ColorGradingFS;
+        bool m_TonemappingFS;
         bool m_FilmGrainFS;
         bool m_DitheringFS;
         bool m_AntialiasingFS;
@@ -104,7 +107,12 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_TempTexture1024; // RGHalf
         RTHandle m_TempTexture32;   // RGHalf
 
-        readonly bool m_KeepAlpha;
+        // HDRP has the following behavior regarding alpha:
+        // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
+        // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
+        // If the user explicitly requests a color buffer without alpha for post-processing (for performance reasons) but the rendering passes have alpha, then the alpha will be copied.
+        readonly bool m_EnableAlpha;
+        readonly bool m_KeepAlpha; 
         RTHandle m_AlphaTexture; // RHalf
 
         readonly TargetPool m_Pool;
@@ -154,6 +162,18 @@ namespace UnityEngine.Rendering.HighDefinition
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
             PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion);
+
+            //Alpha mask variants:
+            {
+                PushUberFeature(UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
+                PushUberFeature(UberPostFeatureFlags.ChromaticAberration | UberPostFeatureFlags.Vignette | UberPostFeatureFlags.LensDistortion | UberPostFeatureFlags.EnableAlpha);
+            }
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -209,18 +229,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 32, 32, colorFormat: GraphicsFormat.R16G16_SFloat,
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
+   
+            m_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
+            m_KeepAlpha = false;
 
-            // Used to copy the alpha channel of the color buffer if the format is set to fp16
-            m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.keepAlpha;
+            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.supportsAlpha;
+
+            if (m_EnableAlpha == false)
+            {
+                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
+            }
+
             if (m_KeepAlpha)
             {
                 m_AlphaTexture = RTHandles.Alloc(
-                    Vector2.one, slices: TextureXR.slices, dimension: TextureXR.dimension,
-                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "Alpha Channel Copy"
-                );
+                   Vector2.one, slices: TextureXR.slices, dimension: TextureXR.dimension,
+                   colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "Alpha Channel Copy"
+               );
             }
-
-            ResetHistory();
         }
 
         public void Cleanup()
@@ -241,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
             m_EmptyExposureTexture      = null;
             m_TempTexture1024           = null;
@@ -256,39 +285,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
-
-            // Cleanup Custom Post Process
-            var currentHDRP = HDRenderPipeline.currentAsset;
-            if (currentHDRP != null)
-            {
-                foreach (var typeString in currentHDRP.beforeTransparentCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.beforePostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.afterPostProcessCustomPostProcesses)
-                    CleanupCustomPostProcess(typeString);
-
-                void CleanupCustomPostProcess(string typeString)
-                {
-                    Type t = Type.GetType(typeString);
-
-                    if (t == null)
-                        return;
-
-                    var comp = VolumeManager.instance.stack.GetComponent(t) as CustomPostProcessVolumeComponent;                    comp.CleanupInternal();
-                    comp.CleanupInternal();
-                }
-            }
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ResetHistory() => m_ResetHistory = true;
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
         {
             m_HDInstance = hdInstance;
             m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
-            m_AnimatedMaterialsEnabled = CoreUtils.AreAnimatedMaterialsEnabled(camera.camera);
+            m_AnimatedMaterialsEnabled = camera.animateMaterials;
 
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
@@ -296,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
             m_Exposure                  = stack.GetComponent<Exposure>();
             m_DepthOfField              = stack.GetComponent<DepthOfField>();
             m_MotionBlur                = stack.GetComponent<MotionBlur>();
@@ -328,6 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
             m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
             m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
@@ -342,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (IsExposureFixed())
                 {
-                    using (new ProfilingSample(cmd, "Fixed Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
                         DoFixedExposure(cmd, camera);
                     }
@@ -374,17 +378,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool isSceneView = camera.camera.cameraType == CameraType.SceneView;
 
-            using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PostProcessing)))
             {
-                // Save the alpha and apply it back into the final pass if working in fp16
-                if (m_KeepAlpha)
+            	// Save the alpha and apply it back into the final pass if rendering in fp16 and post-processing in r11g11b10
+                if(m_KeepAlpha)
                 {
-                    using (new ProfilingSample(cmd, "Alpha Copy", CustomSamplerId.AlphaCopy.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
                     {
                         DoCopyAlpha(cmd, camera, colorBuffer);
                     }
                 }
-
                 var source = colorBuffer;
 
                 if (m_PostProcessEnabled)
@@ -417,9 +420,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (stopNaNs)
                     {
-                        using (new ProfilingSample(cmd, "Stop NaNs", CustomSamplerId.StopNaNs.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.StopNaNs)))
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             DoStopNaNs(cmd, camera, source, destination);
                             PoolSource(ref source, destination);
                         }
@@ -430,10 +433,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Not considered as a post-process so it's not affected by its enabled state
                 if (!IsExposureFixed() && m_ExposureControlFS)
                 {
-                    using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
                         DoDynamicExposure(cmd, camera, source, lightingBuffer);
+
+                        // On reset history we need to apply dynamic exposure immediately to avoid
+                        // white or black screen flashes when the current exposure isn't anywhere
+                        // near 0
+                        if (camera.resetPostProcessingHistory)
+                        {
+                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+
+                            var cs = m_Resources.shaders.applyExposureCS;
+                            int kernel = cs.FindKernel("KMain");
+
+                            // Note: we call GetPrevious instead of GetCurrent because the textures
+                            // are swapped internally as the system expects the texture will be used
+                            // on the next frame. So the actual "current" for this frame is in
+                            // "previous".
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureTexture, GetPreviousExposureTexture(camera));
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+
+                            PoolSource(ref source, destination);
                     }
+                }
                 }
 
                 if (m_PostProcessEnabled)
@@ -447,18 +472,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (taaEnabled)
                         {
-                            using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
                             {
-                                var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 DoTemporalAntialiasing(cmd, camera, source, destination, depthBuffer);
                                 PoolSource(ref source, destination);
                             }
                         }
                         else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                         {
-                            using (new ProfilingSample(cmd, "SMAA", CustomSamplerId.SMAA.GetSampler()))
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SMAA)))
                             {
-                                var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                                 DoSMAA(cmd, camera, source, destination, depthBuffer);
                                 PoolSource(ref source, destination);
                             }
@@ -467,9 +492,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                     {
-                        using (new ProfilingSample(cmd, "Custom Post Processes Before PP", CustomSamplerId.CustomPostProcessBeforePP.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.beforePostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -478,9 +503,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // map rather than having to deal with all the implications of doing it before TAA
                     if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS)
                     {
-                        using (new ProfilingSample(cmd, "Depth of Field", CustomSamplerId.DepthOfField.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             DoDepthOfField(cmd, camera, source, destination, taaEnabled);
                             PoolSource(ref source, destination);
                         }
@@ -488,11 +513,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory && m_MotionBlurFS)
+                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
                     {
-                        using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlur)))
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             DoMotionBlur(cmd, camera, source, destination);
                             PoolSource(ref source, destination);
                         }
@@ -504,16 +529,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     // HDRP to reduce the amount of resolution lost at the center of the screen
                     if (m_PaniniProjection.IsActive() && !isSceneView && m_PaniniProjectionFS)
                     {
-                        using (new ProfilingSample(cmd, "Panini Projection", CustomSamplerId.PaniniProjection.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PaniniProjection)))
                         {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             DoPaniniProjection(cmd, camera, source, destination);
                             PoolSource(ref source, destination);
                         }
                     }
 
                     // Combined post-processing stack - always runs if postfx is enabled
-                    using (new ProfilingSample(cmd, "Uber", CustomSamplerId.UberPost.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UberPost)))
                     {
                         // Feature flags are passed to all effects and it's their responsibility to check
                         // if they are used or not so they can set default values if needed
@@ -526,7 +551,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (bloomActive)
                         {
-                            using (new ProfilingSample(cmd, "Bloom", CustomSamplerId.Bloom.GetSampler()))
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
                                 DoBloom(cmd, camera, source, cs, kernel);
                             }
@@ -539,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         // Build the color grading lut
-                        using (new ProfilingSample(cmd, "Color Grading LUT Builder", CustomSamplerId.ColorGradingLUTBuilder.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
                         {
                             DoColorGrading(cmd, cs, kernel);
                         }
@@ -550,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         DoVignette(cmd, cs, kernel, featureFlags);
 
                         // Run
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
 
                         bool outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
                         cmd.SetComputeVectorParam(cs, "_DebugFlags", new Vector4(outputColorLog ? 1 : 0, 0, 0, 0));
@@ -568,9 +593,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                     {
-                        using (new ProfilingSample(cmd, "Custom Post Processes After PP", CustomSamplerId.CustomPostProcessAfterPP.GetSampler()))
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterPP)))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.afterPostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -580,23 +605,59 @@ namespace UnityEngine.Rendering.HighDefinition
                     camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing &&
                     m_AntialiasingFS)
                 {
-                    using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FXAA)))
                     {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                         DoFXAA(cmd, camera, source, destination);
                         PoolSource(ref source, destination);
                     }
                 }
 
+                // Contrast Adaptive Sharpen Upscaling
+                if (dynResHandler.DynamicResolutionEnabled() &&
+                    dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
+                    {
+                        var destination = m_Pool.Get(Vector2.one , m_ColorFormat);
+                        
+                        var cs = m_Resources.shaders.contrastAdaptiveSharpenCS;
+                        int kInit = cs.FindKernel("KInitialize");
+                        int kMain = cs.FindKernel("KMain");
+                        if (kInit >= 0 && kMain >= 0)
+                        {
+                            cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width,source.rt.height));
+                            cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+
+                            ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
+
+                            cmd.SetComputeBufferParam(cs, kInit, "CasParameters", m_ContrastAdaptiveSharpen);
+                            cmd.SetComputeBufferParam(cs, kMain, "CasParameters", m_ContrastAdaptiveSharpen);
+
+                            cmd.DispatchCompute(cs, kInit, 1, 1, 1);
+
+                            int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
+                            int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+
+                            cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, camera.viewCount);
+                        }
+
+                        PoolSource(ref source, destination);
+                    }
+                }
+
                 // Final pass
-                using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FinalPost)))
                 {
                     DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
                     PoolSource(ref source, null);
                 }
             }
 
-            m_ResetHistory = false;
+            camera.resetPostProcessingHistory = false;
         }
 
         void PushUberFeature(UberPostFeatureFlags flags)
@@ -627,6 +688,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
                 flags |= UberPostFeatureFlags.LensDistortion;
+
+            if (m_EnableAlpha)
+            {
+                flags |= UberPostFeatureFlags.EnableAlpha;
+            }
 
             return flags;
         }
@@ -777,10 +843,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
 
-            if (!Application.isPlaying || m_ResetHistory)
+            if (!Application.isPlaying || camera.resetPostProcessingHistory)
                 adaptationMode = AdaptationMode.Fixed;
 
-            if (m_ResetHistory)
+            if (camera.resetPostProcessingHistory)
             {
                 kernel = cs.FindKernel("KReset");
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -843,8 +909,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
 
+            if (m_EnableAlpha)
+            {
+                m_TemporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
+            }
 
-            if (m_ResetHistory)
+            if (camera.resetPostProcessingHistory)
             {
                 m_TAAHistoryBlitPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
                 var rtScaleSource = source.rtHandleProperties.rtHandleScale;
@@ -854,8 +924,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
             }
 
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
@@ -864,16 +934,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
         }
 
-        static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: k_ColorFormat,
+                    filterMode: FilterMode.Bilinear, colorFormat: m_ColorFormat,
                     enableRandomWrite: true, useDynamicScale: true, name: "TAA History"
                 );
             }
@@ -886,7 +957,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Depth Of Field
-
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -947,6 +1017,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
+            // We want at least 3 samples for both far and near
+            farSamples = Mathf.Max(3, farSamples);
+            nearSamples = Mathf.Max(3, nearSamples);
+
             float farMaxBlur = m_DepthOfField.farMaxBlur * resolutionScale;
             float nearMaxBlur = m_DepthOfField.nearMaxBlur * resolutionScale;
 
@@ -966,8 +1040,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (nearLayerActive)
             {
-                pingNearRGB = m_Pool.Get(screenScale, k_ColorFormat);
-                pongNearRGB = m_Pool.Get(screenScale, k_ColorFormat);
+                pingNearRGB = m_Pool.Get(screenScale, m_ColorFormat);
+                pongNearRGB = m_Pool.Get(screenScale, m_ColorFormat);
                 nearCoC = m_Pool.Get(screenScale, k_CoCFormat);
                 nearAlpha = m_Pool.Get(screenScale, k_CoCFormat);
                 dilatedNearCoC = m_Pool.Get(screenScale, k_CoCFormat);
@@ -975,8 +1049,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (farLayerActive)
             {
-                pingFarRGB = m_Pool.Get(screenScale, k_ColorFormat, true);
-                pongFarRGB = m_Pool.Get(screenScale, k_ColorFormat);
+                pingFarRGB = m_Pool.Get(screenScale, m_ColorFormat, true);
+                pongFarRGB = m_Pool.Get(screenScale, m_ColorFormat);
                 farCoC = m_Pool.Get(screenScale, k_CoCFormat, true);
             }
 
@@ -985,7 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // -----------------------------------------------------------------------------
             // Render logic
 
-            using (new ProfilingSample(cmd, "Generate Kernels", CustomSamplerId.DepthOfFieldKernel.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldKernel)))
             {
                 // -----------------------------------------------------------------------------
                 // Pass: generate bokeh kernels
@@ -1016,7 +1090,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            using (new ProfilingSample(cmd, "CoC", CustomSamplerId.DepthOfFieldCoC.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCoC)))
             {
                 // -----------------------------------------------------------------------------
                 // Pass: compute CoC in full-screen (needed for temporal re-projection & combine)
@@ -1032,7 +1106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
                     float P = m_DepthOfField.focusDistance.value;
-                    float maxCoC = (A * F) / (P - F);
+                    float maxCoC = (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     kernel = cs.FindKernel("KMainPhysical");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(P, maxCoC, 0f, 0f));
@@ -1042,7 +1116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float nearEnd = m_DepthOfField.nearFocusEnd.value;
                     float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
                     float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
-                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart);
+                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
 
                     kernel = cs.FindKernel("KMainManual");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
@@ -1061,7 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
                     kernel = cs.FindKernel("KMain");
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(m_ResetHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(camera.resetPostProcessingHistory ? 0f : 0.91f, cocHistoryScale.x, cocHistoryScale.y, 0f));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
@@ -1076,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
             }
 
-            using (new ProfilingSample(cmd, "Pre-Filter", CustomSamplerId.DepthOfFieldPrefilter.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPrefilter)))
             {
                 // -----------------------------------------------------------------------------
                 // Pass: downsample & prefilter CoC and layers
@@ -1086,9 +1160,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cs = m_Resources.shaders.depthOfFieldPrefilterCS;
 
-                kernel = m_DepthOfField.resolution == DepthOfFieldResolution.Full
-                    ? cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes")
-                    : cs.FindKernel(bothLayersActive ? "KMainNearFar" : nearLayerActive ? "KMainNear" : "KMainFar");
+                if(m_EnableAlpha)
+                {
+                    // kernels with alpha channel:
+                    kernel = cs.FindKernel(m_DepthOfField.resolution == DepthOfFieldResolution.Full ?
+                    (bothLayersActive ? "KMainNearFarFullResAlpha" : nearLayerActive ? "KMainNearFullResAlpha" : "KMainFarFullResAlpha") :
+                    (bothLayersActive ? "KMainNearFarAlpha" : nearLayerActive ? "KMainNearAlpha" : "KMainFarAlpha"));
+                }
+                else
+                {
+                    // kernels without alpha channel:
+                    kernel = cs.FindKernel(m_DepthOfField.resolution == DepthOfFieldResolution.Full ?
+                    (bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes") :
+                    (bothLayersActive ? "KMainNearFar" : nearLayerActive ? "KMainNear" : "KMainFar"));
+                }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
@@ -1111,7 +1196,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (farLayerActive)
             {
-                using (new ProfilingSample(cmd, "Pyramid", CustomSamplerId.DepthOfFieldPyramid.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: mip generation
@@ -1125,14 +1210,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // The other compute fails hard on Intel because of texture format issues
                         cs = m_Resources.shaders.depthOfFieldMipSafeCS;
-                        kernel = cs.FindKernel("KMain");
+                        kernel = cs.FindKernel(m_EnableAlpha? "KMainAlpha" : "KMain");
                         var mipScale = scale;
 
                         for (int i = 0; i < 4; i++)
                         {
                             mipScale *= 0.5f;
                             var size = new Vector2Int(Mathf.RoundToInt(camera.actualWidth * mipScale), Mathf.RoundToInt(camera.actualHeight * mipScale));
-                            var mip = m_Pool.Get(new Vector2(mipScale, mipScale), k_ColorFormat);
+                            var mip = m_Pool.Get(new Vector2(mipScale, mipScale), m_ColorFormat);
 
                             cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                             int gx = (size.x + 7) / 8;
@@ -1154,7 +1239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         cs = m_Resources.shaders.depthOfFieldMipCS;
-                        kernel = cs.FindKernel("KMainColor");
+                        kernel = cs.FindKernel(m_EnableAlpha ? "KMainColorAlpha": "KMainColor");
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB, 0);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, pingFarRGB, 1);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, pingFarRGB, 2);
@@ -1176,7 +1261,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (nearLayerActive)
             {
-                using (new ProfilingSample(cmd, "Dilate", CustomSamplerId.DepthOfFieldDilate.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: dilate the near CoC
@@ -1213,7 +1298,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (useTiles)
             {
-                using (new ProfilingSample(cmd, "Tile Max", CustomSamplerId.DepthOfFieldTileMax.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldTileMax)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: tile-max classification
@@ -1254,7 +1339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (farLayerActive)
             {
-                using (new ProfilingSample(cmd, "Gather Far", CustomSamplerId.DepthOfFieldGatherFar.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherFar)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: bokeh blur the far layer
@@ -1268,7 +1353,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     cs = m_Resources.shaders.depthOfFieldGatherCS;
-                    kernel = cs.FindKernel(useTiles ? "KMainFarTiles" : "KMainFar");
+                    kernel = m_EnableAlpha ?
+                        cs.FindKernel(useTiles ? "KMainFarTilesAlpha" : "KMainFarAlpha") :
+                        cs.FindKernel(useTiles ? "KMainFarTiles" : "KMainFar");
+
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farSamples, farSamples * farSamples, barrelClipping, farMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
@@ -1290,7 +1378,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (nearLayerActive)
             {
-                using (new ProfilingSample(cmd, "Pre-Combine", CustomSamplerId.DepthOfFieldPreCombine.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPreCombine)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: if the far layer was active, use it as a source for the near blur to
@@ -1299,7 +1387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (farLayerActive)
                     {
                         cs = m_Resources.shaders.depthOfFieldCombineCS;
-                        kernel = cs.FindKernel("KMainPreCombineFar");
+                        kernel = cs.FindKernel(m_EnableAlpha ? "KMainPreCombineFarAlpha" : "KMainPreCombineFar");
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputFarTexture, pongFarRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
@@ -1310,7 +1398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                using (new ProfilingSample(cmd, "Gather Near", CustomSamplerId.DepthOfFieldGatherNear.GetSampler()))
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
                 {
                     // -----------------------------------------------------------------------------
                     // Pass: bokeh blur the near layer
@@ -1329,7 +1417,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     cs = m_Resources.shaders.depthOfFieldGatherCS;
-                    kernel = cs.FindKernel(useTiles ? "KMainNearTiles" : "KMainNear");
+                    kernel = m_EnableAlpha ?
+                        cs.FindKernel(useTiles ? "KMainNearTilesAlpha" : "KMainNearAlpha") :
+                        cs.FindKernel(useTiles ? "KMainNearTiles" : "KMainNear");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearSamples, nearSamples * nearSamples, barrelClipping, nearMaxBlur));
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(targetWidth, targetHeight, 1f / targetWidth, 1f / targetHeight));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingNearRGB);
@@ -1351,19 +1441,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            using (new ProfilingSample(cmd, "Combine", CustomSamplerId.DepthOfFieldCombine.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 // -----------------------------------------------------------------------------
                 // Pass: combine blurred layers with source color
 
                 cs = m_Resources.shaders.depthOfFieldCombineCS;
 
-                if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes");
-                else if (hqFiltering)
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarHighQ" : nearLayerActive ? "KMainNearHighQ" : "KMainFarHighQ");
+                if(m_EnableAlpha)
+                {
+                    if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarFullResAlpha" : nearLayerActive ? "KMainNearFullResAlpha" : "KMainFarFullResAlpha");
+                    else if (hqFiltering)
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarHighQAlpha" : nearLayerActive ? "KMainNearHighQAlpha" : "KMainFarHighQAlpha");
+                    else
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarLowQAlpha" : nearLayerActive ? "KMainNearLowQAlpha" : "KMainFarLowQAlpha");
+                }
                 else
-                    kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarLowQ" : nearLayerActive ? "KMainNearLowQ" : "KMainFarLowQ");
+                {
+                    if (m_DepthOfField.resolution == DepthOfFieldResolution.Full)
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarFullRes" : nearLayerActive ? "KMainNearFullRes" : "KMainFarFullRes");
+                    else if (hqFiltering)
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarHighQ" : nearLayerActive ? "KMainNearHighQ" : "KMainFarHighQ");
+                    else
+                        kernel = cs.FindKernel(bothLayersActive ? "KMainNearFarLowQ" : nearLayerActive ? "KMainNearLowQ" : "KMainFarLowQ");
+                }
 
                 if (nearLayerActive)
                 {
@@ -1448,7 +1550,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_MotionBlurSupportsScattering)
             {
                 tileToScatterMax = m_Pool.Get(tileTexScale, GraphicsFormat.R32_UInt);
-                tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_UInt);
+                tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_SFloat);
             }
 
             float screenMagnitude = (new Vector2(camera.actualWidth, camera.actualHeight).magnitude);
@@ -1467,6 +1569,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MotionBlur.cameraRotationVelocityClamp.value
             );
 
+            uint sampleCount = (uint)m_MotionBlur.sampleCount;
+            Vector4 motionBlurParams2 = new Vector4(
+                m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
+                tileSize,
+                m_MotionBlur.depthComparisonExtent.value,
+                m_MotionBlur.cameraMotionBlur.value ? 0.0f : 1.0f
+            );
             // -----------------------------------------------------------------------------
             // Prep motion vectors
 
@@ -1478,13 +1587,15 @@ namespace UnityEngine.Rendering.HighDefinition
             int groupSizeX = 8;
             int groupSizeY = 8;
 
-            using (new ProfilingSample(cmd, "Motion Vectors prepping", CustomSamplerId.MotionBlurMotionVecPrep.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurMotionVecPrep)))
             {
                 cs = m_Resources.shaders.motionBlurMotionVecPrepCS;
                 kernel = cs.FindKernel("MotionVecPreppingCS");
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams2);
+
                 cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
@@ -1496,7 +1607,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // -----------------------------------------------------------------------------
             // Generate MinMax motion vectors tiles
 
-            using (new ProfilingSample(cmd, "Tile Min Max", CustomSamplerId.MotionBlurTileMinMax.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurTileMinMax)))
             {
                 // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
                 cs = m_Resources.shaders.motionBlurTileGenCS;
@@ -1527,7 +1638,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // -----------------------------------------------------------------------------
             // Generate max tiles neigbhourhood
 
-            using (new ProfilingSample(cmd, m_MotionBlurSupportsScattering ? "Tile Scattering" :  "Tile Neighbourhood", CustomSamplerId.MotionBlurTileNeighbourhood.GetSampler()))
+            using (new ProfilingScope(cmd, m_MotionBlurSupportsScattering ? ProfilingSampler.Get(HDProfileId.MotionBlurTileScattering) : ProfilingSampler.Get(HDProfileId.MotionBlurTileNeighbourhood)))
             {
                 cs = m_Resources.shaders.motionBlurTileGenCS;
                 if (m_MotionBlurSupportsScattering)
@@ -1568,16 +1679,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // -----------------------------------------------------------------------------
             // Blur kernel
-            using (new ProfilingSample(cmd, "Blur Kernel", CustomSamplerId.MotionBlurKernel.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
-                uint sampleCount = (uint)m_MotionBlur.sampleCount;
-                Vector4 motionBlurParams2 = new Vector4(
-                    m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
-                    tileSize,
-                    m_MotionBlur.depthComparisonExtent.value,
-                    0.0f
-                    );
-
                 cs = m_Resources.shaders.motionBlurCS;
                 kernel = cs.FindKernel("MotionBlurCS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
@@ -1700,7 +1803,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the scene is less than 50% of 900p, then we operate on full res, since it's going to be cheap anyway and this might improve quality in challenging situations.
             // Also we switch to bilinear upsampling as it goes less wide than bicubic and due to our border/RTHandle handling, going wide on small resolution
-            // where small mips have a strong influence, might result problematic. 
+            // where small mips have a strong influence, might result problematic.
             if (camera.actualWidth < 800 || camera.actualHeight < 450)
             {
                 scaleW = 1.0f;
@@ -1721,6 +1824,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 2 - (resolution == BloomResolution.Half ? 0 : 1));
             int mipCount = Mathf.Clamp(iterations, 1, k_MaxBloomMipCount);
             var mipSizes = stackalloc Vector2Int[mipCount];
+
+            // Thresholding
+            // A value of 0 in the UI will keep energy conservation
+            const float k_Softness = 0.5f;
+            float lthresh = Mathf.GammaToLinearSpace(m_Bloom.threshold.value);
+            float knee = lthresh * k_Softness + 1e-5f;
+            var threshold = new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
 
             // Prepare targets
             // We could have a single texture with mips but because we can't bind individual mips as
@@ -1746,8 +1856,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var pixelSize = new Vector2Int(pw, ph);
 
                 mipSizes[i] = pixelSize;
-                m_BloomMipsDown[i] = m_Pool.Get(scale, k_ColorFormat);
-                m_BloomMipsUp[i] = m_Pool.Get(scale, k_ColorFormat);
+                m_BloomMipsDown[i] = m_Pool.Get(scale, m_ColorFormat);
+                m_BloomMipsUp[i] = m_Pool.Get(scale, m_ColorFormat);
             }
 
             // All the computes for this effect use the same group size so let's use a local
@@ -1770,7 +1880,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeShader cs;
             int kernel;
 
-            if (m_Bloom.prefilter.value)
             {
                 var size = mipSizes[0];
                 cs = m_Resources.shaders.bloomPrefilterCS;
@@ -1779,23 +1888,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsUp[0]); // Use m_BloomMipsUp as temp target
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomThreshold, threshold);
                 DispatchWithGuardBands(cs, kernel, size);
 
                 cs = m_Resources.shaders.bloomBlurCS;
                 kernel = cs.FindKernel("KMain"); // Only blur
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_BloomMipsUp[0]);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
-                DispatchWithGuardBands(cs, kernel, size);
-            }
-            else
-            {
-                var size = mipSizes[0];
-                cs = m_Resources.shaders.bloomBlurCS;
-                kernel = cs.FindKernel("KMainDownsample");
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_BloomMipsDown[0]);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                 DispatchWithGuardBands(cs, kernel, size);
@@ -1883,6 +1982,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomTint, (Vector4)tint);
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomBicubicParams, new Vector4(bloomSize.x, bloomSize.y, 1f / bloomSize.x, 1f / bloomSize.y));
             cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomDirtScaleOffset, dirtTileOffset);
+            cmd.SetComputeVectorParam(uberCS, HDShaderIDs._BloomThreshold, threshold);
         }
 
         #endregion
@@ -2005,7 +2105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeSplitToning(out var splitShadows, out var splitHighlights);
 
             // Setup lut builder compute & grab the kernel we need
-            var tonemappingMode = m_Tonemapping.mode.value;
+            var tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
             var builderCS = m_Resources.shaders.lutBuilder3DCS;
             string kernelName = "KBuild_NoTonemap";
 
@@ -2079,6 +2179,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / m_LutSize, m_LutSize - 1f, m_Tonemapping.lutContribution.value, 0f));
             }
 
+            // Misc parameters
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f));
+
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
@@ -2093,7 +2196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
 
             // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, m_ColorGradingFS ? 1f : 0f);
+            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
@@ -2237,8 +2340,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, m_Resources.textures.SMAAAreaTex);
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAASearchTex, m_Resources.textures.SMAASearchTex);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.SMAA);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.SMAA);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
 
             switch(camera.SMAAQuality)
             {
@@ -2310,6 +2413,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     case DynamicResUpscaleFilter.Lanczos:
                         m_FinalPassMaterial.EnableKeyword("LANCZOS");
                         break;
+                    case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                        m_FinalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
+                        break;
                 }
             }
 
@@ -2358,11 +2464,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,
-                m_KeepAlpha
-                ? m_AlphaTexture.rt
-                : (Texture)Texture2D.whiteTexture
-            );
+            if (m_KeepAlpha)
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, m_AlphaTexture);
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            }
+            else
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, TextureXR.GetWhiteTexture());
+                m_FinalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 0.0f);
+            }
+
+            if (m_EnableAlpha)
+            {
+                m_FinalPassMaterial.EnableKeyword("ENABLE_ALPHA");
+            }
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
@@ -2410,10 +2526,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandle source = colorBuffer;
 
-            using (new ProfilingSample(cmd, "Custom Post Processes Before Transparent", CustomSamplerId.CustomPostProcessAfterOpaqueAndSky.GetSampler()))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 bool needsBlitToColorBuffer = false;
-                foreach (var typeString in HDRenderPipeline.currentAsset.beforeTransparentCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
                     needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
 
                 if (needsBlitToColorBuffer)
@@ -2431,7 +2547,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (customPostProcessComponentType == null)
                 return false;
 
-            var stack = VolumeManager.instance.stack;
+            var stack = camera.volumeStack;
 
             if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
             {
@@ -2439,15 +2555,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (customPP is IPostProcessComponent pp && pp.IsActive())
                 {
-                    var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                    CoreUtils.SetRenderTarget(cmd, destination);
-                    using (new ProfilingSample(cmd, customPP.name))
+                    if (camera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                     {
-                        customPP.Render(cmd, camera, source, destination);
-                    }
-                    PoolSourceGuard(ref source, destination, colorBuffer);
+                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+                        CoreUtils.SetRenderTarget(cmd, destination);
+                        {
+                            cmd.BeginSample(customPP.name);
+                            customPP.Render(cmd, camera, source, destination);
+                            cmd.EndSample(customPP.name);
+                        }
+                        PoolSourceGuard(ref source, destination, colorBuffer);
 
-                    return true;
+                        return true;
+                    }
                 }
             }
 
@@ -2492,9 +2612,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public void SetHWDynamicResolutionState(HDCamera camera)
             {
                 bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
-                if (needsHW && !m_HasHWDynamicResolution)
+                if (m_Targets.Count > 0 && needsHW != m_HasHWDynamicResolution)
                 {
-                    // If any target has no dynamic resolution enabled, but we require it, we need to cleanup the pool.
+                    // If any target has no dynamic resolution enabled, but we require it or vice versa, we need to cleanup the pool.
                     bool missDynamicScale = false;
                     foreach (var kvp in m_Targets)
                     {
@@ -2503,8 +2623,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (stack == null)
                             continue;
 
-                        // We found a RT with no dynamic scale
-                        if (stack.Count > 0 && !stack.Peek().rt.useDynamicScale)
+                        // We found a RT with incorrect dynamic scale setting
+                        if (stack.Count > 0 && (stack.Peek().rt.useDynamicScale != needsHW))
                         {
                             missDynamicScale = true;
                             break;
@@ -2513,9 +2633,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (missDynamicScale)
                     {
-                        m_HasHWDynamicResolution = needsHW;
                         Cleanup();
                     }
+                    m_HasHWDynamicResolution = needsHW;
                 }
             }
 

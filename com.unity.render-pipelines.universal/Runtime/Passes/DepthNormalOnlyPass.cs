@@ -4,14 +4,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
-        const int kDepthBufferBits = 32;
-
-        private RenderTargetHandle depthNormalsAttachmentHandle { get; set; }
         internal RenderTextureDescriptor descriptor { get; private set; }
 
-        private string m_ProfilerTag = "DepthNormal Prepass";
+        private RenderTargetHandle depthNormalsAttachmentHandle { get; set; }
+        private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthNormals");
         private FilteringSettings m_FilteringSettings;
+
+        // Constants
+        private const int kDepthBufferBits = 32;
+        private const string m_ProfilerTag = "DepthNormal Prepass";
 
         /// <summary>
         /// Create the DepthNormalOnlyPass
@@ -50,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingSample(cmd, m_ProfilerTag))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

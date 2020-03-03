@@ -8,4 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/001_xr_ShaderGraph.unity
     guid: 55768ec17a40c7a4dbb043001ac54b56
+  - enabled: 1
+    path: Assets/Scenes/002_xr_InstancedRendering.unity
+    guid: e2be1657f285b724c8e4fc40a9ab77fd
+  - enabled: 0
+    path: Assets/Scenes/003_xr_OpaqueTexture.unity
+    guid: a486d8dba66829f49aec5385f9dc2c26
   m_configObjects: {}

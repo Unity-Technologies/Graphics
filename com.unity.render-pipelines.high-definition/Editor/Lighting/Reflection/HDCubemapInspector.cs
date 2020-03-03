@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -27,8 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition
         float m_CameraPhi = 0.75f;
         float m_CameraTheta = 0.5f;
         float m_CameraDistance = 2.0f;
-        NavMode m_NavMode = NavMode.None;
         Vector2 m_PreviousMousePosition = Vector2.zero;
+
+        Cubemap cubemap => target as Cubemap;
 
         public float previewExposure = 0f;
         public float mipLevelPreview = 0f;
@@ -91,7 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 InitIcons();
 
             var mipmapCount = 0;
-            var cubemap = target as Cubemap;
             var rt = target as RenderTexture;
             if (cubemap != null)
                 mipmapCount = cubemap.mipmapCount;
@@ -99,6 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 mipmapCount = rt.useMipMap
                     ? (int)(Mathf.Log(Mathf.Max(rt.width, rt.height)) / Mathf.Log(2))
                     : 1;
+
+            // If the cubemap texture does not have any mipmaps, then we hide the knob
+            if (mipmapCount == 1)
+                mipmapCount = 0;
 
             GUI.enabled = true;
 
@@ -109,6 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition
             mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, mipmapCount, GUILayout.MaxWidth(80));
             GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
         }
+
+        public override string GetInfoString() => $"{cubemap.width}x{cubemap.height} {GraphicsFormatUtility.GetFormatString(cubemap.graphicsFormat)}";
 
         void InitPreview()
         {
@@ -122,42 +129,52 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewUtility.camera.transform.LookAt(Vector3.zero);
         }
 
+        static int sliderHash = "Slider".GetHashCode();
+
         bool HandleMouse(Rect Viewport)
         {
-            var result = false;
-
-            if (Event.current.type == EventType.MouseDown)
+            bool needRepaint = false;
+            int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+            Event evt = Event.current;
+            switch (evt.GetTypeForControl(id))
             {
-                if (Event.current.button == 0)
-                    m_NavMode = NavMode.Rotating;
-                else if (Event.current.button == 1)
-                    m_NavMode = NavMode.Zooming;
-
-                m_PreviousMousePosition = Event.current.mousePosition;
-                result = true;
+                case EventType.MouseDown:
+                    if (Viewport.Contains(evt.mousePosition) && Viewport.width > 50)
+                    {
+                        if (evt.button == 0)
+                        {
+                            GUIUtility.hotControl = id;
+                            EditorGUIUtility.SetWantsMouseJumping(1);
+                        }
+                        evt.Use();
+                    }
+                    break;
+                case EventType.ScrollWheel:
+                    if (Viewport.Contains(evt.mousePosition) && Viewport.width > 50)
+                    {
+                        m_CameraDistance = Mathf.Clamp(evt.delta.y * 0.01f + m_CameraDistance, 1, 10);
+                        needRepaint = true;
+                        evt.Use();
+                    }
+                    break;
+                case EventType.MouseDrag:
+                    if (GUIUtility.hotControl == id)
+                    {
+                        m_CameraTheta = (m_CameraTheta - evt.delta.x * 0.003f) % (Mathf.PI * 2);
+                        m_CameraPhi = Mathf.Clamp(m_CameraPhi - evt.delta.y * 0.003f, 0.2f, Mathf.PI - 0.2f);
+                        evt.Use();
+                        GUI.changed = true;
+                        needRepaint = true;
+                    }
+                    break;
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl == id)
+                        GUIUtility.hotControl = 0;
+                    EditorGUIUtility.SetWantsMouseJumping(0);
+                    break;
             }
 
-            if (Event.current.type == EventType.MouseUp || Event.current.rawType == EventType.MouseUp)
-                m_NavMode = NavMode.None;
-
-            if (m_NavMode != NavMode.None)
-            {
-                var mouseDelta = Event.current.mousePosition - m_PreviousMousePosition;
-                switch (m_NavMode)
-                {
-                    case NavMode.Rotating:
-                        m_CameraTheta = (m_CameraTheta - mouseDelta.x * 0.003f) % (Mathf.PI * 2);
-                        m_CameraPhi = Mathf.Clamp(m_CameraPhi - mouseDelta.y * 0.003f, 0.2f, Mathf.PI - 0.2f);
-                        break;
-                    case NavMode.Zooming:
-                        m_CameraDistance = Mathf.Clamp(mouseDelta.y * 0.01f + m_CameraDistance, 1, 10);
-                        break;
-                }
-                result = true;
-            }
-
-            m_PreviousMousePosition = Event.current.mousePosition;
-            return result;
+            return needRepaint;
         }
 
         void UpdateCamera()

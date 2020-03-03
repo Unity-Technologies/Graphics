@@ -1,6 +1,8 @@
 {
     "name": "Unity.RenderPipelines.Core.Runtime",
-    "references": [],
+    "references": [
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
@@ -18,6 +20,16 @@
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "0.0.0",
+            "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
         }
     ],
     "noEngineReferences": false

@@ -4,6 +4,8 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
+#pragma only_renderers d3d11
+
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -80,7 +82,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
 
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
-    const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, -GetViewForwardDir()));
+    const float3 viewWS = normalize(-center.position);
+    const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, viewWS));
     const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Compute the sigma value

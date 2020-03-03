@@ -1,8 +1,14 @@
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+#define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+    using UnityEngine.InputSystem.Controls;
+#endif
+
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
-    public enum DebugAction
+    internal enum DebugAction
     {
         EnableDebugMenu,
         PreviousDebugPanel,
@@ -97,6 +103,8 @@ namespace UnityEngine.Rendering
             var desc = m_DebugActions[actionIndex];
             var state = m_DebugActionStates[actionIndex];
 
+// Disable all input events if we're using the new input system
+#if ENABLE_LEGACY_INPUT_MANAGER
             //bool canSampleAction = (state.actionTriggered == false) || (desc.repeatMode == DebugActionRepeatMode.Delay && state.timer > desc.repeatDelay);
             if (state.runningAction == false)
             {
@@ -132,9 +140,9 @@ namespace UnityEngine.Rendering
                 // Check key triggers
                 for (int keyListIndex = 0; keyListIndex < desc.keyTriggerList.Count; ++keyListIndex)
                 {
-                    var keys = desc.keyTriggerList[keyListIndex];
                     bool allKeyPressed = true;
 
+                    var keys = desc.keyTriggerList[keyListIndex];
                     foreach (var key in keys)
                     {
                         allKeyPressed = Input.GetKey(key);
@@ -149,6 +157,9 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
+#elif USE_INPUT_SYSTEM
+        // TODO: make the new input system work
+#endif
         }
 
         void UpdateAction(int actionIndex)
@@ -160,7 +171,7 @@ namespace UnityEngine.Rendering
                 state.Update(desc);
         }
 
-        public void UpdateActions()
+        internal void UpdateActions()
         {
             for (int actionIndex = 0; actionIndex < m_DebugActions.Length; ++actionIndex)
             {
@@ -169,7 +180,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public float GetAction(DebugAction action)
+        internal float GetAction(DebugAction action)
         {
             return m_DebugActionStates[(int)action].actionState;
         }

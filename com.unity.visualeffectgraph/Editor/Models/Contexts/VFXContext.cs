@@ -66,8 +66,11 @@ namespace UnityEditor.VFX
         {
             get { return m_Label; }
             set {
+                var invalidationCause = InvalidationCause.kUIChanged;
+                if (contextType == VFXContextType.Spawner && m_Label != value)
+                    invalidationCause = InvalidationCause.kSettingChanged;
                 m_Label = value;
-                Invalidate(InvalidationCause.kUIChanged);
+                Invalidate(invalidationCause);
             }
         }
 
@@ -435,7 +438,54 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXBlock> activeFlattenedChildrenWithImplicit
         {
             get{
-                return implicitPreBlock.Concat(children.SelectMany(t => t is VFXSubgraphBlock ? (t.isActive ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Empty<VFXBlock>()): Enumerable.Repeat(t, 1))).Concat(implicitPostBlock).Where(o => o.enabled);
+                List<VFXBlock> blocks = new List<VFXBlock>();
+                
+                foreach(var ctxblk in implicitPreBlock)
+                {
+                    if (ctxblk is VFXSubgraphBlock subgraphBlk)
+                        foreach (var blk in subgraphBlk.recursiveSubBlocks)
+                        {
+                            if (blk.enabled)
+                             blocks.Add(blk);
+                        }
+                    else
+                    {
+                        if (ctxblk.enabled)
+                                blocks.Add(ctxblk);
+                    }
+                }
+
+                foreach( var ctxblk in children )
+                {
+                    if (ctxblk is VFXSubgraphBlock subgraphBlk)
+                        foreach (var blk in subgraphBlk.recursiveSubBlocks)
+                        {
+                            if (blk.enabled)
+                             blocks.Add(blk);
+                        }
+                    else
+                    {
+                        if (ctxblk.enabled)
+                                blocks.Add(ctxblk);
+                    }
+
+                }
+
+                foreach(var ctxblk in implicitPostBlock)
+                {
+                    if (ctxblk is VFXSubgraphBlock subgraphBlk)
+                        foreach (var blk in subgraphBlk.recursiveSubBlocks)
+                        {
+                            if (blk.enabled)
+                             blocks.Add(blk);
+                        }
+                    else
+                    {
+                        if (ctxblk.enabled)
+                                blocks.Add(ctxblk);
+                    }
+                }
+                return blocks;
             }
         }
 
@@ -491,7 +541,10 @@ namespace UnityEditor.VFX
                 string assetName = string.Empty;
                 try
                 {
-                    assetName = GetGraph().visualEffectResource.asset.name;
+                    var resource = GetGraph().visualEffectResource;
+                    var asset = resource.asset;
+
+                    assetName = asset!= null ? asset.name : resource.name;
                 }
                 catch(Exception e)
                 {

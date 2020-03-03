@@ -15,11 +15,11 @@ The Render Pipeline Debug window.
 
 ## Using the Render Pipeline Debug window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at run time in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
-### Navigation at run time
+### Navigation at runtime
 
 To change the current active item:
 
@@ -130,6 +130,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Light Volume Debug Type**        | Use the drop-down to select the method HDRP uses to display the light volumes.**Gradient**: Select this option to display the light volumes as a gradient.**ColorAndEdge**: Select this option to display the light volumes as a plain color (a different color for each Light Type) with a red border for readability.This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **- Max Debug Light Count**          | Use the slider to rescale the gradient. Lower this value to make the screen turn red faster. Use this property to change the maximum acceptable number of lights for your application and still see areas in red. This property only appears when you enable the **Display Light Volumes** checkbox. |
 | **Debug Exposure**                   | Set the exposure that HDRP applies when you select a **Lighting Debug Mode**. This is useful because HDRP does not apply normal Scene exposure when it is in debug mode. |
+| **Debug Overlay Screen Ratio**       | Set the size of the debug overlay textures with a ratio of the screen size. The default value is 0.33 which is 33% of the screen size. |
 
 <a name="RenderingPanel"></a>
 

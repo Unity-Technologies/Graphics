@@ -74,18 +74,18 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
+            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, m_CopyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
@@ -101,10 +101,15 @@ namespace UnityEngine.Rendering.Universal
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
             m_ForwardLights = new ForwardLights();
+
+            supportedRenderingFeatures = new RenderingFeatures()
+            {
+                cameraStacking = true,
+            };
         }
 
         /// <inheritdoc />
-        public override void Cleanup()
+        protected override void Dispose(bool disposing)
         {
             // Make all renderer features clean up...
             for (int i = 0; i < rendererFeatures.Count; ++i)
@@ -112,6 +117,7 @@ namespace UnityEngine.Rendering.Universal
                 rendererFeatures[i].Cleanup();
             }
 
+            // always dispose unmanaged resources
             m_PostProcessPass.Cleanup();
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -127,14 +133,15 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
+            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                 {
-                    rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                    if(rendererFeatures[i].isActive)
+                        rendererFeatures[i].AddRenderPasses(this, ref renderingData);
                 }
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -143,7 +150,14 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool postProcessEnabled = cameraData.postProcessEnabled;
+            // Should apply post-processing after rendering this camera?
+            bool applyPostProcessing = cameraData.postProcessEnabled;
+            // There's at least a camera in the camera stack that applies post-processing
+            bool anyPostProcessing = renderingData.postProcessingEnabled;
+
+
+            // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
+            bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool isStereoEnabled = cameraData.isStereoEnabled;
@@ -170,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
 
             // The copying of depth should normally happen after rendering skybox.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
-            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (postProcessEnabled || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox;
+            m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
             if (isStereoEnabled && requiresDepthTexture)
@@ -178,33 +192,43 @@ namespace UnityEngine.Rendering.Universal
                 requiresDepthPrepass = true;
             }
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor) || camera.forceIntoRenderTexture;
+            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor);
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
-            bool createDepthTexture = requiresDepthTexture && !requiresDepthPrepass;
+            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            createDepthTexture |= (renderingData.cameraData.renderType == CameraRenderType.Base && !renderingData.resolveFinalTarget);
 
-            m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
-            m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
-            bool intermediateRenderTexture = createColorTexture || createDepthTexture;
-
-            if (intermediateRenderTexture)
+            // Configure all settings require to start a new camera stack (base camera only)
+            if (cameraData.renderType == CameraRenderType.Base)
             {
-                CreateCameraRenderTarget(context, ref cameraData);
+                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
+                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
+
+                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
+
+                // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
+                bool createTextures = intermediateRenderTexture;
+                if (createTextures)
+                    CreateCameraRenderTarget(context, ref renderingData.cameraData);
+
+                // if rendering to intermediate render texture we don't have to create msaa backbuffer
+                int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
+
+                if (Camera.main == camera && camera.cameraType == CameraType.Game && cameraData.targetTexture == null)
+                SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
+            }
+            else
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
-            // if rendering to intermediate render texture we don't have to create msaa backbuffer
-            int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-
-            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-            {
-                SetupBackbufferFormat(backbufferMsaaSamples, isStereoEnabled);
-            }
-
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                if(rendererFeatures[i].isActive)
+                    rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
             int count = activeRenderPassQueue.Count;
@@ -215,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
                 }
             }
-            bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
             {
@@ -233,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DepthPrepass);
             }
 
-            if (postProcessEnabled)
+            if (generateColorGradingLUT)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 EnqueuePass(m_ColorGradingLutPass);
@@ -241,13 +265,14 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
             {
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (createDepthTexture)
+            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
@@ -270,72 +295,75 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_RenderTransparentForwardPass);
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            bool afterRenderExists = renderingData.cameraData.captureActions != null ||
-                                     hasAfterRendering;
-
-            bool requiresFinalPostProcessPass = postProcessEnabled &&
+            bool lastCameraInTheStack = renderingData.resolveFinalTarget;
+            bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
+            bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                                      renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            // if we have additional filters
-            // we need to stay in a RT
-            if (afterRenderExists)
+            // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
+            // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
+            bool dontResolvePostProcessingToCameraTarget = hasCaptureActions || hasPassesAfterPostProcessing || applyFinalPostProcessing;
+
+            if (lastCameraInTheStack)
             {
-                bool willRenderFinalPass = (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget);
-                // perform post with src / dest the same
-                if (postProcessEnabled)
+                // Post-processing will resolve to final target. No need for final blit pass.
+                if (applyPostProcessing)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, requiresFinalPostProcessPass, !willRenderFinalPass);
+                    var destination = dontResolvePostProcessingToCameraTarget ? m_AfterPostProcessColor : RenderTargetHandle.CameraTarget;
+
+                    // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
+                    bool doSRGBConvertion = !(dontResolvePostProcessingToCameraTarget || (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget));
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    Debug.Assert(applyPostProcessing || doSRGBConvertion, "This will do unnecessary blit!");
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                //now blit into the final target
-                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                if (renderingData.cameraData.captureActions != null)
                 {
-                    if (renderingData.cameraData.captureActions != null)
-                    {
-                        m_CapturePass.Setup(m_ActiveCameraColorAttachment);
-                        EnqueuePass(m_CapturePass);
-                    }
+                    m_CapturePass.Setup(m_ActiveCameraColorAttachment);
+                    EnqueuePass(m_CapturePass);
+                }
 
-                    if (requiresFinalPostProcessPass)
-                    {
-                        m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
-                        EnqueuePass(m_FinalPostProcessPass);
-                    }
-                    else
-                    {
-                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                        EnqueuePass(m_FinalBlitPass);
-                    }
-                }
-            }
-            else
-            {
-                if (postProcessEnabled)
+                // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
+                var sourceForFinalPass = (applyPostProcessing) ? m_AfterPostProcessColor : m_ActiveCameraColorAttachment;
+
+                // Do FXAA or any other final post-processing effect that might need to run after AA.
+                if (applyFinalPostProcessing)
                 {
-                    if (requiresFinalPostProcessPass)
-                    {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, true, false);
-                        EnqueuePass(m_PostProcessPass);
-                        m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
-                        EnqueuePass(m_FinalPostProcessPass);
-                    }
-                    else
-                    {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false, true);
-                        EnqueuePass(m_PostProcessPass);
-                    }
+                    m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
+                    EnqueuePass(m_FinalPostProcessPass);
                 }
-                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+
+                // if post-processing then we already resolved to camera target while doing post.
+                // Also only do final blit if camera is not rendering to RT.
+                bool cameraTargetResolved =
+                    // final PP always blit to camera target
+                    applyFinalPostProcessing ||
+                    // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
+                    (applyPostProcessing && !hasPassesAfterPostProcessing) ||
+                    // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
+                    m_ActiveCameraColorAttachment == RenderTargetHandle.CameraTarget;
+
+                // We need final blit to resolve to screen
+                if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
+            }
+
+            // stay in RT so we resume rendering on stack after post-processing
+            else if (applyPostProcessing)
+            {
+                m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false, false);
+                EnqueuePass(m_PostProcessPass);
             }
 
 #if UNITY_EDITOR
             if (renderingData.cameraData.isSceneViewCamera)
             {
+                // Scene view camera should always resolve target (not stacked)
+                Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
                 m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
                 EnqueuePass(m_SceneViewDepthCopyPass);
             }
@@ -352,7 +380,6 @@ namespace UnityEngine.Rendering.Universal
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
-            Camera camera = cameraData.camera;
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
@@ -360,10 +387,17 @@ namespace UnityEngine.Rendering.Universal
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
 
-            // If shadow is disabled, disable shadow caster culling
-            if (Mathf.Approximately(cameraData.maxShadowDistance, 0.0f))
+            // We disable shadow casters if both shadow casting modes are turned off
+            // or the shadow distance has been turned down to zero
+            bool isShadowCastingDisabled = !UniversalRenderPipeline.asset.supportsMainLightShadows && !UniversalRenderPipeline.asset.supportsAdditionalLightShadows;
+            bool isShadowDistanceZero = Mathf.Approximately(cameraData.maxShadowDistance, 0.0f);
+            if (isShadowCastingDisabled || isShadowDistanceZero)
+            {
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+            }
 
+            // We set the number of maximum visible lights allowed and we add one for the mainlight...
+            cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
 
@@ -371,10 +405,16 @@ namespace UnityEngine.Rendering.Universal
         public override void FinishRendering(CommandBuffer cmd)
         {
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+            {
                 cmd.ReleaseTemporaryRT(m_ActiveCameraColorAttachment.id);
+                m_ActiveCameraColorAttachment = RenderTargetHandle.CameraTarget;
+            }
 
             if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
+            {
                 cmd.ReleaseTemporaryRT(m_ActiveCameraDepthAttachment.id);
+                m_ActiveCameraDepthAttachment = RenderTargetHandle.CameraTarget;
+            }
         }
 
         private void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
@@ -405,7 +445,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetupBackbufferFormat(int msaaSamples, bool stereo)
         {
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -426,22 +466,27 @@ namespace UnityEngine.Rendering.Universal
             QualitySettings.antiAliasing = msaaSamples;
 #endif
         }
-
-        private bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
+        
+        bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
+            // When rendering a camera stack we always create an intermediate render texture to composite camera results.
+            // We create it upon rendering the Base camera.
+            if (renderingData.cameraData.renderType == CameraRenderType.Base && !renderingData.resolveFinalTarget)
+                return true;
+
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
             bool isStereoEnabled = renderingData.cameraData.isStereoEnabled;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isCompatibleBackbufferTextureDimension = baseDescriptor.dimension == TextureDimension.Tex2D;
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
-            bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
+            bool isOffscreenRender = cameraData.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
-#if ENABLE_VR
+#if ENABLE_VR && ENABLE_VR_MODULE
             if (isStereoEnabled)
                 isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == baseDescriptor.dimension;
-#endif//ENABLE_VR
+#endif
 
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
             if (isOffscreenRender)

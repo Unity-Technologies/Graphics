@@ -1,13 +1,17 @@
 * [High Definition Render Pipeline](index)
-* [Features List](HDRP-Features)
+* Features
+  * [Features List](HDRP-Features)
+  * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Exposing More Options](More-Options)
-  * [VR in HDRP](VR-in-HDRP)
+  * [Sample Content](HDRP-Sample-Content)
+  * [Sample project](HDRP-Sample-Projects)
 * Upgrading HDRP between Unity Versions
+  * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
   * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
 * Volume Framework
@@ -53,21 +57,24 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
-    * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
+    * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
+    * [Decal](Master-Node-Decal)
+    * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
-    * [Emission](Emission-Node)
-    * [Baked GI](Baked-GI-Node)
-    * [Diffusion Profile](Diffusion-Profile-Node)
-    * [Parallax Occlusion Mapping](Parallax-Occlusion-Mapping-Node)
-    * [Exposure](Exposure-Node)
-    * [HD Scene Color](HD-Scene-Color-Node)
+    * [Emission](SGNode-Emission)
+    * [Baked GI](SGNode-Baked-GI)
+    * [Diffusion Profile](SGNode-Diffusion-Profile)
+    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
+    * [Exposure](SGNode-Exposure)
+    * [HD Scene Color](SGNode-HD-Scene-Color)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -90,6 +97,7 @@
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
+  * [Alpha Output](Alpha-Output)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -114,7 +122,6 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
-  * [Authoring Custom Effects](Custom-Post-Process)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
@@ -137,9 +144,13 @@
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
+* Virtual Reality
+  * [VR Overview](VR-Overview)
+* Consoles
+  * [Building For Consoles](Building-For-Consoles)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
-  * [Creating a Custom Pass](Custom-Pass)
+  * [Creating a Custom Render Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)

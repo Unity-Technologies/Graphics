@@ -1,10 +1,9 @@
 editors:
+  - version: 2020.1
+  - version: fast-2020.1
   - version: trunk
-    cmd: -u trunk
   - version: fast-trunk
-    cmd: -u trunk --fast
   - version: CUSTOM-REVISION
-    cmd: -u %CUSTOM_REVISION%
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -35,8 +34,12 @@ all_project_ci_{{ editor.version }}:
   name: _ABV for SRP repository - {{ editor.version }}
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - dir
   dependencies:
@@ -44,45 +47,49 @@ all_project_ci_{{ editor.version }}:
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
+      rerun: always
   artifacts:
     logs:
       paths:
         - "**/test-results/**"
+  {% if editor.version == "fast-2020.1" %}
+  triggers:
+    branches:
+      only:
+        - trying
+        - staging
+  {% endif %}
 {% endfor %}
 
 
 # a separate job so that only trunk is run nightly, not fast-trunk
-all_project_ci_nightly:
-  name: _Nightly ABV against trunk
-  agent:
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-    - dir
+{% for editor in editors %}
+ {% if editor.version == '2020.1' or editor.version == 'trunk'%}
+all_project_ci_nightly_{{ editor.version }}:
+  name: _Nightly ABV against {{ editor.version }}
   dependencies:
   {% for project in projects %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_trunk
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
   {% for testplatform in testplatforms %} 
-    - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_trunk
+    - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_{{ editor.version }}
       rerun: always
   {% endfor %}
-    - path: .yamato/upm-ci-packages.yml#all_package_ci
+    - path: .yamato/upm-ci-packages.yml#all_package_ci_{{ editor.version }}
+      rerun: always
+    - path: .yamato/upm-ci-universal.yml#Universal_Android_OpenGLES_{{ editor.version }}
       rerun: always
   triggers:
     recurring:
       - branch: master
-        frequency: daily
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"       
+        frequency: daily     
+  {% endif %}
+{% endfor %}
 
 {% for testplatform in testplatforms %} 
-{% for editor in editors %}     
+{% for editor in editors %}
 smoke_test_{{ testplatform.name }}_{{ editor.version }}:
   name: SRP Smoke Test - {{ testplatform.name }}_{{ editor.version }}
   agent:
@@ -93,17 +100,23 @@ smoke_test_{{ testplatform.name }}_{{ editor.version }}:
     {% endif %}
     image: sdet/gamecode_win10:stable
     flavor: b1.large
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
   - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/SRP_SmokeTest/utr
-  - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
-  - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-  - cd TestProjects/SRP_SmokeTest && unity-downloader-cli {{ editor.cmd }} -c editor --wait --published    
+  - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+  - cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
 
   {% if testplatform.name == "Standalone" %}
   - cd TestProjects/SRP_SmokeTest && utr\utr {{ testplatform.args }}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
   {% else %}
   - cd TestProjects/SRP_SmokeTest && utr\utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=test-results
   {% endif %}
+  dependencies:
+    - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:windows
+      rerun: on-new-revision
   artifacts:
     logs:
       paths:
@@ -111,31 +124,50 @@ smoke_test_{{ testplatform.name }}_{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 
-all_smoke_tests:
-  name: All Smoke Tests
+{% for editor in editors %}
+
+all_smoke_tests_{{ editor.version }}:
+  name: All Smoke Tests - {{ editor.version }}
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
   commands:
     - dir
   dependencies:
-  {% for testplatform in testplatforms %} 
-  {% for editor in editors %}
-  - .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_{{ editor.version }}
+  {% for testplatform in testplatforms %}   
+  - path: .yamato/upm-ci-abv.yml#smoke_test_{{ testplatform.name }}_{{ editor.version }}
+    rerun: on-new-revision
   {% endfor %}
   {% endfor %}
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
-
-trunk_verification:
-  name: z_(do not use) Trunk verification 
+        
+{% for editor in editors %}
+trunk_verification_{{ editor.version }}:
+  name: Trunk verification - {{ editor.version }}
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:stable
+    flavor: b1.small
+  {% if editor.version == 'CUSTOM-REVISION' %}
+  variables:
+    CUSTOM_REVISION: custom_revision_not_set
+  {% endif %}
+  commands:
+    - dir
   dependencies:
     {% for project in projects %}  
     {% for testplatform in testplatforms %}
     {% if project.name == "HDRP_Standalone" %}
+    # skip
+    {% else %}
+    {% if project.name == "Universal_Stereo" %}
+    # skip
+    {% else %}
+    {% if project.name == "ShaderGraph_Stereo" %}
     # skip
     {% else %}
     {% if testplatform.name == "Standalone" %}
@@ -146,10 +178,13 @@ trunk_verification:
     #skip
     {% else %}
     
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_DX11_{{ testplatform.name }}_CUSTOM-REVISION
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Win_DX11_{{ testplatform.name }}_{{ editor.version }}
       rerun: always
     {% endif %}
     {% endif %}
     {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
     {% endfor %}
     {% endfor %}
