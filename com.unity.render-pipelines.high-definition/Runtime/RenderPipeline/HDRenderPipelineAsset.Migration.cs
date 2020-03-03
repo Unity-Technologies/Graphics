@@ -102,9 +102,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
             {
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings);
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            #pragma warning disable 618 // Type or member is obsolete
+                bool previouslyHighQuality = data.m_RenderPipelineSettings.m_ObsoleteincreaseSssSampleCount;
+            #pragma warning restore 618
+
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings,                  previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings,      previouslyHighQuality);
             })
         );
 
