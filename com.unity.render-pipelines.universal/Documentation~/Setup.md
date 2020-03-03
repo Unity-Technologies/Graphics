@@ -14,7 +14,7 @@ Install the following Editor and package versions to work with the 2D Renderer:
 
 2. Create a new __2D Renderer__ by going to __Assets > Create > Rendering > Universal Render Pipeline > 2D Renderer__. Give it a name when prompted.
 
-3. ![](Images/2D/image_3.png)
+   ![](Images/2D/image_3.png)
 
 4. Drag the __2D Renderer__ Asset onto the __Renderer List__, or select the circle icon to open the __Select Object__ window and then select the __2D Renderer__ Asset from the list.
 
