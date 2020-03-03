@@ -272,6 +272,64 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        //Fix case 1217876
+        static VFXTimeModeTest[] s_Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default = new[]
+{
+            new VFXTimeModeTest("FixedDeltaTime", (uint)VFXUpdateMode.FixedDeltaTime, 0u, 0),
+            new VFXTimeModeTest("FixedDeltaTime_And_IgnoreTimeScale", (uint)VFXUpdateMode.IgnoreTimeScale,0u, 0),
+        };
+
+        [UnityTest]
+        public IEnumerator Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default([ValueSource("s_Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default")] VFXTimeModeTest timeMode)
+        {
+            yield return new EnterPlayMode();
+
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(3615.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+            graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            //Set default
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.01f;
+
+            var maxFrame = 64;
+            Time.captureFramerate = 10;
+            while (Mathf.Abs(Time.deltaTime - Time.captureDeltaTime) > 0.0001f && --maxFrame > 0)
+                yield return null; //wait capture deltaTime setting effective
+
+            //Change_Fixed_Time_Step_To_A_Large_Value
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 2.0f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 5.0f;
+
+            //wait a few frame
+            for (int frame = 0; frame < 6; ++frame)
+                yield return null;
+
+            //Then_Back_To_Default (actually, a really small value)
+            Time.captureFramerate = 600; //Not round delta time, easily failing on small value
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.001f; //Can be 0.01f too
+
+            //Failure should occurs within these frame
+            for (int frame = 0; frame < 8; ++frame)
+            {
+                var spawnState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0);
+                Assert.AreNotEqual(spawnState.deltaTime, UnityEngine.VFX.VFXManager.maxDeltaTime); //Overflow in step count
+                yield return null;
+            }
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
+
+            yield return new ExitPlayMode();
+        }
+
         [Retry(3)]
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_Plugging_OnStop_Into_Start_Input_Flow()
