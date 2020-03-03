@@ -64,12 +64,12 @@
   * [Lights 2D properties](2DLightProperties.md)
 
     * [Light types](LightTypes.md)
+  * [2D Shadows](2DShadows.md)
   * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-
-    * [2D Shadows](2DShadows.md)
+    
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
