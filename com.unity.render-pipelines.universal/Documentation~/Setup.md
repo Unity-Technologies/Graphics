@@ -18,7 +18,7 @@ Install the following Editor and package versions to work with the 2D Renderer:
 
 4. Drag the __2D Renderer__ Asset onto the __Renderer List__, or select the circle icon to open the __Select Object__ window and then select the __2D Renderer__ Asset from the list.
 
-   ![](Images/2d/image_4.png)
+   ![](Images/2D/image_4.png)
 
 5. Go to __Edit > Project Settings__, and select the __Graphics__ category. Set the __Scriptable Render Pipeline Settings__ to your created __Pipeline Asset__ by dragging the Asset directly onto the box, or select the circle open to the right of the box to open the __Select Object__ window and then selecting the Asset from the list.
 
