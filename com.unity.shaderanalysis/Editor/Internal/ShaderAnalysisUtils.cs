@@ -81,6 +81,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         public static string CalculateGUIDFor(Object asset)
         {
+            if (asset == null || asset.Equals(null)) return string.Empty;
             var assetPath = AssetDatabase.GetAssetPath(asset);
             var guid = string.IsNullOrEmpty(assetPath)
                 ? asset.name
