@@ -125,7 +125,7 @@ using Object = UnityEngine.Object;
                 window.Close();
                 Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Shader>(outputPath));
             }
-            
+
         }
 
         private static void TrySaveWindows(MaterialGraphEditWindow copyWindow, MaterialGraphEditWindow testGraphWindow)
@@ -141,7 +141,7 @@ using Object = UnityEngine.Object;
                     testGraphWindow.UpdateAsset();
                     testGraphWindow.Close();
                 }
-            
+
         }
 
         private const float userTime = 0.1f;
@@ -186,7 +186,7 @@ using Object = UnityEngine.Object;
                 throw cantOpenWindowsOrAccessPrivatePropertyException;
             }
 
-            yield return new WaitForSecondsRealtime(userTime);
+            yield return UntilGraphIsDoneCompiling(testGraphWindow);
 
             var nodeLookup = new Dictionary<AbstractMaterialNode, AbstractMaterialNode>();
             var temporaryMarks = ListPool<(AbstractMaterialNode, SlotReference?, SlotReference?)>.Get();
@@ -250,7 +250,7 @@ using Object = UnityEngine.Object;
                             throw cantAddEdgeException;
                         }
 
-                        yield return new WaitForSecondsRealtime(userTime);
+                        yield return UntilGraphIsDoneCompiling(testGraphWindow);
                     }
                     permanentMarks.Add((node, to, from));
                 }
@@ -339,7 +339,7 @@ using Object = UnityEngine.Object;
 
         /// <summary>
         /// Calls <see cref="UserlikeAddNodeUsingSearcherAndCopyValues(AbstractMaterialNode, GraphObject, MaterialGraphEditWindow, GraphEditorView)"/>
-        /// and invokes <see cref="MaterialGraphView"/>.ConvertToProperty through reflection 
+        /// and invokes <see cref="MaterialGraphView"/>.ConvertToProperty through reflection
         /// </summary>
         /// <param name="propertyNode"></param>
         /// <param name="graphObject"></param>
@@ -357,14 +357,14 @@ using Object = UnityEngine.Object;
             AbstractShaderProperty property = propertyNode.owner.properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
             Assert.IsNotNull(property);
 
-            //ToConcrete does not usually copy over drawstate, so create template node ourselves 
+            //ToConcrete does not usually copy over drawstate, so create template node ourselves
             AbstractMaterialNode concrete = property.ToConcreteNode();
             concrete.drawState = propertyNode.drawState;
             concrete.owner = propertyNode.owner;
             yield return UserlikeAddNodeUsingSearcherAndCopyValues(concrete, graphObject, graphEditWindow, graphEditorView);
             Assert.IsNotNull(searcherAddedNode);
 
-            yield return new WaitForSecondsRealtime(userTime);
+            yield return UntilGraphIsDoneCompiling(graphEditWindow);
 
             MaterialGraphView materialGraphView = graphEditorView.graphView;
             graphEditorView.HandleGraphChanges();
@@ -380,17 +380,17 @@ using Object = UnityEngine.Object;
             nodeLookup.Add(propertyNode, searcherAddedNode);
             searcherAddedNode = null;
         }
-        
+
         private static AbstractMaterialNode searcherAddedNode;
         /// <summary>
-        /// 
+        ///
         /// Try and add a node to the graph based on a template node in the most user way possible. This loads up the searcher and
         /// searches it for an entry that matches the <see cref="TitleAttribute"/> on the class if is not a <see cref="SubGraphNode"/>,
         /// otherwise searches with the <see cref="SubGraphNode"/>'s <see cref="SubGraphAsset.hlslName"/>. When it finds an entry, it
         /// invokes <see cref="SearcherProvider.OnSearcherSelectEntry(SearcherItem, Vector2)"/> with the found <see cref="SearcherItem"/>.
         /// Finally, it copies over all <see cref="MaterialSlot"/> values from <see cref="AbstractMaterialNode.GetInputSlots{T}(List{T})"/>
         /// as well as a reflection search of any Properties with the <see cref="IControlAttribute"/> decorator.
-        /// 
+        ///
         /// </summary>
         /// <param name="node">Template <see cref="AbstractMaterialNode"/> to add to the test graph</param>
         /// <param name="graphObject"></param>
@@ -410,7 +410,7 @@ using Object = UnityEngine.Object;
                 item => (searchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, graphEditWindow.position.center),
                 graphEditWindow.position.center, null);
 
-            yield return new WaitForSecondsRealtime(userTime);
+            yield return UntilGraphIsDoneCompiling(graphEditWindow);
 
             //get searcher entries
             Type newNodeType = node.GetType();
@@ -501,7 +501,7 @@ using Object = UnityEngine.Object;
                                                   MaterialGraphEditWindow testGraphWindow,
                                                   Dictionary<AbstractMaterialNode, AbstractMaterialNode> nodeLookup)
         {
-            
+
             GraphEditorView graphEditorView = testGraphWindow.GetPrivateProperty<GraphEditorView>("graphEditorView");
             GraphObject graphObject = testGraphWindow.GetPrivateProperty<GraphObject>("graphObject");
 
@@ -514,7 +514,7 @@ using Object = UnityEngine.Object;
                 yield return DefaultAddNode(node, graphObject, testGraphWindow, graphEditorView, nodeLookup);
             }
 
-            yield return new WaitForSecondsRealtime(userTime);
+            yield return UntilGraphIsDoneCompiling(testGraphWindow);
         }
 
     }
