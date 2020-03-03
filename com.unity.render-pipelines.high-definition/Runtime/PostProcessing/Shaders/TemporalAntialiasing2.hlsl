@@ -97,7 +97,7 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
-    #define PERCEPTUAL_SPACE 0
+    #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
 
@@ -709,13 +709,17 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 // Sharpening
 // ---------------------------------------------------
 
+// TODO: This is not great and sub optimal since it really needs to be in linear and the data is already in perceptive space
 CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStrength)
 {
-    color += (color - samples.avgNeighbour) * sharpenStrength * 2;
+    float3 linearC = color * PerceptualInvWeight(color);
+    float3 linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
+    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 2;
+
 #if YCOCG
-    color.x = clamp(color.x, 0, CLAMP_MAX);
+    linearC.x = clamp(linearC.x, 0, CLAMP_MAX);
 #else
-    color = clamp(color, 0, CLAMP_MAX);
+    linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
-    return color;
+    return linearC * PerceptualWeight(linearC);
 }
