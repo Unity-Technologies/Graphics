@@ -235,12 +235,8 @@ All_{{ project.name }}_{{ editor.version }}:
   {% endfor %}
 
   {% else %}
-<<<<<<< HEAD
-  #  - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
-=======
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
       rerun: {{ editor.rerun_strategy }}
->>>>>>> master
   {% endif %}
     
   {% endfor %}
