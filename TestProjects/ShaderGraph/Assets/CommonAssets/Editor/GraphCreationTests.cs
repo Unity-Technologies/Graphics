@@ -36,6 +36,41 @@ using Object = UnityEngine.Object;
             }
         }
 
+        private static IEnumerator UntilGraphIsDoneCompiling(MaterialGraphEditWindow window)
+        {
+            GraphEditorView graphEditorView = window.GetPrivateProperty<GraphEditorView>("graphEditorView");
+            PreviewManager previewManager = graphEditorView.GetPrivateProperty<PreviewManager>("previewManager");
+            List<PreviewRenderData> renderDatas = previewManager.GetPrivateField<List<PreviewRenderData>>("m_RenderDatas");
+            bool allCompiled;
+
+            do
+            {
+                allCompiled = true;
+                foreach (var renderData in renderDatas)
+                {
+                    if (renderData != null && renderData.shaderData.isCompiling)
+                    {
+                        var isCompiled = true;
+                        for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
+                        {
+                            if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
+                            {
+                                isCompiled = false;
+                                break;
+                            }
+                        }
+
+                        if (!isCompiled)
+                        {
+                            allCompiled = false;
+                            break;
+                        }
+                    }
+                }
+                yield return null;
+            } while (!allCompiled);
+        }
+
         public static MaterialGraphEditWindow OpenShaderGraphWindowForAsset(string assetPath)
         {
             var window = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
@@ -240,6 +275,8 @@ using Object = UnityEngine.Object;
                     slots.Clear();
                 }
             }
+
+            yield return UntilGraphIsDoneCompiling(testGraphWindow);
 
             try
             {
