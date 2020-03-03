@@ -18,6 +18,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 2473.4
     min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4
@@ -61,6 +66,10 @@ MonoBehaviour:
   quality:
     m_OverrideState: 1
     m_Value: 3
+  threshold:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0
@@ -84,9 +93,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
     min: 0
-  prefilter:
-    m_OverrideState: 1
-    m_Value: 0
   anamorphic:
     m_OverrideState: 1
     m_Value: 1
@@ -135,6 +141,12 @@ MonoBehaviour:
   color:
     m_OverrideState: 1
     m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
@@ -193,3 +205,6 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  filter:
+    m_OverrideState: 0
+    m_Value: 0
