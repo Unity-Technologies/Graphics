@@ -55,7 +55,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 #endif
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS, input.clipPos);
 }
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)

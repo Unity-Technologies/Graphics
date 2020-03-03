@@ -458,7 +458,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
 #ifdef LIGHTMAP_ON
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI(lmName, shName, normalWSName, positionCS) SampleLightmap(lmName, normalWSName)
 #else
 #define SAMPLE_GI(lmName, shName, normalWSName, positionCS) SampleSHPixel(shName, normalWSName, positionCS)
 #endif

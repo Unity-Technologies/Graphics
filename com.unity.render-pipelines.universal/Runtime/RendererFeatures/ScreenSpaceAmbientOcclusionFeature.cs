@@ -161,8 +161,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
 
             var desc = GetStereoCompatibleDescriptor(m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, GraphicsFormat.R8G8B8A8_UNorm);
             
-            cmd.GetTemporaryRT(_TempRenderTexture1, desc, FilterMode.Bilinear);
-            cmd.GetTemporaryRT(_TempRenderTexture2, desc, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);
+            cmd.GetTemporaryRT(_TempRenderTexture2, desc, filterMode);
 
             /*RenderTextureDescriptor desc = GetStereoCompatibleDescriptor(m_Descriptor, m_Descriptor.width * downScaleDivider, m_Descriptor.height * downScaleDivider, m_Descriptor.graphicsFormat);
             cmd.GetTemporaryRT(_TempRenderTexture1, desc, filterMode);

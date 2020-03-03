@@ -26,9 +26,9 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             //PropertyField(m_DepthSource);
+            PropertyField(m_DownSample);
             PropertyField(m_Intensity);
             PropertyField(m_Radius);
-            PropertyField(m_DownSample);
             PropertyField(m_SampleCount);
         }
     }
