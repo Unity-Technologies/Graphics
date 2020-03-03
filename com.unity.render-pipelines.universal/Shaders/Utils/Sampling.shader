@@ -79,5 +79,30 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             }
             ENDHLSL
         }
+        // 1 - Read Framebuffer
+        Pass
+        {
+            Name "Framebuffer Fetch"
+            ZTest Off
+            ZWrite Off
+
+
+            HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma vertex Vertex
+            #pragma fragment FragFetch
+
+            UNITY_DECLARE_FRAMEBUFFER_INPUT(0, HALF);
+
+
+            half4 FragFetch(Varyings input) : SV_Target
+            {
+                half4 col = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS);
+                return col;
+            }
+            ENDHLSL
+        }
     }
 }

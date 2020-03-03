@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", new ShaderTagId("UniversalForwardOnly"), true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial, m_BlitMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
@@ -303,6 +303,9 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.ConfigureRenderPassDescriptor(cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.msaaSamples);
                 m_CopyColorPass.Setup(m_CameraColorTexture, m_OpaqueColor, downsamplingMethod);
                 m_CopyColorPass.Configure(cmd, cameraTargetDescriptor);
+
+                m_CopyColorPass.inputAttachments.Clear();
+                m_CopyColorPass.ConfigureInputAttachment(m_CameraColorTexture, 0);
                 m_CopyColorPass.ConfigureColorAttachment(m_OpaqueColor);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -523,8 +526,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             EnqueuePass(m_DeferredPass);
+
             //TODO: INVESTIGATE THIS
-           // EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            // EnqueuePass(m_RenderOpaqueForwardOnlyPass);
 
         }
 

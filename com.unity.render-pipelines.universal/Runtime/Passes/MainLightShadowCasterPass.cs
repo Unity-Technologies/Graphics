@@ -108,16 +108,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!success)
                     return false;
             }
-
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+                m_ShadowmapHeight, k_ShadowmapBufferBits);
             return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                m_ShadowmapHeight, k_ShadowmapBufferBits);
+
             m_MainLightShadowmap.identifier = new RenderTargetIdentifier(m_MainLightShadowmapTexture);
             ConfigureTarget(m_MainLightShadowmap);
+            ConfigureDepthAttachment(m_MainLightShadowmap);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

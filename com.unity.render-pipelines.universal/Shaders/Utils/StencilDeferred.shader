@@ -113,7 +113,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             d = d * 2.0 - 1.0;
             float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
             #if UNITY_UV_STARTS_AT_TOP
-//            posCS.y = -posCS.y;
+            posCS.y = -posCS.y;
             #endif
             float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
         #endif

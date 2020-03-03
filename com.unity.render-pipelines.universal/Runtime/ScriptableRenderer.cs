@@ -536,13 +536,6 @@ namespace UnityEngine.Rendering.Universal
                                 }
                             }
 
-                            if (rp.hasInputAttachment)
-                            {
-                                for (int i = 0; i < rp.inputAttachments.Count; i++)
-                                {
-                                    attachmentSet.Add(rp.inputAttachments[i].targetDescriptor);
-                                }
-                            }
                             if (rp.depthAttachment.targetDescriptor.graphicsFormat != GraphicsFormat.None)
                             {
 
