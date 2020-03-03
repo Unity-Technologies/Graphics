@@ -176,7 +176,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
 #ifdef TERRAIN_GBUFFER
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.clipPos);
 #else
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;

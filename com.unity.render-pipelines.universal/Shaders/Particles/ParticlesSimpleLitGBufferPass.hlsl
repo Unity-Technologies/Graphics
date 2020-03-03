@@ -188,7 +188,7 @@ FragmentOutput ParticlesLitGBufferFragment(VaryingsParticle input)
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.clipPos);
 
 }
 

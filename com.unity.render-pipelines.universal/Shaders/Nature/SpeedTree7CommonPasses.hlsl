@@ -155,7 +155,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
-        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit, input.clipPos);
     #else
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
         color.a = OutputAlpha(color.a);

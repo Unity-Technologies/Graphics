@@ -177,7 +177,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, input.clipPos);
 }
 
 #endif // UNIVERSAL_PARTICLES_GBUFFER_LIT_PASS_INCLUDED

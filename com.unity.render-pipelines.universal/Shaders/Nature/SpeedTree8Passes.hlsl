@@ -391,7 +391,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, input.interpolated.clipPos);
 
 #else
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);

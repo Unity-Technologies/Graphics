@@ -35,7 +35,7 @@ uint UnpackMaterialFlags(float packedMaterialFlags)
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
+FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode, float4 clipPos)
 {
 #if _GBUFFER_NORMALS_OCT
     float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
@@ -63,7 +63,7 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                      // GI              GI              GI              [not_available] (lighting buffer)
-    output.Depth = ComputeNormalizedDeviceCoordinatesWithZ(inputData.positionWS, UNITY_MATRIX_VP).z;
+    output.Depth = clipPos.z;//ComputeNormalizedDeviceCoordinatesWithZ(inputData.positionWS, UNITY_MATRIX_VP).z;
 
     return output;
 }
@@ -93,7 +93,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, float4 clipPos)
 {
 #if _GBUFFER_NORMALS_OCT
     float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
@@ -123,7 +123,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
-    output.Depth = ComputeNormalizedDeviceCoordinatesWithZ(inputData.positionWS, UNITY_MATRIX_VP).z;
+    output.Depth = clipPos.z;//ComputeNormalizedDeviceCoordinatesWithZ(inputData.positionWS, UNITY_MATRIX_VP).z;
 
     return output;
 }

@@ -232,6 +232,7 @@ namespace UnityEditor.Rendering.Universal
             requiredVaryings = new List<string>()
             {
                 "Varyings.positionWS",
+                "Varyings.positionCS",
                 "Varyings.normalWS",
                 "Varyings.tangentWS", //needed for vertex lighting
                 "Varyings.bitangentWS",
