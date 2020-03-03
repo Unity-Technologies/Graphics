@@ -135,9 +135,13 @@ float CheckPerspective(float x)
 // Reconstruct view-space position
 float3 ReconstructViewPos(float2 uv, float depth)
 {
+    float isFlipped = _ProjectionParams.x;
+    uv.y = lerp(1.0 - uv.y, uv.y, saturate(isFlipped));
+
 #if UNITY_REVERSED_Z
     depth = 1.0 - depth;
 #endif
+
     depth = 2.0 * depth - 1.0;
     return ComputeViewSpacePosition(uv, depth, unity_CameraInvProjection);
 }
@@ -252,13 +256,13 @@ float3 ReconstructNormal(float4 uv)
     float3 P  = ReconstructViewPos( c.xy,  c.z); 
     float3 P1 = ReconstructViewPos(p1.xy, p1.z);
     float3 P2 = ReconstructViewPos(p2.xy, p2.z);
-
+    
     // Use the cross product to calculate the normal...
-    return normalize(cross(P2 - P, P1 - P));
+    return normalize(cross(P1 - P, P2 - P)) * float3(-1 * isFlipped, -1, -1 * isFlipped);
 }
 
 // Calculates the normals from a texture sample
-float3 CalculateNormalFromTextureSample(float4 textureValue, float4 positionCS)
+float3 CalculateNormalFromTextureSample(float4 textureValue, float4 uv)
 {
     // Deferred...
     #if defined(SOURCE_GBUFFER)
@@ -278,7 +282,7 @@ float3 CalculateNormalFromTextureSample(float4 textureValue, float4 positionCS)
 
     // Forward with Depth texture
     #else
-        return ReconstructNormal(positionCS);
+        return ReconstructNormal(uv);
     #endif
 }
 
@@ -325,19 +329,19 @@ float SampleDepth(float2 uv)
 }
 
 // Samples a texture for normals
-float3 SampleNormal(float2 uv, float4 positionCS)
+float3 SampleNormal(float4 uv)
 {
     // Deferred
     #if defined(SOURCE_GBUFFER)
-        return CalculateNormalFromTextureSample(SampleTexture(uv), float4(0.0,0.0, 0.0, 0.0));
+        return CalculateNormalFromTextureSample(SampleTexture(uv.xy), float4(0.0,0.0, 0.0, 0.0));
 
     // Forward with DepthNormals texture...
     #elif defined(SOURCE_DEPTH_NORMALS)
-        return CalculateNormalFromTextureSample(SampleTexture(uv), float4(0.0, 0.0, 0.0, 0.0));
+        return CalculateNormalFromTextureSample(SampleTexture(uv.xy), float4(0.0, 0.0, 0.0, 0.0));
 
     // Forward with Depth texture
     #else
-        return ReconstructNormal(positionCS);
+        return ReconstructNormal(uv);
     #endif
 }
 
@@ -357,7 +361,7 @@ float4 SSAO(Varyings input) : SV_Target
     float depth_o = CalculateDepthFromTextureSample(textureVal, uv.xy);
     
     // Reconstruct the view-space position.
-    float3 vpos_o = ReconstructViewPos(uv, depth_o);
+    float3 vpos_o = ReconstructViewPos(uv.xy, depth_o);
 
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
@@ -424,7 +428,7 @@ float4 FragBlur(Varyings input) : SV_Target
         half4 p3b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 3.2307692308);
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(uv.xy, uv);
+            half3 n0 = SampleNormal(uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
@@ -456,7 +460,7 @@ float4 FragBlur(Varyings input) : SV_Target
         half4 p2b = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv.xy + delta * 3.2307692308);
 
         #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            half3 n0 = SampleNormal(uv.xy, uv);
+            half3 n0 = SampleNormal(uv);
         #else
             half3 n0 = GetPackedNormal(p0);
         #endif
