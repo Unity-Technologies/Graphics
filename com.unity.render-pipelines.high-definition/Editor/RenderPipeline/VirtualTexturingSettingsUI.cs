@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -194,10 +195,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (formatGroups.ContainsKey(formatString))
                     {
                         List<string> possibleChannelTransforms = formatGroups[formatString];
+                        possibleChannelTransforms.Add(channelTransformString);
+                        possibleChannelTransforms.Sort();
+
                         foreach (string possibleChannelTransform in possibleChannelTransforms)
                         {
                             string localChannelTransform = possibleChannelTransform;
-                            menu.AddItem(new GUIContent(localChannelTransform), false, () =>
+                            menu.AddItem(new GUIContent(localChannelTransform), localChannelTransform == channelTransformString, () =>
                             {
                                 GraphicsFormat format = FormatAndChannelTransformStringToGraphicsFormat(formatString, localChannelTransform);
                                 cacheSizeOverrideProperty.FindPropertyRelative("format").intValue = (int)format;
@@ -205,8 +209,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             });
                         }
                     }
-                    // Already selected so nothing needs to happen.
-                    menu.AddItem(new GUIContent(channelTransformString), true, () => { });
                     menu.ShowAsContext();
                 }
 
