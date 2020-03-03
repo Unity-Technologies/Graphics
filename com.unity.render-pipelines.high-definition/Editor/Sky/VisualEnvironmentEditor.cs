@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (m_SkyType.value.intValue != 0)
                 EditorGUILayout.HelpBox("You need to also add a Volume Component matching the selected type.", MessageType.Info);
-            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
+            PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode", "Specifies how the global ambient probe is computed. Dynamic will use the currently displayed sky and static will use the sky setup in the environment lighting panel."));
 
             var staticLightingSky = SkyManager.GetStaticLightingSky();
             if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)

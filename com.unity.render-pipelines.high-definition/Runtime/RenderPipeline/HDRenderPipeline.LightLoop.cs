@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var ssrBlackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), HDShaderIDs._SsrLightingTexture);
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+            if (!hdCamera.IsSSREnabled())
                 return ssrBlackTexture;
 
             TextureHandle result;

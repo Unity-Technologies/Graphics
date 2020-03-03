@@ -129,7 +129,15 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             DrawGUI();
             if (EditorGUI.EndChangeCheck())
+            {
                 m_SerializedActiveSceneLightingSky.Apply();
+                var hdrp = HDRenderPipeline.currentPipeline;
+                if (hdrp != null)
+                {
+                    hdrp.RequestStaticSkyUpdate();
+                    SceneView.RepaintAll();
+                }
+            }
         }
 
         void DrawGUI()
@@ -148,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             line.yMax += 4;
 
             toggleValue = EditorGUI.Foldout(line, toggleValue, EditorGUIUtility.TrTextContent("Environment (HDRP)", "Sky lighting environment for active Scene"), Styles.headerStyle);
-            
+
             EditorGUI.DrawRect(line, EditorGUIUtility.isProSkin
                 ? new Color(1f, 1f, 1f, 0.03f)
                 : new Color(1f, 1f, 1f, 0.2f));

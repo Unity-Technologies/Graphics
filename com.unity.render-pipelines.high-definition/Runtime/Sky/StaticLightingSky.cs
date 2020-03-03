@@ -114,11 +114,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // As such, it may contain values that are not actually overridden
                 // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
                 // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
+                // Also, a default profile might be set in the HDRP project settings, this volume is applied by default to all the scene so it should also be taken into account here.
 
                 // Create an instance with default values
                 m_SkySettings = (SkySettings)ScriptableObject.CreateInstance(skyType);
                 var newSkyParameters = m_SkySettings.parameters;
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
+
+                var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
+                var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.
                 if (profileSkyParameters == null)
@@ -133,6 +138,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (profileSkyParameters[i].overrideState == true)
                     {
                         newSkyParameters[i].SetValue(profileSkyParameters[i]);
+                    }
+                    // Fallback to the default profile if values are overridden in there.
+                    else if (defaultSkyParameters != null && defaultSkyParameters[i].overrideState == true)
+                    {
+                        newSkyParameters[i].SetValue(defaultSkyParameters[i]);
                     }
                 }
 
