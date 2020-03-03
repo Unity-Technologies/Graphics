@@ -29,11 +29,11 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        [ToogleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
+        [ToggleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
-        [HideInInspector] _Smoothness("SMoothness", Float) = 0.5
+        [HideInInspector] _Smoothness("Smoothness", Float) = 0.5
 
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
