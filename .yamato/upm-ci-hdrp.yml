@@ -234,6 +234,8 @@ All_{{ project.name }}_{{ editor.version }}:
   {% endif %}
   {% endfor %}
 
+  {%elsif platform.name == "Linux" and testplatform.name == "playmode XR" %}
+  #skip
   {% else %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
       rerun: {{ editor.rerun_strategy }}
