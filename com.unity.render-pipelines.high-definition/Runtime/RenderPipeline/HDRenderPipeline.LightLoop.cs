@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
-                    // WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
+                    // TODO RENDERGRAPH WARNING: Note that the three sets of variables are bound here, but it should be handled differently.
                     PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
                     PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
@@ -267,7 +267,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO RENDERGRAPH
             //var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
+            //bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            //if (usesRaytracedReflections)
             //{
             //    hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
             //    RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
@@ -303,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
                         var res = context.resources;
-                        RenderSSR(data.parameters,
+                        RenderSSR(  data.parameters,
                                     res.GetTexture(data.depthPyramid),
                                     res.GetTexture(data.hitPointsTexture),
                                     res.GetTexture(data.stencilBuffer),
@@ -322,6 +323,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     result = ssrBlackTexture;
                 }
             }
+
+            // TODO RENDERGRAPH
+            //cmd.SetGlobalInt(HDShaderIDs._UseRayTracedReflections, usesRaytracedReflections ? 1 : 0);
 
             PushFullScreenDebugTexture(renderGraph, result, FullScreenDebugMode.ScreenSpaceReflections);
             return result;
@@ -412,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
                     {
-                        VolumeVoxelizationPass(data.parameters,
+                        VolumeVoxelizationPass( data.parameters,
                                                 ctx.resources.GetTexture(data.densityBuffer),
                                                 data.visibleVolumeBoundsBuffer,
                                                 data.visibleVolumeDataBuffer,

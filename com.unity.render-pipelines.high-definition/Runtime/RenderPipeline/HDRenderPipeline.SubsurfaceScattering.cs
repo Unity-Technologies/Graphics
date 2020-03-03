@@ -33,10 +33,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
-            in LightingBuffers lightingBuffers, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
+            in LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
+
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+
+            TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
+            TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {

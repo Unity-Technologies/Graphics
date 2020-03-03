@@ -2120,8 +2120,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     haveAsyncTaskWithShadows = true;
 
-                void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
-                        => RenderSSR(a.hdCamera, c, a.renderContext);
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
+                            => RenderSSR(a.hdCamera, c, a.renderContext);
                 }
 
                 if (hdCamera.frameSettings.SSAORunsAsync())
@@ -2186,14 +2186,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!hdCamera.frameSettings.SSAORunsAsync())
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_FrameCount);
 
-                // Run the contact shadows here as they the light list
-                    HDUtils.CheckRTCreated(m_ContactShadowBuffer);
-                    RenderContactShadows(hdCamera, cmd);
-                    PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
+                // Run the contact shadows here as they need the light list
+                HDUtils.CheckRTCreated(m_ContactShadowBuffer);
+                RenderContactShadows(hdCamera, cmd);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
 
-                    hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
-                    RenderScreenSpaceShadows(hdCamera, cmd);
-                    hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
+                hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
+                RenderScreenSpaceShadows(hdCamera, cmd);
+                hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
@@ -2236,12 +2236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, GetSSSBufferMSAA(), GetSSSBuffer());
 
-                if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                {
-                    // We need htile for SSS, but we don't need to resolve again
-                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
-                }
-
                 // SSS pass here handle both SSS material from deferred and forward
                 RenderSubsurfaceScattering(hdCamera, cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
                                            m_CameraSssDiffuseLightingBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetDepthTexture());
@@ -2259,12 +2253,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ClearStencilBuffer(hdCamera, cmd);
 
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
-
-                if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
-                {
-                    // We need htile for SSS, but we don't need to resolve again
-                    BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
-                }
 
                 RenderSSRTransparent(hdCamera, cmd, renderContext);
 
@@ -3891,6 +3879,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentSSR))
                 return;
+
+            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
 
             // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
             // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects

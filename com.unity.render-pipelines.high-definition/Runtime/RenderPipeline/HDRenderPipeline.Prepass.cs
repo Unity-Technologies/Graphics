@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO RENDERGRAPH / Probably need to move this somewhere else.
                 //RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
 
-                ResolveStencilBufferIfNeeded(renderGraph, hdCamera, ref result);
+                BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref result);
             }
 
             return result;
@@ -510,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseStencilBuffer;
         }
 
-        void ResolveStencilBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
+        void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
             {
