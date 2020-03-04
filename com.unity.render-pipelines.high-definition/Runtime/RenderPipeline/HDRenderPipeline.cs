@@ -26,7 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition
         static HDRenderPipeline()
         {
 #if UNITY_EDITOR
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
+                if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
+                {
+                    CoreUtils.Destroy(s_DefaultVolume.gameObject);
+                    s_DefaultVolume = null;
+                }
             };
 #endif
         }
@@ -281,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RENDER GRAPH
         RenderGraph             m_RenderGraph;
+
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
 
@@ -288,11 +295,10 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_RayTracingSupported = false;
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
+
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
 #endif
-
-
 
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
@@ -433,6 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
 //forest-end:
 
             // Keep track of the original msaa sample value
+            // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
             // Propagate it to the debug menu
@@ -1697,6 +1704,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             target.id = m_TemporaryTargetForCubemaps;
                         }
 
+
                         // var aovRequestIndex = 0;
                         foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                         {
@@ -2186,7 +2194,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
                 RenderDeferredLighting(hdCamera, cmd);
-
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2755,6 +2762,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var result = new RendererListDesc(passNames, cull, camera)
             {
+                rendererConfiguration = rendererConfiguration,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
 //forest-begin: customizable sorting flags
                 sortingCriteria = sortFlags,
@@ -2772,7 +2780,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShaderTagId passName,
             PerObjectData rendererConfiguration = 0,
 //forest-begin: customizable sorting flags
-			SortingCriteria sortFlags = SortingCriteria.CommonTransparent,
+			SortingCriteria sortFlags = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority,
 //forest-end:
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
@@ -2800,7 +2808,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShaderTagId[] passNames,
             PerObjectData rendererConfiguration = 0,
 //forest-begin: customizable sorting flags
-			SortingCriteria sortFlags = SortingCriteria.CommonTransparent,
+			SortingCriteria sortFlags = SortingCriteria.CommonTransparent | SortingCriteria.RendererPriority,
 //forest-end:
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
@@ -3053,11 +3061,10 @@ namespace UnityEngine.Rendering.HighDefinition
 				}
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 //forest-end:
-                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting));
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 //forest-begin: customizable sorting flags 
-                //MERGE-TODO RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, hdCamera.frameSettings.sortFlagsGBuffer, HDRenderQueue.k_RenderQueue_AllOpaque);
+                var rendererList = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting, hdCamera.frameSettings.sortFlagsGBuffer));
 //forest-end:
+                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererList);
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
@@ -3482,6 +3489,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CurrentRendererConfigurationBakedLighting |= PerObjectData.MotionVectors; // This will enable the flag for low res transparent as well
             }
+
             var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
 //forest-begin: customizable sorting flags
             return CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting,sortFlags: hdCamera.frameSettings.sortFlagsForward, transparentRange);
@@ -4387,15 +4395,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
                 var opaqueRendererList = RendererList.Create(CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque));
                 DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, opaqueRendererList);
-//forest-begin: customizable sorting flags //MERGE-TODO:
-                //RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_ForwardOnlyName, 0, SortingCriteria.CommonOpaque, HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque);
-//forest-end:
                 // Setup off-screen transparency here
                 var transparentRendererList = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, transparentRendererList);
-//forest-begin: customizable sorting flags //MERGE-TODO:
-                //RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_ForwardOnlyName, 0, SortingCriteria.CommonTransparent, HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent);
-//forest-end:
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
             }
         }
