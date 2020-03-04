@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || camera.cameraType == CameraType.SceneView;
 #endif
 
+            RenderGraphMutableResource backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
             RenderGraphMutableResource colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
             RenderGraphMutableResource currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain), HDShaderIDs._ColorPyramidTexture);
 
@@ -165,25 +166,44 @@ namespace UnityEngine.Rendering.HighDefinition
 
             aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
 
-            //RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
+            RenderGraphMutableResource postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, backBuffer, cullingResults, hdCamera);
+
+            // TODO RENDERGRAPH
+            //// Copy and rescale depth buffer for XR devices
+            //if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
+            //{
+            //    using (new ProfilingSample(cmd, "XR depth copy"))
+            //    {
+            //        var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
+            //        var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
+
+            //        m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
+            //        m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
+            //        m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
+
+            //        cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
+            //        cmd.SetViewport(hdCamera.finalViewport);
+            //        CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
+            //    }
+            //}
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            //if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
+            if (!HDUtils.PostProcessIsFinalPass(hdCamera) || aovRequest.isValid)
             {
                 hdCamera.ExecuteCaptureActions(m_RenderGraph, colorBuffer);
 
-                colorBuffer = RenderDebug(  m_RenderGraph,
-                                            hdCamera,
-                                            colorBuffer,
-                                            prepassOutput.depthBuffer,
-                                            prepassOutput.depthPyramidTexture,
-                                            m_DebugFullScreenTexture,
-                                            colorPickerTexture,
-                                            shadowResult,
-                                            cullingResults);
+                postProcessDest = RenderDebug(  m_RenderGraph,
+                                                hdCamera,
+                                                postProcessDest,
+                                                prepassOutput.depthBuffer,
+                                                prepassOutput.depthPyramidTexture,
+                                                m_DebugFullScreenTexture,
+                                                colorPickerTexture,
+                                                shadowResult,
+                                                cullingResults);
 
-                BlitFinalCameraTexture(m_RenderGraph, hdCamera, colorBuffer, target.id, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
+                BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
 
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, colorBuffer, aovBuffers);
             }
@@ -219,16 +239,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public BlitFinalCameraTextureParameters parameters;
             public RenderGraphResource              source;
-            public RenderTargetIdentifier           destination;
+            public RenderGraphMutableResource       destination;
         }
 
-        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource source, RenderTargetIdentifier destination, RenderGraphResource motionVectors, RenderGraphResource normalBuffer)
+        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource source, RenderGraphMutableResource destination, RenderGraphResource motionVectors, RenderGraphResource normalBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<FinalBlitPassData>("Final Blit (Dev Build Only)", out var passData))
             {
                 passData.parameters = PrepareFinalBlitParameters(hdCamera, 0); // todo viewIndex
                 passData.source = builder.ReadTexture(source);
-                passData.destination = destination;
+                passData.destination = builder.WriteTexture(destination);
 
                 // TODO REMOVE: Dummy read to avoid early release before render graph is full implemented.
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
@@ -240,7 +260,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (FinalBlitPassData data, RenderGraphContext context) =>
                 {
                     var sourceTexture = context.resources.GetTexture(data.source);
-                    BlitFinalCameraTexture(data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), sourceTexture, data.destination, context.cmd);
+                    var destinationTexture = context.resources.GetTexture(data.destination);
+                    BlitFinalCameraTexture(data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), sourceTexture, destinationTexture, context.cmd);
                 });
             }
         }

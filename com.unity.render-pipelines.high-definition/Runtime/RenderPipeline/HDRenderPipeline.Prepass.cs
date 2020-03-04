@@ -321,6 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public RenderGraphResource[] mrt;
             public int gBufferCount;
+            public int lightLayersTextureIndex;
         }
 
         void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, GBufferPassData passData, RenderGraphMutableResource sssBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
@@ -339,12 +340,13 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3" }, HDShaderIDs._GBufferTexture[3]), 3);
 
+            prepassOutput.gbuffer.lightLayersTextureIndex = -1;
             int currentIndex = 4;
             if (lightLayers)
             {
                 passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer, clearColor = Color.clear, name = "LightLayers" }, HDShaderIDs._LightLayersTexture), currentIndex);
-                currentIndex++;
+                prepassOutput.gbuffer.lightLayersTextureIndex = currentIndex++;
             }
             if (shadowMasks)
             {
@@ -514,7 +516,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 );
                 bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-
                 if (isMSAAEnabled)
                 {
                     output.stencilBuffer = passData.resolvedStencil;
