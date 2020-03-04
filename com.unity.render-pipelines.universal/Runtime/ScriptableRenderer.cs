@@ -240,6 +240,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize Camera Render State
             SetCameraRenderState(cmd, ref cameraData);
+            // Initialize Shader Quality
+            SetShaderQuality(cmd, renderingData.shaderQuality);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             
@@ -419,6 +421,28 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+        }
+
+        void SetShaderQuality(CommandBuffer cmd, ShaderQuality shaderQuality)
+        {
+            if (shaderQuality == ShaderQuality.High)
+            {
+                cmd.DisableShaderKeyword("SHADER_QUALITY_LOW");
+                cmd.DisableShaderKeyword("SHADER_QUALITY_MEDIUM");
+                cmd.EnableShaderKeyword("SHADER_QUALITY_HIGH");
+            }
+            else if (shaderQuality == ShaderQuality.Medium)
+            {
+                cmd.DisableShaderKeyword("SHADER_QUALITY_LOW");
+                cmd.EnableShaderKeyword("SHADER_QUALITY_MEDIUM");
+                cmd.DisableShaderKeyword("SHADER_QUALITY_HIGH");
+            }
+            else if (shaderQuality == ShaderQuality.Low)
+            {
+                cmd.EnableShaderKeyword("SHADER_QUALITY_LOW");
+                cmd.DisableShaderKeyword("SHADER_QUALITY_MEDIUM");
+                cmd.DisableShaderKeyword("SHADER_QUALITY_HIGH");
+            }
         }
 
         internal void Clear(CameraRenderType cameraType)

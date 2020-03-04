@@ -49,6 +49,13 @@ namespace UnityEngine.Rendering.Universal
         _8x = 8
     }
 
+    public enum ShaderQuality
+    {
+        Low,
+        Medium,
+        High
+    }
+
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum Downsampling
     {
         None,
@@ -128,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = false;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] ShaderQuality m_ShaderQuality = ShaderQuality.High;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -522,6 +530,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        public ShaderQuality shaderQuality
+        {
+            get { return m_ShaderQuality; }
+            set { m_ShaderQuality = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode

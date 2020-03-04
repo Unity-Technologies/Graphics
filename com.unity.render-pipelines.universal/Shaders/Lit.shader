@@ -104,6 +104,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile SHADER_QUALITY_LOW SHADER_QUALITY_MEDIUM SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords

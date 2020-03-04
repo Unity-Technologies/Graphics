@@ -69,7 +69,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.normalWS = NormalizeNormalPerPixel(output.normalWS);
 
-#if SHADER_HINT_NICE_QUALITY
+#if defined (SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
@@ -103,7 +103,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
-#if !SHADER_HINT_NICE_QUALITY
+#if !defined (SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 

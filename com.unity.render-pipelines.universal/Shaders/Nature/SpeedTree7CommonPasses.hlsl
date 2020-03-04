@@ -71,7 +71,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 
-    #if SHADER_HINT_NICE_QUALITY
+    #if defined (SHADER_QUALITY_HIGH)
         inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
     #endif
 

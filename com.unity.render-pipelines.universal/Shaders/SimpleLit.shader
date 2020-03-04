@@ -95,7 +95,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
-            #define BUMP_SCALE_NOT_SUPPORTED 1
+            #define BUMP_SCALE 0
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl"

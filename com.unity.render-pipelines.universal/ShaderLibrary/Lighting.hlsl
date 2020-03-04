@@ -10,11 +10,10 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
+    #if defined (SHADER_QUALITY_LOW) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #elif !SHADER_HINT_NICE_QUALITY
+    #elif defined (SHADER_QUALITY_MEDIUM)
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
@@ -57,7 +56,7 @@ float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
     // for directional lights attenuation will be 1
     float lightAtten = rcp(distanceSqr);
 
-#if SHADER_HINT_NICE_QUALITY
+#if defined (SHADER_QUALITY_HIGH)
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = distanceSqr * distanceAttenuation.x;
     half smoothFactor = saturate(1.0h - factor * factor);
@@ -467,18 +466,35 @@ half3 HackSampleSH(half3 normalWS)
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
+#if REFLECTION_PROBE
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+    half3 irradiance = half3(0.0, 0.0, 0.0);
+    // Blending Reflection Probes is disabled since there is a problem with the SRP Batcher not passing the data correctly in
+    // When this is fixed uncomment the lines in this function which are not supposed to be comments.
+//#if !BLEND_REFLECTION_PROBE
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-
 #if !defined(UNITY_USE_NATIVE_HDR)
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #else
-    half3 irradiance = encodedIrradiance.rbg;
+    irradiance = encodedIrradiance.rbg;
 #endif
-
+/*
+#else
+    half4 encodedIrradiance0 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+    half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
+#if !defined(UNITY_USE_NATIVE_HDR)
+    half3 irradiance0 = DecodeHDREnvironment(encodedIrradiance0, unity_SpecCube0_HDR);
+    half3 irradiance1 = DecodeHDREnvironment(encodedIrradiance1, unity_SpecCube1_HDR);
+    irradiance = irradiance0 * unity_SpecCube0_BoxMin.w + irradiance1 * (1 - unity_SpecCube0_BoxMin.w);
+#else
+    half4 encodedIrradiance = encodedIrradiance0 * unity_SpecCube0_BoxMin.w + encodedIrradiance1 * (1 - unity_SpecCube0_BoxMin.w);
+    irradiance = encodedIrradiance.rbg;
+#endif
+#endif*/
     return irradiance * occlusion;
-#endif // GLOSSY_REFLECTIONS
-
+#endif
+#endif
+    // GLOSSY_REFLECTIONS
     return _GlossyEnvironmentColor.rgb * occlusion;
 }
 

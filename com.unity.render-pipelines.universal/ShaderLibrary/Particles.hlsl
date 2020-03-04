@@ -100,7 +100,7 @@ half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler
 {
 #if defined(_NORMALMAP)
     half4 n = BlendTexture(TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), uv, blendUv);
-    #if BUMP_SCALE_NOT_SUPPORTED
+    #if !BUMP_SCALE
         return UnpackNormal(n);
     #else
         return UnpackNormalScale(n, scale);

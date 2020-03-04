@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
+            public static GUIContent shaderQualityText = EditorGUIUtility.TrTextContent("Shader Quality", "Controls the Shader features.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_HDR;
         SerializedProperty m_MSAA;
         SerializedProperty m_RenderScale;
+        SerializedProperty m_ShaderQuality;
 
         SerializedProperty m_MainLightRenderingModeProp;
         SerializedProperty m_MainLightShadowsSupportedProp;
@@ -170,6 +172,7 @@ namespace UnityEditor.Rendering.Universal
             m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
+            m_ShaderQuality = serializedObject.FindProperty("m_ShaderQuality");
 
             m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
@@ -247,6 +250,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.BeginDisabledGroup(XRGraphics.enabled);
                 m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
                 EditorGUI.EndDisabledGroup();
+                EditorGUILayout.PropertyField(m_ShaderQuality, Styles.shaderQualityText);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

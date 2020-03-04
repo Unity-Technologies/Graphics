@@ -133,6 +133,7 @@ CBUFFER_START(UnityPerDraw : register(b0))
 
     // HDR environment map decode instructions
     half4 unity_SpecCube0_HDR;
+    half4 unity_SpecCube1_HDR;
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
@@ -223,7 +224,10 @@ TEXTURE2D(unity_DynamicDirectionality);
 
 // Default reflection probe
 TEXTURECUBE(unity_SpecCube0);
+TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube0);
+SAMPLER(samplerunity_SpecCube1);
+real4 unity_SpecCube0_BoxMin;
 
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);

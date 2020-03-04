@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
+        public ShaderQuality shaderQuality;
 
         /// <summary>
         /// True if post-processing effect is enabled while rendering the camera stack.

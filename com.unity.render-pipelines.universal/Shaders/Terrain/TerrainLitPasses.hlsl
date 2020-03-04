@@ -87,7 +87,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     SH = IN.vertexSH;
 #endif
 
-#if SHADER_HINT_NICE_QUALITY
+#if defined (SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
@@ -262,7 +262,7 @@ Varyings SplatmapVert(Attributes v)
 #endif
 
     half3 viewDirWS = GetCameraPositionWS() - Attributes.positionWS;
-#if !SHADER_HINT_NICE_QUALITY
+#if !defined (SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
