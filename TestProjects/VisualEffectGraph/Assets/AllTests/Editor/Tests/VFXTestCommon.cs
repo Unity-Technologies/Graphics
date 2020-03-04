@@ -9,11 +9,44 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 
-
 namespace UnityEditor.VFX.Test
 {
-    public class VFXTestCommon
+    class VFXTestCommon
     {
+        static List<string> s_TemporaryFiles = new List<string>();
+        static readonly string tempFileFormat = "Assets/TmpTests/vfx_{0}.vfx";
+
+        public static VFXGraph MakeTemporaryGraph()
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid);
+            s_TemporaryFiles.Add(tempFilePath);
+            System.IO.Directory.CreateDirectory("Assets/TmpTests/");
+
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+            graph.visualEffectResource = resource;
+            return graph;
+        }
+
+        public static void DeleteAllTemporaryGraph()
+        {
+            var nextTemporaryFileList = new List<string>();
+            foreach (var file in s_TemporaryFiles)
+            {
+                try
+                {
+                    AssetDatabase.DeleteAsset(file);
+                }
+                catch (System.Exception) // Don't stop if we fail to delete one asset
+                {
+                    nextTemporaryFileList.Add(file);
+                }
+            }
+            s_TemporaryFiles = nextTemporaryFileList;
+        }
+
         public static U GetFieldValue<T, U>(T obj, string fieldName)
             where U : class
         {
