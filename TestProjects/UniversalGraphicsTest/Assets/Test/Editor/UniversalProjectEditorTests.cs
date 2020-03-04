@@ -12,8 +12,8 @@ public class UniversalProjectEditorTests
         GetUniversalAsset();
     }
 
-    [Test]
-    public void GetCurrentRenderer()
+    //[Test]
+    public void GetDefaultRenderer()
     {
         GetUniversalAsset();
 

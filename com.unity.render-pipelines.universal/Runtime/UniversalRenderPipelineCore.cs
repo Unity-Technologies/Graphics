@@ -194,6 +194,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
+        public static UniversalRenderPipelineAsset asset
+        {
+            get => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        }
+
+        /// <summary>
         /// Checks if a camera is rendering in MultiPass stereo mode.
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>

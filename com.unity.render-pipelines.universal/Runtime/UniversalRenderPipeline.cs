@@ -107,18 +107,6 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
-        /// <summary>
-        /// Returns the current render pipeline asset for the current quality setting.
-        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
-        /// </summary>
-        public static UniversalRenderPipelineAsset asset
-        {
-            get
-            {
-                return GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            }
-        }
-
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -154,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();

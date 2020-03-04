@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
 #endif
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -135,6 +136,7 @@ namespace UnityEngine.Rendering.Universal
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
+        ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 5;
@@ -142,12 +144,12 @@ namespace UnityEngine.Rendering.Universal
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
         [SerializeField] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
-        internal ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
-        [SerializeField] int m_DefaultRendererIndex = 0;
+        [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -225,8 +227,6 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
-            instance.m_Renderers = new ScriptableRenderer[1];
-            instance.m_Renderers[0] = instance.m_RendererDataList[0].InternalCreateRenderer();
             return instance;
         }
 
@@ -350,11 +350,42 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
-            if(m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
-                m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
-
-            m_Renderers[0] = m_RendererDataList[0].InternalCreateRenderer();
+            CreateRenderers();
             return new UniversalRenderPipeline(this);
+        }
+
+        void DestroyRenderers()
+        {
+            foreach (var renderer in m_Renderers)
+                renderer?.Dispose();
+        }
+
+        protected override void OnValidate()
+        {
+            DestroyRenderers();
+
+            // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
+            // assign pipeline asset reference to null
+            base.OnValidate();
+        }
+
+        protected override void OnDisable()
+        {
+            DestroyRenderers();
+
+            // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
+            // assign pipeline asset reference to null
+            base.OnDisable();
+        }
+
+        void CreateRenderers()
+        {
+            m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
+            for (int i = 0; i < m_RendererDataList.Length; ++i)
+            {
+                if (m_RendererDataList[i] != null)
+                    m_Renderers[i] = m_RendererDataList[i].InternalCreateRenderer();
+            }
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -387,6 +418,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// Returns the default renderer being used by this pipeline.
+        /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
             get
@@ -406,6 +440,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns a renderer from the current pipeline asset
+        /// </summary>
+        /// <param name="index">Index to the renderer. If invalid index is passed, the default renderer is returned instead.</param>
+        /// <returns></returns>
+        public ScriptableRenderer GetRenderer(int index)
+        {
+            if (index == -1)
+                index = m_DefaultRendererIndex;
+
+            if (index >= m_RendererDataList.Length || index < 0 || m_RendererDataList[index] == null)
+            {
+                Debug.LogWarning(
+                    $"Renderer at index {index.ToString()} is missing, falling back to Default Renderer {m_RendererDataList[m_DefaultRendererIndex].name}",
+                    this);
+                index = m_DefaultRendererIndex;
+            }
+
+            // RendererData list differs from RendererList. Create RendererList.
+            if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+                CreateRenderers();
+
+            // This renderer data is outdated or invalid, we recreate the renderer
+            // so we construct all render passes with the updated data
+            if (m_RendererDataList[index].isInvalidated || m_Renderers[index] == null)
+                m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
+
+            return m_Renderers[index];
+        }
+
         internal ScriptableRendererData scriptableRendererData
         {
             get
@@ -415,27 +479,6 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_RendererDataList[m_DefaultRendererIndex];
             }
-        }
-
-        internal ScriptableRenderer GetRenderer(int index)
-        {
-            if (index == -1) index = m_DefaultRendererIndex;
-
-            if (index >= m_RendererDataList.Length || index < 0 || m_RendererDataList[index] == null)
-            {
-                Debug.LogWarning(
-                    $"Renderer at index {index.ToString()} is missing, falling back to Default Renderer {m_RendererDataList[m_DefaultRendererIndex].name}",
-                    this);
-                    index = m_DefaultRendererIndex;
-            }
-
-            if(m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
-                m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
-
-            if ( m_RendererDataList[index].isInvalidated || m_Renderers[index] == null)
-                m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
-
-            return m_Renderers[index];
         }
 
 #if UNITY_EDITOR

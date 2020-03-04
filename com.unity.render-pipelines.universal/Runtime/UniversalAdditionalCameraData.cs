@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering;
 using System.ComponentModel;
 
 namespace UnityEngine.Rendering.LWRP
@@ -327,7 +328,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the <see cref="ScriptableRenderer"/> that is used to render this cameras.
+        /// Returns the <see cref="ScriptableRenderer"/> that is used to render this camera.
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {

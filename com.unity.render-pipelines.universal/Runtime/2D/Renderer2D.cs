@@ -21,16 +21,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         RenderTargetHandle m_AfterPostProcessColorHandle;
         RenderTargetHandle m_ColorGradingLutHandle;
 
+        Material m_BlitMaterial;
+
         Renderer2DData m_Renderer2DData;
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, blitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, blitMaterial);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
 #if POST_PROCESSING_STACK_2_0_0_OR_NEWER
             m_PostProcessPassCompat = new PostProcessPassCompat(RenderPassEvent.BeforeRenderingPostProcessing);
@@ -42,6 +45,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         public Renderer2DData GetRenderer2DData()
