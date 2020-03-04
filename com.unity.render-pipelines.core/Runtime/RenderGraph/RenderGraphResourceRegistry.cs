@@ -317,12 +317,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the RTHandle associated with the provided resource handle.
         /// </summary>
         /// <param name="handle">Handle to a texture resource.</param>
-        /// <returns>The RTHandle associated with the provided resource handle.</returns>
+        /// <returns>The RTHandle associated with the provided resource handle or null if the handle is invalid.</returns>
         public RTHandle GetTexture(in TextureHandle handle)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!handle.IsValid())
-                throw new InvalidOperationException("Trying to access a texture with an invalid handle.");
+                return null;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
 
             var res = m_TextureResources[handle];
 
@@ -339,13 +340,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the RendererList associated with the provided resource handle.
         /// </summary>
         /// <param name="handle">Handle to a Renderer List resource.</param>
-        /// <returns>The Renderer List associated with the provided resource handle.</returns>
+        /// <returns>The Renderer List associated with the provided resource handle or a null renderer list if the handle is invalid.</returns>
         public RendererList GetRendererList(in RendererListHandle handle)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!handle.IsValid())
-                throw new InvalidOperationException("Trying to access a Renderer List with an invalid handle.");
-#endif
+                return RendererList.nullRendererList;
+
             return m_RendererListResources[handle].rendererList;
         }
         #endregion
