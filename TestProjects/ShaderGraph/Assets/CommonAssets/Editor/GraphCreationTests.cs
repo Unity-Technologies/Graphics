@@ -25,8 +25,9 @@ using Object = UnityEngine.Object;
     internal class GraphCreationUtils
     {
 
-        private static readonly string testGraphLocation = "Assets/Testing/CreatedTestGraphs/";
-        private static readonly string testPrefix = "_Test_";
+        private static readonly string TestGraphLocation = "Assets/Testing/CreatedTestGraphs/";
+        private static readonly string TestPrefix = "_Test_";
+        private const float CompilationTimeout = 30f;
 
         public static void CloseAllOpenShaderGraphWindows()
         {
@@ -42,7 +43,7 @@ using Object = UnityEngine.Object;
             PreviewManager previewManager = graphEditorView.GetPrivateProperty<PreviewManager>("previewManager");
             List<PreviewRenderData> renderDatas = previewManager.GetPrivateField<List<PreviewRenderData>>("m_RenderDatas");
             bool allCompiled;
-
+            float startTime = Time.realtimeSinceStartup;
             do
             {
                 allCompiled = true;
@@ -66,6 +67,10 @@ using Object = UnityEngine.Object;
                             break;
                         }
                     }
+                }
+                if (Time.realtimeSinceStartup - startTime > CompilationTimeout)
+                {
+                    throw new TimeoutException("Graph took to long to compile");
                 }
                 yield return null;
             } while (!allCompiled);
@@ -106,7 +111,7 @@ using Object = UnityEngine.Object;
                 }
 
                 graphData.path = "Sub Graphs";
-                string outputPath = testGraphLocation + testPrefix + Path.GetFileNameWithoutExtension(basedOnGraph)
+                string outputPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(basedOnGraph)
                                   + '.' + ShaderSubGraphImporter.Extension;
                 FileUtilities.WriteShaderGraphToDisk(outputPath, graphData);
                 AssetDatabase.Refresh();
@@ -117,7 +122,7 @@ using Object = UnityEngine.Object;
             {
                 graphData.AddNode(rootNode);
                 graphData.path = "Shader Graphs";
-                string outputPath = testGraphLocation + testPrefix + Path.GetFileNameWithoutExtension(basedOnGraph)
+                string outputPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(basedOnGraph)
                                   + '.' + ShaderGraphImporter.Extension;
                 FileUtilities.WriteShaderGraphToDisk(outputPath, graphData);
                 AssetDatabase.Refresh();
@@ -160,12 +165,12 @@ using Object = UnityEngine.Object;
                 string testGraphPath;
                 if (graphObjectToCopy.graph.isSubGraph)
                 {
-                    testGraphPath = testGraphLocation + testPrefix + Path.GetFileNameWithoutExtension(assetPath)
+                    testGraphPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(assetPath)
                                   + '.' + ShaderSubGraphImporter.Extension;
                 }
                 else
                 {
-                    testGraphPath = testGraphLocation + testPrefix + Path.GetFileNameWithoutExtension(assetPath)
+                    testGraphPath = TestGraphLocation + TestPrefix + Path.GetFileNameWithoutExtension(assetPath)
                                   + '.' + ShaderGraphImporter.Extension;
                 }
 
