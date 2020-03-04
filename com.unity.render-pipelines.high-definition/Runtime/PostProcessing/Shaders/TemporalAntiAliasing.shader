@@ -199,8 +199,9 @@ Shader "Hidden/HDRP/TAA2"
             blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
 #endif
 
-            CTYPE finalColor;
+            blendFactor = max(blendFactor, 0.03);
 
+            CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
             finalColor.xyz = lerp(ReinhardToneMap(history), ReinhardToneMap(filteredColor), blendFactor);
             finalColor = InverseReinhardToneMap(finalColor);
