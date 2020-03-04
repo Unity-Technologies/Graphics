@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSDiffusionProfileUpdate[index] = settings.updateCount;
         }
 
-        void UpdateSubsurfaceScatteringShaderVars(bool transmissionEnabled, bool sssEnabled)
+        void UpdateSubsurfaceScatteringShaderVars(HDCamera hdCamera, bool transmissionEnabled, bool sssEnabled)
         {
             UpdateCurrentDiffusionProfileSettings(hdCamera);
 
@@ -245,9 +245,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateSubsurfaceScatteringConstantBuffer(bool transmissionEnabled, bool sssEnabled, CommandBuffer cmd)
+        void UpdateSubsurfaceScatteringConstantBuffer(HDCamera hdCamera, bool transmissionEnabled, bool sssEnabled, CommandBuffer cmd)
         {
-            UpdateSubsurfaceScatteringShaderVars(transmissionEnabled, sssEnabled);
+            UpdateSubsurfaceScatteringShaderVars(hdCamera, transmissionEnabled, sssEnabled);
             var vars = new ShaderVariablesSubsurfaceScattering[1];
             vars[0] = m_SSSShaderVars;
             cmd.SetComputeBufferData(m_SSSConstantBuffer, vars);
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushSubsurfaceScatteringGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            UpdateSubsurfaceScatteringConstantBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission), hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering), cmd);
+            UpdateSubsurfaceScatteringConstantBuffer(hdCamera, hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission), hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering), cmd);
             cmd.SetGlobalConstantBuffer(m_SSSConstantBuffer, HDShaderIDs.ShaderVariablesSubSurfaceScattering, 0, m_SSSConstantBuffer.stride);
         }
 
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, resources.diffuseBuffer);
             cmd.SetComputeTextureParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._SSSBufferTexture, resources.sssBuffer);
-            UpdateSubsurfaceScatteringConstantBuffer(true, true, cmd); // TODO: force enable transmission and sss, seems unused in the compute shader
+            //UpdateSubsurfaceScatteringConstantBuffer(true, true, cmd); // TODO: force enable transmission and sss, seems unused in the compute shader
             cmd.SetComputeConstantBufferParam(parameters.subsurfaceScatteringCS, HDShaderIDs.ShaderVariablesSubSurfaceScattering, m_SSSConstantBuffer, 0, m_SSSConstantBuffer.stride);
 
             cmd.SetComputeBufferParam(parameters.subsurfaceScatteringCS, parameters.subsurfaceScatteringCSKernel, HDShaderIDs._CoarseStencilBuffer, resources.coarseStencilBuffer);

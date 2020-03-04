@@ -96,7 +96,6 @@ namespace UnityEngine.Rendering
         public bool omitStructDeclaration;
         public bool generateCBuffer; // Whether to generate a cbuffer declaration or not
 
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1, bool omitStructDeclaration = false, bool containsPackedFields = false)
         /// <summary>
         /// GenerateHLSL attribute constructor.
         /// </summary>
